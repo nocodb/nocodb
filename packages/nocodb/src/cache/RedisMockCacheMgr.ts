@@ -90,6 +90,39 @@ export default class RedisMockCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
+  async setExpiring(key: string, value: any, seconds: number): Promise<any> {
+    if (typeof value !== 'undefined' && value) {
+      log(
+        `RedisMockCacheMgr::setExpiring: setting key ${key} with value ${value} for ${seconds} seconds`,
+      );
+
+      // TODO: better way to handle expiration in mock redis
+      setTimeout(() => {
+        this.del(key);
+      }, seconds * 1000);
+
+      if (typeof value === 'object') {
+        if (Array.isArray(value) && value.length) {
+          return this.client.sadd(key, value);
+        }
+        return this.client.set(
+          key,
+          JSON.stringify(value, this.getCircularReplacer()),
+        );
+      }
+      return this.client.set(key, value);
+    } else {
+      log(`RedisMockCacheMgr::set: value is empty for ${key}. Skipping ...`);
+      return Promise.resolve(true);
+    }
+  }
+
+  // @ts-ignore
+  async incrby(key: string, value = 1): Promise<any> {
+    return this.client.incrby(key, value);
+  }
+
+  // @ts-ignore
   async getAll(pattern: string): Promise<any> {
     return this.client.hgetall(pattern);
   }
@@ -123,7 +156,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   }> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
-    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const key =
       subKeys.length === 0
         ? `${this.prefix}:${scope}:list`
@@ -156,7 +189,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
     // construct key for List
-    // e.g. nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
+    // e.g. nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const listKey =
       subListKeys.length === 0
         ? `${this.prefix}:${scope}:list`
@@ -237,7 +270,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
   ): Promise<boolean> {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
-    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const listKey =
       subListKeys.length === 0
         ? `${this.prefix}:${scope}:list`

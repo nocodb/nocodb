@@ -40,7 +40,7 @@ const encodedSummary = computed(() => encodeURIComponent(summary || summaryArr[M
 const fbHashTags = computed(() => hashTags && `%23${hashTags}`)
 
 const openUrl = (url: string) => {
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 </script>
 

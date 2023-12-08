@@ -2,16 +2,14 @@
 import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+
 import type { SelectProps } from 'ant-design-vue'
-import FieldsIcon from '~icons/nc-icons/fields'
 
 import {
   ActiveViewInj,
   FieldsInj,
   IsLockedInj,
   IsPublicInj,
-  MetaInj,
-  ReloadViewDataHookInj,
   computed,
   iconMap,
   inject,
@@ -21,17 +19,15 @@ import {
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
-  useViewColumns,
+  useViewColumnsOrThrow,
   watch,
 } from '#imports'
 
-const meta = inject(MetaInj, ref())
-
 const activeView = inject(ActiveViewInj, ref())
 
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
 
@@ -55,7 +51,7 @@ const {
   metaColumnById,
   loadViewColumns,
   toggleFieldVisibility,
-} = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+} = useViewColumnsOrThrow()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -85,7 +81,7 @@ const gridDisplayValueField = computed(() => {
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
 })
 
-const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
   // todo : sync with server
   if (!fields.value) return
 
@@ -125,12 +121,17 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }, undo 
 
   if (fields.value.length < 2) return
 
-  fields.value.forEach((field, index) => {
-    if (field.order !== index + 1) {
-      field.order = index + 1
-      saveOrUpdate(field, index)
-    }
-  })
+  await Promise.all(
+    fields.value.map(async (field, index) => {
+      if (field.order !== index + 1) {
+        field.order = index + 1
+        await saveOrUpdate(field, index, true)
+      }
+    }),
+  )
+
+  await loadViewColumns()
+  reloadViewDataHook?.trigger()
 
   $e('a:fields:reorder')
 }
@@ -300,7 +301,7 @@ useMenuCloseOnEsc(open)
             icon="creditCard"
             class="h-4 w-4"
           />
-          <FieldsIcon v-else class="h-4 w-4" />
+          <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
@@ -322,7 +323,7 @@ useMenuCloseOnEsc(open)
       <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex flex-col gap-y-2 pr-6 mb-6"
+          class="flex flex-col gap-y-2 pr-4 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>
           <a-select
@@ -336,17 +337,17 @@ useMenuCloseOnEsc(open)
           </a-select>
         </div>
 
-        <div class="pr-6" @click.stop>
+        <div class="pr-4" @click.stop>
           <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
             <template #prefix> <img src="~/assets/nc-icons/search.svg" class="h-3.5 w-3.5 mr-1" /> </template
           ></a-input>
         </div>
 
-        <div v-if="!filterQuery" class="pr-6">
+        <div v-if="!filterQuery" class="pr-4">
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col py-1 nc-scrollbar-md max-h-[47.5vh] pr-5">
+        <div class="flex flex-col my-1.5 nc-scrollbar-md max-h-[47.5vh] pr-3">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
@@ -363,14 +364,14 @@ useMenuCloseOnEsc(open)
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-md last:rounded-b-md border-gray-200"
+                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center justify-between w-full cursor-pointer ml-1"
+                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1"
                     @click="
                       () => {
                         field.show = !field.show
@@ -378,10 +379,13 @@ useMenuCloseOnEsc(open)
                       }
                     "
                   >
-                    <div class="flex items-center -ml-0.75">
-                      <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                      <span class="mt-0.65">{{ field.title }}</span>
-                    </div>
+                    <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                    <NcTooltip show-on-truncate-only class="flex-1 px-1 truncate">
+                      <template #title>
+                        {{ field.title }}
+                      </template>
+                      <template #default>{{ field.title }}</template>
+                    </NcTooltip>
 
                     <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
                   </div>
@@ -393,32 +397,27 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.5 pr-2.1 py-1.9 flex flex-row items-center border-1 rounded-t-lg border-gray-200"
+                  class="pl-7.4 pr-2 py-2 flex flex-row items-center border-1 border-gray-200"
+                  :class="{
+                    'rounded-t-lg': filteredFieldList.length > 1,
+                    'rounded-lg': filteredFieldList.length === 1,
+                  }"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                   @click.stop
                 >
-                  <div class="flex flex-row items-center justify-between w-full">
-                    <div class="flex items">
-                      <a-tooltip placement="bottom">
-                        <template #title>
-                          <span class="text-sm">$t('title.displayValue') </span>
-                        </template>
-                      </a-tooltip>
+                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+                  <NcTooltip show-on-truncate-only class="px-1 flex-1 truncate">
+                    <template #title>{{ filteredFieldList[0].title }}</template>
+                    <template #default>{{ filteredFieldList[0].title }}</template>
+                  </NcTooltip>
 
-                      <div class="flex items-center">
-                        <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-
-                        <span>{{ filteredFieldList[0].title }}</span>
-                      </div>
-                    </div>
-                    <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
-                  </div>
+                  <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
                 </div>
               </template>
             </Draggable>
           </div>
         </div>
-        <div class="flex pr-6 mt-1 gap-2">
+        <div class="flex pr-4 mt-1 gap-2">
           <NcButton
             v-if="!filterQuery"
             type="ghost"

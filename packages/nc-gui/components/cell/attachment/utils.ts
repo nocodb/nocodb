@@ -17,10 +17,10 @@ import {
   storeToRefs,
   useApi,
   useAttachment,
+  useBase,
   useFileDialog,
   useI18n,
   useInjectionState,
-  useProject,
   watch,
 } from '#imports'
 import MdiPdfBox from '~icons/mdi/pdf-box'
@@ -32,6 +32,8 @@ import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
+
+    const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
 
@@ -53,15 +55,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
-    const { project } = storeToRefs(useProject())
+    const { base } = storeToRefs(useBase())
 
     const { api, isLoading } = useApi()
 
     const { files, open } = useFileDialog()
 
     const { appInfo } = useGlobal()
-
-    const { t } = useI18n()
 
     const { getAttachmentSrc } = useAttachment()
 
@@ -138,7 +138,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             continue
           }
         }
-
+        // this prevent file with same names
+        const isFileNameAlreadyExist = attachments.value.some((el) => el.title === file.name)
+        if (isFileNameAlreadyExist) {
+          message.error(
+            t('labels.duplicateAttachment', {
+              filename: file.name,
+            }),
+          )
+          return
+        }
         files.push(file)
       }
 
@@ -182,11 +191,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       try {
         const data = await api.storage.upload(
           {
-            path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
+            path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
           },
           {
             files,
-            json: '{}',
           },
         )
         newAttachments.push(...data)

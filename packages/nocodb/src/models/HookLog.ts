@@ -6,8 +6,8 @@ import { MetaTable } from '~/utils/globals';
 
 export default class HookLog implements HookLogType {
   id?: string;
+  source_id?: string;
   base_id?: string;
-  project_id?: string;
   fk_hook_id?: string;
   type?: string;
   event?: HookLogType['event'];
@@ -67,8 +67,8 @@ export default class HookLog implements HookLogType {
       return;
     }
     const insertObj: any = extractProps(hookLog, [
+      'source_id',
       'base_id',
-      'project_id',
       'fk_hook_id',
       'type',
       'event',
@@ -85,10 +85,10 @@ export default class HookLog implements HookLogType {
       'triggered_by',
     ]);
 
-    if (!(hookLog.project_id && hookLog.base_id) && hookLog.fk_hook_id) {
+    if (!(hookLog.base_id && hookLog.source_id) && hookLog.fk_hook_id) {
       const hook = await Hook.get(hookLog.fk_hook_id, ncMeta);
-      insertObj.project_id = hook.project_id;
       insertObj.base_id = hook.base_id;
+      insertObj.source_id = hook.source_id;
     }
 
     if (typeof insertObj.notification === 'object') {

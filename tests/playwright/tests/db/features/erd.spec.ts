@@ -10,7 +10,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { isMysql, isPg, isSqlite } from '../../../setup/db';
 
-// Global ERD to be enabled after project-menu landing page is implemented
+// Global ERD to be enabled after base-menu landing page is implemented
 test.describe('Erd', () => {
   let dashboard: DashboardPage;
   let context: any;
@@ -20,7 +20,7 @@ test.describe('Erd', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     if (isPg(context)) {
       sakilaTables = pgSakilaTables;
@@ -39,14 +39,14 @@ test.describe('Erd', () => {
   });
 
   const toggleMM = async () => {
-    await dashboard.treeView.projectSettings({ title: context.project.title });
+    await dashboard.treeView.baseSettings({ title: context.base.title });
     await dashboard.settings.miscellaneous.clickShowM2MTables();
     await dashboard.settings.close();
   };
 
   const openProjectErd = async () => {
-    await dashboard.projectView.tab_dataSources.click();
-    await dashboard.projectView.dataSources.openERD({ rowIndex: 0 });
+    await dashboard.baseView.tab_dataSources.click();
+    await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
   };
 
   const openErdOfATable = async (tableName: string) => {
@@ -60,6 +60,8 @@ test.describe('Erd', () => {
     await openProjectErd();
 
     const erd = dashboard.details.relations;
+
+    await erd.clickShowColumnNames();
 
     if (isPg(context)) {
       await erd.verifyNodesCount(sakilaTables.length);
@@ -181,7 +183,6 @@ test.describe('Erd', () => {
     await openErdOfATable('Country');
     const erd = dashboard.details.relations;
 
-    await erd.clickShowColumnNames();
     // Verify tables with default config
     await erd.verifyColumns({
       tableName: `country`,
@@ -224,7 +225,6 @@ test.describe('Erd', () => {
     // Verify
     await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
-    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,
@@ -245,7 +245,6 @@ test.describe('Erd', () => {
     // Verify
     await dashboard.grid.topbar.btn_details.click();
     await openErdOfATable('Country');
-    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,
@@ -277,9 +276,9 @@ test.describe('Erd', () => {
     await dashboard.details.relations.close();
 
     // Create table and verify ERD
-    await dashboard.treeView.createTable({ title: 'Test', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
     // Verify in Settings ERD and table ERD
-    await dashboard.treeView.openProject({ title: context.project.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
     await openProjectErd();
     await dashboard.details.relations.verifyNode({
       tableName: `Test`,

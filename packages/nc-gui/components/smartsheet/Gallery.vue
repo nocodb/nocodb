@@ -7,7 +7,6 @@ import {
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
-  IsPublicInj,
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
@@ -60,8 +59,6 @@ provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 
 provide(RowHeightInj, ref(1 as const))
-
-const isPublic = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -126,7 +123,7 @@ const attachments = (record: any): Attachment[] => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
-  if (rowId && !isPublic.value) {
+  if (rowId) {
     router.push({
       query: {
         ...route.query,
@@ -212,14 +209,14 @@ watch(
     <template #overlay>
       <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
         <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-          <div v-e="['a:row:delete']" class="nc-project-menu-item">
+          <div v-e="['a:row:delete']" class="nc-base-menu-item">
             <!-- Delete Row -->
             {{ $t('activity.deleteRow') }}
           </div>
         </a-menu-item>
 
         <!--        <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()"> -->
-        <!--          <div v-e="['a:row:insert']" class="nc-project-menu-item"> -->
+        <!--          <div v-e="['a:row:insert']" class="nc-base-menu-item"> -->
         <!--            &lt;!&ndash; Insert New Row &ndash;&gt; -->
         <!--            {{ $t('activity.insertRow') }} -->
         <!--          </div> -->
@@ -347,9 +344,7 @@ watch(
                       :read-only="true"
                     />
                   </div>
-                  <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">
-                    <span class="bg-gray-200 h-2 w-16 rounded-md"></span>
-                  </div>
+                  <div v-else class="flex flex-row w-full h-[1.375rem] pl-1 items-center justify-start">-</div>
                 </div>
               </div>
             </a-card>
@@ -374,7 +369,6 @@ watch(
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
-      :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

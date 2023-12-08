@@ -58,7 +58,7 @@ watch(
               v-bind="validateInfos.emails"
               validate-trigger="onBlur"
               name="emails"
-              :rules="[{ required: true, message: 'Please input email' }]"
+              :rules="[{ required: true, message: t('msg.plsInputEmail') }]"
             >
               <a-input
                 v-model:value="invitationUsersData.emails"
@@ -66,20 +66,20 @@ watch(
                 class="!rounded-md !ml-0.5"
                 validate-trigger="onBlur"
                 placeholder="Add people by email..."
-                data-testid="docs-share-dlg-share-project-collaborate-emails"
+                data-testid="docs-share-dlg-share-base-collaborate-emails"
               />
             </a-form-item>
           </div>
 
           <div class="flex flex-col w-1/5">
-            <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
+            <a-form-item name="role" :rules="[{ required: true, message: t('msg.roleRequired') }]">
               <a-select
                 v-model:value="invitationUsersData.role"
                 class="!rounded-md !bg-white"
                 dropdown-class-name="nc-dropdown-user-role !rounded-md"
-                data-testid="docs-share-dlg-share-project-collaborate-role"
+                data-testid="docs-share-dlg-share-base-collaborate-role"
               >
-                <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+                <a-select-option v-for="(role, index) in baseRoles" :key="index" :value="role" class="nc-role-option">
                   <div
                     class="flex flex-row h-full justify-start items-center"
                     :data-testid="`nc-share-invite-user-role-option-${role}`"

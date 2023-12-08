@@ -88,6 +88,12 @@ const placeholder = computed(() => {
   }
 })
 
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
+})
+
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
@@ -114,8 +120,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :placeholder="placeholder"
     :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
     :input-read-only="true"
-    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
-    :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
+    :open="isOpen"
+    :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
     @ok="open = !open"

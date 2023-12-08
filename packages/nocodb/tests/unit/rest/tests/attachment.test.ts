@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import 'mocha';
 import request from 'supertest';
-import { createProject } from '../../factory/project';
+import { createProject } from '../../factory/base';
 import init from '../../init';
 
 const FILE_PATH = path.join(__dirname, 'test.txt');
@@ -14,7 +14,6 @@ function attachmentTests() {
 
   beforeEach(async function () {
     console.time('#### attachmentTests');
-    context = await init();
     fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
     context = await init();
     console.timeEnd('#### attachmentTests');
@@ -82,7 +81,7 @@ function attachmentTests() {
 
     // update user role to creator
     const usersListResponse = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -93,7 +92,7 @@ function attachmentTests() {
     expect(user).to.have.property('roles').to.be.equal(OrgUserRoles.VIEWER);
 
     await request(context.app)
-      .patch('/api/v1/users/' + user.id)
+      .patch('/api/v1/db/users/' + user.id)
       .set('xc-auth', context.token)
       .send({ roles: OrgUserRoles.CREATOR })
       .expect(200);
@@ -115,7 +114,7 @@ function attachmentTests() {
     expect(attachments[0].title).to.be.eq(path.basename(FILE_PATH));
   });
 
-  it('Upload file - Org level viewer with editor role in a project', async () => {
+  it('Upload file - Org level viewer with editor role in a base', async () => {
     // skip this test for enterprise edition
     if (!process.env.EE) {
       // signup a new user
@@ -133,15 +132,15 @@ function attachmentTests() {
         title: 'NewTitle1',
       });
 
-      // invite user to project with editor role
+      // invite user to base with editor role
       await request(context.app)
         .post(`/api/v1/db/meta/projects/${newProject.id}/users`)
         .set('xc-auth', context.token)
         .send({
           roles: ProjectRoles.EDITOR,
           email: args.email,
-          project_id: newProject.id,
-          projectName: newProject.title,
+          base_id: newProject.id,
+          baseName: newProject.title,
         })
         .expect(200);
 

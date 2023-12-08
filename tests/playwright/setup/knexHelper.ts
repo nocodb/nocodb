@@ -2,8 +2,12 @@ import { knex, Knex } from 'knex';
 import { promises as fs } from 'fs';
 import { getKnexConfig } from '../tests/utils/config';
 
-async function dropAndCreateDb(kn: Knex, dbName: string) {
-  await kn.raw(`DROP DATABASE IF EXISTS ??`, [dbName]);
+async function dropAndCreateDb(kn: Knex, dbName: string, dbType: string) {
+  if (dbType === 'pg') {
+    await kn.raw(`DROP DATABASE IF EXISTS ?? WITH (FORCE)`, [dbName]);
+  } else {
+    await kn.raw(`DROP DATABASE IF EXISTS ??`, [dbName]);
+  }
   await kn.raw(`CREATE DATABASE ??`, [dbName]);
 }
 
@@ -11,7 +15,7 @@ export async function initializeSakilaPg(database: string) {
   {
     const kn = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
 
-    await dropAndCreateDb(kn, database);
+    await dropAndCreateDb(kn, database, 'pg');
 
     await kn.destroy();
   }
@@ -44,7 +48,7 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
   if (database === 'pg') {
     {
       const pgknex = knex(getKnexConfig({ dbName: 'postgres', dbType: 'pg' }));
-      await dropAndCreateDb(pgknex, dbName);
+      await dropAndCreateDb(pgknex, dbName, 'pg');
       await pgknex.destroy();
     }
 
@@ -73,7 +77,7 @@ export async function createTableWithDateTimeColumn(database: string, dbName: st
     {
       const mysqlknex = knex(getKnexConfig({ dbName: 'sakila', dbType: 'mysql' }));
 
-      await dropAndCreateDb(mysqlknex, dbName);
+      await dropAndCreateDb(mysqlknex, dbName, 'mysql');
 
       if (setTz) {
         await mysqlknex.raw(`SET GLOBAL time_zone = '+08:00'`);

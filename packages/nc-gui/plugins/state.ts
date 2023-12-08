@@ -1,4 +1,4 @@
-import { Language, LanguageAlias, defineNuxtPlugin, useApi, useGlobal } from '#imports'
+import { Language, LanguageAlias, defineNuxtPlugin, isEeUI, useApi, useGlobal } from '#imports'
 import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
 
 /**
@@ -6,14 +6,14 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#app'
+ * import { useNuxtApp } from '#imports'
  *
  * const { $state } = useNuxtApp()
  *
  * console.log($state.lang.value) // 'en'
  * ```
  */
-export default defineNuxtPlugin(async () => {
+const statePlugin = async (_nuxtApp) => {
   const state = useGlobal()
 
   const { api } = useApi({ useGlobalInstance: true })
@@ -24,7 +24,7 @@ export default defineNuxtPlugin(async () => {
   if (![...Object.keys(Language), ...Object.keys(LanguageAlias)].includes(currentLang)) state.lang.value = currentLang = 'en'
 
   /** force load initial locale messages */
-  await loadLocaleMessages(currentLang)
+  await Promise.all([loadLocaleMessages(currentLang), loadLocaleMessages('en')])
 
   /** set i18n locale to stored language */
   await setI18nLanguage(currentLang)
@@ -34,4 +34,10 @@ export default defineNuxtPlugin(async () => {
   } catch (e) {
     console.error(e)
   }
+}
+
+export default defineNuxtPlugin(async function (nuxtApp) {
+  if (!isEeUI) return await statePlugin(nuxtApp)
 })
+
+export { statePlugin }

@@ -63,7 +63,6 @@ const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
-useProvideGridViewColumn(activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -80,6 +79,8 @@ provide(
   computed(() => !isUIAllowed('dataEdit')),
 )
 
+useProvideViewColumns(activeView, meta, () => reloadEventHook?.trigger())
+
 const grid = ref()
 
 const onDrop = async (event: DragEvent) => {
@@ -89,8 +90,8 @@ const onDrop = async (event: DragEvent) => {
     const data = JSON.parse(event.dataTransfer!.getData('text/json'))
     // Do something with the received data
 
-    // if dragged item is not from the same base, return
-    if (data.baseId !== meta.value?.base_id) return
+    // if dragged item is not from the same source, return
+    if (data.sourceId !== meta.value?.source_id) return
 
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
@@ -170,27 +171,26 @@ watch([activeViewTitleOrId, activeTableId], () => {
         <LazySmartsheetToolbar v-if="!isForm" />
         <div class="flex flex-row w-full" style="height: calc(100% - var(--topbar-height))">
           <Transition name="layout" mode="out-in">
-            <template v-if="meta">
-              <div class="flex flex-1 min-h-0 w-3/4">
-                <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-white">
-                  <LazySmartsheetGrid v-if="isGrid" ref="grid" />
+            <div class="flex flex-1 min-h-0 w-3/4">
+              <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
-                  <LazySmartsheetGallery v-else-if="isGallery" />
+                <template v-if="activeView && meta">
+                  <LazySmartsheetGallery v-if="isGallery" />
 
                   <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
                   <LazySmartsheetKanban v-else-if="isKanban" />
 
                   <LazySmartsheetMap v-else-if="isMap" />
-                </div>
+                </template>
               </div>
-            </template>
+            </div>
           </Transition>
         </div>
       </div>
       <SmartsheetDetails v-else />
     </div>
-
     <LazySmartsheetExpandedFormDetached />
   </div>
 </template>

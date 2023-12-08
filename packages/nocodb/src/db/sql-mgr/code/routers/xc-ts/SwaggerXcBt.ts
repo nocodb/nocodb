@@ -58,7 +58,7 @@ class SwaggerXcBt extends BaseRender {
         },
       ],
       paths: {
-        [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${
+        [`/nc/${this.ctx.base_id}/api/${this.ctx.routeVersionLetter}/${
           this.ctx._tn
         }/belongs/${this.ctx._rtn || this.ctx.rtn}`]: {
           get: {

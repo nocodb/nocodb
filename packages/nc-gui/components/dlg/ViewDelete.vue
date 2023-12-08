@@ -15,6 +15,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { view } = props
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -35,6 +37,8 @@ async function onDelete() {
     $e('a:view:delete', { view: props.view.type })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 
   // telemetry event

@@ -1,6 +1,6 @@
 /*
  *
- * Meta projects, additional provision for deleting of rows, columns and tables with Link to another record field type
+ * Meta bases, additional provision for deleting of rows, columns and tables with Link to another record field type
  *
  * Pre-requisite:
  *    TableA <hm> TableB <hm> TableC
@@ -29,8 +29,8 @@ import { createXcdb, deleteXcdb } from '../../../setup/xcdbProject';
 let api: Api<any>;
 const recordCount = 10;
 
-// serial as all projects end up creating xcdb using same name
-// fix me : use worker ID logic for creating unique project name
+// serial as all bases end up creating xcdb using same name
+// fix me : use worker ID logic for creating unique base name
 test.describe.serial('Test table', () => {
   let context: any;
   let dashboard: DashboardPage;
@@ -52,10 +52,10 @@ test.describe.serial('Test table', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
-    // create a new xcdb project
+    // create a new xcdb base
     await dashboard.rootPage.waitForTimeout(650);
     const xcdb = await createXcdb(context);
     await dashboard.rootPage.waitForTimeout(650);
@@ -93,7 +93,7 @@ test.describe.serial('Test table', () => {
     }
 
     for (let i = 0; i < 5; i++) {
-      const table = await api.base.tableCreate(xcdb.id, xcdb.bases?.[0].id, {
+      const table = await api.source.tableCreate(xcdb.id, xcdb.sources?.[0].id, {
         table_name: `Table${i}`,
         title: `Table${i}`,
         columns: columns,

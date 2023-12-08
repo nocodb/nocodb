@@ -1,36 +1,48 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
-import type { ProjectType } from 'nocodb-sdk'
-import { ProjectRoles, ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
+import { ProjectRoles, ProjectStatus, WorkspaceUserRoles, timeAgo } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
-import { NcProjectType, isEeUI, navigateTo, storeToRefs, timeAgo, useGlobal, useWorkspace } from '#imports'
-import { useNuxtApp } from '#app'
+import {
+  NcProjectType,
+  computed,
+  extractSdkResponseErrorMsg,
+  isEeUI,
+  message,
+  navigateTo,
+  ref,
+  storeToRefs,
+  useBases,
+  useGlobal,
+  useNuxtApp,
+  useRoles,
+  useWorkspace,
+} from '#imports'
 
 const workspaceStore = useWorkspace()
+
 const { updateProjectTitle } = workspaceStore
+
 const { activePage } = storeToRefs(workspaceStore)
 
-const projectsStore = useProjects()
-const { loadProjects } = projectsStore
-const { projectsList, isProjectsLoading } = storeToRefs(projectsStore)
+const basesStore = useBases()
+
+const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 
 const { navigateToProject } = useGlobal()
 
-// const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
-
-const { $e, $jobs } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-const { refreshCommandPalette } = useCommandPalette()
-
 const showProjectDeleteModal = ref(false)
+
 const toBeDeletedProjectId = ref<string | undefined>()
 
-const openProject = async (project: ProjectType) => {
+const openProject = async (base: BaseType) => {
   navigateToProject({
-    projectId: project.id!,
-    type: project.type as NcProjectType,
+    baseId: base.id!,
+    type: base.type as NcProjectType,
   })
 }
 
@@ -40,46 +52,47 @@ const roleAlias = {
   [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
   [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
   [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
-  [ProjectRoles.CREATOR]: 'Project Creator',
-  [ProjectRoles.EDITOR]: 'Project Editor',
-  [ProjectRoles.VIEWER]: 'Project Viewer',
-  [ProjectRoles.COMMENTER]: 'Project Commenter',
-  [ProjectRoles.OWNER]: 'Project Owner',
+  [ProjectRoles.CREATOR]: 'Base Creator',
+  [ProjectRoles.EDITOR]: 'Base Editor',
+  [ProjectRoles.VIEWER]: 'Base Viewer',
+  [ProjectRoles.COMMENTER]: 'Base Commenter',
+  [ProjectRoles.OWNER]: 'Base Owner',
 }
 
-const deleteProject = (project: ProjectType) => {
-  $e('c:project:delete')
+const deleteProject = (base: BaseType) => {
+  $e('c:base:delete')
 
   showProjectDeleteModal.value = true
-  toBeDeletedProjectId.value = project.id
+  toBeDeletedProjectId.value = base.id
 }
 
 const renameInput = ref<HTMLInputElement>()
+
 const enableEdit = (index: number) => {
-  projectsList.value![index]!.temp_title = projectsList.value![index].title
-  projectsList.value![index]!.edit = true
+  basesList.value![index]!.temp_title = basesList.value![index].title
+  basesList.value![index]!.edit = true
   nextTick(() => {
     renameInput.value?.focus()
     renameInput.value?.select()
   })
 }
 const disableEdit = (index: number) => {
-  projectsList.value![index]!.temp_title = undefined
-  projectsList.value![index]!.edit = false
+  basesList.value![index]!.temp_title = undefined
+  basesList.value![index]!.edit = false
 }
 
-const customRow = (record: ProjectType) => ({
+const customRow = (record: BaseType) => ({
   onClick: async () => {
     openProject(record)
 
-    $e('a:project:open')
+    $e('a:base:open')
   },
   class: ['group'],
 })
 
 const columns = computed(() => [
   {
-    title: 'Project Name',
+    title: 'Base Name',
     dataIndex: 'title',
     sorter: {
       compare: (a, b) => a.title?.localeCompare(b.title),
@@ -140,38 +153,25 @@ const workspaceMoveProjectOnSuccess = async (workspaceId: string) => {
 }
 
 const isDuplicateDlgOpen = ref(false)
+
 const selectedProjectToDuplicate = ref()
 
-const DlgProjectDuplicateOnOk = async (jobData: { id: string }) => {
-  await loadProjects('workspace')
-
-  $jobs.subscribe({ id: jobData.id }, undefined, async (status: string) => {
-    if (status === JobStatus.COMPLETED) {
-      await loadProjects('workspace')
-      refreshCommandPalette()
-    } else if (status === JobStatus.FAILED) {
-      message.error('Failed to duplicate project')
-      await loadProjects('workspace')
-    }
-  })
-
-  $e('a:project:duplicate')
-}
-
-const duplicateProject = (project: ProjectType) => {
-  selectedProjectToDuplicate.value = project
+const duplicateProject = (base: BaseType) => {
+  selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
 
 let clickCount = 0
+
 let timer: any = null
+
 const delay = 250
 
 function onProjectTitleClick(index: number) {
   clickCount++
   if (clickCount === 1) {
     timer = setTimeout(function () {
-      openProject(projectsList.value![index])
+      openProject(basesList.value![index])
       clickCount = 0
     }, delay)
   } else {
@@ -181,16 +181,16 @@ function onProjectTitleClick(index: number) {
   }
 }
 
-const setIcon = async (icon: string, project: ProjectType) => {
+const setIcon = async (icon: string, base: BaseType) => {
   try {
     const meta = {
-      ...((project.meta as object) || {}),
+      ...((base.meta as object) || {}),
       icon,
     }
 
-    projectsStore.updateProject(project.id!, { meta: JSON.stringify(meta) })
+    basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:project:icon:navdraw', { icon })
+    $e('a:base:icon:navdraw', { icon })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -200,7 +200,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 <template>
   <div>
     <div
-      v-if="!projectsList || projectsList?.length === 0 || isProjectsLoading"
+      v-if="!basesList || basesList?.length === 0 || isProjectsLoading"
       class="w-full flex flex-row justify-center items-center"
       style="height: calc(100vh - 16rem)"
     >
@@ -217,7 +217,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
         />
         <template v-if="activePage === 'workspace'">
           <div class="font-medium text-xl">Welcome to nocoDB</div>
-          <div class="font-medium">Create your first Project!</div>
+          <div class="font-medium">Create your first Base!</div>
         </template>
         <template v-else-if="activePage === 'recent'">
           <div class="font-medium text-lg">No Recent Projects</div>
@@ -232,7 +232,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
     </div>
     <a-table
       v-else
-      v-model:data-source="projectsList"
+      v-model:data-source="basesList"
       class="h-full"
       :class="{
         'full-height-table': activePage !== 'workspace',
@@ -248,7 +248,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 
       <template #bodyCell="{ column, text, record, index: i }">
         <template v-if="column.dataIndex === 'title'">
-          <div class="flex items-center nc-project-title gap-2.5 max-w-full -ml-1.5">
+          <div class="flex items-center nc-base-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
               <LazyGeneralEmojiPicker
                 :key="record.id"
@@ -326,7 +326,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
 
         <template v-if="column.dataIndex === 'id'">
           <a-dropdown
-            v-if="isUIAllowed('projectActionMenu', { roles: [record.workspace_role, record.project_role].join() })"
+            v-if="isUIAllowed('baseActionMenu', { roles: [record.workspace_role, record.project_role].join() })"
             :trigger="['click']"
           >
             <div @click.stop>
@@ -346,7 +346,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 <a-menu-item
                   v-if="
                     record.type === NcProjectType.DB &&
-                    isUIAllowed('projectDuplicate', { roles: [record.workspace_role, record.project_role].join() })
+                    isUIAllowed('baseDuplicate', { roles: [record.workspace_role, record.project_role].join() })
                   "
                   @click="duplicateProject(record)"
                 >
@@ -357,7 +357,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 </a-menu-item>
                 <!--
                 <a-menu-item
-                  v-if="false && isUIAllowed('projectMove', { roles: [record.workspace_role, record.project_role].join() })"
+                  v-if="false && isUIAllowed('baseMove', { roles: [record.workspace_role, record.project_role].join() })"
                   @click="moveProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">
@@ -367,7 +367,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
                 </a-menu-item>
                 -->
                 <a-menu-item
-                  v-if="isUIAllowed('projectDelete', { roles: [record.workspace_role, record.project_role].join() })"
+                  v-if="isUIAllowed('baseDelete', { roles: [record.workspace_role, record.project_role].join() })"
                   @click="deleteProject(record)"
                 >
                   <div class="nc-menu-item-wrapper text-red-500">
@@ -382,19 +382,14 @@ const setIcon = async (icon: string, project: ProjectType) => {
         </template>
       </template>
     </a-table>
-    <DlgProjectDelete v-if="toBeDeletedProjectId" v-model:visible="showProjectDeleteModal" :project-id="toBeDeletedProjectId" />
+    <DlgProjectDelete v-if="toBeDeletedProjectId" v-model:visible="showProjectDeleteModal" :base-id="toBeDeletedProjectId" />
     <WorkspaceMoveProjectDlg
       v-if="selectedProjectToMove"
       v-model="isMoveDlgOpen"
-      :project="selectedProjectToMove"
+      :base="selectedProjectToMove"
       @success="workspaceMoveProjectOnSuccess"
     />
-    <DlgProjectDuplicate
-      v-if="selectedProjectToDuplicate"
-      v-model="isDuplicateDlgOpen"
-      :project="selectedProjectToDuplicate"
-      :on-ok="DlgProjectDuplicateOnOk"
-    />
+    <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   </div>
 </template>
 
@@ -403,7 +398,7 @@ const setIcon = async (icon: string, project: ProjectType) => {
   @apply !pl-6;
 }
 
-:deep(.ant-table-cell:lst-child) {
+:deep(.ant-table-cell:last-child) {
   @apply !plr6;
 }
 

@@ -56,15 +56,27 @@ export default defineConfig({
     },
     extend: {
       screens: {
-        xs: {
+        'xs': {
           max: '480px',
         },
-        sm: {
+        'sm': {
           min: '480px',
         },
-        md: {
+        'md': {
           min: '820px',
         },
+        '2xl': {
+          min: '1780px',
+        },
+      },
+      fontWeight: {
+        thin: 150,
+        extraLight: 250,
+        light: 350,
+        normal: 450,
+        medium: 550,
+        bold: 650,
+        black: 750,
       },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
@@ -92,7 +104,7 @@ export default defineConfig({
           200: '#ADC2FF',
           300: '#85A3FF',
           400: '#5C85FF',
-          500: '#36F',
+          500: '#3366FF',
           600: '#2952CC',
           700: '#1F3D99',
           800: '#142966',
@@ -171,6 +183,31 @@ export default defineConfig({
           800: '#164C66',
           900: '#0B2633',
         },
+        yellow: {
+          50: '#fffbf2',
+          100: '#fff0d1',
+          200: '#fee5b0',
+          300: '#fdd889',
+          400: '#fdcb61',
+          500: '#fcbe3a',
+          600: '#ca982e',
+          700: '#977223',
+          800: '#654c17',
+          900: '#32260c',
+        },
+        maroon: {
+          50: '#FFF0F7',
+          100: '#FFCFE6',
+          200: '#FFABD2',
+          300: '#EC7DB1',
+          400: '#D45892',
+          500: '#B33771',
+          600: '#9D255D',
+          700: '#801044',
+          800: '#690735',
+          900: '#42001F',
+        },
+
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
         dark: colors.dark,

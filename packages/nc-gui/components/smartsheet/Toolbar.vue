@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { IsPublicInj, inject, ref, useRoles, useSharedView, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
+import {
+  IsPublicInj,
+  inject,
+  ref,
+  storeToRefs,
+  useGlobal,
+  useSharedView,
+  useSmartsheetStoreOrThrow,
+  useViewsStore,
+} from '#imports'
 
 const { isGrid, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
 
@@ -8,8 +17,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = useGlobal()
-
-const { isUIAllowed } = useRoles()
 
 const { allowCSVDownload } = useSharedView()
 </script>
@@ -39,7 +46,7 @@ const { allowCSVDownload } = useSharedView()
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
-        <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
+        <LazySmartsheetToolbarExport v-if="isPublic && allowCSVDownload" />
 
         <div class="flex-1" />
       </template>
@@ -51,13 +58,6 @@ const { allowCSVDownload } = useSharedView()
           'w-full': isMobileMode,
         }"
       />
-
-      <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarViewActions
-          v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
-          :show-system-fields="false"
-        />
-      </template>
     </template>
   </div>
 </template>

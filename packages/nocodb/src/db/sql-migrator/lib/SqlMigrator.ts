@@ -1,8 +1,8 @@
 export default class SqlMigrator {
-  protected project: any;
+  protected base: any;
 
   constructor() {
-    this.project = null;
+    this.base = null;
   }
 
   init(_project = null) {}

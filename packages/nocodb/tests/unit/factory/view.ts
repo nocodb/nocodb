@@ -121,4 +121,18 @@ const updateView = async (
   }
 };
 
-export { createView, updateView, getView };
+const deleteView = async (
+  context,
+  {
+    viewId,
+  }: {
+    viewId: string;
+  },
+) => {
+  await request(context.app)
+    .delete(`/api/v1/db/meta/views/${viewId}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+};
+
+export { createView, updateView, getView, deleteView };

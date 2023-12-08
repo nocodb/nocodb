@@ -12,20 +12,16 @@ import {
   message,
   ref,
   storeToRefs,
-  useI18n,
+  useBase,
   useNuxtApp,
-  useProject,
-  useSmartsheetStoreOrThrow,
 } from '#imports'
-
-const { t } = useI18n()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const fields = inject(FieldsInj, ref([]))
 
-const projectStore = useProject()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const { $api } = useNuxtApp()
 
@@ -33,12 +29,16 @@ const meta = inject(MetaInj, ref())
 
 const selectedView = inject(ActiveViewInj)
 
-const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+const { activeNestedFilters: nestedFilters, activeSorts: sorts } = storeToRefs(useViewsStore())
+
+const isExportingType = ref<ExportTypes | undefined>(undefined)
 
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
   let c = 1
   const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
+
+  isExportingType.value = exportType
 
   const XLSX = await import('xlsx')
   const FileSaver = await import('file-saver')
@@ -55,7 +55,7 @@ const exportFile = async (exportType: ExportTypes) => {
       } else {
         res = await $api.dbViewRow.export(
           'noco',
-          project.value?.id as string,
+          base.value?.id as string,
           meta.value?.id as string,
           selectedView?.value.id as string,
           exportType,
@@ -84,13 +84,10 @@ const exportFile = async (exportType: ExportTypes) => {
       }
 
       offset = +headers['nc-export-offset']
-      if (offset > -1) {
-        // Downloading more files
-        message.info(t('msg.info.downloadingMoreFiles'))
-      } else {
-        // Successfully exported all table data
-        message.success(t('msg.success.tableDataExported'))
-      }
+
+      setTimeout(() => {
+        isExportingType.value = undefined
+      }, 200)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -99,17 +96,30 @@ const exportFile = async (exportType: ExportTypes) => {
 </script>
 
 <template>
-  <a-menu-item>
-    <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
-      <component :is="iconMap.csv" />
+  <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.downloadData') }}</div>
+
+  <a-menu-item class="!mx-1 !py-2 !rounded-md">
+    <div
+      v-e="['a:download:csv']"
+      class="flex flex-row items-center nc-base-menu-item !py-0"
+      @click.stop="exportFile(ExportTypes.CSV)"
+    >
+      <GeneralLoader v-if="isExportingType === ExportTypes.CSV" class="!max-h-4.5 !-mt-1 !mr-0.7" />
+      <component :is="iconMap.csv" v-else />
       <!-- Download as CSV -->
       {{ $t('activity.downloadCSV') }}
     </div>
   </a-menu-item>
 
-  <a-menu-item>
-    <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-      <component :is="iconMap.excel" />
+  <a-menu-item class="!mx-1 !py-2 !rounded-md">
+    <div
+      v-e="['a:download:excel']"
+      class="flex flex-row items-center nc-base-menu-item !py-0"
+      @click="exportFile(ExportTypes.EXCEL)"
+    >
+      <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" class="!max-h-4.5 !-mt-1 !mr-0.7" />
+      <component :is="iconMap.excel" v-else />
+
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>

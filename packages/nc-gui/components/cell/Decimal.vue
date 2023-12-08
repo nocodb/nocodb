@@ -105,8 +105,6 @@ watch(isExpandedFormOpen, () => {
     @keydown.right.stop
     @keydown.up.stop="onKeyDown"
     @keydown.delete.stop
-    @keydown.ctrl.z.stop
-    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />

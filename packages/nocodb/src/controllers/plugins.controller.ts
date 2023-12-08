@@ -6,12 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { PluginsService } from '~/services/plugins.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 // todo: move to a interceptor
 // const blockInCloudMw = (_req, res, next) => {
@@ -21,11 +23,11 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 // };
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class PluginsController {
   constructor(private readonly pluginsService: PluginsService) {}
 
-  @Get('/api/v1/db/meta/plugins')
+  @Get(['/api/v1/db/meta/plugins', '/api/v2/meta/plugins'])
   @Acl('pluginList', {
     scope: 'org',
   })
@@ -33,7 +35,7 @@ export class PluginsController {
     return new PagedResponseImpl(await this.pluginsService.pluginList());
   }
 
-  @Get('/api/v1/db/meta/plugins/webhook')
+  @Get(['/api/v1/db/meta/plugins/webhook', '/api/v2/meta/plugins/webhook'])
   @Acl('webhookPluginList', {
     scope: 'org',
   })
@@ -41,16 +43,16 @@ export class PluginsController {
     return new PagedResponseImpl(await this.pluginsService.webhookPluginList());
   }
 
-  @Post('/api/v1/db/meta/plugins/test')
+  @Post(['/api/v1/db/meta/plugins/test', '/api/v2/meta/plugins/test'])
   @HttpCode(200)
   @Acl('pluginTest', {
     scope: 'org',
   })
-  async pluginTest(@Body() body: any) {
-    return await this.pluginsService.pluginTest({ body: body });
+  async pluginTest(@Body() body: any, @Req() req: Request) {
+    return await this.pluginsService.pluginTest({ body: body, req });
   }
 
-  @Get('/api/v1/db/meta/plugins/:pluginId')
+  @Get(['/api/v1/db/meta/plugins/:pluginId', '/api/v2/meta/plugins/:pluginId'])
   @Acl('pluginRead', {
     scope: 'org',
   })
@@ -58,19 +60,30 @@ export class PluginsController {
     return await this.pluginsService.pluginRead({ pluginId: pluginId });
   }
 
-  @Patch('/api/v1/db/meta/plugins/:pluginId')
+  @Patch([
+    '/api/v1/db/meta/plugins/:pluginId',
+    '/api/v2/meta/plugins/:pluginId',
+  ])
   @Acl('pluginUpdate', {
     scope: 'org',
   })
-  async pluginUpdate(@Body() body: any, @Param('pluginId') pluginId: string) {
+  async pluginUpdate(
+    @Body() body: any,
+    @Param('pluginId') pluginId: string,
+    @Req() req: Request,
+  ) {
     const plugin = await this.pluginsService.pluginUpdate({
       pluginId: pluginId,
       plugin: body,
+      req,
     });
     return plugin;
   }
 
-  @Get('/api/v1/db/meta/plugins/:pluginTitle/status')
+  @Get([
+    '/api/v1/db/meta/plugins/:pluginTitle/status',
+    '/api/v2/meta/plugins/:pluginTitle/status',
+  ])
   @Acl('isPluginActive', {
     scope: 'org',
   })

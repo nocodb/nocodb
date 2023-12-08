@@ -17,7 +17,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   data: Record<string, any>
   _jsonData: string | Record<string, any>
   jsonData: Record<string, any>
-  project: {
+  base: {
     tables: Record<string, any>[]
   }
 
@@ -26,7 +26,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
     super(progressCallback)
     this.config = parserConfig
     this._jsonData = data
-    this.project = {
+    this.base = {
       tables: [],
     }
     this.jsonData = []
@@ -70,11 +70,11 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       this._parseTableData(table)
     }
 
-    this.project.tables.push(table)
+    this.base.tables.push(table)
   }
 
   getTemplate() {
-    return this.project
+    return this.base
   }
 
   _parseColumn(
@@ -90,8 +90,10 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
         columns.push(...normalizedNestedColumns)
       }
     } else {
+      const title = path.join(' ').trim()
       const cn = path.join('_').replace(/\W/g, '_').trim()
       const column: Record<string, any> = {
+        title,
         column_name: cn,
         ref_column_name: cn,
         uidt: UITypes.SingleLineText,

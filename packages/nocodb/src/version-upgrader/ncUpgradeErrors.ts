@@ -20,8 +20,8 @@ export function throwTimeoutError(e, timeoutErrorInfo) {
       db = `${timeoutErrorInfo.connection.database} (${timeoutErrorInfo.connection.host}:${timeoutErrorInfo.connection.port})`;
     }
     throw new Error(
-      `Failed to connect the database ${db} for Project ${timeoutErrorInfo.projectTitle}.
-       Please fix the connection issue or remove the project before trying to upgrade.`,
+      `Failed to connect the database ${db} for Base ${timeoutErrorInfo.baseTitle}.
+       Please fix the connection issue or remove the base before trying to upgrade.`,
     );
   }
 }

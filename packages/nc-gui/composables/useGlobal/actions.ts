@@ -1,7 +1,7 @@
 import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, State } from './types'
-import { type NcProjectType, message, useNuxtApp } from '#imports'
-import { navigateTo } from '#app'
+import type { NcProjectType } from '#imports'
+import { message, navigateTo, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -17,6 +17,8 @@ export function useGlobalActions(state: State): Actions {
     } finally {
       state.token.value = null
       state.user.value = null
+
+      // clear all stores data on logout
       const pn = getActivePinia()
       if (pn) {
         pn._s.forEach((store) => {
@@ -80,11 +82,11 @@ export function useGlobalActions(state: State): Actions {
   const navigateToProject = ({
     workspaceId: _workspaceId,
     type: _type,
-    projectId,
+    baseId,
     query,
   }: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     query?: any
   }) => {
@@ -93,8 +95,8 @@ export function useGlobalActions(state: State): Actions {
 
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
 
-    if (projectId) {
-      path = `/${workspaceId}/${projectId}${queryParams}`
+    if (baseId) {
+      path = `/${workspaceId}/${baseId}${queryParams}`
     } else {
       path = `/${workspaceId}${queryParams}`
     }
@@ -107,13 +109,13 @@ export function useGlobalActions(state: State): Actions {
   const ncNavigateTo = ({
     workspaceId: _workspaceId,
     type: _type,
-    projectId,
+    baseId,
     query,
     tableId,
     viewId,
   }: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     query?: any
     tableId?: string
@@ -125,8 +127,8 @@ export function useGlobalActions(state: State): Actions {
 
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
 
-    if (projectId) {
-      path = `/${workspaceId}/${projectId}${tablePath}${queryParams}`
+    if (baseId) {
+      path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
     } else {
       path = `/${workspaceId}${queryParams}`
     }
@@ -143,5 +145,9 @@ export function useGlobalActions(state: State): Actions {
     return undefined
   }
 
-  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo }
+  const getMainUrl = () => {
+    return undefined
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo, setIsMobileMode, navigateToProject, getBaseUrl, ncNavigateTo, getMainUrl }
 }

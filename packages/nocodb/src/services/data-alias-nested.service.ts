@@ -7,7 +7,7 @@ import {
   getColumnByIdOrName,
   getViewAndModelByAliasOrId,
 } from '~/modules/datas/helpers';
-import { Base, Model } from '~/models';
+import { Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -24,12 +24,12 @@ export class DataAliasNestedService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -71,12 +71,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
     const column = await getColumnByIdOrName(param.columnName, model);
 
@@ -113,12 +113,12 @@ export class DataAliasNestedService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -155,12 +155,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -199,12 +199,12 @@ export class DataAliasNestedService {
 
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -245,12 +245,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);
@@ -277,12 +277,12 @@ export class DataAliasNestedService {
     const { model, view } = await getViewAndModelByAliasOrId(param);
     if (!model) NcError.notFound('Table not found');
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const column = await getColumnByIdOrName(param.columnName, model);

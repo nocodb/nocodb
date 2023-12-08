@@ -3,6 +3,7 @@ import path from 'path';
 import { promisify } from 'util';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import type { Readable } from 'stream';
 import { NcError } from '~/helpers/catchError';
@@ -40,6 +41,8 @@ export default class Local implements IStorageAdapterV2 {
               'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
             origin: 'https://www.airtable.com/',
           },
+          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
         })
         .then(async (response) => {
           await mkdirp(path.dirname(destPath));
@@ -121,7 +124,7 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   // method for validate/normalise the path for avoid path traversal attack
-  protected validateAndNormalisePath(
+  public validateAndNormalisePath(
     fileOrFolderPath: string,
     throw404 = false,
   ): string {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { MetaInj, computed, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
+import { MetaInj, computed, useBase, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -16,7 +16,7 @@ const { onAlter, onDataTypeChange, validateInfos, sqlUi } = useColumnCreateStore
 // todo: 2nd argument of `getDataTypeListForUiType` is missing!
 const dataTypes = computed(() => sqlUi.value.getDataTypeListForUiType(vModel.value as { uidt: UITypes }, '' as any))
 
-const { isPg } = useProject()
+const { isPg } = useBase()
 
 const meta = inject(MetaInj, ref())
 
@@ -73,7 +73,7 @@ vModel.value.au = !!vModel.value.au */
       </div>
 
       <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
-        <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type" @change="onDataTypeChange">
+        <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type " @change="onDataTypeChange">
           <a-select-option v-for="type in dataTypes" :key="type" :value="type">
             {{ type }}
           </a-select-option>
@@ -93,7 +93,7 @@ vModel.value.au = !!vModel.value.au */
         <a-input v-model:value="vModel.dtxs" class="!rounded-md" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
       </a-form-item>
 
-      <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta?.base_id) && vModel.dt === 'bytea'" v-model:value="vModel" />
+      <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta?.source_id) && vModel.dt === 'bytea'" v-model:value="vModel" />
     </template>
   </div>
 </template>

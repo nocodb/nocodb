@@ -3,10 +3,22 @@ import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
   const { width } = useWindowSize()
-  const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  const isViewPortMobile = () => {
+    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  }
   const { isMobileMode } = useGlobal()
 
-  const isLeftSidebarOpen = ref(!isViewPortMobile())
+  const tablesStore = useTablesStore()
+  const _isLeftSidebarOpen = ref(!isViewPortMobile())
+  const isLeftSidebarOpen = computed({
+    get() {
+      return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
+    },
+    set(value) {
+      _isLeftSidebarOpen.value = value
+    },
+  })
+
   const isRightSidebarOpen = ref(true)
 
   const leftSidebarWidthPercent = ref(isViewPortMobile() ? 0 : 20)
@@ -30,6 +42,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const leftSidebarWidth = computed(() => (width.value * mobileNormalizedSidebarSize.value) / 100)
 
+  const nonHiddenMobileSidebarSize = computed(() => {
+    if (isMobileMode.value) {
+      return 100
+    }
+
+    return leftSideBarSize.value.current ?? leftSideBarSize.value.old
+  })
+
+  const nonHiddenLeftSidebarWidth = computed(() => (width.value * nonHiddenMobileSidebarSize.value) / 100)
+
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
@@ -38,6 +60,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     leftSidebarState,
     leftSidebarWidth,
     mobileNormalizedSidebarSize,
+    nonHiddenLeftSidebarWidth,
   }
 })
 

@@ -1,6 +1,7 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, extractSdkResponseErrorMsg, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**
  * Global auth middleware
@@ -46,7 +47,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
+    await tryGoogleAuth(api, state.signIn)
+  }
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -54,18 +57,31 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   /** if shared base allow without validating */
   if (to.params.typeOrId === 'base') return
 
-  /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
+  /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
-      return navigateTo('/signup')
+      const query = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {}
+      if (query.continueAfterSignIn) {
+        localStorage.setItem('continueAfterSignIn', query.continueAfterSignIn)
+      }
+
+      return navigateTo({
+        path: '/signup',
+        query,
+      })
     }
 
     /** try generating access token using refresh token */
     await state.refreshToken()
 
     /** if user is still not signed in, redirect to signin page */
-    if (!state.signedIn.value) return navigateTo('/signin')
+    if (!state.signedIn.value) {
+      return navigateTo({
+        path: '/signin',
+        query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},
+      })
+    }
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
     if (to.query?.logout) {
       await state.signOut(true)
@@ -90,12 +106,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/')
     }
 
-    /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
-    if (to.params.projectId && from.params.projectId !== to.params.projectId) {
+    /** if users are accessing the bases without having enough permissions, redirect to My Projects page */
+    if (to.params.baseId && from.params.baseId !== to.params.baseId) {
       await loadRoles()
 
       if (state.user.value?.roles?.guest) {
-        message.error("You don't have enough permission to access the project.")
+        message.error("You don't have enough permission to access the base.")
 
         return navigateTo('/')
       }
@@ -108,6 +124,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
  */
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+    let extraProps: any = {}
     try {
       let authProvider = 'google'
       if (window.location.search.includes('state=github')) {
@@ -115,9 +132,14 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       } else if (window.location.search.includes('state=oidc')) {
         authProvider = 'oidc'
       }
+
+      // `extra` prop is used in our cloud implementation, so we are keeping it
       const {
-        data: { token },
+        data: { token, extra },
       } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
+
+      // if extra prop is null/undefined set it as an empty object as fallback
+      extraProps = extra || {}
 
       signIn(token)
     } catch (e: any) {
@@ -125,6 +147,11 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     }
 
     const newURL = window.location.href.split('?')[0]
-    window.history.pushState('object', document.title, newURL)
+    window.history.pushState(
+      'object',
+      document.title,
+      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+    )
+    window.location.reload()
   }
 }

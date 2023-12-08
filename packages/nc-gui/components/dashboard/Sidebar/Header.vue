@@ -38,6 +38,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
         </template>
         <NcButton
           v-if="showSidebarBtn"
+          v-e="['c:leftSidebar:hideToggle']"
           :type="isMobileMode ? 'secondary' : 'text'"
           :size="isMobileMode ? 'medium' : 'small'"
           class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-gray-200)"

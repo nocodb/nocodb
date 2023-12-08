@@ -5,12 +5,17 @@ const props = defineProps<{
   visible: boolean
   entityName: string
   onDelete: () => Promise<void>
+  deleteLabel?: string | undefined
 }>()
 
 const emits = defineEmits(['update:visible'])
 const visible = useVModel(props, 'visible', emits)
 
 const isLoading = ref(false)
+
+const { t } = useI18n()
+
+const deleteLabel = computed(() => props.deleteLabel ?? t('general.delete'))
 
 const onDelete = async () => {
   isLoading.value = true
@@ -43,11 +48,15 @@ onKeyStroke('Enter', () => {
   <GeneralModal v-model:visible="visible" size="small" centered>
     <div class="flex flex-col p-6">
       <div class="flex flex-row pb-2 mb-4 font-medium text-lg border-b-1 border-gray-50 text-gray-800">
-        {{ $t('general.delete') }} {{ props.entityName }}
+        {{ deleteLabel }} {{ props.entityName }}
       </div>
 
       <div class="mb-3 text-gray-800">
-        {{ $t('msg.areYouSureUWantTo') }}<span class="ml-1">{{ props.entityName.toLowerCase() }}?</span>
+        {{
+          $t('msg.areYouSureUWantToDeleteLabel', {
+            deleteLabel: deleteLabel.toLowerCase(),
+          })
+        }}<span class="ml-1">{{ props.entityName.toLowerCase() }}?</span>
       </div>
 
       <slot name="entity-preview"></slot>
@@ -65,7 +74,7 @@ onKeyStroke('Enter', () => {
           data-testid="nc-delete-modal-delete-btn"
           @click="onDelete"
         >
-          {{ `${$t('general.delete')} ${props.entityName}` }}
+          {{ `${deleteLabel} ${props.entityName}` }}
           <template #loading>
             {{ $t('general.deleting') }}
           </template>

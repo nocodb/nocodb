@@ -7,7 +7,7 @@ import { T } from 'nc-help';
 import isEmail from 'validator/lib/isEmail';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import { ProjectUser, User } from '~/models';
+import { BaseUser, User } from '~/models';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
 
@@ -68,7 +68,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
       if (await User.isFirst(ncMeta)) {
         // roles = 'owner,creator,editor'
         T.emit('evt', {
-          evt_type: 'project:invite',
+          evt_type: 'base:invite',
           count: 1,
         });
 
@@ -101,8 +101,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           superUserPresent = true;
 
           if (email !== user.email) {
-            // update admin email and password and migrate projects
-            // if user already present and associated with some project
+            // update admin email and password and migrate bases
+            // if user already present and associated with some base
 
             // check user account already present with the new admin email
             const existingUserWithNewEmail = await User.getByEmail(
@@ -111,7 +111,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             );
 
             if (existingUserWithNewEmail?.id) {
-              // get all project access belongs to the existing account
+              // get all base access belongs to the existing account
               // and migrate to the admin account
               const existingUserProjects = await ncMeta.metaList2(
                 null,
@@ -123,21 +123,21 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               );
 
               for (const existingUserProject of existingUserProjects) {
-                const userProject = await ProjectUser.get(
-                  existingUserProject.project_id,
+                const userProject = await BaseUser.get(
+                  existingUserProject.base_id,
                   user.id,
                   ncMeta,
                 );
 
-                // if admin user already have access to the project
+                // if admin user already have access to the base
                 // then update role based on the highest access level
                 if (userProject) {
                   if (
                     rolesLevel[userProject.roles] >
                     rolesLevel[existingUserProject.roles]
                   ) {
-                    await ProjectUser.update(
-                      userProject.project_id,
+                    await BaseUser.update(
+                      userProject.base_id,
                       user.id,
                       existingUserProject.roles,
                       ncMeta,
@@ -145,7 +145,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   }
                 } else {
                   // if super doesn't have access then add the access
-                  await ProjectUser.insert(
+                  await BaseUser.insert(
                     {
                       ...existingUserProject,
                       fk_user_id: user.id,
@@ -153,9 +153,9 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                     ncMeta,
                   );
                 }
-                // delete the old project access entry from DB
-                await ProjectUser.delete(
-                  existingUserProject.project_id,
+                // delete the old base access entry from DB
+                await BaseUser.delete(
+                  existingUserProject.base_id,
                   existingUserProject.fk_user_id,
                   ncMeta,
                 );
@@ -266,7 +266,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           } else {
             // no super user present and no user present with the new admin email
             T.emit('evt', {
-              evt_type: 'project:invite',
+              evt_type: 'base:invite',
               count: 1,
             });
 

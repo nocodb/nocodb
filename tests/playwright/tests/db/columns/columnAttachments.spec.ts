@@ -7,7 +7,7 @@ test.describe('Attachment column', () => {
   let dashboard: DashboardPage, context: any;
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -97,7 +97,7 @@ test.describe('Attachment column', () => {
     await dashboard.grid.toolbar.actions.click('Download');
 
     const csvFileData: string = await dashboard.downloadAndGetFile({
-      downloadUIAction: dashboard.grid.toolbar.actions.clickDownloadSubmenu('Download as CSV'),
+      downloadUIAction: dashboard.grid.toolbar.actions.clickDownloadSubmenu('Download CSV'),
     });
     const csvArray = csvFileData.split('\r\n');
     const columns = csvArray[0];
@@ -109,6 +109,6 @@ test.describe('Attachment column', () => {
     // PR8504
     // await expect(cells[1]).toBe('al-Manama');
     expect(cells[1]).toBe('1');
-    expect(cells[2].includes('5.json(http://localhost:8080/download/')).toBe(true);
+    expect(cells[2].includes('5.json(http://localhost:8080/dltemp/')).toBe(true);
   });
 });

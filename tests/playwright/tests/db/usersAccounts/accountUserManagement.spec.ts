@@ -31,7 +31,7 @@ test.describe('User roles', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
     signupPage = new SignupPage(accountPage.rootPage);
@@ -104,7 +104,7 @@ test.describe('User roles', () => {
     }
   });
 
-  // signup and verify create project button exist or not based on role
+  // signup and verify create base button exist or not based on role
   async function signupAndVerify(roleIdx: number) {
     await accountPage.signOut();
 

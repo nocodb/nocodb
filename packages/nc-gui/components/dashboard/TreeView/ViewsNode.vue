@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import {
   IsLockedInj,
@@ -16,6 +16,7 @@ import {
 
 interface Props {
   view: ViewType
+  table: TableType
   onValidate: (view: ViewType) => boolean | string
 }
 
@@ -45,19 +46,25 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { activeViewTitleOrId } = storeToRefs(useViewsStore())
+const base = inject(ProjectInj, ref())
 
-const project = inject(ProjectInj, ref())
+const { activeView } = storeToRefs(useViewsStore())
 
-const activeView = inject(ActiveViewInj, ref())
+const { getMeta } = useMetas()
+
+const table = computed(() => props.table)
+const injectedTable = ref(table.value)
+
+provide(ActiveViewInj, vModel)
+provide(MetaInj, injectedTable)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === vModel.value.base_id)
-  if (!base) return false
+  const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
+  if (!source) return false
 
-  return _isDefaultBase(base)
+  return _isDefaultBase(source)
 })
 
 const isDropdownOpen = ref(false)
@@ -121,29 +128,17 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
+const onRenameMenuClick = () => {
+  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = vModel.value.title
+    $e('c:view:rename', { view: vModel.value?.type })
+  }
+}
+
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
-
-/** Duplicate a view */
-// todo: This is not really a duplication, maybe we need to implement a true duplication?
-function onDuplicate() {
-  isDropdownOpen.value = false
-
-  emits('openModal', {
-    type: vModel.value.type!,
-    title: vModel.value.title,
-    copyViewId: vModel.value.id,
-    groupingFieldColumnId: (vModel.value.view as KanbanType).fk_grp_col_id!,
-  })
-
-  $e('c:view:copy', { view: vModel.value.type })
-}
-
-/** Delete a view */
-async function onDelete() {
-  isDropdownOpen.value = false
-
-  emits('delete', vModel.value)
-}
 
 /** Rename a view */
 async function onRename() {
@@ -192,15 +187,17 @@ function onStopEdit() {
   }, 250)
 }
 
-function onRef(el: HTMLElement) {
-  if (activeViewTitleOrId.value === vModel.value.id) {
-    nextTick(() => {
-      setTimeout(() => {
-        el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-      }, 1000)
-    })
-  }
+const onDelete = () => {
+  isDropdownOpen.value = false
+
+  emits('delete', vModel.value)
 }
+
+watch(isDropdownOpen, async () => {
+  if (!isDropdownOpen.value) return
+
+  injectedTable.value = (await getMeta(table.value.id!)) as any
+})
 </script>
 
 <template>
@@ -214,13 +211,12 @@ function onRef(el: HTMLElement) {
     @dblclick.stop="onDblClick"
     @click="onClick"
   >
-    <div
-      :ref="onRef"
-      v-e="['a:view:open', { view: vModel.type }]"
-      class="text-sm flex items-center w-full gap-1"
-      data-testid="view-item"
-    >
-      <div class="flex min-w-6" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
+      <div
+        v-e="['c:view:emoji-picker']"
+        class="flex min-w-6"
+        :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
+      >
         <LazyGeneralEmojiPicker
           class="nc-table-icon"
           :emoji="props.view?.meta?.icon"
@@ -246,24 +242,24 @@ function onRef(el: HTMLElement) {
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
-
-      <div
-        v-else
-        class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none w-full"
-        data-testid="sidebar-view-title"
-        :class="{
-          'font-medium': activeView?.id === vModel.id,
-        }"
-        :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-      >
-        {{ vModel.alias || vModel.title }}
-      </div>
-
+      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full" show-on-truncate-only>
+        <template #title> {{ vModel.alias || vModel.title }}</template>
+        <div
+          data-testid="sidebar-view-title"
+          :class="{
+            'font-medium': activeView?.id === vModel.id,
+          }"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ vModel.alias || vModel.title }}
+        </div>
+      </NcTooltip>
       <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
+            v-e="['c:view:option']"
             type="text"
             size="xxsmall"
             class="nc-sidebar-node-btn invisible !group-hover:visible nc-sidebar-view-node-context-btn"
@@ -276,25 +272,15 @@ function onRef(el: HTMLElement) {
           </NcButton>
 
           <template #overlay>
-            <NcMenu class="min-w-27" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
-              <NcMenuItem @click.stop="onDblClick">
-                <GeneralIcon icon="edit" />
-                <div class="-ml-0.25">{{ $t('general.rename') }}</div>
-              </NcMenuItem>
-              <NcMenuItem @click.stop="onDuplicate">
-                <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
-                {{ $t('general.duplicate') }}
-              </NcMenuItem>
-
-              <NcDivider />
-
-              <template v-if="!vModel.is_default">
-                <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="onDelete">
-                  <GeneralIcon icon="delete" class="text-sm nc-view-delete-icon" />
-                  <div class="-ml-0.25">{{ $t('general.delete') }}</div>
-                </NcMenuItem>
-              </template>
-            </NcMenu>
+            <SmartsheetToolbarViewActionMenu
+              :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
+              :view="vModel"
+              :table="table"
+              in-sidebar
+              @close-modal="isDropdownOpen = false"
+              @rename="onRenameMenuClick"
+              @delete="onDelete"
+            />
           </template>
         </NcDropdown>
       </template>

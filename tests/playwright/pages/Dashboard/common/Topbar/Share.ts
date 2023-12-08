@@ -16,12 +16,12 @@ export class TopbarSharePage extends BasePage {
 
   async clickShareView() {
     await this.get().waitFor();
-    // collapse header 0: Share Project, 1: Share View
+    // collapse header 0: Share Base, 1: Share View
     await this.get().locator(`.ant-collapse-header`).nth(1).click();
   }
 
   async clickShareProject() {
-    await this.get().locator(`[data-testid="docs-share-dlg-share-project"]`).click();
+    await this.get().locator(`[data-testid="docs-share-dlg-share-base"]`).click();
   }
 
   async clickShareViewPublicAccess() {
@@ -96,11 +96,11 @@ export class TopbarSharePage extends BasePage {
   }
 
   async invite({ email, role }: { email: string; role: string }) {
-    const emailField: Locator = this.get().locator('[data-testid="docs-share-dlg-share-project-collaborate-emails"]');
+    const emailField: Locator = this.get().locator('[data-testid="docs-share-dlg-share-base-collaborate-emails"]');
     await emailField.fill(email);
 
     if (role === 'editor') {
-      const roleField: Locator = this.get().locator('[data-testid="docs-share-dlg-share-project-collaborate-role"]');
+      const roleField: Locator = this.get().locator('[data-testid="docs-share-dlg-share-base-collaborate-role"]');
       await roleField.click();
 
       const roleOptionsMenu: Locator = this.rootPage.locator('.ant-select-dropdown.nc-dropdown-user-role');

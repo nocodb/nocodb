@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type ColumnFilter from './ColumnFilter.vue'
 import {
   ActiveViewInj,
+  AllFiltersInj,
   IsLockedInj,
   computed,
+  iconMap,
   inject,
   ref,
   useGlobal,
@@ -13,13 +14,11 @@ import {
   watch,
 } from '#imports'
 
-import FilterIcon from '~icons/nc-icons/filter'
-
 const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { filterAutoSave, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -50,6 +49,10 @@ watch(
 
 const open = ref(false)
 
+const allFilters = ref({})
+
+provide(AllFiltersInj, allFilters)
+
 useMenuCloseOnEsc(open)
 </script>
 
@@ -63,8 +66,7 @@ useMenuCloseOnEsc(open)
     <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-2">
-          <FilterIcon class="h-4 w-4" />
-
+          <component :is="iconMap.filter" class="h-4 w-4" />
           <!-- Filter -->
           <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.filter') }}</span>
 
@@ -77,7 +79,7 @@ useMenuCloseOnEsc(open)
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         class="nc-table-toolbar-menu"
-        :auto-save="filterAutoSave"
+        :auto-save="true"
         data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >

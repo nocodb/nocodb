@@ -7,73 +7,91 @@ import {
   Param,
   Patch,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { SharedBasesService } from '~/services/shared-bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class SharedBasesController {
   constructor(private readonly sharedBasesService: SharedBasesService) {}
 
-  @Post('/api/v1/db/meta/projects/:projectId/shared')
+  @Post([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v2/meta/bases/:baseId/shared',
+  ])
   @HttpCode(200)
   @Acl('createSharedBaseLink')
   async createSharedBaseLink(
-    @Request() req,
+    @Req() req: Request,
     @Body() body: any,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.createSharedBaseLink({
-      projectId: projectId,
+      baseId: baseId,
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return sharedBase;
   }
 
-  @Patch('/api/v1/db/meta/projects/:projectId/shared')
+  @Patch([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v2/meta/bases/:baseId/shared',
+  ])
   @Acl('updateSharedBaseLink')
   async updateSharedBaseLink(
-    @Request() req,
+    @Req() req: Request,
     @Body() body: any,
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.updateSharedBaseLink({
-      projectId: projectId,
+      baseId: baseId,
       roles: body?.roles,
       password: body?.password,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return sharedBase;
   }
 
-  @Delete('/api/v1/db/meta/projects/:projectId/shared')
+  @Delete([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v2/meta/bases/:baseId/shared',
+  ])
   @Acl('disableSharedBaseLink')
   async disableSharedBaseLink(
-    @Param('projectId') projectId: string,
+    @Param('baseId') baseId: string,
+    @Req() req: Request,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.disableSharedBaseLink({
-      projectId,
+      baseId,
+      req,
     });
 
     return sharedBase;
   }
 
-  @Get('/api/v1/db/meta/projects/:projectId/shared')
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/shared',
+    '/api/v2/meta/bases/:baseId/shared',
+  ])
   @Acl('getSharedBaseLink')
   async getSharedBaseLink(
-    @Request() req,
-    @Param('projectId') projectId: string,
+    @Req() req: Request,
+    @Param('baseId') baseId: string,
   ): Promise<any> {
     const sharedBase = await this.sharedBasesService.getSharedBaseLink({
-      projectId: projectId,
+      baseId: baseId,
       siteUrl: req.ncSiteUrl,
     });
 

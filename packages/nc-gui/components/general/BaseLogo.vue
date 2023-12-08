@@ -6,10 +6,10 @@ import SimpleIconsMicrosoftsqlserver from '~icons/simple-icons/microsoftsqlserve
 import LogosSnowflakeIcon from '~icons/logos/snowflake-icon'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
-const { baseType } = defineProps<{ baseType?: string }>()
+const { sourceType } = defineProps<{ sourceType?: string }>()
 
 const baseIcon = computed(() => {
-  switch (baseType) {
+  switch (sourceType) {
     case ClientType.MYSQL:
       return LogosMysqlIcon
     case ClientType.PG:

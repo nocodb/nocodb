@@ -34,7 +34,7 @@ import {
   isYear,
   storeToRefs,
   toRef,
-  useProject,
+  useBase,
 } from '#imports'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
@@ -63,7 +63,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isYear(column, abstractType)) {
     return iconMap.calendar
   } else if (isTime(column, abstractType)) {
-    return iconMap.calendar
+    return iconMap.clock
   } else if (isRating(column)) {
     return iconMap.rating
   } else if (isAttachment(column)) {
@@ -103,18 +103,20 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, columnMeta)
+    const injectedColumn = inject(ColumnInj, columnMeta)
 
-    const { sqlUis } = storeToRefs(useProject())
+    const column = computed(() => columnMeta.value ?? injectedColumn.value)
 
-    const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+    const { sqlUis } = storeToRefs(useBase())
+
+    const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
     const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
     return () => {
-      if (!column.value) return null
+      if (!column.value && !columnMeta.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), {
+      return h(renderIcon((columnMeta.value ?? column.value)!, abstractType.value), {
         class: 'text-inherit mx-1',
       })
     }

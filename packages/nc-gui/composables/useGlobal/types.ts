@@ -9,6 +9,10 @@ export interface AppInfo {
   authType: 'jwt' | 'none'
   connectToExternalDB: boolean
   defaultLimit: number
+  defaultGroupByLimit: {
+    limitGroup: number
+    limitRecord: number
+  }
   firstUser: boolean
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean
@@ -16,7 +20,7 @@ export interface AppInfo {
   oidcProviderName: string | null
   ncMin: boolean
   oneClick: boolean
-  projectHasAdmin: boolean
+  baseHasAdmin: boolean
   teleEnabled: boolean
   auditEnabled: boolean
   type: string
@@ -30,6 +34,7 @@ export interface AppInfo {
   disableEmailAuth: boolean
   mainSubDomain?: string
   dashboardPath: string
+  inviteOnlySignup: boolean
 }
 
 export interface StoredState {
@@ -44,6 +49,7 @@ export interface StoredState {
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
+  lastOpenedWorkspaceId: string | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -68,16 +74,17 @@ export interface Actions {
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; projectId?: string; type?: NcProjectType; query?: any }) => void
+  navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void
   ncNavigateTo: (params: {
     workspaceId?: string
-    projectId?: string
+    baseId?: string
     type?: NcProjectType
     query?: any
     tableId?: string
     viewId?: string
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
+  getMainUrl: (workspaceId: string) => string | undefined
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

@@ -8,7 +8,7 @@ test.describe.skip('Super user', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {

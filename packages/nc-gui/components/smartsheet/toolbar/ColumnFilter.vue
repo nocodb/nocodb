@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ColumnType, FilterType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
+  AllFiltersInj,
   MetaInj,
   ReloadViewDataHookInj,
   comparisonOpList,
@@ -56,6 +57,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -83,6 +86,8 @@ const {
   webHook.value,
 )
 
+const { getPlanLimit } = useWorkspace()
+
 const localNestedFilters = ref()
 
 const wrapperDomRef = ref<HTMLElement>()
@@ -102,12 +107,16 @@ const isFilterDraft = (filter: Filter, col: ColumnType) => {
 
   if (
     filter.comparison_op &&
-    comparisonSubOpList(filter.comparison_op).find((compOp) => compOp.value === filter.comparison_sub_op)?.ignoreVal
+    comparisonSubOpList(filter.comparison_op, col?.meta?.date_format).find((compOp) => compOp.value === filter.comparison_sub_op)
+      ?.ignoreVal
   ) {
     return false
   }
 
-  if (comparisonOpList(col.uidt as UITypes).find((compOp) => compOp.value === filter.comparison_op)?.ignoreVal) {
+  if (
+    comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((compOp) => compOp.value === filter.comparison_op)
+      ?.ignoreVal
+  ) {
     return false
   }
 
@@ -140,7 +149,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // hence remove the previous value
     filter.value = null
     if (
-      !comparisonSubOpList(filter.comparison_op!)
+      !comparisonSubOpList(filter.comparison_op!, col?.meta?.date_format)
         .map((op) => op.value)
         .includes(filter.comparison_sub_op!)
     ) {
@@ -183,12 +192,21 @@ watch(
   },
 )
 
+const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))
+
 watch(
   () => nonDeletedFilters.value.length,
   (length: number) => {
+    allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
     emit('update:filtersLength', length ?? 0)
   },
 )
+
+const filtersCount = computed(() => {
+  return Object.values(allFilters.value).reduce((acc, filters) => {
+    return acc + filters.filter((el) => !el.is_group).length
+  }, 0)
+})
 
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
@@ -210,8 +228,9 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(col.uidt as UITypes).find((compOp) => isComparisonOpAllowed(filter, compOp))
-    ?.value as FilterType['comparison_op']
+  filter.comparison_op = comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((compOp) =>
+    isComparisonOpAllowed(filter, compOp),
+  )?.value as FilterType['comparison_op']
 
   if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
@@ -283,12 +302,16 @@ const addFilterGroup = async () => {
 }
 
 const showFilterInput = (filter: Filter) => {
+  const col = getColumn(filter)
   if (!filter.comparison_op) return false
 
   if (filter.comparison_sub_op) {
-    return !comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal
+    return !comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format).find(
+      (op) => op.value === filter.comparison_sub_op,
+    )?.ignoreVal
   } else {
-    return !comparisonOpList(getColumn(filter)?.uidt as UITypes).find((op) => op.value === filter.comparison_op)?.ignoreVal
+    return !comparisonOpList(col?.uidt as UITypes, col?.meta?.date_format).find((op) => op.value === filter.comparison_op)
+      ?.ignoreVal
   }
 }
 
@@ -298,6 +321,10 @@ onMounted(() => {
 
 onMounted(async () => {
   await loadBtLookupTypes()
+})
+
+onBeforeUnmount(() => {
+  if (parentId.value) delete allFilters.value[parentId.value]
 })
 </script>
 
@@ -325,6 +352,7 @@ onMounted(async () => {
                 <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
                   <NcSelect
                     v-model:value="filter.logical_op"
+                    v-e="['c:filter:logical-op:select']"
                     :dropdown-match-select-width="false"
                     class="min-w-20 capitalize"
                     placeholder="Group op"
@@ -342,6 +370,7 @@ onMounted(async () => {
                 <NcButton
                   v-if="!filter.readOnly"
                   :key="i"
+                  v-e="['c:filter:delete']"
                   type="text"
                   size="small"
                   class="nc-filter-item-remove-btn cursor-pointer"
@@ -370,6 +399,7 @@ onMounted(async () => {
             <NcSelect
               v-else
               v-model:value="filter.logical_op"
+              v-e="['c:filter:logical-op:select']"
               :dropdown-match-select-width="false"
               class="h-full !min-w-20 !max-w-20 capitalize"
               hide-details
@@ -395,6 +425,7 @@ onMounted(async () => {
             />
             <NcSelect
               v-model:value="filter.comparison_op"
+              v-e="['c:filter:comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
@@ -405,7 +436,10 @@ onMounted(async () => {
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
+              <template
+                v-for="compOp of comparisonOpList(getColumn(filter)?.uidt, getColumn(filter)?.meta?.date_format)"
+                :key="compOp.value"
+              >
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                   {{ compOp.text }}
                 </a-select-option>
@@ -416,6 +450,7 @@ onMounted(async () => {
             <NcSelect
               v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
+              v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{ 'flex-grow w-full': !showFilterInput(filter), 'max-w-28': showFilterInput(filter) }"
@@ -427,7 +462,10 @@ onMounted(async () => {
               dropdown-class-name="nc-dropdown-filter-comp-sub-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
+              <template
+                v-for="compSubOp of comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format)"
+                :key="compSubOp.value"
+              >
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                   {{ compSubOp.text }}
                 </a-select-option>
@@ -453,6 +491,7 @@ onMounted(async () => {
 
             <NcButton
               v-if="!filter.readOnly"
+              v-e="['c:filter:delete']"
               type="text"
               size="small"
               class="nc-filter-item-remove-btn self-center"
@@ -465,23 +504,44 @@ onMounted(async () => {
       </template>
     </div>
 
-    <div ref="addFiltersRowDomRef" class="flex gap-2">
-      <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
-        <div class="flex items-center gap-1">
-          <component :is="iconMap.plus" />
-          <!-- Add Filter -->
-          {{ $t('activity.addFilter') }}
-        </div>
-      </NcButton>
+    <template v-if="isEeUI && !isPublic">
+      <div v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)" ref="addFiltersRowDomRef" class="flex gap-2">
+        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" />
+            <!-- Add Filter -->
+            {{ $t('activity.addFilter') }}
+          </div>
+        </NcButton>
 
-      <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
-        <div class="flex items-center gap-1">
-          <!-- Add Filter Group -->
-          <component :is="iconMap.plus" />
-          {{ $t('activity.addFilterGroup') }}
-        </div>
-      </NcButton>
-    </div>
+        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <div class="flex items-center gap-1">
+            <!-- Add Filter Group -->
+            <component :is="iconMap.plus" />
+            {{ $t('activity.addFilterGroup') }}
+          </div>
+        </NcButton>
+      </div>
+    </template>
+    <template v-else>
+      <div ref="addFiltersRowDomRef" class="flex gap-2">
+        <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
+          <div class="flex items-center gap-1">
+            <component :is="iconMap.plus" />
+            <!-- Add Filter -->
+            {{ $t('activity.addFilter') }}
+          </div>
+        </NcButton>
+
+        <NcButton v-if="!webHook && nestedLevel < 5" type="text" size="small" @click.stop="addFilterGroup()">
+          <div class="flex items-center gap-1">
+            <!-- Add Filter Group -->
+            <component :is="iconMap.plus" />
+            {{ $t('activity.addFilterGroup') }}
+          </div>
+        </NcButton>
+      </div>
+    </template>
     <div
       v-if="!filters.length"
       class="flex flex-row text-gray-400 mt-2"
@@ -507,5 +567,9 @@ onMounted(async () => {
 
 :deep(.ant-select-item-option) {
   @apply "!min-w-full";
+}
+
+:deep(.ant-select-selector) {
+  @apply !min-h-8.25;
 }
 </style>

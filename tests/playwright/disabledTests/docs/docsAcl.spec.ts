@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ProjectType, ProjectTypes } from 'nocodb-sdk';
+import { BaseType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import { SignupPage } from '../../pages/SignupPage';
 import { WorkspacePage } from '../../pages/WorkspacePage';
@@ -9,17 +9,17 @@ import { getDefaultPwd } from '../../tests/utils/general';
 test.describe('Docs ACL', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
-  let project: ProjectType;
+  let base: BaseType;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
-    project = context.project;
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, baseType: ProjectTypes.DOCUMENTATION });
+    base = context.base;
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test('Docs ACL Viewer', async ({ page, context: browserContent }) => {
     // root page
-    await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'test-page' });
+    await dashboard.sidebar.docsSidebar.createPage({ baseTitle: base.title as any, title: 'test-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();
 
     await dashboard.shareProjectButton.open();
@@ -48,12 +48,12 @@ test.describe('Docs ACL', () => {
       password: getDefaultPwd(),
     });
 
-    await workspace.projectOpen({ title: project.title });
+    await workspace.baseOpen({ title: base.title });
 
-    const newDashboard = new DashboardPage(newPage, project);
+    const newDashboard = new DashboardPage(newPage, base);
 
     await newDashboard.sidebar.docsSidebar.openPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'test-page',
     });
 
@@ -63,13 +63,13 @@ test.describe('Docs ACL', () => {
 
     await newDashboard.sidebar.docsSidebar.verifyCreatePageButtonVisibility({
       isVisible: false,
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
     });
   });
 
   test('Docs ACL Editor', async ({ page, context: browserContent }) => {
     // root page
-    await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'test-page' });
+    await dashboard.sidebar.docsSidebar.createPage({ baseTitle: base.title as any, title: 'test-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();
 
     await dashboard.shareProjectButton.open();
@@ -101,12 +101,12 @@ test.describe('Docs ACL', () => {
 
     await newPage.waitForTimeout(1000);
 
-    await workspace.projectOpen({ title: project.title as any });
+    await workspace.baseOpen({ title: base.title as any });
 
-    const newDashboard = new DashboardPage(newPage, project);
+    const newDashboard = new DashboardPage(newPage, base);
 
     await newDashboard.sidebar.docsSidebar.openPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'test-page',
     });
 
@@ -116,13 +116,13 @@ test.describe('Docs ACL', () => {
 
     await newDashboard.sidebar.docsSidebar.verifyCreatePageButtonVisibility({
       isVisible: true,
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
     });
   });
 
   test('Verify that access removal works', async ({ page, context: browserContent }) => {
     // root page
-    await dashboard.sidebar.docsSidebar.createPage({ projectTitle: project.title as any, title: 'test-page' });
+    await dashboard.sidebar.docsSidebar.createPage({ baseTitle: base.title as any, title: 'test-page' });
     await dashboard.docs.openedPage.verifyOpenedPageVisible();
 
     await dashboard.shareProjectButton.open();

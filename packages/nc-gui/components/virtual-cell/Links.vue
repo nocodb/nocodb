@@ -17,8 +17,6 @@ const isForm = inject(IsFormInj)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const colTitle = computed(() => column.value?.title || '')
@@ -47,7 +45,7 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const textVal = computed(() => {
-  if (isForm?.value) {
+  if (isForm?.value || isNew.value) {
     return state.value?.[colTitle.value]?.length
       ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
       : t('msg.noRecordsLinked')
@@ -64,21 +62,28 @@ const textVal = computed(() => {
   }
 })
 
+const toatlRecordsLinked = computed(() => {
+  if (isForm?.value) {
+    return state.value?.[colTitle.value]?.length
+  }
+  return +value?.value || 0
+})
+
 const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
 }
 
 const openChildList = () => {
-  if (!isLocked.value) {
-    childListDlg.value = true
-  }
+  if (isUnderLookup.value) return
+
+  childListDlg.value = true
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
-      if (isLocked.value || listItemsDlg.value) return
+      if (listItemsDlg.value) return
       childListDlg.value = true
       e.stopPropagation()
       break
@@ -91,13 +96,20 @@ const localCellValue = computed<any[]>(() => {
   }
   return []
 })
+
+const openListDlg = () => {
+  if (isUnderLookup.value) return
+
+  listItemsDlg.value = true
+}
 </script>
 
 <template>
   <div class="flex w-full group items-center nc-links-wrapper" @dblclick.stop="openChildList">
     <div class="block flex-shrink truncate">
       <component
-        :is="isLocked || isUnderLookup ? 'span' : 'a'"
+        :is="isUnderLookup ? 'span' : 'a'"
+        v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"
@@ -108,18 +120,23 @@ const localCellValue = computed<any[]>(() => {
     </div>
     <div class="flex-grow" />
 
-    <div v-if="!isLocked && !isUnderLookup" class="flex justify-end hidden group-hover:flex items-center">
+    <div v-if="!isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
         class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
-        @click.stop="listItemsDlg = true"
+        @click.stop="openListDlg"
       />
     </div>
-
-    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" :column="relatedTableDisplayColumn" />
+    <LazyVirtualCellComponentsListItems
+      v-if="listItemsDlg || childListDlg"
+      v-model="listItemsDlg"
+      :column="relatedTableDisplayColumn"
+    />
 
     <LazyVirtualCellComponentsListChildItems
+      v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
+      :items="toatlRecordsLinked"
       :column="relatedTableDisplayColumn"
       :cell-value="localCellValue"
       @attach-record="onAttachRecord"

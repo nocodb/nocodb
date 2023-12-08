@@ -2,13 +2,7 @@ name: pre-build-for-playwright
 
 on:
   workflow_call:
-    inputs:
-      FORCE_RUN_PRERQUISITE_STEPS:
-        description: 'FORCE_RUN_PRERQUISITE_STEPS'
-        required: false
-        type: string  
-        default: 'false'
-
+  
 jobs:
   playwright:
     runs-on: [self-hosted, v3]
@@ -16,31 +10,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Check node,pnpm Installation and set Path
-        shell: bash
-        working-directory: scripts/self-hosted-gh-runner
-        timeout-minutes: 1
-        run: |
-          ./node-pnpm-check.sh
-          echo "make sure below mentioned versions are expected versions"
-          echo "If you are expecting the node and pnpm versions to be updated. Please update the node-pnpm-check.sh script"
-          env
       - name: Setup Node
-        if: ${{ env.SETUP_NODE != 'false' }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ env.NC_REQ_NODE_V }}
+          node-version: 18.14.0
       - name: Setup pnpm
-        if: ${{ env.SETUP_PNPM != 'false' }}
         uses: pnpm/action-setup@v2
         with:
-          version: ${{ env.NC_REQ_PNPM_V }}        
+          version: 8
+      - name: remove use-node-version from .npmrc 
+        run:  sed -i '/^use-node-version/d' .npmrc                   
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV          
       - uses: actions/cache@v3
-        if: env.IS_NPM_CACHE_DOWNLOAD_REQUIRED == 'true'
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}

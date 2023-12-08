@@ -31,7 +31,7 @@ const vModel = useVModel(props, 'modelValue', emits)
     </div>
 
     <div class="w-full h-70vh">
-      <LazyErdView :table="activeTable" :base-id="activeTable?.base_id" />
+      <LazyErdView :table="activeTable" :source-id="activeTable?.source_id" />
     </div>
   </a-modal>
 </template>

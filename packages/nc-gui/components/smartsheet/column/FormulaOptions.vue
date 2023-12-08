@@ -2,24 +2,40 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
-import type { ColumnType, FormulaType } from 'nocodb-sdk'
-import { UITypes, jsepCurlyHook, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import {
+  UITypes,
+  isLinksOrLTAR,
+  isNumericCol,
+  isSystemColumn,
+  jsepCurlyHook,
+  substituteColumnIdWithAliasInFormula,
+  validateDateWithUnknownFormat,
+} from 'nocodb-sdk'
 import {
   MetaInj,
   NcAutocompleteTree,
+  computed,
   formulaList,
   formulaTypes,
   formulas,
   getUIDTIcon,
   getWordUntilCaret,
   iconMap,
+  inject,
   insertAtCursor,
-  isEeUI,
+  isDate,
+  nextTick,
   onMounted,
+  ref,
+  storeToRefs,
+  useBase,
   useColumnCreateStoreOrThrow,
   useDebounceFn,
+  useI18n,
+  useMetas,
+  useNocoEe,
   useVModel,
-  validateDateWithUnknownFormat,
 } from '#imports'
 
 const props = defineProps<{
@@ -32,11 +48,15 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { formState, setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
-const { loadMagic, predictFunction: _predictFunction } = useNocoEe()
+const baseStore = useBase()
+
+const { tables } = storeToRefs(baseStore)
+
+const { predictFunction: _predictFunction } = useNocoEe()
 
 enum JSEPNode {
   COMPOUND = 'Compound',
@@ -55,6 +75,23 @@ const meta = inject(MetaInj, ref())
 const supportedColumns = computed(
   () => meta?.value?.columns?.filter((col) => !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) || [],
 )
+const { metas } = useMetas()
+
+const refTables = computed(() => {
+  if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
+    return []
+  }
+
+  const _refTables = meta.value.columns
+    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
+    .map((column) => ({
+      col: column.colOptions,
+      column,
+      ...tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id),
+    }))
+    .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
+  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
+})
 
 const validators = {
   formula_raw: [
@@ -75,7 +112,7 @@ const validators = {
 
 const availableFunctions = formulaList
 
-const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=']
+const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
 
 const autocomplete = ref(false)
 
@@ -435,7 +472,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
     }
 
     if (col.uidt === UITypes.Formula) {
-      const foundType = getRootDataType(jsep((col as any).formula_raw))
+      const foundType = getRootDataType(jsep(col.colOptions?.formula_raw))
       if (foundType === 'N/A') {
         typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: col.title }))
       } else if (expectedType !== foundType) {
@@ -502,6 +539,53 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
           }
           break
 
+        case UITypes.Rollup: {
+          const rollupFunction = col.colOptions.rollup_function
+          if (['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(rollupFunction)) {
+            // these functions produce a numeric value, which can be used in numeric functions
+            if (expectedType !== formulaTypes.NUMERIC) {
+              typeErrors.add(
+                t('msg.formula.columnWithTypeFoundButExpected', {
+                  columnName: parsedTree.name,
+                  columnType: formulaTypes.NUMERIC,
+                  expectedType,
+                }),
+              )
+            }
+          } else {
+            // the value is based on the foreign rollup column type
+            const selectedTable = refTables.value.find((t) => t.column.id === col.colOptions.fk_relation_column_id)
+            const refTableColumns = metas.value[selectedTable.id].columns.filter(
+              (c: ColumnType) =>
+                vModel.value.fk_lookup_column_id === c.id ||
+                (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
+            )
+            const childFieldColumn = refTableColumns.find(
+              (column: ColumnType) => column.id === col.colOptions.fk_rollup_column_id,
+            )
+            const abstractType = sqlUi.value.getAbstractType(childFieldColumn)
+
+            if (expectedType === formulaTypes.DATE && !isDate(childFieldColumn, sqlUi.value.getAbstractType(childFieldColumn))) {
+              typeErrors.add(
+                t('msg.formula.columnWithTypeFoundButExpected', {
+                  columnName: parsedTree.name,
+                  columnType: abstractType,
+                  expectedType,
+                }),
+              )
+            } else if (expectedType === formulaTypes.NUMERIC && !isNumericCol(childFieldColumn)) {
+              typeErrors.add(
+                t('msg.formula.columnWithTypeFoundButExpected', {
+                  columnName: parsedTree.name,
+                  columnType: abstractType,
+                  expectedType,
+                }),
+              )
+            }
+          }
+          break
+        }
+
         // not supported
         case UITypes.ForeignKey:
         case UITypes.Attachment:
@@ -509,7 +593,6 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.Time:
         case UITypes.Percent:
         case UITypes.Duration:
-        case UITypes.Rollup:
         case UITypes.Lookup:
         case UITypes.Barcode:
         case UITypes.Button:
@@ -714,21 +797,21 @@ onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
 
-const predictFunction = async () => {
-  await _predictFunction(formState, meta, supportedColumns, suggestionsList, vModel)
-}
+// const predictFunction = async () => {
+//   await _predictFunction(formState, meta, supportedColumns, suggestionsList, vModel)
+// }
 </script>
 
 <template>
   <div class="formula-wrapper">
     <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
-      <GeneralIcon
+      <!-- <GeneralIcon
         v-if="isEeUI"
         icon="magic"
         :class="{ 'nc-animation-pulse': loadMagic }"
         class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
         @click="predictFunction()"
-      />
+      /> -->
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
@@ -748,7 +831,12 @@ const predictFunction = async () => {
           placeholder2: '{column_name}',
         })
       }}
-      <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">
+      <a
+        class="prose-sm"
+        href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features"
+        target="_blank"
+        rel="noopener"
+      >
         {{ $t('msg.formula.hintEnd') }}
       </a>
     </div>

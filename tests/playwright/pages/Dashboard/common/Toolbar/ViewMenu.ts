@@ -12,7 +12,7 @@ export class ToolbarViewMenuPage extends BasePage {
   constructor(toolbar: ToolbarPage) {
     super(toolbar.rootPage);
     this.toolbar = toolbar;
-    this.viewsMenuBtn = this.toolbar.get().locator(`.nc-actions-menu-btn`);
+    this.viewsMenuBtn = this.rootPage.locator('.nc-view-context-btn');
   }
 
   get() {
@@ -86,15 +86,18 @@ export class ToolbarViewMenuPage extends BasePage {
   // todo: Move verification out of the click method
   async click({ menu, subMenu, verificationInfo }: { menu: string; subMenu?: string; verificationInfo?: any }) {
     await this.viewsMenuBtn.click();
+
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get().locator(`.ant-dropdown-menu-title-content:has-text("${menu}")`).first().click();
     if (subMenu) {
       // for CSV download, pass locator instead of clicking it here
-      if (subMenu === 'Download as CSV') {
+      if (subMenu === 'Download CSV') {
         await this.verifyDownloadAsCSV({
           downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
-      } else if (subMenu === 'Download as XLSX') {
+      } else if (subMenu === 'Download Excel') {
         await this.verifyDownloadAsXLSX({
           downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
@@ -104,12 +107,12 @@ export class ToolbarViewMenuPage extends BasePage {
       }
 
       switch (subMenu) {
-        case 'Download as CSV':
+        case 'Download CSV':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });
           break;
-        case 'Download as XLSX':
+        case 'Download Excel':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });

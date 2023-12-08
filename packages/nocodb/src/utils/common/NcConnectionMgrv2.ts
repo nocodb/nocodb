@@ -1,4 +1,4 @@
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
@@ -9,58 +9,58 @@ import Noco from '~/Noco';
 
 export default class NcConnectionMgrv2 {
   protected static connectionRefs: {
-    [projectId: string]: {
-      [baseId: string]: XKnex;
+    [baseId: string]: {
+      [sourceId: string]: XKnex;
     };
   } = {};
 
   public static async destroyAll() {
-    for (const projectId in this.connectionRefs) {
-      for (const baseId in this.connectionRefs[projectId]) {
-        await this.connectionRefs[projectId][baseId].destroy();
+    for (const baseId in this.connectionRefs) {
+      for (const sourceId in this.connectionRefs[baseId]) {
+        await this.connectionRefs[baseId][sourceId].destroy();
       }
     }
   }
 
   // Todo: Should await on connection destroy
-  public static delete(base: Base) {
-    // todo: ignore meta projects
-    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
+  public static delete(source: Source) {
+    // todo: ignore meta bases
+    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
       try {
-        const conn = this.connectionRefs?.[base.project_id]?.[base.id];
+        const conn = this.connectionRefs?.[source.base_id]?.[source.id];
         conn.destroy();
-        delete this.connectionRefs?.[base.project_id][base.id];
+        delete this.connectionRefs?.[source.base_id][source.id];
       } catch (e) {
         console.log(e);
       }
     }
   }
 
-  public static async deleteAwait(base: Base) {
-    // todo: ignore meta projects
-    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
+  public static async deleteAwait(source: Source) {
+    // todo: ignore meta bases
+    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
       try {
-        const conn = this.connectionRefs?.[base.project_id]?.[base.id];
+        const conn = this.connectionRefs?.[source.base_id]?.[source.id];
         await conn.destroy();
-        delete this.connectionRefs?.[base.project_id][base.id];
+        delete this.connectionRefs?.[source.base_id][source.id];
       } catch (e) {
         console.log(e);
       }
     }
   }
 
-  public static async get(base: Base): Promise<XKnex> {
-    if (base.isMeta()) return Noco.ncMeta.knex;
+  public static async get(source: Source): Promise<XKnex> {
+    if (source.isMeta()) return Noco.ncMeta.knex;
 
-    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
-      return this.connectionRefs?.[base.project_id]?.[base.id];
+    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
+      return this.connectionRefs?.[source.base_id]?.[source.id];
     }
-    this.connectionRefs[base.project_id] =
-      this.connectionRefs?.[base.project_id] || {};
+    this.connectionRefs[source.base_id] =
+      this.connectionRefs?.[source.base_id] || {};
 
-    const connectionConfig = await base.getConnectionConfig();
+    const connectionConfig = await source.getConnectionConfig();
 
-    this.connectionRefs[base.project_id][base.id] = XKnex({
+    this.connectionRefs[source.base_id][source.id] = XKnex({
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -86,14 +86,14 @@ export default class NcConnectionMgrv2 {
         },
       },
     } as any);
-    return this.connectionRefs[base.project_id][base.id];
+    return this.connectionRefs[source.base_id][source.id];
   }
 
-  public static async getSqlClient(base: Base, _knex = null) {
-    const knex = _knex || (await this.get(base));
+  public static async getSqlClient(source: Source, _knex = null) {
+    const knex = _knex || (await this.get(source));
     return SqlClientFactory.create({
       knex,
-      ...(await base.getConnectionConfig()),
+      ...(await source.getConnectionConfig()),
     });
   }
 }

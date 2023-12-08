@@ -63,13 +63,13 @@ const onValidate = async (_: any, valid: boolean) => {
 <template>
   <div class="flex flex-col items-center">
     <div class="flex flex-col w-150">
-      <div class="flex font-bold text-xl">{{ $t('labels.profile') }}</div>
+      <div class="flex font-bold text-xl" data-rec="true">{{ $t('labels.profile') }}</div>
       <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
-        <div class="flex font-medium text-base">{{ $t('labels.accountDetails') }}</div>
-        <div class="flex text-gray-500">{{ $t('labels.controlAppearance') }}</div>
+        <div class="flex font-medium text-base" data-rec="true">{{ $t('labels.accountDetails') }}</div>
+        <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
         <div class="flex flex-row mt-4">
           <div class="flex h-20 mt-1.5">
-            <GeneralUserIcon size="xlarge" />
+            <GeneralUserIcon size="xlarge" :email="user?.email" :name="user?.display_name" />
           </div>
           <div class="flex w-10"></div>
           <a-form
@@ -81,7 +81,7 @@ const onValidate = async (_: any, valid: boolean) => {
             @finish="onSubmit"
             @validate="onValidate"
           >
-            <div class="text-gray-800 mb-1.5">{{ $t('general.name') }}</div>
+            <div class="text-gray-800 mb-1.5" data-rec="true">{{ $t('general.name') }}</div>
             <a-form-item name="title" :rules="formRules.title">
               <a-input
                 v-model:value="form.title"
@@ -90,7 +90,7 @@ const onValidate = async (_: any, valid: boolean) => {
                 data-testid="nc-account-settings-rename-input"
               />
             </a-form-item>
-            <div class="text-gray-800 mb-1.5">{{ $t('labels.accountEmailID') }}</div>
+            <div class="text-gray-800 mb-1.5" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
             <a-input
               v-model:value="email"
               class="w-full !rounded-md !py-1.5"
@@ -98,7 +98,7 @@ const onValidate = async (_: any, valid: boolean) => {
               disabled
               data-testid="nc-account-settings-email-input"
             />
-            <div class="flex flex-row w-full justify-end mt-8">
+            <div class="flex flex-row w-full justify-end mt-8" data-rec="true">
               <NcButton
                 type="primary"
                 html-type="submit"

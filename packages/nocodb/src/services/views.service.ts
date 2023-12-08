@@ -5,6 +5,7 @@ import type {
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -12,11 +13,11 @@ import { Model, ModelRoleVisibility, View } from '~/models';
 
 // todo: move
 async function xcVisibilityMetaGet(param: {
-  projectId: string;
+  baseId: string;
   includeM2M?: boolean;
   models?: Model[];
 }) {
-  const { includeM2M = true, projectId, models: _models } = param ?? {};
+  const { includeM2M = true, baseId, models: _models } = param ?? {};
 
   // todo: move to
   const roles = ['owner', 'creator', 'viewer', 'editor', 'commenter', 'guest'];
@@ -26,8 +27,8 @@ async function xcVisibilityMetaGet(param: {
   let models =
     _models ||
     (await Model.list({
-      project_id: projectId,
-      base_id: undefined,
+      base_id: baseId,
+      source_id: undefined,
     }));
 
   models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
@@ -52,7 +53,7 @@ async function xcVisibilityMetaGet(param: {
     return obj;
   }, Promise.resolve({}));
 
-  const disabledList = await ModelRoleVisibility.list(projectId);
+  const disabledList = await ModelRoleVisibility.list(baseId);
 
   for (const d of disabledList) {
     if (result[d.fk_view_id])
@@ -69,14 +70,14 @@ export class ViewsService {
   async viewList(param: {
     tableId: string;
     user: {
-      roles: Record<string, boolean>;
-      project_roles: Record<string, boolean>;
+      roles?: Record<string, boolean> | string;
+      base_roles?: Record<string, boolean>;
     };
   }) {
     const model = await Model.get(param.tableId);
 
     const viewList = await xcVisibilityMetaGet({
-      projectId: model.project_id,
+      baseId: model.base_id,
       models: [model],
     });
 
@@ -84,15 +85,14 @@ export class ViewsService {
     //await View.list(param.tableId)
     const filteredViewList = viewList.filter((view: any) => {
       return Object.values(ProjectRoles).some(
-        (role) =>
-          param?.user?.['project_roles']?.[role] && !view.disabled[role],
+        (role) => param?.user?.['base_roles']?.[role] && !view.disabled[role],
       );
     });
 
     return filteredViewList;
   }
 
-  async shareView(param: { viewId: string; user: UserType }) {
+  async shareView(param: { viewId: string; user: UserType; req: NcRequest }) {
     const res = await View.share(param.viewId);
 
     const view = await View.get(param.viewId);
@@ -104,6 +104,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
       user: param.user,
       view,
+      req: param.req,
     });
 
     return res;
@@ -113,6 +114,7 @@ export class ViewsService {
     viewId: string;
     view: ViewUpdateReqType;
     user: UserType;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
@@ -133,11 +135,13 @@ export class ViewsService {
         ...param.view,
       },
       user: param.user,
+
+      req: param.req,
     });
     return result;
   }
 
-  async viewDelete(param: { viewId: string; user: UserType }) {
+  async viewDelete(param: { viewId: string; user: UserType; req: NcRequest }) {
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -149,6 +153,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.VIEW_DELETE, {
       view,
       user: param.user,
+      req: param.req,
     });
 
     return true;
@@ -158,6 +163,7 @@ export class ViewsService {
     viewId: string;
     sharedView: SharedViewReqType;
     user: UserType;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/SharedViewReq',
@@ -175,12 +181,17 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
       view,
+      req: param.req,
     });
 
     return result;
   }
 
-  async shareViewDelete(param: { viewId: string; user: UserType }) {
+  async shareViewDelete(param: {
+    viewId: string;
+    user: UserType;
+    req: NcRequest;
+  }) {
     const view = await View.get(param.viewId);
 
     if (!view) {
@@ -191,6 +202,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.SHARED_VIEW_DELETE, {
       user: param.user,
       view,
+      req: param.req,
     });
 
     return true;

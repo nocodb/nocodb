@@ -1,5 +1,9 @@
 import jsep from 'jsep';
-import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
+import {
+  jsepCurlyHook,
+  UITypes,
+  validateDateWithUnknownFormat,
+} from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import type Column from '~/models/Column';
@@ -10,10 +14,7 @@ import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
-import {
-  convertDateFormatForConcat,
-  validateDateWithUnknownFormat,
-} from '~/helpers/formulaFnHelper';
+import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 
 // todo: switch function based on database
@@ -724,6 +725,7 @@ async function _formulaQueryBuilder(
               fn,
               colAlias,
               prevBinaryOp,
+              model,
             });
             if (res) return res;
           }
@@ -774,6 +776,22 @@ async function _formulaQueryBuilder(
       }
       return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
+      // treat `&` as shortcut for concat
+      if (pt.operator === '&') {
+        return fn(
+          {
+            type: 'CallExpression',
+            arguments: [pt.left, pt.right],
+            callee: {
+              type: 'Identifier',
+              name: 'CONCAT',
+            },
+          },
+          alias,
+          prevBinaryOp,
+        );
+      }
+
       if (pt.operator === '==') {
         pt.operator = '=';
       }
@@ -948,9 +966,13 @@ export default async function formulaQueryBuilderv2(
   try {
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
-    await knex(baseModelSqlv2.getTnPath(model, tableAlias))
-      .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
-      .as('dry-run-only');
+    await baseModelSqlv2.execAndParse(
+      knex(baseModelSqlv2.getTnPath(model, tableAlias))
+        .select(knex.raw(`?? as ??`, [qb.builder, '__dry_run_alias']))
+        .as('dry-run-only'),
+      null,
+      { raw: true },
+    );
 
     // if column is provided, i.e. formula has been created
     if (column) {

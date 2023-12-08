@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 
 import ProjectWrapper from './ProjectWrapper.vue'
-
-import type { TabType } from '#imports'
 
 import {
   TreeViewInj,
@@ -16,69 +13,57 @@ import {
   ref,
   resolveComponent,
   storeToRefs,
+  useBase,
+  useBases,
   useDialog,
   useNuxtApp,
-  useProject,
-  useProjects,
   useRoles,
+  useRouter,
   useTablesStore,
-  useTabs,
 } from '#imports'
-
-import { useRouter } from '#app'
 
 const { isUIAllowed } = useRoles()
 
-const { addTab } = useTabs()
-
-const { $e, $jobs } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const router = useRouter()
 
 const route = router.currentRoute
 
-const projectsStore = useProjects()
+const basesStore = useBases()
 
-const { createProject: _createProject } = projectsStore
+const { createProject: _createProject } = basesStore
 
-const { projects, projectsList, activeProjectId } = storeToRefs(projectsStore)
+const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
-const { openTable } = useTablesStore()
+const baseCreateDlg = ref(false)
 
-const projectCreateDlg = ref(false)
+const baseStore = useBase()
 
-const projectStore = useProject()
-
-const { loadTables } = projectStore
-
-const { tables } = storeToRefs(projectStore)
-
-const { t } = useI18n()
+const { isSharedBase } = storeToRefs(baseStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
-const { refreshCommandPalette } = useCommandPalette()
+const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 
-const contextMenuTarget = reactive<{ type?: 'project' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
-
-const setMenuContext = (type: 'project' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
+const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
 
-function openRenameTableDialog(table: TableType, rightClick = false) {
-  if (!table || !table.base_id) return
+function openRenameTableDialog(table: TableType, _ = false) {
+  if (!table || !table.source_id) return
 
-  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
+  $e('c:table:rename')
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
-    'baseId': table.base_id, // || bases.value[0].id,
+    'sourceId': table.source_id, // || sources.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -89,8 +74,8 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
   }
 }
 
-function openTableCreateDialog(baseId?: string, projectId?: string) {
-  if (!baseId && !(projectId || projectsList.value[0].id)) return
+function openTableCreateDialog(sourceId?: string, baseId?: string) {
+  if (!sourceId && !(baseId || basesList.value[0].id)) return
 
   $e('c:table:create:navdraw')
 
@@ -98,8 +83,8 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    'baseId': baseId, // || bases.value[0].id,
-    'projectId': projectId || projectsList.value[0].id,
+    'sourceId': sourceId, // || sources.value[0].id,
+    'baseId': baseId || basesList.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -111,30 +96,15 @@ function openTableCreateDialog(baseId?: string, projectId?: string) {
 }
 
 const duplicateTable = async (table: TableType) => {
-  if (!table || !table.id || !table.project_id) return
+  if (!table || !table.id || !table.base_id) return
 
   const isOpen = ref(true)
+
+  $e('c:table:duplicate')
 
   const { close } = useDialog(resolveComponent('DlgTableDuplicate'), {
     'modelValue': isOpen,
     'table': table,
-    'onOk': async (jobData: { id: string }) => {
-      $jobs.subscribe({ id: jobData.id }, undefined, async (status: string, data?: any) => {
-        if (status === JobStatus.COMPLETED) {
-          await loadTables()
-          refreshCommandPalette()
-          const newTable = tables.value.find((el) => el.id === data?.result?.id)
-          if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
-
-          openTable(newTable!)
-        } else if (status === JobStatus.FAILED) {
-          message.error(t('msg.error.failedToDuplicateTable'))
-          await loadTables()
-        }
-      })
-
-      $e('a:table:duplicate')
-    },
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -165,17 +135,17 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
           $e('c:shortcut', { key: 'ALT + T' })
-          const projectId = activeProjectId.value
-          const project = projectId ? projects.value.get(projectId) : undefined
-          if (!project) return
+          const baseId = activeProjectId.value
+          const base = baseId ? bases.value.get(baseId) : undefined
+          if (!base) return
 
-          if (projectId) openTableCreateDialog(project.bases?.[0].id, projectId)
+          if (baseId) openTableCreateDialog(base.sources?.[0].id, baseId)
         }
         break
       }
-      // ALT + L - only show active project
+      // ALT + L - only show active base
       case 76: {
-        if (route.value.params.projectId) {
+        if (route.value.params.baseId) {
           router.push({
             query: {
               ...route.value.query,
@@ -188,7 +158,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       // ALT + D
       case 68: {
         e.stopPropagation()
-        projectCreateDlg.value = true
+        baseCreateDlg.value = true
         break
       }
     }
@@ -196,7 +166,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 const handleContext = (e: MouseEvent) => {
-  if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
+  if (!document.querySelector('.source-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }
 }
@@ -236,7 +206,7 @@ watch(
 watch(
   activeProjectId,
   () => {
-    const activeProjectDom = document.querySelector(`.nc-treeview [data-project-id="${activeProjectId.value}"]`)
+    const activeProjectDom = document.querySelector(`.nc-treeview [data-base-id="${activeProjectId.value}"]`)
     if (!activeProjectDom) return
 
     if (isElementInvisible(activeProjectDom)) {
@@ -252,17 +222,17 @@ watch(
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
+    <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
-      <template v-if="projectsList?.length">
-        <ProjectWrapper v-for="project of projectsList" :key="project.id" :project-role="project.project_role" :project="project">
+      <template v-if="basesList?.length">
+        <ProjectWrapper v-for="base of basesList" :key="base.id" :base-role="base.project_role" :base="base">
           <DashboardTreeViewProjectNode />
         </ProjectWrapper>
       </template>
 
       <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
-    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
   </div>
 </template>
 

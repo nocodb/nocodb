@@ -1,57 +1,59 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { JobsRedisService } from './jobs-redis.service';
 import type { OnModuleInit } from '@nestjs/common';
-import { JobEvents, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
+import {
+  InstanceCommands,
+  InstanceTypes,
+  JOBS_QUEUE,
+  JobStatus,
+} from '~/interface/Jobs';
+import { JobsRedisService } from '~/modules/jobs/redis/jobs-redis.service';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
+  protected logger = new Logger(JobsService.name);
+
   constructor(
-    @InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue,
-    private jobsRedisService: JobsRedisService,
-    private eventEmitter: EventEmitter2,
+    @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
+    protected readonly jobsRedisService: JobsRedisService,
   ) {}
 
   // pause primary instance queue
   async onModuleInit() {
     if (process.env.NC_WORKER_CONTAINER !== 'true') {
       await this.jobsQueue.pause(true);
+    } else {
+      this.jobsRedisService.workerCallbacks[InstanceCommands.RESUME_LOCAL] =
+        async () => {
+          this.logger.log('Resuming local queue');
+          await this.jobsQueue.resume(true);
+        };
+      this.jobsRedisService.workerCallbacks[InstanceCommands.PAUSE_LOCAL] =
+        async () => {
+          this.logger.log('Pausing local queue');
+          await this.jobsQueue.pause(true);
+        };
     }
   }
 
   async add(name: string, data: any) {
-    // resume primary instance queue if there is no worker
-    const workerCount = (await this.jobsQueue.getWorkers()).length;
-    const localWorkerPaused = await this.jobsQueue.isPaused(true);
+    // if NC_WORKER_CONTAINER is false, then skip dynamic queue pause/resume
+    if (process.env.NC_WORKER_CONTAINER !== 'false') {
+      // resume primary instance queue if there is no worker
+      const workerCount = await this.jobsRedisService.workerCount();
+      const localWorkerPaused = await this.jobsQueue.isPaused(true);
 
-    // if there is no worker and primary instance queue is paused, resume it
-    // if there is any worker and primary instance queue is not paused, pause it
-    if (workerCount < 1 && localWorkerPaused) {
-      await this.jobsQueue.resume(true);
-    } else if (workerCount > 0 && !localWorkerPaused) {
-      await this.jobsQueue.pause(true);
+      // if there is no worker and primary instance queue is paused, resume it
+      // if there is any worker and primary instance queue is not paused, pause it
+      if (workerCount === 0 && localWorkerPaused) {
+        await this.jobsQueue.resume(true);
+      } else if (workerCount > 0 && !localWorkerPaused) {
+        await this.jobsQueue.pause(true);
+      }
     }
 
     const job = await this.jobsQueue.add(name, data);
-
-    // subscribe to job events
-    this.jobsRedisService.subscribe(`jobs-${job.id.toString()}`, (data) => {
-      const cmd = data.cmd;
-      delete data.cmd;
-      switch (cmd) {
-        case JobEvents.STATUS:
-          this.eventEmitter.emit(JobEvents.STATUS, data);
-          if ([JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)) {
-            this.jobsRedisService.unsubscribe(`jobs-${data.id.toString()}`);
-          }
-          break;
-        case JobEvents.LOG:
-          this.eventEmitter.emit(JobEvents.LOG, data);
-          break;
-      }
-    });
 
     return job;
   }
@@ -94,5 +96,25 @@ export class JobsService implements OnModuleInit {
     });
 
     return job;
+  }
+
+  async resumeQueue() {
+    this.logger.log('Resuming global queue');
+    await this.jobsQueue.resume();
+  }
+
+  async pauseQueue() {
+    this.logger.log('Pausing global queue');
+    await this.jobsQueue.pause();
+  }
+
+  async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
+    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
+    await this.jobsRedisService.publish(InstanceTypes.WORKER, data);
+  }
+
+  async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
+    const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
+    await this.jobsRedisService.publish(InstanceTypes.PRIMARY, data);
   }
 }

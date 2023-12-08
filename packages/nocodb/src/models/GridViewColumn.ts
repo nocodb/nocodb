@@ -13,8 +13,8 @@ export default class GridViewColumn implements GridColumnType {
 
   fk_view_id: string;
   fk_column_id: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
 
   group_by?: BoolType;
   group_by_order?: number;
@@ -79,8 +79,8 @@ export default class GridViewColumn implements GridColumnType {
       'fk_view_id',
       'fk_column_id',
       'show',
-      'project_id',
       'base_id',
+      'source_id',
       'order',
       'width',
       'group_by',
@@ -94,10 +94,10 @@ export default class GridViewColumn implements GridColumnType {
         fk_view_id: column.fk_view_id,
       }));
 
-    if (!(column.project_id && column.base_id)) {
+    if (!(column.base_id && column.source_id)) {
       const viewRef = await View.get(column.fk_view_id, ncMeta);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     const { id, fk_column_id } = await ncMeta.metaInsert2(

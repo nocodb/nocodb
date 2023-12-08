@@ -1,33 +1,33 @@
 import { test } from '@playwright/test';
-import { ProjectType, ProjectTypes } from 'nocodb-sdk';
+import { BaseType, ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../pages/Dashboard';
 import setup, { NcContext } from '../../setup';
 
 test.describe('Docs page list', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
-  let project: ProjectType;
+  let base: BaseType;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, projectType: ProjectTypes.DOCUMENTATION });
-    project = context.project;
-    dashboard = new DashboardPage(page, context.project);
+    context = await setup({ page, baseType: ProjectTypes.DOCUMENTATION });
+    base = context.base;
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test('Docs page list', async ({ page }) => {
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page',
     });
 
     await dashboard.sidebar.docsSidebar.createChildPage({
       parentTitle: 'page',
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'child-page',
     });
 
     await dashboard.sidebar.docsSidebar.createPage({
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
       title: 'page-2',
     });
 
@@ -37,7 +37,7 @@ test.describe('Docs page list', () => {
     await dashboard.shareProjectButton.close();
 
     await dashboard.sidebar.openProject({
-      title: project.title as any,
+      title: base.title as any,
     });
 
     await page.waitForTimeout(1000);
@@ -84,7 +84,7 @@ test.describe('Docs page list', () => {
 
     await dashboard.sidebar.docsSidebar.openPage({
       title: 'page',
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
     });
 
     await dashboard.shareProjectButton.open();
@@ -93,7 +93,7 @@ test.describe('Docs page list', () => {
 
     await dashboard.sidebar.docsSidebar.openPage({
       title: 'page-2',
-      projectTitle: project.title as any,
+      baseTitle: base.title as any,
     });
 
     await dashboard.shareProjectButton.open();
@@ -101,7 +101,7 @@ test.describe('Docs page list', () => {
     await dashboard.shareProjectButton.close();
 
     await dashboard.sidebar.openProject({
-      title: project.title as any,
+      title: base.title as any,
     });
 
     await dashboard.docs.pagesList.openTab({

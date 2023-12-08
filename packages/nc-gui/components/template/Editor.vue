@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol, parseStringDate } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
@@ -18,28 +18,26 @@ import {
   extractSdkResponseErrorMsg,
   fieldLengthValidator,
   fieldRequiredValidator,
-  getDateFormat,
-  getDateTimeFormat,
   getUIDTIcon,
   iconMap,
   inject,
   message,
   nextTick,
   onMounted,
-  parseStringDate,
   reactive,
   ref,
   storeToRefs,
+  useBase,
   useI18n,
   useNuxtApp,
-  useProject,
   useTabs,
+  validateTableName,
 } from '#imports'
 
-const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, importWorker } =
+const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
   defineProps<Props>()
 
-const emit = defineEmits(['import'])
+const emit = defineEmits(['import', 'error', 'change'])
 
 dayjs.extend(utc)
 
@@ -47,12 +45,12 @@ const { t } = useI18n()
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
-  projectTemplate: Record<string, any>
+  baseTemplate: Record<string, any>
   importData: Record<string, any>
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
-  baseId: string
+  sourceId: string
   importWorker: Worker
 }
 
@@ -73,13 +71,13 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const projectStrore = useProject()
-const { loadTables } = projectStrore
-const { sqlUis, project } = storeToRefs(projectStrore)
+const baseStrore = useBase()
+const { loadTables } = baseStrore
+const { sqlUis, base } = storeToRefs(baseStrore)
 const { openTable } = useTablesStore()
-const { projectTables } = storeToRefs(useTablesStore())
+const { baseTables } = storeToRefs(useTablesStore())
 
-const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
+const sqlUi = ref(sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -94,6 +92,8 @@ const isImporting = ref(false)
 const importingTips = ref<Record<string, string>>({})
 
 const checkAllRecord = ref<boolean[]>([])
+
+const formError = ref()
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
@@ -118,20 +118,17 @@ const data = reactive<{
   tables: (TableType & { ref_table_name: string; columns: (ColumnType & { key: number; _disableSelect?: boolean })[] })[]
 }>({
   title: null,
-  name: 'Project Name',
+  name: 'Base Name',
   tables: [],
 })
 
 const validators = computed(() =>
   data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc: Record<string, any>, table, tableIdx) => {
-    acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator()]
+    acc[`tables.${tableIdx}.table_name`] = [validateTableName]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
-        fieldRequiredValidator(),
-        fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
-      ]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [fieldRequiredValidator(), fieldLengthValidator()]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
@@ -142,9 +139,11 @@ const validators = computed(() =>
   }, {}),
 )
 
-const { validate, validateInfos } = useForm(data, validators)
+const { validate, validateInfos, modelRef } = useForm(data, validators)
 
 const isValid = ref(!importDataOnly)
+
+const formRef = ref()
 
 watch(
   () => srcDestMapping.value,
@@ -199,8 +198,8 @@ function filterOption(input: string, option: Option) {
 }
 
 function parseAndLoadTemplate() {
-  if (projectTemplate) {
-    parseTemplate(projectTemplate)
+  if (baseTemplate) {
+    parseTemplate(baseTemplate)
 
     expansionPanel.value = Array.from({ length: data.tables.length || 0 }, (_, i) => i)
 
@@ -208,7 +207,7 @@ function parseAndLoadTemplate() {
   }
 }
 
-function parseTemplate({ tables = [], ...rest }: Props['projectTemplate']) {
+function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
   const parsedTemplate = {
     ...rest,
     tables: tables.map(({ v = [], columns = [], ...rest }) => ({
@@ -247,6 +246,7 @@ function deleteTableColumn(tableIdx: number, columnKey: number) {
 function addNewColumnRow(tableIdx: number, uidt: string) {
   data.tables[tableIdx].columns.push({
     key: data.tables[tableIdx].columns.length,
+    title: `title${data.tables[tableIdx].columns.length + 1}`,
     column_name: `title${data.tables[tableIdx].columns.length + 1}`,
     uidt,
   })
@@ -270,7 +270,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
       // then only col.column_name exists in data, else col.ref_column_name
       // for csv, col.column_name always exists in data
       // since it streams the data in getData() with the updated col.column_name
-      const key = col.column_name in data ? col.column_name : col.ref_column_name
+      const key = col.title in data ? col.title : col.ref_column_name
       let d = data[key]
       if (col.uidt === UITypes.Date && d) {
         let dateFormat
@@ -290,7 +290,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
       }
       return {
         ...aggObj,
-        [col.column_name]: d,
+        [col.title]: d,
       }
     }, {}),
   )
@@ -396,10 +396,8 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
   return true
 }
 
-function updateImportTips(projectName: string, tableName: string, progress: number, total: number) {
-  importingTips.value[
-    `${projectName}-${tableName}`
-  ] = `Importing data to ${projectName} - ${tableName}: ${progress}/${total} records`
+function updateImportTips(baseName: string, tableName: string, progress: number, total: number) {
+  importingTips.value[`${baseName}-${tableName}`] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
 }
 
 async function importTemplate() {
@@ -416,7 +414,7 @@ async function importTemplate() {
       isImporting.value = true
 
       const tableId = meta.value?.id
-      const projectId = project.value.id!
+      const baseId = base.value.id!
       const table_names = data.tables.map((t: Record<string, any>) => t.table_name)
 
       await Promise.all(
@@ -436,7 +434,7 @@ async function importTemplate() {
                     let input = row[col.srcCn]
                     // parse potential boolean values
                     if (v.uidt === UITypes.Checkbox) {
-                      input = input.replace(/["']/g, '').toLowerCase().trim()
+                      input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
                       if (input === 'false' || input === 'no' || input === 'n') {
                         input = '0'
                       } else if (input === 'true' || input === 'yes' || input === 'y') {
@@ -460,8 +458,8 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', projectId, tableId!, batchData)
-              updateImportTips(projectId, tableId!, progress, total)
+              await $api.dbTableRow.bulkCreate('noco', baseId, tableId!, batchData)
+              updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
             }
           })(key),
@@ -493,7 +491,7 @@ async function importTemplate() {
       const tab = {
         id: '',
         title: '',
-        projectId: '',
+        baseId: '',
       }
 
       // create tables
@@ -526,20 +524,29 @@ async function importTemplate() {
             }
           }
         }
-        const createdTable = await $api.base.tableCreate(project.value?.id as string, (baseId || project.value?.bases?.[0].id)!, {
+        const createdTable = await $api.source.tableCreate(base.value?.id as string, (sourceId || base.value?.sources?.[0].id)!, {
           table_name: table.table_name,
           // leave title empty to get a generated one based on table_name
           title: '',
           columns: table.columns || [],
         })
+
+        if (process.env.NC_SANITIZE_COLUMN_NAME !== 'false') {
+          // column_name could have been updated in tableCreate
+          // e.g. sanitize column name to something like field_1, field_2, and etc
+          createdTable.columns.forEach((column, i) => {
+            table.columns[i].column_name = column.column_name
+          })
+        }
+
         table.id = createdTable.id
         table.title = createdTable.title
 
         // open the first table after import
-        if (tab.id === '' && tab.title === '' && tab.projectId === '') {
+        if (tab.id === '' && tab.title === '' && tab.baseId === '') {
           tab.id = createdTable.id as string
           tab.title = createdTable.title as string
-          tab.projectId = project.value.id as string
+          tab.baseId = base.value.id as string
         }
 
         // set display value
@@ -550,7 +557,7 @@ async function importTemplate() {
       // bulk insert data
       if (importData) {
         const offset = maxRowsToParse
-        const projectName = project.value.title as string
+        const baseName = base.value.title as string
         await Promise.all(
           data.tables.map((table: Record<string, any>) =>
             (async (tableMeta) => {
@@ -562,12 +569,12 @@ async function importTemplate() {
               if (data) {
                 total += data.length
                 for (let i = 0; i < data.length; i += offset) {
-                  updateImportTips(projectName, tableMeta.title, progress, total)
+                  updateImportTips(baseName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', project.value.id, tableMeta.id, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', base.value.id, tableMeta.id, batchData)
                   progress += batchData.length
                 }
-                updateImportTips(projectName, tableMeta.title, total, total)
+                updateImportTips(baseName, tableMeta.title, total, total)
               }
             })(table),
           ),
@@ -589,7 +596,7 @@ async function importTemplate() {
 
   if (!data.tables?.length) return
 
-  const tables = projectTables.value.get(project.value!.id!)
+  const tables = baseTables.value.get(base.value!.id!)
   const toBeNavigatedTable = tables?.find((t) => t.id === data.tables[0].id)
   if (!toBeNavigatedTable) return
 
@@ -679,6 +686,39 @@ function handleUIDTChange(column, table) {
     ])
   }
 }
+
+const setErrorState = (errorsFields: any[]) => {
+  const errorMap: any = {}
+  for (const error of errorsFields) {
+    errorMap[error.name] = error.errors
+  }
+
+  formError.value = errorMap
+}
+
+watch(formRef, () => {
+  setTimeout(async () => {
+    try {
+      await validate()
+      emit('change')
+      formError.value = null
+    } catch (e: any) {
+      emit('error', e)
+      setErrorState(e.errorFields)
+    }
+  }, 500)
+})
+
+watch(modelRef, async () => {
+  try {
+    await validate()
+    emit('change')
+    formError.value = null
+  } catch (e: any) {
+    emit('error', e)
+    setErrorState(e.errorFields)
+  }
+})
 </script>
 
 <template>
@@ -699,7 +739,7 @@ function handleUIDTChange(column, table) {
       <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
         <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
-            <span class="font-weight-bold text-lg flex items-center gap-2">
+            <span class="font-weight-bold text-lg flex items-center gap-2 truncate">
               <component :is="iconMap.table" class="text-primary" />
               {{ table.table_name }}
             </span>
@@ -708,8 +748,7 @@ function handleUIDTChange(column, table) {
           <template #extra>
             <a-tooltip bottom>
               <template #title>
-                <!-- TODO: i18n -->
-                <span>Delete Table</span>
+                <span>{{ $t('activity.deleteTable') }}</span>
               </template>
               <component
                 :is="iconMap.delete"
@@ -775,7 +814,7 @@ function handleUIDTChange(column, table) {
     </a-card>
 
     <a-card v-else>
-      <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
+      <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import
@@ -789,29 +828,30 @@ function handleUIDTChange(column, table) {
         >
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
-              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
-                <a-input
-                  v-model:value.lazy="table.table_name"
-                  class="max-w-xs font-weight-bold text-lg"
-                  size="large"
-                  hide-details
-                  :bordered="false"
-                  @click.stop
-                  @blur="handleEditableTnChange(tableIdx)"
-                  @keydown.enter="handleEditableTnChange(tableIdx)"
-                />
+              <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
+                <div class="flex flex-col w-full">
+                  <a-input
+                    v-model:value="table.table_name"
+                    class="font-weight-bold text-lg"
+                    size="large"
+                    hide-details
+                    :bordered="false"
+                    @click.stop
+                    @blur="handleEditableTnChange(tableIdx)"
+                    @keydown.enter="handleEditableTnChange(tableIdx)"
+                    @dblclick="setEditableTn(tableIdx, true)"
+                  />
+                  <div v-if="formError?.[`tables.${tableIdx}.table_name`]" class="text-red-500 ml-3">
+                    {{ formError?.[`tables.${tableIdx}.table_name`].join('\n') }}
+                  </div>
+                </div>
               </a-form-item>
-              <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
-                <component :is="iconMap.table" class="text-primary" />
-                {{ table.table_name }}
-              </span>
             </template>
 
             <template #extra>
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Delete Table</span>
+                  <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
                 <component
                   :is="iconMap.delete"
@@ -848,8 +888,7 @@ function handleUIDTChange(column, table) {
 
                 <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
                   <span>
-                    <!-- TODO: i18n -->
-                    Options
+                    {{ $t('general.options') }}
                   </span>
                 </template>
               </template>
@@ -857,7 +896,7 @@ function handleUIDTChange(column, table) {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.column_name" />
+                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.title" />
                   </a-form-item>
                 </template>
 
@@ -874,7 +913,11 @@ function handleUIDTChange(column, table) {
                       <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
                         <a-tooltip placement="right">
                           <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            The field is too large to be converted to {{ option.label }}
+                            {{
+                              $t('msg.tooLargeFieldEntity', {
+                                entity: option.label,
+                              })
+                            }}
                           </template>
                           {{ option.label }}
                         </a-tooltip>
@@ -892,8 +935,7 @@ function handleUIDTChange(column, table) {
                 <template v-if="column.key === 'action'">
                   <a-tooltip v-if="record.key === 0">
                     <template #title>
-                      <!-- TODO: i18n -->
-                      <span>Primary Value</span>
+                      <span>{{ $t('general.primaryValue') }}</span>
                     </template>
 
                     <div class="flex items-center float-right mr-4">
@@ -903,8 +945,7 @@ function handleUIDTChange(column, table) {
 
                   <a-tooltip v-else>
                     <template #title>
-                      <!-- TODO: i18n -->
-                      <span>Delete Column</span>
+                      <span>{{ $t('activity.column.delete') }}</span>
                     </template>
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
@@ -920,8 +961,7 @@ function handleUIDTChange(column, table) {
             <div class="mt-5 flex gap-2 justify-center">
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add Number Column</span>
+                  <span>{{ $t('activity.column.addNumber') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
@@ -933,8 +973,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add SingleLineText Column</span>
+                  <span>{{ $t('activity.column.addSingleLineText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
@@ -946,8 +985,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add LongText Column</span>
+                  <span>{{ $t('activity.column.addLongText') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
@@ -959,8 +997,7 @@ function handleUIDTChange(column, table) {
 
               <a-tooltip bottom>
                 <template #title>
-                  <!-- TODO: i18n -->
-                  <span>Add Other Column</span>
+                  <span>{{ $t('activity.column.addOther') }}</span>
                 </template>
 
                 <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">

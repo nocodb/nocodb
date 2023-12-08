@@ -88,12 +88,12 @@ async function signUp() {
 
     try {
       // TODO: Add to swagger
-      const project = (user as any).createdProject
-      const table = project?.tables?.[0]
+      const base = (user as any).createdProject
+      const table = base?.tables?.[0]
 
-      if (project && table) {
+      if (base && table) {
         return await navigateToTable({
-          projectId: project.id,
+          baseId: base.id,
           tableId: table.id,
           workspaceId: 'nc',
         })
@@ -102,12 +102,22 @@ async function signUp() {
       console.error(e)
     }
 
-    await navigateTo('/')
+    await navigateTo({
+      path: '/',
+      query: route.query,
+    })
   })
 }
 
 function resetError() {
   if (error.value) error.value = null
+}
+
+function navigateSignIn() {
+  navigateTo({
+    path: '/signin',
+    query: route.query,
+  })
 }
 
 onMounted(async () => {
@@ -220,7 +230,7 @@ onMounted(async () => {
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
-              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
         </a-form>
@@ -228,7 +238,7 @@ onMounted(async () => {
 
       <div class="prose-sm mt-4 text-gray-500">
         {{ $t('msg.bySigningUp') }}
-        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">
+        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener">
           {{ $t('title.termsOfService') }}</a
         >
       </div>

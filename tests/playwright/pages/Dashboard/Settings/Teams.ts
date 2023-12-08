@@ -36,7 +36,7 @@ export class TeamsPage extends BasePage {
   async invite({ email, role, skipOpeningModal }: { email: string; role: string; skipOpeningModal?: boolean }) {
     email = this.prefixEmail(email);
 
-    await this.inviteTeamModal.getByTestId('docs-share-dlg-share-project-collaborate-emails').fill(email);
+    await this.inviteTeamModal.getByTestId('docs-share-dlg-share-base-collaborate-emails').fill(email);
     await this.inviteTeamModal.getByTestId('nc-share-invite-user-role-option-viewer').click();
     const dropdown = this.rootPage.locator('.nc-dropdown-user-role');
     await dropdown.locator(`.nc-role-option:has-text("${role}")`).click();

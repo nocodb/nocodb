@@ -28,24 +28,24 @@ import {
   reactive,
   ref,
   storeToRefs,
+  useBase,
   useGlobal,
   useI18n,
-  useProject,
+  useNuxtApp,
   useVModel,
 } from '#imports'
 
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
-import { useNuxtApp } from '#app'
 
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
-  baseId: string
+  sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, baseId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -63,7 +63,7 @@ const { t } = useI18n()
 
 const progressMsg = ref('Parsing Data ...')
 
-const { tables } = storeToRefs(useProject())
+const { tables } = storeToRefs(useBase())
 
 const activeKey = ref('uploadTab')
 
@@ -149,10 +149,12 @@ const dialogShow = useVModel(rest, 'modelValue', emit)
 if (isWorkerSupport) {
   watch(
     dialogShow,
-    (val) => {
+    async (val) => {
       if (val) {
-        importWorker = initWorker(importWorkerUrl)
-      } else importWorker?.terminate()
+        importWorker = await initWorker(importWorkerUrl)
+      } else {
+        importWorker?.terminate()
+      }
     },
     { immediate: true },
   )
@@ -170,7 +172,9 @@ const disablePreImportButton = computed(() => {
   }
 })
 
-const disableImportButton = computed(() => !templateEditorRef.value?.isValid)
+const isError = ref(false)
+
+const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
@@ -528,6 +532,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     preImportLoading.value = false
   }
 }
+
+const onError = () => {
+  isError.value = true
+}
+
+const onChange = () => {
+  isError.value = false
+}
 </script>
 
 <template>
@@ -546,16 +558,18 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
-            :project-template="templateData"
+            :base-template="templateData"
             :import-data="importData"
             :import-columns="importColumns"
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-            :base-id="baseId"
+            :source-id="sourceId"
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"
             @import="handleImport"
+            @error="onError"
+            @change="onChange"
           />
 
           <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
@@ -639,7 +653,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
             <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">Auto-Select Field Types</span>
+                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
               </a-checkbox>
             </a-form-item>
 

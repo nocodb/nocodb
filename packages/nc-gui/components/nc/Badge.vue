@@ -22,6 +22,7 @@ const props = withDefaults(
       'border-orange-500 bg-orange-100': props.color === 'orange',
       'border-yellow-500 bg-yellow-100': props.color === 'yellow',
       'border-red-500 bg-red-100': props.color === 'red',
+      'border-maroon-500 bg-maroon-50': props.color === 'maroon',
       'border-gray-300': !props.color,
       'border-1': props.border,
       'h-6': props.size === 'sm',

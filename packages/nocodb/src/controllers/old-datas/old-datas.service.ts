@@ -3,19 +3,19 @@ import { nocoExecute } from 'nc-help';
 import type { OldPathParams } from '~/modules/datas/helpers';
 import getAst from '~/helpers/getAst';
 import { NcError } from '~/helpers/catchError';
-import { Base, Model, Project, View } from '~/models';
+import { Base, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class OldDatasService {
   async dataList(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({
@@ -37,12 +37,12 @@ export class OldDatasService {
 
   async dataCount(param: OldPathParams & { query: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const listArgs: any = { ...param.query };
@@ -56,12 +56,12 @@ export class OldDatasService {
   async dataInsert(param: OldPathParams & { body: unknown; cookie: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.insert(param.body, null, param.cookie);
@@ -70,12 +70,12 @@ export class OldDatasService {
   async dataRead(param: OldPathParams & { query: any; rowId: string }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({
@@ -96,12 +96,12 @@ export class OldDatasService {
     param: OldPathParams & { body: unknown; cookie: any; rowId: string },
   ) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.updateByPk(
@@ -114,20 +114,20 @@ export class OldDatasService {
 
   async dataDelete(param: OldPathParams & { rowId: string; cookie: any }) {
     const { model, view } = await this.getViewAndModelFromRequest(param);
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
   async getViewAndModelFromRequest(req) {
-    const project = await Project.getWithInfo(req.params.projectId);
+    const base = await Base.getWithInfo(req.params.baseId);
     const model = await Model.getByAliasOrId({
-      project_id: project.id,
+      base_id: base.id,
       aliasOrId: req.params.tableName,
     });
     const view =

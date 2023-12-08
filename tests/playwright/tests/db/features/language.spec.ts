@@ -50,7 +50,7 @@ test.describe.skip('Common', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     projectsPage = new ProjectsPage(page);
   });
 

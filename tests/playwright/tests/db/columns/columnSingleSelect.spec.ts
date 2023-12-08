@@ -10,10 +10,10 @@ test.describe('Single select', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
 
-    await dashboard.treeView.createTable({ title: 'sheet1', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
     await grid.column.selectOption.addOptions({
@@ -118,11 +118,11 @@ test.describe('Single select - filter & sort', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     grid = dashboard.grid;
 
-    await dashboard.treeView.createTable({ title: 'sheet1', projectTitle: context.project.title });
+    await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
     await grid.column.selectOption.addOptions({

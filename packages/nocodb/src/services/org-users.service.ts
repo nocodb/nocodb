@@ -8,14 +8,15 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { ProjectUsersService } from '~/services/project-users/project-users.service';
+import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { ProjectUser, Store, SyncSource, User } from '~/models';
+import { BaseUser, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -23,7 +24,7 @@ import { MetaTable } from '~/utils/globals';
 @Injectable()
 export class OrgUsersService {
   constructor(
-    private readonly projectUSerService: ProjectUsersService,
+    private readonly baseUsersService: BaseUsersService,
     private readonly appHooksService: AppHooksService,
   ) {}
 
@@ -64,21 +65,14 @@ export class OrgUsersService {
         NcError.badRequest('Cannot delete super admin');
       }
 
-      // delete project user entry and assign to super admin
-      const projectUsers = await ProjectUser.getProjectsIdList(
-        param.userId,
-        ncMeta,
-      );
+      // delete base user entry and assign to super admin
+      const baseUsers = await BaseUser.getProjectsIdList(param.userId, ncMeta);
 
       // todo: clear cache
 
-      // TODO: assign super admin as project owner
-      for (const projectUser of projectUsers) {
-        await ProjectUser.delete(
-          projectUser.project_id,
-          projectUser.fk_user_id,
-          ncMeta,
-        );
+      // TODO: assign super admin as base owner
+      for (const baseUser of baseUsers) {
+        await BaseUser.delete(baseUser.base_id, baseUser.fk_user_id, ncMeta);
       }
 
       // delete sync source entry
@@ -98,7 +92,7 @@ export class OrgUsersService {
   async userAdd(param: {
     user: UserType;
     // todo: refactor
-    req: any;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
@@ -132,7 +126,7 @@ export class OrgUsersService {
     const error = [];
 
     for (const email of emails) {
-      // add user to project if user already exist
+      // add user to base if user already exist
       let user = await User.getByEmail(email);
 
       if (user) {
@@ -155,13 +149,14 @@ export class OrgUsersService {
             user,
             count,
             ip: param.req.clientIp,
+            req: param.req,
           });
 
           // in case of single user check for smtp failure
           // and send back token if failed
           if (
             emails.length === 1 &&
-            !(await this.projectUSerService.sendInviteEmail(
+            !(await this.baseUsersService.sendInviteEmail(
               email,
               invite_token,
               param.req,
@@ -169,7 +164,7 @@ export class OrgUsersService {
           ) {
             return { invite_token, email };
           } else {
-            this.projectUSerService.sendInviteEmail(
+            this.baseUsersService.sendInviteEmail(
               email,
               invite_token,
               param.req,
@@ -199,7 +194,10 @@ export class OrgUsersService {
     NcError.notImplemented();
   }
 
-  async userInviteResend(param: { userId: string; req: any }): Promise<any> {
+  async userInviteResend(param: {
+    userId: string;
+    req: NcRequest;
+  }): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {
@@ -229,7 +227,7 @@ export class OrgUsersService {
       );
     }
 
-    await this.projectUSerService.sendInviteEmail(
+    await this.baseUsersService.sendInviteEmail(
       user.email,
       invite_token,
       param.req,
@@ -239,6 +237,7 @@ export class OrgUsersService {
       invitedBy: param.req.user,
       user,
       ip: param.req.clientIp,
+      req: param.req,
     });
 
     return true;

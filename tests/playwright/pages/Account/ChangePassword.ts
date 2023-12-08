@@ -43,7 +43,7 @@ export class ChangePasswordPage extends BasePage {
       await this.waitForResponse({
         uiAction: submitChangePassword,
         httpMethodsToMatch: ['POST'],
-        requestUrlPathToMatch: 'api/v1/auth/password/change',
+        requestUrlPathToMatch: 'api/v1/db/auth/password/change',
       });
     } else {
       await submitChangePassword();

@@ -1,5 +1,7 @@
-import { Logger } from '@nestjs/common';
+import debug from 'debug';
 import { JOBS_QUEUE } from '~/interface/Jobs';
+
+const debugLog = debug('nc:jobs:timings');
 
 export const initTime = function () {
   return {
@@ -15,7 +17,7 @@ export const elapsedTime = function (
   const elapsedS = process.hrtime(time.hrTime)[0].toFixed(3);
   const elapsedMs = process.hrtime(time.hrTime)[1] / 1000000;
   if (label)
-    Logger.debug(
+    debugLog(
       `${label}: ${elapsedS}s ${elapsedMs}ms`,
       `${JOBS_QUEUE}${context ? `:${context}` : ''}`,
     );

@@ -20,8 +20,8 @@ import {
   inject,
   isDrawerOrModalExist,
   ref,
+  useBase,
   useEventListener,
-  useProject,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -37,11 +37,11 @@ const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
-
-const isLockedMode = inject(IsLockedInj, ref(false))
 
 const isEditable = inject(EditModeInj, ref(false))
 
@@ -71,7 +71,7 @@ const { getMeta } = useMetas()
 
 const { isUIAllowed } = useRoles()
 
-const { isPg, isMysql } = useProject()
+const { isPg, isMysql } = useBase()
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
@@ -175,7 +175,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg(column.value.base_id)) {
+        if (isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -183,7 +183,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql(column.value.base_id)) {
+        if (!isMysql(column.value.source_id) && !isPg(column.value.source_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -202,6 +202,8 @@ async function addIfMissingAndSave() {
 }
 
 const search = () => {
+  if (isMobileMode.value) return
+
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
@@ -217,6 +219,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const onSelect = () => {
   isOpen.value = false
+  isEditable.value = false
 }
 
 const cellClickHook = inject(CellClickHookInj, null)
@@ -254,16 +257,12 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpt = computed(() => {
-  return options.value.find((o) => o.value === vModel.value)
+  return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.trim())
 })
 </script>
 
 <template>
-  <div
-    class="h-full w-full flex items-center nc-single-select"
-    :class="{ 'read-only': readOnly || isLockedMode }"
-    @click="toggleMenu"
-  >
+  <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div v-if="!(active || isEditable)">
       <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
         <span
@@ -284,16 +283,16 @@ const selectedOpt = computed(() => {
       v-else
       ref="aselect"
       v-model:value="vModel"
-      class="w-full overflow-hidden"
+      class="w-full overflow-hidden xs:min-h-12"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed || isLockedMode"
-      :show-arrow="hasEditRoles && !(readOnly || isLockedMode) && active && vModel === null"
+      :disabled="readOnly || !editAllowed"
+      :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
-      :show-search="isOpen && active"
+      :show-search="!isMobileMode && isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"

@@ -4,13 +4,13 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '~/utils/globals';
-import { Base } from '~/models';
+import { Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model } from '~/models';
 
 const logger = new Logger('LTARIndexUpgrader');
 
-// An upgrader for adding missing index of LTAR relations in XCDB bases
+// An upgrader for adding missing index of LTAR relations in XCDB sources
 async function upgradeModelRelationsIndex({
   model,
   indexes,
@@ -82,18 +82,18 @@ async function upgradeModelRelationsIndex({
   }
 }
 
-// An upgrader for adding missing index for LTAR relations in XCDB bases
+// An upgrader for adding missing index for LTAR relations in XCDB sources
 async function upgradeBaseRelations({
   ncMeta,
-  base,
+  source,
 }: {
   ncMeta: MetaService;
-  base: Base;
+  source: Source;
 }) {
-  const sqlClient = await NcConnectionMgrv2.getSqlClient(base, ncMeta.knex);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(source, ncMeta.knex);
 
   // get models for the base
-  const models = await ncMeta.metaList2(null, base.id, MetaTable.MODELS);
+  const models = await ncMeta.metaList2(null, source.id, MetaTable.MODELS);
 
   // get all columns and filter out relations and create index if not exists
   for (const model of models) {
@@ -126,43 +126,43 @@ async function upgradeBaseRelations({
 // Add missing index for LTAR relations
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   logger.log(
-    'Starting upgrade for LTAR relations in XCDB bases to add missing index',
+    'Starting upgrade for LTAR relations in XCDB sources to add missing index',
   );
 
-  // get all xcdb bases
-  const bases = await ncMeta.metaList2(null, null, MetaTable.BASES, {
+  // get all xcdb sources
+  const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
     condition: {
       is_meta: 1,
     },
     orderBy: {},
   });
 
-  if (!bases.length) return;
+  if (!sources.length) return;
 
   // iterate and upgrade each base
-  for (const _base of bases) {
-    const base = new Base(_base);
+  for (const _base of sources) {
+    const source = new Source(_base);
 
     // skip if not pg, since for other db we don't need to upgrade
     if (ncMeta.knex.clientType() !== 'pg') {
       continue;
     }
-    const project = await base.getProject(ncMeta);
+    const base = await source.getProject(ncMeta);
 
-    // skip deleted projects
-    if (!project || project.deleted) continue;
+    // skip deleted bases
+    if (!base || base.deleted) continue;
 
-    logger.log(`Upgrading base '${base.alias}'(${project.title})`);
+    logger.log(`Upgrading source '${source.alias}'(${base.title})`);
 
     await upgradeBaseRelations({
       ncMeta,
-      base,
+      source,
     });
 
-    logger.log(`Upgraded base '${base.alias}'(${project.title})`);
+    logger.log(`Upgraded source '${source.alias}'(${base.title})`);
   }
 
   logger.log(
-    'Finished upgrade for LTAR relations in XCDB bases to add missing index',
+    'Finished upgrade for LTAR relations in XCDB sources to add missing index',
   );
 }

@@ -17,6 +17,14 @@ export default function convertCellData(
   if (value === '') return null
 
   switch (to) {
+    case UITypes.SingleLineText:
+    case UITypes.LongText:
+      // This is to remove the quotes added from LongText
+      // TODO (refactor): remove this when we have a better way to handle this
+      if (value.match(/^".*"$/)) {
+        return value.slice(1, -1)
+      }
+      return value
     case UITypes.Number: {
       const parsedNumber = Number(value)
       if (isNaN(parsedNumber)) {

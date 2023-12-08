@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isSystemColumn } from 'nocodb-sdk'
+import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
   ColumnInj,
   EditColumnInj,
   ReadonlyInj,
-  dateFormats,
   inject,
   isDrawerOrModalExist,
   parseProp,
   ref,
-  timeFormats,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -25,10 +23,9 @@ interface Props {
 }
 
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
-
 const emit = defineEmits(['update:modelValue'])
 
-const { isMssql, isXcdbBase } = useProject()
+const { isMssql, isXcdbBase } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -37,8 +34,6 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
-
-const isLockedMode = inject(IsLockedInj, ref(false))
 
 const { t } = useI18n()
 
@@ -67,7 +62,7 @@ const localState = computed({
       return undefined
     }
 
-    const isXcDB = isXcdbBase(column.value.base_id)
+    const isXcDB = isXcdbBase(column.value.source_id)
 
     // cater copy and paste
     // when copying a datetime cell, the copied value would be local time
@@ -83,7 +78,7 @@ const localState = computed({
       return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
     }
 
-    if (isMssql(column.value.base_id)) {
+    if (isMssql(column.value.source_id)) {
       // e.g. 2023-04-29T11:41:53.000Z
       return dayjs(modelValue)
     }
@@ -123,6 +118,12 @@ const localState = computed({
 })
 
 const open = ref(false)
+
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return readOnly.value || (localState.value && isPk) ? false : open.value && (active.value || editable.value)
+})
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 watch(
@@ -270,8 +271,8 @@ const isColDisabled = computed(() => {
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
-    :open="readOnly || (localState && isPk) || isLockedMode ? false : open && (active || editable)"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
+    :open="isOpen"
     @click="clickHandler"
     @ok="open = !open"
   >

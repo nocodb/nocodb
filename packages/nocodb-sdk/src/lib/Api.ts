@@ -85,6 +85,26 @@ export interface AttachmentReqType {
   title?: string;
   /** Attachment URL to be uploaded via upload-by-url */
   url?: string;
+  /** The name of the attachment file name */
+  fileName?: string;
+}
+
+/**
+ * Model for File Request
+ */
+export interface FileReqType {
+  /** The mimetype of the file */
+  mimetype?: string;
+  /** The name of the input used to upload the file */
+  fieldname?: string;
+  /** The original name of the file */
+  originalname?: string;
+  /** The size of the file */
+  size?: number;
+  /** The encoding of the file */
+  encoding?: string;
+  /** An buffer array containing the file content */
+  buffer?: any;
 }
 
 /**
@@ -109,15 +129,15 @@ export interface AuditType {
    */
   ip?: string;
   /**
-   * Base ID in where action is performed
+   * Source ID in where action is performed
    * @example ds_3l9qx8xqksenrl
    */
-  base_id?: string;
+  source_id?: string;
   /**
-   * Project ID in where action is performed
+   * Base ID in where action is performed
    * @example p_9sx43moxhqtjm3
    */
-  project_id?: string;
+  base_id?: string;
   /**
    * Model ID in where action is performed
    * @example md_ehn5izr99m7d45
@@ -213,16 +233,16 @@ export interface AuditRowUpdateReqType {
 }
 
 /**
- * Model for Base
+ * Model for Source
  */
-export interface BaseType {
-  /** Base Name - Default BASE will be null by default */
+export interface SourceType {
+  /** Source Name - Default BASE will be null by default */
   alias?: StringOrNullType;
-  /** Base Configuration */
+  /** Source Configuration */
   config?: any;
-  /** Is this base enabled */
+  /** Is this source enabled */
   enabled?: BoolType;
-  /** Unique Base ID */
+  /** Unique Source ID */
   id?: string;
   /**
    * Inflection for columns
@@ -239,12 +259,12 @@ export interface BaseType {
   /** Is the data source minimal db */
   is_local?: BoolType;
   /**
-   * The order of the list of bases
+   * The order of the list of sources
    * @example 1
    */
   order?: number;
-  /** The project ID that this base belongs to */
-  project_id?: string;
+  /** The base ID that this source belongs to */
+  base_id?: string;
   /**
    * DB Type
    * @example mysql2
@@ -260,25 +280,25 @@ export interface BaseType {
 }
 
 /**
- * Model for Base List
+ * Model for Source List
  */
 export interface BaseListType {
-  /** List of base objects */
-  list: BaseType[];
+  /** List of source objects */
+  list: SourceType[];
   /** Paginated Info */
   pageInfo: PaginatedType;
 }
 
 /**
- * Model for Base Request
+ * Model for Source Request
  */
 export interface BaseReqType {
   /**
-   * Base Name - Default BASE will be null by default
-   * @example My Base
+   * Source Name - Default BASE will be null by default
+   * @example My Source
    */
   alias?: string;
-  /** Base Configuration */
+  /** Source Configuration */
   config?: any;
   /**
    * Inflection for columns
@@ -319,10 +339,10 @@ export interface ColumnType {
   /** Auto Update Timestamp */
   au?: BoolType;
   /**
-   * Base ID that this column belongs to
+   * Source ID that this column belongs to
    * @example ds_krsappzu9f8vmo
    */
-  base_id?: string;
+  source_id?: string;
   /** Column Comment */
   cc?: string;
   /** Column Default */
@@ -484,6 +504,7 @@ export type ColumnReqType = (
     view_id?: string;
   };
   title: string;
+  view_id?: string;
 };
 
 /**
@@ -522,8 +543,8 @@ export interface CommentUpdateReqType {
  * Model for Filter
  */
 export interface FilterType {
-  /** Unqiue Base ID */
-  base_id?: string;
+  /** Unqiue Source ID */
+  source_id?: string;
   /** Children filters. Available when the filter is grouped. */
   children?: FilterType[];
   /** Comparison Operator */
@@ -646,8 +667,8 @@ export interface FilterType {
   is_group?: boolean | number | null;
   /** Logical Operator */
   logical_op?: 'and' | 'not' | 'or';
-  /** Unique Project ID */
-  project_id?: string;
+  /** Unique Base ID */
+  base_id?: string;
   /** The filter value. Can be NULL for some operators. */
   value?: any;
 }
@@ -814,10 +835,10 @@ export interface FormType {
    */
   fk_model_id?: string;
   /**
-   * Base ID
+   * Source ID
    * @example md_rsu68aqjsbyqtl
    */
-  base_id?: string;
+  source_id?: string;
   /**
    * The heading of the form
    * @example My Form
@@ -1052,10 +1073,10 @@ export interface GeoLocationType {
 export interface GridType {
   /** Unique ID */
   id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
   /** Base ID */
   base_id?: IdType;
+  /** Source ID */
+  source_id?: IdType;
   /** Foreign Key to View */
   fk_view_id?: IdType;
   /**
@@ -1075,10 +1096,10 @@ export interface GridType {
 export interface GridCopyType {
   /** Unique ID */
   id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
   /** Base ID */
   base_id?: IdType;
+  /** Source ID */
+  source_id?: IdType;
   /** Foreign Key to View */
   fk_view_id?: IdType;
   /**
@@ -1102,10 +1123,10 @@ export interface GridColumnType {
   fk_view_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
   /** Base ID */
   base_id?: IdType;
+  /** Source ID */
+  source_id?: IdType;
   /** Model for Bool */
   show?: BoolType;
   /**
@@ -1332,10 +1353,10 @@ export interface HookListType {
  */
 export interface HookLogType {
   /**
-   * Unique Base ID
+   * Unique Source ID
    * @example ds_jxuewivwbxeum2
    */
-  base_id?: string;
+  source_id?: string;
   /** Hook Conditions */
   conditions?: string;
   /** Error */
@@ -1377,10 +1398,10 @@ export interface HookLogType {
    */
   payload?: string;
   /**
-   * Project ID
+   * Base ID
    * @example p_tbhl1hnycvhe5l
    */
-  project_id?: string;
+  base_id?: string;
   /** Hook Response */
   response?: StringOrNullType;
   /** Is this testing hook call? */
@@ -1456,10 +1477,10 @@ export interface KanbanColumnType {
    * Baes ID
    *
    */
+  source_id?: IdType;
+  /** Base ID */
   base_id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
-  /** Project ID */
+  /** Base ID */
   title?: string;
   /** Is this column shown? */
   show?: BoolType;
@@ -1576,10 +1597,10 @@ export interface LookupColumnReqType {
  */
 export interface MapType {
   /**
-   * The ID of the base that this view belongs to
+   * The ID of the source that this view belongs to
    * @example ds_g4ccx6e77h1dmi
    */
-  base_id?: string;
+  source_id?: string;
   /** Columns in this view */
   columns?: MapColumnType[];
   /**
@@ -1597,10 +1618,10 @@ export interface MapType {
   /** The order of the map list */
   order?: number;
   /**
-   * The ID of the project that this view belongs to
+   * The ID of the base that this view belongs to
    * @example p_xm3thidrblw4n7
    */
-  project_id?: string;
+  base_id?: string;
   /** To show this Map or not */
   show?: boolean;
   /**
@@ -1628,10 +1649,10 @@ export interface MapUpdateReqType {
  */
 export interface MapColumnType {
   /**
-   * The ID of the base that this map column belongs to
+   * The ID of the source that this map column belongs to
    * @example ds_g4ccx6e77h1dmi
    */
-  base_id?: string;
+  source_id?: string;
   /**
    * Foreign Key to Column
    * @example cl_8iw2o4ejzvdyna
@@ -1653,10 +1674,10 @@ export interface MapColumnType {
    */
   order?: number;
   /**
-   * The ID of the project that this map column belongs to
+   * The ID of the base that this map column belongs to
    * @example p_xm3thidrblw4n7
    */
-  project_id?: string;
+  base_id?: string;
   /**
    * Whether to show this column or not
    * @example 1
@@ -1673,14 +1694,14 @@ export type MetaType = null | object | string;
  * Model for ModelRoleVisibility
  */
 export interface ModelRoleVisibilityType {
-  base_id?: string;
+  source_id?: string;
   /** Model for Bool */
   disabled?: BoolType;
   fk_model_id?: string;
   fk_view_id?: string;
   /** Unique ID */
   id?: IdType;
-  project_id?: string;
+  base_id?: string;
   role?: string;
 }
 
@@ -1772,7 +1793,7 @@ export interface NormalColumnRequestType {
 export interface OrgUserReqType {
   /** @format email */
   email?: string;
-  /** Roles for the project user */
+  /** Roles for the base user */
   roles?: 'org-level-creator' | 'org-level-viewer';
 }
 
@@ -1923,25 +1944,25 @@ export interface PluginTestReqType {
 }
 
 /**
- * Model for Project
+ * Model for Base
  */
-export interface ProjectType {
-  /** List of base models */
-  bases?: BaseType[];
+export interface BaseType {
+  /** List of source models */
+  sources?: SourceType[];
   /**
    * Primary Theme Color
    * @example #24716E
    */
   color?: string;
-  /** Is the project deleted */
+  /** Is the base deleted */
   deleted?: BoolType;
   /**
-   * Project Description
-   * @example This is my project description
+   * Base Description
+   * @example This is my base description
    */
   description?: string;
   /**
-   * Unique Project ID
+   * Unique Base ID
    * @example p_124hhlkbeasewh
    */
   id?: string;
@@ -1949,67 +1970,67 @@ export interface ProjectType {
   is_meta?: BoolType;
   /** Meta Info such as theme colors */
   meta?: MetaType;
-  /** The order in project list */
+  /** The order in base list */
   order?: number;
   /**
-   * Project prefix. Used in XCDB only.
+   * Base prefix. Used in XCDB only.
    * @example nc_vm5q__
    */
   prefix?: string;
   type?: 'database' | 'documentation' | 'dashboard';
-  /** List of linked Database Projects that this project has access to (only used in Dashboard projects so far) */
-  linked_db_projects?: ProjectType[];
+  /** List of linked Database Projects that this base has access to (only used in Dashboard bases so far) */
+  linked_db_projects?: BaseType[];
   status?: string;
   /**
-   * Project Title
-   * @example my-project
+   * Base Title
+   * @example my-base
    */
   title?: string;
 }
 
 /**
- * Model for Project List
+ * Model for Base List
  */
 export interface ProjectListType {
-  /** List of Project Models */
-  list: ProjectType[];
+  /** List of Base Models */
+  list: BaseType[];
   /** Pagination Info */
   pageInfo: PaginatedType;
 }
 
 /**
- * Model for Project Request
+ * Model for Base Request
  */
 export interface ProjectReqType {
   /** Array of Bases */
-  bases?: BaseReqType[];
+  sources?: BaseReqType[];
   /**
    * Primary Theme Color
    * @example #24716E
    */
   color?: string;
   /**
-   * Project Description
-   * @example This is my project description
+   * Base Description
+   * @example This is my base description
    */
   description?: string;
   /**
-   * Project Title
-   * @example My Project
+   * Base Title
+   * @example My Base
    */
   title: string;
   /**
-   * Project Status
+   * Base Status
    * @example locked
    */
   status?: StringOrNullType;
   type?: 'database' | 'documentation' | 'dashboard';
-  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
 }
 
 /**
- * Model for Project Update Request
+ * Model for Base Update Request
  */
 export interface ProjectUpdateReqType {
   /**
@@ -2017,32 +2038,32 @@ export interface ProjectUpdateReqType {
    * @example #24716E
    */
   color?: string;
-  /** Project Meta */
+  /** Base Meta */
   meta?: MetaType;
   /**
-   * Project Title
-   * @example My Project
+   * Base Title
+   * @example My Base
    */
   title?: string;
   /**
-   * Project Status
+   * Base Status
    * @example locked
    */
   status?: StringOrNullType;
-  /** List of Linked Database Project IDs (only used for Dashboard Projects so far) */
+  /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
 }
 
 /**
- * Model for Project User Request
+ * Model for Base User Request
  */
 export interface ProjectUserReqType {
   /**
-   * Project User Email
+   * Base User Email
    * @format email
    */
   email: string;
-  /** Project User Role */
+  /** Base User Role */
   roles:
     | 'no-access'
     | 'commenter'
@@ -2054,13 +2075,13 @@ export interface ProjectUserReqType {
 }
 
 /**
- * Model for Project User Meta Request
+ * Model for Base User Meta Request
  */
 export interface ProjectUserMetaReqType {
-  /** Star Project */
+  /** Star Base */
   starred?: BoolType;
   /**
-   * The order among the projects
+   * The order among the bases
    * @example 1
    */
   order?: number;
@@ -2242,10 +2263,10 @@ export interface SortType {
   /** Model for ID */
   fk_model_id?: IdType;
   /**
-   * Base ID
+   * Source ID
    * @example ds_3l9qx8xqksenrl
    */
-  base_id?: string;
+  source_id?: string;
   /**
    * Sort direction
    * @example desc
@@ -2254,10 +2275,10 @@ export interface SortType {
   /** @example 1 */
   order?: number;
   /**
-   * Project ID
+   * Base ID
    * @example p_9sx43moxhqtjm3
    */
-  project_id?: string;
+  base_id?: string;
 }
 
 /**
@@ -2298,8 +2319,8 @@ export type StringOrNullOrBooleanOrNumberType =
  * Model for Table
  */
 export interface TableType {
-  /** Unique Base ID */
-  base_id?: string;
+  /** Unique Source ID */
+  source_id?: string;
   /** The columns included in this table */
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
@@ -2318,9 +2339,9 @@ export interface TableType {
   order?: number;
   /** Currently not in use */
   pinned?: BoolType;
-  /** Unique Project ID */
-  project_id?: string;
-  /** Table Name. Prefix will be added for XCDB projects. */
+  /** Unique Base ID */
+  base_id?: string;
+  /** Table Name. Prefix will be added for XCDB bases. */
   table_name: string;
   /** Currently not in use */
   tags?: StringOrNullType;
@@ -2415,8 +2436,8 @@ export interface UserInfoType {
   lastname?: string;
   /** The roles of the user */
   roles?: any;
-  /** The project roles of the user */
-  project_roles?: any;
+  /** The base roles of the user */
+  base_roles?: any;
   /** The workspace roles of the user */
   workspace_roles?: any;
 }
@@ -2435,8 +2456,8 @@ export interface UserListType {
  * Model for View
  */
 export interface ViewType {
-  /** Unique Base ID */
-  base_id?: IdType;
+  /** Unique Source ID */
+  source_id?: IdType;
   /** Unique Model ID */
   fk_model_id: IdType;
   /** Unique ID for View */
@@ -2449,8 +2470,8 @@ export interface ViewType {
   order?: number;
   /** Password for protecting the view */
   password?: StringOrNullType;
-  /** Unique Project ID */
-  project_id?: IdType;
+  /** Unique Base ID */
+  base_id?: IdType;
   /** If this view is shown? */
   show: BoolType;
   /** Should show system fields in this view? */
@@ -2596,16 +2617,16 @@ export interface WebhookType {
 }
 
 export interface ProjectInviteEventType {
-  /** The ID of the user who receives the project invite */
+  /** The ID of the user who receives the base invite */
   fk_user_id: string;
   /** The type of event, which should be set to 'PROJECT_INVITE' */
   type: string;
   body: {
-    /** The ID of the project being invited to */
+    /** The ID of the base being invited to */
     id: string;
-    /** The title of the project being invited to */
+    /** The title of the base being invited to */
     title: string;
-    /** The type of the project being invited to */
+    /** The type of the base being invited to */
     type: string;
     /** The email address of the user who invited the recipient */
     invited_by: string;
@@ -2617,11 +2638,11 @@ export interface ProjectEventType {
   fk_user_id: string;
   type: string;
   body: {
-    /** The ID of the project */
+    /** The ID of the base */
     id: string;
-    /** The title of the project */
+    /** The title of the base */
     title: string;
-    /** The type of the project */
+    /** The type of the base */
     type: string;
   };
 }
@@ -2657,10 +2678,10 @@ export interface TableEventType {
   body: {
     /** The title of the table associated with the event */
     title: string;
-    /** The ID of the project that the table belongs to */
-    project_id: string;
     /** The ID of the base that the table belongs to */
     base_id: string;
+    /** The ID of the source that the table belongs to */
+    source_id: string;
     /** The ID of the table associated with the event */
     id: string;
   };
@@ -2674,10 +2695,10 @@ export interface ViewEventType {
   body: {
     /** The title of the view associated with the event */
     title: string;
-    /** The ID of the project that the view belongs to */
-    project_id: string;
     /** The ID of the base that the view belongs to */
     base_id: string;
+    /** The ID of the source that the view belongs to */
+    source_id: string;
     /** The ID of the view associated with the event */
     id: string;
     /** The ID of the model that the view is based on */
@@ -2693,10 +2714,10 @@ export interface ColumnEventType {
   body: {
     /** The title of the column associated with the event */
     title: string;
-    /** The ID of the project that the column belongs to */
-    project_id: string;
     /** The ID of the base that the column belongs to */
     base_id: string;
+    /** The ID of the source that the column belongs to */
+    source_id: string;
     /** The ID of the column associated with the event */
     id: string;
     /** The ID of the model that the column belongs to */
@@ -2740,7 +2761,13 @@ export interface NotificationUpdateType {
   is_read?: boolean;
 }
 
-import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  HeadersDefaults,
+  ResponseType,
+} from 'axios';
+import axios from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
 
@@ -2762,7 +2789,10 @@ export interface FullRequestParams
   body?: unknown;
 }
 
-export type RequestParams = Omit<FullRequestParams, 'body' | 'method' | 'path'>;
+export type RequestParams = Omit<
+  FullRequestParams,
+  'body' | 'method' | 'query' | 'path'
+>;
 
 export interface ApiConfig<SecurityDataType = unknown>
   extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
@@ -2777,6 +2807,7 @@ export enum ContentType {
   Json = 'application/json',
   FormData = 'multipart/form-data',
   UrlEncoded = 'application/x-www-form-urlencoded',
+  Text = 'text/plain',
 }
 
 export class HttpClient<SecurityDataType = unknown> {
@@ -2805,43 +2836,50 @@ export class HttpClient<SecurityDataType = unknown> {
     this.securityData = data;
   };
 
-  private mergeRequestParams(
+  protected mergeRequestParams(
     params1: AxiosRequestConfig,
     params2?: AxiosRequestConfig
   ): AxiosRequestConfig {
+    const method = params1.method || (params2 && params2.method);
+
     return {
       ...this.instance.defaults,
       ...params1,
       ...(params2 || {}),
       headers: {
-        ...(this.instance.defaults.headers || {}),
+        ...((method &&
+          this.instance.defaults.headers[
+            method.toLowerCase() as keyof HeadersDefaults
+          ]) ||
+          {}),
         ...(params1.headers || {}),
         ...((params2 && params2.headers) || {}),
       },
     };
   }
 
-  protected createFormData(input: Record<string, unknown>): FormData {
-    if (input instanceof FormData) {
-      return input;
+  protected stringifyFormItem(formItem: unknown) {
+    if (typeof formItem === 'object' && formItem !== null) {
+      return JSON.stringify(formItem);
+    } else {
+      return `${formItem}`;
     }
+  }
+
+  protected createFormData(input: Record<string, unknown>): FormData {
     return Object.keys(input || {}).reduce((formData, key) => {
       const property = input[key];
+      const propertyContent: any[] =
+        property instanceof Array ? property : [property];
 
-      if (property instanceof Blob) {
-        formData.append(key, property);
-      } else if (typeof property === 'object' && property !== null) {
-        if (Array.isArray(property)) {
-          // eslint-disable-next-line functional/no-loop-statement
-          for (const prop of property) {
-            formData.append(`${key}[]`, prop);
-          }
-        } else {
-          formData.append(key, JSON.stringify(property));
-        }
-      } else {
-        formData.append(key, `${property}`);
+      for (const formItem of propertyContent) {
+        const isFileType = formItem instanceof Blob || formItem instanceof File;
+        formData.append(
+          key,
+          isFileType ? formItem : this.stringifyFormItem(formItem)
+        );
       }
+
       return formData;
     }, new FormData());
   }
@@ -2862,7 +2900,7 @@ export class HttpClient<SecurityDataType = unknown> {
         (await this.securityWorker(this.securityData))) ||
       {};
     const requestParams = this.mergeRequestParams(params, secureParams);
-    const responseFormat = (format && this.format) || void 0;
+    const responseFormat = format || this.format || undefined;
 
     if (
       type === ContentType.FormData &&
@@ -2870,21 +2908,26 @@ export class HttpClient<SecurityDataType = unknown> {
       body !== null &&
       typeof body === 'object'
     ) {
-      requestParams.headers.common = { Accept: '*/*' };
-      requestParams.headers.post = {};
-      requestParams.headers.put = {};
-
       body = this.createFormData(body as Record<string, unknown>);
+    }
+
+    if (
+      type === ContentType.Text &&
+      body &&
+      body !== null &&
+      typeof body !== 'string'
+    ) {
+      body = JSON.stringify(body);
     }
 
     return this.instance
       .request({
         ...requestParams,
         headers: {
+          ...(requestParams.headers || {}),
           ...(type && type !== ContentType.FormData
             ? { 'Content-Type': type }
             : {}),
-          ...(requestParams.headers || {}),
         },
         params: query,
         responseType: responseFormat,
@@ -3069,8 +3112,8 @@ export class Api<
  */
     me: (
       query?: {
-        /** Pass project id to get project specific roles along with user info */
-        project_id?: IdType;
+        /** Pass base id to get base specific roles along with user info */
+        base_id?: IdType;
       },
       params: RequestParams = {}
     ) =>
@@ -3339,12 +3382,12 @@ export class Api<
       }),
 
     /**
- * @description List all users in the given project.
+ * @description List all users in the given base.
  * 
  * @tags Auth
- * @name ProjectUserList
- * @summary List Project Users
- * @request GET:/api/v1/db/meta/projects/{projectId}/users
+ * @name BaseUserList
+ * @summary List Base Users
+ * @request GET:/api/v1/db/meta/projects/{baseId}/users
  * @response `200` `{
   users?: {
   list: (UserType)[],
@@ -3360,7 +3403,7 @@ export class Api<
 
 }`
  */
-    projectUserList: (projectId: IdType, params: RequestParams = {}) =>
+    baseUserList: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           users?: {
@@ -3374,19 +3417,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/users`,
+        path: `/api/v1/db/meta/projects/${baseId}/users`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Create a user and add it to the given project
+ * @description Create a user and add it to the given base
  * 
  * @tags Auth
- * @name ProjectUserAdd
- * @summary Create Project User
- * @request POST:/api/v1/db/meta/projects/{projectId}/users
+ * @name BaseUserAdd
+ * @summary Create Base User
+ * @request POST:/api/v1/db/meta/projects/{baseId}/users
  * @response `200` `{
   \**
    * Success Message for inviting single email
@@ -3412,8 +3455,8 @@ export class Api<
 
 }`
  */
-    projectUserAdd: (
-      projectId: IdType,
+    baseUserAdd: (
+      baseId: IdType,
       data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
@@ -3440,7 +3483,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/users`,
+        path: `/api/v1/db/meta/projects/${baseId}/users`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -3449,12 +3492,12 @@ export class Api<
       }),
 
     /**
- * @description Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * @description Update a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
  * @tags Auth
- * @name ProjectUserUpdate
- * @summary Update Project User
- * @request PATCH:/api/v1/db/meta/projects/{projectId}/users/{userId}
+ * @name BaseUserUpdate
+ * @summary Update Base User
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}/users/{userId}
  * @response `200` `{
   \**
    * Success Message
@@ -3469,8 +3512,8 @@ export class Api<
 
 }`
  */
-    projectUserUpdate: (
-      projectId: IdType,
+    baseUserUpdate: (
+      baseId: IdType,
       userId: IdType,
       data: ProjectUserReqType,
       params: RequestParams = {}
@@ -3488,7 +3531,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/users/${userId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3497,12 +3540,12 @@ export class Api<
       }),
 
     /**
- * @description Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.
+ * @description Delete a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
  * @tags Auth
- * @name ProjectUserRemove
- * @summary Delete Project User
- * @request DELETE:/api/v1/db/meta/projects/{projectId}/users/{userId}
+ * @name BaseUserRemove
+ * @summary Delete Base User
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/users/{userId}
  * @response `200` `{
   \**
    * Success Message
@@ -3517,8 +3560,8 @@ export class Api<
 
 }`
  */
-    projectUserRemove: (
-      projectId: IdType,
+    baseUserRemove: (
+      baseId: IdType,
       userId: IdType,
       params: RequestParams = {}
     ) =>
@@ -3535,7 +3578,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/users/${userId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/users/${userId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -3545,9 +3588,9 @@ export class Api<
  * @description Resend Invitation to a specific user
  * 
  * @tags Auth
- * @name ProjectUserResendInvite
+ * @name BaseUserResendInvite
  * @summary Resend User Invitation
- * @request POST:/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite
+ * @request POST:/api/v1/db/meta/projects/{baseId}/users/{userId}/resend-invite
  * @response `200` `{
   \**
    * Success Message
@@ -3562,8 +3605,8 @@ export class Api<
 
 }`
  */
-    projectUserResendInvite: (
-      projectId: IdType,
+    baseUserResendInvite: (
+      baseId: IdType,
       userId: IdType,
       params: RequestParams = {}
     ) =>
@@ -3580,7 +3623,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/users/${userId}/resend-invite`,
+        path: `/api/v1/db/meta/projects/${baseId}/users/${userId}/resend-invite`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -4250,14 +4293,14 @@ export class Api<
         ...params,
       }),
   };
-  project = {
+  base = {
     /**
- * @description Get info such as node version, arch, platform, is docker, rootdb and package version of a given project
+ * @description Get info such as node version, arch, platform, is docker, rootdb and package version of a given base
  * 
- * @tags Project
+ * @tags Base
  * @name MetaGet
- * @summary Get Project info
- * @request GET:/api/v1/db/meta/projects/{projectId}/info
+ * @summary Get Base info
+ * @request GET:/api/v1/db/meta/projects/{baseId}/info
  * @response `200` `{
   \**
    * Node version
@@ -4285,7 +4328,7 @@ export class Api<
    *\
   Database?: string,
   \**
-   * Is project on rootdb
+   * Is base on rootdb
    * @example false
    *\
   ProjectOnRootDB?: boolean,
@@ -4307,7 +4350,7 @@ export class Api<
 
 }`
  */
-    metaGet: (projectId: IdType, params: RequestParams = {}) =>
+    metaGet: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           /**
@@ -4336,7 +4379,7 @@ export class Api<
            */
           Database?: string;
           /**
-           * Is project on rootdb
+           * Is base on rootdb
            * @example false
            */
           ProjectOnRootDB?: boolean;
@@ -4356,7 +4399,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/info`,
+        path: `/api/v1/db/meta/projects/${baseId}/info`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4365,10 +4408,10 @@ export class Api<
     /**
  * @description Hide / show views based on user role
  * 
- * @tags Project
+ * @tags Base
  * @name ModelVisibilityList
  * @summary Get UI ACL
- * @request GET:/api/v1/db/meta/projects/{projectId}/visibility-rules
+ * @request GET:/api/v1/db/meta/projects/{baseId}/visibility-rules
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4377,7 +4420,7 @@ export class Api<
 }`
  */
     modelVisibilityList: (
-      projectId: IdType,
+      baseId: IdType,
       query?: {
         includeM2M?: boolean;
       },
@@ -4390,7 +4433,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
+        path: `/api/v1/db/meta/projects/${baseId}/visibility-rules`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -4400,10 +4443,10 @@ export class Api<
     /**
  * @description Hide / show views based on user role
  * 
- * @tags Project
+ * @tags Base
  * @name ModelVisibilitySet
  * @summary Create UI ACL
- * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
+ * @request POST:/api/v1/db/meta/projects/{baseId}/visibility-rules
  * @response `200` `{
   \** @example UI ACL has been created successfully *\
   msg?: string,
@@ -4416,7 +4459,7 @@ export class Api<
 }`
  */
     modelVisibilitySet: (
-      projectId: IdType,
+      baseId: IdType,
       data: VisibilityRuleReqType,
       params: RequestParams = {}
     ) =>
@@ -4430,7 +4473,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
+        path: `/api/v1/db/meta/projects/${baseId}/visibility-rules`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4439,9 +4482,9 @@ export class Api<
       }),
 
     /**
- * @description List all project meta data
+ * @description List all base meta data
  * 
- * @tags Project
+ * @tags Base
  * @name List
  * @summary List Projects
  * @request GET:/api/v1/db/meta/projects/
@@ -4467,13 +4510,13 @@ export class Api<
       }),
 
     /**
- * @description Create a new project
+ * @description Create a new base
  * 
- * @tags Project
+ * @tags Base
  * @name Create
- * @summary Create Project
+ * @summary Create Base
  * @request POST:/api/v1/db/meta/projects/
- * @response `200` `ProjectType` OK
+ * @response `200` `BaseType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -4482,13 +4525,13 @@ export class Api<
  */
     create: (
       data: ProjectReqType & {
-        /** If true, the project will us an external database else it will use the root database */
+        /** If true, the base will us an external database else it will use the root database */
         external?: boolean;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        ProjectType,
+        BaseType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -4503,16 +4546,16 @@ export class Api<
       }),
 
     /**
- * @description Duplicate a project
+ * @description Duplicate a base
  * 
- * @tags Project
- * @name BaseDuplicate
- * @summary Duplicate Project Base
- * @request POST:/api/v1/db/meta/duplicate/{projectId}/{baseId}
+ * @tags Base
+ * @name SourceDuplicate
+ * @summary Duplicate Base Source
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/{sourceId}
  * @response `200` `{
   name?: string,
   id?: string,
-  project_id?: string,
+  base_id?: string,
 
 }` OK
  * @response `400` `{
@@ -4521,31 +4564,31 @@ export class Api<
 
 }`
  */
-    baseDuplicate: (
-      projectId: IdType,
+    sourceDuplicate: (
+      baseId: IdType,
       data: {
         options?: {
           excludeData?: boolean;
           excludeViews?: boolean;
           excludeHooks?: boolean;
         };
-        project?: object;
+        base?: object;
       },
-      baseId?: IdType,
+      sourceId?: IdType,
       params: RequestParams = {}
     ) =>
       this.request<
         {
           name?: string;
           id?: string;
-          project_id?: string;
+          base_id?: string;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/duplicate/${projectId}/${baseId}`,
+        path: `/api/v1/db/meta/duplicate/${baseId}/${sourceId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4554,12 +4597,12 @@ export class Api<
       }),
 
     /**
- * @description Duplicate a project
+ * @description Duplicate a base
  * 
- * @tags Project
+ * @tags Base
  * @name Duplicate
- * @summary Duplicate Project
- * @request POST:/api/v1/db/meta/duplicate/{projectId}
+ * @summary Duplicate Base
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}
  * @response `200` `{
   name?: string,
   id?: string,
@@ -4572,14 +4615,14 @@ export class Api<
 }`
  */
     duplicate: (
-      projectId: IdType,
+      baseId: IdType,
       data: {
         options?: {
           excludeData?: boolean;
           excludeViews?: boolean;
           excludeHooks?: boolean;
         };
-        project?: object;
+        base?: object;
       },
       params: RequestParams = {}
     ) =>
@@ -4593,7 +4636,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/duplicate/${projectId}`,
+        path: `/api/v1/db/meta/duplicate/${baseId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4602,40 +4645,40 @@ export class Api<
       }),
 
     /**
- * @description Get the info of a given project
+ * @description Get the info of a given base
  * 
- * @tags Project
+ * @tags Base
  * @name Read
- * @summary Get Project
- * @request GET:/api/v1/db/meta/projects/{projectId}
- * @response `200` `ProjectType` OK
+ * @summary Get Base
+ * @request GET:/api/v1/db/meta/projects/{baseId}
+ * @response `200` `BaseType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    read: (projectId: IdType, params: RequestParams = {}) =>
+    read: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        ProjectType,
+        BaseType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}`,
+        path: `/api/v1/db/meta/projects/${baseId}`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Delete the given project
+ * @description Delete the given base
  * 
- * @tags Project
+ * @tags Base
  * @name Delete
- * @summary Delete Project
- * @request DELETE:/api/v1/db/meta/projects/{projectId}
+ * @summary Delete Base
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4643,7 +4686,7 @@ export class Api<
 
 }`
  */
-    delete: (projectId: IdType, params: RequestParams = {}) =>
+    delete: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         boolean,
         {
@@ -4651,19 +4694,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}`,
+        path: `/api/v1/db/meta/projects/${baseId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Update the given project
+ * @description Update the given base
  * 
- * @tags Project
+ * @tags Base
  * @name Update
- * @summary Update Project
- * @request PATCH:/api/v1/db/meta/projects/{projectId}
+ * @summary Update Base
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4672,7 +4715,7 @@ export class Api<
 }`
  */
     update: (
-      projectId: IdType,
+      baseId: IdType,
       data: ProjectUpdateReqType,
       params: RequestParams = {}
     ) =>
@@ -4683,7 +4726,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}`,
+        path: `/api/v1/db/meta/projects/${baseId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4694,19 +4737,19 @@ export class Api<
     /**
      * No description
      *
-     * @tags Project
+     * @tags Base
      * @name UserMetaUpdate
-     * @summary Project user meta update
-     * @request PATCH:/api/v1/db/meta/projects/{projectId}/user
+     * @summary Base user meta update
+     * @request PATCH:/api/v1/db/meta/projects/{baseId}/user
      * @response `200` `void` OK
      */
     userMetaUpdate: (
-      projectId: string,
+      baseId: string,
       data: ProjectUserMetaReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/user`,
+        path: `/api/v1/db/meta/projects/${baseId}/user`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4714,12 +4757,12 @@ export class Api<
       }),
 
     /**
- * @description Get Project Shared Base
+ * @description Get Base Shared Base
  * 
- * @tags Project
+ * @tags Base
  * @name SharedBaseGet
- * @summary Get Project Shared Base
- * @request GET:/api/v1/db/meta/projects/{projectId}/shared
+ * @summary Get Base Shared Base
+ * @request GET:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `{
   \**
    * @format uuid
@@ -4738,7 +4781,7 @@ export class Api<
 
 }`
  */
-    sharedBaseGet: (projectId: IdType, params: RequestParams = {}) =>
+    sharedBaseGet: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           /**
@@ -4756,19 +4799,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Delete Project Shared Base
+ * @description Delete Base Shared Base
  * 
- * @tags Project
+ * @tags Base
  * @name SharedBaseDisable
- * @summary Delete Project Shared Base
- * @request DELETE:/api/v1/db/meta/projects/{projectId}/shared
+ * @summary Delete Base Shared Base
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4776,7 +4819,7 @@ export class Api<
 
 }`
  */
-    sharedBaseDisable: (projectId: IdType, params: RequestParams = {}) =>
+    sharedBaseDisable: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         boolean,
         {
@@ -4784,19 +4827,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'DELETE',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Create Project Shared Base
+ * @description Create Base Shared Base
  * 
- * @tags Project
+ * @tags Base
  * @name SharedBaseCreate
- * @summary Create Project Shared Base
- * @request POST:/api/v1/db/meta/projects/{projectId}/shared
+ * @summary Create Base Shared Base
+ * @request POST:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `{
   \** Model for StringOrNull *\
   uuid?: StringOrNullType,
@@ -4811,7 +4854,7 @@ export class Api<
 }`
  */
     sharedBaseCreate: (
-      projectId: IdType,
+      baseId: IdType,
       data: SharedBaseReqType,
       params: RequestParams = {}
     ) =>
@@ -4827,7 +4870,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4836,12 +4879,12 @@ export class Api<
       }),
 
     /**
- * @description Update Project Shared Base
+ * @description Update Base Shared Base
  * 
- * @tags Project
+ * @tags Base
  * @name SharedBaseUpdate
- * @summary Update Project Shared Base
- * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
+ * @summary Update Base Shared Base
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}/shared
  * @response `200` `{
   \**
    * @format uuid
@@ -4861,7 +4904,7 @@ export class Api<
 }`
  */
     sharedBaseUpdate: (
-      projectId: IdType,
+      baseId: IdType,
       data: SharedBaseReqType,
       params: RequestParams = {}
     ) =>
@@ -4882,7 +4925,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/shared`,
+        path: `/api/v1/db/meta/projects/${baseId}/shared`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4891,12 +4934,12 @@ export class Api<
       }),
 
     /**
- * @description Calculate the Project Cost
+ * @description Calculate the Base Cost
  * 
- * @tags Project
+ * @tags Base
  * @name Cost
- * @summary Project Cost
- * @request GET:/api/v1/db/meta/projects/{projectId}/cost
+ * @summary Base Cost
+ * @request GET:/api/v1/db/meta/projects/{baseId}/cost
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4904,7 +4947,7 @@ export class Api<
 
 }`
  */
-    cost: (projectId: IdType, params: RequestParams = {}) =>
+    cost: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         object,
         {
@@ -4912,7 +4955,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/cost`,
+        path: `/api/v1/db/meta/projects/${baseId}/cost`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4921,10 +4964,10 @@ export class Api<
     /**
  * @description Synchronise the meta data difference between NC_DB and external data sources 
  * 
- * @tags Project
+ * @tags Base
  * @name MetaDiffSync
  * @summary Sync Meta
- * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff
+ * @request POST:/api/v1/db/meta/projects/{baseId}/meta-diff
  * @response `200` `{
   \** @example The meta has been synchronized successfully *\
   msg?: string,
@@ -4936,7 +4979,7 @@ export class Api<
 
 }`
  */
-    metaDiffSync: (projectId: IdType, params: RequestParams = {}) =>
+    metaDiffSync: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           /** @example The meta has been synchronized successfully */
@@ -4947,7 +4990,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -4956,10 +4999,10 @@ export class Api<
     /**
  * @description Get the meta data difference between NC_DB and external data sources 
  * 
- * @tags Project
+ * @tags Base
  * @name MetaDiffGet
  * @summary Meta Diff
- * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff
+ * @request GET:/api/v1/db/meta/projects/{baseId}/meta-diff
  * @response `200` `({
   \**
    * Table Name
@@ -4967,10 +5010,10 @@ export class Api<
    *\
   table_name?: string,
   \**
-   * Base ID
+   * Source ID
    * @example ds_rrplkgy0pq1f3c
    *\
-  base_id?: string,
+  source_id?: string,
   \**
    * Change Type
    * @example table
@@ -4986,7 +5029,7 @@ export class Api<
 
 }`
  */
-    metaDiffGet: (projectId: IdType, params: RequestParams = {}) =>
+    metaDiffGet: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           /**
@@ -4995,10 +5038,10 @@ export class Api<
            */
           table_name?: string;
           /**
-           * Base ID
+           * Source ID
            * @example ds_rrplkgy0pq1f3c
            */
-          base_id?: string;
+          source_id?: string;
           /**
            * Change Type
            * @example table
@@ -5012,19 +5055,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.
+ * @description Check if a base contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Base Setting.
  * 
- * @tags Project
+ * @tags Base
  * @name HasEmptyOrNullFilters
  * @summary List Empty & Null Filter
- * @request GET:/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters
+ * @request GET:/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5032,7 +5075,7 @@ export class Api<
 
 }`
  */
-    hasEmptyOrNullFilters: (projectId: IdType, params: RequestParams = {}) =>
+    hasEmptyOrNullFilters: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         any,
         {
@@ -5040,19 +5083,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/has-empty-or-null-filters`,
+        path: `/api/v1/db/meta/projects/${baseId}/has-empty-or-null-filters`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description List all audit data in the given project
+ * @description List all audit data in the given base
  * 
- * @tags Project
+ * @tags Base
  * @name AuditList
- * @summary List Audits in Project
- * @request GET:/api/v1/db/meta/projects/{projectId}/audits
+ * @summary List Audits in Base
+ * @request GET:/api/v1/db/meta/projects/{baseId}/audits
  * @response `200` `{
   list: (AuditType)[],
   \** Model for Paginated *\
@@ -5066,13 +5109,13 @@ export class Api<
 }`
  */
     auditList: (
-      projectId: IdType,
+      baseId: IdType,
       query?: {
         /** @min 0 */
         offset?: number;
         /** @max 1 */
         limit?: number;
-        baseId?: string;
+        sourceId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -5087,49 +5130,49 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/audits`,
+        path: `/api/v1/db/meta/projects/${baseId}/audits`,
         method: 'GET',
         query: query,
         format: 'json',
         ...params,
       }),
   };
-  base = {
+  source = {
     /**
- * @description Get the base details of a given project
+ * @description Get the source details of a given base
  * 
- * @tags Base
+ * @tags Source
  * @name Read
- * @summary Get Base
- * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
- * @response `200` `BaseType` OK
+ * @summary Get Source
+ * @request GET:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
+ * @response `200` `SourceType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    read: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
+    read: (baseId: IdType, sourceId: string, params: RequestParams = {}) =>
       this.request<
-        BaseType,
+        SourceType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Delete the base details of a given project
+ * @description Delete the source details of a given base
  * 
- * @tags Base
+ * @tags Source
  * @name Delete
- * @summary Delete Base
- * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+ * @summary Delete Source
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5137,7 +5180,7 @@ export class Api<
 
 }`
  */
-    delete: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
+    delete: (baseId: IdType, sourceId: string, params: RequestParams = {}) =>
       this.request<
         boolean,
         {
@@ -5145,19 +5188,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Update the base details of a given project
+ * @description Update the source details of a given base
  * 
- * @tags Base
+ * @tags Source
  * @name Update
- * @summary Update Base
- * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+ * @summary Update Source
+ * @request PATCH:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5166,8 +5209,8 @@ export class Api<
 }`
  */
     update: (
-      projectId: IdType,
-      baseId: string,
+      baseId: IdType,
+      sourceId: string,
       data: object,
       params: RequestParams = {}
     ) =>
@@ -5178,7 +5221,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -5189,15 +5232,15 @@ export class Api<
     /**
      * No description
      *
-     * @tags Base
+     * @tags Source
      * @name CreateSqlView
      * @summary Create sql view
-     * @request POST:/api/v1/db/meta/projects/:projectId/bases/:baseId/sqlView
+     * @request POST:/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView
      * @response `200` `object` OK
      */
     createSqlView: (
-      projectId: string,
       baseId: string,
+      sourceId: string,
       data: {
         view_name?: string;
         view_definition?: string;
@@ -5205,7 +5248,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/sqlView`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/sqlView`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5214,41 +5257,41 @@ export class Api<
       }),
 
     /**
- * @description Get project base list
+ * @description Get base source list
  * 
- * @tags Base
+ * @tags Source
  * @name List
- * @summary List Bases
- * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
- * @response `200` `BaseListType` OK
+ * @summary List Sources
+ * @request GET:/api/v1/db/meta/projects/{baseId}/bases/
+ * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
 
 }`
  */
-    list: (projectId: IdType, params: RequestParams = {}) =>
+    list: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        BaseListType,
+        any,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Create a new base on a given project
+ * @description Create a new source on a given base
  * 
- * @tags Base
+ * @tags Source
  * @name Create
- * @summary Create Base
- * @request POST:/api/v1/db/meta/projects/{projectId}/bases/
- * @response `200` `BaseType` OK
+ * @summary Create Source
+ * @request POST:/api/v1/db/meta/projects/{baseId}/bases/
+ * @response `200` `SourceType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5256,20 +5299,20 @@ export class Api<
 }`
  */
     create: (
-      projectId: IdType,
-      data: BaseType & {
+      baseId: IdType,
+      data: SourceType & {
         external?: boolean;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        BaseType,
+        SourceType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5280,15 +5323,15 @@ export class Api<
     /**
      * No description
      *
-     * @tags Base
+     * @tags Source
      * @name ShareErd
      * @summary share ERD view
-     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd
-     * @response `200` `BaseType` OK
+     * @request POST:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd
+     * @response `200` `SourceType` OK
      */
-    shareErd: (projectId: string, baseId: string, params: RequestParams = {}) =>
-      this.request<BaseType, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/share/erd`,
+    shareErd: (baseId: string, sourceId: string, params: RequestParams = {}) =>
+      this.request<SourceType, any>({
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/share/erd`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -5297,29 +5340,29 @@ export class Api<
     /**
      * No description
      *
-     * @tags Base
+     * @tags Source
      * @name DisableShareErd
-     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd
+     * @request DELETE:/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd
      * @response `200` `void` OK
      */
     disableShareErd: (
-      projectId: string,
       baseId: string,
+      sourceId: string,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/share/erd`,
+        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/share/erd`,
         method: 'DELETE',
         ...params,
       }),
 
     /**
- * @description List all tables in a given Project and Base
+ * @description List all tables in a given Base and Source
  * 
- * @tags Base
+ * @tags Source
  * @name TableList
  * @summary List Tables
- * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+ * @request GET:/api/v1/db/meta/projects/{baseId}/{sourceId}/tables
  * @response `200` `TableListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5328,8 +5371,8 @@ export class Api<
 }`
  */
     tableList: (
-      projectId: IdType,
-      baseId: string,
+      baseId: IdType,
+      sourceId: string,
       query?: {
         page?: number;
         pageSize?: number;
@@ -5345,19 +5388,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/${sourceId}/tables`,
         method: 'GET',
         query: query,
         ...params,
       }),
 
     /**
- * @description Create a new table in a given Project and Base
+ * @description Create a new table in a given Base and Source
  * 
- * @tags Base
+ * @tags Source
  * @name TableCreate
  * @summary Create Table
- * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+ * @request POST:/api/v1/db/meta/projects/{baseId}/{sourceId}/tables
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5366,8 +5409,8 @@ export class Api<
 }`
  */
     tableCreate: (
-      projectId: IdType,
-      baseId: string,
+      baseId: IdType,
+      sourceId: string,
       data: TableReqType,
       params: RequestParams = {}
     ) =>
@@ -5378,7 +5421,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/${sourceId}/tables`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5387,14 +5430,14 @@ export class Api<
       }),
 
     /**
- * @description Synchronise the meta data difference between NC_DB and external data sources in a given Base
+ * @description Synchronise the meta data difference between NC_DB and external data sources in a given Source
  * 
- * @tags Base
+ * @tags Source
  * @name MetaDiffSync
- * @summary Synchronise Base Meta
- * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+ * @summary Synchronise Source Meta
+ * @request POST:/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}
  * @response `200` `{
-  \** @example The base meta has been synchronized successfully *\
+  \** @example The source meta has been synchronized successfully *\
   msg?: string,
 
 }` OK
@@ -5405,13 +5448,13 @@ export class Api<
 }`
  */
     metaDiffSync: (
-      projectId: IdType,
-      baseId: string,
+      baseId: IdType,
+      sourceId: string,
       params: RequestParams = {}
     ) =>
       this.request<
         {
-          /** @example The base meta has been synchronized successfully */
+          /** @example The source meta has been synchronized successfully */
           msg?: string;
         },
         {
@@ -5419,19 +5462,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff/${sourceId}`,
         method: 'POST',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Get the meta data difference between NC_DB and external data sources in a given Base
+ * @description Get the meta data difference between NC_DB and external data sources in a given Source
  * 
- * @tags Base
+ * @tags Source
  * @name MetaDiffGet
- * @summary Base Meta Diff
- * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+ * @summary Source Meta Diff
+ * @request GET:/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}
  * @response `200` `({
   \**
    * Table Name
@@ -5439,10 +5482,10 @@ export class Api<
    *\
   table_name?: string,
   \**
-   * Base ID
+   * Source ID
    * @example ds_rrplkgy0pq1f3c
    *\
-  base_id?: string,
+  source_id?: string,
   \**
    * Change Type
    * @example table
@@ -5459,8 +5502,8 @@ export class Api<
 }`
  */
     metaDiffGet: (
-      projectId: IdType,
-      baseId: string,
+      baseId: IdType,
+      sourceId: string,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5471,10 +5514,10 @@ export class Api<
            */
           table_name?: string;
           /**
-           * Base ID
+           * Source ID
            * @example ds_rrplkgy0pq1f3c
            */
-          base_id?: string;
+          source_id?: string;
           /**
            * Change Type
            * @example table
@@ -5488,7 +5531,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        path: `/api/v1/db/meta/projects/${baseId}/meta-diff/${sourceId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -5496,12 +5539,12 @@ export class Api<
   };
   dbTable = {
     /**
- * @description Create a new table in a given project
+ * @description Create a new table in a given base
  * 
  * @tags DB Table
  * @name Create
  * @summary Create Table
- * @request POST:/api/v1/db/meta/projects/{projectId}/tables
+ * @request POST:/api/v1/db/meta/projects/{baseId}/tables
  * @response `200` `TableType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5509,11 +5552,7 @@ export class Api<
 
 }`
  */
-    create: (
-      projectId: IdType,
-      data: TableReqType,
-      params: RequestParams = {}
-    ) =>
+    create: (baseId: IdType, data: TableReqType, params: RequestParams = {}) =>
       this.request<
         TableType,
         {
@@ -5521,7 +5560,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/tables`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -5530,12 +5569,12 @@ export class Api<
       }),
 
     /**
- * @description List all tables in a given project
+ * @description List all tables in a given base
  * 
  * @tags DB Table
  * @name List
  * @summary List Tables
- * @request GET:/api/v1/db/meta/projects/{projectId}/tables
+ * @request GET:/api/v1/db/meta/projects/{baseId}/tables
  * @response `200` `TableListType`
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -5544,7 +5583,7 @@ export class Api<
 }`
  */
     list: (
-      projectId: IdType,
+      baseId: IdType,
       query?: {
         page?: number;
         pageSize?: number;
@@ -5560,7 +5599,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/tables`,
+        path: `/api/v1/db/meta/projects/${baseId}/tables`,
         method: 'GET',
         query: query,
         ...params,
@@ -5626,10 +5665,10 @@ export class Api<
          */
         title?: string;
         /**
-         * Project ID
+         * Base ID
          * @example p_124hhlkbeasewh
          */
-        project_id?: string;
+        base_id?: string;
         /** Model for Meta */
         meta?: MetaType;
       },
@@ -5687,7 +5726,7 @@ export class Api<
  * @tags DB Table
  * @name Duplicate
  * @summary Duplicate Table
- * @request POST:/api/v1/db/meta/duplicate/{projectId}/table/{tableId}
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/table/{tableId}
  * @response `200` `{
   name?: string,
   id?: string,
@@ -5700,7 +5739,7 @@ export class Api<
 }`
  */
     duplicate: (
-      projectId: IdType,
+      baseId: IdType,
       tableId: IdType,
       data: {
         options?: {
@@ -5721,7 +5760,54 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/duplicate/${projectId}/table/${tableId}`,
+        path: `/api/v1/db/meta/duplicate/${baseId}/table/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a column
+ * 
+ * @tags DB Table
+ * @name DuplicateColumn
+ * @summary Duplicate Column
+ * @request POST:/api/v1/db/meta/duplicate/{baseId}/column/{columnId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicateColumn: (
+      baseId: IdType,
+      columnId: IdType,
+      data: {
+        options?: {
+          excludeData?: boolean;
+        };
+        extra?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/duplicate/${baseId}/column/${columnId}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7343,12 +7429,12 @@ export class Api<
   };
   dbTableRow = {
     /**
- * @description List all table rows in a given table and project
+ * @description List all table rows in a given table and base
  * 
  * @tags DB Table Row
  * @name List
  * @summary List Table Rows
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -7364,7 +7450,7 @@ export class Api<
  */
     list: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       query?: {
         /** Which fields to be shown */
@@ -7402,7 +7488,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7410,12 +7496,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and project.
+ * @description Create a new row in a given table and base.
  * 
  * @tags DB Table Row
  * @name Create
  * @summary Create Table Row
- * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}
+ * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7425,7 +7511,7 @@ export class Api<
  */
     create: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       data: object,
       params: RequestParams = {}
@@ -7437,7 +7523,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7451,7 +7537,7 @@ export class Api<
  * @tags DB Table Row
  * @name FindOne
  * @summary Find One Table Row
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/find-one
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7461,7 +7547,7 @@ export class Api<
  */
     findOne: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       query?: {
         fields?: any[];
@@ -7477,7 +7563,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/find-one`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/find-one`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7490,12 +7576,12 @@ export class Api<
      * @tags DB Table Row
      * @name GroupBy
      * @summary Group By Table Row
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby
+     * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby
      * @response `200` `any` OK
      */
     groupBy: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       query?: {
         /** Column name of the column you want to group by, eg. `column_name=column1` */
@@ -7510,7 +7596,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/groupby`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7523,7 +7609,7 @@ export class Api<
  * @tags DB Table Row
  * @name GroupedDataList
  * @summary Table Group by Column
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/group/{columnId}
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7533,7 +7619,7 @@ export class Api<
  */
     groupedDataList: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       columnId: IdType,
       query?: {
@@ -7552,7 +7638,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/group/${columnId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/group/${columnId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7565,7 +7651,7 @@ export class Api<
  * @tags DB Table Row
  * @name Read
  * @summary Get Table Row
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7575,7 +7661,7 @@ export class Api<
  */
     read: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       query?: {
@@ -7591,7 +7677,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7604,7 +7690,7 @@ export class Api<
  * @tags DB Table Row
  * @name Update
  * @summary Update Table Row
- * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
+ * @request PATCH:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7614,7 +7700,7 @@ export class Api<
  */
     update: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       data: object,
@@ -7631,7 +7717,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}`,
         method: 'PATCH',
         query: query,
         body: data,
@@ -7646,7 +7732,7 @@ export class Api<
  * @tags DB Table Row
  * @name Delete
  * @summary Delete Table Row
- * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
+ * @request DELETE:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7656,7 +7742,7 @@ export class Api<
  */
     delete: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       query?: {
@@ -7672,7 +7758,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}`,
         method: 'DELETE',
         query: query,
         format: 'json',
@@ -7685,7 +7771,7 @@ export class Api<
  * @tags DB Table Row
  * @name Exist
  * @summary Does Table Row Exist
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/exist
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7695,7 +7781,7 @@ export class Api<
  */
     exist: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       params: RequestParams = {}
@@ -7707,7 +7793,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/exist`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -7719,7 +7805,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkCreate
  * @summary Bulk Insert Table Rows
- * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+ * @request POST:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}
  * @response `200` `({
   id?: string,
 
@@ -7732,7 +7818,7 @@ export class Api<
  */
     bulkCreate: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       data: object[],
       params: RequestParams = {}
@@ -7746,7 +7832,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -7760,7 +7846,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkUpdate
  * @summary Bulk Update Table Rows by IDs
- * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+ * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}
  * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7770,7 +7856,7 @@ export class Api<
  */
     bulkUpdate: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       data: object[],
       params: RequestParams = {}
@@ -7782,7 +7868,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -7796,7 +7882,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkDelete
  * @summary Bulk Delete Table Rows by IDs
- * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
+ * @request DELETE:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}
  * @response `200` `(number)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7806,7 +7892,7 @@ export class Api<
  */
     bulkDelete: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       data: object[],
       params: RequestParams = {}
@@ -7818,7 +7904,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,
@@ -7832,7 +7918,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkUpdateAll
  * @summary Bulk Update Table Rows with Conditions
- * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
+ * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7842,7 +7928,7 @@ export class Api<
  */
     bulkUpdateAll: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       data: object,
       query?: {
@@ -7858,7 +7944,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/all`,
         method: 'PATCH',
         query: query,
         body: data,
@@ -7873,7 +7959,7 @@ export class Api<
  * @tags DB Table Row
  * @name BulkDeleteAll
  * @summary Bulk Delete Table Rows with Conditions
- * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
+ * @request DELETE:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
  * @response `200` `(object)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7883,7 +7969,7 @@ export class Api<
  */
     bulkDeleteAll: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       data: object,
       query?: {
@@ -7899,7 +7985,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/all`,
         method: 'DELETE',
         query: query,
         body: data,
@@ -7914,7 +8000,7 @@ export class Api<
  * @tags DB Table Row
  * @name CsvExport
  * @summary Export Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7924,7 +8010,7 @@ export class Api<
  */
     csvExport: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       type: 'csv' | 'excel',
       params: RequestParams = {}
@@ -7936,7 +8022,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/export/${type}`,
         method: 'GET',
         wrapped: true,
         ...params,
@@ -7948,7 +8034,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedList
  * @summary List Nested Relations Rows
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -7958,7 +8044,7 @@ export class Api<
  */
     nestedList: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
@@ -7979,7 +8065,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -7992,7 +8078,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedAdd
  * @summary Create Nested Relations Row
- * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+ * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
  * @response `200` `{
   \** @example The relation data has been created successfully *\
   msg?: string,
@@ -8006,7 +8092,7 @@ export class Api<
  */
     nestedAdd: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
@@ -8046,7 +8132,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
         method: 'POST',
         query: query,
         format: 'json',
@@ -8059,7 +8145,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedRemove
  * @summary Delete Nested Relations Row
- * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
+ * @request DELETE:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
  * @response `200` `{
   \** @example The relation data has been deleted successfully *\
   msg?: string,
@@ -8073,7 +8159,7 @@ export class Api<
  */
     nestedRemove: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
@@ -8091,7 +8177,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/${refRowId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -8103,7 +8189,7 @@ export class Api<
  * @tags DB Table Row
  * @name NestedChildrenExcludedList
  * @summary Referenced Table Rows Excluding Current Record's Children / Parent
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8113,7 +8199,7 @@ export class Api<
  */
     nestedChildrenExcludedList: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
@@ -8134,7 +8220,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/${rowId}/${relationType}/${columnName}/exclude`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8148,7 +8234,7 @@ export class Api<
  * @tags DB View Row
  * @name GroupedDataList
  * @summary Table Group by Column
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}
  * @response `200` `(any)[]` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8158,7 +8244,7 @@ export class Api<
  */
     groupedDataList: (
       orgs: IdType,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       columnId: IdType,
@@ -8178,7 +8264,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/group/${columnId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/group/${columnId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8191,7 +8277,7 @@ export class Api<
  * @tags DB View Row
  * @name List
  * @summary List Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}
  * @response `200` `{
   \** List of table view rows *\
   list: (object)[],
@@ -8207,7 +8293,7 @@ export class Api<
  */
     list: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       query?: {
@@ -8232,7 +8318,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8245,7 +8331,7 @@ export class Api<
  * @tags DB View Row
  * @name Create
  * @summary Create Table View Row
- * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
+ * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8255,7 +8341,7 @@ export class Api<
  */
     create: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       data: object,
@@ -8268,7 +8354,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -8282,7 +8368,7 @@ export class Api<
  * @tags DB View Row
  * @name FindOne
  * @summary Find One Table View Row
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8292,7 +8378,7 @@ export class Api<
  */
     findOne: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       query?: {
@@ -8311,7 +8397,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/find-one`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/find-one`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8324,7 +8410,7 @@ export class Api<
  * @tags DB View Row
  * @name GroupBy
  * @summary Group By Table View Row
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8334,7 +8420,7 @@ export class Api<
  */
     groupBy: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       query?: {
@@ -8356,7 +8442,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/groupby`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/groupby`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8369,7 +8455,7 @@ export class Api<
  * @tags DB View Row
  * @name Count
  * @summary Count Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count
  * @response `200` `{
   count?: number,
 
@@ -8377,7 +8463,7 @@ export class Api<
  */
     count: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       query?: {
@@ -8393,7 +8479,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/count`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8406,7 +8492,7 @@ export class Api<
  * @tags DB View Row
  * @name Read
  * @summary Get Table View Row
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8416,7 +8502,7 @@ export class Api<
  */
     read: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       rowId: any,
@@ -8429,7 +8515,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -8441,7 +8527,7 @@ export class Api<
  * @tags DB View Row
  * @name Update
  * @summary Update Table View Row
- * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
+ * @request PATCH:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8451,7 +8537,7 @@ export class Api<
  */
     update: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       rowId: any,
@@ -8465,7 +8551,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -8479,7 +8565,7 @@ export class Api<
  * @tags DB View Row
  * @name Delete
  * @summary Delete Table View Row
- * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
+ * @request DELETE:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8489,7 +8575,7 @@ export class Api<
  */
     delete: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       rowId: any,
@@ -8502,7 +8588,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -8514,7 +8600,7 @@ export class Api<
  * @tags DB View Row
  * @name Exist
  * @summary Does Table View Row Exist
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist
  * @response `201` `number` Created
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8524,7 +8610,7 @@ export class Api<
  */
     exist: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       rowId: any,
@@ -8537,7 +8623,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}/exist`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -8549,7 +8635,7 @@ export class Api<
  * @tags DB View Row
  * @name Export
  * @summary Export Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -8559,7 +8645,7 @@ export class Api<
  */
     export: (
       orgs: string,
-      projectName: string,
+      baseName: string,
       tableName: string,
       viewName: string,
       type: 'csv' | 'excel',
@@ -8572,7 +8658,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/export/${type}`,
         method: 'GET',
         wrapped: true,
         ...params,
@@ -8956,15 +9042,15 @@ export class Api<
       }),
 
     /**
- * @description Get Share Base Meta
+ * @description Get Share Source Meta
  * 
  * @tags Public
  * @name SharedBaseGet
- * @summary Get Share Base Meta
+ * @summary Get Share Source Meta
  * @request GET:/api/v1/db/public/shared-base/{sharedBaseUuid}/meta
  * @response `200` `{
-  \** Project ID *\
-  project_id?: string,
+  \** Base ID *\
+  base_id?: string,
 
 }` OK
  * @response `400` `{
@@ -8976,8 +9062,8 @@ export class Api<
     sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
       this.request<
         {
-          /** Project ID */
-          project_id?: string;
+          /** Base ID */
+          base_id?: string;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -9000,7 +9086,7 @@ export class Api<
  * @response `200` `(ViewType & {
   relatedMetas?: any,
   client?: string,
-  base_id?: string,
+  source_id?: string,
   columns?: ((GridColumnType | FormColumnType | GalleryColumnType | (GridColumnType & FormColumnType & GalleryColumnType)) & ColumnType),
   \** Model for Table *\
   model?: TableType,
@@ -9020,7 +9106,7 @@ export class Api<
         ViewType & {
           relatedMetas?: any;
           client?: string;
-          base_id?: string;
+          source_id?: string;
           columns?: (
             | GridColumnType
             | FormColumnType
@@ -9439,7 +9525,7 @@ export class Api<
  * @request GET:/api/v1/db/meta/nocodb/info
  * @response `200` `{
   authType?: string,
-  projectHasAdmin?: boolean,
+  baseHasAdmin?: boolean,
   firstUser?: boolean,
   type?: string,
   googleAuthEnabled?: boolean,
@@ -9470,7 +9556,7 @@ export class Api<
       this.request<
         {
           authType?: string;
-          projectHasAdmin?: boolean;
+          baseHasAdmin?: boolean;
           firstUser?: boolean;
           type?: string;
           googleAuthEnabled?: boolean;
@@ -9633,8 +9719,8 @@ export class Api<
  * @summary Get Aggregated Meta Info
  * @request GET:/api/v1/aggregated-meta-info
  * @response `200` `{
-  projectCount?: number,
-  projects?: ({
+  baseCount?: number,
+  bases?: ({
   tableCount?: {
   \** Table Count *\
   table?: number,
@@ -9642,7 +9728,7 @@ export class Api<
   view?: number,
 
 },
-  \** External Project *\
+  \** External Base *\
   external?: boolean,
   viewCount?: {
   \** Form Count *\
@@ -9680,7 +9766,7 @@ export class Api<
   TotalRecords?: string,
 
 })[],
-  \** Total project user Count *\
+  \** Total base user Count *\
   userCount?: number,
 
 })[],
@@ -9699,15 +9785,15 @@ export class Api<
     aggregatedMetaInfo: (params: RequestParams = {}) =>
       this.request<
         {
-          projectCount?: number;
-          projects?: {
+          baseCount?: number;
+          bases?: {
             tableCount?: {
               /** Table Count */
               table?: number;
               /** View Count */
               view?: number;
             };
-            /** External Project */
+            /** External Base */
             external?: boolean;
             viewCount?: {
               /** Form Count */
@@ -9743,7 +9829,7 @@ export class Api<
             rowCount?: {
               TotalRecords?: string;
             }[];
-            /** Total project user Count */
+            /** Total base user Count */
             userCount?: number;
           }[];
           /** Total user Count */
@@ -10206,12 +10292,12 @@ export class Api<
   };
   apiToken = {
     /**
- * @description List API Tokens in the given project
+ * @description List API Tokens in the given base
  * 
  * @tags API Token
  * @name List
- * @summary List API Tokens in Project
- * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
+ * @summary List API Tokens in Base
+ * @request GET:/api/v1/db/meta/projects/{baseId}/api-tokens
  * @response `200` `ApiTokenListType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10219,7 +10305,7 @@ export class Api<
 
 }`
  */
-    list: (projectId: IdType, params: RequestParams = {}) =>
+    list: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
         ApiTokenListType,
         {
@@ -10227,19 +10313,19 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
- * @description Create API Token in a project
+ * @description Create API Token in a base
  * 
  * @tags API Token
  * @name Create
  * @summary Create API Token
- * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
+ * @request POST:/api/v1/db/meta/projects/{baseId}/api-tokens
  * @response `200` `ApiTokenType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10248,7 +10334,7 @@ export class Api<
 }`
  */
     create: (
-      projectId: IdType,
+      baseId: IdType,
       data: ApiTokenReqType,
       params: RequestParams = {}
     ) =>
@@ -10259,7 +10345,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -10268,12 +10354,12 @@ export class Api<
       }),
 
     /**
- * @description Delete the given API Token in project
+ * @description Delete the given API Token in base
  * 
  * @tags API Token
  * @name Delete
  * @summary Delete API Token
- * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/api-tokens/{token}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10281,7 +10367,7 @@ export class Api<
 
 }`
  */
-    delete: (projectId: IdType, token: string, params: RequestParams = {}) =>
+    delete: (baseId: IdType, token: string, params: RequestParams = {}) =>
       this.request<
         number,
         {
@@ -10289,7 +10375,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens/${token}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -10312,7 +10398,9 @@ export class Api<
          */
         path: string;
       },
-      data: AttachmentReqType,
+      data: {
+        files: FileReqType[];
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -10439,7 +10527,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name List
  * @summary List Table Rows
- * @request GET:/api/v1/tables/{tableId}/rows
+ * @request GET:/api/v2/tables/{tableId}/records
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -10455,9 +10543,9 @@ export class Api<
  */
     list: (
       tableId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /** The result will be sorted based on `sort` query */
@@ -10493,7 +10581,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10501,12 +10589,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and project.
+ * @description Create a new row in a given table and base.
  * 
  * @tags DB Data Table Row
  * @name Create
  * @summary Create Table Rows
- * @request POST:/api/v1/tables/{tableId}/rows
+ * @request POST:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10516,11 +10604,11 @@ export class Api<
  */
     create: (
       tableId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10530,7 +10618,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'POST',
         query: query,
         body: data,
@@ -10540,12 +10628,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and project.
+ * @description Create a new row in a given table and base.
  * 
  * @tags DB Data Table Row
  * @name Update
  * @summary Update Table Rows
- * @request PUT:/api/v1/tables/{tableId}/rows
+ * @request PUT:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10555,11 +10643,11 @@ export class Api<
  */
     update: (
       tableId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10569,7 +10657,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'PUT',
         query: query,
         body: data,
@@ -10579,12 +10667,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and project.
+ * @description Create a new row in a given table and base.
  * 
  * @tags DB Data Table Row
  * @name Delete
  * @summary Delete Table Rows
- * @request DELETE:/api/v1/tables/{tableId}/rows
+ * @request DELETE:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10594,11 +10682,11 @@ export class Api<
  */
     delete: (
       tableId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10608,7 +10696,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows`,
+        path: `/api/v2/tables/${tableId}/records`,
         method: 'DELETE',
         query: query,
         body: data,
@@ -10623,7 +10711,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Read
  * @summary Read Table Row
- * @request GET:/api/v1/tables/{tableId}/rows/{rowId}
+ * @request GET:/api/v2/tables/{tableId}/records/{rowId}
  * @response `200` `object` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10634,9 +10722,9 @@ export class Api<
     read: (
       tableId: string,
       rowId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /**
@@ -10654,7 +10742,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/records/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10667,7 +10755,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Count
  * @summary Table Rows Count
- * @request GET:/api/v1/tables/{tableId}/rows/count
+ * @request GET:/api/v2/tables/{tableId}/records/count
  * @response `200` `{
   count?: number,
 
@@ -10680,9 +10768,9 @@ export class Api<
  */
     count: (
       tableId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /** Extra filtering */
@@ -10701,7 +10789,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/rows/count`,
+        path: `/api/v2/tables/${tableId}/records/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10714,7 +10802,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name NestedList
  * @summary Get Nested Relations Rows
- * @request GET:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @request GET:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
  * @response `200` `{
   \** List of data objects *\
   list: (object)[],
@@ -10732,9 +10820,9 @@ export class Api<
       tableId: string,
       columnId: string,
       rowId: string,
-      query: {
+      query?: {
         /** View ID */
-        viewId: string;
+        viewId?: string;
         /** Which fields to be shown */
         fields?: any[];
         /** The result will be sorted based on `sort` query */
@@ -10770,7 +10858,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -10783,7 +10871,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name NestedLink
  * @summary Create Nested Relations Rows
- * @request POST:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10795,11 +10883,11 @@ export class Api<
       tableId: string,
       columnId: string,
       rowId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10809,7 +10897,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'POST',
         query: query,
         body: data,
@@ -10819,12 +10907,12 @@ export class Api<
       }),
 
     /**
- * @description Create a new row in a given table and project.
+ * @description Create a new row in a given table and base.
  * 
  * @tags DB Data Table Row
  * @name NestedUnlink
  * @summary Delete Nested Relations Rows
- * @request DELETE:/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}
+ * @request DELETE:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -10836,11 +10924,11 @@ export class Api<
       tableId: string,
       columnId: string,
       rowId: string,
-      query: {
-        /** View ID */
-        viewId: string;
-      },
       data: object | object[],
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -10850,12 +10938,47 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tables/${tableId}/links/${columnId}/rows/${rowId}`,
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'DELETE',
         query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
+        ...params,
+      }),
+  };
+  jobs = {
+    /**
+     * @description Listen for job events
+     *
+     * @tags Jobs
+     * @name Listen
+     * @summary Jobs Listen
+     * @request POST:/jobs/listen
+     */
+    listen: (data: object, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/jobs/listen`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get job status
+     *
+     * @tags Jobs
+     * @name Status
+     * @summary Jobs Status
+     * @request POST:/jobs/status
+     */
+    status: (data: object, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/jobs/status`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
   };

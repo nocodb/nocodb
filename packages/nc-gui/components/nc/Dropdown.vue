@@ -25,7 +25,7 @@ const overlayClassName = toRef(props, 'overlayClassName')
 const autoClose = computed(() => props.autoClose)
 
 const overlayClassNameComputed = computed(() => {
-  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-100 shadow-lg'
+  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-200 shadow-lg'
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }
@@ -47,6 +47,14 @@ onClickOutside(overlayWrapperDomRef, () => {
 
   visible.value = false
 })
+
+const onVisibleUpdate = (event: any) => {
+  if (visible !== undefined) {
+    visible.value = event
+  } else {
+    emits('update:visible', event)
+  }
+}
 </script>
 
 <template>
@@ -54,7 +62,7 @@ onClickOutside(overlayWrapperDomRef, () => {
     :visible="visible"
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
-    @update:visible="visible !== undefined ? (visible = $event) : undefined"
+    @update:visible="onVisibleUpdate"
   >
     <slot />
 

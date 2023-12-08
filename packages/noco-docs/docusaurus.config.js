@@ -1,61 +1,93 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const lightCodeTheme = require("prism-react-renderer/themes/github");
+const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'NocoDB',
-  tagline: 'The Open Source Airtable Alternative',
-  favicon: 'img/favicon.ico',
+  title: "NocoDB",
+  tagline: "The Open Source Airtable Alternative",
+  favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: 'https://nocodb.com',
+  url: "https://docs.nocodb.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'nocodb', // Usually your GitHub org/user name.
-  projectName: 'nocodb', // Usually your repo name.
+  organizationName: "nocodb", // Usually your GitHub org/user name.
+  projectName: "nocodb", // Usually your repo name.
 
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "throw",
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
-  plugins: ['docusaurus-plugin-sass'],
+  plugins: [
+    "docusaurus-plugin-sass",
+    "plugin-image-zoom",
+    [
+      "@docusaurus/plugin-ideal-image",
+      {
+        quality: 70,
+        max: 1030, // max resized image's size.
+        min: 640, // min resized image's size. if original is lower, use that size.
+        steps: 2, // the max number of images generated between min and max (inclusive)
+        disableInDev: false,
+      },
+    ],
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        createRedirects(existingPath) {
+          if (existingPath.startsWith('/0.109.7/')) {
+            return [
+              existingPath.replace('/0.109.7/', '/'),
+            ];
+          }
+        },
+      },
+    ],
+  ],
 
   presets: [
     [
-      'classic',
+      "classic",
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
-          routeBasePath: '/',
-          editUrl: 'https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/',
-          lastVersion: 'current',
+          sidebarPath: require.resolve("./sidebars.js"),
+          routeBasePath: "/",
+          editUrl:
+            "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/",
+          lastVersion: "current",
           versions: {
             current: {
-              label: 'Latest',
+              label: "Latest",
             },
-            '0.109.7': {
-              label: '0.109.7 - Old UI',
-            }
+            "0.109.7": {
+              label: "0.109.7 - Old UI",
+            },
           },
         },
         blog: false,
         theme: {
-          customCss: require.resolve('./src/css/custom.scss'),
+          customCss: require.resolve("./src/css/custom.scss"),
+        },
+        sitemap: {
+          changefreq: "weekly",
+          priority: 0.5,
+          ignorePatterns: ["/tags/**"],
+          filename: "sitemap.xml",
         },
       }),
     ],
@@ -69,7 +101,7 @@ const config = {
         // Replace this with the name of your index/collection.
         // It should match the "index_name" entry in the scraper's "config.json" file.
         typesenseCollectionName: 'nocodb-oss-docs-index',
-  
+
         typesenseServerConfig: {
           nodes: [
             {
@@ -80,62 +112,79 @@ const config = {
           ],
           apiKey: 'lNKDTZdJrE76Sg8WEyeN9mXT29l1xq7Q',
         },
-  
+
         // Optional: Typesense search parameters: https://typesense.org/docs/0.24.0/api/search.html#search-parameters
         typesenseSearchParameters: {},
-  
+
         // Optional
         contextualSearch: true,
       },
       // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: "img/docusaurus-social-card.jpg",
       navbar: {
-        title: '',
+        title: "",
         logo: {
-          alt: 'NocoDB',
-          src: 'img/nocodb-full-color.png',
+          alt: "NocoDB",
+          src: "img/nocodb-full-color.png",
         },
         items: [
           {
-            type: 'docsVersionDropdown',
-            position: 'right',
+            type: "docsVersionDropdown",
+            position: "right",
           },
           {
-            href: 'https://github.com/nocodb/nocodb',
-            position: 'right',
-            className: 'header-github-link',
-            'aria-label': 'GitHub repository',
+            href: "https://nocodb.com/?utm_source=docs&utm_medium=docs&utm_campaign=docs&utm_content=docs",
+            html: "Join NocoDB Cloud For FREE",
+            position: "right",
+            className: "header-join-link",
+          },
+          {
+            href: "https://nocodb.com/?utm_source=docs&utm_medium=docs&utm_campaign=docs&utm_content=docs",
+            html: "Join NocoDB Cloud",
+            position: "right",
+            className: "header-join-link-medium",
+          },
+          {
+            href: "https://github.com/nocodb/nocodb",
+            position: "right",
+            className: "header-github-link",
+            "aria-label": "GitHub repository",
           },
         ],
       },
       footer: {
-        style: 'dark',
+        style: "dark",
         logo: {
-          alt: 'NocoDB',
-          src: 'img/icon.png',
+          alt: "NocoDB",
+          src: "img/icon.png",
           width: 50,
         },
         links: [
           {
-            label: 'GitHub',
-            href: 'https://github.com/facebook/docusaurus',
+            label: "Join NocoDB Cloud For FREE",
+            href: "https://nocodb.com/?utm_source=docs&utm_medium=docs&utm_campaign=docs&utm_content=docs",
+            className: "footer-join-link",
           },
           {
-            label: 'Website',
-            href: 'https://nocodb.com/',
+            label: "GitHub",
+            href: "https://github.com/facebook/docusaurus",
           },
           {
-            label: 'Community',
-            href: 'https://community.nocodb.com/',
+            label: "Website",
+            href: "https://nocodb.com/",
           },
           {
-            label: 'Discord',
-            href: 'https://discord.gg/5RgZmkW',
+            label: "Community",
+            href: "https://community.nocodb.com/",
           },
           {
-            label: 'Twitter',
-            href: 'https://twitter.com/nocodb',
-          }
+            label: "Discord",
+            href: "https://discord.gg/5RgZmkW",
+          },
+          {
+            label: "Twitter",
+            href: "https://twitter.com/nocodb",
+          },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} NocoDB`,
       },
@@ -143,8 +192,21 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
       },
+      imageZoom: {
+        // CSS selector to apply the plugin to, defaults to '.markdown img'
+        selector: ".markdown img",
+        // Optional medium-zoom options
+        // see: https://www.npmjs.com/package/medium-zoom#options
+        options: {
+          margin: 96,
+          background: "rgba(0,0,0,0.25)",
+          scrollOffset: 0,
+          // container: "#zoom-container",
+          // template: "#zoom-template",
+        },
+      },
     }),
-  clientModules: [require.resolve('./src/modules/tele.js')],
+  clientModules: [require.resolve("./src/modules/tele.js")],
 };
 
 module.exports = config;

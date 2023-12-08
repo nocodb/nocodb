@@ -8,16 +8,19 @@ interface Props {
 
 const { disabled, isViewToolbar } = defineProps<Props>()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, getMainUrl } = useGlobal()
 
 const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
-const { project } = storeToRefs(useProject())
+
+const { base, isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
+
+const route = useRoute()
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -34,16 +37,22 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+const copySharedBase = async () => {
+  const baseUrl = getMainUrl()
+  window.open(`${baseUrl || ''}#/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
+}
 </script>
 
 <template>
   <div
-    v-if="isUIAllowed('projectShare') && visibility !== 'hidden' && (activeTable || project)"
+    v-if="!isSharedBase && isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
     class="flex flex-col justify-center h-full"
-    data-testid="share-project-button"
+    data-testid="share-base-button"
     :data-sharetype="visibility"
   >
     <NcButton
+      v-e="['c:share:open']"
       :size="isMobileMode ? 'medium' : 'small'"
       class="z-10 !rounded-lg"
       :class="{
@@ -63,13 +72,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </NcButton>
   </div>
 
+  <template v-else-if="isSharedBase">
+    <div class="flex-1"></div>
+    <div class="flex flex-col justify-center h-full">
+      <div class="flex flex-row items-center w-full">
+        <NcButton
+          class="z-10 !rounded-lg !px-2 !bg-[#ff133e]"
+          size="small"
+          type="primary"
+          :disabled="disabled"
+          @click="copySharedBase"
+        >
+          <GeneralIcon class="mr-1" icon="duplicate" />
+          Copy Base
+        </NcButton>
+      </div>
+    </div>
+  </template>
+
   <LazyDlgShareAndCollaborateView :is-view-toolbar="isViewToolbar" />
 </template>
-
-<style lang="scss">
-.share-status-tootltip {
-  .ant-tooltip-inner {
-    @apply !rounded-md !border-1 !border-gray-200;
-  }
-}
-</style>

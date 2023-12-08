@@ -1630,8 +1630,45 @@ class SqliteClient extends KnexClient {
 
       const trx = await this.sqlClient.transaction();
 
+      const splitQueries = (query) => {
+        const queries = [];
+        let quotationCount = 0;
+        let quotationMode: 'double' | 'single' | undefined = undefined;
+        let currentQuery = '';
+
+        for (let i = 0; i < query.length; i++) {
+          if (!quotationMode && (query[i] === '"' || query[i] === "'")) {
+            quotationMode = query[i] === '"' ? 'double' : 'single';
+          }
+
+          if (
+            (quotationMode === 'double' && query[i] === '"') ||
+            (quotationMode === 'single' && query[i] === "'")
+          ) {
+            // Ignore if quotation is escaped
+            if (i > 0 && query[i - 1] !== '\\') {
+              quotationCount++;
+            }
+          }
+
+          if (query[i] === ';' && quotationCount % 2 === 0) {
+            queries.push(currentQuery);
+            currentQuery = '';
+            quotationMode = undefined;
+          } else {
+            currentQuery += query[i];
+          }
+        }
+
+        if (currentQuery.trim() !== '') {
+          queries.push(currentQuery);
+        }
+
+        return queries;
+      };
+
       try {
-        const queries = upQuery.split(';');
+        const queries = splitQueries(upQuery);
         for (let i = 0; i < queries.length; i++) {
           if (queries[i].trim() !== '') {
             await trx.raw(queries[i]);
@@ -2090,7 +2127,7 @@ class SqliteClient extends KnexClient {
       addNewColumnQuery +=
         n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       addNewColumnQuery += n.cdf
-        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        ? ` DEFAULT ${this.genValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2122,7 +2159,7 @@ class SqliteClient extends KnexClient {
         shouldSanitize,
       );
       query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
-      query += n.cdf ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}` : ' ';
+      query += n.cdf ? ` DEFAULT ${this.genValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
@@ -2133,7 +2170,7 @@ class SqliteClient extends KnexClient {
       );
       query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       query += n.cdf
-        ? ` DEFAULT ${this.sanitiseDefaultValue(n.cdf)}`
+        ? ` DEFAULT ${this.genValue(n.cdf)}`
         : !n.rqd
         ? ' '
         : ` DEFAULT ''`;
@@ -2197,6 +2234,14 @@ class SqliteClient extends KnexClient {
       log.api(`${func} :result: ${result}`);
     }
     return result;
+  }
+
+  genValue(value): any {
+    if (value === 'CURRENT_TIMESTAMP') {
+      return value;
+    }
+
+    return super.genValue(value);
   }
 }
 

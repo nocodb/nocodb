@@ -12,11 +12,11 @@ import {
   reactive,
   ref,
   storeToRefs,
+  useBase,
   useI18n,
   useInjectionState,
   useMetas,
   useNuxtApp,
-  useProject,
   useRouter,
   useSharedView,
   watch,
@@ -39,9 +39,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { metas, getMeta } = useMetas()
 
-    const { project } = storeToRefs(useProject())
+    const { base } = storeToRefs(useBase())
 
-    const { $api } = useNuxtApp()
+    const { $api, $e } = useNuxtApp()
 
     const activeView = inject(ActiveViewInj, ref())
 
@@ -90,7 +90,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const projectId = project.value?.id || (sharedView.value?.view as any)?.project_id
+    const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
@@ -160,7 +160,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else if (isNewRow?.value) {
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
-            projectId,
+            baseId,
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
@@ -174,7 +174,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            projectId,
+            baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as 'mm' | 'hm',
@@ -248,7 +248,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           childrenList.value = await $api.dbTableRow.nestedList(
             NOCO,
-            (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
+            (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as 'mm' | 'hm',
@@ -284,14 +284,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           try {
             const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
-              projectId,
+              baseId,
               relatedTableMeta.value.id as string,
               encodeURIComponent(id as string),
             )
 
             if (res.message) {
               message.info(
-                `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+                `Record delete failed: ${`Unable to delete record with ID ${id} because of the following:
               \n${res.message.join('\n')}.\n
               Clear the data first & try again`})}`,
               )
@@ -305,6 +305,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               await loadChildrenList()
             }
             onSuccess?.(row)
+
+            $e('a:links:delete-related-row')
           } catch (e: any) {
             message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
           }
@@ -337,7 +339,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          project.value.id as string,
+          base.value.id as string,
           metaValue.id!,
           encodeURIComponent(rowId.value),
           colOptions.value.type as 'mm' | 'hm',
@@ -375,6 +377,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       reloadData?.(false)
+      $e('a:links:unlink')
     }
 
     const link = async (
@@ -402,7 +405,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          project.value.id as string,
+          base.value.id as string,
           metaValue.id as string,
           encodeURIComponent(rowId.value),
           colOptions.value.type as 'mm' | 'hm',
@@ -444,6 +447,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       reloadData?.(false)
+      $e('a:links:link')
     }
 
     // watchers

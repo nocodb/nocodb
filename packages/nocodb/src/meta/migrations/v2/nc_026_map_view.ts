@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MAP_VIEW, (table) => {
@@ -7,10 +7,10 @@ const up = async (knex: Knex) => {
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
 
     table.string('base_id', 20);
-    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
 
     table.string('project_id', 128);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('uuid');
     table.string('title');

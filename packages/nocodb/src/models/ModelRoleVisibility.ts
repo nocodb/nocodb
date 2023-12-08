@@ -12,8 +12,8 @@ import { extractProps } from '~/helpers/extractProps';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   // fk_model_id?: string;
   fk_view_id?: string;
   role?: string;
@@ -23,24 +23,20 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     Object.assign(this, body);
   }
 
-  static async list(projectId): Promise<ModelRoleVisibility[]> {
+  static async list(baseId): Promise<ModelRoleVisibility[]> {
     const cachedList = await NocoCache.getList(
       CacheScope.MODEL_ROLE_VISIBILITY,
-      [projectId],
+      [baseId],
     );
     let { list: data } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !data.length) {
       data = await Noco.ncMeta.metaList2(
-        projectId,
+        baseId,
         null,
         MetaTable.MODEL_ROLE_VISIBILITY,
       );
-      await NocoCache.setList(
-        CacheScope.MODEL_ROLE_VISIBILITY,
-        [projectId],
-        data,
-      );
+      await NocoCache.setList(CacheScope.MODEL_ROLE_VISIBILITY, [baseId], data);
     }
     return data?.map((baseData) => new ModelRoleVisibility(baseData));
   }
@@ -137,14 +133,14 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       'role',
       'disabled',
       'fk_view_id',
-      'project_id',
       'base_id',
+      'source_id',
     ]);
 
-    if (!(insertObj.project_id && insertObj.base_id)) {
+    if (!(insertObj.base_id && insertObj.source_id)) {
       const view = await View.get(body.fk_view_id, ncMeta);
-      insertObj.project_id = view.project_id;
       insertObj.base_id = view.base_id;
+      insertObj.source_id = view.source_id;
     }
 
     const result = await ncMeta.metaInsert2(
@@ -160,7 +156,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
 
     await NocoCache.appendToList(
       CacheScope.MODEL_ROLE_VISIBILITY,
-      [insertObj.project_id],
+      [insertObj.base_id],
       key,
     );
 

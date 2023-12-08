@@ -6,7 +6,7 @@ import {
   ReadonlyInj,
   inject,
   onClickOutside,
-  useProject,
+  useBase,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -20,7 +20,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = useProject()
+const { isMysql } = useBase()
 
 const { showNull } = useGlobal()
 
@@ -36,7 +36,7 @@ const column = inject(ColumnInj)!
 
 const isTimeInvalid = ref(false)
 
-const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql(column.value.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const { t } = useI18n()
 
@@ -101,6 +101,12 @@ const placeholder = computed(() => {
   }
 })
 
+const isOpen = computed(() => {
+  if (readOnly.value) return false
+
+  return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
+})
+
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
@@ -129,8 +135,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
-    :popup-class-name="`${randomClass} nc-picker-time ${open ? 'active' : ''}`"
+    :open="isOpen"
+    :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     @click="open = (active || editable) && !open"
     @ok="open = !open"
   >

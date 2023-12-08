@@ -13,10 +13,10 @@ import {
   inject,
   message,
   ref,
+  useBase,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
-  useProject,
   useRoles,
   useSmartsheetStoreOrThrow,
 } from '#imports'
@@ -58,11 +58,11 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
 
 const { isUIAllowed } = useRoles()
 
-useProject()
+useBase()
 
 const meta = inject(MetaInj, ref())
 
-const currentBaseId = computed(() => meta.value?.base_id)
+const currentBaseId = computed(() => meta.value?.source_id)
 
 /*
 const Icon = computed(() => {
@@ -119,7 +119,7 @@ useMenuCloseOnEsc(open)
             <template v-if="isUIAllowed('csvTableImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
                 <template #title>
-                  <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                  <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group">
                     <UploadIcon class="w-4 h-4" />
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
@@ -132,8 +132,8 @@ useMenuCloseOnEsc(open)
                 <template v-for="(dialog, type) in quickImportDialogs">
                   <a-menu-item v-if="isUIAllowed(`${type}TableImport`) && !isView && !isPublicView" :key="type">
                     <div
-                      v-e="[`a:actions:upload-${type}`]"
-                      class="nc-project-menu-item"
+                      v-e="[`a:upload:${type}`]"
+                      class="nc-base-menu-item"
                       :class="{ disabled: isLocked }"
                       @click="!isLocked ? (dialog.value = true) : {}"
                     >
@@ -146,7 +146,7 @@ useMenuCloseOnEsc(open)
             </template>
             <a-sub-menu key="download">
               <template #title>
-                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                <div v-e="['c:download']" class="nc-base-menu-item group">
                   <DownloadIcon class="w-4 h-4" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
@@ -166,7 +166,7 @@ useMenuCloseOnEsc(open)
               class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
             >
               <template #title>
-                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
+                <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group px-0 !py-0">
                   <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
                   <component :is="iconMap.arrowRight" />
@@ -197,7 +197,7 @@ useMenuCloseOnEsc(open)
         :key="tp"
         v-model="quickImportDialogs[tp].value"
         :import-type="tp"
-        :base-id="currentBaseId"
+        :source-id="currentBaseId"
         :import-data-only="true"
       />
     </template>

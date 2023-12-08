@@ -2,23 +2,23 @@ import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 import { assert, expect } from 'chai';
 import { createColumn, createLookupColumn } from '../../factory/column';
-import { createProject, createSakilaProject } from '../../factory/project';
+import { createProject, createSakilaProject } from '../../factory/base';
 import { listRow } from '../../factory/row';
 import { getTable } from '../../factory/table';
 import { getView, updateView } from '../../factory/view';
 import init from '../../init';
-import type { Column, Model, Project, View } from '../../../../src/models';
+import type { Base, Column, Model, View } from '../../../../src/models';
 import 'mocha';
 
 function groupByTests() {
   let context;
-  let sakilaProject: Project;
+  let sakilaProject: Base;
   let filmTable: Model;
   let filmColumns: Array<Column>;
   let filmView: View;
   let gridViewColumns;
 
-  before(async function () {
+  beforeEach(async function () {
     console.time('GroupBy Tests');
     context = await init();
 
@@ -26,7 +26,7 @@ function groupByTests() {
     await createProject(context);
 
     filmTable = await getTable({
-      project: sakilaProject,
+      base: sakilaProject,
       name: 'film',
     });
     filmView = await getView(context, { table: filmTable, name: 'Film' });
@@ -226,7 +226,9 @@ function groupByTests() {
       ],
     });
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${filmView.id}/groupby`,
+      )
       .set('xc-auth', context.token)
       .query({
         column_name: _lengthColumn.column_name,
@@ -262,7 +264,7 @@ function groupByTests() {
     // this is to avoid issue since there is 2 language column
     const rows = await listRow({
       table: filmTable,
-      project: sakilaProject,
+      base: sakilaProject,
       options: {
         limit: 1,
         offset: 0,
@@ -276,7 +278,7 @@ function groupByTests() {
     );
 
     await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'LanguageName',
       table: filmTable,
       relatedTableName: 'language',
@@ -297,24 +299,26 @@ function groupByTests() {
     expect(response.body.list.length).to.equal(1);
   });
 
-  it('Check One GroupBy Column with MM Lookup which is not supported', async function () {
+  it('Check One GroupBy Column with MM Lookup which is supported', async function () {
     await createLookupColumn(context, {
-      project: sakilaProject,
+      base: sakilaProject,
       title: 'ActorNames',
       table: filmTable,
       relatedTableName: 'actor',
       relatedTableColumnTitle: 'FirstName',
     });
 
-    const res = await request(context.app)
+    const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/groupby`)
       .set('xc-auth', context.token)
       .query({
         column_name: 'ActorNames',
       })
-      .expect(400);
+      .expect(200);
 
-    assert.match(res.body.msg, /not supported/);
+    assert.match(response.body.list[1]['ActorNames'], /ADAM|ANNE/);
+    expect(+response.body.list[1]['count']).to.gt(0);
+    expect(response.body.list.length).to.equal(25);
   });
 
   it('Check One GroupBy Column with Formula and Formula referring another formula', async function () {

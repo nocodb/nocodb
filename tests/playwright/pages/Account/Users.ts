@@ -88,7 +88,7 @@ export class AccountUsersPage extends BasePage {
 
   async openRowActionMenu({ email }: { email: string }) {
     const userRow = await this.getUserRow({ email });
-    return userRow.locator(`.nc-icon`).click();
+    return userRow.locator(`.ant-btn`).click();
   }
 
   async deleteUser({ email }: { email: string }) {

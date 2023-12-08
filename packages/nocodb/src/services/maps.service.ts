@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -18,6 +19,7 @@ export class MapsService {
     tableId: string;
     map: ViewCreateReqType;
     user: UserType;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -33,12 +35,18 @@ export class MapsService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'map',
+
+      req: param.req,
     });
 
     return view;
   }
 
-  async mapViewUpdate(param: { mapViewId: string; map: MapUpdateReqType }) {
+  async mapViewUpdate(param: {
+    mapViewId: string;
+    map: MapUpdateReqType;
+    req: NcRequest;
+  }) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 
     const view = await View.get(param.mapViewId);
@@ -52,6 +60,7 @@ export class MapsService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'map',
+      req: param.req,
     });
 
     return res;

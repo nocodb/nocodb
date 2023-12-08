@@ -72,13 +72,13 @@ const onClickSetCurrentLocation = () => {
 const openInGoogleMaps = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const openInOSM = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
-  window.open(url, '_blank')
+  window.open(url, '_blank', "'noopener,noreferrer'")
 }
 </script>
 
@@ -100,7 +100,7 @@ const openInOSM = () => {
     </div>
     <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col w-max-64" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col w-max-64 border-1 border-gray-200" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">
             <div class="mr-2">{{ $t('labels.lat') }}:</div>

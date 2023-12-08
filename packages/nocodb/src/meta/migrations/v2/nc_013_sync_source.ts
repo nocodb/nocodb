@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.SYNC_SOURCE, (table) => {
@@ -13,7 +13,7 @@ const up = async (knex: Knex) => {
     table.float('order');
 
     table.string('project_id', 128);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
     table.string('fk_user_id', 20);
     table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
 
@@ -24,10 +24,10 @@ const up = async (knex: Knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('project_id', 128);
-    table.string('fk_sync_source_id', 20);
+    table.string('fk_sync_base_id', 20);
     // table
-    //   .foreign('fk_sync_source_id')
-    //   .references(`${MetaTable.SYNC_SOURCE}.id`);
+    //   .foreign('fk_sync_base_id')
+    //   .references(`${MetaTableOldV2.BASES}.id`);
 
     table.integer('time_taken');
     table.string('status');

@@ -1,6 +1,8 @@
-import { Catch, Logger } from '@nestjs/common';
+import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { ThrottlerException } from '@nestjs/throttler';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import {
   AjvError,
   BadRequest,
@@ -15,13 +17,48 @@ import {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private logger = new Logger(GlobalExceptionFilter.name);
+  constructor(
+    @Optional() @InjectSentry() protected readonly sentryClient: SentryService,
+  ) {}
+
+  protected logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
-    this.logger.error(exception.message, exception.stack);
+    // skip unnecessary error logging
+    if (
+      process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
+      !(
+        exception instanceof BadRequest ||
+        exception instanceof AjvError ||
+        exception instanceof Unauthorized ||
+        exception instanceof Forbidden ||
+        exception instanceof NotFound ||
+        exception instanceof NotImplemented ||
+        exception instanceof UnprocessableEntity ||
+        exception instanceof NotFoundException ||
+        exception instanceof ThrottlerException
+      )
+    )
+      this.logError(exception, request);
+
+    if (exception instanceof ThrottlerException) {
+      this.logger.warn(
+        `${exception.message}, Path : ${request.path}, Workspace ID : ${
+          (request as any).ncWorkspaceId
+        }, Project ID : ${(request as any).ncProjectId}`,
+      );
+    }
+
+    // API not found
+    if (exception instanceof NotFoundException) {
+      this.logger.debug(exception.message, exception.stack);
+
+      return response.status(404).json({ msg: exception.message });
+    }
 
     const dbError = extractDBError(exception);
 
@@ -69,10 +106,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
+      this.captureException(exception, request);
+
       // todo: change the response code
       response.status(400).json({
         msg: exception.message,
       });
     }
+  }
+
+  protected captureException(exception: any, _request: any) {
+    this.sentryClient?.instance().captureException(exception);
+  }
+
+  protected logError(exception: any, _request: any) {
+    this.logger.error(exception.message, exception.stack);
   }
 }

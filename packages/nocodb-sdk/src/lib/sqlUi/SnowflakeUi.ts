@@ -374,7 +374,7 @@ export class SnowflakeUi {
   static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
   }
-/*
+  /*
 
   static extractFunctionName(query) {
     const reg =
@@ -972,7 +972,15 @@ export class SnowflakeUi {
   }
 
   static getUnsupportedFnList() {
-    return [];
+    return [
+      'XOR',
+      'REGEX_MATCH',
+      'REGEX_EXTRACT',
+      'REGEX_REPLACE',
+      'VALUE',
+      'COUNTA',
+      'COUNT',
+    ];
   }
 }
 

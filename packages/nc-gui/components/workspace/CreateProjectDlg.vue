@@ -3,7 +3,7 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, extractSdkResponseErrorMsg, projectTitleValidator, ref, useGlobal, useVModel } from '#imports'
+import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useI18n, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -12,21 +12,23 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const projectType = computed(() => props.type ?? NcProjectType.DB)
+const baseType = computed(() => props.type ?? NcProjectType.DB)
 
-const projectsStore = useProjects()
-const { createProject: _createProject } = projectsStore
+const basesStore = useBases()
+const { createProject: _createProject } = basesStore
 
 const { navigateToProject } = useGlobal()
 
 const nameValidationRules = [
   {
     required: true,
-    message: 'Database name is required',
+    message: t('msg.info.dbNameRequired'),
   },
-  projectTitleValidator,
+  baseTitleValidator,
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
@@ -40,14 +42,14 @@ const creating = ref(false)
 const createProject = async () => {
   creating.value = true
   try {
-    const project = await _createProject({
-      type: projectType.value,
+    const base = await _createProject({
+      type: baseType.value,
       title: formState.value.title,
     })
 
     navigateToProject({
-      projectId: project.id!,
-      type: projectType.value,
+      baseId: base.id!,
+      type: baseType.value,
       workspaceId: 'nc',
     })
     dialogShow.value = false
@@ -70,7 +72,7 @@ watch(dialogShow, async (n, o) => {
     form.value?.resetFields()
 
     formState.value = {
-      title: 'Untitled Database',
+      title: 'Base',
     }
 
     await nextTick()
@@ -81,10 +83,10 @@ watch(dialogShow, async (n, o) => {
 })
 
 const typeLabel = computed(() => {
-  switch (projectType.value) {
+  switch (baseType.value) {
     case NcProjectType.DB:
     default:
-      return 'Database'
+      return 'Base'
   }
 })
 </script>
@@ -94,8 +96,12 @@ const typeLabel = computed(() => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="projectType" class="mr-2.5 !text-lg !h-4" />
-        Create {{ typeLabel }}
+        <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
+        {{
+          $t('general.createEntity', {
+            entity: typeLabel,
+          })
+        }}
       </div>
     </template>
     <div class="mt-3">
@@ -114,25 +120,34 @@ const typeLabel = computed(() => {
             ref="input"
             v-model:value="formState.title"
             name="title"
-            class="nc-metadb-project-name nc-input-md"
+            class="nc-metadb-base-name nc-input-md"
             placeholder="Title"
           />
         </a-form-item>
       </a-form>
 
       <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" @click="dialogShow = false">Cancel</NcButton>
+        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
         <NcButton
+          v-e="['a:base:create']"
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"
-          :label="`Create ${typeLabel}`"
-          :loading-label="`Creating ${typeLabel}`"
+          :label="`${$t('general.create')} ${typeLabel}`"
+          :loading-label="`${$t('general.creating')} ${typeLabel}`"
           @click="createProject"
         >
-          {{ `Create ${typeLabel}` }}
+          {{
+            $t('general.createEntity', {
+              entity: typeLabel,
+            })
+          }}
           <template #loading>
-            {{ `Creating ${typeLabel}` }}
+            {{
+              $t('general.creatingEntity', {
+                entity: typeLabel,
+              })
+            }}
           </template>
         </NcButton>
       </div>

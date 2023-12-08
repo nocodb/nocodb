@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import type { BaseType, ProjectType } from 'nocodb-sdk'
+import type { BaseType, SourceType } from 'nocodb-sdk'
 
 const props = defineProps<{
+  source: SourceType
   base: BaseType
-  project: ProjectType
 }>()
 
-const base = toRef(props, 'base')
+const source = toRef(props, 'source')
 
 const { isUIAllowed } = useRoles()
 
-const projectRole = inject(ProjectRoleInj)
+const baseRole = inject(ProjectRoleInj)
 
 const { $e } = useNuxtApp()
 
-function openAirtableImportDialog(baseId?: string) {
-  if (!baseId) return
+function openAirtableImportDialog(baseId?: string, sourceId?: string) {
+  if (!baseId || !sourceId) return
 
   $e('a:actions:import-airtable')
 
@@ -24,6 +24,7 @@ function openAirtableImportDialog(baseId?: string) {
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
     'baseId': baseId,
+    'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -35,7 +36,7 @@ function openAirtableImportDialog(baseId?: string) {
 }
 
 function openQuickImportDialog(type: string) {
-  if (!base.value?.id) return
+  if (!source.value?.id) return
 
   $e(`a:actions:import-${type}`)
 
@@ -44,7 +45,7 @@ function openQuickImportDialog(type: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
-    'baseId': base.value.id,
+    'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -58,49 +59,52 @@ function openQuickImportDialog(type: string) {
 
 <template>
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0" data-testid="nc-sidebar-project-import">
+  <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import">
     <template #title>
       <GeneralIcon icon="download" />
-
       {{ $t('labels.importData') }}
     </template>
 
     <template #expandIcon></template>
 
     <NcMenuItem
-      v-if="isUIAllowed('airtableImport', { roles: projectRole })"
+      v-if="isUIAllowed('airtableImport', { roles: baseRole })"
       key="quick-import-airtable"
-      @click="openAirtableImportDialog(base.id)"
+      @click="openAirtableImportDialog(source.base_id, source.id)"
     >
-      <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
-      <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
+      <div v-e="['c:import:airtable']" class="flex gap-2 items-center">
+        <GeneralIcon icon="airtable" class="max-w-3.75 group-hover:text-black" />
+        <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
+      </div>
+    </NcMenuItem>
+
+    <NcMenuItem v-if="isUIAllowed('csvImport', { roles: baseRole })" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+      <div v-e="['c:import:csv']" class="flex gap-2 items-center">
+        <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
+        {{ $t('labels.csvFile') }}
+      </div>
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('csvImport', { roles: projectRole })"
-      key="quick-import-csv"
-      @click="openQuickImportDialog('csv')"
-    >
-      <GeneralIcon icon="csv" class="w-4 group-hover:text-black" />
-      {{ $t('labels.csvFile') }}
-    </NcMenuItem>
-
-    <NcMenuItem
-      v-if="isUIAllowed('jsonImport', { roles: projectRole })"
+      v-if="isUIAllowed('jsonImport', { roles: baseRole })"
       key="quick-import-json"
       @click="openQuickImportDialog('json')"
     >
-      <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
-      {{ $t('labels.jsonFile') }}
+      <div v-e="['c:import:json']" class="flex gap-2 items-center">
+        <GeneralIcon icon="code" class="w-4 group-hover:text-black" />
+        {{ $t('labels.jsonFile') }}
+      </div>
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('excelImport', { roles: projectRole })"
+      v-if="isUIAllowed('excelImport', { roles: baseRole })"
       key="quick-import-excel"
       @click="openQuickImportDialog('excel')"
     >
-      <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
-      {{ $t('labels.microsoftExcel') }}
+      <div v-e="['c:import:excel']" class="flex gap-2 items-center">
+        <GeneralIcon icon="excel" class="max-w-4 group-hover:text-black" />
+        {{ $t('labels.microsoftExcel') }}
+      </div>
     </NcMenuItem>
   </NcSubMenu>
 </template>

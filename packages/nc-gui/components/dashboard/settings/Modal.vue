@@ -7,7 +7,7 @@ interface Props {
   modelValue?: boolean
   openKey?: string
   dataSourcesState?: string
-  projectId?: string
+  baseId?: string
 }
 
 interface SubTabGroup {
@@ -38,9 +38,9 @@ const vOpenKey = useVModel(props, 'openKey', emits)
 
 const vDataState = useVModel(props, 'dataSourcesState', emits)
 
-const projectId = toRef(props, 'projectId')
+const baseId = toRef(props, 'baseId')
 
-provide(ProjectIdInj, projectId)
+provide(ProjectIdInj, baseId)
 
 const { $e } = useNuxtApp()
 
@@ -108,8 +108,8 @@ const tabsInfo: TabGroup = {
   //     $e('c:settings:audit')
   //   },
   // },
-  projectSettings: {
-    // Project Settings
+  baseSettings: {
+    // Base Settings
     title: t('labels.projectSettings'),
     icon: iconMap.settings,
     subTabs: {
@@ -121,7 +121,7 @@ const tabsInfo: TabGroup = {
       },
     },
     onClick: () => {
-      $e('c:settings:project-settings')
+      $e('c:settings:base-settings')
     },
   },
 }
@@ -257,14 +257,14 @@ watch(
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
             :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
-            :project-id="projectId"
+            :base-id="baseId"
             @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"
             v-else
             class="px-2 py-6"
-            :project-id="projectId"
+            :base-id="baseId"
             :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
           />
         </div>

@@ -13,6 +13,8 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces, navigateToWorkspace }
 
 const { workspaces, workspacesList } = storeToRefs(workspaceStore)
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const workspace = computed(() => workspaces.value.get(props.workspaceId))
 
 const onDelete = async () => {
@@ -29,6 +31,8 @@ const onDelete = async () => {
     await navigateToWorkspace(workspacesList.value?.[0]?.id)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 </script>

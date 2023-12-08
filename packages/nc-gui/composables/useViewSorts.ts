@@ -10,23 +10,20 @@ import {
   message,
   ref,
   storeToRefs,
+  useBase,
   useNuxtApp,
-  useProject,
   useRoles,
-  useSharedView,
   useSmartsheetStoreOrThrow,
 } from '#imports'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
-  const { sharedView } = useSharedView()
-
   const { sorts, eventBus } = useSmartsheetStoreOrThrow()
 
   const { $api, $e } = useNuxtApp()
 
   const { isUIAllowed } = useRoles()
 
-  const { isSharedBase } = storeToRefs(useProject())
+  const { isSharedBase } = storeToRefs(useBase())
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -42,9 +39,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const loadSorts = async () => {
     if (isPublic.value) {
-      // todo: sorts missing on `ViewType`
-      const sharedSorts = (sharedView.value as any)?.sorts || []
-      sorts.value = [...sharedSorts]
+      sorts.value = []
       return
     }
 

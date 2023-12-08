@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import type { ProjectType } from 'nocodb-sdk'
-import { useVModel } from '#imports'
+import type { BaseType } from 'nocodb-sdk'
+import { isEeUI, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  project: ProjectType
-  onOk: (jobData: { name: string; id: string }) => Promise<void>
+  base: BaseType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const { api } = useApi()
+
+const { $e, $poller } = useNuxtApp()
+
+const basesStore = useBases()
+
+const { loadProjects, createProject: _createProject } = basesStore
+const { bases } = storeToRefs(basesStore)
+
+const { navigateToProject } = useGlobal()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -35,17 +45,17 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   try {
     isLoading.value = true
-    // pick a random color from array and assign to project
-    const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+    // pick a random color from array and assign to base
+    const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
     const tcolor = tinycolor(color)
 
     const complement = tcolor.complement()
 
-    const jobData = await api.project.duplicate(props.project.id as string, {
+    const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
-      project: {
-        fk_workspace_id: props.project.fk_workspace_id,
-        type: props.project.type,
+      base: {
+        fk_workspace_id: props.base.fk_workspace_id,
+        type: props.base.type,
         color,
         meta: JSON.stringify({
           theme: {
@@ -55,10 +65,50 @@ const _duplicate = async () => {
         }),
       },
     })
-    props.onOk(jobData as any)
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            await loadProjects('workspace')
+            const base = bases.value.get(jobData.base_id)
+
+            // open project after duplication
+            if (base) {
+              await navigateToProject({
+                workspaceId: isEeUI ? base.fk_workspace_id : undefined,
+                baseId: base.id,
+                type: base.type,
+              })
+            }
+            refreshCommandPalette()
+            isLoading.value = false
+            dialogShow.value = false
+          } else if (data.status === JobStatus.FAILED) {
+            message.error('Failed to duplicate project')
+            await loadProjects('workspace')
+            refreshCommandPalette()
+            isLoading.value = false
+            dialogShow.value = false
+          }
+        }
+      },
+    )
+
+    $e('a:base:duplicate')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
     isLoading.value = false
     dialogShow.value = false
   }
@@ -75,7 +125,15 @@ const isEaster = ref(false)
 </script>
 
 <template>
-  <GeneralModal v-if="project" v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
+  <GeneralModal
+    v-if="base"
+    v-model:visible="dialogShow"
+    :closable="!isLoading"
+    :mask-closable="!isLoading"
+    :keyboard="!isLoading"
+    class="!w-[30rem]"
+    wrap-class-name="nc-modal-base-duplicate"
+  >
     <div>
       <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
         {{ $t('general.duplicate') }} {{ $t('objects.project') }}
@@ -88,14 +146,18 @@ const isEaster = ref(false)
       <a-divider class="!m-0 !p-0 !my-2" />
 
       <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks">{{ $t('labels.includeWebhook') }}</a-checkbox>
+        <a-checkbox v-model:checked="options.includeData" :disabled="isLoading">{{ $t('labels.includeData') }}</a-checkbox>
+        <a-checkbox v-model:checked="options.includeViews" :disabled="isLoading">{{ $t('labels.includeView') }}</a-checkbox>
+        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks" :disabled="isLoading">
+          {{ $t('labels.includeWebhook') }}
+        </a-checkbox>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+      <NcButton v-if="!isLoading" key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton key="submit" v-e="['a:base:duplicate']" :loading="isLoading" @click="_duplicate"
+        >{{ $t('general.confirm') }}
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

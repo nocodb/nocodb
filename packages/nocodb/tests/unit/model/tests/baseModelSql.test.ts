@@ -1,24 +1,24 @@
 import 'mocha';
 import { expect } from 'chai';
 import init from '../../init';
-import { createProject } from '../../factory/project';
+import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { createRow, generateDefaultRowAttributes } from '../../factory/row';
 import { createLtarColumn } from '../../factory/column';
 import { isPg, isSqlite } from '../../init/db';
 import type View from '~/models/View';
-import type Project from '~/models/Project';
+import type Base from '~/models/Base';
 import type Model from '~/models/Model';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import Audit from '~/models/Audit';
-import Base from '~/models/Base';
+import Source from '~/models/Source';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 function baseModelSqlTests() {
   let context;
-  let project: Project;
+  let base: Base;
   let table: Model;
   let view: View;
   let baseModelSql: BaseModelSqlv2;
@@ -26,13 +26,13 @@ function baseModelSqlTests() {
   beforeEach(async function () {
     console.time('#### baseModelSqlTests');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project);
+    base = await createProject(context);
+    table = await createTable(context, base);
     view = await table.getViews()[0];
 
-    const base = await Base.get(table.base_id);
+    const source = await Source.get(table.source_id);
     baseModelSql = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
       model: table,
       view,
     });
@@ -73,13 +73,13 @@ function baseModelSqlTests() {
     expect(insertedRow).to.include(response);
 
     const rowInsertedAudit = (
-      await Audit.projectAuditList(project.id, {})
+      await Audit.baseAuditList(base.id, {})
     ).find((audit) => audit.op_sub_type === 'INSERT');
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: '1',
       op_type: 'DATA',
@@ -121,13 +121,13 @@ function baseModelSqlTests() {
     });
 
     const rowBulkInsertedAudit = (
-      await Audit.projectAuditList(project.id, {})
+      await Audit.baseAuditList(base.id, {})
     ).find((audit) => audit.op_sub_type === 'BULK_INSERT');
     expect(rowBulkInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: null,
       op_type: 'DATA',
@@ -154,14 +154,14 @@ function baseModelSqlTests() {
 
     expect(updatedRow).to.include({ Id: rowId, Title: 'test' });
 
-    const rowUpdatedAudit = (await Audit.projectAuditList(project.id, {})).find(
+    const rowUpdatedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'UPDATE',
     );
     expect(rowUpdatedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: '1',
       op_type: 'DATA',
@@ -198,14 +198,14 @@ function baseModelSqlTests() {
       expect(row['Title']).to.equal(`new-test-${index}`);
     });
     const rowBulkUpdateAudit = (
-      await Audit.projectAuditList(project.id, {})
+      await Audit.baseAuditList(base.id, {})
     ).find((audit) => audit.op_sub_type === 'BULK_UPDATE');
     expect(rowBulkUpdateAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
+      source_id: table.source_id,
       fk_model_id: table.id,
-      project_id: project.id,
+      base_id: base.id,
       row_id: null,
       op_type: 'DATA',
       op_sub_type: 'BULK_UPDATE',
@@ -249,14 +249,14 @@ function baseModelSqlTests() {
       if (row.id < 5) expect(row['Title']).to.equal('new-1');
     });
     const rowBulkUpdateAudit = (
-      await Audit.projectAuditList(project.id, {})
+      await Audit.baseAuditList(base.id, {})
     ).find((audit) => audit.op_sub_type === 'BULK_UPDATE');
     expect(rowBulkUpdateAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
+      source_id: table.source_id,
       fk_model_id: table.id,
-      project_id: project.id,
+      base_id: base.id,
       row_id: null,
       op_type: 'DATA',
       op_sub_type: 'BULK_UPDATE',
@@ -286,15 +286,15 @@ function baseModelSqlTests() {
 
     expect(deletedRow).to.be.null;
 
-    console.log('Delete record', await Audit.projectAuditList(project.id, {}));
-    const rowDeletedAudit = (await Audit.projectAuditList(project.id, {})).find(
+    console.log('Delete record', await Audit.baseAuditList(base.id, {}));
+    const rowDeletedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'DELETE',
     );
     expect(rowDeletedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: '1',
       op_type: 'DATA',
@@ -328,15 +328,15 @@ function baseModelSqlTests() {
     expect(remainingRows).to.length(6);
 
     const rowBulkDeleteAudit = (
-      await Audit.projectAuditList(project.id, {})
+      await Audit.baseAuditList(base.id, {})
     ).find((audit) => audit.op_sub_type === 'BULK_DELETE');
 
     expect(rowBulkDeleteAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
+      source_id: table.source_id,
       fk_model_id: table.id,
-      project_id: project.id,
+      base_id: base.id,
       row_id: null,
       op_type: 'DATA',
       op_sub_type: 'BULK_DELETE',
@@ -377,14 +377,14 @@ function baseModelSqlTests() {
 
     expect(remainingRows).to.length(6);
     const rowBulkDeleteAudit = (
-      await Audit.projectAuditList(project.id, {})
+      await Audit.baseAuditList(base.id, {})
     ).find((audit) => audit.op_sub_type === 'BULK_DELETE');
     expect(rowBulkDeleteAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
+      source_id: table.source_id,
       fk_model_id: table.id,
-      project_id: project.id,
+      base_id: base.id,
       row_id: null,
       op_type: 'DATA',
       op_sub_type: 'BULK_DELETE',
@@ -395,7 +395,7 @@ function baseModelSqlTests() {
   });
 
   it('Nested insert', async () => {
-    const childTable = await createTable(context, project, {
+    const childTable = await createTable(context, base, {
       title: 'Child Table',
       table_name: 'child_table',
     });
@@ -406,7 +406,7 @@ function baseModelSqlTests() {
       type: 'hm',
     });
     const childRow = await createRow(context, {
-      project,
+      base,
       table: childTable,
     });
     const ltarColOptions =
@@ -429,22 +429,22 @@ function baseModelSqlTests() {
     );
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(await Base.get(table.base_id)),
+      dbDriver: await NcConnectionMgrv2.get(await Source.get(table.source_id)),
       model: childTable,
       view,
     });
     const insertedChildRow = await childBaseModel.readByPk(childRow['Id']);
     expect(insertedChildRow[childCol.column_name]).to.equal(childRow['Id']);
 
-    const rowInsertedAudit = (await Audit.projectAuditList(project.id, {}))
+    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
       .filter((audit) => audit.fk_model_id === table.id)
       .find((audit) => audit.op_sub_type === 'INSERT');
 
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: '1',
       op_type: 'DATA',
@@ -454,7 +454,7 @@ function baseModelSqlTests() {
   });
 
   it('Link child', async () => {
-    const childTable = await createTable(context, project, {
+    const childTable = await createTable(context, base, {
       title: 'Child Table',
       table_name: 'child_table',
     });
@@ -465,7 +465,7 @@ function baseModelSqlTests() {
       type: 'hm',
     });
     const insertedChildRow = await createRow(context, {
-      project,
+      base,
       table: childTable,
     });
     const ltarColOptions =
@@ -493,7 +493,7 @@ function baseModelSqlTests() {
     });
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(await Base.get(table.base_id)),
+      dbDriver: await NcConnectionMgrv2.get(await Source.get(table.source_id)),
       model: childTable,
       view,
     });
@@ -503,15 +503,15 @@ function baseModelSqlTests() {
 
     expect(updatedChildRow[childCol.column_name]).to.equal(insertedRow['Id']);
 
-    const rowInsertedAudit = (await Audit.projectAuditList(project.id, {}))
+    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
       .filter((audit) => audit.fk_model_id === table.id)
       .find((audit) => audit.op_sub_type === 'LINK_RECORD');
 
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: '1',
       op_type: 'DATA',
@@ -522,7 +522,7 @@ function baseModelSqlTests() {
   });
 
   it('Unlink child', async () => {
-    const childTable = await createTable(context, project, {
+    const childTable = await createTable(context, base, {
       title: 'Child Table',
       table_name: 'child_table',
     });
@@ -533,7 +533,7 @@ function baseModelSqlTests() {
       type: 'hm',
     });
     const insertedChildRow = await createRow(context, {
-      project,
+      base,
       table: childTable,
     });
     const ltarColOptions =
@@ -568,7 +568,7 @@ function baseModelSqlTests() {
     });
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(await Base.get(table.base_id)),
+      dbDriver: await NcConnectionMgrv2.get(await Source.get(table.source_id)),
       model: childTable,
       view,
     });
@@ -578,15 +578,15 @@ function baseModelSqlTests() {
 
     expect(updatedChildRow[childCol.column_name]).to.be.null;
 
-    const rowInsertedAudit = (await Audit.projectAuditList(project.id, {}))
+    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
       .filter((audit) => audit.fk_model_id === table.id)
       .find((audit) => audit.op_sub_type === 'UNLINK_RECORD');
 
     expect(rowInsertedAudit).to.include({
       user: 'test@example.com',
       ip: '::ffff:192.0.0.1',
-      base_id: table.base_id,
-      project_id: project.id,
+      source_id: table.source_id,
+      base_id: base.id,
       fk_model_id: table.id,
       row_id: '1',
       op_type: 'DATA',

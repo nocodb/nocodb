@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { ProjectInj, ProjectRoleInj } from '#imports'
 
 const props = defineProps<{
-  projectRole: string | string[]
-  project: ProjectType
+  baseRole: string | string[]
+  base: BaseType
 }>()
 
-const projectRole = toRef(props, 'projectRole')
-const project = toRef(props, 'project')
+const baseRole = toRef(props, 'baseRole')
+const base = toRef(props, 'base')
 
-provide(ProjectRoleInj, projectRole)
-provide(ProjectInj, project)
+provide(ProjectRoleInj, baseRole)
+provide(ProjectInj, base)
 </script>
 
 <template>

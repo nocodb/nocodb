@@ -17,6 +17,10 @@ const hideMenu = toRef(props, 'hideMenu')
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isLocked = inject(IsLockedInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isDropDownOpen = ref(false)
@@ -44,14 +48,31 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
+  if (isLocked.value) return
+
   if (!isForm.value && !isExpandedForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value) {
     editColumnDropdown.value = true
   }
 }
 
-const openDropDown = () => {
+const openDropDown = (e: Event) => {
+  if (isLocked.value) return
+
   if (isForm.value || isExpandedForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
   isDropDownOpen.value = !isDropDownOpen.value
+}
+
+const onClick = (e: Event) => {
+  if (isDropDownOpen.value) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  isDropDownOpen.value = false
 }
 </script>
 
@@ -61,18 +82,31 @@ const openDropDown = () => {
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
-    @click="isDropDownOpen = false"
+    @click="onClick"
   >
-    <SmartsheetHeaderCellIcon v-if="column && !props.hideIcon" />
-    <div
+    <SmartsheetHeaderCellIcon
+      v-if="column && !props.hideIcon"
+      :class="{
+        'self-start': isForm || isSurveyForm,
+      }"
+    />
+    <NcTooltip
       v-if="column"
-      class="name pl-1 !truncate"
-      :class="{ 'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu }"
-      style="white-space: pre-line"
-      :title="column.title"
+      :class="{
+        'cursor-pointer pt-0.25': !isForm && isUIAllowed('fieldEdit') && !hideMenu && !isExpandedForm,
+        'cursor-default': isForm || !isUIAllowed('fieldEdit') || hideMenu,
+        'truncate': !isForm,
+      }"
+      class="name pl-1"
+      placement="bottom"
+      show-on-truncate-only
     >
-      {{ column.title }}
-    </div>
+      <template #title> {{ column.title }} </template>
+
+      <span :data-test-id="column.title">
+        {{ column.title }}
+      </span>
+    </NcTooltip>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
@@ -114,6 +148,7 @@ const openDropDown = () => {
 <style scoped>
 .name {
   max-width: calc(100% - 10px);
-  word-break: break-all;
+  word-break: break-word;
+  white-space: pre-line;
 }
 </style>

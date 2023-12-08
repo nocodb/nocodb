@@ -104,6 +104,11 @@ export class ColumnPageObject extends BasePage {
             .click();
         }
         break;
+      case 'Date':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        break;
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
@@ -260,7 +265,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete"):visible').click();
 
     // pressing on delete column button
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Column")').click();
+    await this.rootPage.locator('.ant-modal.active button:has-text("Delete Field")').click();
 
     // wait till modal is closed
     await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
@@ -310,6 +315,11 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
+      case 'Date':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        break;
       default:
         break;
     }
@@ -319,12 +329,14 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('.nc-more-options').click();
   }
 
-  async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {
+  async duplicateColumn({ title, expectedTitle = `${title} copy` }: { title: string; expectedTitle?: string }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
 
+    await this.rootPage.locator('.nc-modal-column-duplicate .nc-button:has-text("Confirm"):visible').click();
+
     // await this.verifyToast({ message: 'Column duplicated successfully' });
-    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible' });
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {
@@ -337,7 +349,7 @@ export class ColumnPageObject extends BasePage {
 
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/views',
+      requestUrlPathToMatch: '/api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
 
@@ -439,7 +451,14 @@ export class ColumnPageObject extends BasePage {
       this.rootPage.locator(`[data-title="${dst}"] >> .resizer`),
     ]);
 
+    await fromStack.scrollIntoViewIfNeeded();
+    await fromStack.hover();
     await fromStack.dragTo(toStack);
+
+    await this.rootPage.waitForTimeout(500);
+    await fromStack.click({
+      force: true,
+    });
   }
 
   async getWidth(param: { title: string }) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
 import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
 import type { Language } from '#imports'
@@ -13,6 +14,7 @@ interface Props {
   fixedSize?: number
   extraStyle?: string
   showApiTiming?: boolean
+  alignLeft?: boolean
 }
 
 const props = defineProps<Props>()
@@ -33,6 +35,8 @@ const extraStyle = toRef(props, 'extraStyle')
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
 
+const alignLeft = computed(() => props.alignLeft ?? false)
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
@@ -44,18 +48,24 @@ const size = computed(() => vPaginationData.value?.pageSize ?? 25)
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
   set: async (p) => {
-    isViewDataLoading.value = true
+    isPaginationLoading.value = true
     try {
       await changePage?.(p)
+      isPaginationLoading.value = false
     } catch (e) {
-      console.error(e)
-    } finally {
-      isViewDataLoading.value = false
+      if (axios.isCancel(e)) {
+        return
+      }
+      isPaginationLoading.value = false
     }
   },
 })
 
 const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
+
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 </script>
 
 <template>
@@ -66,7 +76,12 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
     }${extraStyle}`"
   >
-    <div class="flex-1 flex items-center">
+    <div
+      class="flex items-center"
+      :class="{
+        'flex-1': !alignLeft,
+      }"
+    >
       <slot name="add-record" />
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"
@@ -81,10 +96,11 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
       v-if="!hidePagination"
       class="transition-all duration-350"
       :class="{
-        '-ml-17': isLeftSidebarOpen,
+        '-ml-17': isLeftSidebarOpen && !alignLeft,
+        'ml-8': alignLeft,
       }"
     >
-      <div v-if="isPaginationLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">
+      <div v-if="isViewDataLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">
         <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
       </div>
       <NcPagination
@@ -94,6 +110,11 @@ const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Lang
         class="xs:(mr-2)"
         :class="{ 'rtl-pagination': isRTLLanguage }"
         :total="+count"
+        entity-name="grid"
+        :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+        :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+        :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+        :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>

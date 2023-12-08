@@ -26,7 +26,7 @@ import {
   ref,
   storeToRefs,
   toRef,
-  useProject,
+  useBase,
 } from '#imports'
 import type { Filter } from '#imports'
 import SingleSelect from '~/components/cell/SingleSelect.vue'
@@ -86,9 +86,9 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUis } = storeToRefs(useProject())
+const { sqlUis } = storeToRefs(useBase())
 
-const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -205,7 +205,7 @@ provide(IsFormInj, ref(true))
   />
   <div
     v-else
-    class="bg-white border-1 flex flex-grow min-h-32px h-full items-center"
+    class="bg-white border-1 flex flex-grow min-h-4 h-full items-center nc-filter-input-wrapper !rounded-lg"
     :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
     @mouseup.stop
   >
@@ -223,3 +223,13 @@ provide(IsFormInj, ref(true))
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(input) {
+  @apply py-1.5;
+}
+
+:deep(.ant-picker) {
+  @apply !py-0;
+}
+</style>

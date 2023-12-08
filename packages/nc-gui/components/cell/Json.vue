@@ -6,6 +6,7 @@ import {
   IsFormInj,
   JsonExpandInj,
   ReadonlyInj,
+  RowHeightInj,
   computed,
   inject,
   ref,
@@ -42,7 +43,11 @@ const localValueState = ref<string | undefined>()
 
 const error = ref<string | undefined>()
 
-const isExpanded = inject(JsonExpandInj, ref(false))
+const _isExpanded = inject(JsonExpandInj, ref(false))
+
+const isExpanded = ref(false)
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
@@ -67,13 +72,7 @@ const clear = () => {
 
 const formatJson = (json: string) => {
   try {
-    json = json
-      .trim()
-      .replace(/^\{\s*|\s*\}$/g, '')
-      .replace(/\n\s*/g, '')
-    json = `{${json}}`
-
-    return json
+    return JSON.stringify(JSON.parse(json))
   } catch (e) {
     console.log(e)
     return json
@@ -137,12 +136,30 @@ useSelectedCellKeyupListener(active, (e) => {
       break
   }
 })
+
+const inputWrapperRef = ref<HTMLElement | null>(null)
+
+onClickOutside(inputWrapperRef, (e) => {
+  if ((e.target as HTMLElement)?.closest('.nc-json-action')) return
+  editEnabled.value = false
+})
+
+watch(isExpanded, () => {
+  _isExpanded.value = isExpanded.value
+})
 </script>
 
 <template>
-  <component :is="isExpanded ? NcModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
+  <component
+    :is="isExpanded ? NcModal : 'div'"
+    v-model:visible="isExpanded"
+    :closable="false"
+    centered
+    :footer="null"
+    :wrap-class-name="isExpanded ? '!z-1051' : null"
+  >
     <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
-      <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
+      <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
           <CilFullscreenExit v-if="isExpanded" class="h-2.5" />
 
@@ -161,6 +178,7 @@ useSelectedCellKeyupListener(active, (e) => {
       </div>
 
       <LazyMonacoEditor
+        ref="inputWrapperRef"
         :model-value="localValue || ''"
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
@@ -176,7 +194,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
     <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <span v-else>{{ vModel }}</span>
+    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
   </component>
 </template>
 

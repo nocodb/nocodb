@@ -575,19 +575,20 @@ class PGClient extends KnexClient {
       );
 
       if (exists.rows.length === 0) {
-        const data = await this.sqlClient.schema.createTable(
-          args.tn,
-          function (table) {
-            table.increments();
-            table.string('title').notNullable();
-            table.string('titleDown').nullable();
-            table.string('description').nullable();
-            table.integer('batch').nullable();
-            table.string('checksum').nullable();
-            table.integer('status').nullable();
-            table.dateTime('created');
-            table.timestamps();
-          },
+        const data = await this.sqlClient.raw(
+          this.sqlClient.schema
+            .createTable(args.tn, function (table) {
+              table.increments();
+              table.string('title').notNullable();
+              table.string('titleDown').nullable();
+              table.string('description').nullable();
+              table.integer('batch').nullable();
+              table.string('checksum').nullable();
+              table.integer('status').nullable();
+              table.dateTime('created');
+              table.timestamps();
+            })
+            .toQuery(),
         );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
@@ -781,6 +782,18 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
+      const versionQuery = await this.sqlClient.raw('SELECT version()');
+
+      // Example output of `SELECT version()`
+      // PostgreSQL 14.4 (Debian 14.4-1.pgdg110+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit
+      const majorVersion = versionQuery.rows[0]?.version
+        ?.split(' ')?.[1]
+        ?.split('.')?.[0];
+
+      // PostgreSQL 10 and above supports identity columns
+      const identitySelector =
+        +majorVersion >= 10 ? 'c.is_identity as ii,' : '';
+
       args.databaseName = this.connectionConfig.connection.database;
       const response = await this.sqlClient.raw(
         `select
@@ -800,6 +813,7 @@ class PGClient extends KnexClient {
                     -- c.collation_name as clnn,
                     pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
                     c.udt_name,
+                    ${identitySelector}
 
        (SELECT count(*)
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc1
@@ -877,7 +891,9 @@ class PGClient extends KnexClient {
         // column['unique'] = response.rows[i]['cst'].indexOf('UNIQUE') === -1 ? false : true;
 
         column.cdf = response.rows[i].cdf
-          ? response.rows[i].cdf.replace(/::\w+$/, '').replace(/^'|'$/g, '')
+          ? response.rows[i].cdf
+              .replace(/::[\w (),]+$/, '')
+              .replace(/^'|'$/g, '')
           : response.rows[i].cdf;
 
         // todo : need to find column comment
@@ -891,6 +907,13 @@ class PGClient extends KnexClient {
         column.data_type_custom = response.rows[i].udt_name;
         if (column.dt === 'USER-DEFINED') {
           column.dtxp = response.rows[i].enum_values;
+        }
+
+        // handle identity column
+        if (+majorVersion >= 10) {
+          if (response.rows[i].ii === 'YES') {
+            column.ai = true;
+          }
         }
 
         columns.push(column);
@@ -1019,11 +1042,12 @@ class PGClient extends KnexClient {
     try {
       // const self = this;
 
-      await this.sqlClient.schema.table(
-        args.childTableWithSchema,
-        function (table) {
-          table.dropForeign(args.childColumn, foreignKeyName);
-        },
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery(),
       );
 
       const upStatement =
@@ -1036,14 +1060,14 @@ class PGClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        (await this.sqlClient.schema
+        this.sqlClient.schema
           .table(args.childTableWithSchema, function (table) {
             table
               .foreign(args.childColumn, foreignKeyName)
               .references(args.parentColumn)
               .on(args.parentTableWithSchema);
           })
-          .toQuery());
+          .toQuery();
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
@@ -2487,9 +2511,8 @@ class PGClient extends KnexClient {
       relationsList = relationsList.data.list;
 
       for (const relation of relationsList) {
-        downQuery +=
-          this.querySeparator() +
-          (await this.sqlClient.schema
+        const query = this.sqlClient.raw(
+          this.sqlClient.schema
             .table(relation.tn, function (table) {
               table = table
                 .foreign(relation.cn, null)
@@ -2503,7 +2526,12 @@ class PGClient extends KnexClient {
                 table.onDelete(relation.dr);
               }
             })
-            .toQuery());
+            .toQuery(),
+        );
+
+        downQuery += this.querySeparator() + query;
+
+        await query;
       }
 
       let indexList: any = await this.indexList(args);
@@ -2545,7 +2573,9 @@ class PGClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(args.tn);
+      await this.sqlClient.raw(
+        this.sqlClient.schema.dropTable(args.tn).toQuery(),
+      );
 
       /** ************** return files *************** */
       result.data.object = {
@@ -2969,9 +2999,13 @@ class PGClient extends KnexClient {
       args.table = args.tn;
 
       /** ************** create table *************** */
-      await this.sqlClient.schema.renameTable(
-        this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
-        args.tn,
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .renameTable(
+            this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
+            args.tn,
+          )
+          .toQuery(),
       );
 
       /** ************** create up & down statements *************** */

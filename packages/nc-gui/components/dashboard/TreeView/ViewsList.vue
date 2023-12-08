@@ -5,8 +5,8 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import {
-  isDefaultBase as _isDefaultBase,
   extractSdkResponseErrorMsg,
+  isDefaultBase,
   message,
   onMounted,
   parseProp,
@@ -28,24 +28,22 @@ interface Emits {
 }
 
 const emits = defineEmits<Emits>()
-const project = inject(ProjectInj)!
+const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { activeTableId } = storeToRefs(useTablesStore())
+
+const { isUIAllowed } = useRoles()
+
 const { isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
+
 const { t } = useI18n()
 
-const isDefaultBase = computed(() => {
-  const base = project.value?.bases?.find((b) => b.id === table.value.base_id)
-  if (!base) return false
-
-  return _isDefaultBase(base)
-})
-
-const { viewsByTable, activeView } = storeToRefs(useViewsStore())
+const { viewsByTable, activeView, allRecentViews } = storeToRefs(useViewsStore())
 
 const { navigateToTable } = useTablesStore()
 
@@ -57,7 +55,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews } = useViewsStore()
+const { navigateToView, loadViews, removeFromRecentViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -83,6 +81,13 @@ function markItem(id: string) {
     isMarked.value = false
   }, 300)
 }
+
+const isDefaultSource = computed(() => {
+  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
+  if (!source) return false
+
+  return isDefaultBase(source)
+})
 
 /** validate view title */
 function validate(view: ViewType) {
@@ -197,8 +202,9 @@ async function changeView(view: ViewType) {
   await navigateToView({
     view,
     tableId: table.value.id!,
-    projectId: project.value.id!,
+    baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+    doNotSwitchTab: true,
   })
 
   if (isMobileMode.value) {
@@ -217,7 +223,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     navigateToView({
       view,
       tableId: table.value.id!,
-      projectId: project.value.id!,
+      baseId: base.value.id!,
       hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
 
@@ -244,6 +250,13 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
         scope: defineModelScope({ view: activeView.value }),
       })
     }
+    // update view name in recent views
+    allRecentViews.value = allRecentViews.value.map((rv) => {
+      if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
+        rv.viewName = view.title
+      }
+      return rv
+    })
 
     // View renamed successfully
     // message.success(t('msg.success.viewRenamed'))
@@ -265,11 +278,12 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
+      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, baseId: base.value.id })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({
           tableId: table.value.id!,
-          projectId: project.value.id!,
+          baseId: base.value.id!,
         })
       }
 
@@ -277,6 +291,13 @@ function openDeleteDialog(view: ViewType) {
         tableId: table.value.id!,
         force: true,
       })
+
+      const activeNonDefaultViews = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+      table.value.meta = {
+        ...(table.value.meta as object),
+        hasNonDefaultViews: activeNonDefaultViews.length > 1,
+      }
     },
   })
 
@@ -334,12 +355,13 @@ function onOpenModal({
 
       await loadViews({
         force: true,
+        tableId: table.value.id!,
       })
 
       navigateToView({
         view,
         tableId: table.value.id!,
-        projectId: project.value.id!,
+        baseId: base.value.id!,
         hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
       })
 
@@ -356,42 +378,63 @@ function onOpenModal({
 </script>
 
 <template>
-  <div
-    v-if="!views.length"
-    class="text-gray-500 my-1.75 xs:(my-2.5 text-base)"
-    :class="{
-      'ml-19.25 xs:ml-22.25': isDefaultBase,
-      'ml-24.75 xs:ml-30': !isDefaultBase,
-    }"
-  >
-    {{ $t('labels.noViews') }}
-  </div>
-
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
   >
-    <DashboardTreeViewViewsNode
-      v-for="view of views"
-      :id="view.id"
-      :key="view.id"
-      :view="view"
-      :on-validate="validate"
-      class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+    <DashboardTreeViewCreateViewBtn
+      v-if="isUIAllowed('viewCreateOrEdit')"
       :class="{
-        'bg-gray-200': isMarked === view.id,
-        'active': activeView?.id === view.id,
-        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+        '!pl-18 !xs:(pl-19.75)': isDefaultSource,
+        '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
       }"
-      :data-view-id="view.id"
-      @change-view="changeView"
-      @open-modal="onOpenModal"
-      @delete="openDeleteDialog"
-      @rename="onRename"
-      @select-icon="setIcon($event, view)"
-    />
+      :align-left-level="isDefaultSource ? 1 : 2"
+    >
+      <div
+        role="button"
+        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+        :class="{
+          'text-brand-500 hover:text-brand-600': activeTableId === table.id,
+          'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+        }"
+      >
+        <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+          <GeneralIcon icon="plus" />
+          <div class="pl-1.75">
+            {{
+              $t('general.createEntity', {
+                entity: $t('objects.view'),
+              })
+            }}
+          </div>
+        </div>
+      </div>
+    </DashboardTreeViewCreateViewBtn>
+
+    <template v-if="views.length">
+      <DashboardTreeViewViewsNode
+        v-for="view of views"
+        :id="view.id"
+        :key="view.id"
+        :view="view"
+        :on-validate="validate"
+        :table="table"
+        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+        :class="{
+          'bg-gray-200': isMarked === view.id,
+          'active': activeView?.id === view.id,
+          [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+        }"
+        :data-view-id="view.id"
+        @change-view="changeView"
+        @open-modal="onOpenModal"
+        @delete="openDeleteDialog"
+        @rename="onRename"
+        @select-icon="setIcon($event, view)"
+      />
+    </template>
   </a-menu>
 </template>
 

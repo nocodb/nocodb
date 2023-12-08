@@ -95,26 +95,15 @@ watch(columns, () => {
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-      <div v-if="!isMobileMode" class="w-16 group-hover:w-12 text-[0.75rem] font-medium text-gray-400 truncate">
+      <div v-if="!isMobileMode" class="w-16 text-[0.75rem] font-medium text-gray-400 truncate">
         {{ displayColumnLabel }}
       </div>
-      <div
-        :class="{
-          'hidden group-hover:block': !isMobileMode,
-          'text-gray-700': isMobileMode,
-        }"
-      >
-        <component
-          :is="iconMap.arrowDown"
-          class="text-sm"
-          :class="{
-            'text-gray-400': !isMobileMode,
-            'text-gray-600': isMobileMode,
-          }"
-        />
+      <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
+        <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
       </div>
       <a-select
         v-model:value="search.field"
+        v-e="['c:search:field:select:open']"
         :open="isDropdownOpen"
         size="small"
         :dropdown-match-select-width="false"
@@ -122,10 +111,13 @@ watch(columns, () => {
         class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
         @change="onPressEnter"
       >
-        <a-select-option v-for="op of columns" :key="op.value" :value="op.value">
+        <a-select-option v-for="op of columns" :key="op.value" v-e="['c:search:field:select']" :value="op.value">
           <div class="text-[0.75rem] flex items-center -ml-1 gap-2">
             <SmartsheetHeaderIcon class="text-sm" :column="op.column" />
-            {{ op.label }}
+            <NcTooltip class="truncate" placement="top" show-on-truncate-only>
+              <template #title>{{ op.label }}</template>
+              <template #default>{{ op.label }}</template>
+            </NcTooltip>
           </div>
         </a-select-option>
       </a-select>
@@ -135,7 +127,7 @@ watch(columns, () => {
       v-model:value="search.query"
       size="small"
       class="text-xs w-40"
-      :placeholder="`${$t('general.searchIn')} ${columns?.find((column) => column.value === search.field)?.label}`"
+      :placeholder="`${$t('general.searchIn')} ${displayColumnLabel}`"
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"

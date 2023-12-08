@@ -11,28 +11,28 @@ export class SidebarProjectNodeObject extends BasePage {
     this.sidebar = parent;
   }
 
-  get({ projectTitle }: { projectTitle: string }) {
-    return this.sidebar.get().getByTestId(`nc-sidebar-project-${projectTitle}`);
+  get({ baseTitle }: { baseTitle: string }) {
+    return this.sidebar.get().getByTestId(`nc-sidebar-base-${baseTitle}`);
   }
 
-  async click({ projectTitle }: { projectTitle: string }) {
+  async click({ baseTitle }: { baseTitle: string }) {
     await this.get({
-      projectTitle,
+      baseTitle,
     }).click();
   }
 
-  async clickOptions({ projectTitle }: { projectTitle: string }) {
+  async clickOptions({ baseTitle }: { baseTitle: string }) {
     await this.get({
-      projectTitle,
+      baseTitle,
     })
       .getByTestId(`nc-sidebar-context-menu`)
       .click();
   }
 
-  async verifyTableAddBtn({ projectTitle, visible }: { projectTitle: string; visible: boolean }) {
+  async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
     const addBtn = await this.get({
-      projectTitle,
-    }).getByTestId('nc-sidebar-add-project-entity');
+      baseTitle,
+    }).getByTestId('nc-sidebar-add-base-entity');
 
     if (visible) {
       await addBtn.hover({
@@ -43,7 +43,7 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async verifyProjectOptions({
-    projectTitle,
+    baseTitle,
     renameVisible,
     starredVisible,
     duplicateVisible,
@@ -54,7 +54,7 @@ export class SidebarProjectNodeObject extends BasePage {
     deleteVisible,
     copyProjectInfoVisible,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     renameVisible?: boolean;
     starredVisible?: boolean;
     duplicateVisible?: boolean;
@@ -66,64 +66,64 @@ export class SidebarProjectNodeObject extends BasePage {
     copyProjectInfoVisible?: boolean;
   }) {
     const renameLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-rename');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-rename');
 
     if (renameVisible) await renameLocator.isVisible();
     else await expect(renameLocator).toHaveCount(0);
 
     const starredLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-starred');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-starred');
 
     if (starredVisible) await expect(starredLocator).toBeVisible();
     else await expect(starredLocator).toHaveCount(0);
 
     const duplicateLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-duplicate');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-duplicate');
 
     if (duplicateVisible) await expect(duplicateLocator).toBeVisible();
     else await expect(duplicateLocator).toHaveCount(0);
 
     const relationsLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-relations');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-relations');
 
     if (relationsVisible) await expect(relationsLocator).toBeVisible();
     else await expect(relationsLocator).toHaveCount(0);
 
     const restApisLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-rest-apis');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-rest-apis');
 
     if (restApisVisible) await expect(restApisLocator).toBeVisible();
     else await expect(restApisLocator).toHaveCount(0);
 
     const importLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-import');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-import');
 
     if (importVisible) await expect(importLocator).toBeVisible();
     else await expect(importLocator).toHaveCount(0);
 
     const settingsLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-settings');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-settings');
 
     if (settingsVisible) await expect(settingsLocator).toBeVisible();
     else await expect(settingsLocator).toHaveCount(0);
 
     const deleteLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-delete');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-delete');
 
     if (deleteVisible) await expect(deleteLocator).toBeVisible();
     else await expect(deleteLocator).toHaveCount(0);
 
     const copyProjectInfoLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-project-${projectTitle}-options`)
-      .getByTestId('nc-sidebar-project-copy-project-info');
+      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
+      .getByTestId('nc-sidebar-base-copy-base-info');
 
     if (copyProjectInfoVisible) await expect(copyProjectInfoLocator).toBeVisible();
     else await expect(copyProjectInfoLocator).toHaveCount(0);

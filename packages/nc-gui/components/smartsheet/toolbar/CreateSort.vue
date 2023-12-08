@@ -21,7 +21,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
 
-const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const { sorts } = useViewSorts(activeView)
 
@@ -91,11 +91,12 @@ const onArrowUp = () => {
     <div class="flex pb-3 px-4 border-b-1 border-gray-100">
       <input ref="inputRef" v-model="search" class="w-full focus:outline-none" :placeholder="$t('msg.selectFieldToSort')" />
     </div>
-    <div class="flex-col w-full max-h-100 nc-scrollbar-md !overflow-y-auto">
+    <div class="flex-col w-full max-h-100 max-w-76 nc-scrollbar-md !overflow-y-auto">
       <div v-if="!options.length" class="flex text-gray-500 px-4 py-2.25">{{ $t('general.empty') }}</div>
       <div
         v-for="(option, index) in options"
         :key="index"
+        v-e="['c:sort:add:column:select']"
         class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-sort-column-search-item"
         :class="{
           'bg-gray-100': activeFieldIndex === index,
@@ -103,9 +104,12 @@ const onArrowUp = () => {
         @click="onClick(option)"
       >
         <SmartsheetHeaderIcon :column="option" />
-        <div>
-          {{ option.title }}
-        </div>
+        <NcTooltip class="truncate" show-on-truncate-only>
+          <template #title> {{ option.title }}</template>
+          <template #default>
+            {{ option.title }}
+          </template>
+        </NcTooltip>
       </div>
     </div>
   </div>

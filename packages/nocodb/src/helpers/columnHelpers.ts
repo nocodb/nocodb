@@ -35,6 +35,7 @@ export async function createHmAndBtColumn(
   isSystemCol = false,
   columnMeta = null,
   isLinks = false,
+  colExtra?: any,
 ) {
   // save bt column
   {
@@ -59,6 +60,7 @@ export async function createHmAndBtColumn(
       system: isSystemCol || parent.id === child.id,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
+      ...(type === 'bt' ? colExtra : {}),
     });
   }
   // save hm column
@@ -85,6 +87,7 @@ export async function createHmAndBtColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       meta,
+      ...(type === 'hm' ? colExtra : {}),
     });
   }
 }
@@ -262,3 +265,13 @@ export async function populateRollupForLTAR({
   );
   await GridViewColumn.update(viewCol.id, { show: false });
 }
+
+export const sanitizeColumnName = (name: string) => {
+  if (process.env.NC_SANITIZE_COLUMN_NAME === 'false') return name;
+  const columnName = name.replace(/\W/g, '_');
+
+  // if column name only contains _ then return as 'field'
+  if (/^_+$/.test(columnName)) return 'field';
+
+  return columnName;
+};

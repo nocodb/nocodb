@@ -246,7 +246,6 @@ const count = computed(() => paginationData.value.totalRows)
   <Suspense v-if="!isPublic">
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
-      :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

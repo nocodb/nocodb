@@ -9,7 +9,7 @@ test.describe('Grid view locked', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -23,8 +23,8 @@ test.describe('Grid view locked', () => {
 
     // enable view lock
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Collaborative View',
-      subMenu: 'Locked View',
+      menu: 'View Mode',
+      subMenu: 'Locked',
     });
 
     // verify view lock
@@ -32,8 +32,8 @@ test.describe('Grid view locked', () => {
 
     // enable collaborative view
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Locked View',
-      subMenu: 'Collaborative View',
+      menu: 'View Mode',
+      subMenu: 'Collaborative',
     });
 
     await dashboard.grid.verifyCollaborativeMode();
@@ -52,7 +52,7 @@ test.describe('Grid view locked', () => {
 
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
-      subMenu: 'Download as CSV',
+      subMenu: 'Download CSV',
       verificationInfo: {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },
@@ -72,7 +72,7 @@ test.describe('Grid view locked', () => {
 
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
-      subMenu: 'Download as XLSX',
+      subMenu: 'Download Excel',
       verificationInfo: {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },

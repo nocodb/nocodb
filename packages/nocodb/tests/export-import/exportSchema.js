@@ -11,7 +11,7 @@ let viewStore = { columns: {}, sort: {}, filter: {} };
 
 let inputConfig = jsonfile.readFileSync(`config.json`)
 let ncConfig = {
-  projectName: inputConfig.srcProject,
+  baseName: inputConfig.srcProject,
   baseURL: inputConfig.baseURL,
   headers: {
     'xc-auth': `${inputConfig["xc-auth"]}`
@@ -231,13 +231,13 @@ async function generateMapTbl(pId) {
 async function exportSchema() {
   api = new Api(ncConfig);
 
-  // fetch project details (id et.al)
-  const x = await api.project.list();
-  const p = x.list.find(a => a.title === ncConfig.projectName);
+  // fetch base details (id et.al)
+  const x = await api.base.list();
+  const p = x.list.find(a => a.title === ncConfig.baseName);
 
   await generateMapTbl(p.id);
 
-  // read project
+  // read base
   const tblList = await api.dbTable.list(p.id);
 
   // for each table
@@ -267,7 +267,7 @@ async function exportSchema() {
 (async () => {
   await exportSchema();
   jsonfile.writeFileSync(
-    `${ncConfig.projectName.replace(/ /g, '_')}.json`,
+    `${ncConfig.baseName.replace(/ /g, '_')}.json`,
     tblSchema,
     { spaces: 2 }
   );

@@ -43,7 +43,7 @@ export class NcConfig {
   queriesFolder: string;
   env: string;
   workingEnv: string;
-  projectType: string;
+  baseType: string;
 
   private constructor() {}
 
@@ -78,7 +78,7 @@ export class NcConfig {
     ncConfig.env = '_noco';
     ncConfig.workingEnv = '_noco';
 
-    ncConfig.projectType = 'rest';
+    ncConfig.baseType = 'rest';
 
     if (ncConfig.meta?.db?.connection?.filename) {
       ncConfig.meta.db.connection.filename = path.join(

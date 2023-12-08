@@ -26,11 +26,9 @@ const sizeSelect = computed(() => props.size)
 
 const roleProperties = computed(() => {
   const role = roleRef.value
-
   const color = RoleColors[role]
   const icon = RoleIcons[role]
   const label = RoleLabels[role]
-
   return {
     color,
     icon,
@@ -50,24 +48,24 @@ const roleProperties = computed(() => {
       <div
         class="badge-text flex items-center gap-2"
         :class="{
-          'text-purple-500': roleProperties.color === 'purple',
-          'text-blue-500': roleProperties.color === 'blue',
-          'text-green-500': roleProperties.color === 'green',
-          'text-orange-500': roleProperties.color === 'orange',
-          'text-yellow-500': roleProperties.color === 'yellow',
-          'text-red-500': roleProperties.color === 'red',
+          'text-purple-700': roleProperties.color === 'purple',
+          'text-blue-700': roleProperties.color === 'blue',
+          'text-green-700': roleProperties.color === 'green',
+          'text-orange-700': roleProperties.color === 'orange',
+          'text-yellow-700': roleProperties.color === 'yellow',
+          'text-red-700': roleProperties.color === 'red',
+          'text-maroon-700': roleProperties.color === 'maroon',
           'text-gray-300': !roleProperties.color,
           sizeSelect,
         }"
       >
         <GeneralIcon :icon="roleProperties.icon" />
         <span class="flex whitespace-nowrap">
-          {{ roleProperties.label }}
+          {{ $t(`objects.roleType.${roleProperties.label}`) }}
         </span>
         <GeneralIcon v-if="clickableRef" icon="arrowDown" />
       </div>
     </NcBadge>
-    <div class="flex-1"></div>
     <!--
     <a-tooltip v-if="inheritRef" placement="bottom">
       <div class="text-gray-400 text-xs p-1 rounded-md">Workspace Role</div>

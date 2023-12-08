@@ -50,8 +50,8 @@ export default class Audit implements AuditType {
   id?: string;
   user?: string;
   ip?: string;
+  source_id?: string;
   base_id?: string;
-  project_id?: string;
   fk_model_id?: string;
   row_id?: string;
   op_type?: (typeof opTypes)[number];
@@ -89,8 +89,8 @@ export default class Audit implements AuditType {
       const insertObj = extractProps(audit, [
         'user',
         'ip',
+        'source_id',
         'base_id',
-        'project_id',
         'row_id',
         'fk_model_id',
         'op_type',
@@ -100,7 +100,7 @@ export default class Audit implements AuditType {
         'details',
       ]);
       if (
-        (!insertObj.project_id || !insertObj.base_id) &&
+        (!insertObj.base_id || !insertObj.source_id) &&
         insertObj.fk_model_id
       ) {
         const model = await Model.getByIdOrName(
@@ -108,8 +108,8 @@ export default class Audit implements AuditType {
           ncMeta,
         );
 
-        insertObj.project_id = model.project_id;
         insertObj.base_id = model.base_id;
+        insertObj.source_id = model.source_id;
       }
 
       return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, insertObj);
@@ -158,22 +158,22 @@ export default class Audit implements AuditType {
     return audits?.map((a) => new Audit(a));
   }
 
-  static async projectAuditList(
-    projectId: string,
+  static async baseAuditList(
+    baseId: string,
     {
       limit = 25,
       offset = 0,
-      baseId,
+      sourceId,
     }: {
       limit?: number;
       offset?: number;
-      baseId?: string;
+      sourceId?: string;
     },
   ) {
     return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
       condition: {
-        project_id: projectId,
-        ...(baseId ? { base_id: baseId } : {}),
+        base_id: baseId,
+        ...(sourceId ? { source_id: sourceId } : {}),
       },
       orderBy: {
         created_at: 'desc',
@@ -183,16 +183,16 @@ export default class Audit implements AuditType {
     });
   }
 
-  static async projectAuditCount(
-    projectId: string,
-    baseId?: string,
+  static async baseAuditCount(
+    baseId: string,
+    sourceId?: string,
   ): Promise<number> {
     return (
       await Noco.ncMeta
         .knex(MetaTable.AUDIT)
         .where({
-          project_id: projectId,
-          ...(baseId ? { base_id: baseId } : {}),
+          base_id: baseId,
+          ...(sourceId ? { source_id: sourceId } : {}),
         })
         .count('id', { as: 'count' })
         .first()
@@ -220,9 +220,9 @@ export default class Audit implements AuditType {
     );
   }
 
-  static async baseAuditList(baseId: string, { limit = 25, offset = 0 }) {
+  static async sourceAuditList(sourceId: string, { limit = 25, offset = 0 }) {
     return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
-      condition: { base_id: baseId },
+      condition: { source_id: sourceId },
       orderBy: {
         created_at: 'desc',
       },
@@ -231,11 +231,11 @@ export default class Audit implements AuditType {
     });
   }
 
-  static async baseAuditCount(baseId: string) {
+  static async sourceAuditCount(sourceId: string) {
     return (
       await Noco.ncMeta
         .knex(MetaTable.AUDIT)
-        .where({ base_id: baseId })
+        .where({ source_id: sourceId })
         .count('id', { as: 'count' })
         .first()
     )?.count;

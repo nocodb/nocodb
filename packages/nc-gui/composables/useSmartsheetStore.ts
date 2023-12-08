@@ -1,17 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  computed,
-  ref,
-  storeToRefs,
-  unref,
-  useEventBus,
-  useFieldQuery,
-  useInjectionState,
-  useNuxtApp,
-  useProject,
-} from '#imports'
+import { computed, ref, storeToRefs, unref, useBase, useEventBus, useFieldQuery, useInjectionState, useNuxtApp } from '#imports'
 import type { SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -25,14 +15,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
-    const { activeView: view } = storeToRefs(useViewsStore())
+    const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
-    const projectStore = useProject()
+    const baseStore = useBase()
 
-    const { sqlUis } = storeToRefs(projectStore)
+    const { sqlUis } = storeToRefs(baseStore)
 
     const sqlUi = ref(
-      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
+      (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
     const { search } = useFieldQuery()
@@ -66,6 +56,26 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
+
+    watch(
+      sorts,
+      () => {
+        activeSorts.value = sorts.value
+      },
+      {
+        immediate: true,
+      },
+    )
+
+    watch(
+      nestedFilters,
+      () => {
+        activeNestedFilters.value = nestedFilters.value
+      },
+      {
+        immediate: true,
+      },
+    )
 
     return {
       view,

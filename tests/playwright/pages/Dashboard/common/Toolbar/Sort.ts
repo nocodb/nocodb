@@ -143,7 +143,7 @@ export class ToolbarSortPage extends BasePage {
     // await this.waitForResponse({
     //   uiAction: selectColumn,
     //   httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-    //   requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/sorts`,
+    //   requestUrlPathToMatch: isLocallySaved ? `/api/v1/public/` : `/sorts`,
     // });
     // await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
 

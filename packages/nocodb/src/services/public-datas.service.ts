@@ -13,7 +13,8 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
-import { Base, Column, Model, View } from '~/models';
+import { Column, Model, Source, View } from '~/models';
+import { utf8ify } from '~/helpers/stringHelpers';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -48,12 +49,12 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast, dependencyFields } = await getAst({
@@ -130,12 +131,12 @@ export class PublicDatasService {
     groupColumnId: string;
   }) {
     const { model, view, query = {}, groupColumnId } = param;
-    const base = await Base.get(param.model.base_id);
+    const source = await Source.get(param.model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast } = await getAst({ model, query: param.query, view });
@@ -215,12 +216,12 @@ export class PublicDatasService {
     try {
       const { model, view, query = {} } = param;
 
-      const base = await Base.get(model.base_id);
+      const source = await Source.get(model.source_id);
 
       const baseModel = await Model.getBaseModelSQL({
         id: model.id,
         viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(base),
+        dbDriver: await NcConnectionMgrv2.get(source),
       });
 
       const listArgs: any = { ...query };
@@ -265,13 +266,13 @@ export class PublicDatasService {
       id: view?.fk_model_id,
     });
 
-    const base = await Base.get(model.base_id);
-    const project = await base.getProject();
+    const source = await Source.get(model.source_id);
+    const base = await source.getProject();
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     await view.getViewWithInfo();
@@ -309,7 +310,7 @@ export class PublicDatasService {
 
       const filePath = sanitizeUrlPath([
         'noco',
-        project.title,
+        base.title,
         model.title,
         fieldName,
       ]);
@@ -319,7 +320,8 @@ export class PublicDatasService {
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
-        const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+        const originalName = utf8ify(file.originalname);
+        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
           slash(path.join('nc', 'uploads', ...filePath, fileName)),
@@ -337,11 +339,10 @@ export class PublicDatasService {
         attachments[fieldName].push({
           ...(url ? { url } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: file.originalname,
+          title: originalName,
           mimetype: file.mimetype,
           size: file.size,
-          icon:
-            mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
+          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         });
       }
     }
@@ -376,12 +377,12 @@ export class PublicDatasService {
 
     const model = await colOptions.getRelatedTable();
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const { ast, dependencyFields } = await getAst({
@@ -440,12 +441,12 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: view.fk_model_id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `List`;
@@ -514,12 +515,12 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
-    const base = await Base.get(view.base_id);
+    const source = await Source.get(view.source_id);
 
     const baseModel = await Model.getBaseModelSQL({
       id: view.fk_model_id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const key = `List`;

@@ -18,6 +18,8 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
+const route = useRoute()
+
 const { signIn: _signIn, appInfo } = useGlobal()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
@@ -25,8 +27,6 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 const { t } = useI18n()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
-
-const { clearWorkspaces } = useWorkspace()
 
 const formValidator = ref()
 
@@ -65,7 +65,10 @@ async function signIn() {
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
 
-    await navigateTo('/')
+    await navigateTo({
+      path: '/',
+      query: route.query,
+    })
   })
 }
 
@@ -73,9 +76,19 @@ function resetError() {
   if (error.value) error.value = null
 }
 
-onMounted(async () => {
-  await clearWorkspaces()
-})
+function navigateSignUp() {
+  navigateTo({
+    path: '/signup',
+    query: route.query,
+  })
+}
+
+function navigateForgotPassword() {
+  navigateTo({
+    path: '/forgot-password',
+    query: route.query,
+  })
+}
 </script>
 
 <template>
@@ -124,7 +137,7 @@ onMounted(async () => {
             </a-form-item>
 
             <div class="hidden md:block text-right">
-              <nuxt-link class="prose-sm" to="/forgot-password">
+              <nuxt-link class="prose-sm" @click="navigateForgotPassword">
                 {{ $t('msg.info.signUp.forgotPassword') }}
               </nuxt-link>
             </div>
@@ -171,13 +184,13 @@ onMounted(async () => {
               </a>
             </div>
 
-            <div class="text-end prose-sm">
+            <div v-if="!appInfo.inviteOnlySignup" class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
-              <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+              <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
             </div>
             <template v-if="!appInfo.disableEmailAuth">
               <div class="md:hidden">
-                <nuxt-link class="prose-sm" to="/forgot-password">
+                <nuxt-link class="prose-sm" @click="navigateForgotPassword">
                   {{ $t('msg.info.signUp.forgotPassword') }}
                 </nuxt-link>
               </div>

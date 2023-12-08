@@ -20,9 +20,9 @@ const log = new Debug('MysqlClient');
 const evt = new Emit();
 
 class MysqlClient extends KnexClient {
-  private queries: any;
-  private _version: any;
-  private types: any;
+  protected queries: any;
+  protected _version: any;
+  protected types: any;
 
   constructor(connectionConfig) {
     super(connectionConfig);
@@ -355,20 +355,26 @@ class MysqlClient extends KnexClient {
 
     try {
       /** ************** START : create _evolution table if not exists *************** */
-      const exists = await this.sqlClient.schema.hasTable(args.tn);
+      const exists = await this.sqlClient.raw(
+        this.sqlClient.schema.hasTable(args.tn).toQuery(),
+      );
 
       if (!exists) {
-        await this.sqlClient.schema.createTable(args.tn, function (table) {
-          table.increments();
-          table.string('title').notNullable();
-          table.string('titleDown').nullable();
-          table.string('description').nullable();
-          table.integer('batch').nullable();
-          table.string('checksum').nullable();
-          table.integer('status').nullable();
-          table.dateTime('created');
-          table.timestamps();
-        });
+        await this.sqlClient.raw(
+          this.sqlClient.schema
+            .createTable(args.tn, function (table) {
+              table.increments();
+              table.string('title').notNullable();
+              table.string('titleDown').nullable();
+              table.string('description').nullable();
+              table.integer('batch').nullable();
+              table.string('checksum').nullable();
+              table.integer('status').nullable();
+              table.dateTime('created');
+              table.timestamps();
+            })
+            .toQuery(),
+        );
         log.debug('Table created:', `${args.tn}`);
       } else {
         log.debug(`${args.tn} tables exists`);
@@ -411,7 +417,9 @@ class MysqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
 
     try {
-      const response = await this.sqlClient.schema.hasTable(args.tn);
+      const response = await this.sqlClient.raw(
+        this.sqlClient.schema.hasTable(args.tn).toQuery(),
+      );
       result.data.value = response;
     } catch (e) {
       log.ppe(e, func);
@@ -1936,7 +1944,7 @@ class MysqlClient extends KnexClient {
       await promisify(jsonfile.writeFile)(
         seedSettings,
         {
-          rows: { value: 8, description: 'Maximum number of rows' },
+          rows: { value: 8, description: 'Maximum number of records' },
           foreign_key_rows: {
             value: 2,
             description: '1:n - Total number foreign key per relation',
@@ -2205,7 +2213,9 @@ class MysqlClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop table_name *************** */
-      await this.sqlClient.schema.dropTable(args.table_name);
+      await this.sqlClient.raw(
+        this.sqlClient.schema.dropTable(args.table_name).toQuery(),
+      );
 
       /** ************** return files *************** */
       result.data.object = {

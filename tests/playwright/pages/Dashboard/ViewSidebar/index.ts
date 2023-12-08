@@ -4,7 +4,7 @@ import BasePage from '../../Base';
 import { ViewTypes } from 'nocodb-sdk';
 
 export class ViewSidebarPage extends BasePage {
-  readonly project: any;
+  readonly base: any;
 
   readonly dashboard: DashboardPage;
   readonly createGalleryButton: Locator;

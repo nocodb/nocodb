@@ -15,7 +15,7 @@ export class DocsPageListPage extends BasePage {
   }
 
   async verifyProjectTitle({ title }: { title: string }) {
-    expect(await this.get().getByTestId('docs-project-title').textContent()).toBe(title);
+    expect(await this.get().getByTestId('docs-base-title').textContent()).toBe(title);
   }
 
   async verifyOpenedTab({ tab }: { tab: 'all' | 'allByTitle' | 'shared' }) {
@@ -23,7 +23,7 @@ export class DocsPageListPage extends BasePage {
   }
 
   async waitForOpen({ title }: { title: string }) {
-    await this.get().locator(`[data-docs-project-title="${title}"]`).waitFor({ state: 'visible' });
+    await this.get().locator(`[data-docs-base-title="${title}"]`).waitFor({ state: 'visible' });
   }
 
   async openTab({ tab }: { tab: 'all' | 'allByTitle' | 'shared' }) {

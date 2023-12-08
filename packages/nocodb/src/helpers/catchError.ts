@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from 'express';
 import type { ErrorObject } from 'ajv';
 
 export enum DBError {
@@ -215,7 +216,7 @@ export function extractDBError(error): {
       message = 'A timeout occurred while waiting for a table lock.';
       break;
     case 'ER_NO_REFERENCED_ROW':
-      message = 'The referenced row does not exist.';
+      message = 'The referenced record does not exist.';
       break;
     case 'ER_ROW_IS_REFERENCED':
       message = 'This record is being referenced by other records.';
@@ -232,7 +233,7 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'The referenced row does not exist.';
+      message = 'The referenced record does not exist.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';
@@ -323,7 +324,7 @@ export function extractDBError(error): {
           / Invalid object name '(\w+)'./i,
         );
         const extractMissingColMatch = error.message.match(
-          / Invalid column name '(\w+)'./i,
+          / Invalid field: (\w+)./i,
         );
 
         if (extractTableNameMatch && extractTableNameMatch[1]) {
@@ -384,14 +385,26 @@ export function extractDBError(error): {
 }
 
 export default function (
-  requestHandler: (req: any, res: any, next?: any) => any,
+  requestHandler: (req: Request, res: Response, next?: NextFunction) => any,
 ) {
-  return async function (req: any, res: any, next: any) {
+  return async function (req: Request, res: Response, next?: NextFunction) {
     try {
       return await requestHandler(req, res, next);
     } catch (e) {
-      // todo: error log
-      console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
+      // skip unnecessary error logging
+      if (
+        process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
+        !(
+          e instanceof BadRequest ||
+          e instanceof AjvError ||
+          e instanceof Unauthorized ||
+          e instanceof Forbidden ||
+          e instanceof NotFound ||
+          e instanceof NotImplemented ||
+          e instanceof UnprocessableEntity
+        )
+      )
+        console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
 
       const dbError = extractDBError(e);
 
@@ -415,27 +428,38 @@ export default function (
         return res.status(400).json({ msg: e.message, errors: e.errors });
       } else if (e instanceof UnprocessableEntity) {
         return res.status(422).json({ msg: e.message });
+      } else if (e instanceof NotAllowed) {
+        return res.status(405).json({ msg: e.message });
       }
-      next(e);
+      // if some other error occurs then send 500 and a generic message
+      res.status(500).json({ msg: 'Internal server error' });
     }
   };
 }
 
-export class BadRequest extends Error {}
+export class NcBaseError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
-export class Unauthorized extends Error {}
+export class BadRequest extends NcBaseError {}
 
-export class Forbidden extends Error {}
+export class NotAllowed extends NcBaseError {}
 
-export class NotFound extends Error {}
+export class Unauthorized extends NcBaseError {}
 
-export class InternalServerError extends Error {}
+export class Forbidden extends NcBaseError {}
 
-export class NotImplemented extends Error {}
+export class NotFound extends NcBaseError {}
 
-export class UnprocessableEntity extends Error {}
+export class InternalServerError extends NcBaseError {}
 
-export class AjvError extends Error {
+export class NotImplemented extends NcBaseError {}
+
+export class UnprocessableEntity extends NcBaseError {}
+
+export class AjvError extends NcBaseError {
   constructor(param: { message: string; errors: ErrorObject[] }) {
     super(param.message);
     this.errors = param.errors;
@@ -475,5 +499,9 @@ export class NcError {
 
   static unprocessableEntity(message = 'Unprocessable entity') {
     throw new UnprocessableEntity(message);
+  }
+
+  static notAllowed(message = 'Not allowed') {
+    throw new NotAllowed(message);
   }
 }

@@ -1,18 +1,20 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useProject } from '#imports'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useViewColumnsOrThrow } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
   const { api } = useApi()
 
-  const { project } = storeToRefs(useProject())
+  const { appInfo } = useGlobal()
+
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData } = useSharedView()
 
   const meta = inject(MetaInj)
 
-  const { gridViewCols } = useGridViewColumnOrThrow()
+  const { gridViewCols } = useViewColumnsOrThrow()
 
   const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -42,7 +44,13 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-  const groupByLimit = 10
+  const groupByGroupLimit = computed(() => {
+    return appInfo.value.defaultGroupByLimit?.limitGroup || 10
+  })
+
+  const groupByRecordLimit = computed(() => {
+    return appInfo.value.defaultGroupByLimit?.limitRecord || 10
+  })
 
   const rootGroup = ref<Group>({
     key: 'root',
@@ -50,7 +58,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     count: 0,
     column: {} as any,
     nestedIn: [],
-    paginationData: { page: 1, pageSize: groupByLimit },
+    paginationData: { page: 1, pageSize: groupByGroupLimit.value },
     nested: true,
     children: [],
     root: true,
@@ -64,7 +72,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     groupWrapper.paginationData.page = page
     await loadGroups(
       {
-        offset: (page - 1) * (groupWrapper.paginationData.pageSize || groupByLimit),
+        offset: (page - 1) * (groupWrapper.paginationData.pageSize || groupByGroupLimit.value),
       } as any,
       groupWrapper,
     )
@@ -81,6 +89,12 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     if (col.uidt === UITypes.Checkbox) {
       return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
     }
+
+    // convert to JSON string if non-string value
+    if (value && typeof value === 'object') {
+      value = JSON.stringify(value)
+    }
+
     return value ?? GROUP_BY_VARS.NULL
   }
 
@@ -136,13 +150,13 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
     return nestedIn.reduce((acc, curr) => {
       if (curr.key === GROUP_BY_VARS.NULL) {
-        acc += `${acc.length ? '~and' : ''}(${curr.title},blank)`
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
       } else if (curr.column_uidt === UITypes.Checkbox) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
       } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
       } else {
-        acc += `${acc.length ? '~and' : ''}(${curr.title},eq,${curr.key})`
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
       }
       return acc
     }, existing)
@@ -151,7 +165,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   async function loadGroups(params: any = {}, group?: Group) {
     group = group || rootGroup.value
 
-    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
+    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
 
     if (groupBy.value.length === 0) {
       group.children = []
@@ -171,9 +185,9 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
 
     const response = !isPublic.value
-      ? await api.dbViewRow.groupBy('noco', project.value.id, view.value.fk_model_id, view.value.id, {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
-          limit: group.paginationData.pageSize ?? groupByLimit,
+      ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+          limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -182,8 +196,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
           column_name: groupby.column.title,
         } as any)
       : await api.public.dataGroupBy(sharedView.value!.uuid!, {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
-          limit: group.paginationData.pageSize ?? groupByLimit,
+          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+          limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
           ...params,
           where: nestedWhere,
           sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
@@ -198,7 +212,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       )
       if (keyExists) {
         keyExists.count += +curr.count
-        keyExists.paginationData = { page: 1, pageSize: groupByLimit, totalRows: keyExists.count }
+        keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
         return acc
       }
       if (groupby.column.title && groupby.column.uidt) {
@@ -216,7 +230,11 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
               column_uidt: groupby.column.uidt,
             },
           ],
-          paginationData: { page: 1, pageSize: groupByLimit, totalRows: +curr.count },
+          paginationData: {
+            page: 1,
+            pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
+            totalRows: +curr.count,
+          },
           nested: group!.nestedIn.length < groupBy.value.length - 1,
         })
       }
@@ -244,7 +262,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     // clear rest of the children
     group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
-    if (group.count <= (group.paginationData.pageSize ?? groupByLimit)) {
+    if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
       group.children.sort((a, b) => {
         const orderA = tempList.findIndex((t) => t.key === a.key)
         const orderB = tempList.findIndex((t) => t.key === b.key)
@@ -263,24 +281,24 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   }
 
   async function loadGroupData(group: Group, force = false) {
-    if (!project?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
     if (group.children && !force) return
 
     if (!group.paginationData) {
-      group.paginationData = { page: 1, pageSize: groupByLimit }
+      group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
     }
 
     const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
 
     const query = {
-      offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByLimit),
-      limit: group.paginationData.pageSize ?? groupByLimit,
+      offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByRecordLimit.value),
+      limit: group.paginationData.pageSize ?? groupByRecordLimit.value,
       where: `${nestedWhere}`,
     }
 
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id, view.value.fk_model_id, view.value.id, {
+      ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
           ...query,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -294,7 +312,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const loadGroupPage = async (group: Group, p: number) => {
     if (!group.paginationData) {
-      group.paginationData = { page: 1, pageSize: groupByLimit }
+      group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
     }
     group.paginationData.page = p
     await loadGroupData(group, true)
@@ -331,7 +349,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     () => groupBy.value.length,
     async () => {
       if (groupBy.value.length > 0) {
-        rootGroup.value.paginationData = { page: 1, pageSize: groupByLimit }
+        rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
         rootGroup.value.column = {} as any
         await loadGroups()
         refreshNested()

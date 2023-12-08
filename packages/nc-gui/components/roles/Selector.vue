@@ -30,7 +30,14 @@ const sizeRef = toRef(props, 'size')
     <template #overlay>
       <div class="nc-role-select-dropdown flex flex-col gap-1 p-2">
         <div class="flex flex-col gap-1">
-          <div v-for="rl in props.roles" :key="rl" :value="rl" :selected="rl === roleRef" @click="props.onRoleChange(rl)">
+          <div
+            v-for="rl in props.roles"
+            :key="rl"
+            v-e="['c:workspace:settings:user-role-change']"
+            :value="rl"
+            :selected="rl === roleRef"
+            @click="props.onRoleChange(rl)"
+          >
             <div
               class="flex flex-col py-1.5 rounded-lg px-2 gap-1 bg-transparent cursor-pointer hover:bg-gray-100"
               :class="{

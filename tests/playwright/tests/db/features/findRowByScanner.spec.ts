@@ -11,7 +11,7 @@ test.describe.skip('Find row by scanner', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
   });
 

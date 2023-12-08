@@ -1,13 +1,13 @@
 import { SqlUiFactory, UITypes } from 'nocodb-sdk';
 import type { ColumnReqType, NormalColumnRequestType } from 'nocodb-sdk';
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 import type Column from '~/models/Column';
 
 export default async function getColumnPropsFromUIDT(
   column: ColumnReqType & { altered?: number },
-  base: Base,
+  source: Source,
 ) {
-  const sqlUi = SqlUiFactory.create(await base.getConnectionConfig());
+  const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
 
   const colProp = sqlUi.getDataTypeForUiType(
     column as Column,

@@ -9,8 +9,8 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
   title: string;
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   fk_grp_col_id?: string;
   fk_cover_image_col_id?: string;
   meta?: MetaType;
@@ -66,8 +66,8 @@ export default class KanbanView implements KanbanType {
       .then((m) => m.getColumns(ncMeta));
 
     const insertObj = extractProps(view, [
-      'project_id',
       'base_id',
+      'source_id',
       'fk_view_id',
       'fk_grp_col_id',
       'meta',
@@ -77,10 +77,10 @@ export default class KanbanView implements KanbanType {
       view?.fk_cover_image_col_id ||
       columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
-    if (!(view.project_id && view.base_id)) {
+    if (!(view.base_id && view.source_id)) {
       const viewRef = await View.get(view.fk_view_id);
-      insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
+      insertObj.source_id = viewRef.source_id;
     }
 
     await ncMeta.metaInsert2(

@@ -56,7 +56,7 @@ export class MetaService {
   }
 
   public async metaGet(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
@@ -73,8 +73,8 @@ export class MetaService {
       query.select(...fields);
     }
 
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
@@ -96,8 +96,8 @@ export class MetaService {
   }
 
   public async metaInsert2(
-    project_id: string,
     base_id: string,
+    source_id: string,
     target: string,
     data: any,
     ignoreIdGeneration?: boolean,
@@ -108,8 +108,8 @@ export class MetaService {
         ? {}
         : { id: data?.id || (await this.genNanoid(target)) }),
     };
+    if (source_id !== null) insertObj.source_id = source_id;
     if (base_id !== null) insertObj.base_id = base_id;
-    if (project_id !== null) insertObj.project_id = project_id;
 
     await this.knexConnection(target).insert({
       ...insertObj,
@@ -120,8 +120,8 @@ export class MetaService {
   }
 
   public async bulkMetaInsert(
-    project_id: string,
     base_id: string,
+    source_id: string,
     target: string,
     data: any[],
     ignoreIdGeneration?: boolean,
@@ -136,8 +136,8 @@ export class MetaService {
         created_at: at,
         updated_at: at,
       };
+      if (source_id !== null) tempObj.source_id = source_id;
       if (base_id !== null) tempObj.base_id = base_id;
-      if (project_id !== null) tempObj.project_id = project_id;
       insertObj.push(tempObj);
     }
 
@@ -240,7 +240,7 @@ export class MetaService {
   }
 
   public async metaPaginatedList(
-    projectId: string,
+    baseId: string,
     dbAlias: string,
     target: string,
     args?: {
@@ -254,9 +254,9 @@ export class MetaService {
   ): Promise<{ list: any[]; count: number }> {
     const query = this.knexConnection(target);
     const countQuery = this.knexConnection(target);
-    if (projectId !== null && projectId !== undefined) {
-      query.where('project_id', projectId);
-      countQuery.where('project_id', projectId);
+    if (baseId !== null && baseId !== undefined) {
+      query.where('base_id', baseId);
+      countQuery.where('base_id', baseId);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
@@ -335,7 +335,7 @@ export class MetaService {
   // }
 
   public async metaDelete(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
@@ -343,8 +343,8 @@ export class MetaService {
   ): Promise<void> {
     const query = this.knexConnection(target);
 
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
@@ -364,8 +364,8 @@ export class MetaService {
   }
 
   public async metaGet2(
-    project_id: string,
-    baseId: string,
+    base_id: string,
+    sourceId: string,
     target: string,
     idOrCondition: string | { [p: string]: any },
     fields?: string[],
@@ -381,11 +381,11 @@ export class MetaService {
       query.select(...fields);
     }
 
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
-    if (baseId !== null && baseId !== undefined) {
-      query.where('base_id', baseId);
+    if (sourceId !== null && sourceId !== undefined) {
+      query.where('source_id', sourceId);
     }
 
     if (!idOrCondition) {
@@ -413,14 +413,14 @@ export class MetaService {
   }
 
   public async metaInsert(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     data: any,
   ): Promise<any> {
     return this.knexConnection(target).insert({
       db_alias: dbAlias,
-      project_id,
+      base_id,
       ...data,
       created_at: this.now(),
       updated_at: this.now(),
@@ -428,7 +428,7 @@ export class MetaService {
   }
 
   public async metaList(
-    project_id: string,
+    base_id: string,
     _dbAlias: string,
     target: string,
     args?: {
@@ -442,8 +442,8 @@ export class MetaService {
   ): Promise<any[]> {
     const query = this.knexConnection(target);
 
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     /*    if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
@@ -475,7 +475,7 @@ export class MetaService {
   }
 
   public async metaList2(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     args?: {
@@ -489,11 +489,11 @@ export class MetaService {
   ): Promise<any[]> {
     const query = this.knexConnection(target);
 
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('base_id', dbAlias);
+      query.where('source_id', dbAlias);
     }
 
     if (args?.condition) {
@@ -522,7 +522,7 @@ export class MetaService {
   }
 
   public async metaCount(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     args?: {
@@ -533,11 +533,11 @@ export class MetaService {
   ): Promise<number> {
     const query = this.knexConnection(target);
 
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
-      query.where('base_id', dbAlias);
+      query.where('source_id', dbAlias);
     }
 
     if (args?.condition) {
@@ -554,7 +554,7 @@ export class MetaService {
   }
 
   public async metaUpdate(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     data: any,
@@ -562,8 +562,8 @@ export class MetaService {
     xcCondition?,
   ): Promise<any> {
     const query = this.knexConnection(target);
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
@@ -596,12 +596,12 @@ export class MetaService {
   }
 
   public async isMetaDataExists(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
   ): Promise<boolean> {
     const query = this.knexConnection('nc_models');
-    if (project_id !== null && project_id !== undefined) {
-      query.where('project_id', project_id);
+    if (base_id !== null && base_id !== undefined) {
+      query.where('base_id', base_id);
     }
     if (dbAlias !== null && dbAlias !== undefined) {
       query.where('db_alias', dbAlias);
@@ -639,7 +639,7 @@ export class MetaService {
   }
 
   async metaReset(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     apiType?: string,
   ): Promise<void> {
@@ -653,7 +653,7 @@ export class MetaService {
           return (async () => {
             try {
               await this.knexConnection(table)
-                .where({ db_alias: dbAlias, project_id })
+                .where({ db_alias: dbAlias, base_id })
                 .del();
             } catch (e) {
               console.warn(`Error: ${table} reset failed`);
@@ -664,15 +664,15 @@ export class MetaService {
     }
   }
 
-  public async projectCreate(
-    projectName: string,
+  public async baseCreate(
+    baseName: string,
     config: any,
     description?: string,
     meta?: boolean,
   ): Promise<any> {
     try {
       const ranId = this.getNanoId();
-      const id = `${projectName.toLowerCase().replace(/\W+/g, '_')}_${ranId}`;
+      const id = `${baseName.toLowerCase().replace(/\W+/g, '_')}_${ranId}`;
       if (meta) {
         config.prefix = `nc_${ranId}__`;
         // if(config.envs._noco?.db?.[0]?.meta?.tn){
@@ -680,18 +680,18 @@ export class MetaService {
         // }
       }
       config.id = id;
-      const project: any = {
+      const base: any = {
         id,
-        title: projectName,
+        title: baseName,
         description,
         config: CryptoJS.AES.encrypt(
           JSON.stringify(config),
           'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
         ).toString(),
       };
-      // todo: check project name used or not
+      // todo: check base name used or not
       await this.knexConnection('nc_projects').insert({
-        ...project,
+        ...base,
         created_at: this.now(),
         updated_at: this.now(),
       });
@@ -699,34 +699,34 @@ export class MetaService {
       // todo
       await this.knexConnection(MetaTable.PROJECT).insert({
         id,
-        title: projectName,
+        title: baseName,
       });
 
-      project.prefix = config.prefix;
-      return project;
+      base.prefix = config.prefix;
+      return base;
     } catch (e) {
       console.log(e);
     }
   }
 
-  public async projectUpdate(projectId: string, config: any): Promise<any> {
+  public async baseUpdate(baseId: string, config: any): Promise<any> {
     try {
-      const project = {
+      const base = {
         config: CryptoJS.AES.encrypt(
           JSON.stringify(config, null, 2),
           'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
         ).toString(),
       };
-      // todo: check project name used or not
-      await this.knexConnection('nc_projects').update(project).where({
-        id: projectId,
+      // todo: check base name used or not
+      await this.knexConnection('nc_projects').update(base).where({
+        id: baseId,
       });
     } catch (e) {
       console.log(e);
     }
   }
 
-  public async projectList(): Promise<any[]> {
+  public async baseList(): Promise<any[]> {
     return (await this.knexConnection('nc_projects').select()).map((p) => {
       p.config = CryptoJS.AES.decrypt(
         p.config,
@@ -743,7 +743,7 @@ export class MetaService {
           this.knexConnection('nc_projects_users')
             .where(`nc_projects_users.user_id`, userId)
             .as('user'),
-          'user.project_id',
+          'user.base_id',
           'nc_projects.id',
         )
         .select('nc_projects.*')
@@ -757,7 +757,7 @@ export class MetaService {
               '=',
               'xc_users.id',
             )
-            .whereRaw('nc_projects.id = nc_projects_users.project_id')
+            .whereRaw('nc_projects.id = nc_projects_users.base_id')
             .where('nc_projects_users.roles', 'like', '%owner%')
             .first()
             .as('owner'),
@@ -778,7 +778,7 @@ export class MetaService {
                 '%owner%',
               );
             })
-            .whereRaw('nc_projects.id = nc_projects_users.project_id')
+            .whereRaw('nc_projects.id = nc_projects_users.base_id')
             .andWhere('xc_users.id', userId)
             .first()
             .as('is_creator'),
@@ -794,49 +794,49 @@ export class MetaService {
   }
 
   public async isUserHaveAccessToProject(
-    projectId: string,
+    baseId: string,
     userId: any,
   ): Promise<boolean> {
     return !!(await this.knexConnection('nc_projects_users')
       .where({
-        project_id: projectId,
+        base_id: baseId,
         user_id: userId,
       })
       .first());
   }
 
-  public async projectGet(projectName: string, encrypt?): Promise<any> {
-    const project = await this.knexConnection('nc_projects')
+  public async baseGet(baseName: string, encrypt?): Promise<any> {
+    const base = await this.knexConnection('nc_projects')
       .where({
-        title: projectName,
+        title: baseName,
       })
       .first();
 
-    if (project && !encrypt) {
-      project.config = CryptoJS.AES.decrypt(
-        project.config,
+    if (base && !encrypt) {
+      base.config = CryptoJS.AES.decrypt(
+        base.config,
         'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8);
     }
-    return project;
+    return base;
   }
 
-  public async projectGetById(projectId: string, encrypt?): Promise<any> {
-    const project = await this.knexConnection('nc_projects')
+  public async baseGetById(baseId: string, encrypt?): Promise<any> {
+    const base = await this.knexConnection('nc_projects')
       .where({
-        id: projectId,
+        id: baseId,
       })
       .first();
-    if (project && !encrypt) {
-      project.config = CryptoJS.AES.decrypt(
-        project.config,
+    if (base && !encrypt) {
+      base.config = CryptoJS.AES.decrypt(
+        base.config,
         'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8);
     }
-    return project;
+    return base;
   }
 
-  public projectDelete(title: string): Promise<any> {
+  public baseDelete(title: string): Promise<any> {
     return this.knexConnection('nc_projects')
       .where({
         title,
@@ -844,7 +844,7 @@ export class MetaService {
       .delete();
   }
 
-  public projectDeleteById(id: string): Promise<any> {
+  public baseDeleteById(id: string): Promise<any> {
     return this.knexConnection('nc_projects')
       .where({
         id,
@@ -852,21 +852,18 @@ export class MetaService {
       .delete();
   }
 
-  public async projectStatusUpdate(
-    projectId: string,
-    status: string,
-  ): Promise<any> {
+  public async baseStatusUpdate(baseId: string, status: string): Promise<any> {
     return this.knexConnection('nc_projects')
       .update({
         status,
       })
       .where({
-        id: projectId,
+        id: baseId,
       });
   }
 
-  public async projectAddUser(
-    projectId: string,
+  public async baseAddUser(
+    baseId: string,
     userId: any,
     roles: string,
   ): Promise<any> {
@@ -874,7 +871,7 @@ export class MetaService {
       await this.knexConnection('nc_projects_users')
         .where({
           user_id: userId,
-          project_id: projectId,
+          base_id: baseId,
         })
         .first()
     ) {
@@ -882,16 +879,16 @@ export class MetaService {
     }
     return this.knexConnection('nc_projects_users').insert({
       user_id: userId,
-      project_id: projectId,
+      base_id: baseId,
       roles,
     });
   }
 
-  public projectRemoveUser(projectId: string, userId: any): Promise<any> {
+  public baseRemoveUser(baseId: string, userId: any): Promise<any> {
     return this.knexConnection('nc_projects_users')
       .where({
         user_id: userId,
-        project_id: projectId,
+        base_id: baseId,
       })
       .delete();
   }
@@ -922,7 +919,7 @@ export class MetaService {
   }
 
   public async audit(
-    project_id: string,
+    base_id: string,
     dbAlias: string,
     target: string,
     data: any,
@@ -930,7 +927,7 @@ export class MetaService {
     if (['DATA', 'COMMENT'].includes(data?.op_type)) {
       return Promise.resolve(undefined);
     }
-    return this.metaInsert(project_id, dbAlias, target, data);
+    return this.metaInsert(base_id, dbAlias, target, data);
   }
 
   public async init(): Promise<boolean> {

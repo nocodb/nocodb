@@ -2,7 +2,7 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
 
@@ -13,7 +13,6 @@ interface Props {
   selectedViewId?: string
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
-  views: ViewType[]
   tableId: string
 }
 
@@ -41,7 +40,11 @@ const emits = defineEmits<Emits>()
 
 const { getMeta } = useMetas()
 
-const { views, selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
+const { viewsByTable } = storeToRefs(useViewsStore())
+
+const { refreshCommandPalette } = useCommandPalette()
+
+const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
 
@@ -56,6 +59,8 @@ const { t } = useI18n()
 const { api } = useApi()
 
 const isViewCreating = ref(false)
+
+const views = computed(() => viewsByTable.value.get(tableId.value) ?? [])
 
 const form = reactive<Form>({
   title: props.title || '',
@@ -105,11 +110,11 @@ watch(
 )
 
 function init() {
-  form.title = `Untitled ${capitalize(typeAlias.value)}`
+  form.title = `${capitalize(typeAlias.value)}`
 
   const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
   if (repeatCount) {
-    form.title = `${form.title} ${repeatCount}`
+    form.title = `${form.title}-${repeatCount}`
   }
 
   if (selectedViewId.value) {
@@ -168,6 +173,8 @@ async function onSubmit() {
       }
     } catch (e: any) {
       message.error(e.message)
+    } finally {
+      refreshCommandPalette()
     }
 
     vModel.value = false
@@ -239,19 +246,44 @@ onMounted(async () => {
       <div class="flex flex-row items-center gap-x-1.5">
         <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
         <template v-if="form.type === ViewTypes.GRID">
-          {{ $t('labels.duplicateGridView') }}
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateGridView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createGridView') }}
+          </template>
         </template>
         <template v-else-if="form.type === ViewTypes.GALLERY">
-          {{ $t('labels.duplicateGalleryView') }}
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateGalleryView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createGalleryView') }}
+          </template>
         </template>
         <template v-else-if="form.type === ViewTypes.FORM">
-          {{ $t('labels.duplicateFormView') }}
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateFormView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createFormView') }}
+          </template>
         </template>
         <template v-else-if="form.type === ViewTypes.KANBAN">
-          {{ $t('labels.duplicateKanbanView') }}
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateKanbanView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createKanbanView') }}
+          </template>
         </template>
         <template v-else>
-          {{ $t('labels.duplicateView') }}
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateMapView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.duplicateView') }}
+          </template>
         </template>
       </div>
     </template>
@@ -276,7 +308,7 @@ onMounted(async () => {
           <NcSelect
             v-model:value="form.fk_grp_col_id"
             class="w-full nc-kanban-grouping-field-select"
-            :disabled="groupingFieldColumnId || isMetaLoading"
+            :disabled="isMetaLoading"
             :loading="isMetaLoading"
             :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGroupField')"
@@ -293,7 +325,7 @@ onMounted(async () => {
             v-model:value="form.fk_geo_data_col_id"
             class="w-full"
             :options="viewSelectFieldOptions"
-            :disabled="groupingFieldColumnId || isMetaLoading"
+            :disabled="isMetaLoading"
             :loading="isMetaLoading"
             :placeholder="$t('placeholder.selectGeoField')"
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
@@ -306,7 +338,12 @@ onMounted(async () => {
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton type="primary" :loading="isViewCreating" @click="onSubmit">
+        <NcButton
+          v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
+          type="primary"
+          :loading="isViewCreating"
+          @click="onSubmit"
+        >
           {{ $t('labels.createView') }}
           <template #loading> {{ $t('labels.creatingView') }}</template>
         </NcButton>

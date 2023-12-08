@@ -24,11 +24,11 @@ const deleteParamRow = (i: number) => {
       <thead class="h-8">
         <tr>
           <th>
-            <div class="text-left font-normal ml-2">{{ $t('title.parameterName') }}</div>
+            <div class="text-left font-normal ml-2" data-rec="true">{{ $t('title.parameterName') }}</div>
           </th>
 
           <th>
-            <div class="text-left font-normal ml-2">{{ $t('placeholder.value') }}</div>
+            <div class="text-left font-normal ml-2" data-rec="true">{{ $t('placeholder.value') }}</div>
           </th>
 
           <th class="w-8">
@@ -69,7 +69,7 @@ const deleteParamRow = (i: number) => {
           <td :colspan="12" class="">
             <NcButton size="small" type="secondary" @click="addParamRow">
               <div class="flex flex-row items-center gap-x-1">
-                <div>{{ $t('activity.addParameter') }}</div>
+                <div data-rec="true">{{ $t('activity.addParameter') }}</div>
                 <component :is="iconMap.plus" class="flex mx-auto" />
               </div>
             </NcButton>

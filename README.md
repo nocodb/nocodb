@@ -14,7 +14,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 </p>
 
 <div align="center">
- 
+
 [![Node version](https://img.shields.io/badge/node-%3E%3D%2018.14.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
@@ -29,7 +29,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>
 
-![All Views](https://user-images.githubusercontent.com/35857179/194825053-3aa3373d-3e0f-4b42-b3f1-42928332054a.gif)
+![video avi](https://github.com/nocodb/nocodb/assets/86527202/e2fad786-f211-4dcb-9bd3-aaece83a6783)
 
 <div align="center">
 
@@ -64,7 +64,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 </a>
  -->
 
-[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+[![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
 # Quick try
 
@@ -105,6 +105,8 @@ nocodb/nocodb:latest
 > To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
+
+> Different commands just indicate the database that NocoDB will use internally for metadata storage, but that doesn't influence the ability to connect to a different database type. 
 
 ## Binaries
 
@@ -210,22 +212,22 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-  - [NPX](#npx)
-  - [Node Application](#node-application)
-  - [Docker](#docker)
-  - [Docker Compose](#docker-compose)
+    - [NPX](#npx)
+    - [Node Application](#node-application)
+    - [Docker](#docker)
+    - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-  - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-  - [Programmatic Access](#programmatic-access)
-  - [Sync Schema](#sync-schema)
-  - [Audit](#audit)
+    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
+    - [Programmatic Access](#programmatic-access)
+    - [Sync Schema](#sync-schema)
+    - [Audit](#audit)
 - [Production Setup](#production-setup)
-  - [Environment variables](#environment-variables)
+    - [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)

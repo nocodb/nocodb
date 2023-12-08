@@ -41,7 +41,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
 
     api = new Api({
@@ -65,8 +65,8 @@ test.describe('Checkbox - cell, filter, sort', () => {
     ];
 
     try {
-      const project = await api.project.read(context.project.id);
-      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+      const base = await api.base.read(context.base.id);
+      const table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
         table_name: 'Sheet-1',
         title: 'Sheet-1',
         columns: columns,
@@ -81,7 +81,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
         rowAttributes.push(row);
       }
 
-      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributes);
     } catch (e) {
       console.error(e);
     }

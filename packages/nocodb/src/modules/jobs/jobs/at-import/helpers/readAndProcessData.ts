@@ -20,12 +20,12 @@ interface AirtableImportContext {
 async function readAllData({
   table,
   fields,
-  base,
+  atBase,
   logBasic = (_str) => {},
 }: {
   table: { title?: string };
   fields?;
-  base: AirtableBase;
+  atBase: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
 }): Promise<EntityMap> {
@@ -38,7 +38,7 @@ async function readAllData({
 
     if (fields) selectParams.fields = fields;
 
-    base(table.title)
+    atBase(table.title)
       .select(selectParams)
       .eachPage(
         async function page(records, fetchNextPage) {
@@ -83,19 +83,19 @@ async function readAllData({
 }
 
 export async function importData({
-  projectName,
+  baseName,
   table,
-  base,
+  atBase,
   nocoBaseDataProcessing_v2,
   sDB,
   logDetailed = (_str) => {},
   logBasic = (_str) => {},
   services,
 }: {
-  projectName: string;
+  baseName: string;
   table: { title?: string; id?: string };
   fields?;
-  base: AirtableBase;
+  atBase: AirtableBase;
   logBasic: (string) => void;
   logDetailed: (string) => void;
   nocoBaseDataProcessing_v2;
@@ -106,7 +106,7 @@ export async function importData({
     // returns EntityMap which allows us to stream data
     const records: EntityMap = await readAllData({
       table,
-      base,
+      atBase,
       logDetailed,
       logBasic,
     });
@@ -145,8 +145,8 @@ export async function importData({
                   let insertArray = tempData.splice(0, tempData.length);
 
                   await services.bulkDataService.bulkDataInsert({
-                    projectName,
-                    tableName: table.title,
+                    baseName,
+                    tableName: table.id,
                     body: insertArray,
                     cookie: {},
                     skip_hooks: true,
@@ -185,7 +185,7 @@ export async function importData({
           // insert remaining data
           if (tempData.length > 0) {
             await services.bulkDataService.bulkDataInsert({
-              projectName,
+              baseName,
               tableName: table.id,
               body: tempData,
               cookie: {},
@@ -212,16 +212,15 @@ export async function importData({
 
     return records;
   } catch (e) {
-    console.log(e);
-    return null;
+    throw e;
   }
 }
 
 export async function importLTARData({
   table,
   fields,
-  base,
-  projectName,
+  atBase,
+  baseName,
   insertedAssocRef = {},
   logDetailed = (_str) => {},
   logBasic = (_str) => {},
@@ -231,10 +230,10 @@ export async function importLTARData({
   syncDB,
   services,
 }: {
-  projectName: string;
+  baseName: string;
   table: { title?: string; id?: string };
   fields;
-  base: AirtableBase;
+  atBase: AirtableBase;
   logDetailed: (string) => void;
   logBasic: (string) => void;
   insertedAssocRef: { [assocTableId: string]: boolean };
@@ -259,7 +258,7 @@ export async function importLTARData({
     (await readAllData({
       table,
       fields,
-      base,
+      atBase,
       logDetailed,
       logBasic,
     }));
@@ -355,7 +354,7 @@ export async function importLTARData({
                   );
 
                   await services.bulkDataService.bulkDataInsert({
-                    projectName,
+                    baseName,
                     tableName: assocMeta.modelMeta.id,
                     body: insertArray,
                     cookie: {},
@@ -393,8 +392,8 @@ export async function importLTARData({
             );
 
             await services.bulkDataService.bulkDataInsert({
-              projectName,
-              tableName: assocMeta.modelMeta.title,
+              baseName,
+              tableName: assocMeta.modelMeta.id,
               body: assocTableData,
               cookie: {},
               skip_hooks: true,

@@ -1,7 +1,7 @@
-import { MetaTable, orderedMetaTables } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2, orderedMetaTables } from '~/utils/globals';
 
 const up = async (knex) => {
-  await knex.schema.createTable(MetaTable.PROJECT, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.PROJECT, (table) => {
     table.string('id', 128).primary();
     table.string('title');
     table.string('prefix');
@@ -20,13 +20,13 @@ const up = async (knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.BASES, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.BASES, (table) => {
     table.string('id', 20).primary().notNullable();
 
     // todo: foreign key
     // table.string('project_id', 128);
     table.string('project_id', 128);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
     table.string('alias');
     table.text('config');
 
@@ -47,9 +47,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('table_name');
     table.string('title');
@@ -72,9 +72,9 @@ const up = async (knex) => {
   await knex.schema.createTable(MetaTable.COLUMNS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_model_id', 20);
     table.foreign('fk_model_id').references(`${MetaTable.MODELS}.id`);
@@ -130,9 +130,9 @@ const up = async (knex) => {
       .primary()
       .notNullable();
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
 
     table.string('fk_column_id',20);
@@ -279,9 +279,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_model_id', 20);
     table.foreign('fk_model_id').references(`${MetaTable.MODELS}.id`);
@@ -306,9 +306,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_model_id', 20);
     table.foreign('fk_model_id').references(`${MetaTable.MODELS}.id`);
@@ -343,9 +343,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_hook_id', 20);
     // table.foreign('fk_hook_id').references(`${MetaTable.HOOKS}.id`);
@@ -373,9 +373,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20);
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -403,9 +403,9 @@ const up = async (knex) => {
   //     .notNullable();
   //
   //   table.string('base_id', 20);
-  //   // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+  //   // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
   //   table.string('project_id', 128);
-  //   // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+  //   // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
   //
   //   table.string('fk_hook_id', 20);
   //   table.foreign('fk_hook_id').references(`${MetaTable.HOOKS}.id`);
@@ -427,9 +427,9 @@ const up = async (knex) => {
   await knex.schema.createTable(MetaTable.SORT, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20);
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -467,9 +467,9 @@ const up = async (knex) => {
     //   .primary()
     //   .notNullable();
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -493,9 +493,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20);
     table.foreign('fk_view_id').references(`${MetaTable.FORM_VIEW}.fk_view_id`);
@@ -523,9 +523,9 @@ const up = async (knex) => {
     //   .notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -553,9 +553,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20);
     table
@@ -581,9 +581,9 @@ const up = async (knex) => {
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('uuid');
 
@@ -598,9 +598,9 @@ const up = async (knex) => {
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('uuid');
 
@@ -620,9 +620,9 @@ const up = async (knex) => {
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.boolean('show');
     table.float('order');
@@ -641,9 +641,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_view_id', 20);
     table
@@ -682,9 +682,9 @@ const up = async (knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.PROJECT_USERS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.PROJECT_USERS, (table) => {
     table.string('project_id', 128);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
     table.string('fk_user_id', 20);
     table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
     table.text('roles');
@@ -732,9 +732,9 @@ const up = async (knex) => {
     table.string('ip');
 
     table.string('base_id', 20);
-    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     table.string('fk_model_id', 20);
     table.foreign('fk_model_id').references(`${MetaTable.MODELS}.id`);
@@ -778,9 +778,9 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
+    // table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    // table.foreign('project_id').references(`${MetaTableOldV2.PROJECT}.id`);
 
     // table.string('fk_model_id', 20);
     // table.foreign('fk_model_id').references(`${MetaTable.MODELS}.id`);

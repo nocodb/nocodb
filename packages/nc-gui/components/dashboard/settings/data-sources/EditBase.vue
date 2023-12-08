@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BaseType } from 'nocodb-sdk'
+import type { SourceType } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
@@ -8,6 +8,7 @@ import {
   ClientType,
   ProjectIdInj,
   SSLUsage,
+  baseTitleValidator,
   clientTypes,
   computed,
   extractSdkResponseErrorMsg,
@@ -16,7 +17,6 @@ import {
   getTestDatabaseName,
   iconMap,
   onMounted,
-  projectTitleValidator,
   readFile,
   ref,
   storeToRefs,
@@ -27,21 +27,25 @@ import {
 } from '#imports'
 
 const props = defineProps<{
-  baseId: string
+  sourceId: string
 }>()
 
 const emit = defineEmits(['baseUpdated', 'close'])
 
-const projectStore = useProject()
-const projectsStore = useProjects()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const basesStore = useBases()
+const { base } = storeToRefs(baseStore)
 
 const _projectId = inject(ProjectIdInj, undefined)
-const projectId = computed(() => _projectId?.value ?? project.value?.id)
+const baseId = computed(() => _projectId?.value ?? base.value?.id)
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const useForm = Form.useForm
 
 const testSuccess = ref(false)
+
+const testingConnection = ref(false)
 
 const form = ref<typeof Form>()
 
@@ -51,12 +55,14 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const editingSource = ref(false)
+
 const formState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -66,8 +72,8 @@ const customFormState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -75,7 +81,7 @@ const customFormState = ref<ProjectCreateForm>({
 
 const validators = computed(() => {
   return {
-    'title': [projectTitleValidator],
+    'title': [baseTitleValidator],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
     ...(formState.value.dataSource.client === ClientType.SQLITE
@@ -210,13 +216,13 @@ const editBase = async () => {
   }
 
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     const connection = getConnectionConfig()
 
     const config = { ...formState.value.dataSource, connection }
 
-    await api.base.update(project.value?.id, props.baseId, {
+    await api.source.update(base.value?.id, props.sourceId, {
       alias: formState.value.title,
       type: formState.value.dataSource.client,
       config,
@@ -224,17 +230,17 @@ const editBase = async () => {
       inflection_table: formState.value.inflection.inflectionTable,
     })
 
-    $e('a:base:edit:extdb')
+    $e('a:source:edit:extdb')
 
-    await projectsStore.loadProject(projectId.value!, true)
+    await basesStore.loadProject(baseId.value!, true)
     emit('baseUpdated')
     emit('close')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
-
-const isConnSuccess = ref(false)
 
 const testConnection = async () => {
   try {
@@ -244,9 +250,11 @@ const testConnection = async () => {
     return
   }
 
-  $e('a:base:edit:extdb:test-connection', [])
+  $e('a:source:edit:extdb:test-connection', [])
 
   try {
+    testingConnection.value = true
+
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
@@ -263,7 +271,6 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-        isConnSuccess.value = true
       } else {
         testSuccess.value = false
 
@@ -275,6 +282,8 @@ const testConnection = async () => {
 
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
+  testingConnection.value = false
 }
 
 const handleImportURL = async () => {
@@ -310,12 +319,12 @@ watch(
   { deep: true },
 )
 
-// load base config
+// load source config
 onMounted(async () => {
-  if (project.value?.id) {
+  if (base.value?.id) {
     const definedParameters = ['host', 'port', 'user', 'password', 'database']
 
-    const activeBase = (await api.base.read(project.value?.id, props.baseId)) as BaseType
+    const activeBase = (await api.source.read(base.value?.id, props.sourceId)) as SourceType
 
     const tempParameters = Object.entries(activeBase.config.connection)
       .filter(([key]) => !definedParameters.includes(key))
@@ -337,24 +346,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="edit-base bg-white relative flex flex-col justify-start gap-2 w-full p-2">
-    <h1 class="prose-2xl font-bold self-start">{{ $t('activity.editBase') }}</h1>
+  <div class="edit-source bg-white relative flex flex-col justify-start gap-2 w-full p-2">
+    <h1 class="prose-2xl font-bold self-start">{{ $t('activity.editSource') }}</h1>
 
-    <a-form
-      ref="form"
-      :model="formState"
-      name="external-project-create-form"
-      layout="horizontal"
-      no-style
-      :label-col="{ span: 8 }"
-    >
+    <a-form ref="form" :model="formState" name="external-base-create-form" layout="horizontal" no-style :label-col="{ span: 8 }">
       <div
         class="nc-scrollbar-md"
         :style="{
           maxHeight: '60vh',
         }"
       >
-        <a-form-item label="Base Name" v-bind="validateInfos.title">
+        <a-form-item label="Source Name" v-bind="validateInfos.title">
           <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
         </a-form-item>
 
@@ -427,7 +429,7 @@ onMounted(async () => {
           </a-form-item>
           <!--                Use Connection URL -->
           <div class="flex justify-end gap-2">
-            <NcButton size="small" type="primary" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
+            <NcButton size="small" type="ghost" class="nc-extdb-btn-import-url !rounded-md" @click.stop="importURLDlg = true">
               {{ $t('activity.useConnectionUrl') }}
             </NcButton>
           </div>
@@ -519,7 +521,7 @@ onMounted(async () => {
                   v-model:value="formState.inflection.inflectionTable"
                   dropdown-class-name="nc-dropdown-inflection-table-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -528,7 +530,7 @@ onMounted(async () => {
                   v-model:value="formState.inflection.inflectionColumn"
                   dropdown-class-name="nc-dropdown-inflection-column-name"
                 >
-                  <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+                  <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
                 </a-select>
               </a-form-item>
 
@@ -545,15 +547,23 @@ onMounted(async () => {
 
       <a-form-item class="flex justify-end !mt-5">
         <div class="flex justify-end gap-2">
-          <NcButton type="secondary" size="small" class="nc-extdb-btn-test-connection !rounded-md" @click="testConnection">
+          <NcButton
+            :type="testSuccess ? 'ghost' : 'primary'"
+            size="small"
+            class="nc-extdb-btn-test-connection !rounded-md"
+            :loading="testingConnection"
+            @click="testConnection"
+          >
+            <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" />
             {{ $t('activity.testDbConn') }}
           </NcButton>
 
           <NcButton
+            class="nc-extdb-btn-submit !rounded-md"
             size="small"
             type="primary"
             :disabled="!testSuccess"
-            class="nc-extdb-btn-submit !rounded-md"
+            :loading="editingSource"
             @click="editBase"
           >
             {{ $t('general.submit') }}
@@ -569,7 +579,7 @@ onMounted(async () => {
     <a-modal
       v-model:visible="configEditDlg"
       :title="$t('activity.editConnJson')"
-      width="600px"
+      width="500px"
       wrap-class-name="nc-modal-edit-connection-json"
       @ok="handleOk"
     >
@@ -589,17 +599,6 @@ onMounted(async () => {
       <a-input v-model:value="importURL" />
     </a-modal>
   </div>
-
-  <!-- connection succesfull modal -->
-  <GeneralModal v-model:visible="isConnSuccess" class="!w-97">
-    <div class="flex flex-col h-full p-8">
-      <div class="text-lg font-semibold self-start mb-4">{{ t('msg.info.dbConnected') }}</div>
-      <div class="flex gap-x-2 mt-5 ml-7 pt-2.5 justify-end">
-        <NcButton key="back" type="secondary" @click="isConnSuccess = false">{{ $t('general.cancel') }}</NcButton>
-        <NcButton key="submit" type="primary" @click="editBase">{{ $t('activity.okEditBase') }}</NcButton>
-      </div>
-    </div>
-  </GeneralModal>
 </template>
 
 <style lang="scss" scoped>
@@ -623,7 +622,7 @@ onMounted(async () => {
   @apply !min-h-0;
 }
 
-.edit-base {
+.edit-source {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {

@@ -171,7 +171,7 @@ export class AuthService {
     //   // todo: update in nc_store
     //   // roles = 'owner,creator,editor'
     //   T.emit('evt', {
-    //     evt_type: 'project:invite',
+    //     evt_type: 'base:invite',
     //     count: 1,
     //   });
     // } else {

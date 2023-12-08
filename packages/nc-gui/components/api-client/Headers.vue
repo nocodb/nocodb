@@ -66,10 +66,10 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
         <tr>
           <th></th>
           <th>
-            <div class="text-left font-normal ml-2">{{ $t('labels.headerName') }}</div>
+            <div class="text-left font-normal ml-2" data-rec="true">{{ $t('labels.headerName') }}</div>
           </th>
           <th>
-            <div class="text-left font-normal ml-2">{{ $t('placeholder.value') }}</div>
+            <div class="text-left font-normal ml-2" data-rec="true">{{ $t('placeholder.value') }}</div>
           </th>
           <th class="w-8"></th>
         </tr>
@@ -91,6 +91,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
                 :options="headerList"
                 :placeholder="$t('placeholder.key')"
                 :filter-option="filterOption"
+                dropdown-class-name="border-1 border-gray-200"
               />
             </a-form-item>
           </td>
@@ -124,7 +125,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
           <td :colspan="12" class="">
             <NcButton size="small" type="secondary" @click="addHeaderRow">
               <div class="flex flex-row items-center gap-x-1">
-                <div>{{ $t('labels.addHeader') }}</div>
+                <div data-rec="true">{{ $t('labels.addHeader') }}</div>
                 <component :is="iconMap.plus" class="flex mx-auto" />
               </div>
             </NcButton>

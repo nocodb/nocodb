@@ -121,7 +121,7 @@ const up = async (knex) => {
     value: JSON.stringify({
       'nc:app': false,
       'nc:api:rest': false,
-      'nc:api:base': false,
+      'nc:api:source': false,
       'nc:api:gql': false,
       'nc:api:grpc': false,
       'nc:migrator': false,

@@ -34,14 +34,15 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     v-model="vModel"
     class="h-full w-full outline-none p-2 bg-transparent"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    :class="{
+      'px-1': isExpandedFormOpen,
+    }"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
-    @keydown.ctrl.z.stop
-    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />

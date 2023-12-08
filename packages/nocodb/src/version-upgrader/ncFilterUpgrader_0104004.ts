@@ -5,7 +5,7 @@ import type { SelectOptionsType } from 'nocodb-sdk';
 import { MetaTable } from '~/utils/globals';
 import Column from '~/models/Column';
 import Filter from '~/models/Filter';
-import Project from '~/models/Project';
+import Base from '~/models/Base';
 
 // as of 0.104.3, almost all filter operators are available to all column types
 // while some of them aren't supposed to be shown
@@ -299,7 +299,7 @@ async function migrateFilters(ncMeta: MetaService) {
 }
 
 async function updateProjectMeta(ncMeta: MetaService) {
-  const projectHasEmptyOrFilters: Record<string, boolean> = {};
+  const baseHasEmptyOrFilters: Record<string, boolean> = {};
 
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
 
@@ -309,18 +309,18 @@ async function updateProjectMeta(ncMeta: MetaService) {
     if (
       ['notempty', 'notnull', 'empty', 'null'].includes(filter.comparison_op)
     ) {
-      projectHasEmptyOrFilters[filter.project_id] = true;
+      baseHasEmptyOrFilters[filter.base_id] = true;
     }
   }
 
-  const projects = await ncMeta.metaList2(null, null, MetaTable.PROJECT);
+  const bases = await ncMeta.metaList2(null, null, MetaTable.PROJECT);
 
   const defaultProjectMeta = {
     showNullAndEmptyInFilter: false,
   };
 
-  for (const project of projects) {
-    const oldProjectMeta = project.meta;
+  for (const base of bases) {
+    const oldProjectMeta = base.meta;
     let newProjectMeta = defaultProjectMeta;
     try {
       newProjectMeta =
@@ -331,12 +331,12 @@ async function updateProjectMeta(ncMeta: MetaService) {
 
     newProjectMeta = {
       ...newProjectMeta,
-      showNullAndEmptyInFilter: projectHasEmptyOrFilters[project.id] ?? false,
+      showNullAndEmptyInFilter: baseHasEmptyOrFilters[base.id] ?? false,
     };
 
     actions.push(
-      Project.update(
-        project.id,
+      Base.update(
+        base.id,
         {
           meta: JSON.stringify(newProjectMeta),
         },
@@ -351,8 +351,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   // fix the existing filter behaviours or
   // migrate `null` or `empty` filters to `blank`
   await migrateFilters(ncMeta);
-  // enrich `showNullAndEmptyInFilter` in project meta
-  // if there is empty / null filters in existing projects,
+  // enrich `showNullAndEmptyInFilter` in base meta
+  // if there is empty / null filters in existing bases,
   // then set `showNullAndEmptyInFilter` to true
   // else set to false
   await updateProjectMeta(ncMeta);

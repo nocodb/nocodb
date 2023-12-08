@@ -18,11 +18,20 @@ import {
   useVModel,
 } from '#imports'
 
-const props = defineProps<{ modelValue?: boolean; cellValue: any; column: any }>()
+interface Prop {
+  modelValue?: boolean
+  cellValue: any
+  column: any
+  items: number
+}
+
+const props = defineProps<Prop>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const { isMobileMode } = useGlobal()
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -31,6 +40,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const injectedColumn = inject(ColumnInj, ref())
 
 const readonly = inject(ReadonlyInj, ref(false))
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const {
   childrenList,
@@ -86,7 +97,7 @@ const isFocused = ref(false)
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .slice(0, 4)
+    .slice(0, isMobileMode.value ? 1 : 4)
 })
 
 const expandedFormDlg = ref(false)
@@ -121,16 +132,60 @@ watch(expandedFormDlg, () => {
 onKeyStroke('Escape', () => {
   vModel.value = false
 })
+
+/*
+   to render same number of skeleton as the number of cards
+   displayed
+ */
+const skeletonCount = computed(() => {
+  if (props.items < 10 && childrenListPagination.page === 1) {
+    return props.items
+  }
+
+  if (childrenListCount.value < 10 && childrenListPagination.page === 1) {
+    return childrenListCount.value || 10
+  }
+  const totalRows = Math.ceil(childrenListCount.value / 10)
+
+  if (totalRows === childrenListPagination.page) {
+    return childrenListCount.value % 10
+  }
+  return 10
+})
+
+const totalItemsToShow = computed(() => {
+  if (isChildrenLoading.value) {
+    return props.items
+  }
+  return childrenListCount.value
+})
+
+const isDataExist = computed<boolean>(() => {
+  return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
+})
+
+const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
+  if (isSharedBase.value) return
+  if (readonly.value) return
+
+  if (isPublic.value && !isForm.value) return
+  if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
+    unlinkRow(rowRef, parseInt(id))
+  } else {
+    linkRow(rowRef, parseInt(id))
+  }
+}
 </script>
 
 <template>
-  <a-modal
+  <NcModal
     v-model:visible="vModel"
     :class="{ active: vModel }"
     :footer="null"
     :closable="false"
+    size="medium"
     :width="isForm ? 600 : 800"
-    :body-style="{ 'padding': 0, 'margin': 0, 'min-height': isForm ? '300px' : '500px' }"
+    :body-style="{ 'max-height': '640px', 'height': '85vh' }"
     wrap-class-name="nc-modal-child-list"
   >
     <LazyVirtualCellComponentsHeader
@@ -138,12 +193,10 @@ onKeyStroke('Escape', () => {
       :relation="relation"
       :linked-records="childrenListCount"
       :table-title="meta?.title"
-      :show-header="true"
+      :header="$t('activity.linkedRecords')"
       :related-table-title="relatedTableMeta?.title"
       :display-value="row.row[displayValueProp]"
     />
-    <div v-if="!isForm" class="m-4 bg-gray-50 border-gray-50 border-b-2"></div>
-
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div
         class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
@@ -154,7 +207,7 @@ onKeyStroke('Escape', () => {
           ref="filterQueryRef"
           v-model:value="childrenListPagination.query"
           :placeholder="`Search in ${relatedTableMeta?.title}`"
-          class="w-full !rounded-md"
+          class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
           :bordered="false"
           @focus="isFocused = true"
@@ -165,19 +218,12 @@ onKeyStroke('Escape', () => {
         </a-input>
       </div>
     </div>
-
-    <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
-      <div class="mt-2 mb-2">
-        <div
-          :class="{
-            'h-[420px]': !isForm,
-            'h-[250px]': isForm,
-          }"
-          class="overflow-scroll nc-scrollbar-md cursor-pointer pr-1"
-        >
+    <div class="flex flex-col flex-grow nc-scrollbar-md cursor-pointer pr-1">
+      <div v-if="isDataExist || isChildrenLoading" class="mt-2 mb-2">
+        <div class="cursor-pointer pr-1">
           <template v-if="isChildrenLoading">
             <div
-              v-for="(x, i) in Array.from({ length: 10 })"
+              v-for="(x, i) in Array.from({ length: skeletonCount })"
               :key="i"
               class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
             >
@@ -217,76 +263,72 @@ onKeyStroke('Escape', () => {
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
               @expand="onClick(refRow)"
-              @click="
-                () => {
-                  if (isPublic && !isForm) return
-                  isNew
-                    ? unlinkRow(refRow, Number.parseInt(id))
-                    : isChildrenListLinked[Number.parseInt(id)]
-                    ? unlinkRow(refRow, Number.parseInt(id))
-                    : linkRow(refRow, Number.parseInt(id))
-                }
-              "
+              @click="linkOrUnLink(refRow, id)"
             />
           </template>
         </div>
       </div>
-    </template>
-    <div
-      v-else
-      :class="{
-        'h-[420px]': !isForm,
-        'h-[250px]': isForm,
-      }"
-      class="pt-1 flex flex-col gap-3 items-center justify-center text-gray-500"
-    >
-      <InboxIcon class="w-16 h-16 mx-auto" />
-      <p>
-        {{ $t('msg.noRecordsAreLinkedFromTable') }}
-        {{ relatedTableMeta?.title }}
-      </p>
-      <NcButton
-        v-if="!readonly && childrenListCount < 1"
-        data-testid="nc-child-list-button-link-to"
-        @click="emit('attachRecord')"
-      >
-        <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
-      </NcButton>
+      <div v-else class="pt-1 flex flex-col gap-3 my-auto items-center justify-center text-gray-500">
+        <InboxIcon class="w-16 h-16 mx-auto" />
+        <p>
+          {{ $t('msg.noRecordsAreLinkedFromTable') }}
+          {{ relatedTableMeta?.title }}
+        </p>
+        <NcButton
+          v-if="!readonly && childrenListCount < 1"
+          v-e="['c:links:link']"
+          data-testid="nc-child-list-button-link-to"
+          @click="emit('attachRecord')"
+        >
+          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
+        </NcButton>
+      </div>
+    </div>
+
+    <div v-if="isMobileMode" class="flex flex-row justify-center items-center w-full my-2">
+      <NcPagination
+        v-if="!isNew && childrenList?.pageInfo"
+        v-model:current="childrenListPagination.page"
+        v-model:page-size="childrenListPagination.size"
+        :total="+childrenList.pageInfo.totalRows!"
+      />
     </div>
 
     <div class="my-2 bg-gray-50 border-gray-50 border-b-2"></div>
 
     <div class="flex flex-row justify-between bg-white relative pt-1">
       <div v-if="!isForm" class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ childrenListCount || 0 }} {{ $t('objects.records') }} {{ childrenListCount !== 0 ? $t('general.are') : '' }}
+        {{ totalItemsToShow || 0 }} {{ !isMobileMode ? $t('objects.records') : '' }}
+        {{ !isMobileMode && totalItemsToShow !== 0 ? $t('general.are') : '' }}
         {{ $t('general.linked') }}
       </div>
       <div v-else class="flex items-center justify-center px-2 rounded-md text-gray-500 bg-brand-50">
-        {{ state?.[colTitle]?.length || 0 }} {{ $t('objects.records') }}
-        {{ state?.[colTitle]?.length !== 0 ? $t('general.are') : '' }}
-        {{ $t('general.linked') }}
+        <span class="">
+          {{ state?.[colTitle]?.length || 0 }} {{ $t('objects.records') }}
+          {{ state?.[colTitle]?.length !== 0 ? $t('general.are') : '' }}
+          {{ $t('general.linked') }}
+        </span>
       </div>
-      <div class="flex absolute items-center py-2 justify-center w-full">
-        <a-pagination
+      <div class="!xs:hidden flex absolute -mt-0.75 items-center py-2 justify-center w-full">
+        <NcPagination
           v-if="!isNew && childrenList?.pageInfo"
           v-model:current="childrenListPagination.page"
           v-model:page-size="childrenListPagination.size"
           :total="+childrenList.pageInfo.totalRows!"
-          :show-size-changer="false"
-          class="mt-2 mx-auto"
-          size="small"
-          hide-on-single-page
-          show-less-items
+          mode="simple"
         />
       </div>
       <div class="flex flex-row gap-2">
         <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
         <NcButton
           v-if="!readonly && childrenListCount > 0"
+          v-e="['c:links:link']"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"
         >
-          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
+          <div class="flex items-center gap-1">
+            <MdiPlus class="!xs:hidden" /> {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
+          </div>
         </NcButton>
       </div>
     </div>
@@ -306,14 +348,25 @@ onKeyStroke('Escape', () => {
                   new: true,
                 },
         }"
+        :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
       />
     </Suspense>
-  </a-modal>
+  </NcModal>
 </template>
 
 <style scoped lang="scss">
 :deep(.nc-nested-list-item .ant-card-body) {
   @apply !px-1 !py-0;
+}
+
+:deep(.ant-modal-content) {
+  @apply !p-0;
+}
+</style>
+
+<style lang="scss">
+.nc-modal-child-list > .ant-modal > .ant-modal-content {
+  @apply !p-0;
 }
 </style>

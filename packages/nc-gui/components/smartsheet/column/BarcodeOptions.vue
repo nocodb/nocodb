@@ -10,13 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const meta = inject(MetaInj, ref())
-
-const activeView = inject(ActiveViewInj, ref())
-
-const reloadDataHook = inject(ReloadViewDataHookInj)!
-
-const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -59,11 +53,12 @@ onMounted(() => {
     ...vModel.value.meta,
   }
   vModel.value.fk_barcode_value_column_id =
-    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]
+    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id ||
+    columnsAllowedAsBarcodeValue.value?.[0]?.value
 })
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
-  if (vModel.value.fk_barcode_value_column_id == null) {
+  if (vModel.value.fk_barcode_value_column_id === null) {
     vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.value
   }
 })

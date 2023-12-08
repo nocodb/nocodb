@@ -18,7 +18,7 @@ test.describe.skip('Auth', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     signupPage = new SignupPage(page);
     accountPage = new AccountPage(page);
     workspacePage = new WorkspacePage(page);

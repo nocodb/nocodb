@@ -6,6 +6,9 @@ const useAttachment = () => {
   const getPossibleAttachmentSrc = (item: Record<string, any>) => {
     const res: string[] = []
     if (item?.data) res.push(item.data)
+    if (item?.file) res.push(window.URL.createObjectURL(item.file))
+    if (item?.signedPath) res.push(`${appInfo.value.ncSiteUrl}/${item.signedPath}`)
+    if (item?.signedUrl) res.push(item.signedUrl)
     if (item?.path) res.push(`${appInfo.value.ncSiteUrl}/${item.path}`)
     if (item?.url) res.push(item.url)
     return res
@@ -26,8 +29,9 @@ const useAttachment = () => {
       } catch {}
     }
     // if no source can be fetched, it could be probably blocked by CORS
-    // return original url or built url anyway
-    return item.url || `${appInfo.value.ncSiteUrl}/${item.path}`
+    // return signed url / original url / built url anyway
+    // which we can extract from the sources array since it's ordered based on priority
+    return sources[0]
   }
 
   const openAttachment = async (item: Record<string, any>) => {

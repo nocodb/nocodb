@@ -1,25 +1,33 @@
 <script lang="ts" setup>
-import type { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import {
+  OrderedProjectRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+  extractRolesObj,
+  timeAgo,
+} from 'nocodb-sdk'
+import type { WorkspaceUserRoles } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { isEeUI, storeToRefs, stringToColour, timeAgo } from '#imports'
+import { isEeUI, storeToRefs } from '#imports'
 
-const projectsStore = useProjects()
-const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = projectsStore
-const { activeProjectId } = storeToRefs(projectsStore)
+const basesStore = useBases()
+const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
+const { activeProjectId } = storeToRefs(basesStore)
 
-const { projectRoles } = useRoles()
+const { orgRoles, baseRoles } = useRoles()
 
-const collaborators = ref<
-  {
-    id: string
-    email: string
-    main_roles: OrgUserRoles
-    roles: ProjectRoles
-    workspace_roles: WorkspaceUserRoles
-    created_at: string
-  }[]
->([])
+const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+interface Collaborators {
+  id: string
+  email: string
+  main_roles: OrgUserRoles
+  roles: ProjectRoles
+  workspace_roles: WorkspaceUserRoles
+  created_at: string
+}
+const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
 const userSearchText = ref('')
 const currentPage = ref(0)
@@ -33,7 +41,7 @@ const loadCollaborators = async () => {
     currentPage.value += 1
 
     const { users, totalRows } = await getProjectUsers({
-      projectId: activeProjectId.value!,
+      baseId: activeProjectId.value!,
       page: currentPage.value,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
       limit: 20,
@@ -44,12 +52,13 @@ const loadCollaborators = async () => {
       ...collaborators.value,
       ...users.map((user: any) => ({
         ...user,
-        project_roles: user.roles,
-        roles:
-          user.roles ??
-          (user.workspace_roles
-            ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-            : ProjectRoles.NO_ACCESS),
+        base_roles: user.roles,
+        roles: extractRolesObj(user.main_roles)?.[OrgUserRoles.SUPER_ADMIN]
+          ? OrgUserRoles.SUPER_ADMIN
+          : user.roles ??
+            (user.workspace_roles
+              ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+              : ProjectRoles.NO_ACCESS),
       })),
     ]
   } catch (e: any) {
@@ -75,12 +84,6 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
-const reloadCollabs = async () => {
-  currentPage.value = 0
-  collaborators.value = []
-  await loadCollaborators()
-}
-
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   try {
     if (
@@ -98,17 +101,17 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       } else {
         collab.roles = ProjectRoles.NO_ACCESS
       }
-    } else if (collab.project_roles) {
+    } else if (collab.base_roles) {
       collab.roles = roles
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
       collab.roles = roles
+      collab.base_roles = roles
       await createProjectUser(activeProjectId.value!, collab)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    reloadCollabs()
+    loadCollaborators()
   }
 }
 
@@ -140,9 +143,11 @@ onMounted(async () => {
   try {
     await loadCollaborators()
     const currentRoleIndex = OrderedProjectRoles.findIndex(
-      (role) => projectRoles.value && Object.keys(projectRoles.value).includes(role),
+      (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
-    if (currentRoleIndex !== -1) {
+    if (isSuper.value) {
+      accessibleRoles.value = OrderedProjectRoles.slice(1)
+    } else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
     }
   } catch (e: any) {
@@ -154,12 +159,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4 nc-access-settings-view">
+  <div class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]">
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
     <template v-else>
-      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
+      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25">
         <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" :placeholder="$t('title.searchMembers')">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
@@ -170,40 +175,35 @@ onMounted(async () => {
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
         <GeneralLoader size="xlarge" />
       </div>
+
       <div
         v-else-if="!collaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <Empty :description="$t('title.noMembersFound')" />
+        <Empty description="$t('title.noMembersFound')" />
       </div>
-      <div v-else class="nc-collaborators-list nc-scrollbar-md">
-        <div class="nc-collaborators-list-header">
-          <div class="flex w-3/5">{{ $t('objects.users') }}</div>
-          <div class="flex w-2/5">{{ $t('title.dateJoined') }}</div>
-          <div class="flex w-1/5">{{ $t('general.access') }}</div>
-          <div class="flex w-1/5"></div>
-          <div class="flex w-1/5"></div>
-        </div>
+      <div v-else class="nc-collaborators-list mt-6 h-full">
+        <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
+          <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
+            <div class="text-gray-700 users-email-grid">{{ $t('objects.users') }}</div>
+            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
+            <div class="text-gray-700 user-access-grid">{{ $t('general.access') }}</div>
+          </div>
 
-        <div class="flex flex-col nc-scrollbar-md">
-          <div v-for="(collab, i) of collaborators" :key="i" class="relative w-full nc-collaborators nc-collaborators-list-row">
-            <div class="!py-0 w-3/5 email truncate">
-              <div class="flex items-center gap-2">
-                <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
-                  collab?.email?.slice(0, 2)
-                }}</span>
-                <!--                <GeneralTruncateText> -->
+          <div class="flex flex-col nc-scrollbar-md">
+            <div
+              v-for="(collab, i) of collaborators"
+              :key="i"
+              class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
+            >
+              <div class="flex gap-3 items-center users-email-grid">
+                <GeneralUserIcon size="base" :email="collab.email" />
                 <span class="truncate">
                   {{ collab.email }}
                 </span>
-                <!--                </GeneralTruncateText> -->
               </div>
-            </div>
-            <div class="text-gray-500 text-xs w-2/5 created-at truncate">
-              {{ timeAgo(collab.created_at) }}
-            </div>
-            <div class="w-1/5 roles">
-              <div class="nc-collaborator-role-select p-2">
+              <div class="date-joined-grid">{{ timeAgo(collab.created_at) }}</div>
+              <div class="user-access-grid">
                 <template v-if="accessibleRoles.includes(collab.roles)">
                   <RolesSelector
                     :role="collab.roles"
@@ -218,50 +218,31 @@ onMounted(async () => {
                   />
                 </template>
                 <template v-else>
-                  <RolesBadge class="!bg-white" :role="collab.roles" />
+                  <RolesBadge :role="collab.roles" />
                 </template>
               </div>
             </div>
-            <div class="w-1/5"></div>
-            <div class="w-1/5"></div>
           </div>
-          <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
-            <template #spinner>
-              <div class="flex flex-row w-full justify-center mt-2">
-                <GeneralLoader />
-              </div>
-            </template>
-            <template #complete>
-              <span></span>
-            </template>
-          </InfiniteLoading>
         </div>
+
+        <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+          <template #spinner>
+            <div class="flex flex-row w-full justify-center mt-2">
+              <GeneralLoader />
+            </div>
+          </template>
+          <template #complete>
+            <span></span>
+          </template>
+        </InfiniteLoading>
       </div>
     </template>
   </div>
 </template>
 
 <style scoped lang="scss">
-.badge-text {
-  @apply text-[14px] flex items-center justify-center gap-1 pt-0.5;
-}
-
-.nc-collaborators-list {
-  @apply border-gray-100 mt-1 flex flex-col w-full;
-  // todo: replace/remove 120px with proper value while updating invite ui
-  height: calc(100vh - calc(var(--topbar-height) + 9rem + 120px));
-}
-
-.nc-collaborators-list-header {
-  @apply flex flex-row justify-between items-center min-h-13 border-b-1 border-gray-100 pl-4 text-gray-500;
-}
-
-.nc-collaborators-list-row {
-  @apply flex flex-row justify-between items-center min-h-16 border-b-1 border-gray-100 pl-4;
-}
-
 .color-band {
-  @apply w-6 h-6 left-0 top-[10px] rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
+  @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
 }
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {
@@ -270,5 +251,25 @@ onMounted(async () => {
 
 :deep(.ant-select-selection-item) {
   @apply mt-0.75;
+}
+
+.users-email-grid {
+  @apply flex-grow ml-4 w-1/2;
+}
+
+.date-joined-grid {
+  @apply flex items-start;
+  width: calc(50% - 10rem);
+}
+
+.user-access-grid {
+  @apply w-40;
+}
+
+.user-row {
+  @apply w-full;
+}
+.user-row:last-child {
+  @apply border-b-0;
 }
 </style>

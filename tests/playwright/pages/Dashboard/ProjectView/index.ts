@@ -38,11 +38,11 @@ export class ProjectViewPage extends BasePage {
     this.btn_addNewTable = this.get().locator('[data-testid="proj-view-btn__add-new-table"]');
     this.btn_importData = this.get().locator('[data-testid="proj-view-btn__import-data"]');
     this.btn_addNewDataSource = this.get().locator('.nc-btn-new-datasource');
-    this.btn_share = this.get().locator('[data-testid="share-project-button"]');
+    this.btn_share = this.get().locator('[data-testid="share-base-button"]');
   }
 
   get() {
-    return this.dashboard.get().locator('.nc-project-view-tab');
+    return this.dashboard.get().locator('.nc-base-view-tab');
   }
 
   async verifyAccess(role: string) {

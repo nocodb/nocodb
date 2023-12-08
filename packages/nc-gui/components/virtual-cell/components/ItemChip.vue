@@ -1,9 +1,9 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   IsFormInj,
-  IsLockedInj,
   ReadonlyInj,
   iconMap,
   inject,
@@ -36,17 +36,16 @@ const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj)!
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!readOnly.value && !isLocked.value && !readonlyProp) {
+  const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
+  if (!readOnly.value && !readonlyProp && rowId) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },
       meta: relatedTableMeta.value,
-      loadRow: true,
+      rowId,
       useMetaFields: true,
     })
   }
@@ -61,6 +60,7 @@ export default {
 
 <template>
   <div
+    v-e="['c:row-expand:open']"
     class="chip group mr-1 my-1 flex items-center rounded-[2px] flex-row"
     :class="{ active, 'border-1 py-1 px-2': isAttachment(column) }"
     @click="openExpandedForm"
@@ -95,11 +95,7 @@ export default {
       </template>
     </span>
 
-    <div
-      v-show="active || isForm"
-      v-if="showUnlinkButton && !readOnly && !isLocked && isUIAllowed('dataEdit')"
-      class="flex items-center"
-    >
+    <div v-show="active || isForm" v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')" class="flex items-center">
       <component
         :is="iconMap.closeThick"
         class="nc-icon unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500"

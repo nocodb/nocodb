@@ -1,7 +1,8 @@
 import { Readable } from 'stream';
 import { isLinksOrLTAR, UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
-import { Injectable, Logger } from '@nestjs/common';
+import debug from 'debug';
+import { Injectable } from '@nestjs/common';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { View } from '~/models';
@@ -11,11 +12,11 @@ import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
-import { Base, Hook, Model, Project } from '~/models';
+import { Base, Hook, Model, Source } from '~/models';
 
 @Injectable()
 export class ExportService {
-  private readonly logger = new Logger(ExportService.name);
+  private readonly debugLog = debug('nc:jobs:import');
 
   constructor(private datasService: DatasService) {}
 
@@ -36,8 +37,8 @@ export class ExportService {
     // db id to structured id
     const idMap = new Map<string, string>();
 
-    const projects: Project[] = [];
     const bases: Base[] = [];
+    const sources: Source[] = [];
     const modelsMap = new Map<string, Model[]>();
 
     for (const modelId of modelIds) {
@@ -48,17 +49,17 @@ export class ExportService {
       if (!model)
         return NcError.badRequest(`Model not found for id '${modelId}'`);
 
-      const fndProject = projects.find((p) => p.id === model.project_id);
-      const project = fndProject || (await Project.get(model.project_id));
+      const fndProject = bases.find((p) => p.id === model.base_id);
+      const base = fndProject || (await Base.get(model.base_id));
 
-      const fndBase = bases.find((b) => b.id === model.base_id);
-      const base = fndBase || (await Base.get(model.base_id));
+      const fndBase = sources.find((b) => b.id === model.source_id);
+      const source = fndBase || (await Source.get(model.source_id));
 
-      if (!fndProject) projects.push(project);
-      if (!fndBase) bases.push(base);
+      if (!fndProject) bases.push(base);
+      if (!fndBase) sources.push(source);
 
-      if (!modelsMap.has(base.id)) {
-        modelsMap.set(base.id, await generateBaseIdMap(base, idMap));
+      if (!modelsMap.has(source.id)) {
+        modelsMap.set(source.id, await generateBaseIdMap(source, idMap));
       }
 
       await model.getColumns();
@@ -74,18 +75,23 @@ export class ExportService {
 
         // if data is not excluded, get currval for ai column (pg)
         if (!excludeData) {
-          if (base.type === 'pg') {
+          if (source.type === 'pg') {
             if (column.ai) {
               try {
-                const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
-                const seq = await sqlClient.knex.raw(
+                const baseModel = await Model.getBaseModelSQL({
+                  id: model.id,
+                  viewId: null,
+                  dbDriver: await NcConnectionMgrv2.get(source),
+                });
+                const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+                const seq = await sqlClient.raw(
                   `SELECT pg_get_serial_sequence('??', ?) as seq;`,
-                  [model.table_name, column.column_name],
+                  [baseModel.getTnPath(model.table_name), column.column_name],
                 );
                 if (seq.rows.length > 0) {
                   const seqName = seq.rows[0].seq;
 
-                  const res = await sqlClient.knex.raw(
+                  const res = await sqlClient.raw(
                     `SELECT last_value as last FROM ${seqName};`,
                   );
 
@@ -94,7 +100,7 @@ export class ExportService {
                   }
                 }
               } catch (e) {
-                this.logger.error(e);
+                this.debugLog(e);
               }
             }
           }
@@ -112,6 +118,8 @@ export class ExportService {
               case 'fk_relation_column_id':
               case 'fk_lookup_column_id':
               case 'fk_rollup_column_id':
+              case 'fk_qr_value_column_id':
+              case 'fk_barcode_value_column_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
               case 'options':
@@ -121,6 +129,17 @@ export class ExportService {
                 }
                 break;
               case 'formula':
+                // rewrite formula_raw with aliases
+                column.colOptions['formula_raw'] = column.colOptions[k].replace(
+                  /\{\{.*?\}\}/gm,
+                  (match) => {
+                    const col = model.columns.find(
+                      (c) => c.id === match.slice(2, -2),
+                    );
+                    return `{${col?.title}}`;
+                  },
+                );
+
                 column.colOptions[k] = column.colOptions[k].replace(
                   /(?<=\{\{).*?(?=\}\})/gm,
                   (match) => idMap.get(match),
@@ -132,6 +151,19 @@ export class ExportService {
               case 'fk_column_id':
                 delete column.colOptions[k];
                 break;
+            }
+          }
+        }
+
+        // pg default value fix
+        if (source.type === 'pg') {
+          if (column.cdf) {
+            // check if column.cdf has unmatched single quotes
+            const matches = column.cdf.match(/'/g);
+            if (matches && matches.length % 2 !== 0) {
+              // if so remove after last single quote
+              const lastQuoteIndex = column.cdf.lastIndexOf("'");
+              column.cdf = column.cdf.substring(0, lastQuoteIndex);
             }
           }
         }
@@ -206,8 +238,8 @@ export class ExportService {
               case 'created_at':
               case 'updated_at':
               case 'fk_view_id':
-              case 'project_id':
               case 'base_id':
+              case 'source_id':
               case 'uuid':
                 delete view.view[k];
                 break;
@@ -265,9 +297,9 @@ export class ExportService {
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
-          prefix: project.prefix,
+          prefix: base.prefix,
           title: model.title,
-          table_name: clearPrefix(model.table_name, project.prefix),
+          table_name: clearPrefix(model.table_name, base.prefix),
           pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => ({
@@ -309,8 +341,8 @@ export class ExportService {
               id,
               fk_view_id,
               fk_column_id,
-              project_id,
               base_id,
+              source_id,
               created_at,
               updated_at,
               uuid,
@@ -333,7 +365,7 @@ export class ExportService {
   async streamModelDataAsCsv(param: {
     dataStream: Readable;
     linkStream: Readable;
-    projectId: string;
+    baseId: string;
     modelId: string;
     viewId?: string;
     handledMmList?: string[];
@@ -342,12 +374,12 @@ export class ExportService {
     const { dataStream, linkStream, handledMmList } = param;
 
     const { model, view } = await getViewAndModelByAliasOrId({
-      projectName: param.projectId,
+      baseName: param.baseId,
       tableName: param.modelId,
       viewName: param.viewId,
     });
 
-    const base = await Base.get(model.base_id);
+    const source = await Source.get(model.source_id);
 
     await model.getColumns();
 
@@ -372,7 +404,7 @@ export class ExportService {
 
         btMap.set(
           fkCol.id,
-          `${column.project_id}::${column.base_id}::${column.fk_model_id}::${column.id}`,
+          `${column.base_id}::${column.source_id}::${column.fk_model_id}::${column.id}`,
         );
       }
     }
@@ -387,9 +419,13 @@ export class ExportService {
           .map((c) => c.title)
           .join(',');
 
-    const mmColumns = model.columns.filter(
-      (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
-    );
+    const mmColumns = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
+      : model.columns.filter(
+          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+        );
 
     const hasLink = mmColumns.length > 0;
 
@@ -400,7 +436,7 @@ export class ExportService {
         for (const [k, v] of Object.entries(row)) {
           const col = model.columns.find((c) => c.title === k);
           if (col) {
-            const colId = `${col.project_id}::${col.base_id}::${col.fk_model_id}::${col.id}`;
+            const colId = `${col.base_id}::${col.source_id}::${col.fk_model_id}::${col.id}`;
             switch (col.uidt) {
               case UITypes.ForeignKey:
                 {
@@ -438,7 +474,7 @@ export class ExportService {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(source),
     });
 
     const limit = 200;
@@ -457,7 +493,7 @@ export class ExportService {
         true,
       );
     } catch (e) {
-      this.logger.error(e);
+      this.debugLog(e);
       throw e;
     }
 
@@ -503,7 +539,9 @@ export class ExportService {
         const mmOffset = 0;
 
         const mmBase =
-          mmModel.base_id === base.id ? base : await Base.get(mmModel.base_id);
+          mmModel.source_id === source.id
+            ? source
+            : await Source.get(mmModel.source_id);
 
         const mmBaseModel = await Model.getBaseModelSQL({
           id: mmModel.id,
@@ -523,7 +561,7 @@ export class ExportService {
             true,
           );
         } catch (e) {
-          this.logger.error(e);
+          this.debugLog(e);
           throw e;
         }
 
@@ -554,6 +592,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {
@@ -602,6 +641,7 @@ export class ExportService {
           view,
           query: { limit, offset, fields },
           baseModel,
+          ignoreViewFilterAndSort: true,
         })
         .then((result) => {
           try {
@@ -631,19 +671,19 @@ export class ExportService {
     });
   }
 
-  async exportBase(param: { path: string; baseId: string }) {
+  async exportBase(param: { path: string; sourceId: string }) {
     const hrTime = initTime();
 
-    const base = await Base.get(param.baseId);
+    const source = await Source.get(param.sourceId);
 
-    if (!base)
-      throw NcError.badRequest(`Base not found for id '${param.baseId}'`);
+    if (!source)
+      throw NcError.badRequest(`Source not found for id '${param.sourceId}'`);
 
-    const project = await Project.get(base.project_id);
+    const base = await Base.get(source.base_id);
 
-    const models = (await base.getModels()).filter(
+    const models = (await source.getModels()).filter(
       // TODO revert this when issue with cache is fixed
-      (m) => m.base_id === base.id && !m.mm && m.type === 'table',
+      (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 
     const exportedModels = await this.serializeModels({
@@ -652,18 +692,18 @@ export class ExportService {
 
     elapsedTime(
       hrTime,
-      `serialize models for ${base.project_id}::${base.id}`,
+      `serialize models for ${source.base_id}::${source.id}`,
       'exportBase',
     );
 
     const exportData = {
-      id: `${project.id}::${base.id}`,
+      id: `${base.id}::${source.id}`,
       models: exportedModels,
     };
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const destPath = `export/${project.id}/${base.id}/${param.path}`;
+    const destPath = `export/${base.id}/${source.id}/${param.path}`;
 
     try {
       const readableStream = new Readable({
@@ -712,7 +752,7 @@ export class ExportService {
           });
 
           linkStream.on('error', (e) => {
-            this.logger.error(e);
+            this.debugLog(e);
             resolve(null);
           });
         });
@@ -727,11 +767,11 @@ export class ExportService {
         this.streamModelDataAsCsv({
           dataStream,
           linkStream,
-          projectId: project.id,
+          baseId: base.id,
           modelId: model.id,
           handledMmList,
         }).catch((e) => {
-          this.logger.error(e);
+          this.debugLog(e);
           dataStream.push(null);
           linkStream.push(null);
           error = e;
@@ -748,7 +788,7 @@ export class ExportService {
 
       elapsedTime(
         hrTime,
-        `export base ${base.project_id}::${base.id}`,
+        `export source ${source.base_id}::${source.id}`,
         'exportBase',
       );
     } catch (e) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { HookLogType, HookType } from 'nocodb-sdk'
-import { AutomationLogLevel, extractSdkResponseErrorMsg, onBeforeMount, parseProp, timeAgo, useApi, useGlobal } from '#imports'
+import { timeAgo } from 'nocodb-sdk'
+import { AutomationLogLevel, extractSdkResponseErrorMsg, onBeforeMount, parseProp, useApi, useGlobal } from '#imports'
 
 interface Props {
   hook: HookType
@@ -88,7 +89,7 @@ onBeforeMount(async () => {
       </span>
       <span>
         For additional configuration options, please refer the documentation
-        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank">here</a>.
+        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank" rel="noopener">here</a>.
       </span>
     </a-card>
 

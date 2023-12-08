@@ -3,34 +3,34 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { airtableApiBase, airtableApiKey } from '../../../constants';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api, ProjectListType } from 'nocodb-sdk';
-import { ProjectInfo, ProjectInfoApiUtil } from '../../../tests/utils/projectInfoApiUtil';
+import { BaseInfoApiUtil, ProjectInfo } from '../../../tests/utils/baseInfoApiUtil';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
 import { isEE } from '../../../setup/db';
 
-test.describe('Project operations', () => {
+test.describe('Base operations', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
   let api: Api<any>;
   test.setTimeout(150000);
 
   async function getProjectList(workspaceId?: string) {
-    let projectList: ProjectListType;
-    if (isEE() && api['workspaceProject']) {
-      projectList = await api['workspaceProject'].list(workspaceId);
+    let baseList: ProjectListType;
+    if (isEE() && api['workspaceBase']) {
+      baseList = await api['workspaceBase'].list(workspaceId);
     } else {
-      projectList = await api.project.list();
+      baseList = await api.base.list();
     }
 
-    return projectList;
+    return baseList;
   }
 
   async function createTestProjectWithData(testProjectName: string) {
     await dashboard.leftSidebar.createProject({ title: testProjectName, context });
     await dashboard.treeView.openProject({ title: testProjectName, context });
-    await dashboard.treeView.quickImport({ title: 'Airtable', projectTitle: testProjectName, context });
+    await dashboard.treeView.quickImport({ title: 'Airtable', baseTitle: testProjectName, context });
     await dashboard.importAirtable.import({
       key: airtableApiKey,
-      baseId: airtableApiBase,
+      sourceId: airtableApiBase,
     });
     await dashboard.rootPage.waitForTimeout(1000);
   }
@@ -43,7 +43,7 @@ test.describe('Project operations', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(70000);
     context = await setup({ page });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,
@@ -58,22 +58,22 @@ test.describe('Project operations', () => {
   });
 
   test('rename, delete', async () => {
-    await dashboard.leftSidebar.createProject({ title: 'project-firstName', context });
-    await dashboard.treeView.renameProject({ title: 'project-firstName', newTitle: 'project-rename', context });
-    await dashboard.treeView.openProject({ title: 'project-rename', context });
-    await dashboard.treeView.deleteProject({ title: 'project-rename', context });
+    await dashboard.leftSidebar.createProject({ title: 'base-firstName', context });
+    await dashboard.treeView.renameProject({ title: 'base-firstName', newTitle: 'base-rename', context });
+    await dashboard.treeView.openProject({ title: 'base-rename', context });
+    await dashboard.treeView.deleteProject({ title: 'base-rename', context });
   });
 
   test('project_duplicate', async () => {
-    // if project already exists, delete it to avoid test failures due to residual data
+    // if base already exists, delete it to avoid test failures due to residual data
     const random = Math.floor(Math.random() * 1000000);
-    const testProjectName = `Project-To-Import-Export-${random}`;
+    const testProjectName = `Base-To-Import-Export-${random}`;
     const scopedProjectName = dashboard.treeView.scopedProjectTitle({
       title: testProjectName,
       context,
     });
 
-    // // data creation for original test project
+    // // data creation for original test base
     await createTestProjectWithData(testProjectName);
 
     // duplicate duplicate
@@ -81,21 +81,21 @@ test.describe('Project operations', () => {
     await dashboard.treeView.openProject({ title: testProjectName, context });
 
     // compare
-    const projectList = await getProjectList(context.workspace?.id);
+    const baseList = await getProjectList(context.workspace?.id);
 
-    const testProjectId = projectList.list.find((p: any) => p.title === scopedProjectName);
-    const dupeProjectId = projectList.list.find((p: any) => p.title.startsWith(scopedProjectName + ' copy'));
-    const projectInfoOp: ProjectInfoApiUtil = new ProjectInfoApiUtil(context.token);
-    const original: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(testProjectId.id);
-    const duplicate: Promise<ProjectInfo> = projectInfoOp.extractProjectInfo(dupeProjectId.id);
+    const testProjectId = baseList.list.find((p: any) => p.title === scopedProjectName);
+    const dupeProjectId = baseList.list.find((p: any) => p.title.startsWith(scopedProjectName + ' copy'));
+    const baseInfoOp: BaseInfoApiUtil = new BaseInfoApiUtil(context.token);
+    const original: Promise<ProjectInfo> = baseInfoOp.extractProjectInfo(testProjectId.id);
+    const duplicate: Promise<ProjectInfo> = baseInfoOp.extractProjectInfo(dupeProjectId.id);
     await Promise.all([original, duplicate]).then(arr => {
       const ignoredFields: Set<string> = new Set([
         'id',
         'prefix',
-        'project_id',
+        'base_id',
         'fk_view_id',
         'ptn',
-        'base_id',
+        'source_id',
         'table_name',
         'fk_model_id',
         'fk_column_id',
@@ -105,13 +105,13 @@ test.describe('Project operations', () => {
         'updated_at',
       ]);
       const ignoredKeys: Set<string> = new Set([
-        '.project.id',
-        '.project.title',
-        '.project.tables.0.id',
-        '.project.tables.0.base_id',
+        '.base.id',
+        '.base.title',
+        '.base.tables.0.id',
+        '.base.tables.0.source_id',
 
         // below are potential bugs
-        '.project.status',
+        '.base.status',
         '.tables.0.views.0.view.tn',
         '.tables.0.views.0.view.tn._tn',
         '.tables.0.views.0.view.title',
@@ -123,7 +123,7 @@ test.describe('Project operations', () => {
         '.tables.2.views.0.view.tn',
         '.tables.2.views.0.view._tn',
         '.tables.2.views.0.view.title',
-        '.bases.0.config',
+        '.sources.0.config',
         '.users.1.roles',
         '.users.2.roles',
       ]);
@@ -135,7 +135,7 @@ test.describe('Project operations', () => {
     });
 
     // cleanup test-data
-    // fix me! skip project cleanup
+    // fix me! skip base cleanup
     // await cleanupTestData(dupeProjectId.title, testProjectId.title);
   });
 });

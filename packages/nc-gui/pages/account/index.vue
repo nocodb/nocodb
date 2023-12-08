@@ -42,7 +42,7 @@ const logout = async () => {
             mode="inline"
           >
             <div
-              v-if="!$route.params.projectType"
+              v-if="!$route.params.baseType"
               v-e="['c:navbar:home']"
               data-testid="nc-noco-brand-icon"
               class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
@@ -104,7 +104,7 @@ const logout = async () => {
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>
-              <template #title>Users</template>
+              <template #title>{{ $t('objects.users') }}</template>
 
               <NcMenuItem
                 v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
@@ -145,7 +145,7 @@ const logout = async () => {
         <!-- Sub Tabs -->
 
         <div class="flex flex-col w-full ml-65">
-          <div class="flex flex-row p-3 items-center">
+          <div class="flex flex-row p-3 items-center h-14">
             <div class="flex-1" />
 
             <LazyGeneralReleaseInfo />
@@ -185,8 +185,15 @@ const logout = async () => {
               </NcDropdown>
             </template>
           </div>
-          <div class="flex flex-col container mx-auto mt-2">
-            <NuxtPage />
+          <div
+            class="flex flex-col container mx-auto"
+            :style="{
+              height: 'calc(100vh - 3.5rem)',
+            }"
+          >
+            <div class="mt-2 h-full">
+              <NuxtPage />
+            </div>
           </div>
         </div>
       </div>

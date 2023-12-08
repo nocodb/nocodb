@@ -2,7 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
+import { MetaInj, computed, inject, ref, resolveComponent, useViewColumnsOrThrow } from '#imports'
 
 const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
   modelValue?: string
@@ -22,9 +22,7 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-const activeView = inject(ActiveViewInj, ref())
-
-const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
 const options = computed<SelectProps['options']>(() =>
   (
@@ -84,13 +82,16 @@ if (!localValue.value && allowEmpty !== true) {
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />
-
-        <div
-          class="min-w-0 text-ellipsis overflow-hidden select-none"
+        <NcTooltip
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          class="max-w-[15rem] truncate select-none"
+          show-on-truncate-only
         >
-          {{ option.label }}
-        </div>
+          <template #title> {{ option.label }}</template>
+          <template #default>
+            {{ option.label }}
+          </template>
+        </NcTooltip>
       </div>
     </a-select-option>
   </NcSelect>

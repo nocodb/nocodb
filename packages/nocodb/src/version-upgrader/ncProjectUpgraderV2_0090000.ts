@@ -17,8 +17,8 @@ import type { NcUpgraderCtx } from './NcUpgrader';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Noco from '~/Noco';
 import Model from '~/models/Model';
-import ProjectUser from '~/models/ProjectUser';
-import Project from '~/models/Project';
+import BaseUser from '~/models/BaseUser';
+import Base from '~/models/Base';
 import User from '~/models/User';
 import Column from '~/models/Column';
 import NcHelp from '~/utils/NcHelp';
@@ -35,18 +35,18 @@ import Audit from '~/models/Audit';
 export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;
 
-  const projects = await ctx.ncMeta.projectList();
+  const bases = await ctx.ncMeta.baseList();
 
-  for (const project of projects) {
-    // const projectConfig = JSON.parse(project.config);
+  for (const base of bases) {
+    // const baseConfig = JSON.parse(base.config);
 
-    const projectBuilder = new NcProjectBuilderEE(
+    const baseBuilder = new NcProjectBuilderEE(
       { ncMeta: ctx.ncMeta } as any,
       { workingEnv: '_noco' } as any,
-      project,
+      base,
     );
 
-    await projectBuilder.init();
+    await baseBuilder.init();
   }
 
   const usersObj = await migrateUsers(ncMeta);
@@ -75,22 +75,22 @@ async function migrateUsers(ncMeta = Noco.ncMeta) {
 
 async function migrateProjects(
   ncMeta = Noco.ncMeta,
-): Promise<{ [projectId: string]: Project }> {
-  const projects = await ncMeta.projectList();
-  const projectsObj: { [projectId: string]: Project } = {};
+): Promise<{ [baseId: string]: Base }> {
+  const bases = await ncMeta.baseList();
+  const projectsObj: { [baseId: string]: Base } = {};
 
-  for (const project of projects) {
-    const projectConfig = JSON.parse(project.config);
+  for (const base of bases) {
+    const baseConfig = JSON.parse(base.config);
 
-    const projectBody = {
-      id: project.id,
-      prefix: projectConfig.prefix,
-      is_meta: !!projectConfig.prefix,
-      title: projectConfig?.title,
-      bases: projectConfig?.envs?._noco?.db?.map((d) => {
+    const baseBody = {
+      id: base.id,
+      prefix: baseConfig.prefix,
+      is_meta: !!baseConfig.prefix,
+      title: baseConfig?.title,
+      sources: baseConfig?.envs?._noco?.db?.map((d) => {
         const inflection = (d && d.meta && d.meta.inflection) || {};
         return {
-          is_meta: !!projectConfig.prefix,
+          is_meta: !!baseConfig.prefix,
           type: d.client,
           config: d,
           inflection_column: inflection.cn,
@@ -98,31 +98,31 @@ async function migrateProjects(
         };
       }),
     };
-    const p = await Project.createProject(projectBody, ncMeta);
+    const p = await Base.createProject(baseBody, ncMeta);
     projectsObj[p.id] = p;
   }
   return projectsObj;
 }
 
 async function migrateProjectUsers(
-  projectsObj: { [p: string]: Project },
+  projectsObj: { [p: string]: Base },
   usersObj: { [p: string]: User | UserType },
   ncMeta = Noco.ncMeta,
 ) {
-  const projectUsers = await ncMeta.metaList(null, null, 'nc_projects_users');
+  const baseUsers = await ncMeta.metaList(null, null, 'nc_projects_users');
 
-  for (const projectUser of projectUsers) {
-    // skip if project is missing
-    if (!(projectUser.project_id in projectsObj)) continue;
+  for (const baseUser of baseUsers) {
+    // skip if base is missing
+    if (!(baseUser.base_id in projectsObj)) continue;
 
     // skip if user is missing
-    if (!(projectUser.user_id in usersObj)) continue;
+    if (!(baseUser.user_id in usersObj)) continue;
 
-    await ProjectUser.insert(
+    await BaseUser.insert(
       {
-        project_id: projectUser.project_id,
-        fk_user_id: projectUser.user_id,
-        roles: projectUser.roles,
+        base_id: baseUser.base_id,
+        fk_user_id: baseUser.user_id,
+        roles: baseUser.roles,
       },
       ncMeta,
     );
@@ -242,7 +242,7 @@ interface LinkToAnotherRecordv1 {
 
 interface ModelMetav1 {
   id: number | string;
-  project_id: string;
+  base_id: string;
   db_alias: string;
   title: string;
   alias: string;
@@ -266,14 +266,14 @@ interface ModelMetav1 {
 }
 
 type ObjModelColumnRefv1 = {
-  [projectId: string]: {
+  [baseId: string]: {
     [tableName: string]: {
       [columnName: string]: Column;
     };
   };
 };
 type ObjModelColumnAliasRefv1 = {
-  [projectId: string]: {
+  [baseId: string]: {
     [tableName: string]: {
       [columnAlias: string]: Column;
     };
@@ -281,19 +281,19 @@ type ObjModelColumnAliasRefv1 = {
 };
 
 type ObjModelRefv1 = {
-  [projectId: string]: {
+  [baseId: string]: {
     [tableName: string]: Model;
   };
 };
 type ObjViewRefv1 = {
-  [projectId: string]: {
+  [baseId: string]: {
     [tableName: string]: {
       [viewName: string]: View;
     };
   };
 };
 type ObjViewQPRefv1 = {
-  [projectId: string]: {
+  [baseId: string]: {
     [tableName: string]: {
       [viewName: string]: QueryParamsv1;
     };
@@ -326,7 +326,7 @@ const filterV1toV2CompOpMap = {
 };
 
 interface Relationv1 {
-  project_id?: string;
+  base_id?: string;
   db_alias?: string;
   tn?: string;
   rtn?: string;
@@ -380,19 +380,19 @@ async function migrateProjectModels(
     if (modelData.type === 'table' || modelData.type === 'view') {
       // parse meta
 
-      const project = await Project.getWithInfo(modelData.project_id, ncMeta);
+      const base = await Base.getWithInfo(modelData.base_id, ncMeta);
 
-      // skip if associated project is not found
-      if (!project) {
+      // skip if associated base is not found
+      if (!base) {
         continue;
       }
 
-      const baseId = project.bases[0].id;
+      const sourceId = base.sources[0].id;
 
       const meta = JSON.parse(modelData.meta);
       const model = await Model.insert(
-        project.id,
-        baseId,
+        base.id,
+        sourceId,
         {
           order: modelData.order,
           table_name: modelData.title,
@@ -405,29 +405,28 @@ async function migrateProjectModels(
       );
       models.push(model);
 
-      const projectModelRefs = (objModelRef[project.id] =
-        objModelRef[project.id] || {});
-      objModelRef[project.id][model.table_name] = model;
+      const baseModelRefs = (objModelRef[base.id] = objModelRef[base.id] || {});
+      objModelRef[base.id][model.table_name] = model;
 
-      objModelAliasRef[project.id] = objModelAliasRef[project.id] || {};
-      objModelAliasRef[project.id][model.title] = model;
+      objModelAliasRef[base.id] = objModelAliasRef[base.id] || {};
+      objModelAliasRef[base.id][model.title] = model;
 
-      const projectModelColumnRefs = (objModelColumnRef[project.id] =
-        objModelColumnRef[project.id] || {});
-      objModelColumnRef[project.id][model.table_name] =
-        objModelColumnRef[project.id][model.table_name] || {};
-      const projectModelColumnAliasRefs = (objModelColumnAliasRef[project.id] =
-        objModelColumnAliasRef[project.id] || {});
-      objModelColumnAliasRef[project.id][model.table_name] =
-        objModelColumnAliasRef[project.id][model.table_name] || {};
+      const baseModelColumnRefs = (objModelColumnRef[base.id] =
+        objModelColumnRef[base.id] || {});
+      objModelColumnRef[base.id][model.table_name] =
+        objModelColumnRef[base.id][model.table_name] || {};
+      const baseModelColumnAliasRefs = (objModelColumnAliasRef[base.id] =
+        objModelColumnAliasRef[base.id] || {});
+      objModelColumnAliasRef[base.id][model.table_name] =
+        objModelColumnAliasRef[base.id][model.table_name] || {};
 
-      objViewRef[project.id] = objViewRef[project.id] || {};
-      objViewRef[project.id][modelData.title] =
-        objViewRef[project.id][modelData.title] || {};
+      objViewRef[base.id] = objViewRef[base.id] || {};
+      objViewRef[base.id][modelData.title] =
+        objViewRef[base.id][modelData.title] || {};
 
-      objViewQPRef[project.id] = objViewQPRef[project.id] || {};
-      objViewQPRef[project.id][modelData.title] =
-        objViewQPRef[project.id][modelData.title] || {};
+      objViewQPRef[base.id] = objViewQPRef[base.id] || {};
+      objViewQPRef[base.id][modelData.title] =
+        objViewQPRef[base.id][modelData.title] || {};
 
       // migrate table columns
       for (const columnMeta of meta.columns) {
@@ -453,8 +452,8 @@ async function migrateProjectModels(
           ncMeta,
         );
 
-        projectModelColumnRefs[model.table_name][column.column_name] =
-          projectModelColumnAliasRefs[model.table_name][column.title] = column;
+        baseModelColumnRefs[model.table_name][column.column_name] =
+          baseModelColumnAliasRefs[model.table_name][column.title] = column;
       }
 
       // migrate table virtual columns
@@ -464,26 +463,24 @@ async function migrateProjectModels(
           virtualRelationColumnInsert.push(async () => {
             const rel = columnMeta.hm || columnMeta.bt || columnMeta.mm;
 
-            const rel_column_id =
-              projectModelColumnRefs?.[rel.tn]?.[rel.cn]?.id;
+            const rel_column_id = baseModelColumnRefs?.[rel.tn]?.[rel.cn]?.id;
 
-            const tnId = projectModelRefs?.[rel.tn]?.id;
+            const tnId = baseModelRefs?.[rel.tn]?.id;
 
             const ref_rel_column_id =
-              projectModelColumnRefs?.[rel.rtn]?.[rel.rcn]?.id;
+              baseModelColumnRefs?.[rel.rtn]?.[rel.rcn]?.id;
 
-            const rtnId = projectModelRefs?.[rel.rtn]?.id;
+            const rtnId = baseModelRefs?.[rel.rtn]?.id;
 
             let fk_mm_model_id;
             let fk_mm_child_column_id;
             let fk_mm_parent_column_id;
 
             if (columnMeta.mm) {
-              fk_mm_model_id = projectModelRefs[rel.vtn].id;
-              fk_mm_child_column_id =
-                projectModelColumnRefs[rel.vtn][rel.vcn].id;
+              fk_mm_model_id = baseModelRefs[rel.vtn].id;
+              fk_mm_child_column_id = baseModelColumnRefs[rel.vtn][rel.vcn].id;
               fk_mm_parent_column_id =
-                projectModelColumnRefs[rel.vtn][rel.vrcn].id;
+                baseModelColumnRefs[rel.vtn][rel.vrcn].id;
             }
 
             let virtual = false;
@@ -518,8 +515,8 @@ async function migrateProjectModels(
 
             const column = await Column.insert<LinkToAnotherRecordColumn>(
               {
-                project_id: project.id,
-                db_alias: baseId,
+                base_id: base.id,
+                db_alias: sourceId,
                 fk_model_id: model.id,
                 // cn: columnMeta.cn,
                 _cn: columnMeta._cn,
@@ -539,8 +536,7 @@ async function migrateProjectModels(
               ncMeta,
             );
 
-            projectModelColumnAliasRefs[model.table_name][column.title] =
-              column;
+            baseModelColumnAliasRefs[model.table_name][column.title] = column;
           });
         } else {
           // other virtual columns insert
@@ -554,10 +550,10 @@ async function migrateProjectModels(
               };
 
               colBody.fk_lookup_column_id =
-                projectModelColumnRefs[columnMeta.lk.ltn][columnMeta.lk.lcn].id;
+                baseModelColumnRefs[columnMeta.lk.ltn][columnMeta.lk.lcn].id;
 
               const columns = Object.values(
-                projectModelColumnAliasRefs[model.table_name],
+                baseModelColumnAliasRefs[model.table_name],
               );
 
               // extract related(virtual relation) column id
@@ -568,15 +564,14 @@ async function migrateProjectModels(
                   if (
                     colOpt.type === columnMeta.lk.type &&
                     colOpt.fk_child_column_id ===
-                      projectModelColumnRefs[columnMeta.lk.tn][columnMeta.lk.cn]
+                      baseModelColumnRefs[columnMeta.lk.tn][columnMeta.lk.cn]
                         .id &&
                     colOpt.fk_parent_column_id ===
-                      projectModelColumnRefs[columnMeta.lk.rtn][
-                        columnMeta.lk.rcn
-                      ].id &&
+                      baseModelColumnRefs[columnMeta.lk.rtn][columnMeta.lk.rcn]
+                        .id &&
                     (colOpt.type !== 'mm' ||
                       colOpt.fk_mm_model_id ===
-                        projectModelRefs[columnMeta.lk.vtn].id)
+                        baseModelRefs[columnMeta.lk.vtn].id)
                   ) {
                     colBody.fk_relation_column_id = col.id;
                     break;
@@ -596,8 +591,7 @@ async function migrateProjectModels(
                 },
                 ncMeta,
               );
-              projectModelColumnAliasRefs[model.table_name][column.title] =
-                column;
+              baseModelColumnAliasRefs[model.table_name][column.title] = column;
             } else if (_columnMeta.rl) {
               //  migrate rollup column
               const columnMeta: Rollupv1 = _columnMeta;
@@ -609,12 +603,10 @@ async function migrateProjectModels(
               };
 
               colBody.fk_rollup_column_id =
-                projectModelColumnRefs[columnMeta.rl.rltn][
-                  columnMeta.rl.rlcn
-                ].id;
+                baseModelColumnRefs[columnMeta.rl.rltn][columnMeta.rl.rlcn].id;
 
               const columns = Object.values(
-                projectModelColumnAliasRefs[model.table_name],
+                baseModelColumnAliasRefs[model.table_name],
               );
 
               // extract related(virtual relation) column id
@@ -625,15 +617,14 @@ async function migrateProjectModels(
                   if (
                     colOpt.type === columnMeta.rl.type &&
                     colOpt.fk_child_column_id ===
-                      projectModelColumnRefs[columnMeta.rl.tn][columnMeta.rl.cn]
+                      baseModelColumnRefs[columnMeta.rl.tn][columnMeta.rl.cn]
                         .id &&
                     colOpt.fk_parent_column_id ===
-                      projectModelColumnRefs[columnMeta.rl.rtn][
-                        columnMeta.rl.rcn
-                      ].id &&
+                      baseModelColumnRefs[columnMeta.rl.rtn][columnMeta.rl.rcn]
+                        .id &&
                     (colOpt.type !== 'mm' ||
                       colOpt.fk_mm_model_id ===
-                        projectModelRefs[columnMeta.rl.vtn].id)
+                        baseModelRefs[columnMeta.rl.vtn].id)
                   ) {
                     colBody.fk_relation_column_id = col.id;
                     break;
@@ -652,8 +643,7 @@ async function migrateProjectModels(
                 },
                 ncMeta,
               );
-              projectModelColumnAliasRefs[model.table_name][column.title] =
-                column;
+              baseModelColumnAliasRefs[model.table_name][column.title] = column;
             } else if (_columnMeta.formula) {
               const columnMeta: Formulav1 = _columnMeta;
               //  migrate formula column
@@ -684,8 +674,7 @@ async function migrateProjectModels(
                 ncMeta,
               );
 
-              projectModelColumnAliasRefs[model.table_name][column.title] =
-                column;
+              baseModelColumnAliasRefs[model.table_name][column.title] = column;
             }
           });
         }
@@ -706,14 +695,14 @@ async function migrateProjectModels(
 
       for (const rel of hmColumns) {
         virtualRelationColumnInsert.push(async () => {
-          const rel_column_id = projectModelColumnRefs?.[rel.tn]?.[rel.cn]?.id;
+          const rel_column_id = baseModelColumnRefs?.[rel.tn]?.[rel.cn]?.id;
 
-          const tnId = projectModelRefs?.[rel.tn]?.id;
+          const tnId = baseModelRefs?.[rel.tn]?.id;
 
           const ref_rel_column_id =
-            projectModelColumnRefs?.[rel.rtn]?.[rel.rcn]?.id;
+            baseModelColumnRefs?.[rel.rtn]?.[rel.rcn]?.id;
 
-          // const rtnId = projectModelRefs?.[rel.rtn]?.id;
+          // const rtnId = baseModelRefs?.[rel.rtn]?.id;
 
           const virtual =
             relations.find(
@@ -726,8 +715,8 @@ async function migrateProjectModels(
 
           const column = await Column.insert<LinkToAnotherRecordColumn>(
             {
-              project_id: project.id,
-              db_alias: baseId,
+              base_id: base.id,
+              db_alias: sourceId,
               fk_model_id: model.id,
               // todo: populate unique name
               _cn: getUniqueColumnAliasName([], `${rel.tn}List`),
@@ -745,7 +734,7 @@ async function migrateProjectModels(
             ncMeta,
           );
 
-          projectModelColumnAliasRefs[model.table_name][column.title] = column;
+          baseModelColumnAliasRefs[model.table_name][column.title] = column;
         });
       }
 
@@ -756,15 +745,13 @@ async function migrateProjectModels(
           (views) => views[0],
         );
 
-        objViewRef[project.id][modelData.title][defaultView.title] =
-          defaultView;
-        objViewQPRef[project.id][modelData.title][defaultView.title] =
-          queryParams;
+        objViewRef[base.id][modelData.title][defaultView.title] = defaultView;
+        objViewQPRef[base.id][modelData.title][defaultView.title] = queryParams;
 
         const viewColumns = await View.getColumns(defaultView.id, ncMeta);
 
         const aliasColArr = Object.entries(
-          projectModelColumnAliasRefs[model.table_name],
+          baseModelColumnAliasRefs[model.table_name],
         ).sort(([a], [b]) => {
           return (
             ((queryParams?.fieldsOrder || [])?.indexOf(a) + 1 || Infinity) -
@@ -861,9 +848,9 @@ async function migrateProjectModelViews(
   ncMeta,
 ) {
   for (const viewData of views) {
-    const project = await Project.getWithInfo(viewData.project_id, ncMeta);
+    const base = await Base.getWithInfo(viewData.base_id, ncMeta);
     // @ts-ignore
-    const baseId = project.bases[0].id;
+    const sourceId = base.sources[0].id;
 
     // @ts-ignore
     let queryParams: QueryParamsv1 = {};
@@ -871,7 +858,7 @@ async function migrateProjectModelViews(
       queryParams = JSON.parse(viewData.query_params);
     }
 
-    objViewQPRef[project.id][viewData.parent_model_title][viewData.title] =
+    objViewQPRef[base.id][viewData.parent_model_title][viewData.title] =
       queryParams;
 
     const insertObj: Partial<
@@ -880,9 +867,9 @@ async function migrateProjectModelViews(
       title: viewData.title,
       show: true,
       order: viewData.view_order,
-      fk_model_id: objModelRef[project.id][viewData.parent_model_title].id,
-      project_id: project.id,
-      base_id: baseId,
+      fk_model_id: objModelRef[base.id][viewData.parent_model_title].id,
+      base_id: base.id,
+      source_id: sourceId,
     };
 
     if (viewData.show_as === 'grid') {
@@ -890,7 +877,7 @@ async function migrateProjectModelViews(
     } else if (viewData.show_as === 'gallery') {
       insertObj.type = ViewTypes.GALLERY;
       insertObj.fk_cover_image_col_id =
-        objModelColumnAliasRef[project.id][viewData.parent_model_title][
+        objModelColumnAliasRef[base.id][viewData.parent_model_title][
           queryParams.coverImageField
         ]?.id;
     } else if (viewData.show_as === 'form') {
@@ -912,12 +899,12 @@ async function migrateProjectModelViews(
     } else throw new Error('not implemented');
 
     const view = await View.insert(insertObj, ncMeta);
-    objViewRef[project.id][viewData.parent_model_title][view.title] = view;
+    objViewRef[base.id][viewData.parent_model_title][view.title] = view;
 
     const viewColumns = await View.getColumns(view.id, ncMeta);
 
     const aliasColArr = Object.entries(
-      objModelColumnAliasRef[project.id][viewData.parent_model_title],
+      objModelColumnAliasRef[base.id][viewData.parent_model_title],
     ).sort(([a], [b]) => {
       return (
         ((queryParams?.fieldsOrder || [])?.indexOf(a) + 1 || Infinity) -
@@ -995,12 +982,10 @@ async function migrateViewsParams(
   }: MigrateCtxV1,
   ncMeta,
 ) {
-  for (const projectId of Object.keys(objViewRef)) {
-    for (const tn of Object.keys(objViewRef[projectId])) {
-      for (const [viewTitle, view] of Object.entries(
-        objViewRef[projectId][tn],
-      )) {
-        const queryParams = objViewQPRef[projectId][tn][viewTitle];
+  for (const baseId of Object.keys(objViewRef)) {
+    for (const tn of Object.keys(objViewRef[baseId])) {
+      for (const [viewTitle, view] of Object.entries(objViewRef[baseId][tn])) {
+        const queryParams = objViewQPRef[baseId][tn][viewTitle];
 
         if (
           queryParams?.viewStatus?.type &&
@@ -1022,8 +1007,8 @@ async function migrateViewsParams(
             {
               fk_column_id: sort.field
                 ? (
-                    objModelColumnAliasRef[projectId]?.[tn]?.[sort.field] ||
-                    objModelColumnRef[projectId]?.[tn]?.[sort.field]
+                    objModelColumnAliasRef[baseId]?.[tn]?.[sort.field] ||
+                    objModelColumnRef[baseId]?.[tn]?.[sort.field]
                   )?.id || null
                 : null,
               fk_view_id: view.id,
@@ -1039,8 +1024,8 @@ async function migrateViewsParams(
             {
               fk_column_id: filter.field
                 ? (
-                    objModelColumnAliasRef?.[projectId]?.[tn]?.[filter.field] ||
-                    objModelColumnRef?.[projectId]?.[tn]?.[filter.field]
+                    objModelColumnAliasRef?.[baseId]?.[tn]?.[filter.field] ||
+                    objModelColumnRef?.[baseId]?.[tn]?.[filter.field]
                   )?.id || null
                 : null,
               fk_view_id: view.id,
@@ -1064,7 +1049,7 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
     disabled: boolean;
     tn: string;
     parent_model_title: string;
-    project_id: string;
+    base_id: string;
   }> = await ncMeta.metaList(null, null, 'nc_disabled_models_for_role');
 
   for (const acl of uiAclList) {
@@ -1076,17 +1061,17 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
       // if missing parent model name skip the view acl migration
       if (!acl.parent_model_title) continue;
       fk_view_id =
-        ctx.objViewRef[acl.project_id]?.[
+        ctx.objViewRef[acl.base_id]?.[
           (
-            ctx.objModelRef?.[acl.project_id]?.[acl.parent_model_title] ||
-            ctx.objModelAliasRef?.[acl.project_id]?.[acl.parent_model_title]
+            ctx.objModelRef?.[acl.base_id]?.[acl.parent_model_title] ||
+            ctx.objModelAliasRef?.[acl.base_id]?.[acl.parent_model_title]
           )?.table_name
         ]?.[acl.title]?.id;
     } else {
       fk_view_id =
-        ctx.objViewRef?.[acl.project_id]?.[acl.title]?.[
-          ctx.objModelRef?.[acl.project_id]?.[acl.title]?.title
-        ].id || ctx.objViewRef[acl.project_id]?.[acl.title]?.[acl.title]?.id;
+        ctx.objViewRef?.[acl.base_id]?.[acl.title]?.[
+          ctx.objModelRef?.[acl.base_id]?.[acl.title]?.title
+        ].id || ctx.objViewRef[acl.base_id]?.[acl.title]?.[acl.title]?.id;
     }
 
     // if view id missing skip ui acl view migration
@@ -1110,7 +1095,7 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
     view_id: string;
     password: string;
     view_name: string;
-    project_id: string;
+    base_id: string;
   }> = await ncMeta.metaList(null, null, 'nc_shared_views');
 
   for (const sharedView of sharedViews) {
@@ -1121,20 +1106,18 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
 
     if (sharedView.view_type !== 'table' && sharedView.view_type !== 'view') {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id]?.[
+        ctx.objViewRef[sharedView.base_id]?.[
           (
-            ctx.objModelRef?.[sharedView.project_id]?.[sharedView.model_name] ||
-            ctx.objModelAliasRef?.[sharedView.project_id]?.[
-              sharedView.model_name
-            ]
+            ctx.objModelRef?.[sharedView.base_id]?.[sharedView.model_name] ||
+            ctx.objModelAliasRef?.[sharedView.base_id]?.[sharedView.model_name]
           )?.title
         ]?.[sharedView.view_name]?.id;
     } else {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
-          ctx.objModelRef[sharedView.project_id]?.[sharedView.model_name]?.title
+        ctx.objViewRef[sharedView.base_id]?.[sharedView.model_name]?.[
+          ctx.objModelRef[sharedView.base_id]?.[sharedView.model_name]?.title
         ]?.id ||
-        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
+        ctx.objViewRef[sharedView.base_id]?.[sharedView.model_name]?.[
           sharedView.model_name
         ]?.id;
     }
@@ -1158,13 +1141,13 @@ async function migrateSharedBase(ncMeta: any) {
     roles: string;
     shared_base_id: string;
     enabled: boolean;
-    project_id: string;
+    base_id: string;
     password: string;
   }> = await ncMeta.metaList(null, null, 'nc_shared_bases');
 
   for (const sharedBase of sharedBases) {
-    await Project.update(
-      sharedBase.project_id,
+    await Base.update(
+      sharedBase.base_id,
       {
         uuid: sharedBase.shared_base_id,
         password: sharedBase.password,
@@ -1201,7 +1184,7 @@ async function migratePlugins(ncMeta: any) {
 
 async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
   const hooks: Array<{
-    project_id: string;
+    base_id: string;
     db_alias: string;
     title: string;
     description: string;
@@ -1224,15 +1207,15 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
 
   for (const hookMeta of hooks) {
     if (
-      !hookMeta.project_id ||
-      !ctx.objModelRef[hookMeta?.project_id]?.[hookMeta?.tn]
+      !hookMeta.base_id ||
+      !ctx.objModelRef[hookMeta?.base_id]?.[hookMeta?.tn]
     ) {
       continue;
     }
     const hook = await Hook.insert(
       {
-        fk_model_id: ctx.objModelRef[hookMeta.project_id][hookMeta.tn].id,
-        project_id: hookMeta.project_id,
+        fk_model_id: ctx.objModelRef[hookMeta.base_id][hookMeta.tn].id,
+        base_id: hookMeta.base_id,
         title: hookMeta.title,
         description: hookMeta.description,
         env: hookMeta.env,
@@ -1262,10 +1245,10 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
         {
           fk_column_id: filter.field
             ? (
-                ctx.objModelColumnRef[hookMeta.project_id][hookMeta.tn][
+                ctx.objModelColumnRef[hookMeta.base_id][hookMeta.tn][
                   filter.field
                 ] ||
-                ctx.objModelColumnAliasRef[hookMeta.project_id][hookMeta.tn][
+                ctx.objModelColumnAliasRef[hookMeta.base_id][hookMeta.tn][
                   filter.field
                 ]
               ).id
@@ -1283,13 +1266,13 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
 
 async function migrateAutitLog(
   ctx: MigrateCtxV1,
-  projectsObj: { [projectId: string]: Project },
+  projectsObj: { [baseId: string]: Base },
   ncMeta: any,
 ) {
   const audits: Array<{
     user: string;
     ip: string;
-    project_id: string;
+    base_id: string;
     db_alias: string;
     model_name: string;
     model_id: string;
@@ -1301,13 +1284,13 @@ async function migrateAutitLog(
   }> = await ncMeta.metaList(null, null, 'nc_audit');
 
   for (const audit of audits) {
-    // skip deleted projects audit
-    if (!(audit.project_id in projectsObj)) continue;
+    // skip deleted bases audit
+    if (!(audit.base_id in projectsObj)) continue;
 
     const insertObj: any = {
       user: audit.user,
       ip: audit.ip,
-      project_id: audit.project_id,
+      base_id: audit.base_id,
       row_id: audit.model_id,
       op_type: audit.op_type,
       op_sub_type: audit.op_sub_type,
@@ -1318,13 +1301,13 @@ async function migrateAutitLog(
 
     if (audit.model_name) {
       const model =
-        ctx.objModelAliasRef?.[audit.project_id]?.[audit.model_name] ||
-        ctx.objModelRef?.[audit.project_id]?.[audit.model_name] ||
+        ctx.objModelAliasRef?.[audit.base_id]?.[audit.model_name] ||
+        ctx.objModelRef?.[audit.base_id]?.[audit.model_name] ||
         // extract model by using model_id property from audit
-        ctx.objModelRef?.[audit.project_id]?.[
+        ctx.objModelRef?.[audit.base_id]?.[
           ctx.metas?.find((m) => m.id == audit.model_id)?.title
         ] ||
-        ctx.objModelAliasRef?.[audit.project_id]?.[
+        ctx.objModelAliasRef?.[audit.base_id]?.[
           ctx.metas?.find((m) => m.id == audit.model_id)?.alias
         ];
 

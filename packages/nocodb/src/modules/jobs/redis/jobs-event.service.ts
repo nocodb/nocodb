@@ -6,35 +6,28 @@ import {
 } from '@nestjs/bull';
 import { Job } from 'bull';
 import boxen from 'boxen';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { JobsRedisService } from './jobs-redis.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Logger } from '@nestjs/common';
 import { JobEvents, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
 
 @Processor(JOBS_QUEUE)
 export class JobsEventService {
-  constructor(
-    private jobsRedisService: JobsRedisService,
-    private eventEmitter: EventEmitter2,
-  ) {}
+  protected logger = new Logger(JobsEventService.name);
+
+  constructor(private eventEmitter: EventEmitter2) {}
 
   @OnQueueActive()
   onActive(job: Job) {
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.jobsRedisService.publish(`jobs-${job.id.toString()}`, {
-        cmd: JobEvents.STATUS,
-        id: job.id.toString(),
-        status: JobStatus.ACTIVE,
-      });
-    } else {
-      this.eventEmitter.emit(JobEvents.STATUS, {
-        id: job.id.toString(),
-        status: JobStatus.ACTIVE,
-      });
-    }
+    this.logger.log(`Processing job ${job.id} of type ${job.name}`);
+    this.eventEmitter.emit(JobEvents.STATUS, {
+      id: job.id.toString(),
+      status: JobStatus.ACTIVE,
+    });
   }
 
   @OnQueueFailed()
   onFailed(job: Job, error: Error) {
+    this.logger.error(`Job ${job.id} failed with error ${error.message}`);
     console.error(
       boxen(
         `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
@@ -46,62 +39,26 @@ export class JobsEventService {
       ),
     );
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.jobsRedisService.publish(`jobs-${job.id.toString()}`, {
-        cmd: JobEvents.STATUS,
-        id: job.id.toString(),
-        status: JobStatus.FAILED,
-        data: {
-          error: {
-            message: error?.message,
-          },
+    this.eventEmitter.emit(JobEvents.STATUS, {
+      id: job.id.toString(),
+      status: JobStatus.FAILED,
+      data: {
+        error: {
+          message: error?.message,
         },
-      });
-    } else {
-      this.jobsRedisService.unsubscribe(`jobs-${job.id.toString()}`);
-      this.eventEmitter.emit(JobEvents.STATUS, {
-        id: job.id.toString(),
-        status: JobStatus.FAILED,
-        data: {
-          error: {
-            message: error?.message,
-          },
-        },
-      });
-    }
+      },
+    });
   }
 
   @OnQueueCompleted()
   onCompleted(job: Job, data: any) {
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.jobsRedisService.publish(`jobs-${job.id.toString()}`, {
-        cmd: JobEvents.STATUS,
-        id: job.id.toString(),
-        status: JobStatus.COMPLETED,
-        data: {
-          result: data,
-        },
-      });
-    } else {
-      this.jobsRedisService.unsubscribe(`jobs-${job.id.toString()}`);
-      this.eventEmitter.emit(JobEvents.STATUS, {
-        id: job.id.toString(),
-        status: JobStatus.COMPLETED,
-        data: {
-          result: data,
-        },
-      });
-    }
-  }
-
-  @OnEvent(JobEvents.LOG)
-  onLog(data: { id: string; data: { message: string } }) {
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
-      this.jobsRedisService.publish(`jobs-${data.id}`, {
-        cmd: JobEvents.LOG,
-        id: data.id,
-        data: data.data,
-      });
-    }
+    this.logger.log(`Job ${job.id} completed`);
+    this.eventEmitter.emit(JobEvents.STATUS, {
+      id: job.id.toString(),
+      status: JobStatus.COMPLETED,
+      data: {
+        result: data,
+      },
+    });
   }
 }

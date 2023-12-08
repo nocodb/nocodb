@@ -3,6 +3,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 // @ts-ignore
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
+import { SentryModule } from '@ntegral/nestjs-sentry';
 import type { MiddlewareConsumer } from '@nestjs/common';
 import { GlobalExceptionFilter } from '~/filters/global-exception/global-exception.filter';
 import { GlobalMiddleware } from '~/middlewares/global/global.middleware';
@@ -10,7 +11,6 @@ import { GuiMiddleware } from '~/middlewares/gui/gui.middleware';
 import { DatasModule } from '~/modules/datas/datas.module';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { AuthService } from '~/services/auth.service';
-import { TestModule } from '~/modules/test/test.module';
 import { GlobalModule } from '~/modules/global/global.module';
 import { LocalStrategy } from '~/strategies/local.strategy';
 import { AuthTokenStrategy } from '~/strategies/authtoken.strategy/authtoken.strategy';
@@ -25,13 +25,13 @@ import { HookHandlerService } from '~/services/hook-handler.service';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { UsersModule } from '~/modules/users/users.module';
 import { AuthModule } from '~/modules/auth/auth.module';
+import { packageInfo } from '~/utils/packageVersion';
 
 export const ceModuleConfig = {
   imports: [
     GlobalModule,
     UsersModule,
     AuthModule,
-    ...(process.env['PLAYWRIGHT_TEST'] === 'true' ? [TestModule] : []),
     MetasModule,
     DatasModule,
     EventEmitterModule,
@@ -41,7 +41,17 @@ export const ceModuleConfig = {
       load: [() => appConfig],
       isGlobal: true,
     }),
-    TestModule,
+    ...(process.env.NC_SENTRY_DSN
+      ? [
+          SentryModule.forRoot({
+            dsn: process.env.NC_SENTRY_DSN,
+            debug: false,
+            environment: process.env.NODE_ENV,
+            release: packageInfo.version, // must create a release in sentry.io dashboard
+            logLevels: ['debug'], //based on sentry.io loglevel //
+          }),
+        ]
+      : []),
   ],
   providers: [
     AuthService,

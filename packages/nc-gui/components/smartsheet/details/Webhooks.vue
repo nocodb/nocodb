@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import type { HookType } from 'nocodb-sdk'
+import { LoadingOutlined } from '@ant-design/icons-vue'
+
 // const showWebhookDrawer = ref(false)
 
 const router = useRouter()
@@ -13,6 +15,13 @@ const { activeView } = storeToRefs(useViewsStore())
 const modalDeleteButtonRef = ref(null)
 
 const { activeTable } = storeToRefs(useTablesStore())
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '2.5rem',
+  },
+  spin: true,
+})
 
 /*
 const eventList = ref<Record<string, any>[]>([
@@ -277,6 +286,13 @@ watch(
         <WebhookEditor :key="selectedHookId" :hook="selectedHook" @close="onEditorClose" @delete="showDeleteModal = true" />
       </div>
     </div>
+  </div>
+  <div
+    v-else
+    class="h-full w-full flex flex-col justify-center items-center"
+    style="height: calc(100vh - (var(--topbar-height) * 2))"
+  >
+    <a-spin size="large" :indicator="indicator" />
   </div>
   <GeneralDeleteModal v-model:visible="showDeleteModal" :entity-name="$t('objects.webhook')" :on-delete="deleteHook">
     <template #entity-preview>

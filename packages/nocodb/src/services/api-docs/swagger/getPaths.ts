@@ -1,17 +1,17 @@
 import { getModelPaths, getViewPaths } from './templates/paths';
-import type { Model, Project } from '~/models';
+import type { Base, Model } from '~/models';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
 import Noco from '~/Noco';
 
 export default async function getPaths(
   {
-    project,
+    base,
     model,
     columns,
     views,
   }: {
-    project: Project;
+    base: Base;
     model: Model;
     columns: SwaggerColumn[];
     views: SwaggerView[];
@@ -23,7 +23,7 @@ export default async function getPaths(
     type: model.type,
     orgs: 'v1',
     columns,
-    projectName: project.id,
+    baseName: base.id,
   });
 
   for (const { view, columns: viewColumns } of views) {
@@ -38,7 +38,7 @@ export default async function getPaths(
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,
-        projectName: project.id,
+        baseName: base.id,
       }),
     );
   }

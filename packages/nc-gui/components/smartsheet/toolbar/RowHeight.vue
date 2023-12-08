@@ -2,7 +2,7 @@
 import type { GridType } from 'nocodb-sdk'
 import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc, useUndoRedo } from '#imports'
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const view = inject(ActiveViewInj, ref())
 
@@ -65,7 +65,7 @@ useMenuCloseOnEsc(open)
     </div>
     <template #overlay>
       <div
-        class="w-full bg-white shadow-lg menu-filter-dropdown border-1 border-gray-50 rounded-md overflow-hidden"
+        class="w-full bg-white shadow-lg menu-filter-dropdown border-1 border-gray-200 rounded-md overflow-hidden"
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>

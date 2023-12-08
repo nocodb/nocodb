@@ -39,7 +39,7 @@ hooks.hook('page:finish', () => {
     <a-layout class="!flex-col h-screen">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
-          v-if="!route.params.projectType"
+          v-if="!route.params.baseType"
           v-e="['c:navbar:home']"
           data-testid="nc-noco-brand-icon"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
@@ -69,7 +69,7 @@ hooks.hook('page:finish', () => {
         <LazyGeneralReleaseInfo />
 
         <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
-          <template #title> Switch language</template>
+          <template #title>{{ $t('title.switchLanguage') }}</template>
 
           <div class="flex pr-4 items-center">
             <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
@@ -88,7 +88,7 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>
@@ -97,24 +97,22 @@ hooks.hook('page:finish', () => {
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
+                <!-- <a-menu-divider class="!m-0" />
+                <a-menu-item v-if="isUIAllowed('superAdminAppStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
-                    class="nc-project-menu-item group !no-underline"
+                    class="nc-base-menu-item group !no-underline"
                     to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-
-                    &lt;!&ndash; todo: i18n &ndash;&gt;
-                    <span class="prose group-hover:text-primary">Account management</span>
+                    <span class="prose group-hover:text-primary">{{ $t('title.accountManagement') }}</span>
                   </nuxt-link>
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" /> -->
 
                 <a-menu-item key="1" class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                  <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                  <div v-e="['a:navbar:user:sign-out']" class="nc-base-menu-item group" @click="logout">
                     <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary">
@@ -129,9 +127,9 @@ hooks.hook('page:finish', () => {
       </a-layout-header>
 
       <a-tooltip v-if="!appInfo.ee" placement="bottom">
-        <template #title> Switch language</template>
+        <template #title>{{ $t('title.switchLanguage') }}</template>
 
-        <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId && !route.params.erdUuid" class="nc-lang-btn" />
+        <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">

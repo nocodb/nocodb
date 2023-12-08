@@ -22,13 +22,13 @@ export enum WorkspaceUserRoles {
 }
 
 export enum AppEvents {
-  PROJECT_CREATE = 'project.create',
-  PROJECT_INVITE = 'project.invite',
-  PROJECT_USER_UPDATE = 'project.user.update',
-  PROJECT_USER_RESEND_INVITE = 'project.user.resend.invite',
-  PROJECT_DELETE = 'project.delete',
-  PROJECT_UPDATE = 'project.update',
-  PROJECT_CLONE = 'project.clone',
+  PROJECT_CREATE = 'base.create',
+  PROJECT_INVITE = 'base.invite',
+  PROJECT_USER_UPDATE = 'base.user.update',
+  PROJECT_USER_RESEND_INVITE = 'base.user.resend.invite',
+  PROJECT_DELETE = 'base.delete',
+  PROJECT_UPDATE = 'base.update',
+  PROJECT_CLONE = 'base.clone',
 
   WELCOME = 'app.welcome',
 
@@ -84,9 +84,9 @@ export enum AppEvents {
   API_TOKEN_DELETE = 'api.token.delete',
   IMAGE_UPLOAD = 'image.upload',
 
-  BASE_CREATE = 'base.create',
-  BASE_DELETE = 'base.delete',
-  BASE_UPDATE = 'base.update',
+  BASE_CREATE = 'source.create',
+  BASE_DELETE = 'source.delete',
+  BASE_UPDATE = 'source.update',
 
   FORM_COLUMN_UPDATE = 'form.column.update',
 
@@ -157,24 +157,25 @@ export enum WorkspaceStatus {
 
 export enum WorkspacePlan {
   FREE = 'free',
-  PAID = 'paid',
+  TEAM = 'team',
+  BUSINESS = 'business',
 }
 
 export const RoleLabels = {
-  [WorkspaceUserRoles.OWNER]: 'Owner',
-  [WorkspaceUserRoles.CREATOR]: 'Creator',
-  [WorkspaceUserRoles.EDITOR]: 'Editor',
-  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
-  [WorkspaceUserRoles.VIEWER]: 'Viewer',
-  [ProjectRoles.OWNER]: 'Owner',
-  [ProjectRoles.CREATOR]: 'Creator',
-  [ProjectRoles.EDITOR]: 'Editor',
-  [ProjectRoles.COMMENTER]: 'Commenter',
-  [ProjectRoles.VIEWER]: 'Viewer',
-  [ProjectRoles.NO_ACCESS]: 'No Access',
-  [OrgUserRoles.SUPER_ADMIN]: 'Super',
-  [OrgUserRoles.CREATOR]: 'Creator',
-  [OrgUserRoles.VIEWER]: 'Viewer',
+  [WorkspaceUserRoles.OWNER]: 'owner',
+  [WorkspaceUserRoles.CREATOR]: 'creator',
+  [WorkspaceUserRoles.EDITOR]: 'editor',
+  [WorkspaceUserRoles.COMMENTER]: 'commenter',
+  [WorkspaceUserRoles.VIEWER]: 'viewer',
+  [ProjectRoles.OWNER]: 'owner',
+  [ProjectRoles.CREATOR]: 'creator',
+  [ProjectRoles.EDITOR]: 'editor',
+  [ProjectRoles.COMMENTER]: 'commenter',
+  [ProjectRoles.VIEWER]: 'viewer',
+  [ProjectRoles.NO_ACCESS]: 'noaccess',
+  [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
+  [OrgUserRoles.CREATOR]: 'creator',
+  [OrgUserRoles.VIEWER]: 'viewer',
 };
 
 export const RoleColors = {
@@ -188,7 +189,7 @@ export const RoleColors = {
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
-  [OrgUserRoles.SUPER_ADMIN]: 'purple',
+  [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
@@ -196,19 +197,19 @@ export const RoleColors = {
 
 export const RoleDescriptions = {
   [WorkspaceUserRoles.OWNER]: 'Full access to workspace',
-  [WorkspaceUserRoles.CREATOR]: 'Can create projects, sync tables, views, setup web-hooks and more',
-  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace projects',
-  [WorkspaceUserRoles.COMMENTER]: 'Can view and comment data in workspace projects',
-  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace projects',
-  [ProjectRoles.OWNER]: 'Full access to project',
+  [WorkspaceUserRoles.CREATOR]: 'Can create bases, sync tables, views, setup web-hooks and more',
+  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace bases',
+  [WorkspaceUserRoles.COMMENTER]: 'Can view and comment data in workspace bases',
+  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace bases',
+  [ProjectRoles.OWNER]: 'Full access to base',
   [ProjectRoles.CREATOR]: 'Can create tables, views, setup webhook, invite collaborators and more',
   [ProjectRoles.EDITOR]: 'Can view, add & modify records, add comments on them',
   [ProjectRoles.COMMENTER]: 'Can view records and add comment on them',
   [ProjectRoles.VIEWER]: 'Can only view records',
-  [ProjectRoles.NO_ACCESS]: 'Cannot access this project',
+  [ProjectRoles.NO_ACCESS]: 'Cannot access this base',
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
-  [OrgUserRoles.CREATOR]: 'Can create projects, sync tables, views, setup web-hooks and more',
-  [OrgUserRoles.VIEWER]: 'Can only view projects',
+  [OrgUserRoles.CREATOR]: 'Can create bases, sync tables, views, setup web-hooks and more',
+  [OrgUserRoles.VIEWER]: 'Can only view bases',
 };
 
 export const RoleIcons = {
@@ -223,7 +224,7 @@ export const RoleIcons = {
   [ProjectRoles.COMMENTER]: 'role_commenter',
   [ProjectRoles.VIEWER]: 'role_viewer',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
-  [OrgUserRoles.SUPER_ADMIN]: 'role_owner',
+  [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
 };
@@ -254,3 +255,29 @@ export const OrderedProjectRoles = [
   ProjectRoles.VIEWER,
   ProjectRoles.NO_ACCESS,
 ];
+
+export enum PlanLimitTypes {
+  // PER USER
+  FREE_WORKSPACE_LIMIT = 'FREE_WORKSPACE_LIMIT',
+
+  // PER WORKSPACE
+  WORKSPACE_USER_LIMIT = 'WORKSPACE_USER_LIMIT',
+  WORKSPACE_ROW_LIMIT = 'WORKSPACE_ROW_LIMIT',
+  BASE_LIMIT = 'BASE_LIMIT',
+
+  // PER BASE
+  SOURCE_LIMIT = 'SOURCE_LIMIT',
+
+  // PER BASE
+  TABLE_LIMIT = 'TABLE_LIMIT',
+
+  // PER TABLE
+  COLUMN_LIMIT = 'COLUMN_LIMIT',
+  TABLE_ROW_LIMIT = 'TABLE_ROW_LIMIT',
+  WEBHOOK_LIMIT = 'WEBHOOK_LIMIT',
+  VIEW_LIMIT = 'VIEW_LIMIT',
+
+  // PER VIEW
+  FILTER_LIMIT = 'FILTER_LIMIT',
+  SORT_LIMIT = 'SORT_LIMIT',
+}

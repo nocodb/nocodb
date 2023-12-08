@@ -6,19 +6,27 @@ import {
   Get,
   HttpCode,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Controller()
 export class UtilsController {
   private version: string;
 
-  constructor(protected readonly utilsService: UtilsService) {}
+  constructor(
+    protected readonly utilsService: UtilsService,
+    protected readonly telemetryService: TelemetryService,
+  ) {}
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/version')
   async getVersion() {
     if (process.env.NC_CLOUD !== 'true') {
@@ -35,18 +43,28 @@ export class UtilsController {
     return this.version;
   }
 
-  @UseGuards(GlobalGuard)
-  @Post('/api/v1/db/meta/connection/test')
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Post(['/api/v1/db/meta/connection/test', '/api/v2/meta/connection/test'])
   @Acl('testConnection', {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any) {
+  async testConnection(@Body() body: any, @Req() _req: Request) {
+    body.pool = {
+      min: 0,
+      max: 1,
+    };
+
     return await this.utilsService.testConnection({ body });
   }
 
-  @Get('/api/v1/db/meta/nocodb/info')
-  async appInfo(@Request() req) {
+  @UseGuards(PublicApiLimiterGuard)
+  @Get([
+    '/api/v1/db/meta/nocodb/info',
+    '/api/v2/meta/nocodb/info',
+    '/api/v1/meta/nocodb/info',
+  ])
+  async appInfo(@Req() req: Request) {
     return await this.utilsService.appInfo({
       req: {
         ncSiteUrl: (req as any).ncSiteUrl,
@@ -59,12 +77,14 @@ export class UtilsController {
     return await this.utilsService.appHealth();
   }
 
-  @Post('/api/v1/db/meta/axiosRequestMake')
+  @UseGuards(PublicApiLimiterGuard)
+  @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v2/meta/axiosRequestMake'])
   @HttpCode(200)
   async axiosRequestMake(@Body() body: any) {
     return await this.utilsService.axiosRequestMake({ body });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Post('/api/v1/url_to_config')
   @HttpCode(200)
   async urlToDbConfig(@Body() body: any) {
@@ -73,6 +93,7 @@ export class UtilsController {
     });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/aggregated-meta-info')
   async aggregatedMetaInfo() {
     // todo: refactor

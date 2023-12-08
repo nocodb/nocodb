@@ -4,7 +4,7 @@ import { iconMap, useI18n } from '#imports'
 const { locale } = useI18n()
 
 const open = (url: string) => {
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const isZhLang = computed(() => locale.value.startsWith('zh'))

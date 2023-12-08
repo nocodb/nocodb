@@ -3,24 +3,29 @@ import {
   HttpCode,
   Inject,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SyncSource } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
-@UseGuards(GlobalGuard)
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AtImportController {
   constructor(@Inject('JobsService') private readonly jobsService) {}
 
-  @Post('/api/v1/db/meta/syncs/:syncId/trigger')
+  @Post([
+    '/api/v1/db/meta/syncs/:syncId/trigger',
+    '/api/v2/meta/syncs/:syncId/trigger',
+  ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async triggerSync(@Request() req) {
+  async triggerSync(@Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find((j) => j.data.syncId === req.params.syncId);
 
@@ -44,20 +49,28 @@ export class AtImportController {
     const job = await this.jobsService.add(JobTypes.AtImport, {
       syncId: req.params.syncId,
       ...(syncSource?.details || {}),
-      projectId: syncSource.project_id,
       baseId: syncSource.base_id,
+      sourceId: syncSource.source_id,
       authToken: '',
       baseURL,
       user: user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
     });
 
     return { id: job.id };
   }
 
-  @Post('/api/v1/db/meta/syncs/:syncId/abort')
+  @Post([
+    '/api/v1/db/meta/syncs/:syncId/abort',
+    '/api/v2/meta/syncs/:syncId/abort',
+  ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async abortImport(@Request() _) {
+  async abortImport() {
     return {};
   }
 }

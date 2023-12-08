@@ -3,18 +3,20 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
-import { isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
 test.describe('View', () => {
+  if (enableQuickRun()) test.skip();
+
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
     toolbar = toolbar = dashboard.kanban.toolbar;
     topbar = dashboard.kanban.topbar;
 
@@ -226,7 +228,7 @@ test.describe('View', () => {
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
-      title: 'Untitled Kanban',
+      title: 'Kanban',
       index: 1,
     });
     const kanban = dashboard.kanban;
@@ -252,12 +254,12 @@ test.describe('View', () => {
       });
 
     await dashboard.viewSidebar.changeViewIcon({
-      title: 'Untitled Kanban',
+      title: 'Kanban',
       icon: 'american-football',
       iconDisplay: '🏈',
     });
 
-    await dashboard.viewSidebar.deleteView({ title: 'Untitled Kanban' });
+    await dashboard.viewSidebar.deleteView({ title: 'Kanban' });
     ///////////////////////////////////////////////
 
     await dashboard.viewSidebar.openView({ title: 'Film Kanban' });

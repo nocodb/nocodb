@@ -3,14 +3,13 @@ import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
 import type { Nullable, Row } from '#imports'
 import {
-  dateFormats,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
@@ -20,14 +19,13 @@ import {
   message,
   reactive,
   ref,
-  timeFormats,
   unref,
+  useBase,
   useCopy,
   useEventListener,
   useGlobal,
   useI18n,
   useMetas,
-  useProject,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -61,7 +59,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql, isPg } = useProject()
+  const { isMysql, isPg } = useBase()
 
   const editEnabled = ref(_editEnabled)
 
@@ -116,6 +114,8 @@ export function useMultiSelect(
 
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
+    } else {
+      textToCopy = textToCopy.toString()
     }
 
     if (columnObj.uidt === UITypes.Formula) {
@@ -131,7 +131,7 @@ export function useMultiSelect(
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
 
-      const isMySQL = isMysql(columnObj.base_id)
+      const isMySQL = isMysql(columnObj.source_id)
 
       let d = dayjs(textToCopy)
 
@@ -153,13 +153,27 @@ export function useMultiSelect(
       }
     }
 
+    if (columnObj.uidt === UITypes.Date) {
+      const dateFormat = columnObj.meta?.date_format
+      if (dateFormat && isDateMonthFormat(dateFormat)) {
+        // any date month format (e.g. YYYY-MM) couldn't be stored in database
+        // with date type since it is not a valid date
+        // therefore, we reformat the value here to display with the formatted one
+        // e.g. 2023-06-03 -> 2023-06
+        textToCopy = dayjs(textToCopy, dateFormat).format(dateFormat)
+      } else {
+        // e.g. 2023-06-03 (in DB) -> 03/06/2023 (in UI)
+        textToCopy = dayjs(textToCopy, 'YYYY-MM-DD').format(dateFormat)
+      }
+    }
+
     if (columnObj.uidt === UITypes.Time) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
 
-      const isMySQL = isMysql(columnObj.base_id)
-      const isPostgres = isPg(columnObj.base_id)
+      const isMySQL = isMysql(columnObj.source_id)
+      const isPostgres = isPg(columnObj.source_id)
 
       let d = dayjs(textToCopy)
 
@@ -184,7 +198,7 @@ export function useMultiSelect(
     }
 
     if (columnObj.uidt === UITypes.LongText) {
-      textToCopy = `"${textToCopy.replace(/\"/g, '""')}"`
+      textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
     }
 
     return textToCopy
@@ -202,7 +216,7 @@ export function useMultiSelect(
         const value = valueToCopy(row, col)
         copyRow += `<td>${value}</td>`
         text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
-        jsonRow.push(col.uidt === UITypes.LongText ? value.replace(/^"/, '').replace(/"$/, '').replace(/""/g, '"') : value)
+        jsonRow.push(value)
       })
       html += `${copyRow}</tr>`
       if (rows.length - 1 !== i) {
@@ -432,7 +446,7 @@ export function useMultiSelect(
                 column: colObj,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
               true,
             )
 
@@ -484,6 +498,10 @@ export function useMultiSelect(
       return true
     }
 
+    if (isExpandedCellInputExist()) {
+      return
+    }
+
     if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
       return
     }
@@ -526,6 +544,7 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
+      case 'Backspace':
         e.preventDefault()
 
         if (selectedRange.isSingleCell()) {
@@ -680,6 +699,14 @@ export function useMultiSelect(
             }
           }
 
+          // Handle escape
+          if (e.key === 'Escape') {
+            selectedRange.clear()
+
+            activeCell.col = null
+            activeCell.row = null
+          }
+
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
           }
@@ -737,11 +764,13 @@ export function useMultiSelect(
 
         const clipboardMatrix = parsedClipboard.data as string[][]
 
-        const pasteMatrixRows = clipboardMatrix.length
+        const selectionRowCount = Math.max(clipboardMatrix.length, selectedRange.end.row - selectedRange.start.row + 1)
+
+        const pasteMatrixRows = selectionRowCount
         const pasteMatrixCols = clipboardMatrix[0].length
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
-        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + pasteMatrixRows)
+        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
         const propsToPaste: string[] = []
 
         let pastedRows = 0
@@ -765,12 +794,13 @@ export function useMultiSelect(
 
             const pasteValue = convertCellData(
               {
-                value: clipboardMatrix[i][j],
+                // Repeat the clipboard data array if the matrix is smaller than the selection
+                value: clipboardMatrix[i % clipboardMatrix.length][j],
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
               true,
             )
 
@@ -805,7 +835,7 @@ export function useMultiSelect(
                 column: columnObj,
                 appInfo: unref(appInfo),
               },
-              isMysql(meta.value?.base_id),
+              isMysql(meta.value?.source_id),
             )
 
             const foreignKeyColumn = meta.value?.columns?.find(
@@ -832,7 +862,7 @@ export function useMultiSelect(
               column: columnObj,
               appInfo: unref(appInfo),
             },
-            isMysql(meta.value?.base_id),
+            isMysql(meta.value?.source_id),
           )
 
           if (pasteValue !== undefined) {
@@ -873,7 +903,7 @@ export function useMultiSelect(
                   column: col,
                   appInfo: unref(appInfo),
                 },
-                isMysql(meta.value?.base_id),
+                isMysql(meta.value?.source_id),
                 true,
               )
 

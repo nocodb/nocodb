@@ -1,18 +1,18 @@
 import type { NcUpgraderCtx } from './NcUpgrader';
 
 export default async function (ctx: NcUpgraderCtx) {
-  const projects = await ctx.ncMeta.projectList();
+  const bases = await ctx.ncMeta.baseList();
 
-  for (const project of projects) {
-    const projectConfig = JSON.parse(project.config);
+  for (const base of bases) {
+    const baseConfig = JSON.parse(base.config);
 
-    const envVal = projectConfig.envs?.dev;
-    projectConfig.workingEnv = '_noco';
+    const envVal = baseConfig.envs?.dev;
+    baseConfig.workingEnv = '_noco';
 
     if (envVal) {
-      projectConfig.envs._noco = envVal;
-      delete projectConfig.envs.dev;
+      baseConfig.envs._noco = envVal;
+      delete baseConfig.envs.dev;
     }
-    await ctx.ncMeta.projectUpdate(project?.id, projectConfig);
+    await ctx.ncMeta.baseUpdate(base?.id, baseConfig);
   }
 }

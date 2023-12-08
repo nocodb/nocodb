@@ -83,8 +83,6 @@ watch(
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
-    @keydown.ctrl.z.stop
-    @keydown.meta.z.stop
     @selectstart.capture.stop
     @mousedown.stop
   />
@@ -93,6 +91,7 @@ watch(
 
   <nuxt-link
     v-else-if="validEmail"
+    no-ref
     class="text-sm underline hover:opacity-75 inline-block"
     :href="`mailto:${vModel}`"
     target="_blank"

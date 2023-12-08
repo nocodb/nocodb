@@ -9,7 +9,7 @@ export enum SettingTab {
   TeamAuth = 'teamAndAuth',
   DataSources = 'dataSources',
   Audit = 'audit',
-  ProjectSettings = 'projectSettings',
+  ProjectSettings = 'baseSettings',
 }
 
 export enum SettingsSubTab {

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import type { WorkspaceType } from 'nocodb-sdk'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -20,8 +19,6 @@ const tab = computed({
     router.push({ query: { ...route.value.query, tab } })
   },
 })
-
-const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
 
 watch(
   () => activeWorkspace.value?.title,
@@ -53,9 +50,7 @@ onMounted(() => {
 <template>
   <div v-if="activeWorkspace" class="flex flex-col nc-workspace-settings">
     <div class="flex gap-2 items-center min-w-0 p-6">
-      <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
-        {{ activeWorkspace?.title?.slice(0, 2) }}
-      </span>
+      <GeneralWorkspaceIcon :workspace="activeWorkspace" />
       <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
         {{ activeWorkspace?.title }}
       </h1>
@@ -74,17 +69,6 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isUIAllowed('workspaceBilling')">
-        <a-tab-pane key="billing" class="w-full">
-          <template #tab>
-            <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-              <MaterialSymbolsCreditCardOutline />
-              Billing
-            </div>
-          </template>
-          <WorkspaceBilling />
-        </a-tab-pane>
-      </template>
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>

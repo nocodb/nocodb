@@ -11,19 +11,21 @@ import {
   message,
   provide,
   ref,
+  useBase,
   useGlobal,
-  useProject,
   useProvideSmartsheetStore,
   useSharedView,
 } from '#imports'
 
-const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+const { sharedView, meta, nestedFilters } = useSharedView()
 
 const { signedIn } = useGlobal()
 
-const { loadProject } = useProject()
+const { loadProject } = useBase()
 
-const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+
+useProvideKanbanViewStore(meta, sharedView)
 
 const reloadEventHook = createEventHook()
 
@@ -37,7 +39,7 @@ provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
 provide(IsLockedInj, isLocked)
 
-const { loadGridViewColumns } = useProvideGridViewColumn(sharedView, true)
+useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
 if (signedIn.value) {
   try {
@@ -55,10 +57,6 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(async () => {
-  await loadGridViewColumns()
-})
 </script>
 
 <template>

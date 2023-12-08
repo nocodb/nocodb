@@ -9,7 +9,7 @@ import { XKnex } from '~/db/CustomKnex';
 
 export default class NcConnectionMgr {
   private static connectionRefs: {
-    [projectId: string]: {
+    [baseId: string]: {
       [env: string]: {
         [dbAlias: string]: XKnex;
       };
@@ -25,18 +25,18 @@ export default class NcConnectionMgr {
   public static delete({
     dbAlias = 'db',
     env = '_noco',
-    projectId,
+    baseId,
   }: {
     dbAlias: string;
     env: string;
-    projectId: string;
+    baseId: string;
   }) {
-    // todo: ignore meta projects
-    if (this.connectionRefs?.[projectId]?.[env]?.[dbAlias]) {
+    // todo: ignore meta bases
+    if (this.connectionRefs?.[baseId]?.[env]?.[dbAlias]) {
       try {
-        const conn = this.connectionRefs[projectId][env][dbAlias];
+        const conn = this.connectionRefs[baseId][env][dbAlias];
         conn.destroy();
-        delete this.connectionRefs[projectId][env][dbAlias];
+        delete this.connectionRefs[baseId][env][dbAlias];
       } catch (e) {
         console.log(e);
       }
@@ -47,21 +47,20 @@ export default class NcConnectionMgr {
     dbAlias = 'db',
     env = '_noco',
     config,
-    projectId,
+    baseId,
   }: {
     dbAlias: string;
     env: string;
     config: any;
-    projectId: string;
+    baseId: string;
   }): Promise<XKnex> {
-    if (this.connectionRefs?.[projectId]?.[env]?.[dbAlias]) {
-      return this.connectionRefs?.[projectId]?.[env]?.[dbAlias];
+    if (this.connectionRefs?.[baseId]?.[env]?.[dbAlias]) {
+      return this.connectionRefs?.[baseId]?.[env]?.[dbAlias];
     }
-    this.connectionRefs[projectId] = this.connectionRefs[projectId] || {};
-    this.connectionRefs[projectId][env] =
-      this.connectionRefs[projectId][env] || {};
+    this.connectionRefs[baseId] = this.connectionRefs[baseId] || {};
+    this.connectionRefs[baseId][env] = this.connectionRefs[baseId][env] || {};
     if (config?.prefix && this.metaKnex) {
-      this.connectionRefs[projectId][env][dbAlias] = this.metaKnex?.knex;
+      this.connectionRefs[baseId][env][dbAlias] = this.metaKnex?.knex;
     } else {
       const connectionConfig = this.getConnectionConfig(config, env, dbAlias);
 
@@ -110,7 +109,7 @@ export default class NcConnectionMgr {
         connectionConfig.connection.port = +connectionConfig.connection.port;
       }
 
-      this.connectionRefs[projectId][env][dbAlias] = XKnex(
+      this.connectionRefs[baseId][env][dbAlias] = XKnex(
         isSqlite
           ? (connectionConfig.connection as Knex.Config)
           : ({
@@ -131,12 +130,12 @@ export default class NcConnectionMgr {
             } as any),
       );
       if (isSqlite) {
-        this.connectionRefs[projectId][env][dbAlias]
+        this.connectionRefs[baseId][env][dbAlias]
           .raw(`PRAGMA journal_mode=WAL;`)
           .then(() => {});
       }
     }
-    return this.connectionRefs[projectId][env][dbAlias];
+    return this.connectionRefs[baseId][env][dbAlias];
   }
 
   private static getConnectionConfig(
@@ -148,7 +147,7 @@ export default class NcConnectionMgr {
   }
 
   public static async getSqlClient({
-    projectId,
+    baseId,
     dbAlias = 'db',
     env = '_noco',
     config,
@@ -156,13 +155,13 @@ export default class NcConnectionMgr {
     dbAlias: string;
     env: string;
     config: any;
-    projectId: string;
+    baseId: string;
   }) {
     const knex = this.get({
       dbAlias,
       env,
       config,
-      projectId,
+      baseId,
     });
     return SqlClientFactory.create({
       knex,

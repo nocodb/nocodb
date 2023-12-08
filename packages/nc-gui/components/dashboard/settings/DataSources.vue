@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { BaseType } from 'nocodb-sdk'
-import { ClientType, DataSourcesSubTab, storeToRefs, useCommandPalette, useNuxtApp, useProject } from '#imports'
+import type { SourceType } from 'nocodb-sdk'
+import { ClientType, DataSourcesSubTab, storeToRefs, useBase, useCommandPalette, useNuxtApp } from '#imports'
 
 interface Props {
   state: string
@@ -20,18 +20,18 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { loadProject } = useProjects()
+const { loadProject } = useBases()
 
-const projectStore = useProject()
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
+
+const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const sources = ref<BaseType[]>([])
+const sources = ref<SourceType[]>([])
 
 const activeBaseId = ref('')
-
-const metadiffbases = ref<string[]>([])
 
 const clientType = ref<ClientType>(ClientType.MYSQL)
 
@@ -42,21 +42,19 @@ const forceAwakened = ref(false)
 const dataSourcesAwakened = ref(false)
 
 const isDeleteBaseModalOpen = ref(false)
-const toBeDeletedBase = ref<BaseType | undefined>()
+const toBeDeletedBase = ref<SourceType | undefined>()
 
 async function loadBases(changed?: boolean) {
   try {
     if (changed) refreshCommandPalette()
 
-    await until(() => !!project.value.id).toBeTruthy()
+    await until(() => !!base.value.id).toBeTruthy()
     isReloading.value = true
     vReload.value = true
-    const baseList = await $api.base.list(project.value.id as string)
+    const baseList = await $api.source.list(base.value.id as string)
     if (baseList.list && baseList.list.length) {
       sources.value = baseList.list
     }
-
-    await loadMetaDiff()
   } catch (e) {
     console.error(e)
   } finally {
@@ -65,63 +63,52 @@ async function loadBases(changed?: boolean) {
   }
 }
 
-async function loadMetaDiff() {
-  try {
-    metadiffbases.value = []
-
-    const metadiff = await $api.project.metaDiffGet(project.value.id as string)
-    for (const model of metadiff) {
-      if (model.detectedChanges?.length > 0) {
-        metadiffbases.value.push(model.base_id)
-      }
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-const baseAction = (baseId?: string, action?: string) => {
-  if (!baseId) return
-  activeBaseId.value = baseId
+const baseAction = (sourceId?: string, action?: string) => {
+  if (!sourceId) return
+  activeBaseId.value = sourceId
   vState.value = action || ''
 }
 
-const openDeleteBase = (base: BaseType) => {
-  $e('c:base:delete')
+const openDeleteBase = (source: SourceType) => {
+  $e('c:source:delete')
   isDeleteBaseModalOpen.value = true
-  toBeDeletedBase.value = base
+  toBeDeletedBase.value = source
 }
 
 const deleteBase = async () => {
   if (!toBeDeletedBase.value) return
 
   try {
-    await $api.base.delete(toBeDeletedBase.value.project_id as string, toBeDeletedBase.value.id as string)
+    await $api.source.delete(toBeDeletedBase.value.base_id as string, toBeDeletedBase.value.id as string)
 
-    $e('a:base:delete')
+    $e('a:source:delete')
 
     sources.value.splice(sources.value.indexOf(toBeDeletedBase.value), 1)
-    await loadProject(project.value.id as string, true)
+    await loadProject(base.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    // TODO @mertmit
+    refreshCommandPalette()
   }
 }
-
-const toggleBase = async (base: BaseType, state: boolean) => {
+const toggleBase = async (source: BaseType, state: boolean) => {
   try {
     if (!state && sources.value.filter((src) => src.enabled).length < 2) {
-      message.info('There should be at least one enabled base!')
+      message.info('There should be at least one enabled source!')
       return
     }
-    base.enabled = state
-    await $api.base.update(base.project_id as string, base.id as string, {
-      id: base.id,
-      project_id: base.project_id,
-      enabled: base.enabled,
+    source.enabled = state
+    await $api.source.update(source.base_id as string, source.id as string, {
+      id: source.id,
+      base_id: source.base_id,
+      enabled: source.enabled,
     })
-    await loadProject(project.value.id as string, true)
+    await loadProject(base.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 
@@ -129,27 +116,29 @@ const moveBase = async (e: any) => {
   try {
     if (e.oldIndex === e.newIndex) return
     // sources list is mutated so we have to get the new index and mirror it to backend
-    const base = sources.value[e.newIndex]
-    if (base) {
-      if (!base.order) {
-        // empty update call to reorder bases (migration)
-        await $api.base.update(base.project_id as string, base.id as string, {
-          id: base.id,
-          project_id: base.project_id,
+    const source = sources.value[e.newIndex]
+    if (source) {
+      if (!source.order) {
+        // empty update call to reorder sources (migration)
+        await $api.source.update(source.base_id as string, source.id as string, {
+          id: source.id,
+          base_id: source.base_id,
         })
         message.info(t('info.basesMigrated'))
       } else {
-        await $api.base.update(base.project_id as string, base.id as string, {
-          id: base.id,
-          project_id: base.project_id,
+        await $api.source.update(source.base_id as string, source.id as string, {
+          id: source.id,
+          base_id: source.base_id,
           order: e.newIndex + 1,
         })
       }
     }
-    await loadProject(project.value.id as string, true)
+    await loadProject(base.value.id as string, true)
     await loadBases()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    await refreshCommandPalette()
   }
 }
 
@@ -159,11 +148,17 @@ const forceAwaken = () => {
   emits('awaken', forceAwakened.value)
 }
 
-onMounted(async () => {
-  if (sources.value.length === 0) {
-    loadBases()
-  }
-})
+watch(
+  projectPageTab,
+  () => {
+    if (projectPageTab.value === 'data-source') {
+      loadBases()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 watch(
   () => props.reload,
@@ -221,6 +216,7 @@ watch(
         }
         break
     }
+    refreshCommandPalette()
   },
   { immediate: true },
 )
@@ -319,7 +315,7 @@ const isEditBaseModalOpen = computed({
             <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">{{ $t('general.visibility') }}</div>
             <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
             <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
-            <div class="ds-table-col ds-table-actions pl-2">{{ $t('labels.actions') }}</div>
+            <div class="ds-table-col ds-table-actions -ml-13">{{ $t('labels.actions') }}</div>
             <div class="ds-table-col ds-table-crud"></div>
           </div>
         </div>
@@ -355,198 +351,245 @@ const isEditBaseModalOpen = computed({
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <a-button
-                      v-if="!sources[0].is_meta && !sources[0].is_local"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
-                          <template #title>{{ $t('activity.outOfSync') }}</template>
-                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
-                        </a-tooltip>
-                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
+                    <NcTooltip v-if="!sources[0].is_meta && !sources[0].is_local">
+                      <template #title>
                         {{ $t('tooltip.metaSync') }}
-                      </div>
-                    </a-button>
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                      </template>
+                      <NcButton
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        data-testid="nc-data-sources-view-meta-sync"
+                        size="small"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="sync" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip>
+                      <template #title>
                         {{ $t('title.relations') }}
-                      </div>
-                    </a-button>
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        data-testid="nc-data-sources-view-erd"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip>
+                      <template #title>
                         {{ $t('labels.uiAcl') }}
-                      </div>
-                    </a-button>
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="book" class="group-hover:text-accent" />
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        data-testid="nc-data-sources-view-ui-acl"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip>
+                      <template #title>
                         {{ $t('title.audit') }}
-                      </div>
-                    </a-button>
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        data-testid="nc-data-sources-view-audit"
+                        @click="baseAction(sources[0].id, DataSourcesSubTab.Audit)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="book" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud">
-                  <a-button
+                  <NcButton
                     v-if="!sources[0].is_meta && !sources[0].is_local"
+                    size="small"
                     class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
                     type="text"
                     @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
                   >
                     <GeneralIcon icon="edit" class="text-gray-600" />
-                  </a-button>
+                  </NcButton>
                 </div>
               </div>
             </template>
-            <template #item="{ element: base, index }">
+            <template #item="{ element: source, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-enabled">
                   <div class="flex items-center gap-1 cursor-pointer">
                     <a-tooltip>
                       <template #title>
-                        <template v-if="base.enabled">{{ $t('activity.hideInUI') }}</template>
+                        <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
                         <template v-else>{{ $t('activity.showInUI') }}</template>
                       </template>
-                      <a-switch :checked="base.enabled ? true : false" @change="toggleBase(base, $event)" />
+                      <a-switch :checked="source.enabled ? true : false" @change="toggleBase(source, $event)" />
                     </a-tooltip>
                   </div>
                 </div>
-                <div class="ds-table-col ds-table-name font-medium">
+                <div class="ds-table-col ds-table-name font-medium w-full">
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
-                  <div v-if="base.is_meta || base.is_local">-</div>
-                  <div v-else class="flex items-center gap-1">
-                    {{ base.is_meta || base.is_local ? $t('general.base') : base.alias }}
-                  </div>
+                  <div v-if="source.is_meta || source.is_local">-</div>
+                  <span v-else class="truncate">
+                    {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
+                  </span>
                 </div>
 
                 <div class="ds-table-col ds-table-type">
                   <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
                   <div class="flex items-center gap-2">
-                    <GeneralBaseLogo :base-type="base.type" />
-                    <span class="text-gray-700 capitalize">{{ base.type }}</span>
+                    <GeneralBaseLogo :source-type="source.type" />
+                    <span class="text-gray-700 capitalize">{{ source.type }}</span>
                   </div>
                 </div>
 
                 <div class="ds-table-col ds-table-actions">
                   <div class="flex items-center gap-2">
-                    <a-button
-                      class="nc-action-btn cursor-pointer outline-0"
-                      type="text"
-                      @click="baseAction(base.id, DataSourcesSubTab.ERD)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                    <NcTooltip>
+                      <template #title>
                         {{ $t('title.relations') }}
-                      </div>
-                    </a-button>
-                    <a-button
-                      type="text"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        data-testid="nc-data-sources-view-erd"
+                        @click="baseAction(source.id, DataSourcesSubTab.ERD)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="erd" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip>
+                      <template #title>
                         {{ $t('labels.uiAcl') }}
-                      </div>
-                    </a-button>
-                    <a-button
-                      v-if="!base.is_meta && !base.is_local"
-                      type="text"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
-                    >
-                      <div class="flex items-center gap-2 text-gray-600">
-                        <a-tooltip v-if="metadiffbases.includes(base.id)">
-                          <template #title>{{ $t('activity.outOfSync') }}</template>
-                          <GeneralIcon icon="warning" class="group-hover:text-accent text-primary" />
-                        </a-tooltip>
-                        <GeneralIcon v-else icon="sync" class="group-hover:text-accent" />
+                      </template>
+                      <NcButton
+                        size="small"
+                        type="text"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        data-testid="nc-data-sources-view-ui-acl"
+                        @click="baseAction(source.id, DataSourcesSubTab.UIAcl)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip>
+                      <template #title>
                         {{ $t('tooltip.metaSync') }}
-                      </div>
-                    </a-button>
+                      </template>
+                      <NcButton
+                        v-if="!source.is_meta && !source.is_local"
+                        size="small"
+                        type="text"
+                        data-testid="nc-data-sources-view-meta-sync"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        @click="baseAction(source.id, DataSourcesSubTab.Metadata)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="sync" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
                   </div>
                 </div>
                 <div class="ds-table-col ds-table-crud justify-end gap-x-1">
-                  <a-button
-                    v-if="!base.is_meta && !base.is_local"
-                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
-                    type="text"
-                    @click="baseAction(base.id, DataSourcesSubTab.Edit)"
-                  >
-                    <GeneralIcon icon="edit" class="text-gray-600 -mt-0.5" />
-                  </a-button>
-                  <a-button
-                    v-if="!base.is_meta && !base.is_local"
-                    class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg mt-0.5"
-                    type="text"
-                    @click="openDeleteBase(base)"
-                  >
-                    <GeneralIcon icon="delete" class="text-red-500 -mt-0.5" />
-                  </a-button>
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('general.edit') }}
+                    </template>
+                    <NcButton
+                      v-if="!source.is_meta && !source.is_local"
+                      size="small"
+                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                      type="text"
+                      @click="baseAction(source.id, DataSourcesSubTab.Edit)"
+                    >
+                      <GeneralIcon icon="edit" class="text-gray-600" />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('general.remove') }}
+                    </template>
+                    <NcButton
+                      v-if="!source.is_meta && !source.is_local"
+                      size="small"
+                      class="nc-action-btn cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                      type="text"
+                      @click="openDeleteBase(source)"
+                    >
+                      <GeneralIcon icon="delete" class="text-red-500" />
+                    </NcButton>
+                  </NcTooltip>
                 </div>
               </div>
             </template>
           </Draggable>
         </div>
       </div>
-      <GeneralModal v-model:visible="isNewBaseModalOpen" size="medium">
-        <div class="py-6 px-8">
-          <LazyDashboardSettingsDataSourcesCreateBase
-            :connection-type="clientType"
-            @base-created="loadBases(true)"
-            @close="isNewBaseModalOpen = false"
-          />
-        </div>
-      </GeneralModal>
+      <LazyDashboardSettingsDataSourcesCreateBase
+        v-model:open="isNewBaseModalOpen"
+        :connection-type="clientType"
+        @source-created="loadBases(true)"
+      />
       <GeneralModal v-model:visible="isErdModalOpen" size="large">
         <div class="h-[80vh]">
-          <LazyDashboardSettingsErd :base-id="activeBaseId" />
+          <LazyDashboardSettingsErd :source-id="activeBaseId" :show-all-columns="false" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isMetaDataModal" size="medium">
         <div class="p-6">
-          <LazyDashboardSettingsMetadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
+          <LazyDashboardSettingsMetadata :source-id="activeBaseId" @source-synced="loadBases(true)" />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isUIAclModalOpen" class="!w-[60rem]">
         <div class="p-6">
-          <LazyDashboardSettingsUIAcl :base-id="activeBaseId" />
+          <LazyDashboardSettingsUIAcl :source-id="activeBaseId" />
         </div>
       </GeneralModal>
-      <GeneralModal v-model:visible="isEditBaseModalOpen" size="medium">
+      <GeneralModal v-model:visible="isEditBaseModalOpen" closable :mask-closable="false" size="medium">
         <div class="p-6">
           <LazyDashboardSettingsDataSourcesEditBase
-            :base-id="activeBaseId"
-            @base-updated="loadBases(true)"
+            :source-id="activeBaseId"
+            @source-updated="loadBases(true)"
             @close="isEditBaseModalOpen = false"
           />
         </div>
       </GeneralModal>
       <GeneralModal v-model:visible="isBaseAuditModalOpen" class="!w-[70rem]">
         <div class="p-6">
-          <LazyDashboardSettingsBaseAudit :base-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
+          <LazyDashboardSettingsBaseAudit :source-id="activeBaseId" @close="isBaseAuditModalOpen = false" />
         </div>
       </GeneralModal>
-      <GeneralDeleteModal v-model:visible="isDeleteBaseModalOpen" :entity-name="$t('general.base')" :on-delete="deleteBase">
+      <GeneralDeleteModal
+        v-model:visible="isDeleteBaseModalOpen"
+        :entity-name="$t('general.datasource')"
+        :on-delete="deleteBase"
+        :delete-label="$t('general.remove')"
+      >
         <template #entity-preview>
           <div v-if="toBeDeletedBase" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <GeneralBaseLogo :base-type="toBeDeletedBase.type" />
+            <GeneralBaseLogo :source-type="toBeDeletedBase.type" />
             <div
               class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -562,7 +605,7 @@ const isEditBaseModalOpen = computed({
 
 <style>
 .ds-table-head {
-  @apply flex items-center border-0 text-gray-400;
+  @apply flex items-center border-0 text-gray-500;
 }
 
 .ds-table-body {
@@ -582,15 +625,15 @@ const isEditBaseModalOpen = computed({
 }
 
 .ds-table-name {
-  @apply col-span-6 items-center capitalize;
+  @apply col-span-9 items-center capitalize;
 }
 
 .ds-table-type {
-  @apply col-span-3 items-center;
+  @apply col-span-2 items-center;
 }
 
 .ds-table-actions {
-  @apply col-span-7;
+  @apply col-span-5 flex w-full justify-end;
 }
 
 .ds-table-crud {

@@ -3,20 +3,20 @@ import { AppEvents } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
+import type { AttachmentReqType, FileType } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
+import { PresignedUrl } from '~/models';
+import { utf8ify } from '~/helpers/stringHelpers';
 
 @Injectable()
 export class AttachmentsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async upload(param: {
-    path?: string;
-    // todo: proper type
-    files: unknown[];
-  }) {
+  async upload(param: { path?: string; files: FileType[]; req: NcRequest }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
@@ -26,37 +26,65 @@ export class AttachmentsService {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
     const attachments = await Promise.all(
-      param.files?.map(async (file: any) => {
-        const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
+      param.files?.map(async (file) => {
+        const originalName = utf8ify(file.originalname);
+        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
           slash(path.join(destPath, fileName)),
           file,
         );
 
-        let attachmentPath;
+        const attachment: {
+          url?: string;
+          path?: string;
+          title: string;
+          mimetype: string;
+          size: number;
+          icon?: string;
+          signedPath?: string;
+          signedUrl?: string;
+        } = {
+          ...(url ? { url } : {}),
+          title: originalName,
+          mimetype: file.mimetype,
+          size: file.size,
+          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+        };
 
+        const promises = [];
         // if `url` is null, then it is local attachment
         if (!url) {
           // then store the attachment path only
           // url will be constructed in `useAttachmentCell`
-          attachmentPath = `download/${filePath.join('/')}/${fileName}`;
+          attachment.path = `download/${filePath.join('/')}/${fileName}`;
+
+          promises.push(
+            PresignedUrl.getSignedUrl({
+              path: attachment.path.replace(/^download\//, ''),
+            }).then((r) => (attachment.signedPath = r)),
+          );
+        } else {
+          if (attachment.url.includes('.amazonaws.com/')) {
+            const relativePath = decodeURI(
+              attachment.url.split('.amazonaws.com/')[1],
+            );
+            promises.push(
+              PresignedUrl.getSignedUrl({
+                path: relativePath,
+                s3: true,
+              }).then((r) => (attachment.signedUrl = r)),
+            );
+          }
         }
 
-        return {
-          ...(url ? { url } : {}),
-          ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size,
-          icon:
-            mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
-        };
+        return Promise.all(promises).then(() => attachment);
       }),
     );
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
+      req: param.req,
     });
 
     return attachments;
@@ -64,12 +92,8 @@ export class AttachmentsService {
 
   async uploadViaURL(param: {
     path?: string;
-    urls: {
-      url: string;
-      fileName: string;
-      mimetype?: string;
-      size?: string | number;
-    }[];
+    urls: AttachmentReqType[];
+    req: NcRequest;
   }) {
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
@@ -83,14 +107,17 @@ export class AttachmentsService {
       param.urls?.map?.(async (urlMeta) => {
         const { url, fileName: _fileName } = urlMeta;
 
-        const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
+        const fileName = `${nanoid(18)}${path.extname(
+          _fileName || url.split('/').pop(),
+        )}`;
 
-        const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
-          slash(path.join(destPath, fileName)),
-          url,
-        );
+        const attachmentUrl: string | null =
+          await storageAdapter.fileCreateByUrl(
+            slash(path.join(destPath, fileName)),
+            url,
+          );
 
-        let attachmentPath;
+        let attachmentPath: string | undefined;
 
         // if `attachmentUrl` is null, then it is local attachment
         if (!attachmentUrl) {
@@ -102,7 +129,7 @@ export class AttachmentsService {
         return {
           ...(attachmentUrl ? { url: attachmentUrl } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: fileName,
+          title: _fileName,
           mimetype: urlMeta.mimetype,
           size: urlMeta.size,
           icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
@@ -112,19 +139,34 @@ export class AttachmentsService {
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',
+      req: param.req,
     });
     return attachments;
   }
 
-  async fileRead(param: { path: string }) {
+  async getFile(param: { path: string }): Promise<{
+    path: string;
+    type: string;
+  }> {
     // get the local storage adapter to display local attachments
     const storageAdapter = new Local();
     const type =
       mimetypes[path.extname(param.path).split('/').pop().slice(1)] ||
       'text/plain';
 
-    const img = await storageAdapter.fileRead(slash(param.path));
-    return { img, type };
+    const filePath = await storageAdapter.validateAndNormalisePath(
+      slash(param.path),
+      true,
+    );
+    return { path: filePath, type };
+  }
+
+  previewAvailable(mimetype: string) {
+    const available = ['image', 'pdf', 'text/plain'];
+    if (available.some((type) => mimetype.includes(type))) {
+      return true;
+    }
+    return false;
   }
 
   sanitizeUrlPath(paths) {

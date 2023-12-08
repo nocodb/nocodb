@@ -2,6 +2,7 @@
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
   font-family: 'Manrope';
+  font-weight: 450 900;
   src: url('./manrope/Manrope-VariableFont_wght.ttf') format('truetype')
 }
 

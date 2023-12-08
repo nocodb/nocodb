@@ -47,7 +47,7 @@ test.describe('Column menu operations', () => {
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.project);
+    dashboard = new DashboardPage(page, context.base);
   });
 
   test.afterEach(async () => {
@@ -70,7 +70,7 @@ test.describe('Column menu operations', () => {
       });
       await dashboard.grid.column.duplicateColumn({
         title,
-        expectedTitle: `${title}_copy_1`,
+        expectedTitle: `${title} copy_1`,
       });
     }
     await dashboard.closeTab({ title: 'Film' });

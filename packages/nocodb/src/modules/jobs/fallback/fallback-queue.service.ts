@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { DuplicateProcessor } from '../jobs/export-import/duplicate.processor';
-import { AtImportProcessor } from '../jobs/at-import/at-import.processor';
-import { JobsEventService } from './jobs-event.service';
+import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
+import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
+import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
+import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
+import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
+import { JobsEventService } from '~/modules/jobs/fallback/jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 
 export interface Job {
@@ -22,9 +25,12 @@ export class QueueService {
   static emitter = new Emittery();
 
   constructor(
-    private readonly jobsEventService: JobsEventService,
-    private readonly duplicateProcessor: DuplicateProcessor,
-    private readonly atImportProcessor: AtImportProcessor,
+    protected readonly jobsEventService: JobsEventService,
+    protected readonly duplicateProcessor: DuplicateProcessor,
+    protected readonly atImportProcessor: AtImportProcessor,
+    protected readonly metaSyncProcessor: MetaSyncProcessor,
+    protected readonly sourceCreateProcessor: SourceCreateProcessor,
+    protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -62,9 +68,25 @@ export class QueueService {
       this: this.duplicateProcessor,
       fn: this.duplicateProcessor.duplicateModel,
     },
+    [JobTypes.DuplicateColumn]: {
+      this: this.duplicateProcessor,
+      fn: this.duplicateProcessor.duplicateColumn,
+    },
     [JobTypes.AtImport]: {
       this: this.atImportProcessor,
       fn: this.atImportProcessor.job,
+    },
+    [JobTypes.MetaSync]: {
+      this: this.metaSyncProcessor,
+      fn: this.metaSyncProcessor.job,
+    },
+    [JobTypes.SourceCreate]: {
+      this: this.sourceCreateProcessor,
+      fn: this.sourceCreateProcessor.job,
+    },
+    [JobTypes.SourceDelete]: {
+      this: this.sourceDeleteProcessor,
+      fn: this.sourceDeleteProcessor.job,
     },
   };
 

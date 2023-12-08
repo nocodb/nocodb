@@ -8,7 +8,6 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
-  IsLockedInj,
   IsPublicInj,
   IsSurveyFormInj,
   NavigateDir,
@@ -22,6 +21,7 @@ import {
   isDate,
   isDateTime,
   isDecimal,
+  isDrawerExist,
   isDuration,
   isEmail,
   isFloat,
@@ -45,10 +45,9 @@ import {
   ref,
   storeToRefs,
   toRef,
+  useBase,
   useDebounceFn,
-  useProject,
   useSmartsheetRowStoreOrThrow,
-  useVModel,
 } from '#imports'
 
 interface Props {
@@ -63,7 +62,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:value'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:cdf'])
 
 const column = toRef(props, 'column')
 
@@ -73,7 +72,9 @@ const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 
-provide(EditModeInj, useVModel(props, 'editEnabled', emit))
+const editEnabled = useVModel(props, 'editEnabled', emit)
+
+provide(EditModeInj, editEnabled)
 
 provide(ActiveCellInj, active)
 
@@ -85,8 +86,6 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
@@ -95,9 +94,9 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUis } = storeToRefs(useProject())
+const { sqlUis } = storeToRefs(useBase())
 
-const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
+const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -116,8 +115,7 @@ const vModel = computed({
   },
   set: (val) => {
     if (isEditColumnMenu.value) {
-      column.value.cdf = val
-      emit('update:value', val)
+      emit('update:cdf', val)
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
@@ -203,8 +201,10 @@ onUnmounted(() => {
       {
         'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
-        'h-[40px]': !props.editEnabled && isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
+        '!min-h-30 resize-y': isTextArea(column) && (isForm || isSurveyForm),
+        '!border-2 !border-brand-500': props.editEnabled && (isSurveyForm || isForm) && !isDrawerExist(),
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
@@ -213,7 +213,7 @@ onUnmounted(() => {
   >
     <template v-if="column">
       <template v-if="intersected">
-        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+        <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
         <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
         <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
         <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
@@ -252,11 +252,7 @@ onUnmounted(() => {
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
         <div
-          v-if="
-            (isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
-            !isAttachment(column) &&
-            !isTextArea(column)
-          "
+          v-if="(isPublic && readOnly && !isForm) || (isSystemColumn(column) && !isAttachment(column) && !isTextArea(column))"
           class="nc-locked-overlay"
         />
       </template>

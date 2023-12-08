@@ -2,7 +2,7 @@ import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
-  project: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
+  base: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
 }
 
 interface Perm {
@@ -20,10 +20,12 @@ const rolePermissions = {
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
-      projectCreate: true,
-      projectMove: true,
-      projectDelete: true,
-      projectDuplicate: true,
+      workspaceSettings: true,
+      superAdminUserManagement: true,
+      baseCreate: true,
+      baseMove: true,
+      baseDelete: true,
+      baseDuplicate: true,
       newUser: true,
       tableRename: true,
       tableDelete: true,
@@ -36,10 +38,10 @@ const rolePermissions = {
     },
   },
 
-  // Project role permissions
+  // Base role permissions
   [ProjectRoles.OWNER]: {
     include: {
-      projectDelete: true,
+      baseDelete: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -65,11 +67,12 @@ const rolePermissions = {
       tableIconEdit: true,
       viewCreateOrEdit: true,
       viewShare: true,
-      projectShare: true,
-      projectMiscSettings: true,
+      baseShare: true,
+      baseMiscSettings: true,
       csvImport: true,
-      projectRename: true,
-      projectDuplicate: true,
+      baseRename: true,
+      baseDuplicate: true,
+      sourceCreate: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -81,6 +84,7 @@ const rolePermissions = {
       filterChildrenRead: true,
       viewFieldEdit: true,
       csvTableImport: true,
+      excelTableImport: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -92,7 +96,7 @@ const rolePermissions = {
   },
   [ProjectRoles.VIEWER]: {
     include: {
-      projectSettings: true,
+      baseSettings: true,
       expandedForm: true,
       apiDocs: true,
     },

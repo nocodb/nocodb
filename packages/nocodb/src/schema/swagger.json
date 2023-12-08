@@ -33,7 +33,7 @@
     {
       "name": "Meta APIs",
       "tags": [
-        "Base",
+        "Source",
         "DB Table",
         "DB Table Column",
         "DB Table Filter",
@@ -44,7 +44,7 @@
         "DB View Column",
         "DB View Share",
         "Plugin",
-        "Project",
+        "Base",
         "Utils"
       ]
     },
@@ -338,8 +338,8 @@
               "$ref": "#/components/schemas/Id"
             },
             "in": "query",
-            "name": "project_id",
-            "description": "Pass project id to get project specific roles along with user info"
+            "name": "base_id",
+            "description": "Pass base id to get base specific roles along with user info"
           }
         ]
       }
@@ -1686,10 +1686,10 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/users": {
+    "/api/v1/db/meta/projects/{baseId}/users": {
       "get": {
-        "summary": "List Project Users",
-        "operationId": "auth-project-user-list",
+        "summary": "List Base Users",
+        "operationId": "auth-base-user-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -1752,7 +1752,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "List all users in the given project.",
+        "description": "List all users in the given base.",
         "tags": [
           "Auth"
         ],
@@ -1769,15 +1769,15 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "post": {
-        "summary": "Create Project User",
-        "operationId": "auth-project-user-add",
+        "summary": "Create Base User",
+        "operationId": "auth-base-user-add",
         "responses": {
           "200": {
             "description": "OK",
@@ -1889,7 +1889,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "Create a user and add it to the given project",
+        "description": "Create a user and add it to the given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1897,7 +1897,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/info": {
+    "/api/v1/db/meta/projects/{baseId}/info": {
       "parameters": [
         {
           "schema": {
@@ -1905,15 +1905,15 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "get": {
-        "summary": "Get Project info",
-        "operationId": "project-meta-get",
+        "summary": "Get Base info",
+        "operationId": "base-meta-get",
         "responses": {
           "200": {
             "description": "OK",
@@ -1949,7 +1949,7 @@
                     },
                     "ProjectOnRootDB": {
                       "type": "boolean",
-                      "description": "Is project on rootdb",
+                      "description": "Is base on rootdb",
                       "example": false
                     },
                     "RootDB": {
@@ -1986,9 +1986,9 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
-        "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given project",
+        "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -1996,7 +1996,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/users/{userId}": {
+    "/api/v1/db/meta/projects/{baseId}/users/{userId}": {
       "parameters": [
         {
           "schema": {
@@ -2004,10 +2004,10 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         },
         {
           "schema": {
@@ -2021,8 +2021,8 @@
         }
       ],
       "patch": {
-        "summary": "Update Project User",
-        "operationId": "auth-project-user-update",
+        "summary": "Update Base User",
+        "operationId": "auth-base-user-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -2075,7 +2075,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.",
+        "description": "Update a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2083,8 +2083,8 @@
         ]
       },
       "delete": {
-        "summary": "Delete Project User",
-        "operationId": "auth-project-user-remove",
+        "summary": "Delete Base User",
+        "operationId": "auth-base-user-remove",
         "responses": {
           "200": {
             "description": "OK",
@@ -2120,7 +2120,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked.",
+        "description": "Delete a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2128,10 +2128,10 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/visibility-rules": {
+    "/api/v1/db/meta/projects/{baseId}/visibility-rules": {
       "get": {
         "summary": "Get UI ACL",
-        "operationId": "project-model-visibility-list",
+        "operationId": "base-model-visibility-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -2152,8 +2152,8 @@
                         "_tn": "Sheet-1",
                         "table_meta": null,
                         "id": "vw_75neroyqdye94k",
-                        "base_id": "ds_eol59jg2l4zwev",
-                        "project_id": "p_63b4q0qengen1x",
+                        "source_id": "ds_eol59jg2l4zwev",
+                        "base_id": "p_63b4q0qengen1x",
                         "fk_model_id": "md_5mipbdg6ketmv8",
                         "title": "Sheet-1",
                         "type": 3,
@@ -2171,8 +2171,8 @@
                         },
                         "view": {
                           "fk_view_id": "vw_75neroyqdye94k",
-                          "base_id": "ds_eol59jg2l4zwev",
-                          "project_id": "p_63b4q0qengen1x",
+                          "source_id": "ds_eol59jg2l4zwev",
+                          "base_id": "p_63b4q0qengen1x",
                           "uuid": null,
                           "created_at": "2023-03-08T10:44:55.288Z",
                           "updated_at": "2023-03-08T10:44:55.288Z",
@@ -2200,7 +2200,7 @@
         },
         "description": "Hide / show views based on user role",
         "tags": [
-          "Project"
+          "Base"
         ],
         "parameters": [
           {
@@ -2222,15 +2222,15 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "post": {
         "summary": "Create UI ACL",
-        "operationId": "project-model-visibility-set",
+        "operationId": "base-model-visibility-set",
         "responses": {
           "200": {
             "description": "OK",
@@ -2272,7 +2272,7 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
         "description": "Hide / show views based on user role",
         "parameters": [
@@ -2290,7 +2290,7 @@
       ],
       "get": {
         "summary": "List Projects",
-        "operationId": "project-list",
+        "operationId": "base-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -2304,7 +2304,7 @@
                     "value": {
                       "list": [
                         {
-                          "bases": [
+                          "sources": [
                             {
                               "alias": "string",
                               "config": null,
@@ -2315,7 +2315,7 @@
                               "inflection_table": "camelize",
                               "is_meta": true,
                               "order": 1,
-                              "project_id": "string",
+                              "base_id": "string",
                               "type": "mysql2",
                               "updated_at": "2023-03-01 14:27:36"
                             }
@@ -2323,14 +2323,14 @@
                           "color": "#24716E",
                           "created_at": "2023-03-01 14:27:36",
                           "deleted": true,
-                          "description": "This is my project description",
+                          "description": "This is my base description",
                           "id": "p_124hhlkbeasewh",
                           "is_meta": true,
                           "meta": {},
                           "order": 0,
                           "prefix": "nc_vm5q__",
                           "status": "string",
-                          "title": "my-project",
+                          "title": "my-base",
                           "updated_at": "2023-03-01 14:27:36"
                         }
                       ],
@@ -2351,26 +2351,26 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "List all project meta data",
+        "description": "List all base meta data",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Project"
+          "Base"
         ]
       },
       "post": {
-        "summary": "Create Project",
-        "operationId": "project-create",
+        "summary": "Create Base",
+        "operationId": "base-create",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/Base"
                 }
               }
             }
@@ -2393,7 +2393,7 @@
                       "external": {
                         "type": "boolean",
                         "default": false,
-                        "description": "If true, the project will us an external database else it will use the root database"
+                        "description": "If true, the base will us an external database else it will use the root database"
                       }
                     }
                   }
@@ -2402,7 +2402,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "bases": [
+                    "sources": [
                       {
                         "alias": "string",
                         "config": null,
@@ -2412,7 +2412,7 @@
                         "inflection_table": "camelize",
                         "is_meta": true,
                         "order": 1,
-                        "project_id": "string",
+                        "base_id": "string",
                         "type": "mysql2",
                         "updated_at": "2023-03-01 14:27:36"
                       }
@@ -2420,14 +2420,14 @@
                     "color": "#24716E",
                     "created_at": "2023-03-01 14:27:36",
                     "deleted": true,
-                    "description": "This is my project description",
+                    "description": "This is my base description",
                     "id": "p_124hhlkbeasewh",
                     "is_meta": true,
                     "meta": {},
                     "order": 0,
                     "prefix": "nc_vm5q__",
                     "status": "string",
-                    "title": "my-project",
+                    "title": "my-base",
                     "external": false
                   }
                 }
@@ -2436,9 +2436,9 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
-        "description": "Create a new project",
+        "description": "Create a new base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2446,10 +2446,10 @@
         ]
       }
     },
-    "/api/v1/db/meta/duplicate/{projectId}/{baseId}": {
+    "/api/v1/db/meta/duplicate/{baseId}/{sourceId}": {
       "post": {
-        "summary": "Duplicate Project Base",
-        "operationId": "project-base-duplicate",
+        "summary": "Duplicate Base Source",
+        "operationId": "base-source-duplicate",
         "responses": {
           "200": {
             "description": "OK",
@@ -2464,7 +2464,7 @@
                     "id": {
                       "type": "string"
                     },
-                    "project_id": {
+                    "base_id": {
                       "type": "string"
                     }
                   }
@@ -2499,7 +2499,7 @@
                       }
                     }
                   },
-                  "project": {
+                  "base": {
                     "type": "object",
                     "required": false
                   }
@@ -2518,9 +2518,9 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
-        "description": "Duplicate a project",
+        "description": "Duplicate a base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2531,10 +2531,10 @@
               "example": "p_124hhlkbeasewh",
               "type": "string"
             },
-            "name": "projectId",
+            "name": "baseId",
             "in": "path",
             "required": true,
-            "description": "Unique Project ID"
+            "description": "Unique Base ID"
           },
           {
             "schema": {
@@ -2542,18 +2542,18 @@
               "example": "ds_124hhlkbeasewh",
               "type": "string"
             },
-            "name": "baseId",
+            "name": "sourceId",
             "in": "path",
             "required": false,
-            "description": "Unique Base ID"
+            "description": "Unique Source ID"
           }
         ]
       }
     },
-    "/api/v1/db/meta/duplicate/{projectId}": {
+    "/api/v1/db/meta/duplicate/{baseId}": {
       "post": {
-        "summary": "Duplicate Project",
-        "operationId": "project-duplicate",
+        "summary": "Duplicate Base",
+        "operationId": "base-duplicate",
         "responses": {
           "200": {
             "description": "OK",
@@ -2600,7 +2600,7 @@
                       }
                     }
                   },
-                  "project": {
+                  "base": {
                     "type": "object",
                     "required": false
                   }
@@ -2619,9 +2619,9 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
-        "description": "Duplicate a project",
+        "description": "Duplicate a base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2632,224 +2632,21 @@
               "example": "p_124hhlkbeasewh",
               "type": "string"
             },
-            "name": "projectId",
+            "name": "baseId",
             "in": "path",
             "required": true,
-            "description": "Unique Project ID"
+            "description": "Unique Base ID"
           }
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}": {
+    "/api/v1/db/meta/projects/{baseId}": {
       "parameters": [
         {
           "schema": {
             "$ref": "#/components/schemas/Id",
             "example": "p_124hhlkbeasewh",
             "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Project ID"
-        }
-      ],
-      "get": {
-        "summary": "Get Project",
-        "operationId": "project-read",
-        "description": "Get the info of a given project",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "tags": [
-          "Project"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Project"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "bases": [
-                        {
-                          "alias": "string",
-                          "config": null,
-                          "enabled": true,
-                          "id": "string",
-                          "inflection_column": "camelize",
-                          "inflection_table": "camelize",
-                          "is_meta": true,
-                          "order": 1,
-                          "project_id": "string",
-                          "type": "mysql2",
-                          "updated_at": "2023-03-01 14:27:36"
-                        }
-                      ],
-                      "color": "#24716E",
-                      "created_at": "2023-03-01 14:27:36",
-                      "deleted": true,
-                      "description": "This is my project description",
-                      "id": "p_124hhlkbeasewh",
-                      "is_meta": true,
-                      "meta": {},
-                      "order": 0,
-                      "prefix": "nc_vm5q__",
-                      "status": "string",
-                      "title": "my-project"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Project",
-        "operationId": "project-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": true
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Project"
-        ],
-        "description": "Delete the given project",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update Project",
-        "operationId": "project-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number",
-                  "example": 1
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Project"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProjectUpdateReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "color": "#24716E",
-                    "meta": null,
-                    "title": "My Project"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the given project",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/meta/projects/{projectId}/user": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "patch": {
-        "summary": "Project user meta update",
-        "operationId": "project-user-meta-update",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Project"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProjectUserMetaReq"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/db/meta/projects/{projectId}/bases/{baseId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Project ID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "pattern": "ds_j04jmxh5xg10lu"
           },
           "name": "baseId",
           "in": "path",
@@ -2860,7 +2657,7 @@
       "get": {
         "summary": "Get Base",
         "operationId": "base-read",
-        "description": "Get the base details of a given project",
+        "description": "Get the info of a given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2880,17 +2677,32 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "alias": null,
-                      "config": "<ENCRYPTED>",
-                      "enabled": 1,
-                      "id": "ds_krsappzu9f8vmo",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "is_meta": 1,
-                      "meta": null,
-                      "order": 1,
-                      "project_id": "p_01clqvzik3izk6",
-                      "type": "mysql2"
+                      "sources": [
+                        {
+                          "alias": "string",
+                          "config": null,
+                          "enabled": true,
+                          "id": "string",
+                          "inflection_column": "camelize",
+                          "inflection_table": "camelize",
+                          "is_meta": true,
+                          "order": 1,
+                          "base_id": "string",
+                          "type": "mysql2",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "color": "#24716E",
+                      "created_at": "2023-03-01 14:27:36",
+                      "deleted": true,
+                      "description": "This is my base description",
+                      "id": "p_124hhlkbeasewh",
+                      "is_meta": true,
+                      "meta": {},
+                      "order": 0,
+                      "prefix": "nc_vm5q__",
+                      "status": "string",
+                      "title": "my-base"
                     }
                   }
                 }
@@ -2928,7 +2740,7 @@
         "tags": [
           "Base"
         ],
-        "description": "Delete the base details of a given project",
+        "description": "Delete the given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -2944,6 +2756,194 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "color": "#24716E",
+                    "meta": null,
+                    "title": "My Base"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{baseId}/user": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "Base user meta update",
+        "operationId": "base-user-meta-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUserMetaReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/projects/{baseId}/bases/{sourceId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "pattern": "ds_j04jmxh5xg10lu"
+          },
+          "name": "sourceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Source ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Source",
+        "operationId": "source-read",
+        "description": "Get the source details of a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Source"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Source"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": null,
+                      "config": "<ENCRYPTED>",
+                      "enabled": 1,
+                      "id": "ds_krsappzu9f8vmo",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "is_meta": 1,
+                      "meta": null,
+                      "order": 1,
+                      "base_id": "p_01clqvzik3izk6",
+                      "type": "mysql2"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Source",
+        "operationId": "source-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Source"
+        ],
+        "description": "Delete the source details of a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Source",
+        "operationId": "source-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {}
                 },
@@ -2951,7 +2951,7 @@
                   "Example 1": {
                     "value": {
                       "id": "ds_rrplkgy0pq1f3c",
-                      "project_id": "p_63b4q0qengen1x",
+                      "base_id": "p_63b4q0qengen1x",
                       "alias": "sakila",
                       "meta": null,
                       "is_meta": null,
@@ -2973,7 +2973,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ],
         "requestBody": {
           "content": {
@@ -3004,7 +3004,7 @@
             }
           }
         },
-        "description": "Update the base details of a given project",
+        "description": "Update the source details of a given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -3012,13 +3012,13 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/:projectId/bases/:baseId/sqlView": {
+    "/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true
         },
@@ -3026,7 +3026,7 @@
           "schema": {
             "type": "string"
           },
-          "name": "baseId",
+          "name": "sourceId",
           "in": "path",
           "required": true
         }
@@ -3048,7 +3048,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ],
         "requestBody": {
           "content": {
@@ -3069,7 +3069,7 @@
         }
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/bases/": {
+    "/api/v1/db/meta/projects/{baseId}/bases/": {
       "parameters": [
         {
           "schema": {
@@ -3077,23 +3077,23 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "get": {
-        "summary": "List Bases",
-        "operationId": "base-list",
-        "description": "Get project base list",
+        "summary": "List Sources",
+        "operationId": "source-list",
+        "description": "Get base source list",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Base"
+          "Source"
         ],
         "responses": {
           "200": {
@@ -3101,7 +3101,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BaseList"
+                  "$ref": "#/components/schemas/SourceList"
                 },
                 "examples": {
                   "Example 1": {
@@ -3117,7 +3117,7 @@
                           "is_meta": 1,
                           "meta": null,
                           "order": 1,
-                          "project_id": "p_01clqvzik3izk6",
+                          "base_id": "p_01clqvzik3izk6",
                           "type": "mysql2"
                         }
                       ],
@@ -3140,15 +3140,15 @@
         }
       },
       "post": {
-        "summary": "Create Base",
-        "operationId": "base-create",
+        "summary": "Create Source",
+        "operationId": "source-create",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base"
+                  "$ref": "#/components/schemas/Source"
                 }
               }
             }
@@ -3163,7 +3163,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/Base"
+                    "$ref": "#/components/schemas/Source"
                   },
                   {
                     "type": "object",
@@ -3188,7 +3188,7 @@
                     "is_meta": 1,
                     "meta": null,
                     "order": 1,
-                    "project_id": "p_01clqvzik3izk6",
+                    "base_id": "p_01clqvzik3izk6",
                     "type": "mysql2",
                     "external": false
                   }
@@ -3198,9 +3198,9 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ],
-        "description": "Create a new base on a given project",
+        "description": "Create a new source on a given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -3208,16 +3208,8 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd": {
+    "/api/v1/db/meta/projects/{baseId}/bases/{sourceId}/share/erd": {
       "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        },
         {
           "schema": {
             "type": "string"
@@ -3225,13 +3217,21 @@
           "name": "baseId",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sourceId",
+          "in": "path",
+          "required": true
         }
       ],
       "post": {
         "summary": "share ERD view",
-        "operationId": "base-share-erd",
+        "operationId": "source-share-erd",
         "tags": [
-          "Base"
+          "Source"
         ],
         "responses": {
           "200": {
@@ -3239,7 +3239,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base"
+                  "$ref": "#/components/schemas/Source"
                 }
               }
             }
@@ -3248,18 +3248,18 @@
       },
       "delete": {
         "summary": "",
-        "operationId": "base-disable-share-erd",
+        "operationId": "source-disable-share-erd",
         "responses": {
           "200": {
             "description": "OK"
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/shared": {
+    "/api/v1/db/meta/projects/{baseId}/shared": {
       "parameters": [
         {
           "schema": {
@@ -3267,23 +3267,23 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "get": {
-        "summary": "Get Project Shared Base",
-        "operationId": "project-shared-base-get",
-        "description": "Get Project Shared Base",
+        "summary": "Get Base Shared Base",
+        "operationId": "base-shared-base-get",
+        "description": "Get Base Shared Base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Project"
+          "Base"
         ],
         "responses": {
           "200": {
@@ -3326,8 +3326,8 @@
         }
       },
       "delete": {
-        "summary": "Delete Project Shared Base",
-        "operationId": "project-shared-base-disable",
+        "summary": "Delete Base Shared Base",
+        "operationId": "base-shared-base-disable",
         "responses": {
           "200": {
             "description": "OK",
@@ -3349,9 +3349,9 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
-        "description": "Delete Project Shared Base",
+        "description": "Delete Base Shared Base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -3359,8 +3359,8 @@
         ]
       },
       "post": {
-        "summary": "Create Project Shared Base",
-        "operationId": "project-shared-base-create",
+        "summary": "Create Base Shared Base",
+        "operationId": "base-shared-base-create",
         "responses": {
           "200": {
             "description": "OK",
@@ -3385,7 +3385,7 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
         "requestBody": {
           "content": {
@@ -3404,7 +3404,7 @@
             }
           }
         },
-        "description": "Create Project Shared Base",
+        "description": "Create Base Shared Base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -3412,8 +3412,8 @@
         ]
       },
       "patch": {
-        "summary": "Update Project Shared Base",
-        "operationId": "project-shared-base-update",
+        "summary": "Update Base Shared Base",
+        "operationId": "base-shared-base-update",
         "responses": {
           "200": {
             "description": "OK",
@@ -3462,9 +3462,9 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
-        "description": "Update Project Shared Base",
+        "description": "Update Base Shared Base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -3472,7 +3472,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/cost": {
+    "/api/v1/db/meta/projects/{baseId}/cost": {
       "parameters": [
         {
           "schema": {
@@ -3480,23 +3480,23 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "get": {
-        "summary": "Project Cost",
-        "operationId": "project-cost",
-        "description": "Calculate the Project Cost",
+        "summary": "Base Cost",
+        "operationId": "base-cost",
+        "description": "Calculate the Base Cost",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Project"
+          "Base"
         ],
         "responses": {
           "200": {
@@ -3517,7 +3517,7 @@
         "x-internal": true
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/tables": {
+    "/api/v1/db/meta/projects/{baseId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -3525,10 +3525,10 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "post": {
@@ -3545,12 +3545,12 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "columns": [
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
                           "clen": null,
@@ -3571,7 +3571,7 @@
                           "ns": null,
                           "order": 4,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -3586,7 +3586,7 @@
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP",
                           "clen": null,
@@ -3607,7 +3607,7 @@
                           "ns": null,
                           "order": 3,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -3622,7 +3622,7 @@
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": "45",
@@ -3643,7 +3643,7 @@
                           "ns": null,
                           "order": 2,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": 1,
                           "rqd": 0,
                           "system": 0,
@@ -3658,7 +3658,7 @@
                         {
                           "ai": 1,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": null,
@@ -3679,7 +3679,7 @@
                           "ns": "0",
                           "order": 1,
                           "pk": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 1,
                           "system": 0,
@@ -3696,7 +3696,7 @@
                         "cl_c5knoi4xs4sfpt": {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": "45",
@@ -3717,7 +3717,7 @@
                           "ns": null,
                           "order": 2,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": 1,
                           "rqd": 0,
                           "system": 0,
@@ -3732,7 +3732,7 @@
                         "cl_jpl0qu4gj4rexq": {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP",
                           "clen": null,
@@ -3753,7 +3753,7 @@
                           "ns": null,
                           "order": 3,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -3768,7 +3768,7 @@
                         "cl_m4wkaqgqqjzoeh": {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
                           "clen": null,
@@ -3789,7 +3789,7 @@
                           "ns": null,
                           "order": 4,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -3804,7 +3804,7 @@
                         "cl_phvuuwjrzcdo0g": {
                           "ai": 1,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": null,
@@ -3825,7 +3825,7 @@
                           "ns": "0",
                           "order": 1,
                           "pk": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 1,
                           "system": 0,
@@ -3846,7 +3846,7 @@
                       "mm": 0,
                       "order": 1,
                       "pinned": null,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "schema": null,
                       "table_name": "nc_vm5q___Table1",
                       "tags": null,
@@ -3857,7 +3857,7 @@
                         {
                           "_ptn": "Table1",
                           "_tn": "Table1",
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "created_at": "2023-03-02 17:04:06",
                           "disabled": {
                             "commenter": false,
@@ -3874,7 +3874,7 @@
                           "meta": {},
                           "order": 1,
                           "password": null,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "ptn": "nc_vm5q___Table1",
                           "ptype": "table",
                           "show": 1,
@@ -3886,11 +3886,11 @@
                           "updated_at": "2023-03-02 17:04:06",
                           "uuid": null,
                           "view": {
-                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "source_id": "ds_g4ccx6e77h1dmi",
                             "created_at": "2023-03-02 17:04:06",
                             "fk_view_id": "vw_p2jcatxz4mvcfw",
                             "meta": null,
-                            "project_id": "p_xm3thidrblw4n7",
+                            "base_id": "p_xm3thidrblw4n7",
                             "row_height": null,
                             "updated_at": "2023-03-02 17:04:06",
                             "uuid": null
@@ -3919,7 +3919,7 @@
         "tags": [
           "DB Table"
         ],
-        "description": "Create a new table in a given project",
+        "description": "Create a new table in a given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -3973,7 +3973,7 @@
         "tags": [
           "DB Table"
         ],
-        "description": "List all tables in a given project"
+        "description": "List all tables in a given base"
       }
     },
     "/api/v1/db/meta/tables/{tableId}": {
@@ -4005,8 +4005,8 @@
                   "Example 1": {
                     "value": {
                       "id": "md_rsu68aqjsbyqtl",
-                      "base_id": "ds_g4ccx6e77h1dmi",
-                      "project_id": "p_xm3thidrblw4n7",
+                      "source_id": "ds_g4ccx6e77h1dmi",
+                      "base_id": "p_xm3thidrblw4n7",
                       "table_name": "nc_vm5q___Table1",
                       "title": "Table1",
                       "type": "table",
@@ -4023,8 +4023,8 @@
                       "columns": [
                         {
                           "id": "cl_phvuuwjrzcdo0g",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Id",
                           "column_name": "id",
@@ -4059,8 +4059,8 @@
                         },
                         {
                           "id": "cl_c5knoi4xs4sfpt",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Title",
                           "column_name": "title",
@@ -4095,8 +4095,8 @@
                         },
                         {
                           "id": "cl_jpl0qu4gj4rexq",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "CreatedAt",
                           "column_name": "created_at",
@@ -4131,8 +4131,8 @@
                         },
                         {
                           "id": "cl_m4wkaqgqqjzoeh",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "UpdatedAt",
                           "column_name": "updated_at",
@@ -4175,8 +4175,8 @@
                           "_tn": "Table1",
                           "table_meta": null,
                           "id": "vw_p2jcatxz4mvcfw",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Table1",
                           "type": 3,
@@ -4192,8 +4192,8 @@
                           "meta": {},
                           "view": {
                             "fk_view_id": "vw_p2jcatxz4mvcfw",
-                            "base_id": "ds_g4ccx6e77h1dmi",
-                            "project_id": "p_xm3thidrblw4n7",
+                            "source_id": "ds_g4ccx6e77h1dmi",
+                            "base_id": "p_xm3thidrblw4n7",
                             "uuid": null,
                             "created_at": "2023-03-02 17:04:06",
                             "updated_at": "2023-03-02 17:04:06",
@@ -4213,8 +4213,8 @@
                       "columnsById": {
                         "cl_phvuuwjrzcdo0g": {
                           "id": "cl_phvuuwjrzcdo0g",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Id",
                           "column_name": "id",
@@ -4249,8 +4249,8 @@
                         },
                         "cl_c5knoi4xs4sfpt": {
                           "id": "cl_c5knoi4xs4sfpt",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Title",
                           "column_name": "title",
@@ -4285,8 +4285,8 @@
                         },
                         "cl_jpl0qu4gj4rexq": {
                           "id": "cl_jpl0qu4gj4rexq",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "CreatedAt",
                           "column_name": "created_at",
@@ -4321,8 +4321,8 @@
                         },
                         "cl_m4wkaqgqqjzoeh": {
                           "id": "cl_m4wkaqgqqjzoeh",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "UpdatedAt",
                           "column_name": "updated_at",
@@ -4429,9 +4429,9 @@
                     "description": "Table title",
                     "example": "Users"
                   },
-                  "project_id": {
+                  "base_id": {
                     "type": "string",
-                    "description": "Project ID",
+                    "description": "Base ID",
                     "example": "p_124hhlkbeasewh"
                   },
                   "meta": {
@@ -4444,7 +4444,7 @@
                   "value": {
                     "table_name": "users",
                     "title": "Users",
-                    "project_id": "p_124hhlkbeasewh",
+                    "base_id": "p_124hhlkbeasewh",
                     "meta": null
                   }
                 }
@@ -4493,7 +4493,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/duplicate/{projectId}/table/{tableId}": {
+    "/api/v1/db/meta/duplicate/{baseId}/table/{tableId}": {
       "post": {
         "summary": "Duplicate Table",
         "operationId": "db-table-duplicate",
@@ -4570,10 +4570,10 @@
               "example": "p_124hhlkbeasewh",
               "type": "string"
             },
-            "name": "projectId",
+            "name": "baseId",
             "in": "path",
             "required": true,
-            "description": "Unique Project ID"
+            "description": "Unique Base ID"
           },
           {
             "schema": {
@@ -4589,7 +4589,97 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
+    "/api/v1/db/meta/duplicate/{baseId}/column/{columnId}": {
+      "post": {
+        "summary": "Duplicate Column",
+        "operationId": "duplicate-column",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
+                  },
+                  "extra": {
+                    "type": "object"
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Table"
+        ],
+        "description": "Duplicate a column",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Base ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "columnId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Column ID"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{baseId}/{sourceId}/tables": {
       "parameters": [
         {
           "schema": {
@@ -4597,20 +4687,20 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         },
         {
           "schema": {
             "type": "string",
             "pattern": "ds_j04jmxh5xg10lu"
           },
-          "name": "baseId",
+          "name": "sourceId",
           "in": "path",
           "required": true,
-          "description": "Unique Base ID"
+          "description": "Unique Source ID"
         }
       ],
       "get": {
@@ -4658,9 +4748,9 @@
           }
         ],
         "tags": [
-          "Base"
+          "Source"
         ],
-        "description": "List all tables in a given Project and Base"
+        "description": "List all tables in a given Base and Source"
       },
       "post": {
         "summary": "Create Table",
@@ -4676,12 +4766,12 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "columns": [
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
                           "clen": null,
@@ -4702,7 +4792,7 @@
                           "ns": null,
                           "order": 4,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -4717,7 +4807,7 @@
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP",
                           "clen": null,
@@ -4738,7 +4828,7 @@
                           "ns": null,
                           "order": 3,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -4753,7 +4843,7 @@
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": "45",
@@ -4774,7 +4864,7 @@
                           "ns": null,
                           "order": 2,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": 1,
                           "rqd": 0,
                           "system": 0,
@@ -4789,7 +4879,7 @@
                         {
                           "ai": 1,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": null,
@@ -4810,7 +4900,7 @@
                           "ns": "0",
                           "order": 1,
                           "pk": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 1,
                           "system": 0,
@@ -4827,7 +4917,7 @@
                         "cl_c5knoi4xs4sfpt": {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": "45",
@@ -4848,7 +4938,7 @@
                           "ns": null,
                           "order": 2,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": 1,
                           "rqd": 0,
                           "system": 0,
@@ -4863,7 +4953,7 @@
                         "cl_jpl0qu4gj4rexq": {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP",
                           "clen": null,
@@ -4884,7 +4974,7 @@
                           "ns": null,
                           "order": 3,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -4899,7 +4989,7 @@
                         "cl_m4wkaqgqqjzoeh": {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
                           "clen": null,
@@ -4920,7 +5010,7 @@
                           "ns": null,
                           "order": 4,
                           "pk": 0,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 0,
                           "system": 0,
@@ -4935,7 +5025,7 @@
                         "cl_phvuuwjrzcdo0g": {
                           "ai": 1,
                           "au": 0,
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "cc": "",
                           "cdf": null,
                           "clen": null,
@@ -4956,7 +5046,7 @@
                           "ns": "0",
                           "order": 1,
                           "pk": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "pv": null,
                           "rqd": 1,
                           "system": 0,
@@ -4977,7 +5067,7 @@
                       "mm": 0,
                       "order": 1,
                       "pinned": null,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "schema": null,
                       "table_name": "nc_vm5q___Table1",
                       "tags": null,
@@ -4988,7 +5078,7 @@
                         {
                           "_ptn": "Table1",
                           "_tn": "Table1",
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "created_at": "2023-03-02 17:04:06",
                           "disabled": {
                             "commenter": false,
@@ -5005,7 +5095,7 @@
                           "meta": {},
                           "order": 1,
                           "password": null,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "ptn": "nc_vm5q___Table1",
                           "ptype": "table",
                           "show": 1,
@@ -5017,11 +5107,11 @@
                           "updated_at": "2023-03-02 17:04:06",
                           "uuid": null,
                           "view": {
-                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "source_id": "ds_g4ccx6e77h1dmi",
                             "created_at": "2023-03-02 17:04:06",
                             "fk_view_id": "vw_p2jcatxz4mvcfw",
                             "meta": null,
-                            "project_id": "p_xm3thidrblw4n7",
+                            "base_id": "p_xm3thidrblw4n7",
                             "row_height": null,
                             "updated_at": "2023-03-02 17:04:06",
                             "uuid": null
@@ -5150,9 +5240,9 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ],
-        "description": "Create a new table in a given Project and Base",
+        "description": "Create a new table in a given Base and Source",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -5265,7 +5355,7 @@
                   "value": {
                     "ai": 0,
                     "au": 0,
-                    "base_id": "ds_krsappzu9f8vmo",
+                    "source_id": "ds_krsappzu9f8vmo",
                     "cc": "",
                     "cdf": null,
                     "clen": "45",
@@ -5285,7 +5375,7 @@
                     "ns": null,
                     "order": 2,
                     "pk": 0,
-                    "project_id": "p_01clqvzik3izk6",
+                    "base_id": "p_01clqvzik3izk6",
                     "pv": 1,
                     "rqd": 0,
                     "system": 0,
@@ -5484,7 +5574,7 @@
                               "alias": "string",
                               "auto_increment": true,
                               "auto_update_timestamp": true,
-                              "base_id": "string",
+                              "source_id": "string",
                               "character_maximum_length": "string",
                               "character_set_name": "string",
                               "colOptions": {
@@ -5597,7 +5687,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
@@ -5606,7 +5696,7 @@
                       "meta": "{\"allowCSVDownload\":true}",
                       "order": 1,
                       "password": "password123",
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "show": 1,
                       "show_system_fields": null,
                       "title": "Grid View 1",
@@ -5827,7 +5917,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "created_at": "2023-03-02 17:46:31",
                           "fk_model_id": "md_mhs9z4r2ak98x0",
                           "id": "vw_lg052cnc1c26kf",
@@ -5835,7 +5925,7 @@
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "show": 1,
                           "show_system_fields": null,
                           "title": "Sheet-1",
@@ -5843,11 +5933,11 @@
                           "updated_at": "2023-03-02 17:46:31",
                           "uuid": null,
                           "view": {
-                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "source_id": "ds_g4ccx6e77h1dmi",
                             "created_at": "2023-03-02 17:46:31",
                             "fk_view_id": "vw_lg052cnc1c26kf",
                             "meta": null,
-                            "project_id": "p_xm3thidrblw4n7",
+                            "base_id": "p_xm3thidrblw4n7",
                             "row_height": null,
                             "updated_at": "2023-03-02 17:46:31",
                             "uuid": null
@@ -6034,7 +6124,7 @@
                         {
                           "ai": 0,
                           "au": 0,
-                          "base_id": "ds_krsappzu9f8vmo",
+                          "source_id": "ds_krsappzu9f8vmo",
                           "cc": "",
                           "cdf": null,
                           "clen": "45",
@@ -6055,7 +6145,7 @@
                           "ns": null,
                           "order": 2,
                           "pk": 0,
-                          "project_id": "p_01clqvzik3izk6",
+                          "base_id": "p_01clqvzik3izk6",
                           "pv": 1,
                           "rqd": 0,
                           "system": 0,
@@ -6111,7 +6201,7 @@
                     "value": {
                       "ai": 0,
                       "au": 0,
-                      "base_id": "ds_krsappzu9f8vmo",
+                      "source_id": "ds_krsappzu9f8vmo",
                       "cc": "",
                       "cdf": null,
                       "clen": "45",
@@ -6132,7 +6222,7 @@
                       "ns": null,
                       "order": 2,
                       "pk": 0,
-                      "project_id": "p_01clqvzik3izk6",
+                      "base_id": "p_01clqvzik3izk6",
                       "pv": 1,
                       "rqd": 0,
                       "system": 0,
@@ -6288,10 +6378,10 @@
                           "id": "so_xd4t51uv60ghzl",
                           "fk_column_id": "cl_l11b769pe2j1ce",
                           "fk_model_id": "md_ehn5izr99m7d45",
-                          "base_id": "ds_3l9qx8xqksenrl",
+                          "source_id": "ds_3l9qx8xqksenrl",
                           "direction": "desc",
                           "order": 1,
-                          "project_id": "p_9sx43moxhqtjm3"
+                          "base_id": "p_9sx43moxhqtjm3"
                         }
                       ],
                       "pageInfo": {
@@ -6408,10 +6498,10 @@
                       "id": "so_xd4t51uv60ghzl",
                       "fk_column_id": "cl_l11b769pe2j1ce",
                       "fk_model_id": "md_ehn5izr99m7d45",
-                      "base_id": "ds_3l9qx8xqksenrl",
+                      "source_id": "ds_3l9qx8xqksenrl",
                       "direction": "desc",
                       "order": 1,
-                      "project_id": "p_9sx43moxhqtjm3"
+                      "base_id": "p_9sx43moxhqtjm3"
                     }
                   }
                 }
@@ -6546,7 +6636,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "comparison_op": "eq",
                           "comparison_sub_op": null,
                           "created_at": "2023-03-02 18:18:05",
@@ -6558,7 +6648,7 @@
                           "is_group": null,
                           "logical_op": "and",
                           "order": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "updated_at": "2023-03-02 18:18:05",
                           "value": "foo"
                         }
@@ -6604,7 +6694,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "comparison_op": "eq",
                       "comparison_sub_op": null,
                       "created_at": "2023-03-02 18:18:05",
@@ -6616,7 +6706,7 @@
                       "is_group": null,
                       "logical_op": "and",
                       "order": 1,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "updated_at": "2023-03-02 18:18:05",
                       "value": "foo"
                     }
@@ -6690,7 +6780,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "comparison_op": "eq",
                           "comparison_sub_op": null,
                           "created_at": "2023-03-02 18:18:05",
@@ -6702,7 +6792,7 @@
                           "is_group": null,
                           "logical_op": "and",
                           "order": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "updated_at": "2023-03-02 18:18:05",
                           "value": "foo"
                         }
@@ -6748,7 +6838,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "comparison_op": "eq",
                       "comparison_sub_op": null,
                       "created_at": "2023-03-02 18:18:05",
@@ -6760,7 +6850,7 @@
                       "is_group": null,
                       "logical_op": "and",
                       "order": 1,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "updated_at": "2023-03-02 18:18:05",
                       "value": "foo"
                     }
@@ -6834,7 +6924,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_jxuewivwbxeum2",
+                          "source_id": "ds_jxuewivwbxeum2",
                           "event": "after",
                           "execution_time": "98",
                           "fk_hook_id": "hk_035ijv5qdi97y5",
@@ -6842,7 +6932,7 @@
                           "notifications": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}}",
                           "operation": "insert",
                           "payload": "{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}",
-                          "project_id": "p_tbhl1hnycvhe5l",
+                          "base_id": "p_tbhl1hnycvhe5l",
                           "response": "{\"status\":200,\"statusText\":\"OK\",\"headers\":{\"server\":\"nginx\",\"content-type\":\"text/plain; charset=UTF-8\",\"transfer-encoding\":\"chunked\",\"connection\":\"close\",\"vary\":\"Accept-Encoding\",\"x-request-id\":\"53844a7d-ede8-4798-adf7-8af441908a72\",\"x-token-id\":\"6eb45ce5-b611-4be1-8b96-c2965755662b\",\"cache-control\":\"no-cache, private\",\"date\":\"Fri, 24 Mar 2023 10:50:10 GMT\"},\"config\":{\"url\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\",\"method\":\"post\",\"data\":\"{\\\"type\\\":\\\"records.after.insert\\\",\\\"id\\\":\\\"a77d97dc-a3e4-4719-9b46-45f93e0cc99a\\\",\\\"data\\\":{\\\"table_id\\\":\\\"md_d8v403o74mf5lf\\\",\\\"table_name\\\":\\\"Sheet-2\\\"}}\",\"headers\":{\"Accept\":\"application/json, text/plain, */*\",\"Content-Type\":\"application/x-www-form-urlencoded\",\"User-Agent\":\"axios/0.21.4\",\"Content-Length\":138},\"params\":{}}}",
                           "test_call": 0,
                           "triggered_by": "w@nocodb.com",
@@ -6920,7 +7010,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "comparison_op": "eq",
                       "comparison_sub_op": null,
                       "created_at": "2023-03-02 18:18:05",
@@ -6932,7 +7022,7 @@
                       "is_group": null,
                       "logical_op": "and",
                       "order": 1,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "updated_at": "2023-03-02 18:18:05",
                       "value": "foo"
                     }
@@ -7072,7 +7162,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "comparison_op": "eq",
                           "comparison_sub_op": null,
                           "created_at": "2023-03-02 18:18:05",
@@ -7084,7 +7174,7 @@
                           "is_group": null,
                           "logical_op": "and",
                           "order": 1,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "updated_at": "2023-03-02 18:18:05",
                           "value": "foo"
                         }
@@ -7146,8 +7236,8 @@
                   "Example 1": {
                     "value": {
                       "id": "vw_o50jiw9v2txktv",
-                      "base_id": "ds_a95vextjl510z7",
-                      "project_id": "p_slkm6i3v31q4bc",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Grid-1",
                       "type": 3,
@@ -7231,8 +7321,8 @@
                   "Example 1": {
                     "value": {
                       "id": "vw_a830n4bmwk8wlp",
-                      "base_id": "ds_a95vextjl510z7",
-                      "project_id": "p_slkm6i3v31q4bc",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Form-1",
                       "type": 1,
@@ -7375,13 +7465,13 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "banner_image_url": null,
                       "columns": [
                         {
                           "id": "fvc_ugj9zo5bzocxtl",
-                          "base_id": "ds_g4ccx6e77h1dmi",
-                          "project_id": "p_xm3thidrblw4n7",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
                           "fk_view_id": "vw_kdf5cr7qmhksek",
                           "fk_column_id": "cl_phvuuwjrzcdo0g",
                           "uuid": null,
@@ -7593,8 +7683,8 @@
                         "id": "nc_c8jz4kxe6xvh11",
                         "fk_view_id": "vw_p2jcatxz4mvcfw",
                         "fk_column_id": "cl_c5knoi4xs4sfpt",
-                        "project_id": "p_xm3thidrblw4n7",
-                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "base_id": "p_xm3thidrblw4n7",
+                        "source_id": "ds_g4ccx6e77h1dmi",
                         "show": 0,
                         "order": 1,
                         "width": "200px",
@@ -7715,8 +7805,8 @@
                   "Example 1": {
                     "value": {
                       "id": "vw_qp94qfnvffgk5f",
-                      "base_id": "ds_a95vextjl510z7",
-                      "project_id": "p_slkm6i3v31q4bc",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
@@ -7891,8 +7981,8 @@
                   "Example 1": {
                     "value": {
                       "id": "vw_569sqsrp2vuff4",
-                      "base_id": "ds_a95vextjl510z7",
-                      "project_id": "p_slkm6i3v31q4bc",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Kanban-1",
                       "type": 4,
@@ -8110,7 +8200,7 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
@@ -8119,7 +8209,7 @@
                       "meta": {},
                       "order": 1,
                       "password": null,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "show": 1,
                       "show_system_fields": null,
                       "title": "Sheet-1",
@@ -8260,7 +8350,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/meta-diff": {
+    "/api/v1/db/meta/projects/{baseId}/meta-diff": {
       "parameters": [
         {
           "schema": {
@@ -8268,15 +8358,15 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "post": {
         "summary": "Sync Meta",
-        "operationId": "project-meta-diff-sync",
+        "operationId": "base-meta-diff-sync",
         "responses": {
           "200": {
             "description": "OK",
@@ -8309,7 +8399,7 @@
           }
         },
         "tags": [
-          "Project"
+          "Base"
         ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources ",
         "parameters": [
@@ -8320,7 +8410,7 @@
       },
       "get": {
         "summary": "Meta Diff",
-        "operationId": "project-meta-diff-get",
+        "operationId": "base-meta-diff-get",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -8330,7 +8420,7 @@
           }
         ],
         "tags": [
-          "Project"
+          "Base"
         ],
         "responses": {
           "200": {
@@ -8353,12 +8443,12 @@
                         "description": "Table Name",
                         "example": "Table 1"
                       },
-                      "base_id": {
+                      "source_id": {
                         "type": "string",
                         "x-stoplight": {
                           "id": "smx2or6bv1xym"
                         },
-                        "description": "Base ID",
+                        "description": "Source ID",
                         "example": "ds_rrplkgy0pq1f3c"
                       },
                       "type": {
@@ -8390,7 +8480,7 @@
                     "value": [
                       {
                         "table_name": "_nc_m2m_uuv_xzru3m",
-                        "base_id": "ds_rrplkgy0pq1f3c",
+                        "source_id": "ds_rrplkgy0pq1f3c",
                         "type": "table",
                         "detectedChanges": [
                           {
@@ -8432,7 +8522,7 @@
         "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}": {
+    "/api/v1/db/meta/projects/{baseId}/meta-diff/{sourceId}": {
       "parameters": [
         {
           "schema": {
@@ -8440,25 +8530,25 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         },
         {
           "schema": {
             "type": "string",
             "pattern": "ds_j04jmxh5xg10lu"
           },
-          "name": "baseId",
+          "name": "sourceId",
           "in": "path",
           "required": true,
-          "description": "Unique Base ID"
+          "description": "Unique Source ID"
         }
       ],
       "post": {
-        "summary": "Synchronise Base Meta",
-        "operationId": "base-meta-diff-sync",
+        "summary": "Synchronise Source Meta",
+        "operationId": "source-meta-diff-sync",
         "responses": {
           "200": {
             "description": "OK",
@@ -8472,14 +8562,14 @@
                       "x-stoplight": {
                         "id": "acy7tx4rounqw"
                       },
-                      "example": "The base meta has been synchronized successfully"
+                      "example": "The source meta has been synchronized successfully"
                     }
                   }
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "msg": "The base meta has been synchronized successfully"
+                      "msg": "The source meta has been synchronized successfully"
                     }
                   }
                 }
@@ -8491,9 +8581,9 @@
           }
         },
         "tags": [
-          "Base"
+          "Source"
         ],
-        "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Base",
+        "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Source",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -8501,15 +8591,15 @@
         ]
       },
       "get": {
-        "summary": "Base Meta Diff",
-        "operationId": "base-meta-diff-get",
+        "summary": "Source Meta Diff",
+        "operationId": "source-meta-diff-get",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Base"
+          "Source"
         ],
         "responses": {
           "200": {
@@ -8532,13 +8622,13 @@
                         "description": "Table Name",
                         "example": "Table 1"
                       },
-                      "base_id": {
+                      "source_id": {
                         "type": "string",
                         "x-stoplight": {
                           "id": "l1o3qhkgagsdl"
                         },
                         "example": "ds_rrplkgy0pq1f3c",
-                        "description": "Base ID"
+                        "description": "Source ID"
                       },
                       "type": {
                         "type": "string",
@@ -8569,7 +8659,7 @@
                     "value": [
                       {
                         "table_name": "_nc_m2m_uuv_xzru3m",
-                        "base_id": "ds_rrplkgy0pq1f3c",
+                        "source_id": "ds_rrplkgy0pq1f3c",
                         "type": "table",
                         "detectedChanges": [
                           {
@@ -8608,10 +8698,10 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "Get the meta data difference between NC_DB and external data sources in a given Base"
+        "description": "Get the meta data difference between NC_DB and external data sources in a given Source"
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters": {
+    "/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters": {
       "parameters": [
         {
           "schema": {
@@ -8619,22 +8709,22 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "get": {
         "summary": "List Empty & Null Filter",
-        "operationId": "project-has-empty-or-null-filters",
+        "operationId": "base-has-empty-or-null-filters",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Project"
+          "Base"
         ],
         "responses": {
           "200": {
@@ -8649,11 +8739,11 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.",
+        "description": "Check if a base contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Base Setting.",
         "x-internal": true
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
           "schema": {
@@ -8668,10 +8758,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -8686,7 +8776,7 @@
       "get": {
         "summary": "List Table Rows",
         "operationId": "db-table-row-list",
-        "description": "List all table rows in a given table and project",
+        "description": "List all table rows in a given table and base",
         "tags": [
           "DB Table Row"
         ],
@@ -8899,7 +8989,7 @@
             }
           }
         },
-        "description": "Create a new row in a given table and project.",
+        "description": "Create a new row in a given table and base.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -8907,7 +8997,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/find-one": {
       "parameters": [
         {
           "schema": {
@@ -8922,10 +9012,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -8997,7 +9087,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby": {
       "parameters": [
         {
           "schema": {
@@ -9012,10 +9102,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9089,7 +9179,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -9105,10 +9195,10 @@
             "type": "string",
             "example": "p_tbhl1hnycvhe5l"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9267,7 +9357,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/group/{columnId}": {
       "parameters": [
         {
           "schema": {
@@ -9283,10 +9373,10 @@
             "type": "string",
             "example": "p_tbhl1hnycvhe5l"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9435,7 +9525,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}": {
       "parameters": [
         {
           "schema": {
@@ -9450,10 +9540,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9669,7 +9759,7 @@
         "description": "Create a new row in the given Table View"
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/find-one": {
       "parameters": [
         {
           "schema": {
@@ -9684,10 +9774,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9773,7 +9863,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby": {
       "parameters": [
         {
           "schema": {
@@ -9788,10 +9878,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9876,7 +9966,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/count": {
       "parameters": [
         {
           "schema": {
@@ -9891,10 +9981,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -9970,7 +10060,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -9985,10 +10075,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10146,7 +10236,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/{rowId}/exist": {
       "parameters": [
         {
           "schema": {
@@ -10161,10 +10251,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10227,7 +10317,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -10242,10 +10332,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10402,7 +10492,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/exist": {
       "parameters": [
         {
           "schema": {
@@ -10417,10 +10507,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10475,7 +10565,7 @@
         ]
       }
     },
-    "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}": {
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
           "schema": {
@@ -10490,10 +10580,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10733,7 +10823,7 @@
         ]
       }
     },
-    "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all": {
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all": {
       "parameters": [
         {
           "schema": {
@@ -10748,10 +10838,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10890,7 +10980,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}": {
       "parameters": [
         {
           "schema": {
@@ -10905,10 +10995,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -10976,7 +11066,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}": {
       "parameters": [
         {
           "schema": {
@@ -10991,10 +11081,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -11054,7 +11144,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {
           "schema": {
@@ -11069,10 +11159,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -11166,7 +11256,7 @@
         "description": "List all nested relations rows"
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
       "parameters": [
         {
           "schema": {
@@ -11181,10 +11271,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -11391,7 +11481,7 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
       "parameters": [
         {
           "schema": {
@@ -11406,10 +11496,10 @@
           "schema": {
             "type": "string"
           },
-          "name": "projectName",
+          "name": "baseName",
           "in": "path",
           "required": true,
-          "description": "Project Name"
+          "description": "Base Name"
         },
         {
           "schema": {
@@ -11779,7 +11869,7 @@
                     "value": {
                       "list": [
                         {
-                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "source_id": "ds_g4ccx6e77h1dmi",
                           "created_at": "2023-03-02 17:46:31",
                           "fk_model_id": "md_mhs9z4r2ak98x0",
                           "id": "vw_lg052cnc1c26kf",
@@ -11788,7 +11878,7 @@
                           "meta": {},
                           "order": 1,
                           "password": null,
-                          "project_id": "p_xm3thidrblw4n7",
+                          "base_id": "p_xm3thidrblw4n7",
                           "show": 1,
                           "show_system_fields": null,
                           "title": "Sheet-1",
@@ -11796,11 +11886,11 @@
                           "updated_at": "2023-03-02 17:46:31",
                           "uuid": null,
                           "view": {
-                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "source_id": "ds_g4ccx6e77h1dmi",
                             "created_at": "2023-03-02 17:46:31",
                             "fk_view_id": "vw_lg052cnc1c26kf",
                             "meta": null,
-                            "project_id": "p_xm3thidrblw4n7",
+                            "base_id": "p_xm3thidrblw4n7",
                             "row_height": null,
                             "updated_at": "2023-03-02 17:46:31",
                             "uuid": null
@@ -12465,9 +12555,9 @@
         }
       ],
       "get": {
-        "summary": "Get Share Base Meta",
+        "summary": "Get Share Source Meta",
         "operationId": "public-shared-base-get",
-        "description": "Get Share Base Meta",
+        "description": "Get Share Source Meta",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -12481,16 +12571,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "project_id": {
+                    "base_id": {
                       "type": "string",
-                      "description": "Project ID"
+                      "description": "Base ID"
                     }
                   }
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "project_id": "p_63b4q0qengen1x"
+                      "base_id": "p_63b4q0qengen1x"
                     }
                   }
                 }
@@ -12547,7 +12637,7 @@
                         "client": {
                           "type": "string"
                         },
-                        "base_id": {
+                        "source_id": {
                           "type": "string"
                         },
                         "columns": {
@@ -12675,8 +12765,8 @@
                           "user": "w@nocodb.com",
                           "display_name": "NocoDB",
                           "ip": null,
-                          "base_id": null,
-                          "project_id": "p_63b4q0qengen1x",
+                          "source_id": null,
+                          "base_id": "p_63b4q0qengen1x",
                           "fk_model_id": "md_5mipbdg6ketmv8",
                           "row_id": "1",
                           "op_type": "COMMENT",
@@ -12692,8 +12782,8 @@
                           "user": "w@nocodb.com",
                           "display_name": "NocoDB",
                           "ip": null,
-                          "base_id": null,
-                          "project_id": "p_63b4q0qengen1x",
+                          "source_id": null,
+                          "base_id": "p_63b4q0qengen1x",
                           "fk_model_id": "md_5mipbdg6ketmv8",
                           "row_id": "1",
                           "op_type": "COMMENT",
@@ -12773,7 +12863,7 @@
                       "fk_model_id": "md_5mipbdg6ketmv8",
                       "op_type": "COMMENT",
                       "description": "qq",
-                      "project_id": "p_63b4q0qengen1x",
+                      "base_id": "p_63b4q0qengen1x",
                       "id": "adt_vx58jpp0loo8qy"
                     }
                   }
@@ -12967,7 +13057,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/audits": {
+    "/api/v1/db/meta/projects/{baseId}/audits": {
       "parameters": [
         {
           "schema": {
@@ -12975,15 +13065,15 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ],
       "get": {
-        "summary": "List Audits in Project",
-        "operationId": "project-audit-list",
+        "summary": "List Audits in Base",
+        "operationId": "base-audit-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -13016,7 +13106,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "List all audit data in the given project",
+        "description": "List all audit data in the given base",
         "parameters": [
           {
             "schema": {
@@ -13039,14 +13129,14 @@
               "type": "string"
             },
             "in": "query",
-            "name": "baseId"
+            "name": "sourceId"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
         "tags": [
-          "Project"
+          "Base"
         ]
       }
     },
@@ -13081,7 +13171,7 @@
                       "fk_model_id": "md_5mipbdg6ketmv8",
                       "op_type": "COMMENT",
                       "description": "Table Sheet-1 : field Column A got changed from foo to bar",
-                      "project_id": "p_63b4q0qengen1x",
+                      "base_id": "p_63b4q0qengen1x",
                       "id": "adt_vx58jpp0loo8qy"
                     }
                   }
@@ -14161,7 +14251,7 @@
                   "x-examples": {
                     "Example 1": {
                       "authType": "jwt",
-                      "projectHasAdmin": true,
+                      "baseHasAdmin": true,
                       "firstUser": false,
                       "type": "rest",
                       "googleAuthEnabled": false,
@@ -14183,7 +14273,7 @@
                     "authType": {
                       "type": "string"
                     },
-                    "projectHasAdmin": {
+                    "baseHasAdmin": {
                       "type": "boolean"
                     },
                     "firstUser": {
@@ -14255,7 +14345,7 @@
                   "Example 1": {
                     "value": {
                       "authType": "jwt",
-                      "projectHasAdmin": true,
+                      "baseHasAdmin": true,
                       "firstUser": false,
                       "type": "rest",
                       "googleAuthEnabled": false,
@@ -14483,10 +14573,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "projectCount": {
+                    "baseCount": {
                       "type": "integer"
                     },
-                    "projects": {
+                    "bases": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -14506,7 +14596,7 @@
                           },
                           "external": {
                             "type": "boolean",
-                            "description": "External Project",
+                            "description": "External Base",
                             "default": false
                           },
                           "viewCount": {
@@ -14584,7 +14674,7 @@
                           },
                           "userCount": {
                             "type": "integer",
-                            "description": "Total project user Count"
+                            "description": "Total base user Count"
                           }
                         }
                       }
@@ -14600,8 +14690,8 @@
                   },
                   "x-examples": {
                     "Example 1": {
-                      "projectCount": 1,
-                      "projects": [
+                      "baseCount": 1,
+                      "bases": [
                         {
                           "tableCount": {
                             "table": 3,
@@ -14640,8 +14730,8 @@
                 "examples": {
                   "example-1": {
                     "value": {
-                      "projectCount": 1,
-                      "projects": [
+                      "baseCount": 1,
+                      "bases": [
                         {
                           "tableCount": {
                             "table": 3,
@@ -14749,9 +14839,9 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{projectId}/api-tokens": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens": {
       "get": {
-        "summary": "List API Tokens in Project",
+        "summary": "List API Tokens in Base",
         "tags": [
           "API Token"
         ],
@@ -14792,7 +14882,7 @@
           }
         },
         "operationId": "api-token-list",
-        "description": "List API Tokens in the given project",
+        "description": "List API Tokens in the given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -14847,7 +14937,7 @@
         "tags": [
           "API Token"
         ],
-        "description": "Create API Token in a project",
+        "description": "Create API Token in a base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -14861,14 +14951,14 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         }
       ]
     },
-    "/api/v1/db/meta/projects/{projectId}/api-tokens/{token}": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens/{token}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -14896,7 +14986,7 @@
         "tags": [
           "API Token"
         ],
-        "description": "Delete the given API Token in project",
+        "description": "Delete the given API Token in base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -14910,10 +15000,10 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         },
         {
           "schema": {
@@ -14939,15 +15029,30 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/AttachmentReq"
+                "type":"object",
+                "properties":{
+                  "files":{
+                    "type": "array",
+                    "required": true,
+                    "items": {
+                      "$ref": "#/components/schemas/FileReq"
+                    }
+                  }
+                }
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "mimetype": "image/jpeg",
-                    "path": "download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg",
-                    "size": 13052,
-                    "title": "22bc-kavypmq4869759 (1).jpg"
+                    "files": [
+                      {
+                        "mimetype": "image/jpeg",
+                        "fieldname":"files",
+                        "originalname": "22bc-kavypmq4869759 (1).jpg",
+                        "encoding":"7bit",
+                        "size": 13052,
+                        "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
+                      }
+                    ]
                   }
                 }
               }
@@ -15012,7 +15117,7 @@
         "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
-    "/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite": {
+    "/api/v1/db/meta/projects/{baseId}/users/{userId}/resend-invite": {
       "parameters": [
         {
           "schema": {
@@ -15020,10 +15125,10 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
-          "name": "projectId",
+          "name": "baseId",
           "in": "path",
           "required": true,
-          "description": "Unique Project ID"
+          "description": "Unique Base ID"
         },
         {
           "schema": {
@@ -15038,7 +15143,7 @@
       ],
       "post": {
         "summary": "Resend User Invitation",
-        "operationId": "auth-project-user-resend-invite",
+        "operationId": "auth-base-user-resend-invite",
         "responses": {
           "200": {
             "description": "OK",
@@ -15338,7 +15443,7 @@
         ]
       }
     },
-    "/api/v1/tables/{tableId}/rows": {
+    "/api/v2/tables/{tableId}/records": {
       "parameters": [
         {
           "schema": {
@@ -15355,7 +15460,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -15576,7 +15680,7 @@
             }
           }
         },
-        "description": "Create a new row in a given table and project.",
+        "description": "Create a new row in a given table and base.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -15631,7 +15735,7 @@
             }
           }
         },
-        "description": "Create a new row in a given table and project.",
+        "description": "Create a new row in a given table and base.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -15685,7 +15789,7 @@
             }
           }
         },
-        "description": "Create a new row in a given table and project.",
+        "description": "Create a new row in a given table and base.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -15693,7 +15797,7 @@
         ]
       }
     },
-    "/api/v1/tables/{tableId}/rows/{rowId}": {
+    "/api/v2/tables/{tableId}/records/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -15719,7 +15823,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -15790,7 +15893,7 @@
         }
       }
     },
-    "/api/v1/tables/{tableId}/rows/count": {
+    "/api/v2/tables/{tableId}/records/count": {
       "parameters": [
         {
           "schema": {
@@ -15807,7 +15910,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -15929,7 +16031,7 @@
         }
       }
     },
-    "/api/v1/tables/{tableId}/links/{columnId}/rows/{rowId}": {
+    "/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}": {
       "parameters": [
         {
           "schema": {
@@ -15946,7 +16048,6 @@
           },
           "name": "viewId",
           "in": "query",
-          "required": true,
           "description": "View ID"
         }
       ],
@@ -16220,13 +16321,61 @@
             }
           }
         },
-        "description": "Create a new row in a given table and project.",
+        "description": "Create a new row in a given table and base.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
       }
+    },
+    "/jobs/listen": {
+      "post": {
+        "summary": "Jobs Listen",
+        "operationId": "jobs-listen",
+        "description": "Listen for job events",
+        "tags": [
+          "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/jobs/status": {
+      "post": {
+        "summary": "Jobs Status",
+        "operationId": "jobs-status",
+        "description": "Get job status",
+        "tags": [
+          "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
     }
   },
   "components": {
@@ -16434,10 +16583,57 @@
           "url": {
             "type": "string",
             "description": "Attachment URL to be uploaded via upload-by-url"
+          },
+          "fileName":{
+            "type": "string",
+            "description": "The name of the attachment file name"
           }
         },
         "x-stoplight": {
           "id": "6cr1iwhbyxncd"
+        }
+      },
+      "FileReq": {
+        "description": "Model for File Request",
+        "type": "object",
+        "x-examples": {
+          "Example 1": {
+            "mimetype": "image/jpeg",
+            "fieldname":"files",
+            "originalname": "22bc-kavypmq4869759 (1).jpg",
+            "encoding":"7bit",
+            "size": 13052,
+            "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
+          }
+        },
+        "title": "File Request Model",
+        "properties": {
+          "mimetype": {
+            "type": "string",
+            "description": "The mimetype of the file"
+          },
+          "fieldname": {
+            "type": "string",
+            "description": "The name of the input used to upload the file"
+          },
+          "originalname": {
+            "type": "string",
+            "description": "The original name of the file"
+          },
+          "size": {
+            "type": "number",
+            "description": "The size of the file"
+          },
+          "encoding": {
+            "type": "string",
+            "description": "The encoding of the file"
+          },
+          "buffer": {
+            "description": "An buffer array containing the file content"
+          }
+        },
+        "x-stoplight": {
+          "id": null
         }
       },
       "Audit": {
@@ -16448,8 +16644,8 @@
             "user": "w@nocodb.com",
             "display_name": "NocoDB",
             "ip": "::ffff:127.0.0.1",
-            "base_id": "ds_3l9qx8xqksenrl",
-            "project_id": "p_9sx43moxhqtjm3",
+            "source_id": "ds_3l9qx8xqksenrl",
+            "base_id": "p_9sx43moxhqtjm3",
             "fk_model_id": "md_ehn5izr99m7d45",
             "row_id": "rec0Adp9PMG9o7uJy",
             "op_type": "AUTHENTICATION",
@@ -16481,14 +16677,14 @@
             "example": "::ffff:127.0.0.1",
             "description": "IP address from the user"
           },
+          "source_id": {
+            "type": "string",
+            "description": "Source ID in where action is performed",
+            "example": "ds_3l9qx8xqksenrl"
+          },
           "base_id": {
             "type": "string",
             "description": "Base ID in where action is performed",
-            "example": "ds_3l9qx8xqksenrl"
-          },
-          "project_id": {
-            "type": "string",
-            "description": "Project ID in where action is performed",
             "example": "p_9sx43moxhqtjm3"
           },
           "fk_model_id": {
@@ -16609,8 +16805,8 @@
           "id": "2fzwvc4m1k5or"
         }
       },
-      "Base": {
-        "description": "Model for Base",
+      "Source": {
+        "description": "Model for Source",
         "examples": [
           {
             "alias": null,
@@ -16622,26 +16818,26 @@
             "is_meta": 1,
             "meta": null,
             "order": 1,
-            "project_id": "p_01clqvzik3izk6",
+            "base_id": "p_01clqvzik3izk6",
             "type": "mysql2"
           }
         ],
-        "title": "Base Model",
+        "title": "Source Model",
         "type": "object",
         "properties": {
           "alias": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Base Name - Default BASE will be null by default"
+            "description": "Source Name - Default BASE will be null by default"
           },
           "config": {
-            "description": "Base Configuration"
+            "description": "Source Configuration"
           },
           "enabled": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Is this base enabled"
+            "description": "Is this source enabled"
           },
           "id": {
-            "description": "Unique Base ID",
+            "description": "Unique Source ID",
             "type": "string"
           },
           "inflection_column": {
@@ -16663,12 +16859,12 @@
             "description": "Is the data source minimal db"
           },
           "order": {
-            "description": "The order of the list of bases",
+            "description": "The order of the list of sources",
             "example": 1,
             "type": "number"
           },
-          "project_id": {
-            "description": "The project ID that this base belongs to",
+          "base_id": {
+            "description": "The base ID that this source belongs to",
             "type": "string"
           },
           "type": {
@@ -16691,7 +16887,7 @@
         }
       },
       "BaseList": {
-        "description": "Model for Base List",
+        "description": "Model for Source List",
         "examples": [
           {
             "list": [
@@ -16705,7 +16901,7 @@
                 "is_meta": 1,
                 "meta": null,
                 "order": 1,
-                "project_id": "p_01clqvzik3izk6",
+                "base_id": "p_01clqvzik3izk6",
                 "type": "mysql2"
               }
             ],
@@ -16718,11 +16914,11 @@
             }
           }
         ],
-        "title": "Base List Model",
+        "title": "Source List Model",
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "sakila",
@@ -16735,7 +16931,7 @@
                   "is_meta": null,
                   "meta": null,
                   "order": 2,
-                  "project_id": "p_01clqvzik3izk6",
+                  "base_id": "p_01clqvzik3izk6",
                   "type": "mysql2",
                   "updated_at": "2023-03-02 11:28:17"
                 },
@@ -16750,7 +16946,7 @@
                   "is_meta": 1,
                   "meta": null,
                   "order": 1,
-                  "project_id": "p_01clqvzik3izk6",
+                  "base_id": "p_01clqvzik3izk6",
                   "type": "mysql2",
                   "updated_at": "2023-03-02 11:28:17"
                 }
@@ -16771,9 +16967,9 @@
             "x-stoplight": {
               "id": "1q3ny60j1g4z2"
             },
-            "description": "List of base objects",
+            "description": "List of source objects",
             "items": {
-              "$ref": "#/components/schemas/Base",
+              "$ref": "#/components/schemas/Source",
               "x-stoplight": {
                 "id": "udd0nrcv6pq8d"
               }
@@ -16796,10 +16992,10 @@
         }
       },
       "BaseReq": {
-        "description": "Model for Base Request",
+        "description": "Model for Source Request",
         "examples": [
           {
-            "alias": "My Base",
+            "alias": "My Source",
             "config": null,
             "inflection_column": "camelize",
             "inflection_table": "camelize",
@@ -16809,13 +17005,13 @@
         ],
         "properties": {
           "alias": {
-            "description": "Base Name - Default BASE will be null by default",
-            "example": "My Base",
+            "description": "Source Name - Default BASE will be null by default",
+            "example": "My Source",
             "maxLength": 128,
             "type": "string"
           },
           "config": {
-            "description": "Base Configuration"
+            "description": "Source Configuration"
           },
           "inflection_column": {
             "description": "Inflection for columns",
@@ -16849,7 +17045,7 @@
             "type": "string"
           }
         },
-        "title": "Base Request",
+        "title": "Source Request",
         "type": "object",
         "x-stoplight": {
           "id": "ky2ak9xsyl3b5"
@@ -16885,7 +17081,7 @@
           {
             "ai": 0,
             "au": 0,
-            "base_id": "ds_krsappzu9f8vmo",
+            "source_id": "ds_krsappzu9f8vmo",
             "cc": "",
             "cdf": null,
             "clen": "45",
@@ -16906,7 +17102,7 @@
             "ns": null,
             "order": 2,
             "pk": 0,
-            "project_id": "p_01clqvzik3izk6",
+            "base_id": "p_01clqvzik3izk6",
             "pv": 1,
             "rqd": 0,
             "system": 0,
@@ -16930,8 +17126,8 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Auto Update Timestamp"
           },
-          "base_id": {
-            "description": "Base ID that this column belongs to",
+          "source_id": {
+            "description": "Source ID that this column belongs to",
             "example": "ds_krsappzu9f8vmo",
             "type": "string"
           },
@@ -17176,7 +17372,7 @@
               {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_krsappzu9f8vmo",
+                "source_id": "ds_krsappzu9f8vmo",
                 "cc": "",
                 "cdf": null,
                 "clen": "45",
@@ -17197,7 +17393,7 @@
                 "ns": null,
                 "order": 2,
                 "pk": 0,
-                "project_id": "p_01clqvzik3izk6",
+                "base_id": "p_01clqvzik3izk6",
                 "pv": 1,
                 "rqd": 0,
                 "system": 0,
@@ -17223,7 +17419,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -17233,7 +17429,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -17321,6 +17517,9 @@
                 "maxLength": 255,
                 "minLength": 1,
                 "type": "string"
+              },
+              "view_id": {
+                "type": "string"
               }
             },
             "required": [
@@ -17333,7 +17532,7 @@
           {
             "ai": 0,
             "au": 0,
-            "base_id": "ds_krsappzu9f8vmo",
+            "source_id": "ds_krsappzu9f8vmo",
             "cc": "",
             "cdf": null,
             "clen": "45",
@@ -17354,7 +17553,7 @@
             "ns": null,
             "order": 2,
             "pk": 0,
-            "project_id": "p_01clqvzik3izk6",
+            "base_id": "p_01clqvzik3izk6",
             "pv": 1,
             "rqd": 0,
             "system": 0,
@@ -17433,7 +17632,7 @@
         "description": "Model for Filter",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "comparison_op": "eq",
             "comparison_sub_op": null,
             "created_at": "2023-03-02 18:18:05",
@@ -17445,14 +17644,14 @@
             "is_group": null,
             "logical_op": "and",
             "order": 1,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "updated_at": "2023-03-02 18:18:05",
             "value": "foo"
           }
         ],
         "properties": {
-          "base_id": {
-            "description": "Unqiue Base ID",
+          "source_id": {
+            "description": "Unqiue Source ID",
             "readOnly": true,
             "type": "string"
           },
@@ -17583,8 +17782,8 @@
             ],
             "type": "string"
           },
-          "project_id": {
-            "description": "Unique Project ID",
+          "base_id": {
+            "description": "Unique Base ID",
             "readOnly": true,
             "type": "string"
           },
@@ -17605,7 +17804,7 @@
           {
             "list": [
               {
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "comparison_op": "eq",
                 "comparison_sub_op": null,
                 "created_at": "2023-03-02 18:18:05",
@@ -17617,7 +17816,7 @@
                 "is_group": null,
                 "logical_op": "and",
                 "order": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "updated_at": "2023-03-02 18:18:05",
                 "value": "foo"
               }
@@ -17635,7 +17834,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -17645,7 +17844,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -17700,7 +17899,7 @@
           {
             "list": [
               {
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "comparison_op": "eq",
                 "comparison_sub_op": null,
                 "created_at": "2023-03-02 18:18:05",
@@ -17712,7 +17911,7 @@
                 "is_group": null,
                 "logical_op": "and",
                 "order": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "updated_at": "2023-03-02 18:18:05",
                 "value": "foo"
               }
@@ -17730,7 +17929,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -17740,7 +17939,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -17917,13 +18116,13 @@
         "description": "Model for Form",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "banner_image_url": null,
             "columns": [
               {
                 "id": "fvc_ugj9zo5bzocxtl",
-                "base_id": "ds_g4ccx6e77h1dmi",
-                "project_id": "p_xm3thidrblw4n7",
+                "source_id": "ds_g4ccx6e77h1dmi",
+                "base_id": "p_xm3thidrblw4n7",
                 "fk_view_id": "vw_kdf5cr7qmhksek",
                 "fk_column_id": "cl_phvuuwjrzcdo0g",
                 "uuid": null,
@@ -17983,9 +18182,9 @@
             "description": "Foreign Key to Model",
             "example": "md_rsu68aqjsbyqtl"
           },
-          "base_id": {
+          "source_id": {
             "type": "string",
-            "description": "Base ID",
+            "description": "Source ID",
             "example": "md_rsu68aqjsbyqtl",
             "x-stoplight": {
               "id": "kfz7tve8nzj6f"
@@ -18557,16 +18756,16 @@
         "description": "Model for Grid",
         "examples": [
           {
-            "project_id": "p_xm3thidrblw4n7",
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "base_id": "p_xm3thidrblw4n7",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "fk_view_id": "vw_p2jcatxz4mvcfw",
             "row_height": 1,
             "meta": null,
             "columns": [
               {
                 "id": "cl_phvuuwjrzcdo0g",
-                "base_id": "ds_g4ccx6e77h1dmi",
-                "project_id": "p_xm3thidrblw4n7",
+                "source_id": "ds_g4ccx6e77h1dmi",
+                "base_id": "p_xm3thidrblw4n7",
                 "fk_model_id": "md_rsu68aqjsbyqtl",
                 "title": "Id",
                 "column_name": "id",
@@ -18612,16 +18811,16 @@
               "id": "e3ti3fc0ocjyu"
             }
           },
-          "project_id": {
+          "base_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Project ID",
+            "description": "Base ID",
             "x-stoplight": {
               "id": "e3ti3fc0ocjyu"
             }
           },
-          "base_id": {
+          "source_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Base ID",
+            "description": "Source ID",
             "x-stoplight": {
               "id": "m8v3iyf1tidy9"
             }
@@ -18670,16 +18869,16 @@
         },
         "examples": [
           {
-            "project_id": "p_xm3thidrblw4n7",
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "base_id": "p_xm3thidrblw4n7",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "fk_view_id": "vw_p2jcatxz4mvcfw",
             "row_height": 1,
             "meta": null,
             "columns": [
               {
                 "id": "cl_phvuuwjrzcdo0g",
-                "base_id": "ds_g4ccx6e77h1dmi",
-                "project_id": "p_xm3thidrblw4n7",
+                "source_id": "ds_g4ccx6e77h1dmi",
+                "base_id": "p_xm3thidrblw4n7",
                 "fk_model_id": "md_rsu68aqjsbyqtl",
                 "title": "Id",
                 "column_name": "id",
@@ -18725,16 +18924,16 @@
               "id": "e3ti3fc0ocjyu"
             }
           },
-          "project_id": {
+          "base_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Project ID",
+            "description": "Base ID",
             "x-stoplight": {
               "id": "e3ti3fc0ocjyu"
             }
           },
-          "base_id": {
+          "source_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Base ID",
+            "description": "Source ID",
             "x-stoplight": {
               "id": "m8v3iyf1tidy9"
             }
@@ -18780,8 +18979,8 @@
             "id": "nc_c8jz4kxe6xvh11",
             "fk_view_id": "vw_p2jcatxz4mvcfw",
             "fk_column_id": "cl_c5knoi4xs4sfpt",
-            "project_id": "p_xm3thidrblw4n7",
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "base_id": "p_xm3thidrblw4n7",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "show": 0,
             "order": 1,
             "width": "200px",
@@ -18815,16 +19014,16 @@
               "id": "2drg88fmodf3v"
             }
           },
-          "project_id": {
+          "base_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Project ID",
+            "description": "Base ID",
             "x-stoplight": {
               "id": "2drg88fmodf3v"
             }
           },
-          "base_id": {
+          "source_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Base ID",
+            "description": "Source ID",
             "x-stoplight": {
               "id": "2drg88fmodf3v"
             }
@@ -19236,7 +19435,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -19246,7 +19445,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -19289,7 +19488,7 @@
         "description": "Model for Hook Log",
         "examples": [
           {
-            "base_id": "ds_jxuewivwbxeum2",
+            "source_id": "ds_jxuewivwbxeum2",
             "event": "after",
             "execution_time": "98",
             "fk_hook_id": "hk_035ijv5qdi97y5",
@@ -19297,7 +19496,7 @@
             "notifications": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}}",
             "operation": "insert",
             "payload": "{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}",
-            "project_id": "p_tbhl1hnycvhe5l",
+            "base_id": "p_tbhl1hnycvhe5l",
             "response": "{\"status\":200,\"statusText\":\"OK\",\"headers\":{\"server\":\"nginx\",\"content-type\":\"text/plain; charset=UTF-8\",\"transfer-encoding\":\"chunked\",\"connection\":\"close\",\"vary\":\"Accept-Encoding\",\"x-request-id\":\"53844a7d-ede8-4798-adf7-8af441908a72\",\"x-token-id\":\"6eb45ce5-b611-4be1-8b96-c2965755662b\",\"cache-control\":\"no-cache, private\",\"date\":\"Fri, 24 Mar 2023 10:50:10 GMT\"},\"config\":{\"url\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\",\"method\":\"post\",\"data\":\"{\\\"type\\\":\\\"records.after.insert\\\",\\\"id\\\":\\\"a77d97dc-a3e4-4719-9b46-45f93e0cc99a\\\",\\\"data\\\":{\\\"table_id\\\":\\\"md_d8v403o74mf5lf\\\",\\\"table_name\\\":\\\"Sheet-2\\\"}}\",\"headers\":{\"Accept\":\"application/json, text/plain, */*\",\"Content-Type\":\"application/x-www-form-urlencoded\",\"User-Agent\":\"axios/0.21.4\",\"Content-Length\":138},\"params\":{}}}",
             "test_call": 0,
             "triggered_by": "w@nocodb.com",
@@ -19310,9 +19509,9 @@
           "id": "alkb2a68ewbpz"
         },
         "properties": {
-          "base_id": {
+          "source_id": {
             "type": "string",
-            "description": "Unique Base ID",
+            "description": "Unique Source ID",
             "example": "ds_jxuewivwbxeum2"
           },
           "conditions": {
@@ -19375,9 +19574,9 @@
             "description": "Hook Payload",
             "example": "{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b\"}"
           },
-          "project_id": {
+          "base_id": {
             "type": "string",
-            "description": "Project ID",
+            "description": "Base ID",
             "example": "p_tbhl1hnycvhe5l"
           },
           "response": {
@@ -19409,7 +19608,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -19419,7 +19618,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -19538,8 +19737,8 @@
                 "id": "kvc_2skkg5mi1eb37f",
                 "fk_column_id": "cl_hzos4ghyncqi4k",
                 "fk_view_id": "vw_wqs4zheuo5lgdy",
-                "base_id": "ds_hd4ojj0xpquaam",
-                "project_id": "p_kzfl5lb0t3tcok",
+                "source_id": "ds_hd4ojj0xpquaam",
+                "base_id": "p_kzfl5lb0t3tcok",
                 "title": "string",
                 "show": 0,
                 "order": "1"
@@ -19599,8 +19798,8 @@
             "id": "kvc_2skkg5mi1eb37f",
             "fk_column_id": "cl_hzos4ghyncqi4k",
             "fk_view_id": "vw_wqs4zheuo5lgdy",
-            "base_id": "ds_hd4ojj0xpquaam",
-            "project_id": "p_kzfl5lb0t3tcok",
+            "source_id": "ds_hd4ojj0xpquaam",
+            "base_id": "p_kzfl5lb0t3tcok",
             "title": "string",
             "show": 0,
             "order": "1"
@@ -19624,25 +19823,25 @@
             },
             "description": "Foreign Key to View"
           },
-          "base_id": {
+          "source_id": {
             "$ref": "#/components/schemas/Id",
             "x-stoplight": {
               "id": "uqq8xmyz97t1u"
             },
             "description": "Baes ID\n"
           },
-          "project_id": {
+          "base_id": {
             "$ref": "#/components/schemas/Id",
             "x-stoplight": {
               "id": "uqq8xmyz97t1u"
             },
-            "description": "Project ID"
+            "description": "Base ID"
           },
           "title": {
             "x-stoplight": {
               "id": "uqq8xmyz97t1u"
             },
-            "description": "Project ID",
+            "description": "Base ID",
             "type": "string"
           },
           "show": {
@@ -19984,15 +20183,15 @@
         "description": "Model for Map",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "columns": [
               {
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "fk_column_id": "cl_8iw2o4ejzvdyna",
                 "fk_view_id": "vw_qjt7klod1p9kyv",
                 "id": "nc_46xcacqn4rc9xf",
                 "order": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "show": 1
               }
             ],
@@ -20000,14 +20199,14 @@
             "fk_view_id": "vw_qjt7klod1p9kyv",
             "meta": {},
             "order": 0,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "show": true,
             "title": "My Map"
           }
         ],
         "properties": {
-          "base_id": {
-            "description": "The ID of the base that this view belongs to",
+          "source_id": {
+            "description": "The ID of the source that this view belongs to",
             "example": "ds_g4ccx6e77h1dmi",
             "type": "string"
           },
@@ -20036,8 +20235,8 @@
             "description": "The order of the map list",
             "type": "number"
           },
-          "project_id": {
-            "description": "The ID of the project that this view belongs to",
+          "base_id": {
+            "description": "The ID of the base that this view belongs to",
             "example": "p_xm3thidrblw4n7",
             "type": "string"
           },
@@ -20086,18 +20285,18 @@
         "description": "Model for Map Column",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "fk_column_id": "cl_8iw2o4ejzvdyna",
             "fk_view_id": "vw_qjt7klod1p9kyv",
             "id": "nc_46xcacqn4rc9xf",
             "order": 1,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "show": 1
           }
         ],
         "properties": {
-          "base_id": {
-            "description": "The ID of the base that this map column belongs to",
+          "source_id": {
+            "description": "The ID of the source that this map column belongs to",
             "example": "ds_g4ccx6e77h1dmi",
             "type": "string"
           },
@@ -20121,8 +20320,8 @@
             "example": 1,
             "type": "number"
           },
-          "project_id": {
-            "description": "The ID of the project that this map column belongs to",
+          "base_id": {
+            "description": "The ID of the base that this map column belongs to",
             "example": "p_xm3thidrblw4n7",
             "type": "string"
           },
@@ -20163,17 +20362,17 @@
         "description": "Model for ModelRoleVisibility",
         "examples": [
           {
-            "base_id": "string",
+            "source_id": "string",
             "disabled": true,
             "fk_model_id": "string",
             "fk_view_id": "string",
             "id": "string",
-            "project_id": "string",
+            "base_id": "string",
             "role": "string"
           }
         ],
         "properties": {
-          "base_id": {
+          "source_id": {
             "type": "string"
           },
           "disabled": {
@@ -20189,7 +20388,7 @@
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
-          "project_id": {
+          "base_id": {
             "type": "string"
           },
           "role": {
@@ -20406,7 +20605,7 @@
               "org-level-viewer"
             ],
             "type": "string",
-            "description": "Roles for the project user"
+            "description": "Roles for the base user"
           }
         },
         "title": "Organisation User Request Model",
@@ -20480,10 +20679,13 @@
         ],
         "properties": {
           "currentPassword": {
+            "minLength": 8,
+            "maxLength": 128,
             "type": "string"
           },
           "newPassword": {
             "minLength": 8,
+            "maxLength": 128,
             "type": "string"
           }
         },
@@ -20532,6 +20734,7 @@
             "description": "New password",
             "example": "newpassword",
             "minLength": 8,
+            "maxLength": 128,
             "type": "string"
           }
         },
@@ -20738,11 +20941,11 @@
           "id": "zrvjtpfx9wc54"
         }
       },
-      "Project": {
-        "description": "Model for Project",
+      "Base": {
+        "description": "Model for Base",
         "examples": [
           {
-            "bases": [
+            "sources": [
               {
                 "alias": "string",
                 "config": null,
@@ -20752,7 +20955,7 @@
                 "inflection_table": "camelize",
                 "is_meta": true,
                 "order": 1,
-                "project_id": "string",
+                "base_id": "string",
                 "type": "mysql2",
                 "updated_at": "2023-03-01 14:27:36"
               }
@@ -20760,24 +20963,24 @@
             "color": "#24716E",
             "created_at": "2023-03-01 14:27:36",
             "deleted": true,
-            "description": "This is my project description",
+            "description": "This is my base description",
             "id": "p_124hhlkbeasewh",
             "is_meta": true,
             "meta": {},
             "order": 0,
             "prefix": "nc_vm5q__",
             "status": "string",
-            "title": "my-project"
+            "title": "my-base"
           }
         ],
-        "title": "Project Model",
+        "title": "Base Model",
         "type": "object",
         "properties": {
-          "bases": {
-            "description": "List of base models",
+          "sources": {
+            "description": "List of source models",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Base"
+              "$ref": "#/components/schemas/Source"
             }
           },
           "color": {
@@ -20787,15 +20990,15 @@
           },
           "deleted": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Is the project deleted"
+            "description": "Is the base deleted"
           },
           "description": {
-            "description": "Project Description",
-            "example": "This is my project description",
+            "description": "Base Description",
+            "example": "This is my base description",
             "type": "string"
           },
           "id": {
-            "description": "Unique Project ID",
+            "description": "Unique Base ID",
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
@@ -20807,11 +21010,11 @@
             "description": "Meta Info such as theme colors"
           },
           "order": {
-            "description": "The order in project list",
+            "description": "The order in base list",
             "type": "number"
           },
           "prefix": {
-            "description": "Project prefix. Used in XCDB only.",
+            "description": "Base prefix. Used in XCDB only.",
             "example": "nc_vm5q__",
             "type": "string"
           },
@@ -20824,18 +21027,18 @@
             ]
           },
           "linked_db_projects": {
-            "description": "List of linked Database Projects that this project has access to (only used in Dashboard projects so far)",
+            "description": "List of linked Database Projects that this base has access to (only used in Dashboard bases so far)",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Project"
+              "$ref": "#/components/schemas/Base"
             }
           },
           "status": {
             "type": "string"
           },
           "title": {
-            "description": "Project Title",
-            "example": "my-project",
+            "description": "Base Title",
+            "example": "my-base",
             "type": "string"
           }
         },
@@ -20844,12 +21047,12 @@
         }
       },
       "ProjectList": {
-        "description": "Model for Project List",
+        "description": "Model for Base List",
         "examples": [
           {
             "list": [
               {
-                "bases": [
+                "sources": [
                   {
                     "alias": "string",
                     "config": null,
@@ -20860,7 +21063,7 @@
                     "inflection_table": "camelize",
                     "is_meta": true,
                     "order": 1,
-                    "project_id": "string",
+                    "base_id": "string",
                     "type": "mysql2",
                     "updated_at": "2023-03-01 14:27:36"
                   }
@@ -20868,14 +21071,14 @@
                 "color": "#24716E",
                 "created_at": "2023-03-01 14:27:36",
                 "deleted": true,
-                "description": "This is my project description",
+                "description": "This is my base description",
                 "id": "p_124hhlkbeasewh",
                 "is_meta": true,
                 "meta": {},
                 "order": 0,
                 "prefix": "nc_vm5q__",
                 "status": "string",
-                "title": "my-project",
+                "title": "my-base",
                 "updated_at": "2023-03-01 14:27:36"
               }
             ],
@@ -20888,11 +21091,11 @@
             }
           }
         ],
-        "title": "Project List Model",
+        "title": "Base List Model",
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -20902,7 +21105,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -20921,12 +21124,12 @@
         },
         "properties": {
           "list": {
-            "description": "List of Project Models",
+            "description": "List of Base Models",
             "minItems": 1,
             "type": "array",
             "uniqueItems": true,
             "items": {
-              "$ref": "#/components/schemas/Project"
+              "$ref": "#/components/schemas/Base"
             }
           },
           "pageInfo": {
@@ -20943,12 +21146,12 @@
         }
       },
       "ProjectReq": {
-        "description": "Model for Project Request",
+        "description": "Model for Base Request",
         "examples": [
           {
-            "bases": [
+            "sources": [
               {
-                "alias": "My Base",
+                "alias": "My Source",
                 "config": null,
                 "inflection_column": "camelize",
                 "inflection_table": "camelize",
@@ -20957,12 +21160,12 @@
               }
             ],
             "color": "#24716E",
-            "description": "This is my project description",
-            "title": "My Project"
+            "description": "This is my base description",
+            "title": "My Base"
           }
         ],
         "properties": {
-          "bases": {
+          "sources": {
             "description": "Array of Bases",
             "items": {
               "$ref": "#/components/schemas/BaseReq"
@@ -20976,20 +21179,20 @@
             "type": "string"
           },
           "description": {
-            "description": "Project Description",
-            "example": "This is my project description",
+            "description": "Base Description",
+            "example": "This is my base description",
             "type": "string"
           },
           "title": {
-            "description": "Project Title",
-            "example": "My Project",
+            "description": "Base Title",
+            "example": "My Base",
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
           },
           "status": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Project Status",
+            "description": "Base Status",
             "example": "locked"
           },
           "type": {
@@ -21001,7 +21204,7 @@
             ]
           },
           "linked_db_project_ids": {
-            "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
+            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
             "type": "array",
             "items": {
               "type": "string"
@@ -21011,14 +21214,14 @@
         "required": [
           "title"
         ],
-        "title": "Project Request Model",
+        "title": "Base Request Model",
         "type": "object",
         "x-stoplight": {
           "id": "f5k929rrvfy92"
         }
       },
       "ProjectUpdateReq": {
-        "description": "Model for Project Update Request",
+        "description": "Model for Base Update Request",
         "x-stoplight": {
           "id": "0fq3a94qjgb5f"
         },
@@ -21026,10 +21229,10 @@
           {
             "color": "#24716E",
             "meta": null,
-            "title": "My Project"
+            "title": "My Base"
           }
         ],
-        "title": "Project Update Request Model",
+        "title": "Base Update Request Model",
         "type": "object",
         "properties": {
           "color": {
@@ -21040,25 +21243,25 @@
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
-            "description": "Project Meta",
+            "description": "Base Meta",
             "x-stoplight": {
               "id": "m05w9sbwqgul3"
             }
           },
           "title": {
-            "description": "Project Title",
-            "example": "My Project",
+            "description": "Base Title",
+            "example": "My Base",
             "maxLength": 128,
             "minLength": 1,
             "type": "string"
           },
           "status": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Project Status",
+            "description": "Base Status",
             "example": "locked"
           },
           "linked_db_project_ids": {
-            "description": "List of Linked Database Project IDs (only used for Dashboard Projects so far)",
+            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
             "type": "array",
             "items": {
               "type": "string"
@@ -21067,20 +21270,20 @@
         }
       },
       "ProjectUserReq": {
-        "description": "Model for Project User Request",
+        "description": "Model for Base User Request",
         "examples": [
           {
             "email": "user@example.com",
             "roles": "owner"
           }
         ],
-        "title": "Project User Request Model",
+        "title": "Base User Request Model",
         "type": "object",
         "properties": {
           "email": {
             "format": "email",
             "type": "string",
-            "description": "Project User Email"
+            "description": "Base User Email"
           },
           "roles": {
             "enum": [
@@ -21093,7 +21296,7 @@
               "creator"
             ],
             "type": "string",
-            "description": "Project User Role"
+            "description": "Base User Role"
           }
         },
         "required": [
@@ -21105,7 +21308,7 @@
         }
       },
       "ProjectUserMetaReq": {
-        "description": "Model for Project User Meta Request",
+        "description": "Model for Base User Meta Request",
         "examples": [
           {
             "starred": true,
@@ -21113,16 +21316,16 @@
             "hidden": true
           }
         ],
-        "title": "Project User Meta Request Model",
+        "title": "Base User Meta Request Model",
         "type": "object",
         "properties": {
           "starred": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Star Project"
+            "description": "Star Base"
           },
           "order": {
             "type": "number",
-            "description": "The order among the projects",
+            "description": "The order among the bases",
             "example": 1
           },
           "hidden": {
@@ -21345,7 +21548,7 @@
         "title": "SharedView",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "created_at": "2023-03-02 17:46:31",
             "fk_model_id": "md_mhs9z4r2ak98x0",
             "id": "vw_lg052cnc1c26kf",
@@ -21354,7 +21557,7 @@
             "meta": {},
             "order": 1,
             "password": null,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "show": 1,
             "show_system_fields": null,
             "title": "Sheet-1",
@@ -21362,11 +21565,11 @@
             "updated_at": "2023-03-02 17:46:31",
             "uuid": null,
             "view": {
-              "base_id": "ds_g4ccx6e77h1dmi",
+              "source_id": "ds_g4ccx6e77h1dmi",
               "created_at": "2023-03-02 17:46:31",
               "fk_view_id": "vw_lg052cnc1c26kf",
               "meta": null,
-              "project_id": "p_xm3thidrblw4n7",
+              "base_id": "p_xm3thidrblw4n7",
               "row_height": null,
               "updated_at": "2023-03-02 17:46:31",
               "uuid": null
@@ -21383,7 +21586,7 @@
           {
             "list": [
               {
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "created_at": "2023-03-02 17:46:31",
                 "fk_model_id": "md_mhs9z4r2ak98x0",
                 "id": "vw_lg052cnc1c26kf",
@@ -21392,7 +21595,7 @@
                 "meta": {},
                 "order": 1,
                 "password": null,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "show": 1,
                 "show_system_fields": null,
                 "title": "Sheet-1",
@@ -21400,11 +21603,11 @@
                 "updated_at": "2023-03-02 17:46:31",
                 "uuid": null,
                 "view": {
-                  "base_id": "ds_g4ccx6e77h1dmi",
+                  "source_id": "ds_g4ccx6e77h1dmi",
                   "created_at": "2023-03-02 17:46:31",
                   "fk_view_id": "vw_lg052cnc1c26kf",
                   "meta": null,
-                  "project_id": "p_xm3thidrblw4n7",
+                  "base_id": "p_xm3thidrblw4n7",
                   "row_height": null,
                   "updated_at": "2023-03-02 17:46:31",
                   "uuid": null
@@ -21424,7 +21627,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -21434,7 +21637,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -21552,6 +21755,7 @@
             "description": "Password of the user",
             "example": "password123456789",
             "minLength": 8,
+            "maxLength": 128,
             "type": "string"
           },
           "firstname": {
@@ -21596,10 +21800,10 @@
             "id": "so_xd4t51uv60ghzl",
             "fk_column_id": "cl_l11b769pe2j1ce",
             "fk_model_id": "md_ehn5izr99m7d45",
-            "base_id": "ds_3l9qx8xqksenrl",
+            "source_id": "ds_3l9qx8xqksenrl",
             "direction": "desc",
             "order": 1,
-            "project_id": "p_9sx43moxhqtjm3"
+            "base_id": "p_9sx43moxhqtjm3"
           }
         ],
         "title": "Sort Model",
@@ -21615,9 +21819,9 @@
           "fk_model_id": {
             "$ref": "#/components/schemas/Id"
           },
-          "base_id": {
+          "source_id": {
             "type": "string",
-            "description": "Base ID",
+            "description": "Source ID",
             "example": "ds_3l9qx8xqksenrl",
             "readOnly": true
           },
@@ -21634,9 +21838,9 @@
             "type": "number",
             "example": 1
           },
-          "project_id": {
+          "base_id": {
             "type": "string",
-            "description": "Project ID",
+            "description": "Base ID",
             "example": "p_9sx43moxhqtjm3",
             "readOnly": true
           }
@@ -21654,10 +21858,10 @@
                 "id": "so_xd4t51uv60ghzl",
                 "fk_column_id": "cl_l11b769pe2j1ce",
                 "fk_model_id": "md_ehn5izr99m7d45",
-                "base_id": "ds_3l9qx8xqksenrl",
+                "source_id": "ds_3l9qx8xqksenrl",
                 "direction": "desc",
                 "order": 1,
-                "project_id": "p_9sx43moxhqtjm3"
+                "base_id": "p_9sx43moxhqtjm3"
               }
             ],
             "pageInfo": {
@@ -21673,7 +21877,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -21683,7 +21887,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -21802,12 +22006,12 @@
         "description": "Model for Table",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "columns": [
               {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
                 "clen": null,
@@ -21828,7 +22032,7 @@
                 "ns": null,
                 "order": 4,
                 "pk": 0,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": null,
                 "rqd": 0,
                 "system": 0,
@@ -21843,7 +22047,7 @@
               {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": "CURRENT_TIMESTAMP",
                 "clen": null,
@@ -21864,7 +22068,7 @@
                 "ns": null,
                 "order": 3,
                 "pk": 0,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": null,
                 "rqd": 0,
                 "system": 0,
@@ -21879,7 +22083,7 @@
               {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": null,
                 "clen": "45",
@@ -21900,7 +22104,7 @@
                 "ns": null,
                 "order": 2,
                 "pk": 0,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": 1,
                 "rqd": 0,
                 "system": 0,
@@ -21915,7 +22119,7 @@
               {
                 "ai": 1,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": null,
                 "clen": null,
@@ -21936,7 +22140,7 @@
                 "ns": "0",
                 "order": 1,
                 "pk": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": null,
                 "rqd": 1,
                 "system": 0,
@@ -21953,7 +22157,7 @@
               "cl_c5knoi4xs4sfpt": {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": null,
                 "clen": "45",
@@ -21974,7 +22178,7 @@
                 "ns": null,
                 "order": 2,
                 "pk": 0,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": 1,
                 "rqd": 0,
                 "system": 0,
@@ -21989,7 +22193,7 @@
               "cl_jpl0qu4gj4rexq": {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": "CURRENT_TIMESTAMP",
                 "clen": null,
@@ -22010,7 +22214,7 @@
                 "ns": null,
                 "order": 3,
                 "pk": 0,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": null,
                 "rqd": 0,
                 "system": 0,
@@ -22025,7 +22229,7 @@
               "cl_m4wkaqgqqjzoeh": {
                 "ai": 0,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
                 "clen": null,
@@ -22046,7 +22250,7 @@
                 "ns": null,
                 "order": 4,
                 "pk": 0,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": null,
                 "rqd": 0,
                 "system": 0,
@@ -22061,7 +22265,7 @@
               "cl_phvuuwjrzcdo0g": {
                 "ai": 1,
                 "au": 0,
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "cc": "",
                 "cdf": null,
                 "clen": null,
@@ -22082,7 +22286,7 @@
                 "ns": "0",
                 "order": 1,
                 "pk": 1,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "pv": null,
                 "rqd": 1,
                 "system": 0,
@@ -22103,7 +22307,7 @@
             "mm": 0,
             "order": 1,
             "pinned": null,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "schema": null,
             "table_name": "nc_vm5q___Table1",
             "tags": null,
@@ -22114,7 +22318,7 @@
               {
                 "_ptn": "Table1",
                 "_tn": "Table1",
-                "base_id": "ds_g4ccx6e77h1dmi",
+                "source_id": "ds_g4ccx6e77h1dmi",
                 "created_at": "2023-03-02 17:04:06",
                 "disabled": {
                   "commenter": false,
@@ -22131,7 +22335,7 @@
                 "meta": {},
                 "order": 1,
                 "password": null,
-                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "p_xm3thidrblw4n7",
                 "ptn": "nc_vm5q___Table1",
                 "ptype": "table",
                 "show": 1,
@@ -22143,11 +22347,11 @@
                 "updated_at": "2023-03-02 17:04:06",
                 "uuid": null,
                 "view": {
-                  "base_id": "ds_g4ccx6e77h1dmi",
+                  "source_id": "ds_g4ccx6e77h1dmi",
                   "created_at": "2023-03-02 17:04:06",
                   "fk_view_id": "vw_p2jcatxz4mvcfw",
                   "meta": null,
-                  "project_id": "p_xm3thidrblw4n7",
+                  "base_id": "p_xm3thidrblw4n7",
                   "row_height": null,
                   "updated_at": "2023-03-02 17:04:06",
                   "uuid": null
@@ -22159,8 +22363,8 @@
         "title": "Table Model",
         "type": "object",
         "properties": {
-          "base_id": {
-            "description": "Unique Base ID",
+          "source_id": {
+            "description": "Unique Source ID",
             "type": "string"
           },
           "columns": {
@@ -22201,12 +22405,12 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Currently not in use"
           },
-          "project_id": {
-            "description": "Unique Project ID",
+          "base_id": {
+            "description": "Unique Base ID",
             "type": "string"
           },
           "table_name": {
-            "description": "Table Name. Prefix will be added for XCDB projects.",
+            "description": "Table Name. Prefix will be added for XCDB bases.",
             "type": "string"
           },
           "tags": {
@@ -22237,13 +22441,13 @@
             "list": [
               {
                 "alias": "string",
-                "base_id": "string",
+                "source_id": "string",
                 "column": [
                   {
                     "alias": "string",
                     "auto_increment": true,
                     "auto_update_timestamp": true,
-                    "base_id": "string",
+                    "source_id": "string",
                     "character_maximum_length": "string",
                     "character_set_name": "string",
                     "colOptions": {
@@ -22293,7 +22497,7 @@
                 "order": 0,
                 "parent_id": "string",
                 "pinned": true,
-                "project_id": "string",
+                "base_id": "string",
                 "show_as": "string",
                 "tags": "string",
                 "title": "string",
@@ -22313,7 +22517,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -22323,7 +22527,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -22621,8 +22825,8 @@
           "roles": {
             "description": "The roles of the user"
           },
-          "project_roles": {
-            "description": "The project roles of the user"
+          "base_roles": {
+            "description": "The base roles of the user"
           },
           "workspace_roles": {
             "description": "The workspace roles of the user"
@@ -22661,7 +22865,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -22671,7 +22875,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -22722,7 +22926,7 @@
         "description": "Model for View",
         "examples": [
           {
-            "base_id": "ds_g4ccx6e77h1dmi",
+            "source_id": "ds_g4ccx6e77h1dmi",
             "created_at": "2023-03-02 17:46:31",
             "fk_model_id": "md_mhs9z4r2ak98x0",
             "id": "vw_lg052cnc1c26kf",
@@ -22731,7 +22935,7 @@
             "meta": {},
             "order": 1,
             "password": null,
-            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "p_xm3thidrblw4n7",
             "show": 1,
             "show_system_fields": null,
             "title": "Sheet-1",
@@ -22739,11 +22943,11 @@
             "updated_at": "2023-03-02 17:46:31",
             "uuid": null,
             "view": {
-              "base_id": "ds_g4ccx6e77h1dmi",
+              "source_id": "ds_g4ccx6e77h1dmi",
               "created_at": "2023-03-02 17:46:31",
               "fk_view_id": "vw_lg052cnc1c26kf",
               "meta": null,
-              "project_id": "p_xm3thidrblw4n7",
+              "base_id": "p_xm3thidrblw4n7",
               "row_height": null,
               "updated_at": "2023-03-02 17:46:31",
               "uuid": null
@@ -22753,9 +22957,9 @@
         "title": "View Model",
         "type": "object",
         "properties": {
-          "base_id": {
+          "source_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique Base ID"
+            "description": "Unique Source ID"
           },
           "fk_model_id": {
             "$ref": "#/components/schemas/Id",
@@ -22786,9 +22990,9 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Password for protecting the view"
           },
-          "project_id": {
+          "base_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique Project ID"
+            "description": "Unique Base ID"
           },
           "show": {
             "$ref": "#/components/schemas/Bool",
@@ -22857,7 +23061,7 @@
                     "alias": "string",
                     "auto_increment": true,
                     "auto_update_timestamp": true,
-                    "base_id": "string",
+                    "source_id": "string",
                     "character_maximum_length": "string",
                     "character_set_name": "string",
                     "colOptions": {
@@ -22928,7 +23132,7 @@
         "type": "object",
         "x-examples": {
           "example-1": {
-            "bases": {
+            "sources": {
               "list": [
                 {
                   "alias": "string",
@@ -22938,7 +23142,7 @@
                   "params": "string",
                   "password": "string",
                   "port": 0,
-                  "project_id": "string",
+                  "base_id": "string",
                   "ssl": "string",
                   "type": "string",
                   "url": "string",
@@ -23262,7 +23466,7 @@
         "properties": {
           "fk_user_id": {
             "type": "string",
-            "description": "The ID of the user who receives the project invite"
+            "description": "The ID of the user who receives the base invite"
           },
           "type": {
             "type": "string",
@@ -23273,15 +23477,15 @@
             "properties": {
               "id": {
                 "type": "string",
-                "description": "The ID of the project being invited to"
+                "description": "The ID of the base being invited to"
               },
               "title": {
                 "type": "string",
-                "description": "The title of the project being invited to"
+                "description": "The title of the base being invited to"
               },
               "type": {
                 "type": "string",
-                "description": "The type of the project being invited to"
+                "description": "The type of the base being invited to"
               },
               "invited_by": {
                 "type": "string",
@@ -23317,15 +23521,15 @@
             "properties": {
               "id": {
                 "type": "string",
-                "description": "The ID of the project"
+                "description": "The ID of the base"
               },
               "title": {
                 "type": "string",
-                "description": "The title of the project"
+                "description": "The title of the base"
               },
               "type": {
                 "type": "string",
-                "description": "The type of the project"
+                "description": "The type of the base"
               }
             },
             "required": [
@@ -23421,13 +23625,13 @@
                 "type": "string",
                 "description": "The title of the table associated with the event"
               },
-              "project_id": {
-                "type": "string",
-                "description": "The ID of the project that the table belongs to"
-              },
               "base_id": {
                 "type": "string",
                 "description": "The ID of the base that the table belongs to"
+              },
+              "source_id": {
+                "type": "string",
+                "description": "The ID of the source that the table belongs to"
               },
               "id": {
                 "type": "string",
@@ -23436,8 +23640,8 @@
             },
             "required": [
               "title",
-              "project_id",
               "base_id",
+              "source_id",
               "id"
             ]
           }
@@ -23466,13 +23670,13 @@
                 "type": "string",
                 "description": "The title of the view associated with the event"
               },
-              "project_id": {
-                "type": "string",
-                "description": "The ID of the project that the view belongs to"
-              },
               "base_id": {
                 "type": "string",
                 "description": "The ID of the base that the view belongs to"
+              },
+              "source_id": {
+                "type": "string",
+                "description": "The ID of the source that the view belongs to"
               },
               "id": {
                 "type": "string",
@@ -23485,8 +23689,8 @@
             },
             "required": [
               "title",
-              "project_id",
               "base_id",
+              "source_id",
               "id",
               "fk_model_id"
             ]
@@ -23516,13 +23720,13 @@
                 "type": "string",
                 "description": "The title of the column associated with the event"
               },
-              "project_id": {
-                "type": "string",
-                "description": "The ID of the project that the column belongs to"
-              },
               "base_id": {
                 "type": "string",
                 "description": "The ID of the base that the column belongs to"
+              },
+              "source_id": {
+                "type": "string",
+                "description": "The ID of the source that the column belongs to"
               },
               "id": {
                 "type": "string",
@@ -23535,8 +23739,8 @@
             },
             "required": [
               "title",
-              "project_id",
               "base_id",
+              "source_id",
               "id",
               "fk_model_id"
             ]
@@ -23673,7 +23877,7 @@
                 "value": {
                   "list": [
                     {
-                      "bases": [
+                      "sources": [
                         {
                           "alias": "string",
                           "config": null,
@@ -23684,7 +23888,7 @@
                           "inflection_table": "camelize",
                           "is_meta": true,
                           "order": 1,
-                          "project_id": "string",
+                          "base_id": "string",
                           "type": "mysql2",
                           "updated_at": "2023-03-01 14:27:36"
                         }
@@ -23692,14 +23896,14 @@
                       "color": "#24716E",
                       "created_at": "2023-03-01 14:27:36",
                       "deleted": true,
-                      "description": "This is my project description",
+                      "description": "This is my base description",
                       "id": "p_124hhlkbeasewh",
                       "is_meta": true,
                       "meta": {},
                       "order": 0,
                       "prefix": "nc_vm5q__",
                       "status": "string",
-                      "title": "my-project",
+                      "title": "my-base",
                       "updated_at": "2023-03-01 14:27:36"
                     }
                   ],
@@ -23729,7 +23933,7 @@
                   "list": [
                     {
                       "id": "ds_krsappzu9f8vmo",
-                      "project_id": "p_01clqvzik3izk6",
+                      "base_id": "p_01clqvzik3izk6",
                       "alias": null,
                       "config": "<ENCRYPTED>",
                       "meta": null,
@@ -23744,7 +23948,7 @@
                     },
                     {
                       "id": "ds_btbdt19zde0gj9",
-                      "project_id": "p_01clqvzik3izk6",
+                      "base_id": "p_01clqvzik3izk6",
                       "alias": "sakila",
                       "config": "<ENCRYPTED>",
                       "meta": null,
@@ -23784,8 +23988,8 @@
                   "list": [
                     {
                       "id": "md_5hua2iqloqirhd",
-                      "base_id": "ds_jxuewivwbxeum2",
-                      "project_id": "p_tbhl1hnycvhe5l",
+                      "source_id": "ds_jxuewivwbxeum2",
+                      "base_id": "p_tbhl1hnycvhe5l",
                       "table_name": "nc_b84e___Sheet-1",
                       "title": "Sheet-1",
                       "type": "table",
@@ -23863,7 +24067,7 @@
                           "alias": "string",
                           "auto_increment": true,
                           "auto_update_timestamp": true,
-                          "base_id": "string",
+                          "source_id": "string",
                           "character_maximum_length": "string",
                           "character_set_name": "string",
                           "colOptions": {
@@ -23946,7 +24150,7 @@
                 "value": {
                   "list": [
                     {
-                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "source_id": "ds_g4ccx6e77h1dmi",
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
@@ -23955,7 +24159,7 @@
                       "meta": {},
                       "order": 1,
                       "password": null,
-                      "project_id": "p_xm3thidrblw4n7",
+                      "base_id": "p_xm3thidrblw4n7",
                       "show": 1,
                       "show_system_fields": null,
                       "title": "Sheet-1",
@@ -23963,11 +24167,11 @@
                       "updated_at": "2023-03-02 17:46:31",
                       "uuid": null,
                       "view": {
-                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "source_id": "ds_g4ccx6e77h1dmi",
                         "created_at": "2023-03-02 17:46:31",
                         "fk_view_id": "vw_lg052cnc1c26kf",
                         "meta": null,
-                        "project_id": "p_xm3thidrblw4n7",
+                        "base_id": "p_xm3thidrblw4n7",
                         "row_height": null,
                         "updated_at": "2023-03-02 17:46:31",
                         "uuid": null

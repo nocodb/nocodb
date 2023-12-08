@@ -1,18 +1,18 @@
-import type { Base, Project } from '~/models';
+import type { Base, Source } from '~/models';
 import KnexMigratorv2 from '~/db/sql-migrator/lib/KnexMigratorv2';
 
-export default async function syncMigration(project: Project): Promise<void> {
-  for (const base of await project.getBases()) {
+export default async function syncMigration(base: Base): Promise<void> {
+  for (const source of await base.getBases()) {
     try {
       /* create sql-migrator */
-      const migrator = new KnexMigratorv2(project);
+      const migrator = new KnexMigratorv2(base);
 
-      await migrator.init(base);
+      await migrator.init(source);
 
       /* sql-migrator : sync & up */
-      await migrator.sync(base);
+      await migrator.sync(source);
 
-      await migrator.migrationsUp({ base });
+      await migrator.migrationsUp({ source });
     } catch (e) {
       console.log(e);
       // throw e;
@@ -21,19 +21,19 @@ export default async function syncMigration(project: Project): Promise<void> {
 }
 
 export async function syncBaseMigration(
-  project: Project,
   base: Base,
+  source: Source,
 ): Promise<void> {
   try {
     /* create sql-migrator */
-    const migrator = new KnexMigratorv2(project);
+    const migrator = new KnexMigratorv2(base);
 
-    await migrator.init(base);
+    await migrator.init(source);
 
     /* sql-migrator : sync & up */
-    await migrator.sync(base);
+    await migrator.sync(source);
 
-    await migrator.migrationsUp({ base });
+    await migrator.migrationsUp({ source });
   } catch (e) {
     console.log(e);
     // throw e;

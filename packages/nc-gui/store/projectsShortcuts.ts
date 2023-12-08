@@ -40,12 +40,12 @@ export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => 
           case 188: {
             if (isUIAllowed('settingsPage') && !isDrawerOrModalExist()) {
               $e('c:shortcut', { key: 'ALT + ,' })
-              const projectsStore = useProjects()
+              const basesStore = useBases()
 
-              if (!projectsStore.activeProjectId) return
+              if (!basesStore.activeProjectId) return
 
-              projectsStore.navigateToProject({
-                projectId: projectsStore.activeProjectId,
+              basesStore.navigateToProject({
+                baseId: basesStore.activeProjectId,
                 page: 'collaborators',
               })
             }

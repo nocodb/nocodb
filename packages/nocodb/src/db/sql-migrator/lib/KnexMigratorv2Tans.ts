@@ -5,7 +5,7 @@
  * @extends {SqlMigrator}
  */
 import KnexMigratorv2 from './KnexMigratorv2';
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 import type { XKnex } from '~/db/CustomKnex';
 import type MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
@@ -21,8 +21,8 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   // todo: tobe changed
   protected ncMeta: any; // NcMetaIO;
 
-  constructor(project: { id: string }, sqlClient = null, ncMeta = Noco.ncMeta) {
-    super(project);
+  constructor(base: { id: string }, sqlClient = null, ncMeta = Noco.ncMeta) {
+    super(base);
     this.sqlClient = sqlClient;
     this.ncMeta = ncMeta;
   }
@@ -31,7 +31,7 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
     return this.ncMeta.knex || Noco.ncMeta.knex;
   }
   protected async getSqlClient(
-    base: Base,
+    source: Source,
   ): Promise<
     | SnowflakeClient
     | MysqlClient
@@ -40,6 +40,6 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
     | OracleClient
     | PGClient
   > {
-    return this.sqlClient || NcConnectionMgrv2.getSqlClient(base);
+    return this.sqlClient || NcConnectionMgrv2.getSqlClient(source);
   }
 }

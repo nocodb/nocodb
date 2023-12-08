@@ -10,38 +10,38 @@ export class DocsSidebarPage extends BasePage {
     this.sidebar = sidebar;
   }
 
-  get({ projectTitle, isPublic }: { projectTitle: string; isPublic?: boolean }) {
+  get({ baseTitle, isPublic }: { baseTitle: string; isPublic?: boolean }) {
     if (isPublic) {
-      return this.rootPage.getByTestId(`docs-sidebar-${projectTitle}`);
+      return this.rootPage.getByTestId(`docs-sidebar-${baseTitle}`);
     }
-    return this.sidebar.get().getByTestId(`docs-sidebar-${projectTitle}`);
+    return this.sidebar.get().getByTestId(`docs-sidebar-${baseTitle}`);
   }
 
-  pageNodeLocator({ projectTitle, title, isPublic }: { projectTitle: string; title: string; isPublic?: boolean }) {
-    return this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`);
+  pageNodeLocator({ baseTitle, title, isPublic }: { baseTitle: string; title: string; isPublic?: boolean }) {
+    return this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`);
   }
 
   async verifyVisibility({
-    projectTitle,
+    baseTitle,
     isVisible,
     isPublic,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     isVisible: boolean;
     isPublic?: boolean;
   }) {
     if (isVisible) {
-      await expect(this.get({ projectTitle, isPublic })).toBeVisible();
+      await expect(this.get({ baseTitle, isPublic })).toBeVisible();
     } else {
-      await expect(this.get({ projectTitle, isPublic })).not.toBeVisible();
+      await expect(this.get({ baseTitle, isPublic })).not.toBeVisible();
     }
   }
 
-  async createPage({ projectTitle, title, content }: { projectTitle: string; title?: string; content?: string }) {
-    await this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page').hover();
+  async createPage({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
+    await this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page').hover();
 
     await this.waitForResponse({
-      uiAction: () => this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page').click(),
+      uiAction: () => this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `api/v1/docs/page`,
     });
@@ -59,24 +59,24 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async createChildPage({
-    projectTitle,
+    baseTitle,
     title,
     parentTitle,
     content,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     title?: string;
     parentTitle: string;
     content?: string;
   }) {
-    await this.openPage({ projectTitle, title: parentTitle });
+    await this.openPage({ baseTitle, title: parentTitle });
 
-    await this.get({ projectTitle })
-      .getByTestId(`docs-sidebar-page-${projectTitle}-${parentTitle}`)
+    await this.get({ baseTitle })
+      .getByTestId(`docs-sidebar-page-${baseTitle}-${parentTitle}`)
       .locator('.nc-docs-sidebar-page-title')
       .hover();
-    const createChildPageButton = this.get({ projectTitle })
-      .getByTestId(`docs-sidebar-page-${projectTitle}-${parentTitle}`)
+    const createChildPageButton = this.get({ baseTitle })
+      .getByTestId(`docs-sidebar-page-${baseTitle}-${parentTitle}`)
       .locator('.nc-docs-add-child-page');
     await createChildPageButton.hover();
     await createChildPageButton.waitFor({ state: 'visible' });
@@ -103,56 +103,54 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async verifyPageInSidebar({
-    projectTitle,
+    baseTitle,
     title,
     level,
     isPublic,
     emoji,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     title: string;
     level?: number;
     isPublic?: boolean;
     emoji?: string;
   }) {
     await expect(
-      this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+      this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)
     ).toBeVisible();
 
     if (level) {
       await expect(
-        this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+        this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)
       ).toHaveAttribute('data-level', level.toString());
     }
 
     if (emoji) {
-      await this.verifyEmoji({ projectTitle, title, emoji, isPublic });
+      await this.verifyEmoji({ baseTitle, title, emoji, isPublic });
     }
   }
 
   async verifyPageIsNotInSidebar({
-    projectTitle,
+    baseTitle,
     title,
     isPublic,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     title: string;
     isPublic?: boolean;
   }) {
-    await expect(
-      this.get({ projectTitle, isPublic }).getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
-    ).toBeHidden();
+    await expect(this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)).toBeHidden();
   }
 
-  async openPage({ projectTitle, title }: { projectTitle: string; title: string }) {
-    if ((await this.getTitleOfOpenedPage({ projectTitle })) === title) {
+  async openPage({ baseTitle, title }: { baseTitle: string; title: string }) {
+    if ((await this.getTitleOfOpenedPage({ baseTitle })) === title) {
       return;
     }
 
     await this.waitForResponse({
       uiAction: () =>
-        this.get({ projectTitle })
-          .getByTestId(`docs-sidebar-page-${projectTitle}-${title}`)
+        this.get({ baseTitle })
+          .getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)
           .locator('.nc-docs-sidebar-page-title')
           .click(),
       httpMethodsToMatch: ['GET'],
@@ -162,17 +160,17 @@ export class DocsSidebarPage extends BasePage {
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
   }
 
-  async selectEmoji({ projectTitle, title, emoji }: { projectTitle: string; title; emoji: string }) {
-    await this.openPage({ projectTitle, title });
+  async selectEmoji({ baseTitle, title, emoji }: { baseTitle: string; title; emoji: string }) {
+    await this.openPage({ baseTitle, title });
 
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     })
       .getByTestId('docs-sidebar-emoji-selector')
       .hover();
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     })
       .getByTestId('docs-sidebar-emoji-selector')
@@ -191,42 +189,42 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async verifyEmoji({
-    projectTitle,
+    baseTitle,
     title,
     emoji,
     isPublic,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     title;
     emoji: string;
     isPublic?: boolean;
   }) {
     await expect(
       this.pageNodeLocator({
-        projectTitle,
+        baseTitle,
         title,
         isPublic,
       }).getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
     ).toBeVisible();
   }
 
-  async deletePage({ projectTitle, title }: { projectTitle: string; title: string }) {
-    await this.openPage({ projectTitle, title });
+  async deletePage({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.openPage({ baseTitle, title });
 
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     }).hover();
 
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     })
       .getByTestId('docs-sidebar-page-options')
       .hover();
 
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     })
       .getByTestId('docs-sidebar-page-options')
@@ -242,78 +240,78 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async getTitleOfOpenedPage({
-    projectTitle,
+    baseTitle,
     isPublic,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     isPublic?: boolean;
   }): Promise<string | null> {
-    if (!(await this.get({ projectTitle, isPublic }).locator('.ant-tree-node-selected').isVisible())) {
+    if (!(await this.get({ baseTitle, isPublic }).locator('.ant-tree-node-selected').isVisible())) {
       return null;
     }
 
-    return await this.get({ projectTitle, isPublic })
+    return await this.get({ baseTitle, isPublic })
       .locator('.ant-tree-node-selected')
       .locator('.nc-docs-sidebar-page-title')
       .textContent();
   }
 
   async verifyParent({
-    projectTitle,
+    baseTitle,
     title,
     parentTitle,
     parentLevel,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     title: string;
     parentTitle: string;
     parentLevel: number;
   }) {
     await this.verifyPageInSidebar({
-      projectTitle,
+      baseTitle,
       title,
       level: parentLevel + 1,
     });
 
     await this.verifyPageInSidebar({
-      projectTitle,
+      baseTitle,
       title: parentTitle,
       level: parentLevel,
     });
   }
 
-  async verifyCreatePageButtonVisibility({ projectTitle, isVisible }: { projectTitle: string; isVisible: boolean }) {
+  async verifyCreatePageButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
     if (isVisible) {
-      await expect(this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeVisible();
+      await expect(this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeVisible();
     } else {
-      await expect(this.get({ projectTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeHidden();
+      await expect(this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeHidden();
     }
   }
 
   async reorderPage({
-    projectTitle,
+    baseTitle,
     title,
     newParentTitle,
     dragToTop,
   }: {
-    projectTitle: string;
+    baseTitle: string;
     title: string;
     newParentTitle: string;
     dragToTop?: boolean;
   }) {
-    await this.openPage({ projectTitle, title });
+    await this.openPage({ baseTitle, title });
 
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     }).hover();
 
     await this.pageNodeLocator({
-      projectTitle,
+      baseTitle,
       title,
     }).dragTo(
       this.pageNodeLocator({
-        projectTitle,
+        baseTitle,
         title: newParentTitle,
       }),
       {

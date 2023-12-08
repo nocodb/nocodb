@@ -23,7 +23,7 @@ import {
   useI18n,
   useNuxtApp,
   useRoles,
-  useViewColumns,
+  useViewColumnsOrThrow,
   useViewData,
   watch,
 } from '#imports'
@@ -48,6 +48,8 @@ const formState = reactive({})
 
 const secondsRemain = ref(0)
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const isEditable = isUIAllowed('viewFieldEdit' as Permission)
 
 const meta = inject(MetaInj, ref())
@@ -58,18 +60,16 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
-const reloadEventHook = createEventHook<boolean | void>()
-
-provide(ReloadViewDataHookInj, reloadEventHook)
+const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook<boolean | void>())
 
 reloadEventHook.on(async () => {
   await loadFormView()
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta, async () => reloadEventHook.trigger())
+const { showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
 
-const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
+const { state, row } = useProvideSmartsheetRowStore(
   meta,
   ref({
     row: formState,
@@ -126,11 +126,7 @@ async function submitForm() {
     if (e.errorFields.length) return
   }
 
-  const insertedRowData = await insertRow({ row: formState, oldRow: {}, rowMeta: { new: true } })
-
-  if (insertedRowData) {
-    await syncLTARRefs(insertedRowData)
-  }
+  await insertRow({ row: { ...formState, ...state.value }, oldRow: {}, rowMeta: { new: true } })
 
   submitted.value = true
 }
@@ -353,6 +349,8 @@ watch(submitted, (v) => {
 })
 
 function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
+  if (isLocked.value) return
+
   if (!moved.value) {
     const index = localColumns.value.length
     col.order = (index ? localColumns.value[index - 1].order : 0) + 1
@@ -384,6 +382,12 @@ watch(view, (nextView) => {
     reloadEventHook.trigger()
   }
 })
+
+const onFormItemClick = (element: any) => {
+  if (isLocked.value) return
+
+  activeRow.value = element.title
+}
 </script>
 
 <template>
@@ -428,27 +432,29 @@ watch(view, (nextView) => {
           </div>
 
           <div class="flex flex-wrap gap-2 mb-4">
-            <button
+            <NcButton
               v-if="hiddenColumns.length"
-              type="button"
-              class="nc-form-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+              type="secondary"
+              class="nc-form-add-all"
               data-testid="nc-form-add-all"
+              :disabled="isLocked"
               @click="addAllColumns"
             >
               <!-- Add all -->
               {{ $t('general.addAll') }}
-            </button>
+            </NcButton>
 
-            <button
+            <NcButton
               v-if="localColumns.length"
-              type="button"
-              class="nc-form-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+              type="secondary"
+              class="nc-form-remove-all"
               data-testid="nc-form-remove-all"
+              :disabled="isLocked"
               @click="removeAllColumns"
             >
               <!-- Remove all -->
               {{ $t('general.removeAll') }}
-            </button>
+            </NcButton>
           </div>
         </div>
 
@@ -457,6 +463,7 @@ watch(view, (nextView) => {
           item-key="id"
           draggable=".item"
           group="form-inputs"
+          :disabled="isLocked"
           class="flex flex-col gap-2"
           @start="drag = true"
           @end="drag = false"
@@ -465,6 +472,9 @@ watch(view, (nextView) => {
             <a-card
               size="small"
               class="!border-0 color-transition cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
+              :class="{
+                '!bg-gray-50 !hover:bg-gray-50 !hover:ring-transparent !cursor-not-allowed': isLocked,
+              }"
               :data-testid="`nc-form-hidden-column-${element.label || element.title}`"
               @mousedown="moved = false"
               @mousemove="moved = false"
@@ -490,7 +500,7 @@ watch(view, (nextView) => {
             </a-card>
           </template>
 
-          <template #footer>
+          <template v-if="!isLocked" #footer>
             <div
               class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
               data-testid="nc-drag-n-drop-to-hide"
@@ -552,12 +562,14 @@ watch(view, (nextView) => {
                     class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
                     :style="{
                       'borderRightWidth': '0px !important',
-                      'height': '54px',
-                      'min-height': '54px',
+                      'height': '70px',
+                      'max-height': '250px',
                       'resize': 'vertical',
                     }"
+                    autosize
                     size="large"
                     hide-details
+                    :disabled="isLocked"
                     placeholder="Form Title"
                     :bordered="false"
                     data-testid="nc-form-heading"
@@ -581,10 +593,11 @@ watch(view, (nextView) => {
                       'resize': 'vertical',
                     }"
                     size="large"
+                    autosize
                     hide-details
                     :placeholder="$t('msg.info.formDesc')"
                     :bordered="false"
-                    :disabled="!isEditable"
+                    :disabled="!isEditable || isLocked"
                     data-testid="nc-form-sub-heading"
                     @blur="updateView"
                     @click="updateView"
@@ -602,6 +615,7 @@ watch(view, (nextView) => {
                 group="form-inputs"
                 class="h-full"
                 :move="onMoveCallback"
+                :disabled="isLocked"
                 @change="onMove($event)"
                 @start="drag = true"
                 @end="drag = false"
@@ -614,12 +628,15 @@ watch(view, (nextView) => {
                       {
                         'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
                       },
+                      {
+                        '!hover:bg-white !ring-0 !cursor-auto': isLocked,
+                      },
                     ]"
                     data-testid="nc-form-fields"
-                    @click="activeRow = element.title"
+                    @click="onFormItemClick(element)"
                   >
                     <div
-                      v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required)"
+                      v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required) && !isLocked"
                       class="absolute flex top-2 right-2"
                     >
                       <component
@@ -689,7 +706,7 @@ watch(view, (nextView) => {
                         </a-input>
                       </a-form-item>
 
-                      <a-form-item class="mt-2 mb-0 w-1/2 !mb-1">
+                      <a-form-item class="mt-2 mb-0 w-1/2">
                         <a-input
                           v-model:value="element.description"
                           type="text"
@@ -768,7 +785,7 @@ watch(view, (nextView) => {
                       </LazySmartsheetDivDataCell>
                     </a-form-item>
 
-                    <div class="nc-form-help-text text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">
+                    <div class="nc-form-help-text text-gray-500 text-xs truncate" data-testid="nc-form-input-help-text-label">
                       {{ element.description }}
                     </div>
                   </div>
@@ -785,22 +802,23 @@ watch(view, (nextView) => {
               </Draggable>
 
               <div class="justify-center flex mt-6">
-                <button
-                  type="submit"
+                <NcButton
+                  html-type="submit"
+                  type="primary"
                   :disabled="!isUIAllowed('dataInsert')"
-                  class="uppercase scaling-btn nc-form-submit"
+                  class="nc-form-submit"
                   data-testid="nc-form-submit"
                   @click="submitForm"
                 >
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
             </a-card>
           </a-form>
 
-          <a-divider />
+          <a-divider v-if="!isLocked" />
 
-          <div v-if="isEditable" class="px-4 flex flex-col gap-2">
+          <div v-if="isEditable && !isLocked" class="px-4 flex flex-col gap-2">
             <!-- After form is submitted -->
             <div class="text-lg text-gray-700">
               {{ $t('msg.info.afterFormSubmitted') }}
@@ -898,7 +916,6 @@ watch(view, (nextView) => {
 .nc-form-help-text,
 .nc-input-required-error {
   max-width: 100%;
-  word-break: break-all;
   white-space: pre-line;
 }
 

@@ -8,8 +8,6 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   SmartsheetStoreEvents,
-  extractSdkResponseErrorMsg,
-  getUniqueColumnName,
   iconMap,
   inject,
   message,
@@ -112,48 +110,24 @@ const sortByColumn = async (direction: 'asc' | 'desc') => {
   })
 }
 
-const duplicateColumn = async () => {
+const isDuplicateDlgOpen = ref(false)
+const selectedColumnExtra = ref<any>()
+const duplicateDialogRef = ref<any>()
+
+const duplicateVirtualColumn = async () => {
   let columnCreatePayload = {}
 
-  // generate duplicate column name
-  const duplicateColumnName = getUniqueColumnName(`${column!.value.title}_copy`, meta!.value!.columns!)
+  // generate duplicate column title
+  const duplicateColumnTitle = getUniqueColumnName(`${column!.value.title} copy`, meta!.value!.columns!)
 
-  // construct column create payload
-  switch (column?.value.uidt) {
-    case UITypes.LinkToAnotherRecord:
-    case UITypes.Links:
-    case UITypes.Lookup:
-    case UITypes.Rollup:
-    case UITypes.Formula:
-      return message.info('Not available at the moment')
-    case UITypes.SingleSelect:
-    case UITypes.MultiSelect:
-      columnCreatePayload = {
-        ...column!.value!,
-        title: duplicateColumnName,
-        column_name: duplicateColumnName,
-        id: undefined,
-        order: undefined,
-        colOptions: {
-          options:
-            column.value.colOptions?.options?.map((option: Record<string, any>) => ({
-              ...option,
-              id: undefined,
-            })) ?? [],
-        },
-      }
-      break
-    default:
-      columnCreatePayload = {
-        ...column!.value!,
-        ...(column!.value.colOptions ?? {}),
-        title: duplicateColumnName,
-        column_name: duplicateColumnName,
-        id: undefined,
-        colOptions: undefined,
-        order: undefined,
-      }
-      break
+  columnCreatePayload = {
+    ...column!.value!,
+    ...(column!.value.colOptions ?? {}),
+    title: duplicateColumnTitle,
+    column_name: duplicateColumnTitle.replace(/\s/g, '_'),
+    id: undefined,
+    colOptions: undefined,
+    order: undefined,
   }
 
   try {
@@ -170,9 +144,10 @@ const duplicateColumn = async () => {
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
       pv: false,
+      view_id: view.value!.id as string,
       column_order: {
         order: newColumnOrder,
-        view_id: view.value?.id as string,
+        view_id: view.value!.id as string,
       },
     } as ColumnReqType)
     await getMeta(meta!.value!.id!, true)
@@ -186,6 +161,42 @@ const duplicateColumn = async () => {
   }
   // closing dropdown
   isOpen.value = false
+}
+
+const openDuplicateDlg = async () => {
+  if (!column?.value) return
+  if (column.value.uidt && [UITypes.Lookup, UITypes.Rollup].includes(column.value.uidt as UITypes)) {
+    duplicateVirtualColumn()
+  } else {
+    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+
+    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+    let newColumnOrder
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order! + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
+    }
+
+    selectedColumnExtra.value = {
+      pv: false,
+      view_id: view.value!.id as string,
+      column_order: {
+        order: newColumnOrder,
+        view_id: view.value!.id as string,
+      },
+    }
+
+    if (column.value.uidt === UITypes.Formula) {
+      nextTick(() => {
+        duplicateDialogRef?.value?.duplicate()
+      })
+    } else {
+      isDuplicateDlgOpen.value = true
+    }
+
+    isOpen.value = false
+  }
 }
 
 // add column before or after current column
@@ -280,7 +291,7 @@ const onInsertAfter = () => {
       <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
     </div>
     <template #overlay>
-      <a-menu class="shadow bg-white nc-column-options">
+      <a-menu class="shadow bg-white border-1 border-gray-200 nc-column-options">
         <a-menu-item @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
@@ -334,10 +345,7 @@ const onInsertAfter = () => {
 
         <a-divider class="!my-0" />
 
-        <a-menu-item
-          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
-          @click="duplicateColumn"
-        >
+        <a-menu-item v-if="!column?.pk" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
             <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
             <!-- Duplicate -->
@@ -371,6 +379,13 @@ const onInsertAfter = () => {
     </template>
   </a-dropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
+  <DlgColumnDuplicate
+    v-if="column"
+    ref="duplicateDialogRef"
+    v-model="isDuplicateDlgOpen"
+    :column="column"
+    :extra="selectedColumnExtra"
+  />
 </template>
 
 <style scoped>

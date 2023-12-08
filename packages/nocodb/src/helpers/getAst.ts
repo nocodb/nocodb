@@ -1,11 +1,12 @@
-import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
 } from '~/models';
-import { GalleryView, View } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { GalleryView, KanbanView, View } from '~/models';
 
 const getAst = async ({
   query,
@@ -18,7 +19,8 @@ const getAst = async ({
     nested: { ...(query?.nested || {}) },
     fieldsSet: new Set(),
   },
-  getHiddenColumn = false,
+  getHiddenColumn = query?.['getHiddenColumn'],
+  throwErrorIfInvalidParams = false,
 }: {
   query?: RequestQuery;
   extractOnlyPrimaries?: boolean;
@@ -27,17 +29,19 @@ const getAst = async ({
   view?: View;
   dependencyFields?: DependantFields;
   getHiddenColumn?: boolean;
+  throwErrorIfInvalidParams?: boolean;
 }) => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
   let coverImageId;
-  if (view) {
+  if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(view.id);
-    if (gallery) {
-      coverImageId = gallery.fk_cover_image_col_id;
-    }
+    coverImageId = gallery.fk_cover_image_col_id;
+  } else if (view && view.type === ViewTypes.KANBAN) {
+    const kanban = await KanbanView.get(view.id);
+    coverImageId = kanban.fk_cover_image_col_id;
   }
 
   if (!model.columns?.length) await model.getColumns();
@@ -62,6 +66,16 @@ const getAst = async ({
   let fields = query?.fields || query?.f;
   if (fields && fields !== '*') {
     fields = Array.isArray(fields) ? fields : fields.split(',');
+    if (throwErrorIfInvalidParams) {
+      const colAliasMap = await model.getColAliasMapping();
+      const aliasColMap = await model.getAliasColObjMap();
+      const invalidFields = fields.filter(
+        (f) => !colAliasMap[f] && !aliasColMap[f],
+      );
+      if (invalidFields.length) {
+        NcError.unprocessableEntity(`Invalid field: ${invalidFields[0]}`);
+      }
+    }
   } else {
     fields = null;
   }
@@ -98,6 +112,7 @@ const getAst = async ({
               nested: {},
               fieldsSet: new Set(),
             }),
+          throwErrorIfInvalidParams,
         });
 
         value = ast;
@@ -125,27 +140,30 @@ const getAst = async ({
               nested: {},
               fieldsSet: new Set(),
             }),
+          throwErrorIfInvalidParams,
         })
       ).ast;
     }
     let isRequested;
+
     if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
         col.column_name === 'created_at' ||
         col.column_name === 'updated_at' ||
         col.pk;
-    } else {
+    } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
-        allowedCols && (!includePkByDefault || !col.pk)
-          ? allowedCols[col.id] &&
-            (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
-            (!fields?.length || fields.includes(col.title)) &&
-            value
-          : fields?.length
-          ? fields.includes(col.title) && value
-          : value;
+        allowedCols[col.id] &&
+        (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
+        (!fields?.length || fields.includes(col.title)) &&
+        value;
+    } else if (fields?.length) {
+      isRequested = fields.includes(col.title) && value;
+    } else {
+      isRequested = value;
     }
+
     if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
 
     return {

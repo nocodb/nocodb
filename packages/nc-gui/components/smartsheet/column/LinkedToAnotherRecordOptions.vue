@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi, UITypes } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useProject, useVModel } from '#imports'
+import { MetaInj, inject, ref, storeToRefs, useBase, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -16,8 +16,8 @@ const meta = inject(MetaInj, ref())
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi, isXcdbBase } = useColumnCreateStoreOrThrow()
 
-const projectStore = useProject()
-const { tables } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
 
 const { t } = useI18n()
 
@@ -47,7 +47,7 @@ const refTables = computed(() => {
     return []
   }
 
-  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta.value?.base_id)
+  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
@@ -78,12 +78,14 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
           @change="onDataTypeChange"
         >
           <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
-            <div class="flex items-center gap-2">
+            <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="table" class="text-gray-500"></GeneralTableIcon>
+                <GeneralTableIcon :meta="table" class="text-gray-500" />
               </div>
-
-              <span class="overflow-ellipsis min-w-0 shrink-1">{{ table.title }}</span>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ table.title }}</template>
+                <span>{{ table.title }}</span>
+              </NcTooltip>
             </div>
           </a-select-option>
         </a-select>

@@ -32,6 +32,12 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
+.markdown img {
+  -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+}
+
 [data-theme='light'] .DocSearch {
   /* --docsearch-primary-color: var(--ifm-color-primary); */
   /* --docsearch-text-color: var(--ifm-font-color-base); */

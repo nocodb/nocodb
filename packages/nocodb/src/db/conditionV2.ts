@@ -1,4 +1,9 @@
-import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isDateMonthFormat,
+  isNumericCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -8,10 +13,14 @@ import type Column from '~/models/Column';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
+import type { BarcodeColumn, QrCodeColumn } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { getAliasGenerator } from '~/utils';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -21,13 +30,21 @@ export default async function conditionV2(
   conditionObj: Filter | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
+  throwErrorIfInvalid = false,
 ) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
-  (await parseConditionV2(baseModelSqlv2, conditionObj, { count: 0 }, alias))(
-    qb,
-  );
+  (
+    await parseConditionV2(
+      baseModelSqlv2,
+      conditionObj,
+      { count: 0 },
+      alias,
+      undefined,
+      throwErrorIfInvalid,
+    )
+  )(qb);
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -49,6 +66,7 @@ const parseConditionV2 = async (
   aliasCount = { count: 0 },
   alias?,
   customWhereClause?,
+  throwErrorIfInvalid = false,
 ) => {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -60,7 +78,14 @@ const parseConditionV2 = async (
   if (Array.isArray(_filter)) {
     const qbs = await Promise.all(
       _filter.map((child) =>
-        parseConditionV2(baseModelSqlv2, child, aliasCount, alias),
+        parseConditionV2(
+          baseModelSqlv2,
+          child,
+          aliasCount,
+          alias,
+          undefined,
+          throwErrorIfInvalid,
+        ),
       ),
     );
 
@@ -76,7 +101,14 @@ const parseConditionV2 = async (
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
-        parseConditionV2(baseModelSqlv2, child, aliasCount),
+        parseConditionV2(
+          baseModelSqlv2,
+          child,
+          aliasCount,
+          undefined,
+          undefined,
+          throwErrorIfInvalid,
+        ),
       ),
     );
 
@@ -88,8 +120,50 @@ const parseConditionV2 = async (
       });
     };
   } else {
+    // handle group by filter separately,
+    // `gb_eq` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
+    // aggregated value will be either json array or `___` separated string
+    // `gb_null` is equivalent to `blank` but for lookup it compares on aggregated value is null
+    if (
+      (filter.comparison_op as any) === 'gb_eq' ||
+      (filter.comparison_op as any) === 'gb_null'
+    ) {
+      const column = await filter.getColumn();
+      if (
+        column.uidt === UITypes.Lookup ||
+        column.uidt === UITypes.LinkToAnotherRecord
+      ) {
+        const model = await column.getModel();
+        const lkQb = await generateLookupSelectQuery({
+          baseModelSqlv2,
+          alias: alias,
+          model,
+          column,
+          getAlias: getAliasGenerator('__gb_filter_lk'),
+        });
+        return (qb) => {
+          if ((filter.comparison_op as any) === 'gb_eq')
+            qb.where(knex.raw('?', [filter.value]), lkQb.builder);
+          else qb.whereNull(knex.raw(lkQb.builder).wrap('(', ')'));
+        };
+      } else {
+        filter.comparison_op =
+          (filter.comparison_op as any) === 'gb_eq' ? 'eq' : 'blank';
+        // if qrCode or Barcode replace it with value column
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          filter.fk_column_id = await column
+            .getColOptions<BarcodeColumn | QrCodeColumn>()
+            .then((col) => col.fk_column_id);
+      }
+    }
+
     const column = await filter.getColumn();
-    if (!column) return () => {};
+    if (!column) {
+      if (throwErrorIfInvalid) {
+        NcError.unprocessableEntity(`Invalid field: ${filter.fk_column_id}`);
+      }
+      return;
+    }
     if (column.uidt === UITypes.LinkToAnotherRecord) {
       const colOptions =
         (await column.getColOptions()) as LinkToAnotherRecordColumn;
@@ -153,6 +227,9 @@ const parseConditionV2 = async (
               fk_column_id: childModel?.displayValue?.id,
             }),
             aliasCount,
+            undefined,
+            undefined,
+            throwErrorIfInvalid,
           )
         )(selectQb);
 
@@ -216,13 +293,20 @@ const parseConditionV2 = async (
               fk_column_id: parentModel?.displayValue?.id,
             }),
             aliasCount,
+            undefined,
+            undefined,
+            throwErrorIfInvalid,
           )
         )(selectQb);
 
         return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(childColumn.column_name, selectQb);
-          else qbP.whereIn(childColumn.column_name, selectQb);
+          if (filter.comparison_op in negatedMapping) {
+            qbP.where((qb) =>
+              qb
+                .whereNotIn(childColumn.column_name, selectQb)
+                .orWhereNull(childColumn.column_name),
+            );
+          } else qbP.whereIn(childColumn.column_name, selectQb);
         };
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
         const mmModel = await colOptions.getMMModel();
@@ -292,12 +376,19 @@ const parseConditionV2 = async (
               fk_column_id: parentModel?.displayValue?.id,
             }),
             aliasCount,
+            undefined,
+            undefined,
+            throwErrorIfInvalid,
           )
         )(selectQb);
 
         return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(childColumn.column_name, selectQb);
+            qbP.where((qb) =>
+              qb
+                .whereNotIn(childColumn.column_name, selectQb)
+                .orWhereNull(childColumn.column_name),
+            );
           else qbP.whereIn(childColumn.column_name, selectQb);
         };
       }
@@ -310,6 +401,7 @@ const parseConditionV2 = async (
         filter,
         knex,
         aliasCount,
+        throwErrorIfInvalid,
       );
     } else if (
       [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
@@ -379,7 +471,13 @@ const parseConditionV2 = async (
             : 'YYYY-MM-DD HH:mm:ssZ';
 
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-          const now = dayjs(new Date());
+          let now = dayjs(new Date());
+          const dateFormatFromMeta = column?.meta?.date_format;
+          if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+            // reset to 1st
+            now = dayjs(now).date(1);
+            if (val) val = dayjs(val).date(1);
+          }
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':
@@ -553,7 +651,9 @@ const parseConditionV2 = async (
                 val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
               } else {
                 val =
-                  val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+                  (val + '').startsWith('%') || (val + '').endsWith('%')
+                    ? val
+                    : `%${val}%`;
               }
               if (qb?.client?.config?.client === 'pg') {
                 qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
@@ -841,6 +941,7 @@ async function generateLookupCondition(
   filter: Filter,
   knex,
   aliasCount = { count: 0 },
+  throwErrorIfInvalid = false,
 ): Promise<any> {
   const colOptions = await col.getColOptions<LookupColumn>();
   const relationColumn = await colOptions.getRelationColumn();
@@ -878,6 +979,7 @@ async function generateLookupCondition(
         knex,
         alias,
         aliasCount,
+        throwErrorIfInvalid,
       );
 
       return (qbP: Knex.QueryBuilder) => {
@@ -904,11 +1006,16 @@ async function generateLookupCondition(
         knex,
         alias,
         aliasCount,
+        throwErrorIfInvalid,
       );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
-          qbP.whereNotIn(childColumn.column_name, qb);
+          qbP.where((qb1) =>
+            qb1
+              .whereNotIn(childColumn.column_name, qb)
+              .orWhereNull(childColumn.column_name),
+          );
         else qbP.whereIn(childColumn.column_name, qb);
       };
     } else if (relationColumnOptions.type === RelationTypes.MANY_TO_MANY) {
@@ -941,11 +1048,16 @@ async function generateLookupCondition(
         knex,
         childAlias,
         aliasCount,
+        throwErrorIfInvalid,
       );
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
-          qbP.whereNotIn(childColumn.column_name, qb);
+          qbP.where((qb1) =>
+            qb1
+              .whereNotIn(childColumn.column_name, qb)
+              .orWhereNull(childColumn.column_name),
+          );
         else qbP.whereIn(childColumn.column_name, qb);
       };
     }
@@ -960,6 +1072,7 @@ async function nestedConditionJoin(
   knex,
   alias: string,
   aliasCount: { count: number },
+  throwErrorIfInvalid = false,
 ) {
   if (
     lookupColumn.uidt === UITypes.Lookup ||
@@ -1042,6 +1155,7 @@ async function nestedConditionJoin(
         knex,
         relAlias,
         aliasCount,
+        throwErrorIfInvalid,
       );
     } else {
       switch (relationColOptions.type) {
@@ -1057,6 +1171,8 @@ async function nestedConditionJoin(
                 }),
                 aliasCount,
                 relAlias,
+                undefined,
+                throwErrorIfInvalid,
               )
             )(qb);
           }
@@ -1073,6 +1189,8 @@ async function nestedConditionJoin(
                 }),
                 aliasCount,
                 relAlias,
+                undefined,
+                throwErrorIfInvalid,
               )
             )(qb);
           }
@@ -1089,6 +1207,8 @@ async function nestedConditionJoin(
                 }),
                 aliasCount,
                 relAlias,
+                undefined,
+                throwErrorIfInvalid,
               )
             )(qb);
           }
@@ -1106,6 +1226,8 @@ async function nestedConditionJoin(
         }),
         aliasCount,
         alias,
+        undefined,
+        throwErrorIfInvalid,
       )
     )(qb);
   }

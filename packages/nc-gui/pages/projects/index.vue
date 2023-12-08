@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
-import type { ProjectType } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import { extractSdkResponseErrorMsg, iconMap, navigateTo, useNuxtApp, useRoute } from '#imports'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
@@ -33,10 +33,10 @@ const route = useRoute()
 
 const { $api } = useNuxtApp()
 
-const response = await $api.project.list({})
-const projects = ref(response.list)
+const response = await $api.base.list({})
+const bases = ref(response.list)
 const activePage = ref(navDrawerOptions[0].title)
-const deleteProject = (project: ProjectType) => {
+const deleteProject = (base: BaseType) => {
   Modal.confirm({
     title: t('msg.info.deleteProject'),
     // icon: createVNode(ExclamationCircleOutlined),
@@ -46,8 +46,8 @@ const deleteProject = (project: ProjectType) => {
     cancelText: 'No',
     async onOk() {
       try {
-        await $api.project.delete(project.id as string)
-        projects.value.splice(projects.value.indexOf(project), 1)
+        await $api.base.delete(base.id as string)
+        bases.value.splice(bases.value.indexOf(base), 1)
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -75,14 +75,14 @@ const deleteProject = (project: ProjectType) => {
             <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
               <div
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="navigateTo('/project/create')"
+                @click="navigateTo('/base/create')"
               >
                 <component :is="iconMap.plus" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="navigateTo('/project/create-external')"
+                @click="navigateTo('/base/create-external')"
               >
                 <component :is="iconMap.database" class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
                 <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
@@ -136,7 +136,7 @@ const deleteProject = (project: ProjectType) => {
 
       <a-divider class="!mb-4 lg:(!mb-8)" />
 
-      <NuxtPage :projects="projects" @delete-project="deleteProject" />
+      <NuxtPage :bases="bases" @delete-base="deleteProject" />
     </div>
 
     <a-modal></a-modal>

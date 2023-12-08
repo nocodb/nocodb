@@ -1,5 +1,8 @@
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
+import { Logger } from '@nestjs/common';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
@@ -8,6 +11,8 @@ import { Filter, HookLog } from '~/models';
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
 });
+
+const logger = new Logger('webhookHelpers');
 
 export function parseBody(template: string, data: any): string {
   if (!template) {
@@ -176,13 +181,25 @@ export async function handleHttpWebHook(
   user,
   prevData,
   newData,
-) {
+): Promise<any> {
+  const contentType = apiMeta.headers?.find(
+    (header) => header.name?.toLowerCase() === 'content-type' && header.enabled,
+  );
+
+  if (!contentType) {
+    apiMeta.headers.push({
+      name: 'Content-Type',
+      enabled: true,
+      value: 'application/json',
+    });
+  }
+
   const req = axiosRequestMake(
     apiMeta,
     user,
     constructWebHookData(hook, model, view, prevData, newData),
   );
-  return require('axios')(req);
+  return axios(req);
 }
 
 export function axiosRequestMake(_apiMeta, _user, data) {
@@ -219,6 +236,8 @@ export function axiosRequestMake(_apiMeta, _user, data) {
     }
   }
   apiMeta.response = {};
+  const url = parseBody(apiMeta.path, data);
+
   const req = {
     params: apiMeta.parameters
       ? apiMeta.parameters.reduce((paramsObj, param) => {
@@ -228,7 +247,7 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           return paramsObj;
         }, {})
       : {},
-    url: parseBody(apiMeta.path, data),
+    url: url,
     method: apiMeta.method,
     data: apiMeta.body,
     headers: apiMeta.headers
@@ -240,6 +259,16 @@ export function axiosRequestMake(_apiMeta, _user, data) {
         }, {})
       : {},
     withCredentials: true,
+    ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+      ? {
+          httpAgent: useAgent(url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+          httpsAgent: useAgent(url, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+        }
+      : {}),
   };
   return req;
 }
@@ -395,7 +424,16 @@ export async function invokeWebhook(
         break;
     }
   } catch (e) {
-    console.log(e);
+    if (e.response) {
+      logger.error({
+        data: e.response.data,
+        status: e.response.status,
+        url: e.response.config?.url,
+        message: e.message,
+      });
+    } else {
+      logger.error(e.message, e.stack);
+    }
     if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
       hookLog = {
         ...hook,

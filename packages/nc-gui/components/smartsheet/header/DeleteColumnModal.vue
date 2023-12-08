@@ -20,7 +20,7 @@ const { getMeta } = useMetas()
 
 const { includeM2M } = useGlobal()
 
-const { loadTables } = useProject()
+const { loadTables } = useBase()
 
 const isLoading = ref(false)
 

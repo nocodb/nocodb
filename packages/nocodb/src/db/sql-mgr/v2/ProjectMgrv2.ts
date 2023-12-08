@@ -2,7 +2,7 @@ import SqlMgrv2 from './SqlMgrv2';
 import SqlMgrv2Trans from './SqlMgrv2Trans';
 import type { MetaService } from '~/meta/meta.service';
 // import type NcMetaIO from '~/meta/NcMetaIO';
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 
 export default class ProjectMgrv2 {
   private static sqlMgrMap: {
@@ -10,25 +10,25 @@ export default class ProjectMgrv2 {
   } = {};
 
   public static getSqlMgr(
-    project: { id: string },
+    base: { id: string },
     ncMeta: MetaService = null,
   ): SqlMgrv2 {
-    if (ncMeta) return new SqlMgrv2(project, ncMeta);
+    if (ncMeta) return new SqlMgrv2(base, ncMeta);
 
-    if (!this.sqlMgrMap[project.id]) {
-      this.sqlMgrMap[project.id] = new SqlMgrv2(project);
+    if (!this.sqlMgrMap[base.id]) {
+      this.sqlMgrMap[base.id] = new SqlMgrv2(base);
     }
-    return this.sqlMgrMap[project.id];
+    return this.sqlMgrMap[base.id];
   }
 
   public static async getSqlMgrTrans(
-    project: { id: string },
+    base: { id: string },
     // todo: tobe changed
     ncMeta: any,
-    base: Base,
+    source: Source,
   ): Promise<SqlMgrv2Trans> {
-    const sqlMgr = new SqlMgrv2Trans(project, ncMeta, base);
-    await sqlMgr.startTransaction(base);
+    const sqlMgr = new SqlMgrv2Trans(base, ncMeta, source);
+    await sqlMgr.startTransaction(source);
     return sqlMgr;
   }
 }

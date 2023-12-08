@@ -1,4 +1,5 @@
 import { ViewTypes } from 'nocodb-sdk'
+import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -12,10 +13,10 @@ import {
   ref,
   storeToRefs,
   useApi,
+  useBase,
   useGlobal,
   useI18n,
   useNuxtApp,
-  useProject,
   useRoles,
   useRouter,
   useSharedView,
@@ -40,10 +41,6 @@ export function useViewData(
 
   const meta = computed(() => _meta.value || activeTable.value)
   const metaId = computed(() => _meta.value?.id || activeTableId.value)
-
-  if (!meta.value) {
-    throw new Error('Table meta is not available')
-  }
 
   const { t } = useI18n()
 
@@ -73,11 +70,11 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { project, isSharedBase } = storeToRefs(useProject())
+  const { base, isSharedBase } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
-  const { $api, $e } = useNuxtApp()
+  const { $api } = useNuxtApp()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -98,6 +95,16 @@ export function useViewData(
     },
   })
 
+  const islastRow = computed(() => {
+    const currentIndex = getExpandedRowIndex()
+    return paginationData.value?.isLastPage && currentIndex === formattedData.value.length - 1
+  })
+
+  const isFirstRow = computed(() => {
+    const currentIndex = getExpandedRowIndex()
+    return paginationData.value?.isFirstPage && currentIndex === 0
+  })
+
   const queryParams = computed(() => ({
     offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
     limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
@@ -107,7 +114,7 @@ export function useViewData(
   async function syncCount() {
     const { count } = await $api.dbViewRow.count(
       NOCO,
-      project?.value?.id as string,
+      base?.value?.id as string,
       metaId.value as string,
       viewMeta?.value?.id as string,
     )
@@ -166,16 +173,36 @@ export function useViewData(
     }
   }
 
+  const controller = ref()
+
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    if ((!project?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
+    if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
+
+    if (controller.value) {
+      controller.value.cancel()
+    }
+
+    const CancelToken = axios.CancelToken
+
+    controller.value = CancelToken.source()
+
+    isPaginationLoading.value = true
+
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id!, metaId.value!, viewMeta.value!.id!, {
-          ...queryParams.value,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-        } as any)
+      ? await api.dbViewRow.list(
+          'noco',
+          base.value.id!,
+          metaId.value!,
+          viewMeta.value!.id!,
+          {
+            ...queryParams.value,
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: where?.value,
+          } as any,
+          { cancelToken: controller.value.token },
+        )
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
     formattedData.value = formatData(response.list)
@@ -207,7 +234,6 @@ export function useViewData(
       offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
       where: where?.value,
     } as any)
-    $e('a:grid:pagination')
   }
 
   const {
@@ -285,6 +311,8 @@ export function useViewData(
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
+    console.log('test')
+
     const expandedRowIndex = getExpandedRowIndex()
 
     // calculate next row index based on direction
@@ -360,5 +388,7 @@ export function useViewData(
     navigateToSiblingRow,
     getExpandedRowIndex,
     optimisedQuery,
+    islastRow,
+    isFirstRow,
   }
 }

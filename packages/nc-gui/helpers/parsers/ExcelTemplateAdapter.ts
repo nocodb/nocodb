@@ -1,5 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
-import { getDateFormat } from '../../utils/dateTimeUtils'
+import { UITypes, getDateFormat } from 'nocodb-sdk'
 import TemplateGenerator from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,
@@ -22,7 +21,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   excelData: any
 
-  project: {
+  base: {
     tables: Record<string, any>[]
   }
 
@@ -36,7 +35,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     super(progressCallback)
     this.config = parserConfig
     this.excelData = data
-    this.project = {
+    this.base = {
       tables: [],
     }
     this.xlsx = xlsx || ({} as any)
@@ -113,6 +112,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             )
 
             for (let col = 0; col < rows[0].length; col++) {
+              const title = (
+                (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+                `Field ${col + 1}`
+              ).trim()
               let cn: string = (
                 (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
                 `field_${col + 1}`
@@ -126,6 +129,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               columnNamePrefixRef[cn] = 0
 
               const column: Record<string, any> = {
+                title,
                 column_name: cn,
                 ref_column_name: cn,
                 meta: {},
@@ -144,13 +148,9 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   // check for long text
                   if (isMultiLineTextType(rows, col)) {
                     column.uidt = UITypes.LongText
-                  }
-
-                  if (isEmailType(rows, col)) {
+                  } else if (isEmailType(rows, col)) {
                     column.uidt = UITypes.Email
-                  }
-
-                  if (isUrlType(rows, col)) {
+                  } else if (isUrlType(rows, col)) {
                     column.uidt = UITypes.URL
                   } else {
                     const vals = rows
@@ -158,8 +158,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    const checkboxType = isCheckboxType(vals, col)
-                    if (checkboxType.length === 1) {
+                    if (isCheckboxType(vals, col)) {
                       column.uidt = UITypes.Checkbox
                     } else {
                       // Single Select / Multi Select
@@ -230,7 +229,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               }
               table.columns.push(column)
             }
-            this.project.tables.push(table)
+            this.base.tables.push(table)
 
             this.data[tn] = []
             if (this.config.shouldImportData) {
@@ -289,7 +288,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getTemplate() {
-    return this.project
+    return this.base
   }
 
   getData() {
@@ -297,6 +296,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   getColumns() {
-    return this.project.tables.map((t: Record<string, any>) => t.columns)
+    return this.base.tables.map((t: Record<string, any>) => t.columns)
   }
 }

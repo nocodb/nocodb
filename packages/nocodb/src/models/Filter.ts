@@ -33,8 +33,8 @@ export default class Filter implements FilterType {
   logical_op?: 'and' | 'or' | 'not';
   is_group?: BoolType;
   children?: Filter[];
-  project_id?: string;
   base_id?: string;
+  source_id?: string;
   column?: Column;
 
   constructor(data: Filter | FilterType) {
@@ -75,8 +75,8 @@ export default class Filter implements FilterType {
       'fk_parent_id',
       'is_group',
       'logical_op',
-      'project_id',
       'base_id',
+      'source_id',
       'order',
     ]);
 
@@ -87,8 +87,8 @@ export default class Filter implements FilterType {
       [referencedModelColName]: filter[referencedModelColName],
     });
 
-    if (!(filter.project_id && filter.base_id)) {
-      let model: { project_id?: string; base_id?: string };
+    if (!(filter.base_id && filter.source_id)) {
+      let model: { base_id?: string; source_id?: string };
       if (filter.fk_view_id) {
         model = await View.get(filter.fk_view_id, ncMeta);
       } else if (filter.fk_hook_id) {
@@ -100,8 +100,8 @@ export default class Filter implements FilterType {
       }
 
       if (model != null) {
-        insertObj.project_id = model.project_id;
         insertObj.base_id = model.base_id;
+        insertObj.source_id = model.source_id;
       }
     }
 
@@ -592,14 +592,14 @@ export default class Filter implements FilterType {
     return filterObjs?.map((f) => this.castType(f));
   }
 
-  static async hasEmptyOrNullFilters(projectId: string, ncMeta = Noco.ncMeta) {
+  static async hasEmptyOrNullFilters(baseId: string, ncMeta = Noco.ncMeta) {
     const emptyOrNullFilterObjs = await ncMeta.metaList2(
       null,
       null,
       MetaTable.FILTER_EXP,
       {
         condition: {
-          project_id: projectId,
+          base_id: baseId,
         },
         xcCondition: {
           _or: [

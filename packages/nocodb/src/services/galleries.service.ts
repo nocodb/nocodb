@@ -5,6 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -22,6 +23,8 @@ export class GalleriesService {
     tableId: string;
     gallery: ViewCreateReqType;
     user: UserType;
+
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -38,6 +41,7 @@ export class GalleriesService {
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
       showAs: 'gallery',
+      req: param.req,
     });
     return view;
   }
@@ -45,6 +49,7 @@ export class GalleriesService {
   async galleryViewUpdate(param: {
     galleryViewId: string;
     gallery: GalleryUpdateReqType;
+    req: NcRequest;
   }) {
     validatePayload(
       'swagger.json#/components/schemas/GalleryUpdateReq',
@@ -62,6 +67,7 @@ export class GalleriesService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,
       showAs: 'gallery',
+      req: param.req,
     });
 
     return res;

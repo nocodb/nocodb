@@ -25,11 +25,14 @@ import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
 import { DetailsPage } from './Details';
 import { WorkspaceSettingsObject } from './WorkspaceSettings';
+import { CmdJ } from './Command/CmdJPage';
+import { CmdK } from './Command/CmdKPage';
+import { CmdL } from './Command/CmdLPage';
 
 export class DashboardPage extends BasePage {
-  readonly project: any;
+  readonly base: any;
   readonly tablesSideBar: Locator;
-  readonly projectMenuLink: Locator;
+  readonly baseMenuLink: Locator;
   readonly workspaceMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
@@ -47,7 +50,7 @@ export class DashboardPage extends BasePage {
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
   readonly leftSidebar: LeftSidebarPage;
-  readonly projectView: ProjectViewPage;
+  readonly baseView: ProjectViewPage;
   readonly importAirtable: ImportAirtablePage;
   readonly importTemplate = new ImportTemplatePage(this);
   readonly docs: DocsPageGroup;
@@ -55,18 +58,21 @@ export class DashboardPage extends BasePage {
   readonly shareProjectButton: ShareProjectButtonPage;
   readonly details: DetailsPage;
   readonly workspaceSettings: WorkspaceSettingsObject;
+  readonly cmdJ: CmdJ;
+  readonly cmdK: CmdK;
+  readonly cmdL: CmdL;
 
-  constructor(rootPage: Page, project: any) {
+  constructor(rootPage: Page, base: any) {
     super(rootPage);
-    this.project = project;
+    this.base = base;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
-    this.workspaceMenuLink = rootPage.getByTestId('nc-project-menu');
-    this.projectMenuLink = rootPage
-      .locator(`.project-title-node:has-text("${project.title}")`)
+    this.workspaceMenuLink = rootPage.getByTestId('nc-base-menu');
+    this.baseMenuLink = rootPage
+      .locator(`.base-title-node:has-text("${base.title}")`)
       .locator('[data-testid="nc-sidebar-context-menu"]')
       .first();
     this.tabBar = rootPage.locator('.nc-tab-bar');
-    this.treeView = new TreeViewPage(this, project);
+    this.treeView = new TreeViewPage(this, base);
     this.grid = new GridPage(this);
     this.gallery = new GalleryPage(this);
     this.form = new FormPage(this);
@@ -81,13 +87,16 @@ export class DashboardPage extends BasePage {
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
     this.leftSidebar = new LeftSidebarPage(this);
-    this.projectView = new ProjectViewPage(this);
+    this.baseView = new ProjectViewPage(this);
     this.importAirtable = new ImportAirtablePage(this);
     this.sidebar = new SidebarPage(this);
     this.docs = new DocsPageGroup(this);
     this.shareProjectButton = new ShareProjectButtonPage(this);
     this.details = new DetailsPage(this);
     this.workspaceSettings = new WorkspaceSettingsObject(this);
+    this.cmdJ = new CmdJ(this);
+    this.cmdK = new CmdK(this);
+    this.cmdL = new CmdL(this);
   }
 
   get() {
@@ -95,35 +104,35 @@ export class DashboardPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto(`/#/${this.project.fk_workspace_id}/${this.project.id}`);
+    await this.rootPage.goto(`/#/${this.base.fk_workspace_id}/${this.base.id}`);
   }
 
   getProjectMenuLink({ title }: { title: string }) {
-    return this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`);
+    return this.rootPage.locator(`div.nc-base-menu-item:has-text("${title}")`);
   }
 
   async verifyTeamAndSettingsLinkIsVisible() {
-    await this.projectMenuLink.click();
+    await this.baseMenuLink.click();
     const teamAndSettingsLink = this.getProjectMenuLink({ title: ' Team & Settings' });
     await expect(teamAndSettingsLink).toBeVisible();
-    await this.projectMenuLink.click();
+    await this.baseMenuLink.click();
   }
 
   async verifyTeamAndSettingsLinkIsNotVisible() {
-    await this.projectMenuLink.click();
+    await this.baseMenuLink.click();
     const teamAndSettingsLink = this.getProjectMenuLink({ title: ' Team & Settings' });
     await expect(teamAndSettingsLink).not.toBeVisible();
-    await this.projectMenuLink.click();
+    await this.baseMenuLink.click();
   }
 
   async gotoSettings() {
-    await this.projectMenuLink.click();
+    await this.baseMenuLink.click();
     await this.rootPage.locator('.ant-dropdown').locator(`.nc-menu-item:has-text("Settings")`).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
-    await this.projectMenuLink.click();
-    await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
+    await this.baseMenuLink.click();
+    await this.rootPage.locator(`div.nc-base-menu-item:has-text("${title}")`).click();
   }
 
   async verifyInTabBar({ title }: { title: string }) {
@@ -181,10 +190,10 @@ export class DashboardPage extends BasePage {
   }) {}
 
   async toggleMobileMode() {
-    await this.projectMenuLink.click();
-    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+    await this.baseMenuLink.click();
+    const projMenu = this.rootPage.locator('.nc-dropdown-base-menu');
     await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
-    await this.projectMenuLink.click();
+    await this.baseMenuLink.click();
   }
 
   async signOut() {
@@ -200,13 +209,13 @@ export class DashboardPage extends BasePage {
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {
-    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
-    const pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
+    await this.rootPage.locator('[data-testid="nc-base-menu"]').click();
+    const pMenu = this.rootPage.locator(`.nc-dropdown-base-menu:visible`);
 
     // menu items
     let menuItems = {
       creator: [
-        'Copy Project Info',
+        'Copy Base Info',
         'Swagger: REST APIs',
         'Copy Auth Token',
         'Team & Settings',
@@ -215,9 +224,9 @@ export class DashboardPage extends BasePage {
         'Language',
         'Account',
       ],
-      editor: ['Copy Project Info', 'Swagger: REST APIs', 'Copy Auth Token', 'Language', 'Account'],
-      commenter: ['Copy Project Info', 'Copy Auth Token', 'Language', 'Account'],
-      viewer: ['Copy Project Info', 'Copy Auth Token', 'Language', 'Account'],
+      editor: ['Copy Base Info', 'Swagger: REST APIs', 'Copy Auth Token', 'Language', 'Account'],
+      commenter: ['Copy Base Info', 'Copy Auth Token', 'Language', 'Account'],
+      viewer: ['Copy Base Info', 'Copy Auth Token', 'Language', 'Account'],
     };
 
     if (param?.mode === 'shareBase') {
@@ -234,7 +243,7 @@ export class DashboardPage extends BasePage {
     for (const item of menuItems[param.role]) {
       await expect(pMenu).toContainText(item);
     }
-    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-testid="nc-base-menu"]').click();
   }
 
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard

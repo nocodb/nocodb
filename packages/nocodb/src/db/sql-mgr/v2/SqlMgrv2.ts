@@ -5,7 +5,7 @@ import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import KnexMigratorv2 from '../../sql-migrator/lib/KnexMigratorv2';
 import Debug from '../../util/Debug';
 import type { MetaService } from '~/meta/meta.service';
-import type Base from '~/models/Base';
+import type Source from '~/models/Source';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const log = new Debug('SqlMgr');
@@ -30,13 +30,18 @@ export default class SqlMgrv2 {
     this.ncMeta = ncMeta;
   }
 
-  public async migrator(_base: Base) {
+  public async migrator(_base: Source) {
     return this._migrator;
   }
 
   public static async testConnection(args = {}) {
     const client = await SqlClientFactory.create(args);
-    return client.testConnection();
+    const result = await client.testConnection();
+
+    // close connection
+    await client.knex.destroy();
+
+    return result;
   }
 
   /**
@@ -49,12 +54,12 @@ export default class SqlMgrv2 {
    * @param {*} opArgs - sqlClient function arguments
    * @memberof SqlMgr
    */
-  public async sqlOp(base: Base, op, opArgs) {
+  public async sqlOp(source: Source, op, opArgs) {
     const func = this.sqlOp.name;
-    log.api(`${func}:args:`, base, op, opArgs);
+    log.api(`${func}:args:`, source, op, opArgs);
 
     // create sql client for this operation
-    const client = await this.getSqlClient(base);
+    const client = await this.getSqlClient(source);
 
     // do sql operation
     const data = await client[op](opArgs);
@@ -72,19 +77,19 @@ export default class SqlMgrv2 {
    * @param {*} opArgs - sqlClient function arguments
    * @memberof SqlMgr
    */
-  public async sqlOpPlus(base: Base, op, opArgs) {
+  public async sqlOpPlus(source: Source, op, opArgs) {
     const func = this.sqlOpPlus.name;
-    log.api(`${func}:args:`, base, op, opArgs);
+    log.api(`${func}:args:`, source, op, opArgs);
 
-    if (base.getConfig()?.schema) {
+    if (source.getConfig()?.schema) {
       opArgs = {
         ...opArgs,
-        schema: base.getConfig().schema,
+        schema: source.getConfig().schema,
       };
     }
 
     // create sql client for this operation
-    const sqlClient = await this.getSqlClient(base); //await this.projectGetSqlClient(args);
+    const sqlClient = await this.getSqlClient(source); //await this.baseGetSqlClient(args);
 
     // do sql operation
     const sqlMigrationStatements = await sqlClient[op](opArgs);
@@ -123,11 +128,11 @@ export default class SqlMgrv2 {
     return sqlMigrationStatements;
   }
 
-  protected async getSqlClient(base: Base) {
-    if (base.is_meta && this.ncMeta) {
-      return NcConnectionMgrv2.getSqlClient(base, this.ncMeta.knex);
+  protected async getSqlClient(source: Source) {
+    if (source.is_meta && this.ncMeta) {
+      return NcConnectionMgrv2.getSqlClient(source, this.ncMeta.knex);
     }
 
-    return NcConnectionMgrv2.getSqlClient(base);
+    return NcConnectionMgrv2.getSqlClient(source);
   }
 }

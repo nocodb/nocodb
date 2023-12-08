@@ -11,6 +11,8 @@ const isGallery = inject(IsGalleryInj, ref(false))
 
 const qrValue = computed(() => String(cellValue?.value))
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
 const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value)
@@ -57,8 +59,20 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     @ok="handleModalOkClick"
   >
     <template #footer>
-      <div class="mr-4 overflow-scroll p-2" data-testid="nc-qr-code-large-value-label">
-        {{ qrValue }}
+      <div class="flex flex-row">
+        <div class="flex flex-row flex-grow mr-2 !overflow-y-auto py-2" data-testid="nc-qr-code-large-value-label">
+          {{ qrValue }}
+        </div>
+        <a v-if="showQrCode" :href="qrCodeLarge" :download="`${qrValue}.png`">
+          <NcTooltip>
+            <template #title>
+              {{ $t('labels.clickToDownload') }}
+            </template>
+            <NcButton size="small" type="secondary">
+              <GeneralIcon icon="download" class="w-4 h-4" />
+            </NcButton>
+          </NcTooltip>
+        </a>
       </div>
     </template>
     <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" />
@@ -66,15 +80,23 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-[10px]">
     {{ $t('labels.qrCodeValueTooLong') }}
   </div>
-  <img
-    v-if="showQrCode && rowHeight"
-    :class="{ 'mx-auto': !isGallery }"
-    :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
-    :src="qrCode"
-    :alt="$t('title.qrCode')"
-    @click="showQrModal"
-  />
-  <img v-else-if="showQrCode" class="mx-auto" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+  <div
+    class="pl-2 w-full flex"
+    :class="{
+      'flex-start': isExpandedFormOpen,
+      'justify-center': !isExpandedFormOpen,
+    }"
+  >
+    <img
+      v-if="showQrCode && rowHeight"
+      :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
+      :src="qrCode"
+      :alt="$t('title.qrCode')"
+      class="min-w-[1.4em]"
+      @click="showQrModal"
+    />
+    <img v-else-if="showQrCode" class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+  </div>
   <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
   </div>

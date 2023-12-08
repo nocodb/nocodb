@@ -1,6 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
 import { useTitle } from '@vueuse/core'
+import type { SidebarTableNode } from '~/lib'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
@@ -12,36 +13,36 @@ export const useTablesStore = defineStore('tablesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const projectTables = ref<Map<string, TableType[]>>(new Map())
-  const projectsStore = useProjects()
-  // const projectStore = useProject()
+  const baseTables = ref<Map<string, SidebarTableNode[]>>(new Map())
+  const basesStore = useBases()
+  // const baseStore = useBase()
 
   const workspaceStore = useWorkspace()
 
   const activeTableId = computed(() => route.value.params.viewId as string | undefined)
 
   const activeTables = computed(() => {
-    if (!projectsStore) return []
+    if (!basesStore) return []
 
-    const projectId = projectsStore.activeProjectId
-    if (!projectId) return []
+    const baseId = basesStore.activeProjectId
+    if (!baseId) return []
 
-    const tables = projectTables.value.get(projectId!)
+    const tables = baseTables.value.get(baseId!)
 
     if (!tables) return []
 
-    const openedProjectBasesMap = projectsStore.openedProjectBasesMap
+    const openedProjectBasesMap = basesStore.openedProjectBasesMap
 
-    return tables.filter((t) => !t.base_id || openedProjectBasesMap.get(t.base_id)?.enabled)
+    return tables.filter((t) => !t.source_id || openedProjectBasesMap.get(t.source_id)?.enabled)
   })
 
   const activeTable = computed(() => {
-    if (!projectsStore) return
+    if (!basesStore) return
 
-    const projectId = projectsStore.activeProjectId
-    if (!projectId) return
+    const baseId = basesStore.activeProjectId
+    if (!baseId) return
 
-    const tables = projectTables.value.get(projectId!)
+    const tables = baseTables.value.get(baseId!)
 
     if (!tables) return
 
@@ -51,58 +52,73 @@ export const useTablesStore = defineStore('tablesStore', () => {
   watch(
     () => activeTable.value?.title,
     (title) => {
-      if (projectsStore.openedProject?.type !== 'database') return
+      if (basesStore.openedProject?.type !== 'database') return
 
       if (!title) {
-        useTitle(projectsStore.openedProject?.title)
+        useTitle(basesStore.openedProject?.title)
         return
       }
 
-      useTitle(`${projectsStore.openedProject?.title}: ${title}`)
+      useTitle(`${basesStore.openedProject?.title}: ${title}`)
     },
   )
 
-  const loadProjectTables = async (projectId: string, force = false) => {
-    if (!force && projectTables.value.get(projectId)) {
+  const loadProjectTables = async (baseId: string, force = false) => {
+    if (!force && baseTables.value.get(baseId)) {
       return
     }
 
-    const existingTables = projectTables.value.get(projectId)
+    const existingTables = baseTables.value.get(baseId)
     if (existingTables && !force) {
       return
     }
 
-    const tables = await api.dbTable.list(projectId, {
+    const tables = await api.dbTable.list(baseId, {
       includeM2M: includeM2M.value,
     })
 
-    projectTables.value.set(projectId, tables.list || [])
+    tables.list?.forEach((t) => {
+      let meta = t.meta
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
+      if (!meta) meta = {}
+
+      t.meta = meta
+    })
+
+    baseTables.value.set(baseId, tables.list || [])
   }
 
-  const addTable = (projectId: string, table: TableType) => {
-    const tables = projectTables.value.get(projectId)
+  const addTable = (baseId: string, table: TableType) => {
+    const tables = baseTables.value.get(baseId)
     if (!tables) return
 
     tables.push(table)
   }
 
   const navigateToTable = async ({
-    projectId,
+    baseId,
     tableId,
     viewTitle,
     workspaceId,
   }: {
-    projectId?: string
+    baseId?: string
     tableId: string
     viewTitle?: string
     workspaceId?: string
   }) => {
     const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
-    const projectIdOrBaseId = projectId ?? projectsStore.activeProjectId
+    const baseIdOrBaseId = baseId ?? basesStore.activeProjectId
 
     await ncNavigateTo({
       workspaceId: workspaceIdOrType,
-      projectId: projectIdOrBaseId,
+      baseId: baseIdOrBaseId,
       tableId,
       viewId: viewTitle,
       query: route.value.query,
@@ -110,18 +126,18 @@ export const useTablesStore = defineStore('tablesStore', () => {
   }
 
   const openTable = async (table: TableType) => {
-    if (!table.project_id) return
+    if (!table.base_id) return
 
-    const projects = projectsStore.projects
+    const bases = basesStore.bases
     const workspaceId = workspaceStore.activeWorkspaceId
 
-    let project = projects.get(table.project_id)
-    if (!project) {
-      await projectsStore.loadProject(table.project_id)
-      await loadProjectTables(table.project_id)
+    let base = bases.get(table.base_id)
+    if (!base) {
+      await basesStore.loadProject(table.base_id)
+      await loadProjectTables(table.base_id)
 
-      project = projects.get(table.project_id)
-      if (!project) throw new Error('Project not found')
+      base = bases.get(table.base_id)
+      if (!base) throw new Error('Base not found')
     }
 
     const { getMeta } = useMetas()
@@ -136,15 +152,15 @@ export const useTablesStore = defineStore('tablesStore', () => {
       workspaceIdOrType = route.value.params.typeOrId as string
     }
 
-    let projectIdOrBaseId = project.id
+    let baseIdOrBaseId = base.id
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
-      projectIdOrBaseId = route.value.params.projectId as string
+      baseIdOrBaseId = route.value.params.baseId as string
     }
 
     ncNavigateTo({
       workspaceId: workspaceIdOrType,
-      projectId: projectIdOrBaseId,
+      baseId: baseIdOrBaseId,
       tableId: table?.id,
     })
   }
@@ -154,12 +170,12 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     try {
       await $api.dbTable.update(table.id as string, {
-        project_id: table.project_id,
+        base_id: table.base_id,
         table_name: table.table_name,
         title: table.title,
       })
 
-      await loadProjectTables(table.project_id!, true)
+      await loadProjectTables(table.base_id!, true)
 
       if (!undo) {
         addUndo({
@@ -183,9 +199,9 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
       // update metas
       const newMeta = await $api.dbTable.read(table.id as string)
-      projectTables.value.set(
-        table.project_id!,
-        projectTables.value.get(table.project_id!)!.map((t) => (t.id === table.id ? { ...t, ...newMeta } : t)),
+      baseTables.value.set(
+        table.base_id!,
+        baseTables.value.get(table.base_id!)!.map((t) => (t.id === table.id ? { ...t, ...newMeta } : t)),
       )
 
       // updateTab({ id: tableMeta.id }, { title: newMeta.title })
@@ -198,8 +214,28 @@ export const useTablesStore = defineStore('tablesStore', () => {
     }
   }
 
+  const tableUrl = ({ table, completeUrl }: { table: TableType; completeUrl: boolean }) => {
+    const base = basesStore.bases.get(table.base_id!)
+    if (!base) return
+
+    const nuxtPageName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
+
+    const url = router.resolve({
+      name: nuxtPageName,
+      params: {
+        typeOrId: workspaceStore.activeWorkspaceId,
+        baseId: base.id,
+        viewId: table.id,
+      },
+    })
+
+    if (completeUrl) return `${window.location.origin}/${url.href}`
+
+    return url.href
+  }
+
   return {
-    projectTables,
+    baseTables,
     loadProjectTables,
     addTable,
     activeTable,
@@ -208,6 +244,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     updateTable,
     activeTableId,
     navigateToTable,
+    tableUrl,
   }
 })
 

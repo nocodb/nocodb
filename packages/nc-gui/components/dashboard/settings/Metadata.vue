@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { Empty, extractSdkResponseErrorMsg, h, iconMap, message, storeToRefs, useI18n, useNuxtApp, useProject } from '#imports'
+import { Empty, extractSdkResponseErrorMsg, h, iconMap, message, storeToRefs, useBase, useI18n, useNuxtApp } from '#imports'
 
 const props = defineProps<{
-  baseId: string
+  sourceId: string
 }>()
 
 const emit = defineEmits(['baseSynced'])
 
 const { $api } = useNuxtApp()
 
-const projectStore = useProject()
-const { loadTables } = projectStore
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { loadTables } = baseStore
+const { base } = storeToRefs(baseStore)
 
 const { t } = useI18n()
 
@@ -23,11 +23,11 @@ const metadiff = ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     isLoading.value = true
     isDifferent.value = false
-    metadiff.value = await $api.base.metaDiffGet(project.value?.id, props.baseId)
+    metadiff.value = await $api.source.metaDiffGet(base.value?.id, props.sourceId)
     for (const model of metadiff.value) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -41,21 +41,45 @@ async function loadMetaDiff() {
   }
 }
 
+const { $poller } = useNuxtApp()
+
 async function syncMetaDiff() {
   try {
-    if (!project.value?.id || !isDifferent.value) return
+    if (!base.value?.id || !isDifferent.value) return
 
     isLoading.value = true
-    await $api.base.metaDiffSync(project.value?.id, props.baseId)
-    // Table metadata recreated successfully
-    message.info(t('msg.info.metaDataRecreated'))
-    await loadTables()
-    await loadMetaDiff()
-    emit('baseSynced')
+    const jobData = await $api.source.metaDiffSync(base.value?.id, props.sourceId)
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            // Table metadata recreated successfully
+            message.info(t('msg.info.metaDataRecreated'))
+            await loadTables()
+            await loadMetaDiff()
+            emit('baseSynced')
+            isLoading.value = false
+          } else if (status === JobStatus.FAILED) {
+            message.error('Failed to sync base metadata')
+            isLoading.value = false
+          }
+        }
+      },
+    )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -141,7 +165,7 @@ const columns = [
             <div v-if="column.key === 'table_name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="record" class="text-gray-500"></GeneralTableIcon>
+                  <GeneralTableIcon :meta="record" class="text-gray-500" />
                 </div>
                 <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title || record.table_name }}</span>
               </div>

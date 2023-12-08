@@ -110,6 +110,7 @@ watch(
       v-model="picked"
       :row-size="8"
       :colors="['#FF94B6', '#6A8D9D', '#6DAE42', '#4AC0BF', '#905FB3', '#FF8320', '#6BCC72', '#FF4138']"
+      @input="(el:string) => (vModel.meta.color = el)"
     />
   </a-row>
 </template>

@@ -11,7 +11,9 @@ interface Props {
   // force disable tooltip
   disabled?: boolean
   placement?: TooltipPlacement | undefined
+  showOnTruncateOnly?: boolean
   hideOnClick?: boolean
+  overlayClassName?: string
 }
 
 const props = defineProps<Props>()
@@ -19,6 +21,7 @@ const props = defineProps<Props>()
 const modifierKey = computed(() => props.modifierKey)
 const tooltipStyle = computed(() => props.tooltipStyle)
 const disabled = computed(() => props.disabled)
+const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
 const hideOnClick = computed(() => props.hideOnClick)
 const placement = computed(() => props.placement ?? 'top')
 
@@ -35,6 +38,8 @@ const isHovering = useElementHover(() => el.value)
 const attrs = useAttrs()
 
 const isKeyPressed = ref(false)
+
+const overlayClassName = computed(() => props.overlayClassName)
 
 onKeyStroke(
   (e) => e.key === modifierKey.value,
@@ -62,6 +67,15 @@ onKeyStroke(
 )
 
 watch([isHovering, () => modifierKey.value, () => disabled.value], ([hovering, key, isDisabled]) => {
+  if (showOnTruncateOnly?.value) {
+    const targetElement = el?.value
+    const isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
+    if (!isElementTruncated) {
+      showTooltip.value = false
+      return
+    }
+  }
+
   if (!hovering || isDisabled) {
     showTooltip.value = false
     return
@@ -100,7 +114,7 @@ const onClick = () => {
 <template>
   <a-tooltip
     v-model:visible="showTooltip"
-    :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'}`"
+    :overlay-class-name="`nc-tooltip ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
     :overlay-style="tooltipStyle"
     arrow-point-at-center
     :trigger="[]"

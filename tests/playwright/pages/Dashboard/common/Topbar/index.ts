@@ -20,7 +20,7 @@ export class TopbarPage extends BasePage {
     this.parent = parent;
     this.share = new TopbarSharePage(this);
 
-    this.btn_share = this.get().locator(`[data-testid="share-project-button"]`);
+    this.btn_share = this.get().locator(`[data-testid="share-base-button"]`);
     this.btn_data = this.get().locator(`.nc-tab:has-text("Data")`);
     this.btn_details = this.get().locator(`.nc-tab:has-text("Details")`);
   }

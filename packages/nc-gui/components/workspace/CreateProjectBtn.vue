@@ -14,13 +14,13 @@ const { isUIAllowed } = useRoles()
 
 const { orgRoles, workspaceRoles } = useRoles()
 
-const projectStore = useProject()
-const { isSharedBase } = storeToRefs(projectStore)
+const baseStore = useBase()
+const { isSharedBase } = storeToRefs(baseStore)
 
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const projectCreateDlg = ref(false)
+const baseCreateDlg = ref(false)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
@@ -28,14 +28,15 @@ const centered = computed(() => props.centered ?? true)
 
 <template>
   <NcButton
-    v-if="isUIAllowed('projectCreate', { roles: workspaceRoles ?? orgRoles }) && !isSharedBase"
+    v-if="isUIAllowed('baseCreate', { roles: workspaceRoles ?? orgRoles }) && !isSharedBase"
+    v-e="['c:base:create']"
     type="text"
     :size="size"
     :centered="centered"
-    @click="projectCreateDlg = true"
+    @click="baseCreateDlg = true"
   >
     <slot />
-    <WorkspaceCreateProjectDlg v-model="projectCreateDlg" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
   </NcButton>
 </template>
 

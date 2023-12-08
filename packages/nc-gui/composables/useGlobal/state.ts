@@ -67,6 +67,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     latestRelease: null,
     hiddenRelease: null,
     isMobileMode: null,
+    lastOpenedWorkspaceId: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -97,7 +98,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     oidcProviderName: null,
     ncMin: false,
     oneClick: false,
-    projectHasAdmin: false,
+    baseHasAdmin: false,
     teleEnabled: true,
     auditEnabled: true,
     type: 'nocodb',
@@ -108,6 +109,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
     dashboardPath: '/dashboard',
+    inviteOnlySignup: false,
   })
 
   /** reactive token payload */

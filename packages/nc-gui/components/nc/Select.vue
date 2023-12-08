@@ -15,7 +15,13 @@ const emits = defineEmits(['update:value', 'change'])
 
 const placeholder = computed(() => props.placeholder)
 
-const dropdownClassName = computed(() => props.dropdownClassName)
+const dropdownClassName = computed(() => {
+  let className = 'nc-select-dropdown'
+  if (props.dropdownClassName) {
+    className += ` ${props.dropdownClassName}`
+  }
+  return className
+})
 
 const showSearch = computed(() => props.showSearch)
 
@@ -37,7 +43,7 @@ const onChange = (value: string) => {
     v-model:value="vModel"
     :placeholder="placeholder"
     class="nc-select"
-    :dropdown-class-name="dropdownClassName ? `nc-select-dropdown  ${dropdownClassName}` : 'nc-select-dropdown'"
+    :dropdown-class-name="dropdownClassName"
     :show-search="showSearch"
     :filter-option="filterOption"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
@@ -55,6 +61,16 @@ const onChange = (value: string) => {
 </template>
 
 <style lang="scss">
+.ant-select-item {
+  @apply !xs:h-13;
+}
+.ant-select-item-option-content {
+  @apply !xs:mt-2.5;
+}
+.ant-select-item-option-state {
+  @apply !xs:mt-1.75;
+}
+
 .nc-select.ant-select {
   height: fit-content;
   .ant-select-selector {

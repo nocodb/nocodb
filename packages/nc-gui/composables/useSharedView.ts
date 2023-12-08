@@ -17,9 +17,9 @@ export function useSharedView() {
 
   const { appInfo } = useGlobal()
 
-  const projectStore = useProject()
+  const baseStore = useBase()
 
-  const { project } = storeToRefs(projectStore)
+  const { base } = storeToRefs(baseStore)
 
   const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
 
@@ -85,13 +85,13 @@ export function useSharedView() {
 
     await setMeta(viewMeta.model)
 
-    // if project is not defined then set it with an object containing base
-    if (!project.value?.bases)
-      projectStore.setProject({
-        id: viewMeta.project_id,
-        bases: [
+    // if base is not defined then set it with an object containing source
+    if (!base.value?.sources)
+      baseStore.setProject({
+        id: viewMeta.base_id,
+        sources: [
           {
-            id: viewMeta.base_id,
+            id: viewMeta.source_id,
             type: viewMeta.client,
           },
         ],

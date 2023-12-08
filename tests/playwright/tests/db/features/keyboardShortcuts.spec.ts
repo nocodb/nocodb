@@ -173,7 +173,7 @@ test.describe('Clipboard support', () => {
       { column_name: 'MultiSelect', uidt: UITypes.MultiSelect, dtxp: "'Option1','Option2'" },
       { column_name: 'Rating', uidt: UITypes.Rating },
       { column_name: 'Checkbox', uidt: UITypes.Checkbox },
-      { column_name: 'Date', uidt: UITypes.Date },
+      { column_name: 'Date', uidt: UITypes.Date, meta: { date_format: 'YYYY-MM-DD' } },
       { column_name: 'Attachment', uidt: UITypes.Attachment },
     ];
 

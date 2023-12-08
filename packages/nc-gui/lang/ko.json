@@ -666,7 +666,7 @@
     "enablePublicAccess": "전체 공개",
     "doYouWantToSaveTheChanges": "바뀐 내용을 저장할까요?",
     "editingAccess": "수정 권한",
-    "enabledPublicViewing": "공개 보기 사용 설정",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "비밀번호로 액세스 제한",
     "manageProjectAccess": "프로젝트 접근 권한",
     "allowDownload": "다운로드 허용",
@@ -719,7 +719,7 @@
     "groupBy": "분류 기준",
     "addSubGroup": "하위 그룹 추가",
     "shareBase": {
-      "label": "프로젝트 공유",
+      "label": "Share Base",
       "disable": "공유 베이스 비활성화",
       "enable": "링크가 있는 모든 사용자",
       "link": "공유 링크"

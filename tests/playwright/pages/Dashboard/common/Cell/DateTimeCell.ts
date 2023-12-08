@@ -29,8 +29,10 @@ export class DateTimeCellPageObject extends BasePage {
   async selectDate({
     // date formats in `YYYY-MM-DD`
     date,
+    skipDate = false,
   }: {
     date: string;
+    skipDate?: boolean;
   }) {
     // title date format needs to be YYYY-MM-DD
     const [year, month, day] = date.split('-');
@@ -39,6 +41,11 @@ export class DateTimeCellPageObject extends BasePage {
     await this.rootPage.locator('.ant-picker-year-btn:visible').waitFor();
     await this.rootPage.locator('.ant-picker-year-btn:visible').click();
     await this.rootPage.locator(`td[title="${year}"]`).click();
+
+    if (skipDate) {
+      await this.rootPage.locator(`td[title="${year}-${month}"]`).click();
+      return;
+    }
 
     // configure month
     await this.rootPage.locator('.ant-picker-month-btn:visible').click();

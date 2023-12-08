@@ -20,7 +20,7 @@ if (!vModel.value.meta?.date_format) {
   <a-form-item :label="$t('labels.dateFormat')">
     <a-select v-model:value="vModel.meta.date_format" class="nc-date-select" dropdown-class-name="nc-dropdown-date-format">
       <a-select-option v-for="(format, i) of [...dateFormats, ...dateMonthFormats]" :key="i" :value="format">
-        <div class="flex gap-2 justify-between items-center">
+        <div class="flex gap-2 justify-between items-center" :data-testid="`${format}`">
           {{ format }}
           <component
             :is="iconMap.check"

@@ -51,8 +51,13 @@ const dateTimeFormat = computed(() => {
 
 let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
+const tempLocalValue = ref<dayjs.Dayjs>()
+
 const localState = computed({
   get() {
+    if (!modelValue && tempLocalValue.value) {
+      return tempLocalValue.value
+    }
     if (!modelValue) {
       return undefined
     }
@@ -133,10 +138,11 @@ watch(
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
 
       if (!modelValue) {
-        localState.value = dayjs(new Date())
+        tempLocalValue.value = dayjs(new Date())
       }
     } else {
       editable.value = false
+      tempLocalValue.value = undefined
     }
   },
   { flush: 'post' },
@@ -244,6 +250,22 @@ const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
   open.value = (active.value || editable.value) && !open.value
 }
+
+function okHandler(val: dayjs.Dayjs | string) {
+  if (!val) {
+    emit('update:modelValue', null)
+    return
+  }
+
+  if (dayjs(val).isValid()) {
+    // setting localModelValue to cater NOW function in date picker
+    localModelValue = dayjs(val)
+    // send the payload in UTC format
+    emit('update:modelValue', dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'))
+  }
+
+  open.value = !open.value
+}
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
@@ -265,8 +287,7 @@ const isColDisabled = computed(() => {
 
 <template>
   <a-date-picker
-    v-model:value="localState"
-    :default-picker-value="dayjs(new Date())"
+    :value="localState"
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
@@ -279,7 +300,7 @@ const isColDisabled = computed(() => {
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
     @click="clickHandler"
-    @ok="open = !open"
+    @ok="okHandler"
   >
     <template #suffixIcon></template>
   </a-date-picker>

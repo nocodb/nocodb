@@ -51,7 +51,7 @@ export const useBases = defineStore('basesStore', () => {
   const isProjectsLoading = ref(false)
 
   async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
-    if (!force && !limit && !page && basesUser.value.has(baseId)) {
+    if (!force && basesUser.value.has(baseId)) {
       const users = basesUser.value.get(baseId)
       return {
         users,

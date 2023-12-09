@@ -211,6 +211,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       )
       $e('a:workspace:settings:invite-user')
       await loadCollaborators()
+      basesStore.clearBasesUser()
     } finally {
       isInvitingCollaborators.value = false
     }

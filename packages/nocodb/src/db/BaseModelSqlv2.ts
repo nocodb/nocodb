@@ -33,6 +33,7 @@ import type {
   QrCodeColumn,
   RollupColumn,
   SelectOption,
+  User,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -52,7 +53,6 @@ import {
   PresignedUrl,
   Sort,
   Source,
-  User,
   View,
 } from '~/models';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
@@ -5531,7 +5531,30 @@ class BaseModelSqlv2 {
                 }
               }
             }
-            data[column.column_name] = userIds.join(',');
+
+            if (userIds.length === 0) {
+              data[column.column_name] = null;
+            } else {
+              const userSet = new Set(userIds);
+
+              if (userSet.size !== userIds.length) {
+                NcError.unprocessableEntity(
+                  'Duplicate users not allowed for user field',
+                );
+              }
+
+              if (column.meta.is_multi) {
+                data[column.column_name] = userIds.join(',');
+              } else {
+                if (userIds.length > 1) {
+                  NcError.unprocessableEntity(
+                    `Multiple users not allowed for '${column.title}'`,
+                  );
+                } else {
+                  data[column.column_name] = userIds[0];
+                }
+              }
+            }
           }
         }
       }

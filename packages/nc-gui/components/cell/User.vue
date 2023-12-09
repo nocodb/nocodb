@@ -37,6 +37,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMobileMode } = useGlobal()
 
+const meta = inject(MetaInj)!
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
@@ -45,13 +47,11 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const basesStore = useBases()
 
-const { basesUser, activeProjectId } = storeToRefs(basesStore)
+const { basesUser } = storeToRefs(basesStore)
 
-const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
+const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
@@ -260,7 +260,7 @@ const filterOption = (input: string, option: any) => {
 <template>
   <div class="nc-user-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div
-      v-if="!active || isPublic"
+      v-if="!active"
       class="flex flex-wrap"
       :style="{
         'display': '-webkit-box',

@@ -247,7 +247,7 @@ watch(meta, async () => {
       <div
         v-else
         :class="{ ' min-w-[400px]': _groupBy.length }"
-        class="flex flex-col bg-white overflow-auto menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
+        class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown max-h-[max(80vh,500px)] py-6 pl-6"
         data-testid="nc-group-by-menu"
       >
         <div

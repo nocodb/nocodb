@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "テーブルの共有を無効にする",
       "enable": "リンクを持つ人なら誰でも",
       "link": "テーブルの共有リンク"

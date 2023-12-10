@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Désactiver la base partagée",
       "enable": "N'importe qui disposant du lien",
       "link": "Partager le lien de la base"

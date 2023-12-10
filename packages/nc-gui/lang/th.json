@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "ปิดใช้งานฐานที่ใช้ร่วมกัน",
       "enable": "ทุกคนที่มีลิงค์",
       "link": "ลิงค์ฐานที่ใช้ร่วมกัน"

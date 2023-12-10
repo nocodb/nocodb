@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Zakázanie zdieľanej základne",
       "enable": "Ktokoľvek s odkazom",
       "link": "Spoločné základné prepojenie"

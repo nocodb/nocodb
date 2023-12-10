@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Inaktivera delad bas",
       "enable": "Någon med länken",
       "link": "Delad baslänk"

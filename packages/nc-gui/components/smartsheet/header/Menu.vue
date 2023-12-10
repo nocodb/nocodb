@@ -279,12 +279,12 @@ const onInsertAfter = () => {
 </script>
 
 <template>
-  <NcDropdown
+  <a-dropdown
     v-if="!isLocked"
     v-model:visible="isOpen"
     :trigger="['click']"
     placement="bottomRight"
-    overlay-class-name="nc-dropdown-column-operations  !drop-shadow-2xl"
+    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-2xl"
     @click.stop="isOpen = !isOpen"
   >
     <div>
@@ -377,7 +377,7 @@ const onInsertAfter = () => {
         </NcMenuItem>
       </NcMenu>
     </template>
-  </NcDropdown>
+  </a-dropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
   <DlgColumnDuplicate
     v-if="column"

@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Poista jaettu pohja",
       "enable": "Jokainen, jolla on linkki",
       "link": "Jaettu peruslinkki"

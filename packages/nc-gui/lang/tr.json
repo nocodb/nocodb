@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Paylaşılan bağlantıyı devre dışı bırak",
       "enable": "Bağlantıya sahip olan herkes",
       "link": "Paylaşılan bağlantı"

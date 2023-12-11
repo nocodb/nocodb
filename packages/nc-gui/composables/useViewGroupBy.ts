@@ -91,7 +91,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
 
     if (col.uidt === UITypes.User) {
-      if (!value.length) {
+      if (!value) {
         return GROUP_BY_VARS.NULL
       }
     }

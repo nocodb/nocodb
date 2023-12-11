@@ -75,7 +75,16 @@ async function upgradeModelRelationsIndex({
             tn: childModel.table_name,
             non_unique: true,
           };
-          await sqlClient.indexCreate(indexArgs);
+
+          // wrap in try catch to skip if index already exists
+          try {
+            await sqlClient.indexCreate(indexArgs);
+          } catch (e) {
+            // ignore throwing if the error is index already exists
+            if (!/relation "?.+"? already exists/i.test(e.message)) {
+              throw e;
+            }
+          }
         }
         break;
     }

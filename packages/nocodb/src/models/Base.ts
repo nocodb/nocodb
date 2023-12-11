@@ -210,8 +210,6 @@ export default class Base implements BaseType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
 
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
-
     await NocoCache.del(CacheScope.INSTANCE_META);
 
     // remove item in cache list
@@ -321,8 +319,6 @@ export default class Base implements BaseType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
     }
 
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
-
     await NocoCache.deepDel(
       CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${baseId}`,
@@ -360,7 +356,9 @@ export default class Base implements BaseType {
 
   static async getWithInfoByTitle(title: string, ncMeta = Noco.ncMeta) {
     const base = await this.getByTitle(title, ncMeta);
-    if (base) await base.getSources(ncMeta);
+    if (base) {
+      await base.getSources(ncMeta);
+    }
 
     return base;
   }
@@ -442,7 +440,9 @@ export default class Base implements BaseType {
     // parse meta
     base.meta = parseMetaProp(base);
 
-    if (base) await base.getSources(ncMeta);
+    if (base) {
+      await base.getSources(ncMeta);
+    }
 
     return base;
   }

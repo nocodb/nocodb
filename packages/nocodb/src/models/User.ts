@@ -106,9 +106,6 @@ export default class User implements UserType {
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
-    // as <baseId> is unknown, delete user:<email>___<baseId> in cache
-    await NocoCache.delAll(CacheScope.USER, `${existingUser.email}___*`);
-
     // get existing cache
     const keys = [
       // update user:<id>
@@ -240,8 +237,6 @@ export default class User implements UserType {
     if (!user) NcError.badRequest('User not found');
 
     // clear all user related cache
-    await NocoCache.delAll(CacheScope.USER, `${userId}___*`);
-    await NocoCache.delAll(CacheScope.USER, `${user.email}___*`);
     await NocoCache.del(`${CacheScope.USER}:${userId}`);
     await NocoCache.del(`${CacheScope.USER}:${user.email}`);
 

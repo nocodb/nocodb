@@ -82,8 +82,8 @@ export default class BaseUser {
       query,
     }: {
       base_id: string;
-      limit: number;
-      offset: number;
+      limit?: number;
+      offset?: number;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -98,9 +98,11 @@ export default class BaseUser {
         `${MetaTable.USERS}.created_at as created_at`,
         `${MetaTable.PROJECT_USERS}.base_id`,
         `${MetaTable.PROJECT_USERS}.roles as roles`,
-      )
-      .offset(offset)
-      .limit(limit);
+      );
+
+    if (limit) {
+      queryBuilder.offset(offset).limit(limit);
+    }
 
     if (query) {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);

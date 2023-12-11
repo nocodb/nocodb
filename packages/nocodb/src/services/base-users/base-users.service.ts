@@ -28,19 +28,15 @@ export class BaseUsersService {
   constructor(protected appHooksService: AppHooksService) {}
 
   async userList(param: { baseId: string; query: any }) {
-    return new PagedResponseImpl(
-      await BaseUser.getUsersList({
-        ...param.query,
-        base_id: param.baseId,
-      }),
-      {
-        ...param.query,
-        count: await BaseUser.getUsersCount({
-          base_id: param.baseId,
-          ...param.query,
-        }),
-      },
-    );
+    const baseUsers = await BaseUser.getUsersList({
+      ...param.query,
+      base_id: param.baseId,
+    });
+
+    return new PagedResponseImpl(baseUsers, {
+      ...param.query,
+      count: baseUsers.length,
+    });
   }
 
   async userInvite(param: {
@@ -110,7 +106,7 @@ export class BaseUsersService {
           return NcError.badRequest('Invalid base id');
         }
 
-        if (baseUser) {
+        if (baseUser && baseUser.roles) {
           NcError.badRequest(
             `${user.email} with role ${baseUser.roles} already exists in this base`,
           );

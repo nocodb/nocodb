@@ -4,6 +4,7 @@ export const useUsers = defineStore('userStore', () => {
   const { api } = useApi()
   const { user } = useGlobal()
   const { loadRoles } = useRoles()
+  const basesStore = useBases()
 
   const updateUserProfile = async ({
     attrs,
@@ -20,6 +21,8 @@ export const useUsers = defineStore('userStore', () => {
       ...user.value,
       ...attrs,
     }
+
+    basesStore.clearBasesUser()
   }
 
   const loadCurrentUser = loadRoles

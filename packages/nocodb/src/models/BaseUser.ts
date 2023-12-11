@@ -3,7 +3,6 @@ import type { BaseType } from 'nocodb-sdk';
 import User from '~/models/User';
 import Base from '~/models/Base';
 import {
-  CacheDelDirection,
   // CacheDelDirection,
   CacheGetType,
   CacheScope,
@@ -67,27 +66,37 @@ export default class BaseUser {
         `${CacheScope.BASE_USER}:${baseId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!baseUser) {
-      baseUser = await ncMeta.metaGet2(null, null, MetaTable.PROJECT_USERS, {
-        fk_user_id: userId,
-        base_id: baseId,
+    if (!baseUser || !baseUser.roles) {
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select(
+          `${MetaTable.USERS}.id`,
+          `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
+          `${MetaTable.USERS}.invite_token`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          `${MetaTable.PROJECT_USERS}.roles as roles`,
+        );
+
+      queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          '=',
+          ncMeta.knex.raw('?', [baseId]),
+        );
       });
+
+      queryBuilder.where(`${MetaTable.USERS}.id`, userId);
+
+      baseUser = await queryBuilder.first();
+
       if (baseUser) {
-        const {
-          id,
-          email,
-          invite_token,
-          roles: main_roles,
-        } = await User.get(userId, ncMeta);
-
-        baseUser = {
-          ...baseUser,
-          id,
-          email,
-          invite_token,
-          main_roles,
-        };
-
         await NocoCache.set(
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
@@ -100,13 +109,9 @@ export default class BaseUser {
   public static async getUsersList(
     {
       base_id,
-      limit = 25,
-      offset = 0,
       query,
     }: {
       base_id: string;
-      limit?: number;
-      offset?: number;
       query?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -120,16 +125,13 @@ export default class BaseUser {
         .select(
           `${MetaTable.USERS}.id`,
           `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
           `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.created_at as created_at`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
-
-      if (limit) {
-        queryBuilder.offset(offset).limit(limit);
-      }
 
       if (query) {
         queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
@@ -259,12 +261,9 @@ export default class BaseUser {
       },
     );
 
-    // delete cache
-    await NocoCache.deepDel(
-      CacheScope.BASE_USER,
-      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    // delete list cache to refresh list
+    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:${userId}`);
+    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:list`);
 
     return response;
   }

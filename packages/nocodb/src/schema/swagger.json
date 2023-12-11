@@ -17343,7 +17343,8 @@
               "URL",
               "Year",
               "QrCode",
-              "Links"
+              "Links",
+              "User"
             ],
             "type": "string"
           },
@@ -20563,7 +20564,8 @@
               "URL",
               "Year",
               "QrCode",
-              "Links"
+              "Links",
+              "User"
             ],
             "type": "string",
             "description": "UI Data Type"

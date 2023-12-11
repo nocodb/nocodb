@@ -39,6 +39,7 @@ enum UITypes {
   QrCode = 'QrCode',
   Button = 'Button',
   Links = 'Links',
+  User = 'User',
 }
 
 export const numericUITypes = [

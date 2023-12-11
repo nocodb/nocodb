@@ -45,6 +45,8 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const basesStore = useBases()
 
 const { basesUser, activeProjectId } = storeToRefs(basesStore)
@@ -258,7 +260,7 @@ const filterOption = (input: string, option: any) => {
 <template>
   <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <div
-      v-if="!active"
+      v-if="!active || isPublic"
       class="flex flex-wrap"
       :style="{
         'display': '-webkit-box',

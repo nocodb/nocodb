@@ -188,21 +188,21 @@ const onDuplicateRow = () => {
 }
 
 const save = async () => {
+  let kanbanClbk
+  if (activeView.value?.type === ViewTypes.KANBAN) {
+    kanbanClbk = (row: any, isNewRow: boolean) => {
+      addOrEditStackRow(row, isNewRow)
+    }
+  }
   if (isNew.value) {
-    const data = await _save(rowState.value)
+    await _save(rowState.value, undefined, {
+      kanbanClbk,
+    })
     reloadTrigger?.trigger()
   } else {
-    let kanbanClbk
-    if (activeView.value?.type === ViewTypes.KANBAN) {
-      kanbanClbk = (row: any, isNewRow: boolean) => {
-        addOrEditStackRow(row, isNewRow)
-      }
-    }
-
     await _save(undefined, undefined, {
       kanbanClbk,
     })
-
     _loadRow()
     reloadTrigger?.trigger()
   }

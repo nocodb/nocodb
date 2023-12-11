@@ -112,11 +112,16 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-time-${timeFormat}"]`).click();
         break;
-      case 'Date':
+      case 'Date': {
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-select-${dateFormat}"]`).click();
+        const result = this.rootPage
+          .locator('.rc-virtual-list-holder-inner')
+          .locator(`[data-testid="nc-date-select-${dateFormat}"]`);
+        await result.scrollIntoViewIfNeeded();
+        await result.click();
         break;
+      }
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
         break;
@@ -306,11 +311,16 @@ export class ColumnPageObject extends BasePage {
           })
           .click();
         break;
-      case 'Date':
+      case 'Date': {
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-select-${dateFormat}"]`).click();
+        const result = this.rootPage
+          .locator('.rc-virtual-list-holder-inner')
+          .locator(`[data-testid="nc-date-select-${dateFormat}"]`);
+        await result.scrollIntoViewIfNeeded();
+        await result.click();
         break;
+      }
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();

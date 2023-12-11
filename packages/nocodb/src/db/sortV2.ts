@@ -6,7 +6,7 @@ import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
-import { Sort } from '~/models';
+import { Base, BaseUser, Sort } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 
 export default async function sortV2(
@@ -136,6 +136,32 @@ export default async function sortV2(
             nulls,
           );
         }
+        break;
+      }
+      case UITypes.User: {
+        const base = await Base.get(model.base_id);
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: base.id,
+          ...((base as any)?.fk_workspace_id
+            ? { workspace_id: (base as any).fk_workspace_id }
+            : {}),
+        });
+
+        // create nested replace statement for each user
+        const finalStatement = baseUsers.reduce((acc, user) => {
+          const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.id,
+            user.display_name || user.email,
+          ]);
+          return qb.toQuery();
+        }, knex.raw(`??`, [column.column_name]).toQuery());
+
+        qb.orderBy(
+          sanitize(knex.raw(finalStatement)),
+          sort.direction || 'asc',
+          nulls,
+        );
+
         break;
       }
       default:

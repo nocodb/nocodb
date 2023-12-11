@@ -45,6 +45,7 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import {
   Audit,
+  BaseUser,
   Column,
   Filter,
   Model,
@@ -4554,69 +4555,49 @@ class BaseModelSqlv2 {
       }
 
       if (userColumns.length) {
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: childTable ? childTable.base_id : this.model.base_id,
+        });
+
         if (Array.isArray(data)) {
           data = await Promise.all(
-            data.map((d) => this._convertUserFormat(userColumns, d)),
+            data.map((d) => this._convertUserFormat(userColumns, baseUsers, d)),
           );
         } else {
-          data = await this._convertUserFormat(userColumns, data);
+          data = await this._convertUserFormat(userColumns, baseUsers, data);
         }
       }
     }
     return data;
   }
 
-  protected async _convertUserFormat(
+  protected _convertUserFormat(
     userColumns: Record<string, any>[],
+    baseUsers: Partial<User>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        const promises = [];
-
         for (const col of userColumns) {
-          // we expect array of string of comma separated user ids in case of lookup
-          if (Array.isArray(d[col.id])) {
+          if (d[col.id] && d[col.id].length) {
+            d[col.id] = d[col.id].split(',');
           } else {
-            if (d[col.id] && d[col.id].length) {
-              d[col.id] = d[col.id].split(',');
-            } else {
-              d[col.id] = [];
-            }
+            d[col.id] = null;
+          }
 
-            if (d[col.id]?.length) {
-              promises.push(
-                new Promise((resolve) => {
-                  const users = [];
-                  for (const userId of d[col.id]) {
-                    users.push(
-                      User.get(userId)
-                        .then((user) => {
-                          const { id, email, display_name } = user;
-                          return {
-                            id,
-                            email,
-                            display_name: display_name?.length
-                              ? display_name
-                              : null,
-                          };
-                        })
-                        .catch((e) => {
-                          console.log(e);
-                          return null;
-                        }),
-                    );
-                  }
-                  Promise.all(users).then((users) => {
-                    d[col.id] = users;
-                    resolve(true);
-                  });
-                }),
+          if (d[col.id]?.length) {
+            d[col.id] = d[col.id].map((fid) => {
+              const { id, email, display_name } = baseUsers.find(
+                (u) => u.id === fid,
               );
-            }
+              return {
+                id,
+                email,
+                display_name: display_name?.length ? display_name : null,
+              };
+            });
           }
         }
-        await Promise.all(promises);
       }
     } catch {}
     return d;
@@ -5492,6 +5473,10 @@ class BaseModelSqlv2 {
               } catch (e) {}
             }
 
+            const baseUsers = await BaseUser.getUsersList({
+              base_id: this.model.base_id,
+            });
+
             if (typeof data[column.column_name] === 'string') {
               const users = data[column.column_name]
                 .split(',')
@@ -5499,13 +5484,13 @@ class BaseModelSqlv2 {
               for (const user of users) {
                 try {
                   if (user.includes('@')) {
-                    const u = await User.getByEmail(user);
+                    const u = baseUsers.find((u) => u.email === user);
                     if (!u) {
                       throw new Error(`User with email '${user}' not found`);
                     }
                     userIds.push(u.id);
                   } else {
-                    const u = await User.get(user);
+                    const u = baseUsers.find((u) => u.id === user);
                     if (!u) {
                       throw new Error(`User with id '${user}' not found`);
                     }
@@ -5525,13 +5510,13 @@ class BaseModelSqlv2 {
                 const user = extractProps(userObj, ['id', 'email']);
                 try {
                   if (user.id) {
-                    const u = await User.get(user.id);
+                    const u = baseUsers.find((u) => u.id === user.id);
                     if (!u) {
                       throw new Error(`User with id '${user.id}' not found`);
                     }
                     userIds.push(u.id);
                   } else if (user.email) {
-                    const u = await User.getByEmail(user.email);
+                    const u = baseUsers.find((u) => u.email === user.email);
                     if (!u) {
                       throw new Error(
                         `User with email '${user.email}' not found`,

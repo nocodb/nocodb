@@ -5483,8 +5483,17 @@ class BaseModelSqlv2 {
         } else if (column.uidt === UITypes.User) {
           if (data[column.column_name]) {
             const userIds = [];
+
             if (typeof data[column.column_name] === 'string') {
-              const users = data[column.column_name].split(',');
+              try {
+                data[column.column_name] = JSON.parse(data[column.column_name]);
+              } catch (e) {}
+            }
+
+            if (typeof data[column.column_name] === 'string') {
+              const users = data[column.column_name]
+                .split(',')
+                .map((u) => u.trim());
               for (const user of users) {
                 try {
                   if (user.includes('@')) {

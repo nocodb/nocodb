@@ -112,6 +112,16 @@ export function useMultiSelect(
       textToCopy = !!textToCopy
     }
 
+    if (columnObj.uidt === UITypes.User) {
+      if (textToCopy && Array.isArray(textToCopy)) {
+        textToCopy = textToCopy
+          .map((user: { id: string; email: string; display_name: string }) => {
+            return user.email
+          })
+          .join(', ')
+      }
+    }
+
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
     } else {

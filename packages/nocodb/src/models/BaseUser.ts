@@ -1,6 +1,6 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
-import type User from '~/models/User';
+import User from '~/models/User';
 import Base from '~/models/Base';
 import {
   CacheDelDirection,
@@ -45,7 +45,7 @@ export default class BaseUser {
       true,
     );
 
-    const res = this.get(base_id, fk_user_id, ncMeta);
+    const res = await this.get(base_id, fk_user_id, ncMeta);
 
     await NocoCache.appendToList(
       CacheScope.BASE_USER,
@@ -72,10 +72,14 @@ export default class BaseUser {
         fk_user_id: userId,
         base_id: baseId,
       });
-      await NocoCache.set(
-        `${CacheScope.BASE_USER}:${baseId}:${userId}`,
-        baseUser,
-      );
+      if (baseUser) {
+        const user = await User.get(userId, ncMeta);
+        baseUser = { ...user, ...baseUser };
+        await NocoCache.set(
+          `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+          baseUser,
+        );
+      }
     }
     return this.castType(baseUser);
   }

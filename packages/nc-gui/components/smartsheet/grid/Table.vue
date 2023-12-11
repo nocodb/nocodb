@@ -1586,7 +1586,7 @@ onKeyStroke('ArrowDown', onDown)
                       @dblclick="makeEditable(row, columnObj)"
                       @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                     >
-                      <div v-if="!switchingTab" class="w-full h-full">
+                      <div v-if="!switchingTab" class="w-full">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(columnObj) && columnObj.title"
                           v-model="row.row[columnObj.title]"

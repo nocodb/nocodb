@@ -86,10 +86,10 @@ export default class BaseUser extends BaseUserCE {
   public static async getUsersList(
     {
       base_id,
-      query,
+      mode = 'full',
     }: {
       base_id: string;
-      query?: string;
+      mode?: 'full' | 'viewer';
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -98,24 +98,23 @@ export default class BaseUser extends BaseUserCE {
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseUsers.length) {
-      const queryBuilder = ncMeta
-        .knex(MetaTable.USERS)
-        .select(
-          `${MetaTable.USERS}.id`,
-          `${MetaTable.USERS}.email`,
-          `${MetaTable.USERS}.display_name`,
-          `${MetaTable.USERS}.invite_token`,
-          `${MetaTable.USERS}.roles as main_roles`,
-          `${MetaTable.USERS}.created_at as created_at`,
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          `${MetaTable.PROJECT_USERS}.roles as roles`,
-          `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-          `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-        );
+      const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
 
-      if (query) {
-        queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
-      }
+        ...(mode === 'full'
+          ? [
+              `${MetaTable.USERS}.invite_token`,
+              `${MetaTable.USERS}.roles as main_roles`,
+              `${MetaTable.USERS}.created_at as created_at`,
+              `${MetaTable.PROJECT_USERS}.base_id`,
+              `${MetaTable.PROJECT_USERS}.roles as roles`,
+              `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+              `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+            ]
+          : []),
+      );
 
       queryBuilder
         .innerJoin(MetaTable.WORKSPACE_USER, function () {

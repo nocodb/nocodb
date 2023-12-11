@@ -27,14 +27,13 @@ import { getProjectRolePower } from '~/utils/roleHelper';
 export class BaseUsersService {
   constructor(protected appHooksService: AppHooksService) {}
 
-  async userList(param: { baseId: string; query: any }) {
+  async userList(param: { baseId: string; mode?: 'full' | 'viewer' }) {
     const baseUsers = await BaseUser.getUsersList({
-      ...param.query,
       base_id: param.baseId,
+      mode: param.mode,
     });
 
     return new PagedResponseImpl(baseUsers, {
-      ...param.query,
       count: baseUsers.length,
     });
   }

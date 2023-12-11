@@ -157,7 +157,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <template #content>
-                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-50 !overflow-auto">
+                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-64 !overflow-auto">
                   <LazyGeneralLanguageMenu />
                 </div>
               </template>

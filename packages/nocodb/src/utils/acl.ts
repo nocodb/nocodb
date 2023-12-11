@@ -120,6 +120,7 @@ const permissionScopes = {
     'nestedDataList',
     'nestedDataLink',
     'nestedDataUnlink',
+    'baseUserList',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -184,6 +185,7 @@ const rolePermissions:
       swaggerJson: true,
 
       nestedDataList: true,
+      baseUserList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

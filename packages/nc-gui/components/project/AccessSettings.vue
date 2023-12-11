@@ -92,28 +92,6 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   }
 }
 
-watchDebounced(
-  userSearchText,
-  async () => {
-    isSearching.value = true
-
-    totalCollaborators.value = 0
-    collaborators.value = []
-
-    try {
-      await loadCollaborators()
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isSearching.value = false
-    }
-  },
-  {
-    debounce: 300,
-    maxWait: 600,
-  },
-)
-
 onMounted(async () => {
   isLoading.value = true
   try {
@@ -132,6 +110,10 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+const filteredCollaborators = computed(() =>
+  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
+)
 </script>
 
 <template>
@@ -153,7 +135,7 @@ onMounted(async () => {
       </div>
 
       <div
-        v-else-if="!collaborators?.length"
+        v-else-if="!filteredCollaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
         <Empty description="$t('title.noMembersFound')" />
@@ -168,7 +150,7 @@ onMounted(async () => {
 
           <div class="flex flex-col nc-scrollbar-md">
             <div
-              v-for="(collab, i) of collaborators"
+              v-for="(collab, i) of filteredCollaborators"
               :key="i"
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >

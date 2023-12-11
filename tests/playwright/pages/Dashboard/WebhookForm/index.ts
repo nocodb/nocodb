@@ -154,15 +154,19 @@ export class WebhookFormPage extends BasePage {
     await this.rootPage.waitForTimeout(500);
 
     // kludge, as the dropdown is not visible even after scroll into view
-    await this.rootPage.locator('.ant-select-dropdown').hover();
-    await this.rootPage.locator('.ant-select-dropdown').locator(`.ant-select-item`).last().scrollIntoViewIfNeeded();
+    await this.rootPage.locator('.ant-select-dropdown:visible').hover();
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item`)
+      .last()
+      .scrollIntoViewIfNeeded();
 
     await this.rootPage
-      .locator('.ant-select-dropdown')
+      .locator('.ant-select-dropdown:visible')
       .locator(`.ant-select-item:has-text("${key}")`)
       .scrollIntoViewIfNeeded();
     await this.rootPage
-      .locator('.ant-select-dropdown')
+      .locator('.ant-select-dropdown:visible')
       .locator(`.ant-select-item:has-text("${key}")`)
       .click({ force: true });
 

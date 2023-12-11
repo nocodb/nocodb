@@ -4596,7 +4596,9 @@ class BaseModelSqlv2 {
                           return {
                             id,
                             email,
-                            display_name,
+                            display_name: display_name?.length
+                              ? display_name
+                              : null,
                           };
                         })
                         .catch((e) => {

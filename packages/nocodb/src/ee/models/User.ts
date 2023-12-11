@@ -111,7 +111,7 @@ export default class User extends UserCE implements UserType {
     await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
 
     // clear all user related cache
-    await this.clearCache(id);
+    await this.clearCache(id, ncMeta);
 
     return this.get(id, ncMeta);
   }
@@ -418,11 +418,11 @@ export default class User extends UserCE implements UserType {
     } as any;
   }
 
-  protected static async clearCache(userId: string) {
-    const user = await this.get(userId);
+  protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
+    const user = await this.get(userId, ncMeta);
     if (!user) NcError.badRequest('User not found');
 
-    const bases = await BaseUser.getProjectsList(userId, {});
+    const bases = await BaseUser.getProjectsList(userId, {}, ncMeta);
 
     const workspaces = [];
 

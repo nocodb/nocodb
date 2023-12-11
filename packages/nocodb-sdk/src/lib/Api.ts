@@ -463,7 +463,8 @@ export interface ColumnType {
     | 'URL'
     | 'Year'
     | 'QrCode'
-    | 'Links';
+    | 'Links'
+    | 'User';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1780,7 +1781,8 @@ export interface NormalColumnRequestType {
     | 'URL'
     | 'Year'
     | 'QrCode'
-    | 'Links';
+    | 'Links'
+    | 'User';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */

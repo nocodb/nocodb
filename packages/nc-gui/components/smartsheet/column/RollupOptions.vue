@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
-import { getAvailableRollupForUiType, isLinksOrLTAR, isNumericCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from '#imports'
 import {
   MetaInj,

@@ -34,6 +34,13 @@ const updateCdfValue = (cdf: string | null) => {
 onMounted(() => {
   updateCdfValue(vModel.value?.cdf ? vModel.value.cdf : null)
 })
+
+watch(
+  () => vModel.value.cdf,
+  (newValue) => {
+    cdfValue.value = newValue
+  },
+)
 </script>
 
 <template>

@@ -32,12 +32,19 @@ vModel.value.meta = {
 onMounted(() => {
   initialIsMulti.value = vModel.value.meta.is_multi
 })
+
+const updateIsMulti = (e) => {
+  vModel.value.meta.is_multi = e.target.checked
+  if (!vModel.value.meta.is_multi) {
+    vModel.value.cdf = vModel.value.cdf?.split(',')[0] || null
+  }
+}
 </script>
 
 <template>
   <div class="flex flex-col">
     <div>
-      <a-checkbox v-if="vModel.meta" v-model:checked="vModel.meta.is_multi" class="ml-1 mb-1">
+      <a-checkbox v-if="vModel.meta" :checked="vModel.meta.is_multi" class="ml-1 mb-1" @change="updateIsMulti">
         <span class="text-[10px] text-gray-600">Allow adding multiple users</span>
       </a-checkbox>
     </div>

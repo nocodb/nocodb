@@ -317,7 +317,7 @@ const onInsertAfter = () => {
           </div>
         </NcMenuItem>
 
-        <a-divider class="!my-0" />
+        <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
         <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
           <NcMenuItem @click="sortByColumn('asc')">

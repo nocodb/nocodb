@@ -310,7 +310,7 @@ export class UtilsService {
                 // sorts count
                 Noco.ncMeta.metaCount(base.id, null, MetaTable.SORT),
                 // row count per base
-                base.getBases().then(async (sources) => {
+                base.getSources().then(async (sources) => {
                   return this.extractResultOrNull(
                     await Promise.allSettled(
                       sources.map(async (source) =>

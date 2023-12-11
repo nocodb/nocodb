@@ -27,7 +27,7 @@ const getTable = async ({
   base: Base;
   name: string;
 }) => {
-  const sources = await base.getBases();
+  const sources = await base.getSources();
   return await Model.getByIdOrName({
     base_id: base.id,
     source_id: sources[0].id!,
@@ -36,7 +36,7 @@ const getTable = async ({
 };
 
 const getAllTables = async ({ base }: { base: Base }) => {
-  const sources = await base.getBases();
+  const sources = await base.getSources();
   const tables = await Model.list({
     base_id: base.id,
     source_id: sources[0].id!,

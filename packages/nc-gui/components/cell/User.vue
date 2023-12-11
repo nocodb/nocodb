@@ -96,9 +96,9 @@ const vModel = computed({
   get: () => {
     let selected: { label: string; value: string }[] = []
     if (typeof modelValue === 'string') {
-      const ids = modelValue.split(',')
-      selected = ids.reduce((acc, id) => {
-        const user = options.value.find((u) => u.id === id)
+      const idsOrMails = modelValue.split(',').map((idOrMail) => idOrMail.trim())
+      selected = idsOrMails.reduce((acc, idOrMail) => {
+        const user = options.value.find((u) => u.id === idOrMail || u.email === idOrMail)
         if (user) {
           acc.push({
             label: user?.display_name || user?.email,

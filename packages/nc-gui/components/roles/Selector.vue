@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { RoleDescriptions } from 'nocodb-sdk'
 import type { RoleLabels } from 'nocodb-sdk'
-import { toRef } from '#imports'
 import type { SelectValue } from 'ant-design-vue/es/select'
+import { toRef } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -35,7 +35,7 @@ function onChangeRole(val: SelectValue) {
 </script>
 
 <template>
-  <div size="lg" ref="dropdownRef" class="nc-roles-selector relative" @click="isDropdownOpen = !isDropdownOpen">
+  <div ref="dropdownRef" size="lg" class="nc-roles-selector relative" @click="isDropdownOpen = !isDropdownOpen">
     <RolesBadge data-testid="roles" :role="roleRef" :inherit="inheritRef === role" :size="sizeRef" />
     <a-select
       v-model:value="roleRef"
@@ -45,12 +45,7 @@ function onChangeRole(val: SelectValue) {
       class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
       @change="onChangeRole"
     >
-      <a-select-option
-        v-for="rl in props.roles"
-        :key="rl"
-        v-e="['c:workspace:settings:user-role-change']"
-        :value="rl"
-      >
+      <a-select-option v-for="rl in props.roles" :key="rl" v-e="['c:workspace:settings:user-role-change']" :value="rl">
         <div
           :class="{
             'w-[350px]': descriptionRef,

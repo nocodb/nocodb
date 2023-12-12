@@ -34,6 +34,7 @@ import {
   useI18n,
   useMultiSelect,
   useNuxtApp,
+  usePaste,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
@@ -167,6 +168,8 @@ const predictNextColumn = async () => {
 const predictNextFormulas = async () => {
   await _predictNextFormulas(meta)
 }
+
+const { paste } = usePaste(true)
 
 // #Refs
 
@@ -1691,6 +1694,20 @@ onKeyStroke('ArrowDown', onDown)
                 <GeneralIcon icon="copy" />
                 <!-- Copy -->
                 {{ $t('general.copy') }}
+              </div>
+            </NcMenuItem>
+
+            <NcMenuItem
+              v-if="contextMenuTarget"
+              class="nc-base-menu-item"
+              data-testid="context-menu-item-paste"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              @click="paste"
+            >
+              <div v-e="['a:row:paste']" class="flex gap-2 items-center">
+                <GeneralIcon icon="paste" />
+                <!-- Paste -->
+                {{ $t('general.paste') }}
               </div>
             </NcMenuItem>
 

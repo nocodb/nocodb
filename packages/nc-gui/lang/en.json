@@ -188,7 +188,8 @@
     "useSurveyMode": "Use Survey Mode",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "Seconds"
+    "seconds": "Seconds",
+    "paste": "Paste"
   },
   "objects": {
     "workspace": "Workspace",
@@ -1283,7 +1284,8 @@
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
       "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Base not accessible",
-      "copyToClipboardError": "Failed to copy to clipboard"
+      "copyToClipboardError": "Failed to copy to clipboard",
+      "pasteFromClipboardError": "Failed to paste from clipboard"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

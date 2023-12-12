@@ -160,7 +160,7 @@ onMounted(() => {
       message.info(t('msg.info.editingPKnotSupported'))
       emit('cancel')
     } else if (isSystemColumn(formState.value)) {
-      message.info(t('msg.info.editingSystemKeynotSupported'))
+      message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
     }
   }

@@ -79,7 +79,7 @@ const loadAllTokens = async (limit = pagination.total) => {
   }
 }
 
-// This will updated allTokens local value instead of fetching all tokens on each operation (add|delete)
+// This will update allTokens local value instead of fetching all tokens on each operation (add|delete)
 const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
   switch (type) {
     case 'add': {

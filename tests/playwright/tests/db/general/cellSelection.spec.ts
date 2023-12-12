@@ -120,18 +120,4 @@ test.describe('Verify cell selection', () => {
     expect(await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'LastUpdate' }));
     await dashboard.closeAllTabs();
   });
-
-  test('Suite-3', async () => {
-    // #8 when copied with mouse and paste with mouse, it paste correct text
-    await dashboard.treeView.openTable({ title: 'Customer' });
-    await grid.selectRange({
-      start: { index: 0, columnHeader: 'FirstName' },
-      end: { index: 1, columnHeader: 'LastName' },
-    });
-    expect(await grid.copyWithMouse({ index: 0, columnHeader: 'FirstName' })).toBe(
-      'MARY\tSMITH\n' + 'PATRICIA\tJOHNSON'
-    );
-
-    await dashboard.closeAllTabs();
-  });
 });

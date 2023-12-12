@@ -412,9 +412,7 @@ const selectedOpts = computed(() => {
             }"
             :class="{ 'text-sm': isKanban }"
           >
-            <GeneralTruncateText placement="top" :length="20">
-              {{ op.title }}
-            </GeneralTruncateText>
+            {{ op.title }}
           </span>
         </a-tag>
       </a-select-option>

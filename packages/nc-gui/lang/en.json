@@ -188,7 +188,8 @@
     "useSurveyMode": "Use Survey Mode",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "Seconds"
+    "seconds": "Seconds",
+    "paste": "Paste"
   },
   "objects": {
     "workspace": "Workspace",

@@ -327,7 +327,7 @@ export interface NcRequest {
   id?: ReqId;
   user?: UserType | User;
   ncWorkspaceId?: string;
-  ncProjectId?: string;
+  ncBaseId?: string;
   headers?: Record<string, string | undefined> | IncomingHttpHeaders;
   clientIp?: string;
 }

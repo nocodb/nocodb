@@ -25,7 +25,7 @@ async function changeLanguage(lang: string) {
     <a
       href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
       target="_blank"
-      class="caption nc-base-menu-item py-2 text-primary underline hover:opacity-75"
+      class="caption nc-base-menu-item rounded-md py-2 text-primary underline hover:opacity-75"
       rel="noopener"
     >
       {{ $t('activity.translate') }}
@@ -36,7 +36,7 @@ async function changeLanguage(lang: string) {
     v-for="[key, lang] of languages"
     :key="key"
     :class="key === locale ? '!bg-primary bg-opacity-10 text-primary' : ''"
-    class="group"
+    class="group rounded-md"
     :value="key"
     @click="changeLanguage(key)"
   >

@@ -34,6 +34,7 @@ import {
   useI18n,
   useMultiSelect,
   useNuxtApp,
+  usePaste,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
@@ -41,7 +42,6 @@ import {
   useViewColumnsOrThrow,
   useViewsStore,
   watch,
-  usePaste,
 } from '#imports'
 import type { CellRange, Row } from '#imports'
 

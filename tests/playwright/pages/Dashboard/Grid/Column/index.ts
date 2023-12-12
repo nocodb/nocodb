@@ -104,20 +104,19 @@ export class ColumnPageObject extends BasePage {
             .click();
         }
         break;
+      case 'Date':
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        break;
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-${dateFormat}"]`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
         // Time Format
         await this.get().locator('.nc-time-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-time-${timeFormat}"]`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
-      case 'Date': {
-        // Date Format
-        await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-select-${dateFormat}"]`).click();
-        break;
-      }
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
         break;
@@ -307,19 +306,18 @@ export class ColumnPageObject extends BasePage {
           })
           .click();
         break;
-      case 'Date': {
-        // Date Format
-        await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-select-${dateFormat}"]`).click();
-        break;
-      }
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-${dateFormat}"]`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
         // Time Format
         await this.get().locator('.nc-time-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-time-${timeFormat}"]`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+        break;
+      case 'Date':
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
         break;
       default:
         break;

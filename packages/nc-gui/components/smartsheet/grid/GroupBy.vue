@@ -140,13 +140,12 @@ const onScroll = (e: Event) => {
 // a method to parse group key if grouped column type is LTAR or Lookup
 // in these 2 scenario it will return json array or `___` separated value
 const parseKey = (group) => {
-  const key = group.key.toString()
+  let key = group.key.toString()
 
   // parse json array key if it's a lookup or link to another record
   if ((key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
     try {
-      const parsedKey = JSON.parse(key)
-      return parsedKey
+      key = JSON.parse(key)
     } catch {
       // if parsing try to split it by `___` (for sqlite)
       return key.split('___')

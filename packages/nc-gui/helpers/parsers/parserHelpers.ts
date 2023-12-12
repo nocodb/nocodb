@@ -191,3 +191,36 @@ export const filterNullOrUndefinedObjectProperties = <T extends Record<string, a
     return result
   }, {} as Record<string, any>) as T
 }
+
+/**
+ * Extracts the next default name based on the provided namesData, defaultName, and splitOperator.
+ *
+ * @param namesData - An array of strings containing existing names data.
+ * @param defaultName - The default name to extract and generate the next name from.
+ * @param splitOperator - The separator used to split the defaultName and numbers in existing namesData.
+ *                        Defaults to '-'. Example: If defaultName is 'Token' and splitOperator is '-',
+ *                        existing names like 'Token-1', 'Token-2', etc., will be considered.
+ * @returns The next default name with an incremented number based on existing namesData.
+ */
+export const extractNextDefaultName = (namesData: string[], defaultName: string, splitOperator: string = '-'): string => {
+  // Extract and sort numbers associated with the provided defaultName
+  const extractedSortedNumbers =
+    (namesData
+      .map((name) => {
+        const [_defaultName, number] = name.split(splitOperator)
+        if (_defaultName === defaultName && !isNaN(Number(number?.trim()))) {
+          return Number(number?.trim())
+        }
+      })
+      .filter((e) => e)
+      .sort((a, b) => {
+        if (a !== undefined && b !== undefined) {
+          return a - b
+        }
+        return 0
+      }) as number[]) || []
+
+  return extractedSortedNumbers.length
+    ? `${defaultName}${splitOperator}${extractedSortedNumbers[extractedSortedNumbers.length - 1] + 1}`
+    : `${defaultName}${splitOperator}1`
+}

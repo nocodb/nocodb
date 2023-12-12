@@ -180,7 +180,7 @@ const loadAllowedLookups = async () => {
     for (const col of meta.value?.columns || []) {
       if (col.uidt !== UITypes.Lookup) continue
 
-      let nextCol: ColumnType | undefined = col
+      let nextCol: ColumnType = col
       // check the lookup column is supported type or not
       while (nextCol && nextCol.uidt === UITypes.Lookup) {
         const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
@@ -193,7 +193,7 @@ const loadAllowedLookups = async () => {
 
         nextCol = relatedTableMeta?.columns?.find(
           (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
-        )
+        ) as ColumnType
 
         // if next column is same as root lookup column then break the loop
         // since it's going to be a circular loop, and ignore the column
@@ -304,7 +304,7 @@ watch(meta, async () => {
         >
           <NcButton
             v-e="['c:group-by:add']"
-            class="nc-add-group-btn !text-brand-500"
+            class="nc-add-group-by-btn !text-brand-500"
             style="width: fit-content"
             size="small"
             type="text"

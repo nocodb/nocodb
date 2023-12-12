@@ -292,7 +292,7 @@ const onInsertAfter = () => {
     </div>
     <template #overlay>
       <a-menu class="shadow bg-white nc-column-options">
-        <a-menu-item @click="onEditPress" :disabled="!!isSystemColumn(column) && column?.uidt !== UITypes.ID">
+        <a-menu-item @click="onEditPress" :disabled="isSystemColumn(column) && column?.uidt !== UITypes.ID">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
             <!-- Edit -->

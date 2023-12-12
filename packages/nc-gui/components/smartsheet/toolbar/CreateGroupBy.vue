@@ -83,13 +83,12 @@ const onArrowUp = () => {
 
 <template>
   <div
-    class="flex flex-col w-full pt-4 pb-2 min-w-64 nc-group-create-modal"
+    class="flex flex-col w-full pt-4 pb-2 min-w-64 nc-group-by-create-modal"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(options[activeFieldIndex])"
   >
     <div class="flex pb-3 px-4 border-b-1 border-gray-100">
-      <!-- Todo language for selectFieldToGroup -->
       <input ref="inputRef" v-model="search" class="w-full focus:outline-none" :placeholder="$t('msg.selectFieldToGroup')" />
     </div>
     <div class="flex-col w-full max-h-100 max-w-76 nc-scrollbar-md !overflow-y-auto">
@@ -97,8 +96,8 @@ const onArrowUp = () => {
       <div
         v-for="(option, index) in options"
         :key="index"
-        v-e="['c:sort:add:column:select']"
-        class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-group-column-search-item"
+        v-e="['c:group-by:add:column:select']"
+        class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-group-by-column-search-item"
         :class="{
           'bg-gray-100': activeFieldIndex === index,
         }"

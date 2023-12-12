@@ -49,11 +49,13 @@ const titleDomRef = ref<HTMLInputElement | undefined>()
 
 const useForm = Form.useForm
 
+const defaultWebhookName = 'Webhook'
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
-  title: 'Untitled Webhook',
+  title: defaultWebhookName,
   event: undefined,
   operation: undefined,
   eventOperation: undefined,
@@ -472,6 +474,30 @@ async function testWebhook() {
   await webhookTestRef.value.testWebhook()
 }
 
+function getDefaultTokenValue(hooks: HookType[]) {
+  let extractedSortedTokenNumbers =
+    [...hooks]
+      .map((hook) => {
+        let hookName = hook.title?.split('-')
+        if (hookName && hookName[hookName.length - 1] && !isNaN(Number(hookName[hookName.length - 1]?.trim()))) {
+          return Number(hookName[hookName.length - 1]?.trim())
+        }
+      })
+      .filter((e) => e)
+      .sort((a, b) => {
+        if (a !== undefined && b !== undefined) {
+          return a - b
+        }
+        return 0
+      }) || []
+
+  if (extractedSortedTokenNumbers.length) {
+    return `${defaultWebhookName}-${(extractedSortedTokenNumbers[extractedSortedTokenNumbers.length - 1] || 0) + 1}`
+  } else {
+    return `${defaultWebhookName}-1`
+  }
+}
+
 watch(
   () => hookRef.eventOperation,
   () => {
@@ -499,7 +525,10 @@ onMounted(async () => {
 
   if (hookRef.event && hookRef.operation) {
     hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
+  } else {
+    hookRef.eventOperation = eventList.value[0].value.join(' ')
   }
+  hookRef.title = getDefaultTokenValue(hooks.value)
 
   onNotificationTypeChange()
 

@@ -17,7 +17,7 @@ export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {
         );
 
         // validate base id
-        if (!sharedProject || req.ncProjectId !== sharedProject.id) {
+        if (!sharedProject || req.ncBaseId !== sharedProject.id) {
           return callback(new UnauthorizedException());
         }
 

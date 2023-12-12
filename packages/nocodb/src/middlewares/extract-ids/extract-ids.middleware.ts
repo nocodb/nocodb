@@ -60,23 +60,23 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     if (params.baseName) {
       const base = await Base.getByTitleOrId(params.baseName);
       if (base) {
-        req.ncProjectId = base.id;
+        req.ncBaseId = base.id;
         res.locals.base = base;
       }
     }
     if (params.baseId) {
-      req.ncProjectId = params.baseId;
+      req.ncBaseId = params.baseId;
     } else if (params.dashboardId) {
-      req.ncProjectId = params.dashboardId;
+      req.ncBaseId = params.dashboardId;
     } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName({
         id: params.tableId || params.modelId,
       });
-      req.ncProjectId = model?.base_id;
+      req.ncBaseId = model?.base_id;
     } else if (params.viewId) {
       const view =
         (await View.get(params.viewId)) || (await Model.get(params.viewId));
-      req.ncProjectId = view?.base_id;
+      req.ncBaseId = view?.base_id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -89,39 +89,39 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           params.kanbanViewId ||
           params.galleryViewId,
       );
-      req.ncProjectId = view?.base_id;
+      req.ncBaseId = view?.base_id;
     } else if (params.publicDataUuid) {
       const view = await View.getByUUID(req.params.publicDataUuid);
-      req.ncProjectId = view?.base_id;
+      req.ncBaseId = view?.base_id;
     } else if (params.hookId) {
       const hook = await Hook.get(params.hookId);
-      req.ncProjectId = hook?.base_id;
+      req.ncBaseId = hook?.base_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(params.gridViewColumnId);
-      req.ncProjectId = gridViewColumn?.base_id;
+      req.ncBaseId = gridViewColumn?.base_id;
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(params.formViewColumnId);
-      req.ncProjectId = formViewColumn?.base_id;
+      req.ncBaseId = formViewColumn?.base_id;
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         params.galleryViewColumnId,
       );
-      req.ncProjectId = galleryViewColumn?.base_id;
+      req.ncBaseId = galleryViewColumn?.base_id;
     } else if (params.columnId) {
       const column = await Column.get({ colId: params.columnId });
-      req.ncProjectId = column?.base_id;
+      req.ncBaseId = column?.base_id;
     } else if (params.filterId) {
       const filter = await Filter.get(params.filterId);
-      req.ncProjectId = filter?.base_id;
+      req.ncBaseId = filter?.base_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(params.filterParentId);
-      req.ncProjectId = filter?.base_id;
+      req.ncBaseId = filter?.base_id;
     } else if (params.sortId) {
       const sort = await Sort.get(params.sortId);
-      req.ncProjectId = sort?.base_id;
+      req.ncBaseId = sort?.base_id;
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(req.params.syncId);
-      req.ncProjectId = syncSource.base_id;
+      req.ncBaseId = syncSource.base_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
@@ -139,7 +139,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName({
         id: req.body.fk_model_id,
       });
-      req.ncProjectId = model?.base_id;
+      req.ncBaseId = model?.base_id;
     }
     // extract fk_model_id from query params only if it's audit get endpoint
     else if (
@@ -155,7 +155,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const model = await Model.getByIdOrName({
         id: req.query?.fk_model_id,
       });
-      req.ncProjectId = model?.base_id;
+      req.ncBaseId = model?.base_id;
     }
     // extract base id from query params only if it's userMe endpoint or webhook plugin list
     else if (
@@ -168,7 +168,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       ].some((userMePath) => req.route.path === userMePath) &&
       req.query.base_id
     ) {
-      req.ncProjectId = req.query.base_id;
+      req.ncBaseId = req.query.base_id;
     }
 
     next();

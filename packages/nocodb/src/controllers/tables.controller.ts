@@ -91,8 +91,8 @@ export class TablesController {
     await this.tablesService.tableUpdate({
       tableId: tableId,
       table: body,
-      baseId: req.ncProjectId,
-      user: req.ncProjectId,
+      baseId: req.ncBaseId,
+      user: req.ncBaseId,
       req,
     });
     return { msg: 'The table has been updated successfully' };

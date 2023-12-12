@@ -1821,7 +1821,7 @@ onKeyStroke('ArrowDown', onDown)
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
-                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                  class="absolute -top-19 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                   style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
                     '-left-44': !isAddNewRecordGridMode,
@@ -1830,7 +1830,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     v-e="['c:row:add:grid']"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1839,14 +1839,14 @@ onKeyStroke('ArrowDown', onDown)
                         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
-                        <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
+                        <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                       </div>
                     </div>
                     <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
                   </div>
                   <div
                     v-e="['c:row:add:form']"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1855,7 +1855,7 @@ onKeyStroke('ArrowDown', onDown)
                         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                       </div>
                       <div class="h-4 w-4 flex flex-row items-center justify-center">
-                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
+                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                       </div>
                     </div>
                     <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>

@@ -169,7 +169,15 @@ watch(activeLang, (newLang) => {
             dropdown-class-name="nc-dropdown-snippet-active-lang"
           >
             <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full capitalize" :value="client">
-              {{ client }}
+              <div class="flex items-center w-full justify-between w-full gap-2">
+                <div class="truncate flex-1">{{ client }}</div>
+                <component
+                  :is="iconMap.check"
+                  v-if="selectedClient === client"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
+              </div>
             </a-select-option>
           </NcSelect>
 

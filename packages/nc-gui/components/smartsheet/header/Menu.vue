@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ColumnInj,
@@ -291,8 +291,8 @@ const onInsertAfter = () => {
       <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
     </div>
     <template #overlay>
-      <a-menu class="shadow bg-white border-1 border-gray-200 nc-column-options">
-        <a-menu-item @click="onEditPress">
+      <a-menu class="shadow bg-white nc-column-options">
+        <a-menu-item @click="onEditPress" :disabled="!!isSystemColumn(column) && column?.uidt !== UITypes.ID">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
             <!-- Edit -->

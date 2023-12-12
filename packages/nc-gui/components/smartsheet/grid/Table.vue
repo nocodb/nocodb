@@ -1717,6 +1717,7 @@ onKeyStroke('ArrowDown', onDown)
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               @click="clearSelectedRangeOfCells()"
+              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
                 <GeneralIcon icon="closeBox" class="text-gray-500" />

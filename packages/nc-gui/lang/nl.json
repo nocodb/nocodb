@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Schakel de gedeelde database uit",
       "enable": "Iedereen met de link",
       "link": "Gedeelde databaselink"

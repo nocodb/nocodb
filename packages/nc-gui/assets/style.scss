@@ -36,7 +36,7 @@ body {
   overflow-y: visible !important;
 }
 
-.rc-virtual-list-holder-inner{
+.rc-virtual-list-holder-inner {
   @apply !px-1.5
 }
 .ant-layout-header {
@@ -515,7 +515,7 @@ a {
 
 /* Hide the element with id nc-selected-item-icon */
 .ant-select-selection-item #nc-selected-item-icon {
-  display: none;
+  @apply hidden;
 }
 
 .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
@@ -604,8 +604,7 @@ a {
 }
 
 .ant-popover-inner {
-  padding: 0 !important;
-  @apply rounded-lg
+  @apply rouded-lg !p-0;
 }
 .ant-popover-inner-content {
   @apply !px-1.5 !py-1 text-xs;

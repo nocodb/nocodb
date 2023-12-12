@@ -62,38 +62,12 @@ const hideOrShowToken = (tokenId: string) => {
   }
 }
 
-const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
-  currentPage.value = page
-  try {
-    const response: any = await api.orgTokens.list({
-      query: {
-        limit,
-        offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
-      },
-    } as RequestParams)
-    if (!response) return
-
-    pagination.total = response.pageInfo.totalRows ?? 0
-    pagination.pageSize = 10
-
-    tokens.value = response.list as IApiTokenInfo[]
-
-    if (!allTokens.value.length) {
-      await loadAllTokens(pagination.total)
-    }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-loadTokens()
-
 // To set default next token name we should need to fetch all token first
 const loadAllTokens = async (limit = pagination.total) => {
   try {
     const response: any = await api.orgTokens.list({
       query: {
-        limit: limit,
+        limit,
       },
     } as RequestParams)
     if (!response) return
@@ -119,6 +93,32 @@ const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
   }
   setDefaultTokenName()
 }
+
+const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
+  currentPage.value = page
+  try {
+    const response: any = await api.orgTokens.list({
+      query: {
+        limit,
+        offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
+      },
+    } as RequestParams)
+    if (!response) return
+
+    pagination.total = response.pageInfo.totalRows ?? 0
+    pagination.pageSize = 10
+
+    tokens.value = response.list as IApiTokenInfo[]
+
+    if (!allTokens.value.length) {
+      await loadAllTokens(pagination.total)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+loadTokens()
 
 const isModalOpen = ref(false)
 const tokenDesc = ref('')

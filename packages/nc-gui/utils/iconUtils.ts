@@ -452,6 +452,7 @@ export const iconMap = {
   role_no_access: NoAccess,
   commentHere: NcCommentHere,
   fileImage: FileImageIcon,
+  paste: h('span', { class: 'material-symbols' }, 'content_paste'),
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -581,7 +581,15 @@ const parseConditionV2 = async (
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
               }
             } else {
-              qb = qb.where(field, val);
+              if (column.uidt === UITypes.DateTime) {
+                if (qb.client.config.client === 'pg') {
+                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                } else {
+                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                }
+              } else {
+                qb = qb.where(field, val);
+              }
             }
             if (column.uidt === UITypes.Rating && val === 0) {
               // unset rating is considered as NULL

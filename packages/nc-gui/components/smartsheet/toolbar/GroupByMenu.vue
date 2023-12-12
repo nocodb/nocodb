@@ -243,7 +243,12 @@ watch(meta, async () => {
       </a-button>
     </div>
     <template #overlay>
-      <SmartsheetToolbarCreateGroupBy v-if="!_groupBy.length" :is-parent-open="open" @created="addFieldToGroupBy" />
+      <SmartsheetToolbarCreateGroupBy
+        v-if="!_groupBy.length"
+        :is-parent-open="open"
+        :columns="fieldsToGroupBy"
+        @created="addFieldToGroupBy"
+      />
       <div
         v-else
         :class="{ ' min-w-[400px]': _groupBy.length }"
@@ -318,7 +323,11 @@ watch(meta, async () => {
             </div>
           </NcButton>
           <template #overlay>
-            <SmartsheetToolbarCreateGroupBy :is-parent-open="showCreateGroupBy" @created="addFieldToGroupBy" />
+            <SmartsheetToolbarCreateGroupBy
+              :is-parent-open="showCreateGroupBy"
+              :columns="fieldsToGroupBy"
+              @created="addFieldToGroupBy"
+            />
           </template>
         </NcDropdown>
       </div>

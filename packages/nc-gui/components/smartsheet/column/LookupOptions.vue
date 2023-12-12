@@ -87,11 +87,23 @@ const cellIcon = (column: ColumnType) =>
           @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-            <div class="flex flex-row h-full pb-0.5 items-center max-w-full">
-              <div class="font-semibold text-xs flex-shrink flex-grow-0 truncate">{{ table.column.title }}</div>
-              <div class="flex-grow"></div>
-              <div class="text-[0.65rem] text-gray-600 nc-relation-details">
-                <span class="uppercase">{{ table.col.type }}</span> {{ table.title || table.table_name }}
+            <div class="flex gap-2 w-full justify-between truncate items-center">
+              <NcTooltip class="font-semibold truncate min-w-1/2" show-on-truncate-only>
+                <template #title>{{ table.column.title }}</template>
+                {{ table.column.title }}</NcTooltip
+              >
+              <div class="inline-flex items-center truncate gap-2">
+                <div class="text-[0.65rem] flex-1 truncate text-gray-600 nc-relation-details">
+                  <span class="uppercase">{{ table.col.type }}</span>
+                  <span class="truncate">{{ table.title || table.table_name }}</span>
+                </div>
+
+                <component
+                  :is="iconMap.check"
+                  v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
               </div>
             </div>
           </a-select-option>
@@ -106,9 +118,18 @@ const cellIcon = (column: ColumnType) =>
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
-            <div class="flex items-center -ml-1 font-semibold text-xs">
-              <component :is="cellIcon(column)" :column-meta="column" />
-              {{ column.title }}
+            <div class="flex gap-2 truncate items-center">
+              <div class="flex items-center flex-1 truncate font-semibold">
+                <component :is="cellIcon(column)" :column-meta="column" />
+                <div class="truncate flex-1">{{ column.title }}</div>
+              </div>
+
+              <component
+                :is="iconMap.check"
+                v-if="vModel.fk_lookup_column_id === column.id"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
             </div>
           </a-select-option>
         </a-select>

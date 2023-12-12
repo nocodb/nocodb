@@ -100,7 +100,7 @@ const onChange = (value: string) => {
 }
 
 .nc-select-dropdown {
-  @apply !rounded-xl p-1.5;
+  @apply !rounded-xl;
 
   .rc-virtual-list-holder {
     overflow-y: scroll;

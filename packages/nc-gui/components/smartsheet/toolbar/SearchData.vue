@@ -111,7 +111,7 @@ watch(columns, () => {
         class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
         @change="onPressEnter"
       >
-        <a-select-option v-for="op of columns" :key="op.value" v-e="['c:search:field:select']" :value="op.value" class="mx-1.5">
+        <a-select-option v-for="op of columns" :key="op.value" v-e="['c:search:field:select']" :value="op.value">
           <div class="text-[0.75rem] flex items-center gap-2">
             <SmartsheetHeaderIcon class="text-sm" :column="op.column" />
             <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>

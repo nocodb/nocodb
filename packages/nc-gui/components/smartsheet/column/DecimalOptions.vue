@@ -40,10 +40,14 @@ onMounted(() => {
       dropdown-class-name="nc-dropdown-decimal-format"
     >
       <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
-        <div class="flex flex-row items-center">
-          <div class="text-xs">
-            {{ (precisionFormatsDisplay as any)[format] }}
-          </div>
+        <div class="flex gap-2 w-full justify-between items-center">
+          {{ (precisionFormatsDisplay as any)[format] }}
+          <component
+            :is="iconMap.check"
+            v-if="vModel.meta.precision === format"
+            id="nc-selected-item-icon"
+            class="text-primary w-4 h-4"
+          />
         </div>
       </a-select-option>
     </a-select>

@@ -77,6 +77,10 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
     pagination.pageSize = 10
 
     tokens.value = response.list as IApiTokenInfo[]
+
+    if (!allTokens.value.length) {
+      await loadAllTokens(pagination.total)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -85,11 +89,11 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
 loadTokens()
 
 // To set default next token name we should need to fetch all token first
-const loadAllTokens = async () => {
+const loadAllTokens = async (limit = pagination.total) => {
   try {
     const response: any = await api.orgTokens.list({
       query: {
-        limit: -1,
+        limit: limit,
       },
     } as RequestParams)
     if (!response) return
@@ -100,8 +104,6 @@ const loadAllTokens = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
-loadAllTokens()
 
 // This will updated allTokens local value instead of fetching all tokens on each operation (add|delete)
 const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
@@ -130,7 +132,7 @@ const deleteToken = async (token: string): Promise<void> => {
     await loadTokens()
 
     updateAllTokens('delete', {
-      token: token,
+      token,
     } as IApiTokenInfo)
 
     if (!tokens.value.length && currentPage.value !== 1) {

@@ -16,14 +16,13 @@ test.describe('Shared view', () => {
 
   test('Grid Share with GroupBy', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Film' });
-    await dashboard.grid.toolbar.clickGroupBy();
 
     await dashboard.grid.toolbar.groupBy.add({
       title: 'Title',
       ascending: false,
       locallySaved: false,
     });
-    await dashboard.grid.toolbar.clickGroupBy();
+
     await dashboard.grid.toolbar.sort.add({
       title: 'Title',
       ascending: false,
@@ -76,7 +75,7 @@ test.describe('Shared view', () => {
     await page.reload();
 
     await dashboard.treeView.openTable({ title: 'Film' });
-    await dashboard.grid.toolbar.clickGroupBy();
+
     await dashboard.grid.toolbar.groupBy.update({
       index: 0,
       title: 'Length',
@@ -102,9 +101,8 @@ test.describe('Shared view', () => {
     await page.waitForTimeout(5000);
 
     await dashboard.treeView.openTable({ title: 'Film' });
-    await dashboard.grid.toolbar.clickGroupBy();
+
     await dashboard.grid.toolbar.groupBy.remove({ index: 0 });
-    await dashboard.grid.toolbar.clickGroupBy();
 
     await page.goto(sharedLink);
     await page.reload();

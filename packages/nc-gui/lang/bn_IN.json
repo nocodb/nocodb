@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share Base",
+      "label": "Share base",
       "disable": "ভাগ করা বেস অক্ষম করুন",
       "enable": "লিঙ্ক সহ যে কেউ",
       "link": "ভাগ করা বেস লিঙ্ক"

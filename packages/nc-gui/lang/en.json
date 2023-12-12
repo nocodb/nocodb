@@ -1284,7 +1284,8 @@
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
       "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Base not accessible",
-      "copyToClipboardError": "Failed to copy to clipboard"
+      "copyToClipboardError": "Failed to copy to clipboard",
+      "pasteFromClipboardError": "Failed to paste from clipboard"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

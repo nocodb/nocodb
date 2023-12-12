@@ -140,7 +140,9 @@ watch(
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
 
       if (!modelValue) {
-        tempLocalValue.value = dayjs(new Date())
+        tempLocalValue.value = dayjs(new Date()).utc().local()
+      } else {
+        tempLocalValue.value = undefined
       }
     } else {
       editable.value = false

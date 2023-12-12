@@ -279,19 +279,19 @@ const onInsertAfter = () => {
 </script>
 
 <template>
-  <a-dropdown
+  <NcDropdown
     v-if="!isLocked"
     v-model:visible="isOpen"
     :trigger="['click']"
     placement="bottomRight"
-    overlay-class-name="nc-dropdown-column-operations "
+    overlay-class-name="nc-dropdown-column-operations  !drop-shadow-2xl"
     @click.stop="isOpen = !isOpen"
   >
     <div>
       <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
     </div>
     <template #overlay>
-      <NcMenu class="shadow bg-white border-1 flex flex-col gap-1 border-gray-200 nc-column-options">
+      <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
         <NcMenuItem @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
             <component :is="iconMap.edit" class="text-gray-700" />
@@ -377,7 +377,7 @@ const onInsertAfter = () => {
         </NcMenuItem>
       </NcMenu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
   <DlgColumnDuplicate
     v-if="column"

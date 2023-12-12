@@ -53,7 +53,7 @@ const sizeRef = toRef(props, 'size')
                   :inherit="inheritRef === rl"
                   :border="false"
                 />
-                <GeneralIcon v-if="rl === roleRef" icon="check" />
+                <GeneralIcon v-if="rl === roleRef" icon="check" class="text-primary"/>
               </div>
               <div v-if="descriptionRef" class="text-gray-500">{{ RoleDescriptions[rl] }}</div>
             </div>

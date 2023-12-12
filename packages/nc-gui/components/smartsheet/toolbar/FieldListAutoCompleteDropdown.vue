@@ -80,18 +80,26 @@ if (!localValue.value && allowEmpty !== true) {
     dropdown-class-name="nc-dropdown-toolbar-field-list"
   >
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
-      <div class="flex gap-2 items-center items-center h-full">
-        <component :is="option.icon" class="min-w-5 !mx-0" />
-        <NcTooltip
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          class="max-w-[15rem] truncate select-none"
-          show-on-truncate-only
-        >
-          <template #title> {{ option.label }}</template>
-          <template #default>
-            {{ option.label }}
-          </template>
-        </NcTooltip>
+      <div class="flex items-center w-full justify-between w-full gap-2 max-w-50">
+        <div class="flex gap-1 flex-1 items-center truncate items-center h-full">
+          <component :is="option.icon" class="min-w-5 !mx-0" />
+          <NcTooltip
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            class="max-w-[15rem] truncate select-none"
+            show-on-truncate-only
+          >
+            <template #title> {{ option.label }}</template>
+            <span>
+              {{ option.label }}
+            </span>
+          </NcTooltip>
+        </div>
+        <component
+          :is="iconMap.check"
+          v-if="localValue === option.value"
+          id="nc-selected-item-icon"
+          class="text-primary w-4 h-4"
+        />
       </div>
     </a-select-option>
   </NcSelect>

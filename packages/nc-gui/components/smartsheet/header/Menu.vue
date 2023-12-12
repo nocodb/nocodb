@@ -284,47 +284,47 @@ const onInsertAfter = () => {
     v-model:visible="isOpen"
     :trigger="['click']"
     placement="bottomRight"
-    overlay-class-name="nc-dropdown-column-operations"
+    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl"
     @click.stop="isOpen = !isOpen"
   >
     <div>
       <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
     </div>
     <template #overlay>
-      <a-menu class="shadow bg-white border-1 border-gray-200 nc-column-options">
-        <a-menu-item @click="onEditPress">
+      <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
+        <NcMenuItem @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.edit" class="text-gray-700 mx-0.65 my-0.75" />
+            <component :is="iconMap.edit" class="text-gray-700" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
-        </a-menu-item>
+        </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
-        <a-menu-item v-if="!column?.pv" @click="hideField">
-          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item my-0.5">
-            <component :is="iconMap.eye" class="text-gray-700 mx-0.75 !w-3.75 !h-3.75 ml-0.75 mr-0.5" />
+        <NcMenuItem v-if="!column?.pv" @click="hideField">
+          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
+            <component :is="iconMap.eye" class="text-gray-700 !w-3.75 !h-3.75" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
-        </a-menu-item>
-        <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
-          <div class="nc-column-set-primary nc-header-menu-item item my-0.5">
-            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25 -mt-0.5" />
+        </NcMenuItem>
+        <NcMenuItem v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
+          <div class="nc-column-set-primary nc-header-menu-item item">
+            <GeneralIcon icon="star" class="text-gray-700 !w-4.25 !h-4.25" />
 
             <!--       todo : tooltip -->
             <!-- Set as Display value -->
             {{ $t('activity.setDisplay') }}
           </div>
-        </a-menu-item>
+        </NcMenuItem>
 
-        <a-divider class="!my-0" />
+        <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
         <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-          <a-menu-item @click="sortByColumn('asc')">
+          <NcMenuItem @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
               <component
                 :is="iconMap.sortDesc"
-                class="text-gray-700 !rotate-180 !w-4.25 !h-4.25 ml-0.5 mr-0.25"
+                class="text-gray-700 !rotate-180 !w-4.25 !h-4.25"
                 :style="{
                   transform: 'rotate(180deg)',
                 }"
@@ -333,49 +333,49 @@ const onInsertAfter = () => {
               <!-- Sort Ascending -->
               {{ $t('general.sortAsc') }}
             </div>
-          </a-menu-item>
-          <a-menu-item @click="sortByColumn('desc')">
+          </NcMenuItem>
+          <NcMenuItem @click="sortByColumn('desc')">
             <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
               <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25" />
               <!-- Sort Descending -->
               {{ $t('general.sortDesc') }}
             </div>
-          </a-menu-item>
+          </NcMenuItem>
         </template>
 
-        <a-divider class="!my-0" />
+        <a-divider v-if="!column?.pk" class="!my-0" />
 
-        <a-menu-item v-if="!column?.pk" @click="openDuplicateDlg">
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item my-0.5">
-            <component :is="iconMap.duplicate" class="text-gray-700 mx-0.75" />
+        <NcMenuItem v-if="!column?.pk" @click="openDuplicateDlg">
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
+            <component :is="iconMap.duplicate" class="text-gray-700" />
             <!-- Duplicate -->
             {{ t('general.duplicate') }}
           </div>
-        </a-menu-item>
-        <a-menu-item @click="onInsertAfter">
+        </NcMenuItem>
+        <NcMenuItem @click="onInsertAfter">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5 ml-0.75" />
+            <component :is="iconMap.colInsertAfter" class="text-gray-700 !w-4.5 !h-4.5" />
             <!-- Insert After -->
             {{ t('general.insertAfter') }}
           </div>
-        </a-menu-item>
-        <a-menu-item v-if="!column?.pv" @click="onInsertBefore">
+        </NcMenuItem>
+        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5 mr-1.5 -ml-0.75" />
+            <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>
-        </a-menu-item>
-        <a-divider class="!my-0" />
+        </NcMenuItem>
+        <a-divider v-if="!column?.pv" class="!my-0" />
 
-        <a-menu-item v-if="!column?.pv" class="!hover:bg-red-50" @click="handleDelete">
-          <div class="nc-column-delete nc-header-menu-item my-0.75 text-red-600">
-            <component :is="iconMap.delete" class="ml-0.75 mr-1" />
+        <NcMenuItem v-if="!column?.pv" class="!hover:bg-red-50" @click="handleDelete">
+          <div class="nc-column-delete nc-header-menu-item text-red-600">
+            <component :is="iconMap.delete" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>
-        </a-menu-item>
-      </a-menu>
+        </NcMenuItem>
+      </NcMenu>
     </template>
   </a-dropdown>
   <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
@@ -390,7 +390,7 @@ const onInsertAfter = () => {
 
 <style scoped>
 .nc-header-menu-item {
-  @apply text-dropdown flex items-center px-1 py-2 gap-1;
+  @apply text-dropdown flex items-center gap-2;
 }
 
 .nc-column-options {

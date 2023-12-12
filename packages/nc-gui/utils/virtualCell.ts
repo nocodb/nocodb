@@ -7,13 +7,13 @@ export const isLTAR = (uidt: string | undefined, colOptions: unknown): colOption
 }
 
 export const isHm = (column: ColumnType) =>
-  isLTAR(column.uidt!, column.colOptions) && column.colOptions.type === RelationTypes.HAS_MANY
+  isLTAR(column.uidt!, column.colOptions) && column.colOptions?.type === RelationTypes.HAS_MANY
 
 export const isMm = (column: ColumnType) =>
-  isLTAR(column.uidt!, column.colOptions) && column.colOptions.type === RelationTypes.MANY_TO_MANY
+  isLTAR(column.uidt!, column.colOptions) && column.colOptions?.type === RelationTypes.MANY_TO_MANY
 
 export const isBt = (column: ColumnType) =>
-  isLTAR(column.uidt!, column.colOptions) && column.colOptions.type === RelationTypes.BELONGS_TO
+  isLTAR(column.uidt!, column.colOptions) && column.colOptions?.type === RelationTypes.BELONGS_TO
 
 export const isLookup = (column: ColumnType) => column.uidt === UITypes.Lookup
 export const isRollup = (column: ColumnType) => column.uidt === UITypes.Rollup

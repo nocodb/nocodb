@@ -80,20 +80,28 @@ watch(
       <a-form-item label="Icon">
         <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
-            <div class="flex items-center">
-              <component
-                :is="getMdiIcon(icon.checked)"
-                class="mx-1"
-                :style="{
-                  color: vModel.meta.color,
-                }"
-              />
+            <div class="flex gap-2 w-full truncate items-center">
+              <div class="flex-1 truncate">
+                <component
+                  :is="getMdiIcon(icon.checked)"
+                  class="mx-1"
+                  :style="{
+                    color: vModel.meta.color,
+                  }"
+                />
+                <component
+                  :is="getMdiIcon(icon.unchecked)"
+                  :style="{
+                    color: vModel.meta.color,
+                  }"
+                />
+              </div>
 
               <component
-                :is="getMdiIcon(icon.unchecked)"
-                :style="{
-                  color: vModel.meta.color,
-                }"
+                :is="iconMap.check"
+                v-if="vModel.meta.iconIdx === i"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
               />
             </div>
           </a-select-option>

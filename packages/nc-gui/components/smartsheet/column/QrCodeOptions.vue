@@ -53,10 +53,25 @@ setAdditionalValidations({
       >
         <a-select
           v-model:value="vModel.fk_qr_value_column_id"
-          :options="columnsAllowedAsQrValue"
           :placeholder="$t('placeholder.selectAColumnForTheQRCodeValue')"
           @click.stop
-        />
+        >
+          <a-select-option v-for="opt of columnsAllowedAsQrValue" :key="opt" :value="opt.value">
+            <div class="flex gap-2 w-full truncate items-center" :data-testid="`nc-qr-${opt.label}`">
+              <NcTooltip show-on-truncate-only class="flex-1 truncate">
+                <template #title>{{ opt.label }}</template>
+                {{ opt.label }}
+              </NcTooltip>
+
+              <component
+                :is="iconMap.check"
+                v-if="vModel.fk_qr_value_column_id === opt.value"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
       </a-form-item>
     </a-col>
   </a-row>

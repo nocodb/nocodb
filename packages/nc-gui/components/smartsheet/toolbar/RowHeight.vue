@@ -65,7 +65,7 @@ useMenuCloseOnEsc(open)
     </div>
     <template #overlay>
       <div
-        class="w-full bg-white shadow-lg p-2 menu-filter-dropdown border-1 border-gray-200 rounded-md overflow-hidden"
+        class="w-full bg-white shadow-lg p-1.5 menu-filter-dropdown border-1 border-gray-200 rounded-md overflow-hidden"
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
@@ -73,12 +73,12 @@ useMenuCloseOnEsc(open)
           <div class="nc-row-height-option" @click="updateRowHeight(0)">
             <GeneralIcon icon="heightShort" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.short') }}
-            <component v-if="!(view?.view as GridType).row_height" class="text-primary w-5 h-5 ml-2" :is="iconMap.check" />
+            <component v-if="!(view?.view as GridType).row_height" class="text-primary w-5 h-5 " :is="iconMap.check" />
           </div>
           <div class="nc-row-height-option" @click="updateRowHeight(1)">
             <GeneralIcon icon="heightMedium" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.medium') }}
-            <component v-if=" (view?.view as GridType).row_height === 1" class="text-primary w-5 h-5 ml-2" :is="iconMap.check" />
+            <component v-if=" (view?.view as GridType).row_height === 1" class="text-primary w-5 h-5 " :is="iconMap.check" />
           </div>
           <div
             class="nc-row-height-option"
@@ -87,7 +87,7 @@ useMenuCloseOnEsc(open)
           >
             <GeneralIcon icon="heightTall" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.tall') }}
-            <component v-if=" (view?.view as GridType).row_height === 2" class="text-primary w-5 h-5 ml-2" :is="iconMap.check" />
+            <component v-if=" (view?.view as GridType).row_height === 2" class="text-primary w-5 h-5 " :is="iconMap.check" />
           </div>
           <div
             class="nc-row-height-option"
@@ -96,7 +96,7 @@ useMenuCloseOnEsc(open)
           >
             <GeneralIcon icon="heightExtra" class="nc-row-height-icon" />
             {{ $t('objects.heightClass.extra') }}
-            <component v-if=" (view?.view as GridType).row_height === 3" class="text-primary w-5 h-5 ml-2" :is="iconMap.check" />
+            <component v-if=" (view?.view as GridType).row_height === 3" class="text-primary w-5 h-5 " :is="iconMap.check" />
           </div>
         </div>
       </div>
@@ -106,10 +106,10 @@ useMenuCloseOnEsc(open)
 
 <style scoped>
 .nc-row-height-option {
-  @apply flex items-center py-2 pl-1 pr-2 justify-start hover:bg-gray-100 rounded-md cursor-pointer text-gray-600;
+  @apply flex items-center gap-2 p-2 justify-start hover:bg-gray-100 rounded-md cursor-pointer text-gray-600;
 }
 
 .nc-row-height-icon {
-  @apply mx-2 text-base;
+  @apply text-base;
 }
 </style>

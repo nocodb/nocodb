@@ -222,7 +222,7 @@ a {
 }
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200
+  @apply border-1 border-gray-200;
 }
 
 // menu item styling
@@ -425,9 +425,9 @@ a {
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
-  
-  &.ant-dropdown-menu-submenu-popup{
-    @apply border-1 border-gray-200
+
+  &.ant-dropdown-menu-submenu-popup {
+    @apply border-1 border-gray-200;
   }
   .ant-dropdown-menu,
   .ant-menu {
@@ -504,15 +504,14 @@ a {
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   @apply bg-gray-300 bg-opacity-20;
 }
-/* Add this to your global or component-specific stylesheet */
 
 /* Hide the element with id selected-item-icon inside NcSelect */
 .ant-select-selection-item #selected-item-icon {
   display: none;
 }
 
-.ant-select-item-option-selected:not(.ant-select-item-option-disabled){
-  @apply bg-transparent 
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  @apply bg-transparent;
 }
 
 .ant-select-selection-search-input:focus {

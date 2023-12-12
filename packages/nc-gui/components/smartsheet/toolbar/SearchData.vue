@@ -144,13 +144,6 @@ watch(columns, () => {
   </div>
 </template>
 
-<style lang="scss">
-.nc-dropdown-toolbar-search-field-option {
-  .ant-select-item-option {
-    @apply p-2;
-  }
-}
-</style>
 
 <style scoped>
 :deep(input::placeholder) {

@@ -47,8 +47,6 @@ test.describe('GroupBy CRUD Operations', () => {
 
     await toolbar.sort.add({ title: 'Sub_Group', ascending: true, locallySaved: false });
 
-    await toolbar.clickGroupBy();
-
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
 
     await dashboard.grid.groupPage.openGroup({ indexMap: [2] });
@@ -115,8 +113,6 @@ test.describe('GroupBy CRUD Operations', () => {
     await dashboard.treeView.openTable({ title: 'groupBased' });
 
     await toolbar.sort.add({ title: 'Sub_Category', ascending: true, locallySaved: false });
-
-    await toolbar.clickGroupBy();
 
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'Sub_Group', ascending: false, locallySaved: false });
@@ -186,8 +182,6 @@ test.describe('GroupBy CRUD Operations', () => {
 
     await toolbar.sort.add({ title: 'Item', ascending: true, locallySaved: false });
 
-    await toolbar.clickGroupBy();
-
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'Sub_Group', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'Sub_Category', ascending: false, locallySaved: false });
@@ -254,8 +248,6 @@ test.describe('GroupBy CRUD Operations', () => {
 
   test('Single GroupBy CRUD Operations - Links', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Film' });
-
-    await toolbar.clickGroupBy();
 
     await toolbar.groupBy.add({ title: 'Actors', ascending: false, locallySaved: false });
 

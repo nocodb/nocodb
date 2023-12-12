@@ -20,6 +20,7 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   hook?: HookType
@@ -49,11 +50,13 @@ const titleDomRef = ref<HTMLInputElement | undefined>()
 
 const useForm = Form.useForm
 
+const defaultHookName = t('labels.webhook')
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
-  title: 'Untitled Webhook',
+  title: defaultHookName,
   event: undefined,
   operation: undefined,
   eventOperation: undefined,
@@ -472,6 +475,10 @@ async function testWebhook() {
   await webhookTestRef.value.testWebhook()
 }
 
+const getDefaultHookName = (hooks: HookType[]) => {
+  return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
+}
+
 watch(
   () => hookRef.eventOperation,
   () => {
@@ -499,7 +506,10 @@ onMounted(async () => {
 
   if (hookRef.event && hookRef.operation) {
     hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
+  } else {
+    hookRef.eventOperation = eventList.value[0].value.join(' ')
   }
+  hookRef.title = getDefaultHookName(hooks.value)
 
   onNotificationTypeChange()
 

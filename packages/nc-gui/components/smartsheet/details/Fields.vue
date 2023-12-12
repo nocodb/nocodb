@@ -1081,7 +1081,7 @@ const onFieldOptionUpdate = () => {
             </Draggable>
           </div>
           <Transition v-if="!changingField" name="slide-fade">
-            <div class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
+            <div v-if="!changingField" class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="p-4 w-[25rem]"

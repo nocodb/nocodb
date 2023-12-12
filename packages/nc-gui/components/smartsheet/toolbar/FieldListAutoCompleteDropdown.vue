@@ -80,8 +80,8 @@ if (!localValue.value && allowEmpty !== true) {
     dropdown-class-name="nc-dropdown-toolbar-field-list"
   >
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
-      <div class="flex items-center w-full justify-between w-full gap-2">
-        <div class="flex gap-1 items-center truncate items-center h-full">
+      <div class="flex items-center w-full justify-between w-full gap-2 max-w-50">
+        <div class="flex gap-1 flex-1 items-center truncate items-center h-full">
           <component :is="option.icon" class="min-w-5 !mx-0" />
           <NcTooltip
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

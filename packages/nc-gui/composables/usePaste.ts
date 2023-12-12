@@ -8,7 +8,10 @@ export const usePaste = () => {
       const clipboardText = await navigator.clipboard.readText()
 
       // Create a new paste event
-      const pasteEvent = new Event('paste')
+      const pasteEvent = new Event('paste', {
+        bubbles: false,
+        cancelable: true,
+      })
 
       // Attach clipboard data to the event
       const clipboardData = {

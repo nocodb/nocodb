@@ -719,7 +719,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share Base",
+      "label": "Share base",
       "disable": "Freigegebene Datenbank deaktivieren",
       "enable": "Jeder mit dem Link",
       "link": "Freigegebene Datenbank-Link"

@@ -6,7 +6,7 @@ import UITypes from './UITypes';
 
 describe('Formula parsing and type validation', () => {
   it('Simple formula', async () => {
-    const result = validateFormulaAndExtractTreeWithType({
+    const result = await validateFormulaAndExtractTreeWithType({
       formula: '1 + 2',
       columns: [],
       clientOrSqlUi: 'mysql2',
@@ -16,7 +16,7 @@ describe('Formula parsing and type validation', () => {
   });
 
   it('Formula with IF condition', async () => {
-    const result = validateFormulaAndExtractTreeWithType({
+    const result = await validateFormulaAndExtractTreeWithType({
       formula: 'IF({column}, "Found", BLANK())',
       columns: [
         {
@@ -31,7 +31,7 @@ describe('Formula parsing and type validation', () => {
     expect(result.dataType).toEqual(FormulaDataTypes.STRING);
   });
   it('Complex formula', async () => {
-    const result = validateFormulaAndExtractTreeWithType({
+    const result = await validateFormulaAndExtractTreeWithType({
       formula:
         'SWITCH({column2},"value1",IF({column1}, "Found", BLANK()),"value2", 2)',
       columns: [
@@ -51,7 +51,7 @@ describe('Formula parsing and type validation', () => {
 
     expect(result.dataType).toEqual(FormulaDataTypes.STRING);
 
-    const result1 = validateFormulaAndExtractTreeWithType({
+    const result1 = await validateFormulaAndExtractTreeWithType({
       formula: 'SWITCH({column2},"value1",IF({column1}, 1, 2),"value2", 2)',
       columns: [
         {

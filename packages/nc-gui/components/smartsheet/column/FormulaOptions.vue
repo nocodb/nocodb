@@ -12,15 +12,6 @@ import {
 } from 'nocodb-sdk'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import {
-  UITypes,
-  isLinksOrLTAR,
-  isNumericCol,
-  isSystemColumn,
-  jsepCurlyHook,
-  substituteColumnIdWithAliasInFormula,
-  validateFormulaAndExtractTreeWithType
-} from 'nocodb-sdk'
-import {
   MetaInj,
   NcAutocompleteTree,
   computed,
@@ -87,12 +78,12 @@ const refTables = computed(() => {
 const validators = {
   formula_raw: [
     {
-      validator: (_: any, formula: any) => {
-        return new Promise<void>((resolve, reject) => {
+      validator:  (_: any, formula: any) => {
+        return new Promise<void>(async (resolve, reject) => {
           if (!formula?.trim()) return reject(new Error('Required'))
 
           try {
-            validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value })
+            await validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value })
           } catch (e: any) {
             if (e instanceof FormulaError && e.extra?.key) {
               return reject(new Error(t(e.extra.key, e.extra)))

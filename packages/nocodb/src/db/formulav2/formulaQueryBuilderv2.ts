@@ -77,7 +77,7 @@ async function _formulaQueryBuilder(
     // formula may include double curly brackets in previous version
     // convert to single curly bracket here for compatibility
     // const _tree1 = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
-    tree = validateFormulaAndExtractTreeWithType({
+    tree = await validateFormulaAndExtractTreeWithType({
       formula: _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
       columns,
       clientOrSqlUi: baseModelSqlv2.clientType as

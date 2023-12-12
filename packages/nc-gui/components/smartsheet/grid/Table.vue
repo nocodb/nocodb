@@ -169,7 +169,7 @@ const predictNextFormulas = async () => {
   await _predictNextFormulas(meta)
 }
 
-const { paste } = usePaste()
+const { paste } = usePaste(true)
 
 // #Refs
 

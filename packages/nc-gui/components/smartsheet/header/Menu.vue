@@ -284,7 +284,7 @@ const onInsertAfter = () => {
     v-model:visible="isOpen"
     :trigger="['click']"
     placement="bottomRight"
-    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-2xl"
+    overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl"
     @click.stop="isOpen = !isOpen"
   >
     <div>

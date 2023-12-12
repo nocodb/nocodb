@@ -52,13 +52,16 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
-
 .nc-input-md {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
 .mobile {
-  .nc-scrollbar-md, .nc-scrollbar-x-md, .nc-scrollbar-dark-md, .nc-scrollbar-x-md-dark, .nc-scrollbar-x-lg {
+  .nc-scrollbar-md,
+  .nc-scrollbar-x-md,
+  .nc-scrollbar-dark-md,
+  .nc-scrollbar-x-md-dark,
+  .nc-scrollbar-x-lg {
     &::-webkit-scrollbar {
       width: 0px;
     }
@@ -93,7 +96,6 @@ main {
   overflow-x: scroll;
   scrollbar-width: thin !important;
 
-
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -108,7 +110,6 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 4px;
     @apply bg-gray-200;
   }
@@ -121,7 +122,6 @@ main {
   overflow-y: scroll;
   overflow-x: hidden;
   scrollbar-width: thin !important;
-
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -154,7 +154,6 @@ main {
   overflow-x: scroll;
   scrollbar-width: thin !important;
 
-  
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -169,14 +168,11 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 4px;
-    background-color: rgba(0, 0, 0, 0.3)
-
+    background-color: rgba(0, 0, 0, 0.3);
   }
   &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4)
-
+    background-color: rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -196,7 +192,6 @@ main {
   &::-webkit-scrollbar-thumb {
     -webkit-border-radius: 10px;
     border-radius: 10px;
-
 
     width: 8px;
     @apply bg-gray-200;
@@ -505,8 +500,9 @@ a {
   @apply p-4;
 }
 
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled),
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-  @apply bg-primary bg-opacity-20;
+  @apply bg-gray-300 bg-opacity-20;
 }
 
 .ant-select-selection-search-input:focus {
@@ -660,7 +656,8 @@ input[type='number'] {
   .nc-emoji {
     @apply xs:(text-lg);
   }
-  .material-symbols, .nc-icon {
+  .material-symbols,
+  .nc-icon {
     @apply !xs:(text-xl -mt-0.25);
   }
 
@@ -669,7 +666,7 @@ input[type='number'] {
   }
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
-    @apply !xs:(hidden)
+    @apply !xs:(hidden);
   }
 }
 
@@ -677,12 +674,11 @@ input[type='number'] {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }
 
-
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
   @apply xs:(opacity-100 hover:bg-gray-50);
 
   .nc-icon {
-    @apply xs:(visible opacity-100 !text-gray-500)
+    @apply xs:(visible opacity-100 !text-gray-500);
   }
 }
 

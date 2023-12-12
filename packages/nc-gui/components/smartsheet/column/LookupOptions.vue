@@ -83,7 +83,7 @@ const cellIcon = (column: ColumnType) =>
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.links')" v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
-          dropdown-class-name="!w-64 nc-dropdown-relation-table"
+          dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table "
           @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
@@ -114,12 +114,12 @@ const cellIcon = (column: ColumnType) =>
         <a-select
           v-model:value="vModel.fk_lookup_column_id"
           name="fk_lookup_column_id"
-          dropdown-class-name="nc-dropdown-relation-column"
+          dropdown-class-name="nc-dropdown-relation-column !rounded-md"
           @change="onDataTypeChange"
         >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             <div class="flex gap-2 truncate items-center">
-              <div class="flex items-center flex-1 truncate font-semibold">
+              <div class="inline-flex items-center flex-1 truncate font-semibold">
                 <component :is="cellIcon(column)" :column-meta="column" />
                 <div class="truncate flex-1">{{ column.title }}</div>
               </div>

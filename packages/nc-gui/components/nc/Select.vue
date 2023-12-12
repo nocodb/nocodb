@@ -70,9 +70,8 @@ const onChange = (value: string) => {
 .ant-select-item-option-state {
   @apply !xs:mt-1.75;
 }
-
 .ant-select-item-option {
-  @apply !rounded-md my-0.5;
+  @apply !rounded-md;
 }
 
 .nc-select.ant-select {
@@ -100,7 +99,7 @@ const onChange = (value: string) => {
 }
 
 .nc-select-dropdown {
-  @apply !rounded-xl;
+  @apply !rounded-xl py-1.5;
 
   .rc-virtual-list-holder {
     overflow-y: scroll;

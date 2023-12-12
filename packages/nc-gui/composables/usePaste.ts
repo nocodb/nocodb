@@ -16,7 +16,7 @@ export const usePaste = () => {
       }
       Object.defineProperty(pasteEvent, 'clipboardData', { value: clipboardData })
 
-      // Dispatch the event on the document or any other target element
+      // Dispatch the event on the document
       document.dispatchEvent(pasteEvent)
       return true
     } catch (e) {

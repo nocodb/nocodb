@@ -57,7 +57,7 @@ setAdditionalValidations({
           @click.stop
         >
           <a-select-option v-for="opt of columnsAllowedAsQrValue" :key="opt" :value="opt.value">
-            <div class="flex gap-2 w-full truncate items-center">
+            <div class="flex gap-2 w-full truncate items-center" :data-testid="`nc-qr-${opt.label}`">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title>{{ opt.label }}</template>
                 {{ opt.label }}

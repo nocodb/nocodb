@@ -29,7 +29,7 @@ const showNewTokenModal = ref(false)
 
 const currentLimit = ref(10)
 
-const defaultTokenName = t('labels.untitledToken')
+const defaultTokenName = t('labels.token')
 
 const selectedTokenData = ref<ApiTokenType>({
   description: defaultTokenName,
@@ -41,6 +41,30 @@ const pagination = reactive({
   total: 0,
   pageSize: 10,
 })
+
+const getDefaultTokenValue = (tokens: IApiTokenInfo[]) => {
+  let extractedSortedTokenNumbers =
+    [...tokens]
+      .map((e) => {
+        let tokenName = e.description?.split('-')
+        if (tokenName && tokenName[tokenName.length - 1] && !isNaN(Number(tokenName[tokenName.length - 1]?.trim()))) {
+          return Number(tokenName[tokenName.length - 1]?.trim())
+        }
+      })
+      .filter((e) => e)
+      .sort((a, b) => {
+        if (a !== undefined && b !== undefined) {
+          return a - b
+        }
+        return 0
+      }) || []
+
+  if (extractedSortedTokenNumbers.length) {
+    return `${defaultTokenName}-${(extractedSortedTokenNumbers[extractedSortedTokenNumbers.length - 1] || 0) + 1}`
+  } else {
+    return `${defaultTokenName}-1`
+  }
+}
 
 const hideOrShowToken = (tokenId: string) => {
   if (selectedToken.isShow && selectedToken.id === tokenId) {
@@ -67,6 +91,7 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
     pagination.pageSize = 10
 
     tokens.value = response.list as IApiTokenInfo[]
+    selectedTokenData.value.description = getDefaultTokenValue(tokens.value)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -116,7 +141,6 @@ const generateToken = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    selectedTokenData.value.description = defaultTokenName
     $e('a:api-token:generate')
   }
 }

@@ -2,7 +2,6 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
-import type { ColumnType, FormulaType } from 'nocodb-sdk'
 import {
   FormulaError,
   UITypes,
@@ -57,23 +56,7 @@ const meta = inject(MetaInj, ref())
 const supportedColumns = computed(
   () => meta?.value?.columns?.filter((col) => !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) || [],
 )
-const { metas } = useMetas()
-
-const refTables = computed(() => {
-  if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
-    return []
-  }
-
-  const _refTables = meta.value.columns
-    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
-    .map((column) => ({
-      col: column.colOptions,
-      column,
-      ...tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id),
-    }))
-    .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
-  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
-})
+const { metas, getMeta } = useMetas()
 
 const validators = {
   formula_raw: [
@@ -83,7 +66,7 @@ const validators = {
           if (!formula?.trim()) return reject(new Error('Required'))
 
           try {
-            await validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value })
+            await validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value, getMeta })
           } catch (e: any) {
             if (e instanceof FormulaError && e.extra?.key) {
               return reject(new Error(t(e.extra.key, e.extra)))

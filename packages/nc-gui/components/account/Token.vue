@@ -19,6 +19,8 @@ interface IApiTokenInfo extends ApiTokenType {
 
 const tokens = ref<IApiTokenInfo[]>([])
 
+const allTokens = ref<IApiTokenInfo[]>([])
+
 const selectedToken = reactive({
   isShow: false,
   id: '',
@@ -43,8 +45,11 @@ const pagination = reactive({
   pageSize: 10,
 })
 
-const getDefaultTokenName = (tokens: IApiTokenInfo[]) => {
-  return extractNextDefaultName([...tokens.map((el) => el?.description || '')], defaultTokenName)
+const setDefaultTokenName = () => {
+  selectedTokenData.value.description = extractNextDefaultName(
+    [...allTokens.value.map((el) => el?.description || '')],
+    defaultTokenName,
+  )
 }
 
 const hideOrShowToken = (tokenId: string) => {
@@ -72,13 +77,46 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
     pagination.pageSize = 10
 
     tokens.value = response.list as IApiTokenInfo[]
-    selectedTokenData.value.description = getDefaultTokenName(tokens.value)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 loadTokens()
+
+// To set default next token name we should need to fetch all token first
+const loadAllTokens = async () => {
+  try {
+    const response: any = await api.orgTokens.list({
+      query: {
+        limit: -1,
+      },
+    } as RequestParams)
+    if (!response) return
+
+    allTokens.value = response.list as IApiTokenInfo[]
+    setDefaultTokenName()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+loadAllTokens()
+
+// This will updated allTokens local value instead of fetching all tokens on each operation (add|delete)
+const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
+  switch (type) {
+    case 'add': {
+      allTokens.value = [...allTokens.value, token]
+      break
+    }
+    case 'delete': {
+      allTokens.value = [...allTokens.value.filter((t) => t.token !== token.token)]
+      break
+    }
+  }
+  setDefaultTokenName()
+}
 
 const isModalOpen = ref(false)
 const tokenDesc = ref('')
@@ -90,6 +128,11 @@ const deleteToken = async (token: string): Promise<void> => {
     await api.orgTokens.delete(token)
     // message.success(t('msg.success.tokenDeleted'))
     await loadTokens()
+
+    updateAllTokens('delete', {
+      token: token,
+    } as IApiTokenInfo)
+
     if (!tokens.value.length && currentPage.value !== 1) {
       currentPage.value--
       loadTokens(currentPage.value)
@@ -113,12 +156,14 @@ const generateToken = async () => {
 
   if (!isValidTokenName.value) return
   try {
-    await api.orgTokens.create(selectedTokenData.value)
+    const token = await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
     // Token generated successfully
     // message.success(t('msg.success.tokenGenerated'))
     selectedTokenData.value = {}
     await loadTokens()
+
+    updateAllTokens('add', token as IApiTokenInfo)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

@@ -28,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return User.getWithRoles(user.id, {
       user,
-      baseId: req.ncProjectId,
+      baseId: req.ncBaseId,
     });
   }
 }

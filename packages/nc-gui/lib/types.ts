@@ -3,7 +3,7 @@ import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { ImportSource, ImportType, TabType } from './enums'
-import type { rolePermissions } from './constants'
+import type { rolePermissions } from './acl'
 
 interface User {
   id: string
@@ -176,7 +176,7 @@ interface SidebarTableNode extends TableType {
   isViewsLoading?: boolean
 }
 
-export {
+export type {
   User,
   ProjectMetaInfo,
   Field,

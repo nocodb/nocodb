@@ -12,7 +12,7 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`.nc-group-by-menu-btn`);
+    return this.rootPage.locator(`[data-testid="nc-group-by-menu"]`);
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
@@ -26,13 +26,22 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   async reset() {
+    // open group-by menu
+    await this.toolbar.clickGroupBy();
+
     const groupByCount = await this.rootPage.locator('.nc-group-by-item-remove-btn').count();
     for (let i = groupByCount - 1; i > -1; i--) {
       await this.rootPage.locator('.nc-group-by-item-remove-btn').nth(i).click();
     }
+
+    // close group-by menu
+    await this.toolbar.clickGroupBy();
+    await this.toolbar.parent.waitLoading();
   }
 
   async update({ index, title, ascending }: { index: number; title: string; ascending: boolean }) {
+    await this.toolbar.clickGroupBy();
+
     // Update the Column and Direction of the Group By at the given index
     await this.rootPage.locator('.nc-sort-field-select').nth(index).click();
     await this.rootPage
@@ -47,23 +56,58 @@ export class ToolbarGroupByPage extends BasePage {
       .locator('.ant-select-item')
       .nth(ascending ? 0 : 1)
       .click();
+
+    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+    // close group-by menu
+    await this.toolbar.clickGroupBy();
+    await this.toolbar.parent.waitLoading();
   }
 
   async add({ title, ascending, locallySaved }: { title: string; ascending: boolean; locallySaved: boolean }) {
-    const addGroupBtn = this.toolbar.rootPage.locator(`.nc-add-group-btn`);
-    if (!(await addGroupBtn.isDisabled())) {
-      await addGroupBtn.click();
+    // open group-by menu
+    await this.toolbar.clickGroupBy();
+
+    // Check if create group-by modal is open or group-by list is open
+    let isGroupByListOpen = false;
+    for (let i = 0; i < 3; i++) {
+      const groupByList = this.rootPage.locator('.nc-group-by-list');
+      if (await groupByList.isVisible()) {
+        isGroupByListOpen = true;
+        break;
+      }
+
+      const searchInput = this.rootPage.locator('.nc-group-by-create-modal');
+      if (await searchInput.isVisible()) {
+        isGroupByListOpen = false;
+        break;
+      }
+
+      await this.rootPage.waitForTimeout(150);
     }
-    // read content of the dropdown
-    const col = await this.rootPage.locator('.nc-sort-field-select').last().textContent();
-    if (col !== title) {
-      await this.rootPage.locator('.nc-sort-field-select').last().click();
+
+    if (isGroupByListOpen) {
+      await this.get().locator('button:has-text("Add subgroup")').click();
+    }
+
+    const regexTitle = new RegExp(`^${title}`);
+
+    await this.rootPage
+      .locator('.nc-group-by-create-modal')
+      .locator('.nc-group-by-column-search-item >> div', { hasText: regexTitle })
+      .scrollIntoViewIfNeeded();
+
+    // select column
+    const selectColumn = async () =>
       await this.rootPage
-        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-        .locator(`div[label="${title}"]`)
-        .last()
-        .click();
-    }
+        .locator('.nc-group-by-create-modal')
+        .locator('.nc-group-by-column-search-item  >> div', { hasText: regexTitle })
+        .click({ force: true });
+
+    await this.waitForResponse({
+      uiAction: selectColumn,
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+    });
 
     await this.rootPage.locator('.nc-sort-dir-select').last().click();
     const selectSortDirection = () =>
@@ -79,9 +123,21 @@ export class ToolbarGroupByPage extends BasePage {
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
+
+    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+
+    // close group-by menu
+    await this.toolbar.clickGroupBy();
+    await this.toolbar.parent.waitLoading();
   }
 
   async remove({ index }: { index: number }) {
+    // open group-by menu
+    await this.toolbar.clickGroupBy();
     await this.rootPage.locator('.nc-group-by-item-remove-btn').nth(index).click();
+
+    // close group-by menu
+    await this.toolbar.clickGroupBy();
+    await this.toolbar.parent.waitLoading();
   }
 }

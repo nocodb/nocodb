@@ -220,7 +220,7 @@ if (props.fromTableExplorer) {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
-      '!w-146': isTextArea(formState) && formState.meta.richMode,
+      '!w-146': isTextArea(formState) && formState.meta?.richMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-6': !embedMode,
@@ -341,7 +341,7 @@ if (props.fromTableExplorer) {
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->
           <LazySmartsheetColumnRichLongTextDefaultValue
-            v-if="isTextArea(formState) && formState.meta.richMode"
+            v-if="isTextArea(formState) && formState.meta?.richMode"
             v-model:value="formState"
           />
           <LazySmartsheetColumnDefaultValue

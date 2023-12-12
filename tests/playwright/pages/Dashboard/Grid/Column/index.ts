@@ -305,10 +305,15 @@ export class ColumnPageObject extends BasePage {
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="${dateFormat}"]`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-date-${dateFormat}"]`).click();
         // Time Format
         await this.get().locator('.nc-time-select').click();
-        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="nc-time-${timeFormat}"]`).click();
+        break;
+      case 'Date':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`[data-testid="${dateFormat}"]`).click();
         break;
       default:
         break;

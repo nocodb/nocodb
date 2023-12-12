@@ -35,13 +35,15 @@ async function changeLanguage(lang: string) {
   <a-menu-item
     v-for="[key, lang] of languages"
     :key="key"
-    :class="key === locale ? '!bg-primary bg-opacity-10 text-primary' : ''"
     class="group rounded-md !my-0.5"
     :value="key"
     @click="changeLanguage(key)"
   >
-    <div :class="key === locale ? '!font-semibold !text-primary' : ''" class="nc-base-menu-item capitalize">
-      {{ Language[key] || lang }}
+    <div class="flex items-center gap-2 justify-between">
+      <div class="nc-base-menu-item w-fit capitalize">
+        {{ Language[key] || lang }}
+      </div>
+      <component :is="iconMap.check" v-if="key === locale" class="text-primary w-4 h-4" />
     </div>
   </a-menu-item>
 </template>

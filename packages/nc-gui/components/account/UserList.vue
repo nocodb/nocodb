@@ -227,9 +227,9 @@ const openDeleteModal = (user: UserType) => {
                     <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                     <GeneralIcon
                       v-if="el?.roles === OrgUserRoles.CREATOR"
+                      id="nc-selected-item-icon"
                       icon="check"
                       class="w-4 h-4 text-primary"
-                      id="nc-selected-item-icon"
                     />
                   </div>
                   <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
@@ -246,9 +246,9 @@ const openDeleteModal = (user: UserType) => {
                     <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                     <GeneralIcon
                       v-if="el.roles === OrgUserRoles.VIEWER"
+                      id="nc-selected-item-icon"
                       icon="check"
                       class="w-4 h-4 text-primary"
-                      id="nc-selected-item-icon"
                     />
                   </div>
                   <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">

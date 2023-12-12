@@ -193,7 +193,11 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role !px-2">
+                    <a-select
+                      v-model:value="usersData.role"
+                      class="nc-user-roles"
+                      dropdown-class-name="nc-dropdown-user-role !px-2"
+                    >
                       <a-select-option
                         class="nc-role-option"
                         :value="OrgUserRoles.CREATOR"
@@ -203,9 +207,9 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                           <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                           <GeneralIcon
                             v-if="usersData.role === OrgUserRoles.CREATOR"
+                            id="nc-selected-item-icon"
                             icon="check"
                             class="w-4 h-4 text-primary"
-                            id="nc-selected-item-icon"
                           />
                         </div>
 
@@ -223,9 +227,9 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                           <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                           <GeneralIcon
                             v-if="usersData.role === OrgUserRoles.VIEWER"
+                            id="nc-selected-item-icon"
                             icon="check"
                             class="w-4 h-4 text-primary"
-                            id="nc-selected-item-icon"
                           />
                         </div>
                         <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">

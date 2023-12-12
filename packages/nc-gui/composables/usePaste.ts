@@ -1,4 +1,4 @@
-import { useI18n, message } from '#imports'
+import { message, useI18n } from '#imports'
 
 export const usePaste = () => {
   const { t } = useI18n()
@@ -6,7 +6,7 @@ export const usePaste = () => {
   const paste = async (): Promise<boolean> => {
     try {
       // Check if the Clipboard API is supported
-      if (!navigator.clipboard) throw new Error()
+      if (!navigator.clipboard) throw new Error(t('msg.error.pasteFromClipboardError'))
 
       // Read text from the clipboard
       const clipboardText = await navigator.clipboard.readText()

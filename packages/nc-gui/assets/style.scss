@@ -500,9 +500,19 @@ a {
   @apply p-4;
 }
 
-.ant-select-item-option-selected:not(.ant-select-item-option-disabled),
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled):hover,
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   @apply bg-gray-300 bg-opacity-20;
+}
+/* Add this to your global or component-specific stylesheet */
+
+/* Hide the element with id selected-item-icon inside NcSelect */
+.ant-select-selection-item #selected-item-icon {
+  display: none;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled){
+  @apply bg-transparent 
 }
 
 .ant-select-selection-search-input:focus {

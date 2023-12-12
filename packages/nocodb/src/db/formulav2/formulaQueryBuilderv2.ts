@@ -9,12 +9,12 @@ import {
 import { Logger } from '@nestjs/common';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import type Model from '~/models/Model';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type Column from '~/models/Column';
+import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import {
@@ -90,6 +90,11 @@ async function _formulaQueryBuilder(
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',
+      getMeta: async (modelId) => {
+        const model = await Model.get(modelId);
+        await model.getColumns();
+        return model;
+      },
     });
 
     // populate and save parsedTree to column if not exist

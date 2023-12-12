@@ -1420,7 +1420,7 @@ export async function validateFormulaAndExtractTreeWithType({
     | typeof MssqlUi
     | typeof SnowflakeUi
     | typeof PgUi;
-  getMeta?: (tableId: string) => Promise<any>;
+  getMeta: (tableId: string) => Promise<any>;
 }) {
   const colAliasToColMap = {};
   const colIdToColMap = {};
@@ -1494,11 +1494,11 @@ export async function validateFormulaAndExtractTreeWithType({
         }
       }
       // get args type and validate
-      const validateResult = (res.arguments = parsedTree.arguments.map(
+      const validateResult = (res.arguments = await Promise.all(parsedTree.arguments.map(
         (arg) => {
           return validateAndExtract(arg);
         }
-      ));
+      )));
 
       const argTypes = validateResult.map((v: any) => v.dataType);
 
@@ -1631,8 +1631,8 @@ export async function validateFormulaAndExtractTreeWithType({
         'Unary expression is not supported'
       );
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
-      res.left = validateAndExtract(parsedTree.left);
-      res.right = validateAndExtract(parsedTree.right);
+      res.left = await validateAndExtract(parsedTree.left);
+      res.right = await validateAndExtract(parsedTree.right);
 
       if (['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.COND_EXP;

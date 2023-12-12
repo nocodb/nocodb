@@ -93,7 +93,7 @@ if (!localValue.value && allowEmpty !== true) {
             </span>
           </NcTooltip>
         </div>
-        <component v-if="localValue === option.value" id="selected-item-icon" class="text-primary w-5 h-5" :is="iconMap.check" />
+        <component v-if="localValue === option.value" id="selected-item-icon" class="text-primary w-4 h-4" :is="iconMap.check" />
       </div>
     </a-select-option>
   </NcSelect>

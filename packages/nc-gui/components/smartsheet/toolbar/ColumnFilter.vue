@@ -357,7 +357,7 @@ onBeforeUnmount(() => {
                         <component
                           v-if="filter.logical_op === op.value"
                           id="selected-item-icon"
-                          class="text-primary w-5 h-5"
+                          class="text-primary w-4 h-4"
                           :is="iconMap.check"
                         />
                       </div>
@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
                   <component
                     v-if="filter.logical_op === op.value"
                     id="selected-item-icon"
-                    class="text-primary w-5 h-5"
+                    class="text-primary w-4 h-4"
                     :is="iconMap.check"
                   />
                 </div>
@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
                     <component
                       v-if="filter.comparison_op === compOp.value"
                       id="selected-item-icon"
-                      class="text-primary w-5 h-5"
+                      class="text-primary w-4 h-4"
                       :is="iconMap.check"
                     />
                   </div>
@@ -480,7 +480,7 @@ onBeforeUnmount(() => {
                     <component
                       v-if="filter.comparison_sub_op === compSubOp.value"
                       id="selected-item-icon"
-                      class="text-primary w-5 h-5"
+                      class="text-primary w-4 h-4"
                       :is="iconMap.check"
                     />
                   </div>

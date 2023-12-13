@@ -7,7 +7,6 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
-  IsLockedInj,
   ReadonlyInj,
   computed,
   inject,

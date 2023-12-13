@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { RollupColumn } from '../../../../nocodb/src/models'
 import Table from './Table.vue'
 import { IsGroupByInj, computed, ref } from '#imports'
 import type { Group, Row } from '#imports'

@@ -70,7 +70,12 @@ async function queryHandler(req, res) {
     if (dynamicPoolSize) {
       // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
       // pg SHOW max_connections; { max_connections: '100' }
-      const tempKnex = knex({ ...config, typeCast, pool: { min: 0, max: 1 } });
+      const tempKnex = knex({
+        ...config, connection: {
+          ...(config.connection || {}),
+          typeCast,
+        }, pool: { min: 0, max: 1 }
+      });
       let maxConnections;
       if (config.client === 'mysql2' || config.client === 'mysql') {
         maxConnections = (
@@ -91,12 +96,19 @@ async function queryHandler(req, res) {
       // console.log('Pool size: ', poolSize);
 
       connectionPools[connectionKey] = knex({
-        ...config,
-        typeCast,
+        ...config, connection: {
+          ...(config.connection || {}),
+          typeCast,
+        },
         pool: { min: 0, max: poolSize },
       });
     } else {
-      connectionPools[connectionKey] = knex({...config, typeCast});
+      connectionPools[connectionKey] = knex({
+        ...config, connection: {
+          ...(config.connection || {}),
+          typeCast,
+        }
+      });
     }
     fromPool = false;
 

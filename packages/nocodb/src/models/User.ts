@@ -9,7 +9,7 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
-import { BaseUser } from '~/models';
+import { Base, BaseUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 export default class User implements UserType {
@@ -70,6 +70,16 @@ export default class User implements UserType {
     );
 
     await NocoCache.del(CacheScope.INSTANCE_META);
+
+    // clear all base user related cache for instance
+    const bases = await Base.list({}, ncMeta);
+    for (const base of bases) {
+      await NocoCache.deepDel(
+        CacheScope.BASE_USER,
+        `${CacheScope.BASE_USER}:${base.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
 
     return this.get(id, ncMeta);
   }

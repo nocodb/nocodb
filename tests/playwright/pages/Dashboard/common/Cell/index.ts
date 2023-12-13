@@ -13,6 +13,7 @@ import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { YearCellPageObject } from './YearCell';
 import { TimeCellPageObject } from './TimeCell';
 import { GroupPageObject } from '../../Grid/Group';
+import { UserOptionCellPageObject } from './UserOptionCell';
 
 export interface CellProps {
   indexMap?: Array<number>;
@@ -31,6 +32,7 @@ export class CellPageObject extends BasePage {
   readonly geoData: GeoDataCellPageObject;
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
+  readonly userOption: UserOptionCellPageObject;
 
   constructor(parent: GridPage | SharedFormPage | GroupPageObject) {
     super(parent.rootPage);
@@ -44,6 +46,7 @@ export class CellPageObject extends BasePage {
     this.geoData = new GeoDataCellPageObject(this);
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
+    this.userOption = new UserOptionCellPageObject(this);
   }
 
   get({ indexMap, index, columnHeader }: CellProps): Locator {

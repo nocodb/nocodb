@@ -31,13 +31,16 @@ export class UserOptionColumnPageObject extends BasePage {
 
     await this.column.get().locator('.nc-cell-user').click();
 
-    const userDropdown = this.get().locator('[data-testid="select-option-User-undefined"]');
+    const userDropdown = this.get().locator(`[data-testid="select-option-${columnTitle}-undefined"]`);
     await userDropdown.waitFor({ state: 'visible' });
     console.log('userDropdown::::', userDropdown);
 
     await expect(userDropdown).toHaveCount(totalCount);
     await this.column.get().locator('.nc-cell-user').click();
-    await this.column.save({ isUpdated: true });
+
+    // Press `Escape` to close the dropdown
+    await this.rootPage.keyboard.press('Escape');
+    await this.get().waitFor({ state: 'hidden' });
   }
   async clearDefaultValueOptions({ columnTitle }: { columnTitle: string }) {
     await this.column.openEdit({ title: columnTitle });

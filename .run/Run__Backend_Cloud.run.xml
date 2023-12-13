@@ -3,7 +3,7 @@
     <package-json value="$PROJECT_DIR$/packages/nocodb/package.json" />
     <command value="run" />
     <scripts>
-      <script value="watch:run:ee" />
+      <script value="watch:run:pg:ee" />
     </scripts>
     <node-interpreter value="project" />
     <envs>

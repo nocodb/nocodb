@@ -3,6 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, isEeUI, ref, useApi, useCopy, useNuxtApp } from '#imports'
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 const { api, isLoading } = useApi()
 
@@ -18,6 +19,8 @@ interface IApiTokenInfo extends ApiTokenType {
 
 const tokens = ref<IApiTokenInfo[]>([])
 
+const allTokens = ref<IApiTokenInfo[]>([])
+
 const selectedToken = reactive({
   isShow: false,
   id: '',
@@ -29,7 +32,7 @@ const showNewTokenModal = ref(false)
 
 const currentLimit = ref(10)
 
-const defaultTokenName = t('labels.untitledToken')
+const defaultTokenName = t('labels.token')
 
 const selectedTokenData = ref<ApiTokenType>({
   description: defaultTokenName,
@@ -42,6 +45,13 @@ const pagination = reactive({
   pageSize: 10,
 })
 
+const setDefaultTokenName = () => {
+  selectedTokenData.value.description = extractNextDefaultName(
+    [...allTokens.value.map((el) => el?.description || '')],
+    defaultTokenName,
+  )
+}
+
 const hideOrShowToken = (tokenId: string) => {
   if (selectedToken.isShow && selectedToken.id === tokenId) {
     selectedToken.isShow = false
@@ -50,6 +60,38 @@ const hideOrShowToken = (tokenId: string) => {
     selectedToken.isShow = true
     selectedToken.id = tokenId
   }
+}
+
+// To set default next token name we should need to fetch all token first
+const loadAllTokens = async (limit = pagination.total) => {
+  try {
+    const response: any = await api.orgTokens.list({
+      query: {
+        limit,
+      },
+    } as RequestParams)
+    if (!response) return
+
+    allTokens.value = response.list as IApiTokenInfo[]
+    setDefaultTokenName()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+// This will update allTokens local value instead of fetching all tokens on each operation (add|delete)
+const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
+  switch (type) {
+    case 'add': {
+      allTokens.value = [...allTokens.value, token]
+      break
+    }
+    case 'delete': {
+      allTokens.value = [...allTokens.value.filter((t) => t.token !== token.token)]
+      break
+    }
+  }
+  setDefaultTokenName()
 }
 
 const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
@@ -67,6 +109,10 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
     pagination.pageSize = 10
 
     tokens.value = response.list as IApiTokenInfo[]
+
+    if (!allTokens.value.length) {
+      await loadAllTokens(pagination.total)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -84,6 +130,11 @@ const deleteToken = async (token: string): Promise<void> => {
     await api.orgTokens.delete(token)
     // message.success(t('msg.success.tokenDeleted'))
     await loadTokens()
+
+    updateAllTokens('delete', {
+      token,
+    } as IApiTokenInfo)
+
     if (!tokens.value.length && currentPage.value !== 1) {
       currentPage.value--
       loadTokens(currentPage.value)
@@ -107,16 +158,17 @@ const generateToken = async () => {
 
   if (!isValidTokenName.value) return
   try {
-    await api.orgTokens.create(selectedTokenData.value)
+    const token = await api.orgTokens.create(selectedTokenData.value)
     showNewTokenModal.value = false
     // Token generated successfully
     // message.success(t('msg.success.tokenGenerated'))
     selectedTokenData.value = {}
     await loadTokens()
+
+    updateAllTokens('add', token as IApiTokenInfo)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    selectedTokenData.value.description = defaultTokenName
     $e('a:api-token:generate')
   }
 }

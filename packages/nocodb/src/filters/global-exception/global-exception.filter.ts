@@ -49,7 +49,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.logger.warn(
         `${exception.message}, Path : ${request.path}, Workspace ID : ${
           (request as any).ncWorkspaceId
-        }, Project ID : ${(request as any).ncProjectId}`,
+        }, Project ID : ${(request as any).ncBaseId}`,
       );
     }
 

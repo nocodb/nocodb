@@ -32,13 +32,8 @@ test.describe('Toolbar operations (GRID)', () => {
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
-
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
-
-    await toolbar.clickGroupBy();
 
     // Hide Field and Verify
     await toolbar.fields.toggle({ title: 'Description' });
@@ -165,15 +160,9 @@ test.describe('Toolbar operations (GRID)', () => {
     // Open Table
     await dashboard.treeView.openTable({ title: 'Film' });
 
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
-
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
-
-    // Close GroupBy Menu
-    await toolbar.clickGroupBy();
 
     // Hide Field and Verify
     await toolbar.fields.toggle({ title: 'Description' });
@@ -314,9 +303,6 @@ test.describe('Toolbar operations (GRID)', () => {
       await dashboard.grid.column.selectType({ type: 'SingleLineText' });
       await dashboard.grid.column.save({ isUpdated: true });
     }
-
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
 
     // GroupBy Category Descending Order
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
@@ -464,11 +450,8 @@ test.describe('Toolbar operations (GRID)', () => {
       await dashboard.grid.column.save({ isUpdated: true });
     }
 
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
-    await toolbar.clickGroupBy();
 
     await dashboard.grid.groupPage.openGroup({ indexMap: [5, 0] });
 
@@ -479,11 +462,7 @@ test.describe('Toolbar operations (GRID)', () => {
       value: 'ALLEY EVOLUTION',
     });
 
-    await toolbar.clickGroupBy();
-
     await toolbar.groupBy.update({ index: 0, title: 'ReleaseYear', ascending: false });
-
-    await toolbar.clickGroupBy();
 
     await dashboard.grid.groupPage.openGroup({ indexMap: [0, 1] });
 
@@ -493,8 +472,6 @@ test.describe('Toolbar operations (GRID)', () => {
       columnHeader: 'Title',
       value: 'ACADEMY DINOSAUR',
     });
-
-    await toolbar.clickGroupBy();
 
     await toolbar.groupBy.update({ index: 1, title: 'Length', ascending: false });
     await dashboard.grid.groupPage.openGroup({ indexMap: [0, 5] });
@@ -511,10 +488,7 @@ test.describe('Toolbar operations (GRID)', () => {
     if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
 
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
-    await toolbar.clickGroupBy();
 
     await dashboard.viewSidebar.createGridView({ title: 'Test' });
     await dashboard.rootPage.waitForTimeout(500);
@@ -538,10 +512,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await dashboard.treeView.openTable({ title: 'Film' });
     await dashboard.viewSidebar.createGridView({ title: 'Film Grid' });
 
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
-    await toolbar.clickGroupBy();
 
     await dashboard.viewSidebar.copyView({ title: 'Film Grid' });
 
@@ -561,11 +532,8 @@ test.describe('Toolbar operations (GRID)', () => {
     if (enableQuickRun()) test.skip();
     await dashboard.treeView.openTable({ title: 'Film' });
 
-    // Open GroupBy Menu
-    await toolbar.clickGroupBy();
     await toolbar.groupBy.add({ title: 'Length', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'RentalDuration', ascending: false, locallySaved: false });
-    await toolbar.clickGroupBy();
 
     await dashboard.grid.groupPage.openGroup({ indexMap: [0, 0] });
 
@@ -576,9 +544,7 @@ test.describe('Toolbar operations (GRID)', () => {
       value: 'CONTROL ANTHEM',
     });
 
-    await toolbar.clickGroupBy();
     await toolbar.groupBy.remove({ index: 1 });
-    await toolbar.clickGroupBy();
 
     await dashboard.grid.groupPage.validateFirstRow({
       indexMap: [0],
@@ -587,9 +553,7 @@ test.describe('Toolbar operations (GRID)', () => {
       value: 'CHICAGO NORTH',
     });
 
-    await toolbar.clickGroupBy();
     await toolbar.groupBy.remove({ index: 0 });
-    await toolbar.clickGroupBy();
 
     await dashboard.grid.cell.verify({
       index: 0,

@@ -14,8 +14,6 @@ export const useBases = defineStore('basesStore', () => {
   const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at))
   const basesUser = ref<Map<string, User[]>>(new Map())
 
-  const baseUserCount = ref<number | undefined>(undefined)
-
   const router = useRouter()
   const route = router.currentRoute
 
@@ -299,7 +297,6 @@ export const useBases = defineStore('basesStore', () => {
   return {
     bases,
     basesList,
-    baseUserCount,
     loadProjects,
     loadProject,
     getSqlUi,

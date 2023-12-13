@@ -188,7 +188,8 @@
     "useSurveyMode": "설문 조사 모드 사용",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "초"
+    "seconds": "초",
+    "paste": "Paste"
   },
   "objects": {
     "workspace": "작업 공간",
@@ -640,7 +641,8 @@
     "sourceNameRequired": "소스 이름이 필요합니다",
     "changeWsName": "작업 공간 이름 변경",
     "pressEnter": "Enter를 누르세요",
-    "newFormLoaded": "새로운 폼이 로드되었습니다."
+    "newFormLoaded": "새로운 폼이 로드되었습니다.",
+    "webhook": "Webhook"
   },
   "activity": {
     "openInANewTab": "새 탭에서 열기",
@@ -1020,6 +1022,7 @@
     "acceptOnlyValid": "유효한 값만 허용",
     "apiTokenCreate": "새 API 토큰 생성",
     "selectFieldToSort": "정렬할 필드 선택",
+    "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "테이블에 레코드가 없습니다.",
     "createWebhookMsg1": "웹훅을 생성하여 자동화를 구동하고,",
     "createWebhookMsg2": "자동화를 지원하는 웹 후크를 만들고,",
@@ -1207,7 +1210,8 @@
       "goToPrevious": "Go to previous",
       "goToNext": "Go to next",
       "thankYou": "Thank you!",
-      "submittedFormData": "You have successfully submitted the form data."
+      "submittedFormData": "You have successfully submitted the form data.",
+      "editingSystemKeyNotSupported": "Editing system key not supported"
     },
     "error": {
       "nameRequired": "Name Required",
@@ -1283,7 +1287,8 @@
       "duplicateParameterKeysAreNotAllowed": "중복 매개 변수 키는 허용되지 않습니다.",
       "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
-      "copyToClipboardError": "클립 보드에 복사할 수 없습니다."
+      "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
+      "pasteFromClipboardError": "Failed to paste from clipboard"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다.",

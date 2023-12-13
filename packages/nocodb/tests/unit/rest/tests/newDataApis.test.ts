@@ -98,6 +98,7 @@ import {
 import { createView, updateView } from '../../factory/view';
 
 import { isPg } from '../../init/db';
+import { defaultUserArgs } from '../../factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
@@ -2731,6 +2732,82 @@ function linkBased() {
   });
 }
 
+function userFieldBased() {
+  // prepare data for test cases
+  beforeEach(async function () {
+    context = await init(false, "creator");
+    base = await createProject(context);
+    table = await createTable(context, base, {
+      table_name: 'userBased',
+      title: 'userBased',
+      columns: customColumns('userBased'),
+    });
+
+    // retrieve column meta
+    columns = await table.getColumns();
+
+    // add users to workspace
+    const users = [
+      'a@nocodb.com',
+      'b@nocodb.com',
+      'c@nocodb.com',
+      'd@nocodb.com',
+      'e@nocodb.com',
+    ];
+    for (const email of users) {
+      await addUsers(email);
+    }
+    const userList = await getUsers();
+    userList[userList.length] = { email: null };
+    userList[userList.length] = { email: '' };
+
+    // build records
+    const rowAttributes = [];
+    for (let i = 0; i < 400; i++) {
+      const row = {
+        userFieldSingle: [{ email: userList[i % userList.length].email }],
+        userFieldMulti: [{ email: userList[i % userList.length].email }, { email: userList[(i+1) % userList.length].email }],
+      };
+      rowAttributes.push(row);
+    }
+
+    // insert records
+    await createBulkRows(context, {
+      base,
+      table,
+      values: rowAttributes,
+    });
+
+    // retrieve inserted records
+    insertedRecords = await listRow({ base, table });
+
+    // verify length of unfiltered records to be 400
+    expect(insertedRecords.length).to.equal(400);
+  });
+
+  async function addUsers(email) {
+    const response = await request(context.app)
+      .post('/api/v1/auth/user/signup')
+      .send({ email, password: defaultUserArgs.password })
+      .expect(200);
+
+    const token = response.body.token;
+    expect(token).to.be.a('string');
+  }
+
+  async function getUsers() {
+    const response = await request(context.app)
+      .get(`/api/v2/meta/bases/${base.id}/users`)
+      .set('xc-auth', context.token);
+
+    expect(response.body).to.have.keys(['users']);
+    expect(response.body.users.list).to.have.length(6);
+    return response.body.users.list;
+  }
+
+  it('User field based', async function () {});
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2742,6 +2819,7 @@ export default function () {
   describe('Select based', selectBased);
   describe('Date based', dateBased);
   describe('Link based', linkBased);
+  describe('User field based', userFieldBased);
 
   // based out of sakila db, for link based tests
   describe('General', generalDb);

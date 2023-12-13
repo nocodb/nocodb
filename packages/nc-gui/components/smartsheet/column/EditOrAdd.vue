@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsKanbanInj,
@@ -158,6 +158,9 @@ onMounted(() => {
   } else {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
+      emit('cancel')
+    } else if (isSystemColumn(formState.value)) {
+      message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
     }
   }

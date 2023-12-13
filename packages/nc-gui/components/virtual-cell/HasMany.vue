@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
   CellValueInj,
@@ -118,7 +119,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       </template>
     </div>
 
-    <div v-if="!isUnderLookup" class="flex justify-end gap-1 min-h-[30px] items-center">
+    <div v-if="!isUnderLookup && !isSystemColumn(column)" class="flex justify-end gap-1 min-h-[30px] items-center">
       <GeneralIcon
         icon="expand"
         class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"

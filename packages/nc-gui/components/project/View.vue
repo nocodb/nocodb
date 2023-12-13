@@ -35,7 +35,7 @@ const baseSettingsState = ref('')
 const userCount = isEeUI ? workspaceUserCount : baseUserCount
 
 const updateBaseUserCount = async () => {
-  if (!baseUserCount) return
+  if (!baseUserCount || !isUIAllowed('newUser')) return
 
   try {
     const { totalRows } = await getProjectUsers({

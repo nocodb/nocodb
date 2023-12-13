@@ -668,7 +668,7 @@
     "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Manage Base Access",
     "allowDownload": "Allow Download",
@@ -721,7 +721,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Disable shared base",
       "enable": "Anyone with the link",
       "link": "Shared base link"
@@ -1212,6 +1212,7 @@
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
       "editingSystemKeyNotSupported": "Editing system key not supported"
+
     },
     "error": {
       "nameRequired": "Name Required",

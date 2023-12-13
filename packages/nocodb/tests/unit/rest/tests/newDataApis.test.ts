@@ -82,7 +82,7 @@
  */
 
 import 'mocha';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import {UITypes, ViewTypes, WorkspaceUserRoles} from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
@@ -2796,6 +2796,15 @@ function userFieldBased() {
 
     const token = response.body.token;
     expect(token).to.be.a('string');
+
+    // invite users to workspace
+    if (process.env.EE === 'true') {
+      let rsp = await request(context.app)
+        .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
+        .set('xc-auth', context.token)
+        .send({ email, roles: WorkspaceUserRoles.VIEWER });
+      console.log(rsp);
+    }
   }
 
   async function getUsers() {
@@ -2925,9 +2934,12 @@ function userFieldBased() {
   it('Create record : using ID', async function () {
     const userList = await getUsers();
 
+    const id0 = userList.find((u) => u.email === 'test@example.com').id;
+    const id1 = userList.find((u) => u.email === 'a@nocodb.com').id;
+
     const newRecord = {
-      userFieldSingle: userList[0].id,
-      userFieldMulti: `${userList[0].id},${userList[1].id}`,
+      userFieldSingle: id0,
+      userFieldMulti: `${id0},${id1}`,
     };
     const rsp = await ncAxiosPost({ body: newRecord });
     expect(rsp.body).to.deep.equal({ Id: 401 });

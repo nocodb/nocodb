@@ -59,7 +59,7 @@ export class TelemetryService {
           $ip: req?.clientIp,
           user_agent: req?.headers?.['user-agent'],
           workspace_id: req?.ncWorkspaceId,
-          project_id: req?.ncProjectId,
+          project_id: req?.ncBaseId,
           req_id: req?.id,
           backend: true,
           ...payload,

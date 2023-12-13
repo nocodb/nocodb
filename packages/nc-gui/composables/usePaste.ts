@@ -1,12 +1,12 @@
-import { useI18n, message } from '#imports'
+import { message, useI18n } from '#imports'
 
-export const usePaste = (showDialogIfFailed = false) => {
+export const usePaste = () => {
   const { t } = useI18n()
 
   const paste = async (): Promise<boolean> => {
     try {
       // Check if the Clipboard API is supported
-      if (!navigator.clipboard) return false
+      if (!navigator.clipboard) throw new Error(t('msg.error.pasteFromClipboardError'))
 
       // Read text from the clipboard
       const clipboardText = await navigator.clipboard.readText()
@@ -27,8 +27,6 @@ export const usePaste = (showDialogIfFailed = false) => {
       document.dispatchEvent(pasteEvent)
       return true
     } catch (e) {
-      if (!showDialogIfFailed) throw new Error(t('msg.error.pasteFromClipboardError'))
-
       message.error(t('msg.error.pasteFromClipboardError'))
 
       return false

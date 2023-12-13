@@ -22,7 +22,7 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
     this.sentryClient?.instance()?.captureException(exception, {
       extra: {
         workspaceId: (request as any).ncWorkspaceId,
-        projectId: (request as any).ncProjectId,
+        projectId: (request as any).ncBaseId,
         ip: (request as any).clientIp,
         id: (request as any).user?.id,
         path: (request as any).path,
@@ -37,7 +37,7 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
       {
         msg: exception.message,
         workspaceId: (request as any).ncWorkspaceId,
-        projectId: (request as any).ncProjectId,
+        projectId: (request as any).ncBaseId,
         ip: (request as any).clientIp,
         id: (request as any).user?.id,
         path: (request as any).path,

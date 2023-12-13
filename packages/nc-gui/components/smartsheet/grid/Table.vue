@@ -169,7 +169,7 @@ const predictNextFormulas = async () => {
   await _predictNextFormulas(meta)
 }
 
-const { paste } = usePaste(true)
+const { paste } = usePaste()
 
 // #Refs
 
@@ -1720,6 +1720,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               class="nc-base-menu-item"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="flex gap-2 items-center">
@@ -1732,6 +1733,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearSelectedRangeOfCells()"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">

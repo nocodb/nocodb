@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import type { SourceType } from 'nocodb-sdk'
-import { ClientType, DataSourcesSubTab, storeToRefs, useBase, useCommandPalette, useNuxtApp } from '#imports'
+import { ClientType, DataSourcesSubTab, isEeUI, storeToRefs, useBase, useCommandPalette, useNuxtApp } from '#imports'
 
 interface Props {
   state: string
@@ -490,6 +490,22 @@ const isEditBaseModalOpen = computed({
                       >
                         <div class="flex items-center gap-2 text-gray-600">
                           <GeneralIcon icon="acl" class="group-hover:text-accent" />
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip v-if="!isEeUI">
+                      <template #title>
+                        {{ $t('title.audit') }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        class="nc-action-btn cursor-pointer outline-0"
+                        type="text"
+                        data-testid="nc-data-sources-view-audit"
+                        @click="baseAction(source.id, DataSourcesSubTab.Audit)"
+                      >
+                        <div class="flex items-center gap-2 text-gray-600">
+                          <GeneralIcon icon="book" class="group-hover:text-accent" />
                         </div>
                       </NcButton>
                     </NcTooltip>

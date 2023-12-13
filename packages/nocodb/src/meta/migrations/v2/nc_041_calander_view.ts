@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.CALANDER_VIEW, (table) => {
+  await knex.schema.createTable(MetaTable.CALANDER, (table) => {
     table.string('fk_view_id', 20).primary();
 
     table.string('base_id', 20);

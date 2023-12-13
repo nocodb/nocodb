@@ -14619,6 +14619,10 @@
                                 "type": "integer",
                                 "description": "Kanban Count"
                               },
+                              "calendarCount": {
+                                "type": "integer",
+                                "description": "Calendar Count"
+                              },
                               "total": {
                                 "type": "integer",
                                 "description": "Total View Count"
@@ -14638,6 +14642,10 @@
                               "sharedKanbanCount": {
                                 "type": "integer",
                                 "description": "Shared Kanban Count"
+                              },
+                              "sharedCalendarCount": {
+                                "type": "integer",
+                                "description": "Shared Calendar Count"
                               },
                               "sharedTotal": {
                                 "type": "integer",
@@ -14704,11 +14712,13 @@
                             "gridCount": 3,
                             "galleryCount": 0,
                             "kanbanCount": 0,
+                            "calendarCount": 0,
                             "total": 3,
                             "sharedFormCount": 0,
                             "sharedGridCount": 0,
                             "sharedGalleryCount": 0,
                             "sharedKanbanCount": 0,
+                            "sharedCalendarCount": 0,
                             "sharedTotal": 0,
                             "sharedLockedCount": 0
                           },
@@ -14744,11 +14754,13 @@
                             "gridCount": 3,
                             "galleryCount": 0,
                             "kanbanCount": 0,
+                            "calendarCount": 0,
                             "total": 3,
                             "sharedFormCount": 0,
                             "sharedGridCount": 0,
                             "sharedGalleryCount": 0,
                             "sharedKanbanCount": 0,
+                            "sharedCalendarCount": 0,
                             "sharedTotal": 0,
                             "sharedLockedCount": 0
                           },
@@ -20142,7 +20154,7 @@
           "id": "psbv6c6y9qvbu"
         }
       },
-      "CalenderDateRange": {
+      "CalendarDateRange": {
         "description": "Model for Calendar Date Range",
         "examples": [
           {
@@ -20187,15 +20199,15 @@
           "id": "psbv6c6y9qvbu"
         }
       },
-      "CalanderUpdateReq": {
+      "CalendarUpdateReq": {
         "description": "Model for Calendar Update Request",
         "examples": [
           {
             "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
-            "title": "Calander 2"
+            "title": "Calendar 2"
           }
         ],
-        "title": "Calander Update Request Model",
+        "title": "Calendar Update Request Model",
         "type": "object",
         "properties": {
           "fk_cover_image_col_id": {
@@ -20207,8 +20219,8 @@
           },
           "title": {
             "type": "string",
-            "description": "Calander Title",
-            "example": "Calander 01"
+            "description": "Calendar Title",
+            "example": "Calendar 01"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -23346,6 +23358,9 @@
               },
               {
                 "$ref": "#/components/schemas/Map"
+              },
+              {
+                "$ref": "#/components/schemas/Calendar"
               }
             ],
             "description": "Associated View Model"
@@ -23526,6 +23541,13 @@
             "type": 4,
             "copy_from_id": null,
             "fk_grp_col_id": "cl_g0a89q9xdry3lu",
+            "fk_geo_data_col_id": null
+          },
+          {
+            "title": "My Calendar View",
+            "type": 4,
+            "copy_from_id": null,
+            "fk_grp_col_id": null,
             "fk_geo_data_col_id": null
           },
           {

@@ -19972,6 +19972,256 @@
           "id": "9zirjgj9k1gqa"
         }
       },
+      "Calendar": {
+        "description": "Model for Calendar",
+        "examples": [
+          {
+            "id": "vw_wqs4zheuo5lgdy",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "fk_cover_image_col_id": null,
+            "columns": [
+              {
+                "id": "kvc_2skkg5mi1eb37f",
+                "fk_column_id": "cl_hzos4ghyncqi4k",
+                "fk_view_id": "vw_wqs4zheuo5lgdy",
+                "source_id": "ds_hd4ojj0xpquaam",
+                "base_id": "p_kzfl5lb0t3tcok",
+                "title": "string",
+                "show": 1,
+                "bold": 0,
+                "italic": 0,
+                "underline": 0,
+                "order": "1"
+              }
+            ],
+            "calendar_range_columns": [
+              {
+                "id": "kvc_2skkg5mi1eb37f",
+                "fk_view_id": "vw_wqs4zheuo5lgdy",
+                "fk_from_column_id": "cl_hzos4ghyncqi4k",
+                "fk_to_column_id": "cl_hzos4ghyncqi4k"
+              }
+            ],
+            "meta": null,
+            "title": "My Calendar"
+          }
+        ],
+        "title": "Calendar Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "1kgw1w06b97nl"
+            },
+            "description": "View ID"
+          },
+          "fk_cover_image_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Cover Image Column ID"
+          },
+          "columns": {
+            "type": "array",
+            "description": "Calendar Columns",
+            "items": {
+              "$ref": "#/components/schemas/CalendarColumn"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info for Kanban"
+          },
+          "title": {
+            "type": "string",
+            "description": "Kanban Title",
+            "example": "My Kanban"
+          }
+        },
+        "x-stoplight": {
+          "id": "gu721t0zw7jqq"
+        }
+      },
+      "CalendarColumn": {
+        "description": "Model for Calendar Column",
+        "examples": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "source_id": "ds_hd4ojj0xpquaam",
+            "base_id": "p_kzfl5lb0t3tcok",
+            "title": "string",
+            "show": 0,
+            "bold": 0,
+            "italic": 0,
+            "underline": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Calendar Column Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Baes ID\n"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID"
+          },
+          "title": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID",
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "bold": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as bold?"
+          },
+          "italic": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as italic?"
+          },
+          "underline": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown underlines?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+      "CalenderDateRange": {
+        "description": "Model for Calendar Date Range",
+        "examples": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_from_column_id": "cl_hzos4ghyncqi4k",
+            "fk_to_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "label": "string"
+          }
+        ],
+        "title": "Calendar Date Range Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_from_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_to_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "label": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+      "CalanderUpdateReq": {
+        "description": "Model for Calendar Update Request",
+        "examples": [
+          {
+            "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
+            "title": "Calander 2"
+          }
+        ],
+        "title": "Calander Update Request Model",
+        "type": "object",
+        "properties": {
+          "fk_cover_image_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "x-stoplight": {
+              "id": "81wn4hzj76wod"
+            },
+            "description": "Foreign Key to Cover Image Column"
+          },
+          "title": {
+            "type": "string",
+            "description": "Calander Title",
+            "example": "Calander 01"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "x-stoplight": {
+              "id": "stsvdmkli1b0r"
+            },
+            "description": "Meta Info"
+          }
+        },
+        "x-stoplight": {
+          "id": "9zirjgj9k1gqa"
+        }
+      },
       "LicenseReq": {
         "description": "Model for Kanban Request",
         "examples": [

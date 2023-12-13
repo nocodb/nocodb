@@ -5483,6 +5483,7 @@ class BaseModelSqlv2 {
                 .map((u) => u.trim());
               for (const user of users) {
                 try {
+                  if (user.length === 0) continue;
                   if (user.includes('@')) {
                     const u = baseUsers.find((u) => u.email === user);
                     if (!u) {
@@ -5509,13 +5510,19 @@ class BaseModelSqlv2 {
               for (const userObj of users) {
                 const user = extractProps(userObj, ['id', 'email']);
                 try {
-                  if (user.id) {
+                  if ('id' in user) {
                     const u = baseUsers.find((u) => u.id === user.id);
                     if (!u) {
                       throw new Error(`User with id '${user.id}' not found`);
                     }
                     userIds.push(u.id);
-                  } else if (user.email) {
+                  } else if ('email' in user) {
+                    // skip null input
+                    if (!user.email) continue;
+                    // trim extra spaces
+                    user.email = user.email.trim();
+                    // skip empty input
+                    if (user.email.length === 0) continue;
                     const u = baseUsers.find((u) => u.email === user.email);
                     if (!u) {
                       throw new Error(

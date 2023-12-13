@@ -3,7 +3,7 @@ import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
-import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
@@ -28,6 +28,10 @@ interface Form {
   // for kanban view only
   fk_grp_col_id: string | null
   fk_geo_data_col_id: string | null
+
+  // for calendar view only
+  fk_from_col_id: string | null
+  fk_to_col_id: string | null // For EE only
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -62,12 +66,22 @@ const isViewCreating = ref(false)
 
 const views = computed(() => viewsByTable.value.get(tableId.value) ?? [])
 
+const isNecessaryColumnsPresent = ref(true)
+
+const errorMessages = {
+  [ViewTypes.KANBAN]: t('msg.warning.kanbanNoFields'),
+  [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
+  [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
+}
+
 const form = reactive<Form>({
   title: props.title || '',
   type: props.type,
   copy_from_id: null,
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
+  fk_from_col_id: null,
+  fk_to_col_id: null,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -97,6 +111,7 @@ const typeAlias = computed(
       [ViewTypes.FORM]: 'form',
       [ViewTypes.KANBAN]: 'kanban',
       [ViewTypes.MAP]: 'map',
+      [ViewTypes.CALENDAR]: 'calendar',
     }[props.type]),
 )
 
@@ -163,6 +178,15 @@ async function onSubmit() {
           break
         case ViewTypes.MAP:
           data = await api.dbView.mapCreate(tableId.value, form)
+          break
+        case ViewTypes.CALENDAR:
+          data = {
+            base_id: meta.value?.base_id,
+            source_id: meta.value?.source_id,
+          }
+          // TODO: implement api call
+          // data = await api.dbView.calendarCreate(tableId.value, form)
+          break
       }
 
       if (data) {
@@ -188,7 +212,7 @@ async function onSubmit() {
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
-  if (props.type === ViewTypes.KANBAN || props.type === ViewTypes.MAP) {
+  if (props.type === ViewTypes.KANBAN || props.type === ViewTypes.MAP || props.type === ViewTypes.CALENDAR) {
     isMetaLoading.value = true
     try {
       meta.value = (await getMeta(tableId.value))!
@@ -206,9 +230,12 @@ onMounted(async () => {
         if (geoDataFieldColumnId.value) {
           // take from the one from copy view
           form.fk_geo_data_col_id = geoDataFieldColumnId.value
-        } else {
-          // take the first option
+        } else if (viewSelectFieldOptions.value?.length) {
+          // if there is geo data column take the first option
           form.fk_geo_data_col_id = viewSelectFieldOptions.value?.[0]?.value as string
+        } else {
+          // if there is no geo data column, disable the create button
+          isNecessaryColumnsPresent.value = false
         }
       }
 
@@ -226,9 +253,32 @@ onMounted(async () => {
         if (groupingFieldColumnId.value) {
           // take from the one from copy view
           form.fk_grp_col_id = groupingFieldColumnId.value
-        } else {
+        } else if (viewSelectFieldOptions.value?.length) {
           // take the first option
-          form.fk_grp_col_id = viewSelectFieldOptions.value?.[0]?.value as string
+          form.fk_grp_col_id = viewSelectFieldOptions.value[0].value as string
+        } else {
+          // if there is no grouping field column, disable the create button
+          isNecessaryColumnsPresent.value = false
+        }
+      }
+
+      if (props.type === ViewTypes.CALENDAR) {
+        console.log(meta)
+        viewSelectFieldOptions.value = meta
+          .value!.columns!.filter((el) => el.uidt === UITypes.Date || (el.uidt === UITypes.DateTime && !isSystemColumn(el)))
+          .map((field) => {
+            return {
+              value: field.id,
+              label: field.title,
+            }
+          })
+
+        if (viewSelectFieldOptions.value?.length) {
+          // take the first option
+          form.fk_from_col_id = viewSelectFieldOptions.value[0].value as string
+        } else {
+          // if there is no grouping field column, disable the create button
+          isNecessaryColumnsPresent.value = false
         }
       }
     } catch (e) {
@@ -241,7 +291,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <NcModal v-model:visible="vModel" size="small">
+  <NcModal
+    v-model:visible="vModel"
+    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'medium' : 'small'"
+  >
     <template #header>
       <div class="flex flex-row items-center gap-x-1.5">
         <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
@@ -277,6 +330,14 @@ onMounted(async () => {
             {{ $t('labels.createKanbanView') }}
           </template>
         </template>
+        <template v-else-if="form.type === ViewTypes.CALENDAR">
+          <template v-if="form.copy_from_id">
+            {{ $t('labels.duplicateCalendarView') }}
+          </template>
+          <template v-else>
+            {{ $t('labels.createCalendarView') }}
+          </template>
+        </template>
         <template v-else>
           <template v-if="form.copy_from_id">
             {{ $t('labels.duplicateMapView') }}
@@ -288,12 +349,12 @@ onMounted(async () => {
       </div>
     </template>
     <div class="mt-2">
-      <a-form ref="formValidator" layout="vertical" :model="form">
-        <a-form-item name="title" :rules="viewNameRules">
+      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" layout="vertical" :model="form">
+        <a-form-item name="title" :rules="viewNameRules" label="View Name">
           <a-input
             ref="inputEl"
             v-model:value="form.title"
-            class="nc-input-md"
+            class="nc-input-md h-10"
             autofocus
             :placeholder="$t('labels.viewName')"
             @keydown.enter="onSubmit"
@@ -331,7 +392,41 @@ onMounted(async () => {
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
           />
         </a-form-item>
+        <div v-if="form.type === ViewTypes.CALENDAR" class="flex w-full gap-3">
+          <div class="flex flex-col w-1/2">
+            <span>
+              {{ $t('labels.selectDateField') }}
+            </span>
+            <NcSelect
+              :value="form.fk_from_col_id"
+              class="w-full"
+              :disabled="isMetaLoading"
+              :loading="isMetaLoading"
+              :options="viewSelectFieldOptions"
+            />
+          </div>
+          <div v-if="isEeUI" class="flex flex-col w-1/2">
+            <span>
+              {{ $t('labels.selectEndDateField') }}
+            </span>
+            <NcSelect
+              :value="form.fk_to_col_id"
+              class="w-full"
+              :disabled="isMetaLoading"
+              :loading="isMetaLoading"
+              :options="viewSelectFieldOptions"
+              :placeholder="$t('placeholder.notSelected')"
+            />
+          </div>
+        </div>
       </a-form>
+      <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
+        <GeneralIcon icon="warning" class="!text-5xl text-orange-500" />
+        <div class="text-gray-500">
+          <h2 class="font-semibold text-sm text-gray-800">Suitable fields not present</h2>
+          {{ errorMessages[form.type] }}
+        </div>
+      </div>
 
       <div class="flex flex-row w-full justify-end gap-x-2 mt-7">
         <NcButton type="secondary" @click="vModel = false">
@@ -341,6 +436,7 @@ onMounted(async () => {
         <NcButton
           v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
           type="primary"
+          :disabled="!isNecessaryColumnsPresent"
           :loading="isViewCreating"
           @click="onSubmit"
         >
@@ -351,3 +447,12 @@ onMounted(async () => {
     </div>
   </NcModal>
 </template>
+
+<style lang="scss">
+.ant-form-item-required {
+  @apply !text-gray-800 font-medium;
+  &:before {
+    @apply !content-[''];
+  }
+}
+</style>

@@ -2735,7 +2735,7 @@ function linkBased() {
 function userFieldBased() {
   // prepare data for test cases
   beforeEach(async function () {
-    context = await init(false, "creator");
+    context = await init(false, 'creator');
     base = await createProject(context);
     table = await createTable(context, base, {
       table_name: 'userBased',
@@ -2766,7 +2766,10 @@ function userFieldBased() {
     for (let i = 0; i < 400; i++) {
       const row = {
         userFieldSingle: [{ email: userList[i % userList.length].email }],
-        userFieldMulti: [{ email: userList[i % userList.length].email }, { email: userList[(i+1) % userList.length].email }],
+        userFieldMulti: [
+          { email: userList[i % userList.length].email },
+          { email: userList[(i + 1) % userList.length].email },
+        ],
       };
       rowAttributes.push(row);
     }
@@ -2805,7 +2808,158 @@ function userFieldBased() {
     return response.body.users.list;
   }
 
-  it('User field based', async function () {});
+  it('List records', async function () {
+    // retrieve inserted records
+    insertedRecords = await listRow({ base, table });
+
+    // verify length of unfiltered records to be 400
+    expect(insertedRecords.length).to.equal(400);
+    expect(insertedRecords[0].userFieldSingle[0]).to.have.keys([
+      'email',
+      'id',
+      'display_name',
+    ]);
+    expect(insertedRecords[0].userFieldMulti[0]).to.have.keys([
+      'email',
+      'id',
+      'display_name',
+    ]);
+  });
+
+  it('List: sort, ascending', async function () {
+    const sortColumn = columns.find((c) => c.title === 'userFieldSingle');
+    const rsp = await ncAxiosGet({
+      query: { sort: 'userFieldSingle', limit: 400 },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+    expect(sortedArray).to.deep.equal(
+      sortedArray.sort((a, b) => {
+        const emailA = a ? a[0]?.email?.toLowerCase() : '';
+        const emailB = b ? b[0]?.email?.toLowerCase() : '';
+
+        if (emailA < emailB) {
+          return -1;
+        }
+        if (emailA > emailB) {
+          return 1;
+        }
+
+        // Emails are equal, no change in order
+        return 0;
+      }),
+    );
+  });
+
+  it('List: filter, single', async function () {
+    const userList = await getUsers();
+    const rsp = await ncAxiosGet({
+      query: {
+        where: `(userFieldSingle,eq,${userList[2].id})`,
+        limit: 400,
+      },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    const filteredArray = rsp.body.list.map((r) => r.userFieldSingle);
+    expect(filteredArray).to.deep.equal(filteredArray.fill(userList[2]));
+  });
+
+  it('List: sort, ascending for user multi field', async function () {
+    const sortColumn = columns.find((c) => c.title === 'userFieldMulti');
+    const rsp = await ncAxiosGet({
+      query: { sort: 'userFieldMulti', limit: 400 },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+    expect(sortedArray).to.deep.equal(
+      sortedArray.sort((a, b) => {
+        const emailA = a ? a[0]?.email?.toLowerCase() : '';
+        const emailB = b ? b[0]?.email?.toLowerCase() : '';
+
+        if (emailA < emailB) {
+          return -1;
+        }
+        if (emailA > emailB) {
+          return 1;
+        }
+
+        // Emails are equal, no change in order
+        return 0;
+      }),
+    );
+  });
+
+  it('List: filter, user multi field', async function () {
+    const userList = await getUsers();
+    const rsp = await ncAxiosGet({
+      query: {
+        where: `(userFieldMulti,anyof,${userList[2].id})`,
+        limit: 400,
+      },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    expect(rsp.body.list.length).to.equal(100);
+  });
+
+  it('Create record : using email', async function () {
+    const newRecord = {
+      userFieldSingle: 'a@nocodb.com',
+      userFieldMulti: 'a@nocodb.com,b@nocodb.com',
+    };
+    const rsp = await ncAxiosPost({ body: newRecord });
+    expect(rsp.body).to.deep.equal({ Id: 401 });
+
+    const record = await ncAxiosGet({
+      url: `/api/v2/tables/${table.id}/records/401`,
+    });
+    expect(record.body.Id).to.equal(401);
+    expect(record.body.userFieldSingle[0].email).to.equal('a@nocodb.com');
+    expect(record.body.userFieldMulti[0].email).to.equal('a@nocodb.com');
+    expect(record.body.userFieldMulti[1].email).to.equal('b@nocodb.com');
+  });
+
+  it('Create record : using ID', async function () {
+    const userList = await getUsers();
+
+    const newRecord = {
+      userFieldSingle: userList[0].id,
+      userFieldMulti: `${userList[0].id},${userList[1].id}`,
+    };
+    const rsp = await ncAxiosPost({ body: newRecord });
+    expect(rsp.body).to.deep.equal({ Id: 401 });
+
+    const record = await ncAxiosGet({
+      url: `/api/v2/tables/${table.id}/records/401`,
+    });
+    expect(record.body.Id).to.equal(401);
+    expect(record.body.userFieldSingle[0].email).to.equal('test@example.com');
+    expect(record.body.userFieldMulti[0].email).to.equal('test@example.com');
+    expect(record.body.userFieldMulti[1].email).to.equal('a@nocodb.com');
+  });
+
+  it('Create record : duplicate ID', async function () {
+    const userList = await getUsers();
+
+    const newRecord1 = {
+      userFieldSingle: userList[0].id,
+      userFieldMulti: `${userList[0].id},${userList[0].id}`,
+    };
+    const rsp = await ncAxiosPost({ body: newRecord1, status: 422 });
+    expect(rsp.body.msg).to.equal('Duplicate users not allowed for user field');
+
+    const newRecord2 = {
+      userFieldSingle: `${userList[0].id},${userList[1].id}`,
+      userFieldMulti: `${userList[0].id},${userList[1].id}`,
+    };
+    const rsp2 = await ncAxiosPost({ body: newRecord2, status: 422 });
+    expect(rsp2.body.msg).to.equal(
+      "Multiple users not allowed for 'userFieldSingle'",
+    );
+  });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2821,7 +2975,7 @@ export default function () {
   describe('Link based', linkBased);
   describe('User field based', userFieldBased);
 
-  // based out of sakila db, for link based tests
+  // based out of Sakila db, for link based tests
   describe('General', generalDb);
 }
 

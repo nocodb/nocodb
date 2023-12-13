@@ -5543,7 +5543,7 @@ class BaseModelSqlv2 {
                 );
               }
 
-              if (column.meta.is_multi) {
+              if (column.meta?.is_multi) {
                 data[column.column_name] = userIds.join(',');
               } else {
                 if (userIds.length > 1) {

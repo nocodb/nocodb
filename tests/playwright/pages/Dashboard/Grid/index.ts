@@ -129,7 +129,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value: rowValue });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -164,7 +164,7 @@ export class GridPage extends BasePage {
     await this._fillRow({ index, columnHeader, value });
 
     const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`div[data-test-id="${columnHeader}"]`).click();
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[data-test-id="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -449,5 +449,15 @@ export class GridPage extends BasePage {
       }
     }
     return text;
+  }
+
+  async pasteWithMouse({ index, columnHeader }: CellProps) {
+    await this.cell.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+    await this.cell.get({ index, columnHeader }).click({ button: 'right' });
+
+    await this.get().page().getByTestId('context-menu-item-paste').click();
+
+    // kludge: wait for paste to complete
+    await this.rootPage.waitForTimeout(1000);
   }
 }

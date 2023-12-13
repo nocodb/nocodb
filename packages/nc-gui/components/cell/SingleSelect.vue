@@ -291,7 +291,7 @@ const selectedOpt = computed(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
-      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-200px ${isOpen && active ? 'active' : ''}`"
       :show-search="!isMobileMode && isOpen && active"
       @select="onSelect"
       @keydown="onKeydown($event)"

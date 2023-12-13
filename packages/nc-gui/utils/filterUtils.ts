@@ -1,4 +1,4 @@
-import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { UITypes, isDateMonthFormat, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
@@ -70,210 +70,7 @@ const getLteText = (fieldUiType: UITypes) => {
 
 export const comparisonOpList = (
   fieldUiType: UITypes,
-): {
-  text: string
-  value: string
-  ignoreVal: boolean
-  includedTypes?: UITypes[]
-  excludedTypes?: UITypes[]
-}[] => [
-  {
-    text: 'is checked',
-    value: 'checked',
-    ignoreVal: true,
-    includedTypes: [UITypes.Checkbox],
-  },
-  {
-    text: 'is not checked',
-    value: 'notchecked',
-    ignoreVal: true,
-    includedTypes: [UITypes.Checkbox],
-  },
-  {
-    text: getEqText(fieldUiType),
-    value: 'eq',
-    ignoreVal: false,
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
-  },
-  {
-    text: getNeqText(fieldUiType),
-    value: 'neq',
-    ignoreVal: false,
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
-  },
-  {
-    text: getLikeText(fieldUiType),
-    value: 'like',
-    ignoreVal: false,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.Collaborator,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: getNotLikeText(fieldUiType),
-    value: 'nlike',
-    ignoreVal: false,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.Collaborator,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: 'is empty',
-    value: 'empty',
-    ignoreVal: true,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: 'is not empty',
-    value: 'notempty',
-    ignoreVal: true,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: 'is null',
-    value: 'null',
-    ignoreVal: true,
-    excludedTypes: [
-      ...numericUITypes,
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: 'is not null',
-    value: 'notnull',
-    ignoreVal: true,
-    excludedTypes: [
-      ...numericUITypes,
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: 'contains all of',
-    value: 'allof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect],
-  },
-  {
-    text: 'contains any of',
-    value: 'anyof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
-  },
-  {
-    text: 'does not contain all of',
-    value: 'nallof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect],
-  },
-  {
-    text: 'does not contain any of',
-    value: 'nanyof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
-  },
-  {
-    text: getGtText(fieldUiType),
-    value: 'gt',
-    ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
-  },
-  {
-    text: getLtText(fieldUiType),
-    value: 'lt',
-    ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
-  },
-  {
-    text: getGteText(fieldUiType),
-    value: 'gte',
-    ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
-  },
-  {
-    text: getLteText(fieldUiType),
-    value: 'lte',
-    ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
-  },
-  {
-    text: 'is within',
-    value: 'isWithin',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'is blank',
-    value: 'blank',
-    ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
-  },
-  {
-    text: 'is not blank',
-    value: 'notblank',
-    ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
-  },
-]
-
-export const comparisonSubOpList = (
-  // TODO: type
-  comparison_op: string,
+  dateFormat?: string,
 ): {
   text: string
   value: string
@@ -281,6 +78,216 @@ export const comparisonSubOpList = (
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
 }[] => {
+  const isDateMonth = dateFormat && isDateMonthFormat(dateFormat)
+  return [
+    {
+      text: 'is checked',
+      value: 'checked',
+      ignoreVal: true,
+      includedTypes: [UITypes.Checkbox],
+    },
+    {
+      text: 'is not checked',
+      value: 'notchecked',
+      ignoreVal: true,
+      includedTypes: [UITypes.Checkbox],
+    },
+    {
+      text: getEqText(fieldUiType),
+      value: 'eq',
+      ignoreVal: false,
+      excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
+    },
+    {
+      text: getNeqText(fieldUiType),
+      value: 'neq',
+      ignoreVal: false,
+      excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
+    },
+    {
+      text: getLikeText(fieldUiType),
+      value: 'like',
+      ignoreVal: false,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.Collaborator,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: getNotLikeText(fieldUiType),
+      value: 'nlike',
+      ignoreVal: false,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.Collaborator,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: 'is empty',
+      value: 'empty',
+      ignoreVal: true,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: 'is not empty',
+      value: 'notempty',
+      ignoreVal: true,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: 'is null',
+      value: 'null',
+      ignoreVal: true,
+      excludedTypes: [
+        ...numericUITypes,
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: 'is not null',
+      value: 'notnull',
+      ignoreVal: true,
+      excludedTypes: [
+        ...numericUITypes,
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: 'contains all of',
+      value: 'allof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect],
+    },
+    {
+      text: 'contains any of',
+      value: 'anyof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
+    },
+    {
+      text: 'does not contain all of',
+      value: 'nallof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect],
+    },
+    {
+      text: 'does not contain any of',
+      value: 'nanyof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
+    },
+    {
+      text: getGtText(fieldUiType),
+      value: 'gt',
+      ignoreVal: false,
+      includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
+    },
+    {
+      text: getLtText(fieldUiType),
+      value: 'lt',
+      ignoreVal: false,
+      includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
+    },
+    {
+      text: getGteText(fieldUiType),
+      value: 'gte',
+      ignoreVal: false,
+      includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
+    },
+    {
+      text: getLteText(fieldUiType),
+      value: 'lte',
+      ignoreVal: false,
+      includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
+    },
+    {
+      text: 'is within',
+      value: 'isWithin',
+      ignoreVal: true,
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
+    },
+    {
+      text: 'is blank',
+      value: 'blank',
+      ignoreVal: true,
+      excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    },
+    {
+      text: 'is not blank',
+      value: 'notblank',
+      ignoreVal: true,
+      excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    },
+  ]
+}
+
+export const comparisonSubOpList = (
+  // TODO: type
+  comparison_op: string,
+  dateFormat?: string,
+): {
+  text: string
+  value: string
+  ignoreVal: boolean
+  includedTypes?: UITypes[]
+  excludedTypes?: UITypes[]
+}[] => {
+  const isDateMonth = dateFormat && isDateMonthFormat(dateFormat)
+
   if (comparison_op === 'isWithin') {
     return [
       {
@@ -338,31 +345,31 @@ export const comparisonSubOpList = (
       text: 'today',
       value: 'today',
       ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
       text: 'tomorrow',
       value: 'tomorrow',
       ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
       text: 'yesterday',
       value: 'yesterday',
       ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
       text: 'one week ago',
       value: 'oneWeekAgo',
       ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
       text: 'one week from now',
       value: 'oneWeekFromNow',
       ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
       text: 'one month ago',
@@ -380,16 +387,16 @@ export const comparisonSubOpList = (
       text: 'number of days ago',
       value: 'daysAgo',
       ignoreVal: false,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
       text: 'number of days from now',
       value: 'daysFromNow',
       ignoreVal: false,
-      includedTypes: [UITypes.Date, UITypes.DateTime],
+      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime])],
     },
     {
-      text: 'exact date',
+      text: isDateMonth ? 'exact month' : 'exact date',
       value: 'exactDate',
       ignoreVal: false,
       includedTypes: [UITypes.Date, UITypes.DateTime],

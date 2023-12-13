@@ -91,6 +91,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
                 :options="headerList"
                 :placeholder="$t('placeholder.key')"
                 :filter-option="filterOption"
+                dropdown-class-name="border-1 border-gray-200"
               />
             </a-form-item>
           </td>

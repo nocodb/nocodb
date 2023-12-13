@@ -1,32 +1,32 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
-    "alert": "Alert",
-    "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Bases that you want to link to this Interface.",
-    "create_interface": "Create interface",
-    "project_name": "Base Name",
-    "connect": "Connect",
+    "create_new_dashboard_project": "インターフェースを作成",
+    "connect_data_sources": "データソースに接続",
+    "alert": "アラート",
+    "alert-message": "データベースが接続されていません。DBベースを接続してインターフェースを構成してください。スキップして後でベースのホームページを追加することもできます。",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "このインターフェースに接続するプロジェクトを選択します。",
+    "create_interface": "インターフェースを作成",
+    "project_name": "プロジェクト名",
+    "connect": "接続",
     "buttonActionTypes": {
-      "open_external_url": "Open external link",
-      "delete_record": "Delete record",
-      "update_record": "Update record",
-      "open_layout": "Open layout"
+      "open_external_url": "外部リンクを開く",
+      "delete_record": "レコードを削除",
+      "update_record": "レコードを更新",
+      "open_layout": "レイアウトを開く"
     },
     "widgets": {
-      "static_text": "Text",
-      "chart": "Chart",
-      "table": "Table",
+      "static_text": "テキスト",
+      "chart": "チャート",
+      "table": "表",
       "image": "Image",
-      "map": "Map",
-      "button": "Button",
-      "number": "Number",
-      "bar_chart": "Bar Chart",
-      "line_chart": "Line Chart",
-      "area_chart": "Area Chart",
-      "pie_chart": "Pie Chart",
-      "donut_chart": "Donut Chart",
+      "map": "マップ",
+      "button": "ボタン",
+      "number": "ナンバー",
+      "bar_chart": "棒グラフ",
+      "line_chart": "折れ線グラフ",
+      "area_chart": "面グラフ",
+      "pie_chart": "円グラフ",
+      "donut_chart": "ドーナツグラフ",
       "scatter_plot": "Scatter Plot",
       "bubble_chart": "Bubble Chart",
       "radar_chart": "Radar Chart",
@@ -39,7 +39,7 @@
     }
   },
   "general": {
-    "quit": "Quit",
+    "quit": "終了",
     "home": "ホーム",
     "load": "読み込み",
     "open": "開く",
@@ -47,7 +47,7 @@
     "yes": "はい",
     "no": "いいえ",
     "ok": "OK",
-    "back": "Back",
+    "back": "戻る",
     "and": "と",
     "or": "または",
     "add": "追加",
@@ -78,7 +78,7 @@
     "quote": "Quote",
     "submit": "送信",
     "create": "作成",
-    "createEntity": "Create {entity}",
+    "createEntity": "{entity}を作成",
     "creating": "Creating",
     "creatingEntity": "Creating {entity}",
     "details": "Details",
@@ -188,7 +188,8 @@
     "useSurveyMode": "Use Survey Mode",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "Seconds"
+    "seconds": "Seconds",
+    "paste": "Paste"
   },
   "objects": {
     "workspace": "Workspace",
@@ -581,6 +582,7 @@
     "childTable": "子テーブル",
     "childColumn": "子カラム",
     "childField": "Child field",
+    "joinCloudForFree": "Join Cloud for Free",
     "linkToAnotherRecord": "他のレコードへのリンク",
     "links": "Links",
     "onUpdate": "更新中",
@@ -639,7 +641,8 @@
     "sourceNameRequired": "Source name is required",
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",
-    "newFormLoaded": "New form will be loaded after"
+    "newFormLoaded": "New form will be loaded after",
+    "webhook": "Webhook"
   },
   "activity": {
     "openInANewTab": "Open in a new tab",
@@ -1019,6 +1022,7 @@
     "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
     "selectFieldToSort": "Select Field to Sort",
+    "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
     "createWebhookMsg2": "Create web-hooks to power you automations,",
@@ -1206,7 +1210,8 @@
       "goToPrevious": "Go to previous",
       "goToNext": "Go to next",
       "thankYou": "Thank you!",
-      "submittedFormData": "You have successfully submitted the form data."
+      "submittedFormData": "You have successfully submitted the form data.",
+      "editingSystemKeyNotSupported": "Editing system key not supported"
     },
     "error": {
       "nameRequired": "Name Required",
@@ -1282,7 +1287,8 @@
       "duplicateParameterKeysAreNotAllowed": "パラメータキーの重複は許可されていません",
       "fieldRequired": "{value} を空にすることはできません。",
       "projectNotAccessible": "このプロジェクトにはアクセスできません",
-      "copyToClipboardError": "クリップボードへのコピーに失敗しました"
+      "copyToClipboardError": "クリップボードへのコピーに失敗しました",
+      "pasteFromClipboardError": "Failed to paste from clipboard"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

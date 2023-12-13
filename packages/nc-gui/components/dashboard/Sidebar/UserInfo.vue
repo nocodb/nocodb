@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import GithubButton from 'vue-github-button'
 import {
   computed,
   message,
@@ -79,7 +78,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-2">
+  <div class="flex w-full flex-col p-1 border-t-1 border-gray-200 gap-y-1">
     <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
       <div
         class="flex flex-row py-2 px-3 gap-x-2 items-center hover:bg-gray-200 rounded-lg cursor-pointer h-10"
@@ -158,7 +157,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <template #content>
-                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-50 !overflow-auto">
+                <div class="bg-white max-h-50vh scrollbar-thin-dull min-w-64 !overflow-auto">
                   <LazyGeneralLanguageMenu />
                 </div>
               </template>
@@ -205,22 +204,9 @@ onMounted(() => {
     </NcDropdown>
 
     <template v-if="isMobileMode"></template>
-    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3">© 2023 NocoDB. Inc</div>
-    <div v-else-if="isMounted" class="flex flex-row justify-between pt-1 truncate">
-      <div class="flex flex-wrap mb-1">
-        <GithubButton
-          class="px-2 mb-1"
-          href="https://github.com/nocodb/nocodb"
-          data-icon="octicon-star"
-          data-show-count="true"
-          data-size="large"
-        >
-          Star
-        </GithubButton>
-        <div>
-          <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
-        </div>
-      </div>
+    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3 mt-1">© 2023 NocoDB. Inc</div>
+    <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
+      <GeneralJoinCloud />
     </div>
   </div>
 </template>

@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-
 import {
-  ActiveCellInj,
+  ColumnInj,
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   ReadonlyInj,
   RowHeightInj,
+  computed,
   iconMap,
   inject,
+  onClickOutside,
+  ref,
+  useGlobal,
   useVModel,
+  watch,
 } from '#imports'
 
 const props = defineProps<{
@@ -61,9 +66,8 @@ const height = computed(() => {
 const isVisible = ref(false)
 
 const inputWrapperRef = ref<HTMLElement | null>(null)
-const inputRef = ref<HTMLTextAreaElement | null>(null)
 
-const active = inject(ActiveCellInj, ref(false))
+const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const readOnly = inject(ReadonlyInj)
 
@@ -116,8 +120,8 @@ const onMouseMove = (e: MouseEvent) => {
   e.stopPropagation()
 
   position.value = {
-    top: e.clientY - 22,
-    left: e.clientX - 46,
+    top: e.clientY - 30,
+    left: e.clientX - 120,
   }
 }
 
@@ -145,7 +149,7 @@ watch(position, () => {
 
     dom.style.left = `${position.value.left}px`
     dom.style.top = `${position.value.top}px`
-  }, 100)
+  }, 1)
 })
 
 const dragStart = () => {
@@ -171,7 +175,7 @@ watch(editEnabled, () => {
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full"
+      class="flex flex-row pt-0.5 w-full rich-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1,
         'min-h-6.5': rowHeight === 1,
@@ -187,7 +191,7 @@ watch(editEnabled, () => {
         }"
         @dblclick="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change readonly class="!pointer-events-none" />
+        <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -235,7 +239,7 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 bottom-1 !hidden nc-text-area-expand-btn"
+        class="!absolute right-0 bottom-1 nc-text-area-expand-btn"
         :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
       >
         <template #title>{{ $t('title.expand') }}</template>
@@ -292,8 +296,10 @@ watch(editEnabled, () => {
 textarea:focus {
   box-shadow: none;
 }
+</style>
 
-:deep(.nc-text-area-expand-btn) {
+<style lang="scss">
+.cell:hover .nc-text-area-expand-btn {
   @apply !block;
 }
 </style>

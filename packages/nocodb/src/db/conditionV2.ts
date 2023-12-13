@@ -1,4 +1,9 @@
-import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isDateMonthFormat,
+  isNumericCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -466,7 +471,13 @@ const parseConditionV2 = async (
             : 'YYYY-MM-DD HH:mm:ssZ';
 
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-          const now = dayjs(new Date());
+          let now = dayjs(new Date());
+          const dateFormatFromMeta = column?.meta?.date_format;
+          if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+            // reset to 1st
+            now = dayjs(now).date(1);
+            if (val) val = dayjs(val).date(1);
+          }
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':
@@ -570,7 +581,15 @@ const parseConditionV2 = async (
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
               }
             } else {
-              qb = qb.where(field, val);
+              if (column.uidt === UITypes.DateTime) {
+                if (qb.client.config.client === 'pg') {
+                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                } else {
+                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                }
+              } else {
+                qb = qb.where(field, val);
+              }
             }
             if (column.uidt === UITypes.Rating && val === 0) {
               // unset rating is considered as NULL

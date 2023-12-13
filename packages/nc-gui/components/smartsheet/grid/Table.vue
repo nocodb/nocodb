@@ -34,6 +34,7 @@ import {
   useI18n,
   useMultiSelect,
   useNuxtApp,
+  usePaste,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
@@ -167,6 +168,8 @@ const predictNextColumn = async () => {
 const predictNextFormulas = async () => {
   await _predictNextFormulas(meta)
 }
+
+const { paste } = usePaste()
 
 // #Refs
 
@@ -1247,10 +1250,10 @@ onKeyStroke('ArrowDown', onDown)
       <div
         v-if="draggedCol"
         :style="{
-                'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
-                'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
-                'width': gridViewCols[draggedCol.id!]?.width || '200px',
-              }"
+        'min-width': gridViewCols[draggedCol.id!]?.width || '200px',
+        'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
+        'width': gridViewCols[draggedCol.id!]?.width || '200px',
+      }"
         class="border-r-1 border-l-1 border-gray-200 h-full"
       ></div>
     </div>
@@ -1694,6 +1697,20 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="contextMenuTarget"
+              class="nc-base-menu-item"
+              data-testid="context-menu-item-paste"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              @click="paste"
+            >
+              <div v-e="['a:row:paste']" class="flex gap-2 items-center">
+                <GeneralIcon icon="paste" />
+                <!-- Paste -->
+                {{ $t('general.paste') }}
+              </div>
+            </NcMenuItem>
+
             <!-- Clear cell -->
             <NcMenuItem
               v-if="
@@ -1703,6 +1720,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               class="nc-base-menu-item"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="flex gap-2 items-center">
@@ -1715,6 +1733,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
+              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
               @click="clearSelectedRangeOfCells()"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
@@ -1804,7 +1823,7 @@ onKeyStroke('ArrowDown', onDown)
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
-                  class="absolute -top-19 flex flex-col h-34.5 w-70 bg-white rounded-lg justify-start overflow-hidden"
+                  class="absolute -top-19 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                   style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
                     '-left-44': !isAddNewRecordGridMode,
@@ -1813,7 +1832,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     v-e="['c:row:add:grid']"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
                     @click="onNewRecordToGridClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1821,15 +1840,14 @@ onKeyStroke('ArrowDown', onDown)
                         <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
                       </div>
-                      <div class="h-4 w-4 flex flex-row items-center justify-center">
-                        <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" />
-                      </div>
+
+                      <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
                     <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
                   </div>
                   <div
                     v-e="['c:row:add:form']"
-                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                    class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
                     @click="onNewRecordToFormClick"
                   >
                     <div class="flex flex-row items-center justify-between w-full">
@@ -1837,9 +1855,8 @@ onKeyStroke('ArrowDown', onDown)
                         <GeneralIcon class="h-4.5 w-4.5" icon="article" />
                         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
                       </div>
-                      <div class="h-4 w-4 flex flex-row items-center justify-center">
-                        <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" />
-                      </div>
+
+                      <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
                     <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>
                   </div>
@@ -1847,7 +1864,7 @@ onKeyStroke('ArrowDown', onDown)
               </div>
             </template>
             <template #icon>
-              <component :is="iconMap.arrowUp" class="text-gray-600 h-4" />
+              <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
             </template>
           </a-dropdown-button>
         </div>
@@ -1879,6 +1896,7 @@ onKeyStroke('ArrowDown', onDown)
   .nc-grid-add-edit-column {
     @apply bg-gray-50;
   }
+
   .nc-grid-add-new-cell:hover td {
     @apply text-black !bg-gray-50;
   }
@@ -1999,6 +2017,7 @@ onKeyStroke('ArrowDown', onDown)
     thead th:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
+
     tbody td:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }

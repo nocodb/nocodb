@@ -107,12 +107,16 @@ const isFilterDraft = (filter: Filter, col: ColumnType) => {
 
   if (
     filter.comparison_op &&
-    comparisonSubOpList(filter.comparison_op).find((compOp) => compOp.value === filter.comparison_sub_op)?.ignoreVal
+    comparisonSubOpList(filter.comparison_op, col?.meta?.date_format).find((compOp) => compOp.value === filter.comparison_sub_op)
+      ?.ignoreVal
   ) {
     return false
   }
 
-  if (comparisonOpList(col.uidt as UITypes).find((compOp) => compOp.value === filter.comparison_op)?.ignoreVal) {
+  if (
+    comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((compOp) => compOp.value === filter.comparison_op)
+      ?.ignoreVal
+  ) {
     return false
   }
 
@@ -145,7 +149,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // hence remove the previous value
     filter.value = null
     if (
-      !comparisonSubOpList(filter.comparison_op!)
+      !comparisonSubOpList(filter.comparison_op!, col?.meta?.date_format)
         .map((op) => op.value)
         .includes(filter.comparison_sub_op!)
     ) {
@@ -224,8 +228,9 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(col.uidt as UITypes).find((compOp) => isComparisonOpAllowed(filter, compOp))
-    ?.value as FilterType['comparison_op']
+  filter.comparison_op = comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((compOp) =>
+    isComparisonOpAllowed(filter, compOp),
+  )?.value as FilterType['comparison_op']
 
   if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
@@ -297,12 +302,16 @@ const addFilterGroup = async () => {
 }
 
 const showFilterInput = (filter: Filter) => {
+  const col = getColumn(filter)
   if (!filter.comparison_op) return false
 
   if (filter.comparison_sub_op) {
-    return !comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal
+    return !comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format).find(
+      (op) => op.value === filter.comparison_sub_op,
+    )?.ignoreVal
   } else {
-    return !comparisonOpList(getColumn(filter)?.uidt as UITypes).find((op) => op.value === filter.comparison_op)?.ignoreVal
+    return !comparisonOpList(col?.uidt as UITypes, col?.meta?.date_format).find((op) => op.value === filter.comparison_op)
+      ?.ignoreVal
   }
 }
 
@@ -352,9 +361,15 @@ onBeforeUnmount(() => {
                     @change="saveOrUpdate(filter, i)"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
-                      <span class="capitalize">
-                        {{ op.value }}
-                      </span>
+                      <div class="flex items-center w-full justify-between w-full gap-2">
+                        <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                        <component
+                          :is="iconMap.check"
+                          v-if="filter.logical_op === op.value"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4"
+                        />
+                      </div>
                     </a-select-option>
                   </NcSelect>
                 </div>
@@ -400,9 +415,15 @@ onBeforeUnmount(() => {
               @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
-                <span class="capitalize">
-                  {{ op.value }}
-                </span>
+                <div class="flex items-center w-full justify-between w-full gap-2">
+                  <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="filter.logical_op === op.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
               </a-select-option>
             </NcSelect>
             <SmartsheetToolbarFieldListAutoCompleteDropdown
@@ -424,12 +445,23 @@ onBeforeUnmount(() => {
               variant="solo"
               :disabled="filter.readOnly"
               hide-details
-              dropdown-class-name="nc-dropdown-filter-comp-op"
+              dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
+              <template
+                v-for="compOp of comparisonOpList(getColumn(filter)?.uidt, getColumn(filter)?.meta?.date_format)"
+                :key="compOp.value"
+              >
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
-                  {{ compOp.text }}
+                  <div class="flex items-center w-full justify-between w-full gap-2">
+                    <div class="truncate flex-1">{{ compOp.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="filter.comparison_op === compOp.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </template>
             </NcSelect>
@@ -450,9 +482,23 @@ onBeforeUnmount(() => {
               dropdown-class-name="nc-dropdown-filter-comp-sub-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
+              <template
+                v-for="compSubOp of comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format)"
+                :key="compSubOp.value"
+              >
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
-                  {{ compSubOp.text }}
+                  <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
+                    <NcTooltip show-on-truncate-only class="truncate flex-1">
+                      <template #title>{{ compSubOp.text }}</template>
+                      {{ compSubOp.text }}
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="filter.comparison_sub_op === compSubOp.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </template>
             </NcSelect>
@@ -546,6 +592,7 @@ onBeforeUnmount(() => {
 .nc-filter-item-remove-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
+
 .nc-filter-grid {
   @apply items-center w-full;
 }

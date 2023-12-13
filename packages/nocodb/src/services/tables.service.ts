@@ -459,7 +459,12 @@ export class TablesService {
 
     for (const column of param.table.columns) {
       if (!isVirtualCol(column)) {
-        column.column_name = sanitizeColumnName(column.column_name);
+        const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+        // - 5 is a buffer for suffix
+        column.column_name = sanitizeColumnName(
+          column.column_name.slice(0, mxColumnLength - 5),
+        );
 
         if (uniqueColumnNameCount[column.column_name]) {
           let suffix = 1;

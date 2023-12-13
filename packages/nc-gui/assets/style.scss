@@ -36,6 +36,9 @@ body {
   overflow-y: visible !important;
 }
 
+.rc-virtual-list-holder-inner {
+  @apply !px-1.5
+}
 .ant-layout-header {
   height: var(--topbar-height) !important;
 }
@@ -224,6 +227,10 @@ a {
   .ant-select-selector {
     @apply !rounded-md;
   }
+}
+// select dropdown border style
+.ant-select-dropdown {
+  @apply border-1 border-gray-200
 }
 
 // menu item styling
@@ -426,7 +433,10 @@ a {
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
-
+  
+  &.ant-dropdown-menu-submenu-popup{
+    @apply border-1 border-gray-200
+  }
   .ant-dropdown-menu,
   .ant-menu {
     @apply m-0 p-0;
@@ -438,7 +448,7 @@ a {
 }
 
 .ant-dropdown-menu {
-  @apply !p-0 !rounded;
+  @apply !p-0 !rounded-lg;
 }
 
 .ant-tabs-dropdown-menu-title-content {
@@ -498,8 +508,18 @@ a {
   @apply p-4;
 }
 
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled):hover,
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-  @apply bg-primary bg-opacity-20;
+  @apply bg-gray-300 bg-opacity-20;
+}
+
+/* Hide the element with id nc-selected-item-icon */
+.ant-select-selection-item #nc-selected-item-icon {
+  @apply hidden;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  @apply bg-transparent;
 }
 
 .ant-select-selection-search-input:focus {
@@ -584,7 +604,7 @@ a {
 }
 
 .ant-popover-inner {
-  padding: 0 !important;
+  @apply rounded-lg !p-0;
 }
 .ant-popover-inner-content {
   @apply !px-1.5 !py-1 text-xs;

@@ -2,7 +2,7 @@ import type { UserType } from 'nocodb-sdk';
 declare module 'express-serve-static-core' {
   interface Request {
     ncWorkspaceId?: string;
-    ncProjectId?: string;
+    ncBaseId?: string;
     user: UserType & {
       base_roles?: Record<string, boolean>;
       workspace_roles?: Record<string, boolean>;

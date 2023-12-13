@@ -1,8 +1,15 @@
 <script lang="ts" setup>
+import {
+  OrderedProjectRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+  extractRolesObj,
+  timeAgo,
+} from 'nocodb-sdk'
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles, extractRolesObj } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
-import { isEeUI, storeToRefs, timeAgo } from '#imports'
+import { isEeUI, storeToRefs } from '#imports'
 
 const basesStore = useBases()
 const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
@@ -177,7 +184,7 @@ onMounted(async () => {
       </div>
       <div v-else class="nc-collaborators-list mt-6 h-full">
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 min-h-12 items-center">
+          <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
             <div class="text-gray-700 users-email-grid">{{ $t('objects.users') }}</div>
             <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
             <div class="text-gray-700 user-access-grid">{{ $t('general.access') }}</div>

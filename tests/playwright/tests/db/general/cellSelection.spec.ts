@@ -28,16 +28,34 @@ test.describe('Verify cell selection', () => {
     expect(await grid.selectedCount()).toBe(9);
     await dashboard.closeAllTabs();
 
-    // #2 when copied with clipboard, it copies correct text
+    // #2 when copied with clipboard, it copies correct text and paste
+    const verifyPastedData = async ({ index }: { index: number }): Promise<void> => {
+      // FirstName column
+      let cellText: string[] = ['MARY', 'PATRICIA'];
+      for (let i = index; i <= index + 1; i++) {
+        await grid.cell.verify({ index: i, columnHeader: 'FirstName', value: cellText[i - index] });
+      }
+
+      // LastName column
+      cellText = ['SMITH', 'JOHNSON'];
+      for (let i = index; i <= index + 1; i++) {
+        await grid.cell.verify({ index: i, columnHeader: 'LastName', value: cellText[i - index] });
+      }
+    };
+
     await dashboard.treeView.openTable({ title: 'Customer' });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'FirstName' },
       end: { index: 1, columnHeader: 'LastName' },
     });
     expect(await grid.copyWithKeyboard()).toBe('MARY\tSMITH\n' + 'PATRICIA\tJOHNSON');
+
+    await grid.pasteWithMouse({ index: 2, columnHeader: 'FirstName' });
+    await verifyPastedData({ index: 2 });
+
     await dashboard.closeAllTabs();
 
-    // #3 when copied with mouse, it copies correct text
+    // #3 when copied with mouse, it copies correct text and paste
     await dashboard.treeView.openTable({ title: 'Customer' });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'FirstName' },
@@ -46,6 +64,9 @@ test.describe('Verify cell selection', () => {
     expect(await grid.copyWithMouse({ index: 0, columnHeader: 'FirstName' })).toBe(
       'MARY\tSMITH\n' + 'PATRICIA\tJOHNSON'
     );
+
+    await grid.pasteWithMouse({ index: 4, columnHeader: 'FirstName' });
+    await verifyPastedData({ index: 4 });
     await dashboard.closeAllTabs();
   });
 

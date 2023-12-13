@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { h, iconMap, onMounted, storeToRefs, timeAgo, useBase, useGlobal, useI18n, useNuxtApp } from '#imports'
+import { timeAgo } from 'nocodb-sdk'
+import { h, iconMap, onMounted, storeToRefs, useBase, useGlobal, useI18n, useNuxtApp } from '#imports'
 
 interface Props {
   sourceId: string
@@ -135,13 +136,14 @@ const columns = [
         v-model:page-size="currentLimit"
         :total="+totalRows"
         show-less-items
+        class="pagination"
         @change="loadAudits"
       />
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .nc-audit-table pre {
   display: table;
   table-layout: fixed;
@@ -149,5 +151,10 @@ const columns = [
   white-space: break-spaces;
   font-size: unset;
   font-family: unset;
+}
+.pagination {
+  .ant-select-dropdown {
+    @apply !border-1 !border-gray-200;
+  }
 }
 </style>

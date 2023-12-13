@@ -20,6 +20,7 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   hook?: HookType
@@ -49,11 +50,13 @@ const titleDomRef = ref<HTMLInputElement | undefined>()
 
 const useForm = Form.useForm
 
+const defaultHookName = t('labels.webhook')
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
-  title: 'Untitled Webhook',
+  title: defaultHookName,
   event: undefined,
   operation: undefined,
   eventOperation: undefined,
@@ -472,6 +475,10 @@ async function testWebhook() {
   await webhookTestRef.value.testWebhook()
 }
 
+const getDefaultHookName = (hooks: HookType[]) => {
+  return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
+}
+
 watch(
   () => hookRef.eventOperation,
   () => {
@@ -499,7 +506,10 @@ onMounted(async () => {
 
   if (hookRef.event && hookRef.operation) {
     hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
+  } else {
+    hookRef.eventOperation = eventList.value[0].value.join(' ')
   }
+  hookRef.title = getDefaultHookName(hooks.value)
 
   onNotificationTypeChange()
 
@@ -574,7 +584,15 @@ onMounted(async () => {
                   dropdown-class-name="nc-dropdown-webhook-event"
                 >
                   <a-select-option v-for="(event, i) in eventList" :key="i" class="capitalize" :value="event.value.join(' ')">
-                    {{ event.text.join(' ') }}
+                    <div class="flex items-center gap-2 justify-between">
+                      <div>{{ event.text.join(' ') }}</div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="hookRef.eventOperation === event.value.join(' ')"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
+                    </div>
                   </a-select-option>
                 </NcSelect>
               </a-form-item>
@@ -591,7 +609,7 @@ onMounted(async () => {
                   @change="onNotificationTypeChange(true)"
                 >
                   <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
-                    <div class="flex items-center">
+                    <div class="flex items-center gap-2">
                       <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
 
                       <component :is="iconMap.email" v-if="notificationOption.type === 'Email'" class="mr-2" />
@@ -608,7 +626,13 @@ onMounted(async () => {
 
                       <MdiCellphoneMessage v-if="notificationOption.type === 'Twilio'" class="mr-2" />
 
-                      {{ notificationOption.text }}
+                      <div class="flex-1">{{ notificationOption.text }}</div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="hookRef.notification.type === notificationOption.type"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
                     </div>
                   </a-select-option>
                 </NcSelect>
@@ -626,7 +650,15 @@ onMounted(async () => {
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
               >
                 <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
-                  {{ method.title }}
+                  <div class="flex items-center gap-2 justify-between">
+                    <div>{{ method.title }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="hookRef.notification.payload.method === method.title"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </NcSelect>
             </a-col>

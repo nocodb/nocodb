@@ -454,8 +454,16 @@ const toggleModal = (val: boolean) => {
                 dropdown-class-name="nc-dropdown-ext-db-type"
                 @change="onClientChange"
               >
-                <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-                  >{{ client.text }}
+                <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value">
+                  <div class="flex items-center gap-2 justify-between">
+                    <div>{{ client.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="formState.dataSource.client === client.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -535,7 +543,17 @@ const toggleModal = (val: boolean) => {
                       dropdown-class-name="nc-dropdown-ssl-mode"
                       @select="onSSLModeChange"
                     >
-                      <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
+                      <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">
+                        <div class="flex items-center gap-2 justify-between">
+                          <div>{{ opt }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="formState?.sslUse === opt"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
                     </a-select>
                   </a-form-item>
 
@@ -619,7 +637,17 @@ const toggleModal = (val: boolean) => {
                       v-model:value="formState.inflection.inflectionTable"
                       dropdown-class-name="nc-dropdown-inflection-table-name"
                     >
-                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
+                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">
+                        <div class="flex items-center gap-2 justify-between">
+                          <div>{{ tp }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="formState?.inflection?.inflectionTable === tp"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
                     </a-select>
                   </a-form-item>
 
@@ -628,7 +656,17 @@ const toggleModal = (val: boolean) => {
                       v-model:value="formState.inflection.inflectionColumn"
                       dropdown-class-name="nc-dropdown-inflection-column-name"
                     >
-                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }} </a-select-option>
+                      <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp"
+                        ><div class="flex items-center gap-2 justify-between">
+                          <div>{{ tp }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="formState?.inflection?.inflectionColumn === tp"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
                     </a-select>
                   </a-form-item>
 

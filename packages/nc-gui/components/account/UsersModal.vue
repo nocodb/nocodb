@@ -192,13 +192,27 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                 <div class="flex flex-col w-2/4">
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
-                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
+
+                    <a-select
+                      v-model:value="usersData.role"
+                      class="nc-user-roles"
+                      dropdown-class-name="nc-dropdown-user-role !px-2"
+                    >
                       <a-select-option
                         class="nc-role-option"
                         :value="OrgUserRoles.CREATOR"
                         :label="$t(`objects.roleType.orgLevelCreator`)"
                       >
-                        <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                        <div class="flex items-center gap-1 justify-between">
+                          <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                          <GeneralIcon
+                            v-if="usersData.role === OrgUserRoles.CREATOR"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="w-4 h-4 text-primary"
+                          />
+                        </div>
+
                         <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                           {{ $t('msg.info.roles.orgCreator') }}
                         </span>
@@ -209,7 +223,15 @@ const emailInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
                         :value="OrgUserRoles.VIEWER"
                         :label="$t(`objects.roleType.orgLevelViewer`)"
                       >
-                        <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                        <div class="flex items-center gap-1 justify-between">
+                          <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                          <GeneralIcon
+                            v-if="usersData.role === OrgUserRoles.VIEWER"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="w-4 h-4 text-primary"
+                          />
+                        </div>
                         <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                           {{ $t('msg.info.roles.orgViewer') }}
                         </span>

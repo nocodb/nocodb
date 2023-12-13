@@ -15,8 +15,8 @@ PRE_REL_STAGE_TAG="ws-pre-release"
 STAGE_TAG="ws"
 EXCLUDED_SVC=" nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
 CLUSTER="executors-prod"
-REPO_NAME="nc-sql-executor"
 ASG_NAME=executor-services-prod
+ECR_REPO_NAME="nc-sql-executor"
 
 prewarm_asg
 # function call in rollout_util.sh file

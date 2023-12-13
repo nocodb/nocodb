@@ -1486,7 +1486,6 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
-                          v-if="!readOnly || isMobileMode"
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                         >

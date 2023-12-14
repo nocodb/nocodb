@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
-import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution'
-
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
-import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&inline'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
 
 import type { editor as MonacoEditor } from 'monaco-editor'
@@ -50,20 +46,15 @@ const isValid = ref(true)
  *
  * @ts-expect-error */
 self.MonacoEnvironment = window.MonacoEnvironment = {
-  getWorker(_: any, label: string) {
-    console.log(JsonWorker, TsWorker, EditorWorker)
+  async getWorker(_: any, label: string) {
     switch (label) {
       case 'json': {
         const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
-        return initWorker(URL.createObjectURL(workerBlob))
-      }
-      case 'typescript': {
-        const workerBlob = new Blob([TsWorker], { type: 'text/javascript' })
-        return initWorker(URL.createObjectURL(workerBlob))
+        return await initWorker(URL.createObjectURL(workerBlob))
       }
       default: {
         const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
-        return initWorker(URL.createObjectURL(workerBlob))
+        return await initWorker(URL.createObjectURL(workerBlob))
       }
     }
   },

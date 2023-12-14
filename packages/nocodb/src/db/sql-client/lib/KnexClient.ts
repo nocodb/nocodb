@@ -3044,7 +3044,12 @@ class KnexClient extends SqlClient {
       if (/^\w+\(\)$/.test(value)) return value;
 
       // if value is a CURRENT_TIMESTAMP, return as is
-      if (/^CURRENT_TIMESTAMP[\w ]*$/.test(value.toUpperCase())) return value;
+      if (
+        /^\s*current_timestamp(?:\(\))?(?:\s+on\s+update\s+current_timestamp(?:\(\))?)?\s*$/i.test(
+          value,
+        )
+      )
+        return value;
 
       // if value wrapped in single/double quotes, then extract value and sanitise
       const m = value.match(/^(['"])(.*)\1$/);

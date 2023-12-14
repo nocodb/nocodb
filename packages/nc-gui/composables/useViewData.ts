@@ -187,24 +187,32 @@ export function useViewData(
     controller.value = CancelToken.source()
 
     isPaginationLoading.value = true
+    let response
 
-    const response = !isPublic.value
-      ? await api.dbViewRow.list(
-          'noco',
-          base.value.id!,
-          metaId.value!,
-          viewMeta.value!.id!,
-          {
-            ...queryParams.value,
-            ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            where: where?.value,
-          } as any,
-          { cancelToken: controller.value.token },
-        )
-      : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
-
+    try {
+      response = !isPublic.value
+        ? await api.dbViewRow.list(
+            'noco',
+            base.value.id!,
+            metaId.value!,
+            viewMeta.value!.id!,
+            {
+              ...queryParams.value,
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: where?.value,
+            } as any,
+            { cancelToken: controller.value.token },
+          )
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+    } catch (error) {
+      // if the request is canceled, then do nothing
+      if (error.code === 'ERR_CANCELED') {
+        return
+      }
+      throw error
+    }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
     isPaginationLoading.value = false

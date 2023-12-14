@@ -70,7 +70,12 @@ async function queryHandler(req, res) {
     if (dynamicPoolSize) {
       // mysql SHOW VARIABLES LIKE 'max_connections'; { Variable_name: 'max_connections', Value: '151' }
       // pg SHOW max_connections; { max_connections: '100' }
-      const tempKnex = knex({ ...config, typeCast, pool: { min: 0, max: 1 } });
+      const tempKnex = knex({
+        ...config, connection: {
+          ...(config.connection || {}),
+          typeCast,
+        }, pool: { min: 0, max: 1 }
+      });
       let maxConnections;
       if (config.client === 'mysql2' || config.client === 'mysql') {
         maxConnections = (
@@ -91,12 +96,19 @@ async function queryHandler(req, res) {
       // console.log('Pool size: ', poolSize);
 
       connectionPools[connectionKey] = knex({
-        ...config,
-        typeCast,
+        ...config, connection: {
+          ...(config.connection || {}),
+          typeCast,
+        },
         pool: { min: 0, max: poolSize },
       });
     } else {
-      connectionPools[connectionKey] = knex({...config, typeCast});
+      connectionPools[connectionKey] = knex({
+        ...config, connection: {
+          ...(config.connection || {}),
+          typeCast,
+        }
+      });
     }
     fromPool = false;
 
@@ -282,12 +294,17 @@ types.setTypeParser(pgTypes.NUMERIC, parseFloatVal);
 function typeCast(field, next) {
   const res = next();
 
-  // mysql `bit` datatype returns value as Buffer, convert it to integer number
-  if (field.type == 'BIT' && res && res instanceof Buffer) {
-    return parseInt(
-      [...res].map((v) => ('00' + v.toString(16)).slice(-2)).join(''),
-      16,
-    );
+
+  // mysql - convert all other buffer values to hex string
+  // if `bit` datatype then convert it to integer number
+  if (res && res instanceof Buffer) {
+    const hex = [...res]
+      .map((v) => ('00' + v.toString(16)).slice(-2))
+      .join('');
+    if (field.type == 'BIT') {
+      return parseInt(hex, 16);
+    }
+    return hex;
   }
 
   // mysql `decimal` datatype returns value as string, convert it to float number

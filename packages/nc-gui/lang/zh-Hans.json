@@ -188,7 +188,8 @@
     "useSurveyMode": "使用调查模式",
     "shift": "Shift 键",
     "enter": "回车键",
-    "seconds": "秒"
+    "seconds": "秒",
+    "paste": "Paste"
   },
   "objects": {
     "workspace": "工作区",
@@ -293,8 +294,8 @@
     "isNot like": "不包含",
     "isEmpty": "内容为空",
     "isNotEmpty": "内容不为空",
-    "isNull": "无值（Null）",
-    "isNotNull": "有值（Not Null）"
+    "isNull": "空值（Null）",
+    "isNotNull": "不为空（Not Null）"
   },
   "title": {
     "docs": "文档",
@@ -581,7 +582,7 @@
     "childTable": "子表",
     "childColumn": "子列",
     "childField": "子字段",
-    "joinCloudForFree": "Join Cloud for Free",
+    "joinCloudForFree": "免费加入云",
     "linkToAnotherRecord": "关联到其他表",
     "links": "链接",
     "onUpdate": "更新时",
@@ -640,7 +641,8 @@
     "sourceNameRequired": "必须填写源名称",
     "changeWsName": "更改工作区名称",
     "pressEnter": "按回车键",
-    "newFormLoaded": "新表格将在"
+    "newFormLoaded": "新表格将在",
+    "webhook": "Webhook"
   },
   "activity": {
     "openInANewTab": "在新标签页中打开",
@@ -1020,6 +1022,7 @@
     "acceptOnlyValid": "仅接受",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
     "selectFieldToSort": "选择要排序的字段",
+    "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "表中没有记录",
     "createWebhookMsg1": "开始使用Web Hooks！",
     "createWebhookMsg2": "创建Web Hooks来实现自动化",
@@ -1207,7 +1210,8 @@
       "goToPrevious": "转到上一个",
       "goToNext": "转到下一个",
       "thankYou": "谢谢你！",
-      "submittedFormData": "您已成功提交表单数据。"
+      "submittedFormData": "您已成功提交表单数据。",
+      "editingSystemKeyNotSupported": "Editing system key not supported"
     },
     "error": {
       "nameRequired": "您必须指定一个名字",
@@ -1283,7 +1287,8 @@
       "duplicateParameterKeysAreNotAllowed": "不允许重复的参数键",
       "fieldRequired": "{value} 不能为空。",
       "projectNotAccessible": "无权访问此项目",
-      "copyToClipboardError": "未能复制到剪贴板"
+      "copyToClipboardError": "未能复制到剪贴板",
+      "pasteFromClipboardError": "Failed to paste from clipboard"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

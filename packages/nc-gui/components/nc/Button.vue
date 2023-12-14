@@ -84,6 +84,7 @@ useEventListener(NcButton, 'mousedown', () => {
       xxsmall: size === 'xxsmall',
       focused: isFocused,
     }"
+    :tabindex="props.disabled ? -1 : 0"
     @focus="onFocus"
     @blur="onBlur"
   >

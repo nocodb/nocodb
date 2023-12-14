@@ -90,6 +90,8 @@ const { isUIAllowed } = useRoles()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
+const expandedFormScrollWrapper = ref()
+
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
@@ -439,6 +441,13 @@ const preventModalStatus = computed({
 })
 
 const onIsExpandedUpdate = (v: boolean) => {
+  let isDropdownOpen = false
+  document.querySelectorAll('.ant-select-dropdown').forEach((el) => {
+    isDropdownOpen = isDropdownOpen || el.checkVisibility()
+  })
+
+  if (isDropdownOpen) return
+
   if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
     isExpanded.value = v
   } else if (!v) {
@@ -451,6 +460,22 @@ const onIsExpandedUpdate = (v: boolean) => {
 const isReadOnlyVirtualCell = (column: ColumnType) => {
   return isRollup(column) || isFormula(column) || isBarcode(column) || isLookup(column) || isQrCode(column)
 }
+
+// Small hack. We need to scroll to the bottom of the form after its mounted and back to top.
+// So that tab to next row works properly, as otherwise browser will focus to save button
+// when we reach to the bottom of the visual scrollable area, not the actual bottom of the form
+watch([expandedFormScrollWrapper, isLoading], () => {
+  if (isMobileMode.value) return
+
+  if (expandedFormScrollWrapper.value && !isLoading.value) {
+    const height = expandedFormScrollWrapper.value.scrollHeight
+    expandedFormScrollWrapper.value.scrollTop = height
+
+    setTimeout(() => {
+      expandedFormScrollWrapper.value.scrollTop = 0
+    }, 125)
+  }
+})
 </script>
 
 <script lang="ts">
@@ -620,6 +645,7 @@ export default {
           }"
         >
           <div
+            ref="expandedFormScrollWrapper"
             class="flex flex-col flex-grow mt-2 h-full max-h-full nc-scrollbar-md pb-6 items-center w-full bg-white p-4 xs:p-0"
           >
             <div

@@ -386,6 +386,23 @@ const updateViewColumn = async (
   return updatedColumn;
 };
 
+const updateColumn = async (
+  context,
+  { table, column, attr }: { column: Column; table: Model; attr: any },
+) => {
+  const res = await request(context.app)
+    .patch(`/api/v2/meta/columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .send({
+      ...attr,
+    });
+
+  const updatedColumn: Column = (await table.getColumns()).find(
+    (column) => column.id === column.id,
+  );
+  return updatedColumn;
+};
+
 export {
   customColumns,
   defaultColumns,
@@ -396,4 +413,5 @@ export {
   createLookupColumn,
   createLtarColumn,
   updateViewColumn,
+  updateColumn,
 };

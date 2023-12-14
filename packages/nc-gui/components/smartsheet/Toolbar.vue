@@ -10,7 +10,7 @@ import {
   useViewsStore,
 } from '#imports'
 
-const { isGrid, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -30,16 +30,17 @@ const { allowCSVDownload } = useSharedView()
     </template>
     <template v-else>
       <LazySmartsheetToolbarMappedBy v-if="isMap" />
+      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-      <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+      <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isCalendar" :show-system-fields="false" />
 
       <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-      <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+      <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isCalendar" />
 
       <LazySmartsheetToolbarGroupByMenu v-if="isGrid" />
 
-      <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+      <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isCalendar" />
 
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />

@@ -156,36 +156,36 @@ const pg = {
   DATESTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `TO_DATE(${
+        `TO_CHAR((${
           (await fn(pt?.arguments[0])).builder
-        }, 'YYYY-MM-DD')::text ${colAlias}`,
+        }), 'YYYY-MM-DD')::text ${colAlias}`,
       ),
     };
   },
   DAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `EXTRACT('Day' FROM DATE ${
+        `EXTRACT('Day' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        }) ${colAlias}`,
+        })::TIMESTAMP)) ${colAlias}`,
       ),
     };
   },
   MONTH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `EXTRACT('Month' FROM DATE ${
+        `EXTRACT('Month' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        }) ${colAlias}`,
+        })::TIMESTAMP)) ${colAlias}`,
       ),
     };
   },
   HOUR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return {
       builder: knex.raw(
-        `EXTRACT('Hour' FROM  (${
+        `EXTRACT('Hour' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP) ${colAlias}`,
+        })::TIMESTAMP)) ${colAlias}`,
       ),
     };
   },

@@ -1,28 +1,10 @@
 import dayjs from 'dayjs';
+import { FormulaDataTypes } from 'nocodb-sdk';
 import commonFns from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
-import {FormulaDataTypes} from "nocodb-sdk";
-const replaceCharClassShorthandlers = (str: string) => {
-  return str.replace(/(.|^)\\([dDsSwW])/g, (fullMatch, prevChar, alias) => {
-    if (prevChar === '\\') return fullMatch;
-    switch (alias) {
-      case 'd':
-        return `${prevChar}[0-9]`;
-      case 'D':
-        return `${prevChar}[^0-9]`;
-      case 's':
-        return `${prevChar}[\f\n\r\t\v\u0020\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]`;
-      case 'S':
-        return `${prevChar}[^\f\n\r\t\v\u0020\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]`;
-      case 'w':
-        return `${prevChar}[A-Za-z0-9_]`;
-      case 'W':
-        return `${prevChar}[^A-Za-z0-9_]`;
-    }
-  });
-};
+
 const pg = {
   ...commonFns,
   LEN: 'length',
@@ -249,9 +231,7 @@ const pg = {
 
     // replace shorthand character classes with their equivalent character sets
     if (pt.arguments[1].type === 'Literal') {
-      pt.arguments[1].value = replaceCharClassShorthandlers(
-        pt.arguments[1].value,
-      );
+      pt.arguments[1].value = pt.arguments[1].value;
     }
 
     const pattern = (await fn(pt.arguments[1])).builder;
@@ -266,9 +246,7 @@ const pg = {
 
     // replace shorthand character classes with their equivalent character sets
     if (pt.arguments[1].type === 'Literal') {
-      pt.arguments[1].value = replaceCharClassShorthandlers(
-        pt.arguments[1].value,
-      );
+      pt.arguments[1].value = pt.arguments[1].value;
     }
 
     const pattern = (await fn(pt.arguments[1])).builder;
@@ -286,9 +264,7 @@ const pg = {
 
     // replace shorthand character classes with their equivalent character sets
     if (pt.arguments[1].type === 'Literal') {
-      pt.arguments[1].value = replaceCharClassShorthandlers(
-        pt.arguments[1].value,
-      );
+      pt.arguments[1].value = pt.arguments[1].value;
     }
 
     const replacement = (await fn(pt.arguments[2])).builder;

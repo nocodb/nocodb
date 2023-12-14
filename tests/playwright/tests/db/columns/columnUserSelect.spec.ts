@@ -5,7 +5,7 @@ import setup, { unsetup } from '../../../setup';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
-test.describe('User single select', () => {
+test.describe.only('User single select', () => {
   let dashboard: DashboardPage, grid: GridPage, topbar: TopbarPage;
   let context: any;
   const users: string[] = [
@@ -91,9 +91,9 @@ test.describe('User single select', () => {
     await grid.addNewRow({ index: 5, value: 'Row 5' });
 
     // Edit, refresh and verify
-    await grid.cell.userOption.select({ index: 0, columnHeader: 'User', option: users[1], multiSelect: false });
-    await grid.cell.userOption.select({ index: 2, columnHeader: 'User', option: users[2], multiSelect: false });
-    await grid.cell.userOption.select({ index: 4, columnHeader: 'User', option: users[3], multiSelect: false });
+    for (let i = 0; i <= 4; i++) {
+      await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
+    }
 
     // refresh page
     await topbar.clickRefresh();
@@ -134,33 +134,35 @@ test.describe('User single select', () => {
 
     await grid.cell.userOption.verifyNoOptionsSelected({ index: 2, columnHeader: 'user' });
 
-    //   // Copy-paste
-    //   // #1 Using keyboard
-    //   await grid.cell.click({ index: 3, columnHeader: 'User' });
-    //   await dashboard.rootPage.keyboard.press('Shift+ArrowDown');
-    //   await dashboard.rootPage.keyboard.press('Shift+ArrowDown');
+    // Copy-paste
+    // #1 Using keyboard
+    await grid.cell.click({ index: 3, columnHeader: 'User' });
+    await dashboard.rootPage.keyboard.press('Shift+ArrowDown');
 
-    //   await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
-    //   await grid.cell.click({ index: 0, columnHeader: 'User' });
-    //   await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+    await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await grid.cell.click({ index: 0, columnHeader: 'User' });
+    await dashboard.rootPage.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    //   // refresh
-    //   await topbar.clickRefresh();
+    // refresh
+    await topbar.clickRefresh();
 
-    //   let counter = 3;
-    //   for (let i = 0; i <= 1; i++) {
-    //     await grid.cell.userOption.verify({
-    //       index: i,
-    //       columnHeader: 'User',
-    //       option: users[counter],
-    //       multiSelect: false,
-    //     });
-    //   }
-    // });
+    let counter = 3;
+    for (let i = 0; i <= 1; i++) {
+      await grid.cell.userOption.verify({
+        index: i,
+        columnHeader: 'User',
+        option: users[counter],
+        multiSelect: false,
+      });
+      counter++;
+    }
+
+    // Todo: Need to rebase nc-feat/user-field branch with devlop
+    // #2 Using cell context menu copy paste option
   });
 });
 
-test.describe('Single select - filter & sort', () => {
+test.describe('Single select - filter, sort & GroupBy', () => {
   // Row values
   // no values (row ❶)
   // only Foo (row ❷)

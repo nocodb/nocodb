@@ -303,7 +303,7 @@ export default {
 
     return {
       builder: knex.raw(
-        `ROUND(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+        `(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
       ),
     };
   },
@@ -317,7 +317,7 @@ export default {
 
     return {
       builder: knex.raw(
-        `ROUND(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+        `(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
       ),
     };
   },

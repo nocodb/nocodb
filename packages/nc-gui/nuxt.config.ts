@@ -4,7 +4,6 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
-import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
@@ -179,13 +178,6 @@ export default defineNuxtConfig({
             ],
           }),
         ],
-      }),
-      monacoEditorPlugin({
-        languageWorkers: ['json'],
-        // customWorkers: [{ label: 'sql', entry: 'monaco-sql-languages/out/esm/sql/sql.worker.js' }],
-        customDistPath: (root: string, buildOutDir: string) => {
-          return `${buildOutDir}/` + `monacoeditorwork`
-        },
       }),
       PurgeIcons({
         /* PurgeIcons Options */

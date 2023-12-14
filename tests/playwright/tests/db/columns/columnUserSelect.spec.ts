@@ -235,7 +235,7 @@ test.describe('User single select - filter, sort & GroupBy', () => {
     await toolbar.filter.reset();
   }
 
-  test('Select and clear options and rename options', async () => {
+  test('User sort & validate, filter & validate', async () => {
     // Sort ascending and validate
     await toolbar.sort.add({
       title: 'User',

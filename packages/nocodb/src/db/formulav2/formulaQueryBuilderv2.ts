@@ -80,6 +80,7 @@ async function _formulaQueryBuilder(
     tree = await validateFormulaAndExtractTreeWithType({
       formula: _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
       columns,
+      column,
       clientOrSqlUi: baseModelSqlv2.clientType as
         | 'mysql'
         | 'pg'

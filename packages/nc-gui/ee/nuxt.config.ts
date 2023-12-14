@@ -204,6 +204,9 @@ export default defineNuxtConfig({
               project: 'javascript',
               authToken: process.env.SENTRY_AUTH_TOKEN,
               telemetry: false,
+              sourcemaps: {
+                filesToDeleteAfterUpload: '**/*.js.map',
+              },
             }),
           ]
         : []),

@@ -5,16 +5,17 @@ import setup, { unsetup } from '../../../setup';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
-test.describe.only('User single select', () => {
+const users: string[] = [
+  'user@nocodb.com',
+  'user-0@nocodb.com',
+  'user-1@nocodb.com',
+  'user-2@nocodb.com',
+  'user-3@nocodb.com',
+];
+
+test.describe('User single select', () => {
   let dashboard: DashboardPage, grid: GridPage, topbar: TopbarPage;
   let context: any;
-  const users: string[] = [
-    'user@nocodb.com',
-    'user-0@nocodb.com',
-    'user-1@nocodb.com',
-    'user-2@nocodb.com',
-    'user-3@nocodb.com',
-  ];
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
@@ -162,19 +163,25 @@ test.describe.only('User single select', () => {
   });
 });
 
-test.describe('Single select - filter, sort & GroupBy', () => {
+test.describe('User single select - filter, sort & GroupBy', () => {
   // Row values
-  // no values (row ❶)
-  // only Foo (row ❷)
-  // only Bar (row ❸)
-  // only Baz (row ❹)
-
+  // only user@nocodb.com (row 0)
+  // only user-0@nocodb.com (row 1)
+  // only user-1@nocodb.com (row 2)
+  // only user-2@nocodb.com (row 3)
+  // only user-3@nocodb.com (row 4)
   //   Example filters:
   //
-  // where tags contains any of [Foo, Bar]
-  //   result: rows 2,3
-  // where tags does not contain any of [Foo, Bar]
-  //   result: rows 1,4
+  // where tags contains any of [user@nocodb.com, user-0@nocodb.com]
+  //   result: rows 0,1
+  // where tags does not contain any of [user@nocodb.com, user-0@nocodb.com]
+  //   result: rows 2,3,4
+  // where tags does not contain all of [user-0@nocodb.com]
+  //   result: rows 0,2,3,4
+  // where tags is not blank
+  //   result: rows 0,1,2,3,4
+  // where tags is blank
+  //   result: null
 
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage;
   let context: any;
@@ -187,19 +194,12 @@ test.describe('Single select - filter, sort & GroupBy', () => {
 
     await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
-    await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
-    await grid.column.selectOption.addOptions({
-      columnTitle: 'SingleSelect',
-      options: ['foo', 'bar', 'baz'],
-    });
-    await grid.addNewRow({ index: 0, value: '1' });
-    await grid.addNewRow({ index: 1, value: '2' });
-    await grid.addNewRow({ index: 2, value: '3' });
-    await grid.addNewRow({ index: 3, value: '4' });
+    await grid.column.create({ title: 'User', type: 'User' });
 
-    await grid.cell.selectOption.select({ index: 1, columnHeader: 'SingleSelect', option: 'foo', multiSelect: false });
-    await grid.cell.selectOption.select({ index: 2, columnHeader: 'SingleSelect', option: 'bar', multiSelect: false });
-    await grid.cell.selectOption.select({ index: 3, columnHeader: 'SingleSelect', option: 'baz', multiSelect: false });
+    for (let i = 0; i <= 4; i++) {
+      await grid.addNewRow({ index: i, value: `${i}` });
+      await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
+    }
   });
 
   test.afterEach(async () => {
@@ -221,11 +221,11 @@ test.describe('Single select - filter, sort & GroupBy', () => {
   async function verifyFilter(param: { opType: string; value?: string; result: string[] }) {
     await toolbar.clickFilter();
     await toolbar.filter.add({
-      title: 'SingleSelect',
+      title: 'User',
       operation: param.opType,
       value: param.value,
       locallySaved: false,
-      dataType: 'SingleSelect',
+      dataType: 'User',
     });
     await toolbar.clickFilter();
 
@@ -236,26 +236,39 @@ test.describe('Single select - filter, sort & GroupBy', () => {
   }
 
   test('Select and clear options and rename options', async () => {
-    // fix me! single select filter value doesn't support selecting multiple options
-    // await verifyFilter({ opType: 'contains any of', value: 'foo,bar', result: ['2', '3'] });
-    // await verifyFilter({ opType: 'does not contain any of', value: 'foo,bar', result: ['1', '4'] });
-
-    // Sort column
+    // Sort ascending and validate
     await toolbar.sort.add({
-      title: 'SingleSelect',
+      title: 'User',
       ascending: true,
       locallySaved: false,
     });
-    await validateRowArray(['1', '3', '4', '2']);
+    await validateRowArray(['1', '2', '3', '4', '0']);
     await toolbar.sort.reset();
 
-    // sort descending & validate
+    // sort descending and validate
     await toolbar.sort.add({
-      title: 'SingleSelect',
+      title: 'User',
       ascending: false,
       locallySaved: false,
     });
-    await validateRowArray(['2', '4', '3', '1']);
+    await validateRowArray(['0', '4', '3', '2', '1']);
     await toolbar.sort.reset();
+
+    // filter
+    await verifyFilter({ opType: 'contains all of', value: users[0], result: ['0'] });
+    await verifyFilter({
+      opType: 'contains any of',
+      value: `${users[0]},${users[1]}`,
+      result: ['0', '1'],
+    });
+    await verifyFilter({
+      opType: 'does not contain any of',
+      value: `${users[0]},${users[1]}`,
+      result: ['2', '3', '4'],
+    });
+    await verifyFilter({ opType: 'does not contain all of', value: users[1], result: ['0', '2', '3', '4'] });
+    await verifyFilter({ opType: 'is not blank', result: ['0', '1', '2', '3', '4'] });
+    await verifyFilter({ opType: 'is blank', result: [] });
+
   });
 });

@@ -25,13 +25,24 @@ test.describe('User single select', () => {
     await unsetup(context);
   });
 
-  //   test('Verify default value options count and select default value', async () => {
-  //     // await dashboard.grid.column.userOption.verifyDefaultValueOptions({ columnTitle: 'User', totalCount: 5 });
-  //     await dashboard.grid.column.userOption.allowMultipleUser({ columnTitle: 'User', allowMultiple: true });
-  //   });
+  test('Verify the default option count, select default value and verify', async () => {
+    await dashboard.grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 1 });
+
+    await dashboard.grid.column.userOption.selectDefaultValueOption({
+      columnTitle: 'User',
+      option: 'user-0@nocodb.com',
+      multiSelect: false,
+    });
+
+    // Verify default value
+    await dashboard.grid.column.userOption.verifySelectedOptions({
+      columnHeader: 'User',
+      options: ['user-0@nocodb.com'],
+    });
+  });
 
   test('Rename column title and delete the column', async () => {
-    // Update column title, refresh and verify
+    // Rename column title, refresh and verify
     await dashboard.grid.column.openEdit({ title: 'User' });
     await dashboard.grid.column.fillTitle({ title: 'UserField' });
     await dashboard.grid.column.save({

@@ -73,16 +73,18 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     unsub = false
   }
 
-  if ((nuxtApp.$state as ReturnType<typeof useGlobal>).signedIn.value) {
-    await init()
-  }
-
-  watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-    if (newToken && newToken !== oldToken) init()
-    else if (!newToken) {
-      unsub = true
-    }
-  })
+  // fix me! do not merge this PR until this is fixed
+  //
+  // if ((nuxtApp.$state as ReturnType<typeof useGlobal>).signedIn.value) {
+  //   await init()
+  // }
+  //
+  // watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
+  //   if (newToken && newToken !== oldToken) init()
+  //   else if (!newToken) {
+  //     unsub = true
+  //   }
+  // })
 
   const poller = {
     subscribe,

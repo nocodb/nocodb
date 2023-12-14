@@ -131,9 +131,7 @@ export default defineNuxtConfig({
       ncBackendUrl: '',
     },
   },
-
-  build: {},
-
+  sourcemap: true,
   vite: {
     worker: {
       format: 'es',
@@ -144,7 +142,6 @@ export default defineNuxtConfig({
       },
       minify: true,
       rollupOptions: {},
-      sourcemap: true,
     },
     plugins: [
       vueI18n({

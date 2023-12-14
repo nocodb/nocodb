@@ -200,7 +200,7 @@ watch(
         class="!mt-0.5"
         @change="onDataTypeChange"
       >
-        <a-select-option v-for="(func, index) of aggrFunctionsList" :key="index" :value="func.value">
+        <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
           <div class="flex gap-2 justify-between items-center">
             {{ func.text }}
             <component

@@ -223,7 +223,7 @@ if (props.fromTableExplorer) {
     :class="{
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
-      '!w-146': isTextArea(formState) && formState.meta.richMode,
+      '!w-146': isTextArea(formState) && formState.meta?.richMode,
       '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-6': !embedMode,
@@ -274,7 +274,7 @@ if (props.fromTableExplorer) {
               show-search
               class="nc-column-type-input !rounded"
               :disabled="isKanban || readOnly"
-              dropdown-class-name="nc-dropdown-column-type border-1 border-gray-200"
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-md border-gray-200"
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
@@ -282,10 +282,16 @@ if (props.fromTableExplorer) {
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
               <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-                <div class="flex gap-1 items-center">
-                  <component :is="opt.icon" class="text-gray-700 mx-1" />
-                  {{ opt.name }}
+                <div class="flex gap-2 items-center">
+                  <component :is="opt.icon" class="text-gray-700" />
+                  <div class="flex-1">{{ opt.name }}</div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+                  <component
+                    :is="iconMap.check"
+                    v-if="formState.uidt === opt.name"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
                 </div>
               </a-select-option>
             </a-select>
@@ -338,7 +344,7 @@ if (props.fromTableExplorer) {
             Default Value for JSON & LongText is not supported in MySQL
             Default Value is Disabled for MSSQL -->
           <LazySmartsheetColumnRichLongTextDefaultValue
-            v-if="isTextArea(formState) && formState.meta.richMode"
+            v-if="isTextArea(formState) && formState.meta?.richMode"
             v-model:value="formState"
           />
           <LazySmartsheetColumnDefaultValue
@@ -353,7 +359,7 @@ if (props.fromTableExplorer) {
         </div>
 
         <div
-          v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+          v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
           class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
           @click="advancedOptions = !advancedOptions"
         >

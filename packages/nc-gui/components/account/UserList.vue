@@ -215,6 +215,7 @@ const openDeleteModal = (user: UserType) => {
                 v-model:value="el.roles"
                 class="w-55 nc-user-roles"
                 :dropdown-match-select-width="false"
+                dropdown-class-name="max-w-64"
                 @change="updateRole(el.id, el.roles as string)"
               >
                 <a-select-option
@@ -222,7 +223,15 @@ const openDeleteModal = (user: UserType) => {
                   :value="OrgUserRoles.CREATOR"
                   :label="$t(`objects.roleType.orgLevelCreator`)"
                 >
-                  <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                  <div class="flex items-center gap-1 justify-between">
+                    <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                    <GeneralIcon
+                      v-if="el?.roles === OrgUserRoles.CREATOR"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="w-4 h-4 text-primary"
+                    />
+                  </div>
                   <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgCreator') }}
                   </span>
@@ -233,7 +242,15 @@ const openDeleteModal = (user: UserType) => {
                   :value="OrgUserRoles.VIEWER"
                   :label="$t(`objects.roleType.orgLevelViewer`)"
                 >
-                  <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                  <div class="flex items-center gap-1 justify-between">
+                    <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                    <GeneralIcon
+                      v-if="el.roles === OrgUserRoles.VIEWER"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="w-4 h-4 text-primary"
+                    />
+                  </div>
                   <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgViewer') }}
                   </span>

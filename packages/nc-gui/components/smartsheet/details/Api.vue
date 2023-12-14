@@ -84,7 +84,7 @@ const selectedLangName = ref(langs[0].name)
 const apiUrl = computed(
   () =>
     new URL(
-      `/api/v1/db/data/noco/${base.value?.id}/${meta.value?.title}/views/${view.value?.title}`,
+      `/api/v1/db/data/noco/${base.value?.id}/${meta.value?.id}/views/${view.value?.id}`,
       (appInfo.value && appInfo.value.ncSiteUrl) || '/',
     ).href,
 )
@@ -118,9 +118,9 @@ const api = new Api({
 
 api.dbViewRow.list(
   "noco",
-  ${JSON.stringify(base.value?.title)},
-  ${JSON.stringify(meta.value?.title)},
-  ${JSON.stringify(view.value?.title)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
+  ${JSON.stringify(base.value?.id)},
+  ${JSON.stringify(meta.value?.id)},
+  ${JSON.stringify(view.value?.id)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
   console.log(data);
 }).catch(function (error) {
   console.error(error);
@@ -169,7 +169,15 @@ watch(activeLang, (newLang) => {
             dropdown-class-name="nc-dropdown-snippet-active-lang"
           >
             <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full capitalize" :value="client">
-              {{ client }}
+              <div class="flex items-center w-full justify-between w-full gap-2">
+                <div class="truncate flex-1">{{ client }}</div>
+                <component
+                  :is="iconMap.check"
+                  v-if="selectedClient === client"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
+              </div>
             </a-select-option>
           </NcSelect>
 

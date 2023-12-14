@@ -276,8 +276,13 @@ export default class RedisMockCacheMgr extends CacheMgr {
         ? `${this.prefix}:${scope}:list`
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisMockCacheMgr::appendToList: append key ${key} to ${listKey}`);
-    let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
-    if (list.length && list[0] === 'NONE') {
+    let list = await this.get(listKey, CacheGetType.TYPE_ARRAY);
+
+    if (!list || !list.length) {
+      return false;
+    }
+
+    if (list[0] === 'NONE') {
       list = [];
       await this.del(listKey);
     }

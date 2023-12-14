@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import TypescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution'
+import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution'
+
+import EditorWorkerUrl from 'monaco-editor/esm/vs/editor/editor.worker?worker&url'
+import TsWorkerUrl from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&url'
+import JsonWorkerUrl from 'monaco-editor/esm/vs/language/json/json.worker?worker&url'
+
 import type { editor as MonacoEditor } from 'monaco-editor'
-import { deepCompare, isDrawerOrModalExist, onMounted, ref, watch } from '#imports'
+import { deepCompare, isDrawerOrModalExist, onMounted, ref, watch, initWorker } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -49,11 +53,11 @@ self.MonacoEnvironment = {
   getWorker(_: any, label: string) {
     switch (label) {
       case 'json':
-        return new JsonWorker()
+        return initWorker(JsonWorkerUrl)
       case 'typescript':
-        return new TypescriptWorker()
+        return initWorker(TsWorkerUrl)
       default:
-        return new EditorWorker()
+        return initWorker(EditorWorkerUrl)
     }
   },
 }

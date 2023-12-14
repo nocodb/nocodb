@@ -64,7 +64,7 @@ function formulaRegExpBased() {
     expect(unfilteredRecords.length).to.equal(100);
   });
 
-  it.only('Type: REGEX_MATCH ', async () => {
+  it('Type: REGEX_MATCH ', async () => {
     const formulaList = [
       `REGEX_MATCH("123-45-6789", "\\d{3}-\\d{2}-\\d{4}")`,
       'REGEX_MATCH("123-45-6789", "\\d{3}-\\d{2}-\\d{4}")',

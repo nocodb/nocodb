@@ -352,9 +352,15 @@ onBeforeUnmount(() => {
                     @change="saveOrUpdate(filter, i)"
                   >
                     <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
-                      <span class="capitalize">
-                        {{ op.value }}
-                      </span>
+                      <div class="flex items-center w-full justify-between w-full gap-2">
+                        <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                        <component
+                          :is="iconMap.check"
+                          v-if="filter.logical_op === op.value"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4"
+                        />
+                      </div>
                     </a-select-option>
                   </NcSelect>
                 </div>
@@ -400,9 +406,15 @@ onBeforeUnmount(() => {
               @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
-                <span class="capitalize">
-                  {{ op.value }}
-                </span>
+                <div class="flex items-center w-full justify-between w-full gap-2">
+                  <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="filter.logical_op === op.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
               </a-select-option>
             </NcSelect>
             <SmartsheetToolbarFieldListAutoCompleteDropdown
@@ -424,12 +436,20 @@ onBeforeUnmount(() => {
               variant="solo"
               :disabled="filter.readOnly"
               hide-details
-              dropdown-class-name="nc-dropdown-filter-comp-op"
+              dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
               @change="filterUpdateCondition(filter, i)"
             >
               <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
-                  {{ compOp.text }}
+                  <div class="flex items-center w-full justify-between w-full gap-2">
+                    <div class="truncate flex-1">{{ compOp.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="filter.comparison_op === compOp.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </template>
             </NcSelect>
@@ -452,7 +472,18 @@ onBeforeUnmount(() => {
             >
               <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
-                  {{ compSubOp.text }}
+                  <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
+                    <NcTooltip show-on-truncate-only class="truncate flex-1">
+                      <template #title>{{ compSubOp.text }}</template>
+                      {{ compSubOp.text }}
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="filter.comparison_sub_op === compSubOp.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </template>
             </NcSelect>
@@ -546,6 +577,7 @@ onBeforeUnmount(() => {
 .nc-filter-item-remove-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
+
 .nc-filter-grid {
   @apply items-center w-full;
 }

@@ -89,7 +89,19 @@ currencyLocales().then((locales) => {
           dropdown-class-name="nc-dropdown-currency-cell-locale"
         >
           <a-select-option v-for="(currencyLocale, i) of currencyLocaleList" :key="i" :value="currencyLocale.value">
-            {{ currencyLocale.text }}
+            <div class="flex gap-2 w-full truncate items-center">
+              <NcTooltip show-on-truncate-only class="flex-1 truncate">
+                <template #title>{{ currencyLocale.text }}</template>
+                {{ currencyLocale.text }}
+              </NcTooltip>
+
+              <component
+                :is="iconMap.check"
+                v-if="vModel.meta.currency_locale === currencyLocale.value"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -106,7 +118,15 @@ currencyLocales().then((locales) => {
           dropdown-class-name="nc-dropdown-currency-cell-code"
         >
           <a-select-option v-for="(currencyCode, i) of currencyList" :key="i" :value="currencyCode">
-            {{ currencyCode }}
+            <div class="flex gap-2 w-full justify-between items-center">
+              {{ currencyCode }}
+              <component
+                :is="iconMap.check"
+                v-if="vModel.meta.currency_code === currencyCode"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
           </a-select-option>
         </a-select>
       </a-form-item>

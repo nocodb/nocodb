@@ -73,9 +73,12 @@ vModel.value.au = !!vModel.value.au */
       </div>
 
       <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
-        <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type " @change="onDataTypeChange">
+        <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type " class="!mt-0.5" @change="onDataTypeChange">
           <a-select-option v-for="type in dataTypes" :key="type" :value="type">
-            {{ type }}
+            <div class="flex gap-2 items-center justify-between">
+              {{ type }}
+              <component :is="iconMap.check" v-if="vModel.dt === type" id="nc-selected-item-icon" class="text-primary w-4 h-4" />
+            </div>
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -83,14 +86,19 @@ vModel.value.au = !!vModel.value.au */
       <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
         <a-input
           v-model:value="vModel.dtxp"
-          class="!rounded-md"
+          class="!rounded-md !mt-0.5"
           :disabled="sqlUi.getDefaultLengthIsDisabled(vModel.dt) || !sqlUi.columnEditable(vModel)"
           @input="onAlter"
         />
       </a-form-item>
 
       <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
-        <a-input v-model:value="vModel.dtxs" class="!rounded-md" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
+        <a-input
+          v-model:value="vModel.dtxs"
+          class="!rounded-md !mt-0.5"
+          :disabled="!sqlUi.columnEditable(vModel)"
+          @input="onAlter"
+        />
       </a-form-item>
 
       <LazySmartsheetColumnPgBinaryOptions v-if="isPg(meta?.source_id) && vModel.dt === 'bytea'" v-model:value="vModel" />

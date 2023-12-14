@@ -107,17 +107,23 @@ watch(columns, () => {
         :open="isDropdownOpen"
         size="small"
         :dropdown-match-select-width="false"
-        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option w-48"
-        class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
+        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option max-w-64"
+        class="py-1 !absolute top-2 left-0 w-full h-full z-10 text-xs opacity-0"
         @change="onPressEnter"
       >
         <a-select-option v-for="op of columns" :key="op.value" v-e="['c:search:field:select']" :value="op.value">
-          <div class="text-[0.75rem] flex items-center -ml-1 gap-2">
-            <SmartsheetHeaderIcon class="text-sm" :column="op.column" />
-            <NcTooltip class="truncate" placement="top" show-on-truncate-only>
+          <div class="text-sm flex items-center gap-2">
+            <SmartsheetHeaderIcon :column="op.column" />
+            <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
               <template #title>{{ op.label }}</template>
-              <template #default>{{ op.label }}</template>
+              {{ op.label }}
             </NcTooltip>
+            <component
+              :is="iconMap.check"
+              v-if="search.field === op.value"
+              id="nc-selected-item-icon"
+              class="text-primary w-4 h-4"
+            />
           </div>
         </a-select-option>
       </a-select>
@@ -137,14 +143,6 @@ watch(columns, () => {
     </a-input>
   </div>
 </template>
-
-<style lang="scss">
-.nc-dropdown-toolbar-search-field-option {
-  .ant-select-item-option {
-    @apply !py-2 px-4;
-  }
-}
-</style>
 
 <style scoped>
 :deep(input::placeholder) {

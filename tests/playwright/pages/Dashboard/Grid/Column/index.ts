@@ -104,6 +104,11 @@ export class ColumnPageObject extends BasePage {
             .click();
         }
         break;
+      case 'Date':
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        break;
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
@@ -118,9 +123,8 @@ export class ColumnPageObject extends BasePage {
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
-          })
+          .locator(`.ant-select-item`)
+          .locator(`[data-testid="nc-qr-${qrCodeValueColumnTitle}"]`)
           .click();
         break;
       case 'Barcode':
@@ -309,6 +313,11 @@ export class ColumnPageObject extends BasePage {
         // Time Format
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+        break;
+      case 'Date':
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
         break;
       default:
         break;

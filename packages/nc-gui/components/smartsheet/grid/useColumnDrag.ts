@@ -34,6 +34,9 @@ export const useColumnDrag = ({
     const lastCol = fields.value[fields.value.length - 1]
     const lastViewCol = gridViewCols.value[lastCol.id!]
 
+    // if nextToViewCol/toViewCol is null, return
+    if (nextToViewCol === null || lastViewCol === null) return
+
     const newOrder = nextToViewCol ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2 : lastViewCol.order! + 1
     const oldOrder = toBeReorderedViewCol.order
 

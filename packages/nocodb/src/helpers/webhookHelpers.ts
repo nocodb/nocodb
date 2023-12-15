@@ -303,7 +303,21 @@ export async function invokeWebhook(
     if (hook.condition && !testHook) {
       if (isBulkOperation) {
         const filteredData = [];
-        for (const data of newData) {
+        for (let i = 0; i < newData.length; i++) {
+          const data = newData[i];
+          const prevData = prevData ? prevData[i] : null;
+
+          if (hook.version === 'v3' && prevData) {
+            // if condition is satisfied for prevData then return
+            if (
+              await validateCondition(
+                testFilters || (await hook.getFilters()),
+                prevData,
+              )
+            ) {
+              continue;
+            }
+          }
           if (
             await validateCondition(
               testFilters || (await hook.getFilters()),
@@ -312,12 +326,23 @@ export async function invokeWebhook(
           ) {
             filteredData.push(data);
           }
-          if (!filteredData.length) {
+        }
+        if (!filteredData.length) {
+          return;
+        }
+        newData = filteredData;
+      } else {
+        if (hook.version === 'v3' && prevData) {
+          // if condition is satisfied for prevData then return
+          if (
+            await validateCondition(
+              testFilters || (await hook.getFilters()),
+              prevData,
+            )
+          ) {
             return;
           }
-          newData = filteredData;
         }
-      } else {
         if (
           !(await validateCondition(
             testFilters || (await hook.getFilters()),

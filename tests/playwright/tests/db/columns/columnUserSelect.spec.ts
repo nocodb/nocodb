@@ -309,34 +309,34 @@ test.describe('User single select - filter, sort & GroupBy', () => {
     await verifyFilter({ opType: 'is not blank', result: ['0', '1', '2', '3', '4'] });
     await verifyFilter({ opType: 'is blank', result: [] });
 
-    // //GroupBy
-    // // ascending order
-    // await toolbar.groupBy.add({ title: 'User', ascending: true, locallySaved: false });
+    //GroupBy
+    // ascending order
+    await toolbar.groupBy.add({ title: 'User', ascending: true, locallySaved: false });
 
-    // for (let i = 0; i <= 4; i++) {
-    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+    for (let i = 0; i <= 4; i++) {
+      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
 
-    //   await dashboard.grid.groupPage.validateFirstRow({
-    //     indexMap: [i],
-    //     rowIndex: 0,
-    //     columnHeader: 'Title',
-    //     value: ascendingOrderRowTitle[i],
-    //   });
-    // }
+      await dashboard.grid.groupPage.validateFirstRow({
+        indexMap: [i],
+        rowIndex: 0,
+        columnHeader: 'Title',
+        value: ascendingOrderRowTitle[i],
+      });
+    }
 
-    // // descending order
-    // await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
+    // descending order
+    await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
 
-    // for (let i = 0; i <= 4; i++) {
-    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
-    //   await dashboard.grid.groupPage.validateFirstRow({
-    //     indexMap: [i],
-    //     rowIndex: 0,
-    //     columnHeader: 'Title',
-    //     value: descendingOrderRowTitle[i],
-    //   });
-    // }
-    // await toolbar.groupBy.remove({ index: 0 });
+    for (let i = 0; i <= 4; i++) {
+      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+      await dashboard.grid.groupPage.validateFirstRow({
+        indexMap: [i],
+        rowIndex: 0,
+        columnHeader: 'Title',
+        value: descendingOrderRowTitle[i],
+      });
+    }
+    await toolbar.groupBy.remove({ index: 0 });
   });
 });
 
@@ -659,32 +659,32 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
     await verifyFilter({ opType: 'is not blank', result: ['0', '1', '2', '3', '4'] });
     await verifyFilter({ opType: 'is blank', result: [] });
 
-    // //GroupBy
-    // // ascending order
-    // await toolbar.groupBy.add({ title: 'User', ascending: true, locallySaved: false });
+    //GroupBy
+    // ascending order
+    await toolbar.groupBy.add({ title: 'User', ascending: true, locallySaved: false });
 
-    // for (let i = 0; i <= 4; i++) {
-    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
-    //   await dashboard.grid.groupPage.validateFirstRow({
-    //     indexMap: [i],
-    //     rowIndex: 0,
-    //     columnHeader: 'Title',
-    //     value: ascendingOrderRowTitle[i],
-    //   });
-    // }
+    for (let i = 0; i <= 4; i++) {
+      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+      await dashboard.grid.groupPage.validateFirstRow({
+        indexMap: [i],
+        rowIndex: 0,
+        columnHeader: 'Title',
+        value: ascendingOrderRowTitle[i],
+      });
+    }
 
-    // // descending order
-    // await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
+    // descending order
+    await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
 
-    // for (let i = 0; i <= 4; i++) {
-    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
-    //   await dashboard.grid.groupPage.validateFirstRow({
-    //     indexMap: [i],
-    //     rowIndex: 0,
-    //     columnHeader: 'Title',
-    //     value: descendingOrderRowTitle[i],
-    //   });
-    // }
-    // await toolbar.groupBy.remove({ index: 0 });
+    for (let i = 0; i <= 4; i++) {
+      await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+      await dashboard.grid.groupPage.validateFirstRow({
+        indexMap: [i],
+        rowIndex: 0,
+        columnHeader: 'Title',
+        value: descendingOrderRowTitle[i],
+      });
+    }
+    await toolbar.groupBy.remove({ index: 0 });
   });
 });

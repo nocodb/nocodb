@@ -402,10 +402,10 @@ const getRowId = (row: RowType) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-md"
+      class="nc-kanban-container flex mt-4 pb-4 px-4 overflow-y-hidden w-full nc-scrollbar-x-lg"
       :style="{
-        minHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
-        maxHeight: 'calc(100vh - var(--topbar-height) - 3.5rem)',
+        minHeight: 'calc(100vh - var(--topbar-height) - 4.1rem)',
+        maxHeight: 'calc(100vh - var(--topbar-height) - 4.1rem)',
       }"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">

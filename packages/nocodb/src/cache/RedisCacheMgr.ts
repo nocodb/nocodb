@@ -276,8 +276,13 @@ export default class RedisCacheMgr extends CacheMgr {
         ? `${this.prefix}:${scope}:list`
         : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisCacheMgr::appendToList: append key ${key} to ${listKey}`);
-    let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
-    if (list.length && list.includes('NONE')) {
+    let list = await this.get(listKey, CacheGetType.TYPE_ARRAY);
+
+    if (!list || !list.length) {
+      return false;
+    }
+
+    if (list.includes('NONE')) {
       list = [];
       await this.del(listKey);
     }

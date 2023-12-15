@@ -88,7 +88,7 @@ export class ExportService {
                   `SELECT pg_get_serial_sequence('??', ?) as seq;`,
                   [baseModel.getTnPath(model.table_name), column.column_name],
                 );
-                if (seq.rows.length > 0) {
+                if (seq.rows.length > 0 && seq.rows[0].seq) {
                   const seqName = seq.rows[0].seq;
 
                   const res = await sqlClient.raw(

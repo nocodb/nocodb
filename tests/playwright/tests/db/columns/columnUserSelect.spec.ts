@@ -272,13 +272,16 @@ test.describe('User single select - filter, sort & GroupBy', () => {
   }
 
   test('User sort & validate, filter & validate', async () => {
+    const ascendingOrderRowTitle = ['1', '2', '3', '4', '0'];
+    const descendingOrderRowTitle = ['0', '4', '3', '2', '1'];
+
     // Sort ascending and validate
     await toolbar.sort.add({
       title: 'User',
       ascending: true,
       locallySaved: false,
     });
-    await validateRowArray(['1', '2', '3', '4', '0']);
+    await validateRowArray(ascendingOrderRowTitle);
     await toolbar.sort.reset();
 
     // sort descending and validate
@@ -287,7 +290,7 @@ test.describe('User single select - filter, sort & GroupBy', () => {
       ascending: false,
       locallySaved: false,
     });
-    await validateRowArray(['0', '4', '3', '2', '1']);
+    await validateRowArray(descendingOrderRowTitle);
     await toolbar.sort.reset();
 
     // filter
@@ -306,8 +309,34 @@ test.describe('User single select - filter, sort & GroupBy', () => {
     await verifyFilter({ opType: 'is not blank', result: ['0', '1', '2', '3', '4'] });
     await verifyFilter({ opType: 'is blank', result: [] });
 
-    //GroupBy
+    // //GroupBy
+    // // ascending order
     // await toolbar.groupBy.add({ title: 'User', ascending: true, locallySaved: false });
+
+    // for (let i = 0; i <= 4; i++) {
+    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+
+    //   await dashboard.grid.groupPage.validateFirstRow({
+    //     indexMap: [i],
+    //     rowIndex: 0,
+    //     columnHeader: 'Title',
+    //     value: ascendingOrderRowTitle[i],
+    //   });
+    // }
+
+    // // descending order
+    // await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
+
+    // for (let i = 0; i <= 4; i++) {
+    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+    //   await dashboard.grid.groupPage.validateFirstRow({
+    //     indexMap: [i],
+    //     rowIndex: 0,
+    //     columnHeader: 'Title',
+    //     value: descendingOrderRowTitle[i],
+    //   });
+    // }
+    // await toolbar.groupBy.remove({ index: 0 });
   });
 });
 
@@ -593,13 +622,16 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
   }
 
   test('User sort & validate, filter & validate', async () => {
+    const ascendingOrderRowTitle = ['1', '2', '3', '4', '0'];
+    const descendingOrderRowTitle = ['0', '4', '3', '2', '1'];
+
     // Sort ascending and validate
     await toolbar.sort.add({
       title: 'User',
       ascending: true,
       locallySaved: false,
     });
-    await validateRowArray(['1', '2', '3', '4', '0']);
+    await validateRowArray(ascendingOrderRowTitle);
     await toolbar.sort.reset();
 
     // sort descending and validate
@@ -608,7 +640,7 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
       ascending: false,
       locallySaved: false,
     });
-    await validateRowArray(['0', '4', '3', '2', '1']);
+    await validateRowArray(descendingOrderRowTitle);
     await toolbar.sort.reset();
 
     // filter
@@ -627,7 +659,32 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
     await verifyFilter({ opType: 'is not blank', result: ['0', '1', '2', '3', '4'] });
     await verifyFilter({ opType: 'is blank', result: [] });
 
-    //GroupBy
+    // //GroupBy
+    // // ascending order
     // await toolbar.groupBy.add({ title: 'User', ascending: true, locallySaved: false });
+
+    // for (let i = 0; i <= 4; i++) {
+    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+    //   await dashboard.grid.groupPage.validateFirstRow({
+    //     indexMap: [i],
+    //     rowIndex: 0,
+    //     columnHeader: 'Title',
+    //     value: ascendingOrderRowTitle[i],
+    //   });
+    // }
+
+    // // descending order
+    // await toolbar.groupBy.update({ title: 'User', ascending: false, index: 0 });
+
+    // for (let i = 0; i <= 4; i++) {
+    //   await dashboard.grid.groupPage.openGroup({ indexMap: [i] });
+    //   await dashboard.grid.groupPage.validateFirstRow({
+    //     indexMap: [i],
+    //     rowIndex: 0,
+    //     columnHeader: 'Title',
+    //     value: descendingOrderRowTitle[i],
+    //   });
+    // }
+    // await toolbar.groupBy.remove({ index: 0 });
   });
 });

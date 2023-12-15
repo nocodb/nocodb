@@ -70,6 +70,7 @@ const getLteText = (fieldUiType: UITypes) => {
 
 export const comparisonOpList = (
   fieldUiType: UITypes,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   dateFormat?: string,
 ): {
   text: string

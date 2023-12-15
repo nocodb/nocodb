@@ -708,11 +708,34 @@ class BaseModelSqlv2 {
         continue;
       }
 
-      qb.orderBy(
-        groupByColumns[sort.fk_column_id].id,
-        sort.direction,
-        sort.direction === 'desc' ? 'LAST' : 'FIRST',
-      );
+      const column = groupByColumns[sort.fk_column_id];
+
+      if (column.uidt === UITypes.User) {
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: column.base_id,
+        });
+
+        // create nested replace statement for each user
+        const finalStatement = baseUsers.reduce((acc, user) => {
+          const qb = this.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.id,
+            user.display_name || user.email,
+          ]);
+          return qb.toQuery();
+        }, this.dbDriver.raw(`??`, [column.column_name]).toQuery());
+
+        qb.orderBy(
+          sanitize(this.dbDriver.raw(finalStatement)),
+          sort.direction,
+          sort.direction === 'desc' ? 'LAST' : 'FIRST',
+        );
+      } else {
+        qb.orderBy(
+          column.id,
+          sort.direction,
+          sort.direction === 'desc' ? 'LAST' : 'FIRST',
+        );
+      }
     }
 
     // group by using the column aliases

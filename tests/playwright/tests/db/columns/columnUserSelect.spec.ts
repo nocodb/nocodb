@@ -77,6 +77,33 @@ test.describe('User single select', () => {
     await grid.column.verify({ title: 'UserField', isVisible: false });
   });
 
+  test('Field operations - duplicate column, convert to SingleLineText', async () => {
+    for (let i = 0; i <= 4; i++) {
+      await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
+      await grid.addNewRow({ index: i + 1, value: `Row ${i + 1}` });
+    }
+
+    await grid.column.duplicateColumn({
+      title: 'User',
+      expectedTitle: 'User copy',
+    });
+
+    // Verify duplicate column content
+    for (let i = 0; i <= 4; i++) {
+      await grid.cell.userOption.verify({ index: i, columnHeader: 'User copy', option: users[i], multiSelect: false });
+    }
+
+    // Convert User field column to SingleLineText
+    await grid.column.openEdit({ title: 'User copy' });
+    await grid.column.selectType({ type: 'SingleLineText' });
+    await grid.column.save({ isUpdated: true });
+
+    // Verify converted column content
+    for (let i = 0; i <= 4; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'User copy', value: users[i] });
+    }
+  });
+
   test('Cell Operation - edit, copy-paste and delete', async () => {
     // set default user
     await grid.column.userOption.selectDefaultValueOption({
@@ -335,6 +362,51 @@ test.describe('User multiple select', () => {
       option: users[1],
       multiSelect: true,
     });
+  });
+
+  test('Field operations - duplicate column, convert to SingleLineText', async () => {
+    let counter = 1;
+    for (let i = 0; i <= 4; i++) {
+      await grid.addNewRow({ index: i, value: `Row ${i}` });
+
+      await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: true });
+      await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[counter], multiSelect: true });
+
+      if (counter === 4) counter = 0;
+      else counter++;
+    }
+
+    await grid.column.duplicateColumn({
+      title: 'User',
+      expectedTitle: 'User copy',
+    });
+
+    // Verify duplicate column content
+    counter = 1;
+    for (let i = 0; i <= 4; i++) {
+      await grid.cell.userOption.verifySelectedOptions({
+        index: i,
+        columnHeader: 'User copy',
+        options: [users[i], users[counter]],
+      });
+
+      if (counter === 4) counter = 0;
+      else counter++;
+    }
+
+    // Convert User field column to SingleLineText
+    await grid.column.openEdit({ title: 'User copy' });
+    await grid.column.selectType({ type: 'SingleLineText' });
+    await grid.column.save({ isUpdated: true });
+
+    // Verify converted column content
+    counter = 1;
+    for (let i = 0; i <= 4; i++) {
+      await grid.cell.verify({ index: i, columnHeader: 'User copy', value: `${users[i]},${users[counter]}` });
+
+      if (counter === 4) counter = 0;
+      else counter++;
+    }
   });
 
   test('Cell Operation - edit, copy-paste and delete', async () => {

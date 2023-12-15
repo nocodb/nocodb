@@ -60,7 +60,7 @@ export default class XcMigrationSourcev2 {
       'nc_035_add_username_to_users',
       'nc_036_base_deleted',
       'nc_037_rename_project_and_base',
-      'nc_038_formula_parsed_tree_column'
+      'nc_038_formula_parsed_tree_column',
     ]);
   }
 

@@ -53,26 +53,31 @@ const meta = inject(MetaInj, ref())
 const supportedColumns = computed(
   () => meta?.value?.columns?.filter((col) => !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) || [],
 )
-const { metas, getMeta } = useMetas()
+const { getMeta } = useMetas()
 
 const validators = {
   formula_raw: [
     {
-      validator:  (_: any, formula: any) => {
-        return new Promise<void>(async (resolve, reject) => {
-          if (!formula?.trim()) return reject(new Error('Required'))
+      validator: (_: any, formula: any) => {
+        return (async () => {
+          if (!formula?.trim()) throw new Error('Required')
 
           try {
-            await validateFormulaAndExtractTreeWithType({ column: column.value, formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value, getMeta })
+            await validateFormulaAndExtractTreeWithType({
+              column: column.value,
+              formula,
+              columns: supportedColumns.value,
+              clientOrSqlUi: sqlUi.value,
+              getMeta,
+            })
           } catch (e: any) {
             if (e instanceof FormulaError && e.extra?.key) {
-              return reject(new Error(t(e.extra.key, e.extra)))
+              throw new Error(t(e.extra.key, e.extra))
             }
 
-            return reject(new Error(e.message))
+            throw new Error(e.message)
           }
-          resolve()
-        })
+        })()
       },
     },
   ],

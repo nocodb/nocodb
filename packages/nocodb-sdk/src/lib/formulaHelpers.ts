@@ -241,7 +241,7 @@ export function jsepTreeToFormula(node, isCallExpId = false) {
 function escapeLiteral(v: string) {
   return (
     v
-      // replace \ to \\
+      // replace \ to \\, escape only unescaped \
       .replace(/([^\\]|^)\\(?!\\)/g, `$1\\\\`)
       // replace " to \"
       .replace(/([^\\]|^)"/g, `$1\\"`)

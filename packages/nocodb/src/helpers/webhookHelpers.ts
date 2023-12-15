@@ -307,16 +307,15 @@ export async function invokeWebhook(
           const data = newData[i];
           const prevData = prevData ? prevData[i] : null;
 
-          if (prevData) {
-            // if condition is satisfied for prevData then return
-            if (
-              await validateCondition(
-                testFilters || (await hook.getFilters()),
-                prevData,
-              )
-            ) {
-              continue;
-            }
+          // if condition is satisfied for prevData then return
+          if (
+            prevData &&
+            (await validateCondition(
+              testFilters || (await hook.getFilters()),
+              prevData,
+            ))
+          ) {
+            continue;
           }
           if (
             await validateCondition(
@@ -332,16 +331,15 @@ export async function invokeWebhook(
         }
         newData = filteredData;
       } else {
-        if (prevData) {
-          // if condition is satisfied for prevData then return
-          if (
-            await validateCondition(
-              testFilters || (await hook.getFilters()),
-              prevData,
-            )
-          ) {
-            return;
-          }
+        // if condition is satisfied for prevData then return
+        if (
+          prevData &&
+          (await validateCondition(
+            testFilters || (await hook.getFilters()),
+            prevData,
+          ))
+        ) {
+          return;
         }
         if (
           !(await validateCondition(

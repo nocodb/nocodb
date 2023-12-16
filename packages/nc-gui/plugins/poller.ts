@@ -1,7 +1,7 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import { defineNuxtPlugin } from '#imports'
 
-export default defineNuxtPlugin(async (nuxtApp) => {
+const pollPlugin = async (nuxtApp) => {
   const api: BaseAPI<any> = nuxtApp.$api as any
 
   // unsubscribe all if signed out
@@ -73,22 +73,26 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     unsub = false
   }
 
-  // fix me! do not merge this PR until this is fixed
-  //
-  // if ((nuxtApp.$state as ReturnType<typeof useGlobal>).signedIn.value) {
-  //   await init()
-  // }
-  //
-  // watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-  //   if (newToken && newToken !== oldToken) init()
-  //   else if (!newToken) {
-  //     unsub = true
-  //   }
-  // })
+  if ((nuxtApp.$state as ReturnType<typeof useGlobal>).signedIn.value) {
+    await init()
+  }
+
+  watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
+    if (newToken && newToken !== oldToken) init()
+    else if (!newToken) {
+      unsub = true
+    }
+  })
 
   const poller = {
     subscribe,
   }
 
   nuxtApp.provide('poller', poller)
+}
+
+export default defineNuxtPlugin(async function (nuxtApp) {
+  if (!isEeUI) return await pollPlugin(nuxtApp)
 })
+
+export { pollPlugin }

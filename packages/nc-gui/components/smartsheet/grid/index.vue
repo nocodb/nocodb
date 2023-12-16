@@ -6,6 +6,7 @@ import {
   ActiveViewInj,
   FieldsInj,
   IsFormInj,
+  IsCalendarInj,
   IsGalleryInj,
   IsGridInj,
   MetaInj,
@@ -94,6 +95,8 @@ provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 
 provide(IsGridInj, ref(true))
+
+provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, rowHeight)
 

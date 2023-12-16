@@ -307,4 +307,5 @@ textarea:focus {
   :deep(.nc-text-area-expand-btn) {
     @apply !block cursor-pointer;
   }
+}
 </style>

@@ -1,4 +1,9 @@
-import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isDateMonthFormat,
+  isNumericCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -466,7 +471,13 @@ const parseConditionV2 = async (
             : 'YYYY-MM-DD HH:mm:ssZ';
 
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-          const now = dayjs(new Date());
+          let now = dayjs(new Date());
+          const dateFormatFromMeta = column?.meta?.date_format;
+          if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+            // reset to 1st
+            now = dayjs(now).date(1);
+            if (val) val = dayjs(val).date(1);
+          }
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':

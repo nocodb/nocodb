@@ -51,7 +51,7 @@ const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
 
@@ -182,7 +182,11 @@ watch([activeViewTitleOrId, activeTableId], () => {
 
                   <LazySmartsheetKanban v-else-if="isKanban" />
 
+                  <LazySmartsheetCalendar v-else-if="isCalendar" />
+
                   <LazySmartsheetMap v-else-if="isMap" />
+
+                  <LazySmartsheetGallery v-else-if="isGallery" />
                 </template>
               </div>
             </div>

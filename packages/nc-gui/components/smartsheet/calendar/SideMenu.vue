@@ -1,21 +1,19 @@
 <script setup lang="ts">
 
-import {CalendarViewTypeInj} from "#imports";
+import { CalendarViewTypeInj } from "#imports";
 
 const props = defineProps<{
   visible: boolean
 }>()
 
-const activeCalendarView = inject(CalendarViewTypeInj, ref('month' as const))
+const activeCalendarView = inject(CalendarViewTypeInj, ref<'month' | 'day' | 'year' | 'week'>('day' as const))
 
 const {t} = useI18n()
 
 const emit = defineEmits(['expand-record']);
 
-const calendarViewType = inject(CalendarViewTypeInj, ref())
-
 const options = computed(() => {
-  switch (calendarViewType.value) {
+  switch (activeCalendarView.value) {
     case 'day' as const:
       return [
         {label: 'in this day', value: 'day'},
@@ -47,6 +45,10 @@ const options = computed(() => {
   }
 })
 
+const pageDate = ref(new Date())
+
+const activeDates = ref([new Date()])
+const selectedDate = ref(null);
 
 
 
@@ -58,10 +60,11 @@ const options = computed(() => {
     'w-1/4 min-w-[22.1rem]': props.visible,
     'transition-all': true,
   }" class="h-full border-l-1 border-gray-200">
-    <NcDatePicker />
+    <NcDateSelector v-if="activeCalendarView === ('day' as const)" v-model:page-date="pageDate" v-model:selected-date="selectedDate" :active-dates="activeDates" />
+    <NcDateSelector v-else-if="activeCalendarView === ('week' as const)" v-model:page-date="pageDate" week-picker v-model:selected-week="selectedDate" />
     <div class="px-4 flex flex-col gap-y-6 pt-4">
       <div class="flex justify-between items-center">
-        <span class="text-2xl font-bold">{{ t('objects.records') }}</span>
+        <span class="text-2xl font-bold">{{ t('objects.Records') }}</span>
         <NcSelect :options="options" value="all records"/>
       </div>
       <a-input class="!rounded-lg  !border-gray-200 !px-4 !py-2" placeholder="Search your records">

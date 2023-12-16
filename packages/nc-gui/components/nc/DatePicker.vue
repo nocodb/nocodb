@@ -6,20 +6,29 @@ interface Props {
   pageDate?: Date;
   activeDates?: Date[];
   isMondayFirst?: boolean;
+  weekPicker?: boolean;
+  startDate?: Date | null;
+  endDate?: Date | null;
 }
 
-const emit = defineEmits(['change', 'update:selectedDate', 'update:pageDate']);
+const emit = defineEmits(['change', 'update:selected-date', 'update:page-date', 'update:start-date', 'update:end-date']);
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
   isDisabled: false,
   isMondayFirst: false,
   pageDate: new Date(),
+  weekPicker: false,
   activeDates: [],
+  startDate: null,
+  endDate: null,
 });
 
 const pageDate = useVModel(props, 'pageDate', emit);
 const selectedDate = useVModel(props, 'selectedDate', emit);
 const activeDates = useVModel(props, 'activeDates', emit);
+const startDate = useVModel(props, 'startDate', emit);
+const endDate = useVModel(props, 'endDate', emit);
+
 
 const days = computed(() => {
   if (props.isMondayFirst) {
@@ -82,6 +91,7 @@ const blankDaysAtEnd = computed((): any => {
 });
 
 function isSelectedDate(dObj: Date): boolean {
+  if(!selectedDate.value) return false;
   const propDate = new Date(selectedDate.value);
   return props.selectedDate ? compareDates(propDate, dObj) : false;
 }
@@ -109,6 +119,7 @@ interface DateObj {
   isSelected: boolean;
   timestamp: number;
   hasEvent: boolean;
+  inSelectedWeek: boolean;
 }
 
 const monthDays = computed((): DateObj[] => {
@@ -123,6 +134,7 @@ const monthDays = computed((): DateObj[] => {
       date: dObj.getDate(),
       isSelected: isSelectedDate(dObj),
       hasEvent: isActiveDate(dObj),
+      inSelectedWeek: false,
     });
     setDate(dObj, (dObj.getDate() + 1));
   }
@@ -137,14 +149,32 @@ const paginateMonth = (direction: 'next' | 'prev') => {
     newDate.setMonth(newDate.getMonth() - 1);
   }
   pageDate.value = newDate;
-  emit('update:pageDate', newDate);
+  emit('update:page-date', newDate);
 };
 
 const selectDate = (day: number) => {
-  const date = new Date(pageDate.value);
-  date.setDate(day);
-  selectedDate.value = date;
-  emit('update:selectedDate', date);
+  if(props.weekPicker) {
+    const date = new Date(pageDate.value.getFullYear(), pageDate.value.getMonth(), day)
+    if(!startDate.value) {
+      console.log('setting start date')
+      startDate.value = date;
+      console.log(startDate.value)
+      emit('update:start-date', date);
+    } else if(!endDate.value) {
+      endDate.value = date;
+      emit('update:end-date', date);
+    } else {
+      startDate.value = date;
+      endDate.value = null;
+      emit('update:start-date', date);
+      emit('update:end-date', null);
+    }
+  } else {
+    const date = new Date(pageDate.value);
+    date.setDate(day);
+    selectedDate.value = date;
+    emit('update:selected-date', date);
+  }
 };
 </script>
 
@@ -166,9 +196,11 @@ const selectDate = (day: number) => {
       <div class="flex flex-row flex-wrap gap-2 p-2">
         <span v-for="day in blankDaysAtStart" class="h-9 w-9 px-1 py-2 text-gray-400 flex items-center justify-center">{{day.day}}</span>
         <span v-for="day in monthDays" :key="day.timestamp" :class="{
-          'bg-brand-50 border-2 !border-brand-500' : day.isSelected,
-          'hover:(border-1 border-gray-200 bg-gray-100)' : !day.isSelected
-        }" class="h-9 w-9 px-1 py-2 relative font-medium rounded-lg flex items-center cursor-pointer justify-center"
+          'rounded-lg' : !weekPicker,
+          'bg-brand-50 border-2 !border-brand-500' : day.isSelected && !weekPicker,
+          'hover:(border-1 border-gray-200 bg-gray-100)' : !day.isSelected && !weekPicker,
+          'border-y-2 border-brand-50 !border-brand-500': day.inSelectedWeek && weekPicker,
+        }" class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
         @click="selectDate(day.date)"
         >
           <span v-if="day.hasEvent" class="absolute h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>

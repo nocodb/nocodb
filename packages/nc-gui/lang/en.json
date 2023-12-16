@@ -195,6 +195,10 @@
     "restore": "Restore"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Workspace",
     "workspaces": "Workspaces",
     "project": "Base",

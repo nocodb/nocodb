@@ -2,8 +2,6 @@ name: 🔦 Feature request
 description: Suggest a new/missing feature for NocoDB
 title: "🔦 Feature: "
 labels: [Type : Feature]
-assignees:
-- o1lab
 body:
 - type: markdown
   attributes:

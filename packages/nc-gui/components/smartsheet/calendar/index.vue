@@ -33,7 +33,7 @@ provide(IsKanbanInj, ref(false))
 
 provide(IsCalendarInj, ref(true))
 
-provide(CalendarViewTypeInj, ref('day' as const))
+provide(CalendarViewTypeInj, ref('year' as const))
 
 const showSideMenu = ref(true)
 

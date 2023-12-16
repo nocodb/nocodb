@@ -6,7 +6,7 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const activeCalendarView = inject(CalendarViewTypeInj, ref<'month' | 'day' | 'year' | 'week'>('day' as const))
+const activeCalendarView = inject(CalendarViewTypeInj, ref<'month' | 'day' | 'year' | 'week'>('month' as const))
 
 const {t} = useI18n()
 
@@ -60,8 +60,11 @@ const selectedDate = ref(null);
     'w-1/4 min-w-[22.1rem]': props.visible,
     'transition-all': true,
   }" class="h-full border-l-1 border-gray-200">
-    <NcDateSelector v-if="activeCalendarView === ('day' as const)" v-model:page-date="pageDate" v-model:selected-date="selectedDate" :active-dates="activeDates" />
-    <NcDateSelector v-else-if="activeCalendarView === ('week' as const)" v-model:page-date="pageDate" week-picker v-model:selected-week="selectedDate" />
+    <NcDateWeekSelector v-if="activeCalendarView === ('day' as const)" v-model:page-date="pageDate" v-model:selected-date="selectedDate" :active-dates="activeDates" />
+    <NcDateWeekSelector v-else-if="activeCalendarView === ('week' as const)" v-model:page-date="pageDate" week-picker v-model:selected-week="selectedDate" />
+    <NcMonthYearSelector v-else-if="activeCalendarView === ('month' as const)" v-model:page-date="pageDate" v-model:selected-date="selectedDate" />
+    <NcMonthYearSelector v-else-if="activeCalendarView === ('year' as const)" year-picker v-model:page-date="pageDate" v-model:selected-date="selectedDate" />
+
     <div class="px-4 flex flex-col gap-y-6 pt-4">
       <div class="flex justify-between items-center">
         <span class="text-2xl font-bold">{{ t('objects.Records') }}</span>
@@ -73,8 +76,11 @@ const selectedDate = ref(null);
         </template>
       </a-input>
 
-      <div class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height">
-        <LazySmartsheetCalendarRecordCard v-for="(x, id) in Array(4)" :color="x%2 === 0 ? 'maroon': 'blue'"
+      <div :class="{
+        'h-[calc(100vh-40rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
+        'h-[calc(100vh-29rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const),
+      }" class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height">
+        <LazySmartsheetCalendarRecordCard v-for="(x, id) in Array(50)" :color="x%2 === 0 ? 'maroon': 'blue'"
                                           date="27 April 2003" name="Saturday HackNight" @click="emit('expand-record', id)"/>
       </div>
     </div>
@@ -82,7 +88,5 @@ const selectedDate = ref(null);
 </template>
 
 <style scoped lang="scss">
-.nc-calendar-top-height {
-  height: calc(100vh - 40rem);
-}
+
 </style>

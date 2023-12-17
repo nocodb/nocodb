@@ -22,7 +22,7 @@ on:
         options:
         - all
         - main_only
-        - mux_service_only  
+        - mux_service_only
   schedule:
     # trigger at 6:00AM IST(0:30 GMT) and 20:00 IST(14:30 GMT)
     - cron:  '30 0,14 * * *'
@@ -88,11 +88,11 @@ jobs:
           aws-region: us-east-2
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1          
+        uses: aws-actions/amazon-ecr-login@v1
 
       ### main build and deploy starts here ###
       - name: build nc-gui and copy to nocodb
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         env:
           NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
         run: |
@@ -101,26 +101,34 @@ jobs:
           cd packages/nc-gui &&
           pnpm run generate:ee &&
 
+          # delete sourcemaps
+          find .next -type f -name '*.js.map' -delete &&
+          find .next -type f -name '*.css.map' -delete &&
+
+          # # delete sourcemaps refs - enable if needed
+          # find .next -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +
+          # find .next -type f -name '*.css' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.css\.map//g' {} +
+
           # copy build to nocodb
           rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
 
       - name: build nocodb
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
           pnpm uninstall --save-prod nocodb-sdk
-      
+
       - name: Move files to release version folder
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
           mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
 
       - name: Deploy UI assets to CDN
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
         with:
           folder: packages/nc-gui/build/
@@ -129,7 +137,7 @@ jobs:
           invalidation: /${{ steps.vars.outputs.release_version }}/*
 
       - name: Build, tag, and push image to Amazon ECR
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}      
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
@@ -157,7 +165,7 @@ jobs:
       - name: Publish main to staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
         env:
-          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}        
+          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
         run: |
            ./scripts/release/staging.sh
       ### mux build and deploy starts here ###
@@ -171,12 +179,12 @@ jobs:
           STAGING_IMAGE_TAG_ARG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && format('-t {0}/nc-sql-executor:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          cd packages/nc-sql-executor 
-          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH 
+          cd packages/nc-sql-executor
+          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-      
+
       # perform only when staging = "true" and main_only or all
       - name: Push staging image to ECR
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all')) }}
@@ -189,4 +197,4 @@ jobs:
       - name: Publish to staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all')) }}
         run: |
-           ./scripts/release/staging_executors.sh                       
+           ./scripts/release/staging_executors.sh

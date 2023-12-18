@@ -21,6 +21,7 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useProvideCalendarViewStore,
   useRoles,
   useSqlEditor,
 } from '#imports'
@@ -63,6 +64,7 @@ const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
+useProvideCalendarViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)

@@ -14,6 +14,7 @@ import {
   ref,
   useI18n,
 } from '#imports'
+import dayjs from "dayjs";
 
 const meta = inject(MetaInj, ref())
 
@@ -33,7 +34,21 @@ provide(IsKanbanInj, ref(false))
 
 provide(IsCalendarInj, ref(true))
 
-provide(CalendarViewTypeInj, ref('year' as const))
+const {
+  formattedData,
+  loadCalendarMeta,
+  updateCalendarMeta,
+  calendarMetaData,
+  selectedDate,
+  selectedDateRange,
+  activeCalendarView,
+  addEmptyRow,
+  paginationData,
+  paginateCalendarView
+} = useCalendarViewStoreOrThrow()
+
+
+provide(CalendarViewTypeInj, activeCalendarView)
 
 const showSideMenu = ref(true)
 
@@ -46,6 +61,20 @@ const expandRecord = (id: string) => {
   expandedRecordId.value = id
 }
 
+const headerText = computed(() => {
+  switch (activeCalendarView.value) {
+    case 'day':
+      return dayjs(selectedDate.value).format('D MMMM YYYY')
+    case 'week':
+      return dayjs(selectedDateRange.value.start).format('D MMMM YYYY') + ' - ' + dayjs(selectedDateRange.value.end).format('D MMMM YYYY')
+    case 'month':
+      return dayjs(selectedDate.value).format('MMMM YYYY')
+    case 'year':
+      return dayjs(selectedDate.value).format('YYYY')
+  }
+})
+
+
 </script>
 
 
@@ -54,11 +83,11 @@ const expandRecord = (id: string) => {
     <div class="flex flex-col w-full">
       <div class="flex justify-between p-3 items-center border-b-1 border-gray-200">
         <div class="flex justify-start gap-3 items-center">
-          <NcButton size="small" type="secondary">
+          <NcButton size="small" type="secondary" @click="paginateCalendarView('prev')">
             <component :is="iconMap.doubleLeftArrow" class="h-4 w-4"/>
           </NcButton>
-          <span class="font-bold text-gray-700">27 December 2023</span>
-          <NcButton size="small" type="secondary">
+          <span class="font-bold text-gray-700">{{headerText}}</span>
+          <NcButton size="small" type="secondary" @click="paginateCalendarView('next')" >
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4"/>
           </NcButton>
         </div>

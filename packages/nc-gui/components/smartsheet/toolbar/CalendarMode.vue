@@ -1,38 +1,40 @@
 <script lang="ts" setup>
 
-const activeCalendarMode = ref<'day' | 'week' | 'month' | 'year'>('week' as const);
+import { useCalendarViewStoreOrThrow } from "#imports";
 
 const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year') => {
-  activeCalendarMode.value = mode;
+  changeCalendarView(mode);
 };
+
+const { changeCalendarView, activeCalendarView } = useCalendarViewStoreOrThrow()
 
 </script>
 
 <template>
   <div class="flex flex-row p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab">
     <div
-        :class="{ active: activeCalendarMode === 'day' }"
+        :class="{ active: activeCalendarView === 'day' }"
         class="tab"
         @click="setActiveCalendarMode('day')"
     >
       <div class="tab-title nc-tab">{{ $t('objects.day') }}</div>
     </div>
     <div
-        :class="{ active: activeCalendarMode === 'week' }"
+        :class="{ active: activeCalendarView === 'week' }"
         class="tab"
         @click="setActiveCalendarMode('week')"
     >
       <div class="tab-title nc-tab">{{ $t('objects.week') }}</div>
     </div>
     <div
-        :class="{ active: activeCalendarMode === 'month' }"
+        :class="{ active: activeCalendarView === 'month' }"
         class="tab"
         @click="setActiveCalendarMode('month')"
     >
       <div class="tab-title nc-tab">{{ $t('objects.month') }}</div>
     </div>
     <div
-        :class="{ active: activeCalendarMode === 'year' }"
+        :class="{ active: activeCalendarView === 'year' }"
         class="tab"
         @click="setActiveCalendarMode('year')"
     >

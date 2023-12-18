@@ -331,6 +331,28 @@ export class ToolbarFilterPage extends BasePage {
               .click();
           }
           break;
+        case UITypes.User:
+          if (!['is blank', 'is not blank'].includes(operation)) {
+            await this.get()
+              .locator('.nc-filter-value-select')
+              .click({
+                position: {
+                  x: 1,
+                  y: 1,
+                },
+              });
+
+            const v = value.split(',');
+            for (let i = 0; i < v.length; i++) {
+              await this.rootPage
+                .locator(`.nc-dropdown-user-select-cell`)
+                .getByTestId('select-option-User-filter')
+                .getByText(v[i])
+                .click();
+            }
+          }
+          break;
+
         default:
           fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
           await this.waitForResponse({

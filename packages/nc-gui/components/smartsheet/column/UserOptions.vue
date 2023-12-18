@@ -44,7 +44,13 @@ const updateIsMulti = (e) => {
 <template>
   <div class="flex flex-col">
     <div>
-      <a-checkbox v-if="vModel.meta" :checked="vModel.meta.is_multi" class="ml-1 mb-1" @change="updateIsMulti">
+      <a-checkbox
+        v-if="vModel.meta"
+        :checked="vModel.meta.is_multi"
+        class="ml-1 mb-1"
+        data-testid="user-column-allow-multiple"
+        @change="updateIsMulti"
+      >
         <span class="text-[10px] text-gray-600">Allow adding multiple users</span>
       </a-checkbox>
     </div>

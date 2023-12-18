@@ -1,6 +1,6 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
-import User from '~/models/User';
+import type User from '~/models/User';
 import Base from '~/models/Base';
 import {
   // CacheDelDirection,

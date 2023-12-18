@@ -3,8 +3,8 @@ import {
   FormulaDataTypes,
   jsepCurlyHook,
   UITypes,
-  validateFormulaAndExtractTreeWithType,
   validateDateWithUnknownFormat,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import mapFunctionName from '../mapFunctionName';
@@ -17,10 +17,7 @@ import type Column from '~/models/Column';
 import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
-import {
-  convertDateFormatForConcat,
-  validateDateWithUnknownFormat,
-} from '~/helpers/formulaFnHelper';
+import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 
 const logger = new Logger('FormulaQueryBuilderv2');

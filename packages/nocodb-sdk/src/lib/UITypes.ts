@@ -86,6 +86,18 @@ export function isVirtualCol(
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
+export function isCreatedTimeOrUpdatedTimeCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [
+    UITypes.CreateTime,
+    UITypes.LastModifiedTime,
+  ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+}
 
 export function isLinksOrLTAR(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string

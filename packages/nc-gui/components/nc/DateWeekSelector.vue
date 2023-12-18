@@ -7,6 +7,7 @@ interface Props {
   activeDates?: Date[];
   isMondayFirst?: boolean;
   weekPicker?: boolean;
+  disablePagination?: boolean;
   selectedWeek?: {
     start: Date;
     end: Date;
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   isMondayFirst: false,
   pageDate: new Date(),
   weekPicker: false,
+  disablePagination: false,
   activeDates: [],
   selectedWeek: null,
 });
@@ -84,11 +86,19 @@ const isSelectedDate = (dObj: Date) => {
   return props.selectedDate ? isSameDate(propDate, dObj) : false;
 }
 
+const isDayInPagedMonth = (date: Date) => {
+  return date.getMonth() === pageDate.value.getMonth();
+}
+
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
 const handleSelectDate = (date: Date) => {
   if (props.weekPicker) {
     selectWeek(date);
   } else {
+    if (!isDayInPagedMonth(date)) {
+      pageDate.value = new Date(date);
+      emit('update:page-date', date);
+    }
     selectedDate.value = date;
     emit('update:selected-date', date);
   }
@@ -124,16 +134,20 @@ const paginate = (action: 'next' | 'prev') => {
   emit('update:page-date', newDate);
 };
 
+
 </script>
 
 <template>
-  <div class="p-4 flex flex-col gap-4">
-    <div class="flex justify-between items-center">
-      <NcButton size="small" type="secondary" @click="paginate('prev')">
+  <div class="p-4 flex flex-col gap-4 ">
+    <div :class="{
+      'justify-center': disablePagination,
+      'justify-between': !disablePagination,
+    }" class="flex items-center">
+      <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
         <component :is="iconMap.doubleLeftArrow" class="h-4 w-4"/>
       </NcButton>
       <span class="font-bold text-gray-700">{{ currentMonth }}</span>
-      <NcButton size="small" type="secondary" @click="paginate('next')">
+      <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
         <component :is="iconMap.doubleRightArrow" class="h-4 w-4"/>
       </NcButton>
     </div>
@@ -144,7 +158,7 @@ const paginate = (action: 'next' | 'prev') => {
       <div class="grid grid-cols-7 gap-2 p-2">
         <span v-for="(date) in dates" :key="date" :class="{
           'rounded-lg' : !weekPicker,
-          'bg-brand-50 border-2 !border-brand-500' : isSelectedDate(date) && !weekPicker,
+          'bg-brand-50 border-2 !border-brand-500' : isSelectedDate(date) && !weekPicker && isDayInPagedMonth(date),
           'hover:(border-1 border-gray-200 bg-gray-100)' : !isSelectedDate(date) && !weekPicker,
           'nc-selected-week z-1': isDateInSelectedWeek(date) && weekPicker,
           'text-gray-400': !isDateInCurrentMonth(date),

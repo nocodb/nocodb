@@ -47,8 +47,6 @@ const animationTarget = ref<AnimationTarget>(AnimationTarget.ArrowRight)
 
 const isAnimating = ref(false)
 
-const editEnabled = ref<boolean[]>([])
-
 const el = ref<HTMLDivElement>()
 
 provide(DropZoneRef, el)
@@ -299,10 +297,7 @@ onMounted(() => {
                 class="nc-input h-auto"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
-                :edit-enabled="editEnabled[index]"
-                @click="editEnabled[index] = true"
-                @cancel="editEnabled[index] = false"
-                @update:edit-enabled="editEnabled[index] = $event"
+                edit-enabled
               />
 
               <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">

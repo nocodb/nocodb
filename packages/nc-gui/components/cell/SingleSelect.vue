@@ -47,9 +47,11 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
-const active = computed(() => activeCell.value || isEditable.value)
+const active = computed(() => activeCell.value || isEditable.value || isForm.value)
 
 const aselect = ref<typeof AntSelect>()
 
@@ -60,8 +62,6 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
-
-const isForm = inject(IsFormInj, ref(false))
 
 const { $api } = useNuxtApp()
 
@@ -76,6 +76,8 @@ const { isPg, isMysql } = useBase()
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
+
+const isFocusing = ref(false)
 
 const isNewOptionCreateEnabled = computed(() => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit'))
 
@@ -97,7 +99,7 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
-const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
+const hasEditRoles = computed(() => isUIAllowed('dataEdit') || isForm.value)
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
 
@@ -243,6 +245,9 @@ const toggleMenu = (e: Event) => {
     return e.stopPropagation()
   }
   if (cellClickHook) return
+
+  if (isFocusing.value) return
+
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
@@ -268,21 +273,19 @@ const selectedOpt = computed(() => {
   return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.trim())
 })
 
-watch(aselect, () => {
-  if (aselect.value) {
-    const inputDom = aselect.value.$el.querySelector('.ant-select-selection-search > input')
+const onFocus = () => {
+  isFocusing.value = true
 
-    // Add tabindex="-1" to input element
-    if (inputDom) {
-      inputDom.setAttribute('tabindex', '-1')
-    }
-  }
-})
+  setTimeout(() => {
+    isFocusing.value = false
+  }, 250)
+
+  isOpen.value = true
+}
 </script>
 
 <template>
   <div
-    tabindex="0"
     class="h-full w-full flex items-center nc-single-select focus:outline-transparent"
     :class="{ 'read-only': readOnly }"
     @click="toggleMenu"
@@ -329,12 +332,14 @@ watch(aselect, () => {
       :bordered="false"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
+      :show-search="!isMobileMode && isOpen && active"
+      :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined)"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
       @blur="isOpen = false"
+      @focus="onFocus"
     >
       <a-select-option
         v-for="op of options"

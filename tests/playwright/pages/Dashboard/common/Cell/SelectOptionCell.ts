@@ -19,11 +19,13 @@ export class SelectOptionCellPageObject extends BasePage {
     columnHeader,
     option,
     multiSelect,
+    ignoreDblClick,
   }: {
     index: number;
     columnHeader: string;
     option: string;
     multiSelect?: boolean;
+    ignoreDblClick?: boolean;
   }) {
     const selectCell = this.get({ index, columnHeader });
 
@@ -32,7 +34,7 @@ export class SelectOptionCellPageObject extends BasePage {
       !(await selectCell.getAttribute('class')).includes('active') &&
       (await selectCell.locator('.nc-selected-option').count()) === 0
     ) {
-      await selectCell.click();
+      if (!ignoreDblClick) await selectCell.click();
     }
 
     await selectCell.click();

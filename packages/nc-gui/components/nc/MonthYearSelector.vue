@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
   isDisabled: false,
   pageDate: new Date(),
-  yearPicker: false,
+  yearPicker: false
 });
 
 const pageDate = useVModel(props, 'pageDate', emit);
@@ -20,8 +20,8 @@ const selectedDate = useVModel(props, 'selectedDate', emit);
 
 const years = computed(() => {
   const date = new Date(pageDate.value);
-  const startYear = date.getFullYear() - 5;
-  const endYear = date.getFullYear() + 6;
+  const startYear = date.getFullYear();
+  const endYear = date.getFullYear() + 11;
   const years = [];
   for (let i = startYear; i <= endYear; i++) {
     years.push({
@@ -146,7 +146,7 @@ const compareYear = (date1: Date, date2: Date) => {
         <component :is="iconMap.doubleRightArrow" class="h-4 w-4"/>
       </NcButton>
     </div>
-    <div class="border-1 border-gray-200 rounded-y-xl max-w-[320px]">
+    <div class="border-1 border-gray-200 rounded-y-xl max-w-[350px]">
       <div class="grid grid-cols-4 gap-2 p-2">
         <span v-for="(month) in months" v-if="!yearPicker" :key="month.value" :class="{
           '!bg-brand-50 !border-2 !border-brand-500' : isMonthSelected(month.value),

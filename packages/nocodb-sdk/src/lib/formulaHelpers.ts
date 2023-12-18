@@ -4,20 +4,7 @@ import { ColumnType, LinkToAnotherRecordType, RollupType } from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
 import { MssqlUi, MysqlUi, PgUi, SnowflakeUi, SqlUiFactory } from './sqlUi';
-
-// todo: move to date utils and export, remove duplicate from gui
-
-export const dateFormats = [
-  'YYYY-MM-DD',
-  'YYYY/MM/DD',
-  'DD-MM-YYYY',
-  'MM-DD-YYYY',
-  'DD/MM/YYYY',
-  'MM/DD/YYYY',
-  'DD MM YYYY',
-  'MM DD YYYY',
-  'YYYY MM DD',
-];
+import { dateFormats } from './dateTimeHelper';
 
 // opening and closing string code
 const OCURLY_CODE = 123; // '{'

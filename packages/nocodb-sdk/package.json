@@ -63,8 +63,8 @@
     "prettier": "^2.8.8",
     "rimraf": "^5.0.5",
     "tsc-alias": "^1.8.8",
-    "typescript": "^5.3.3"
-    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3",
+    "ts-jest": "^29.1.1"
   },
   "files": [
     "build/main",

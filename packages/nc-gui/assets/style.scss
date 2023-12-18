@@ -701,4 +701,7 @@ input[type='number'] {
 
 .ant-message-notice-content {
   @apply !rounded-md;
+  .ant-message-custom-content{
+    @apply flex items-center
+  }
 }

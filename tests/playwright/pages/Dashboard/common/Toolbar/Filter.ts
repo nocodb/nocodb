@@ -341,7 +341,7 @@ export class ToolbarFilterPage extends BasePage {
                   y: 1,
                 },
               });
-            // eslint-disable-next-line no-case-declarations
+
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {
               await this.rootPage

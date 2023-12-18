@@ -302,4 +302,10 @@ textarea:focus {
 .cell:hover .nc-text-area-expand-btn {
   @apply !block;
 }
+.rich-wrapper:hover,
+.rich-wrapper:active {
+  :deep(.nc-text-area-expand-btn) {
+    @apply !block cursor-pointer;
+  }
+}
 </style>

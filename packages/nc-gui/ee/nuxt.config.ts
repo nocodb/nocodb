@@ -6,6 +6,7 @@ import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
 
@@ -130,9 +131,7 @@ export default defineNuxtConfig({
       ncBackendUrl: '',
     },
   },
-
-  build: {},
-
+  sourcemap: true,
   vite: {
     worker: {
       format: 'es',
@@ -196,6 +195,18 @@ export default defineNuxtConfig({
         /* PurgeIcons Options */
         includedCollections: ['emojione'],
       }),
+
+      // Sentry vite plugin for sourcemaps
+      ...(process.env.SENTRY_AUTH_TOKEN
+        ? [
+            sentryVitePlugin({
+              org: 'nocodb-6c',
+              project: 'javascript',
+              authToken: process.env.SENTRY_AUTH_TOKEN,
+              telemetry: false,
+            }),
+          ]
+        : []),
     ],
     define: {
       'process.env.DEBUG': 'false',

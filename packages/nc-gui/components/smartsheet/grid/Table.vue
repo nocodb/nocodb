@@ -448,7 +448,8 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 }
 
 async function openNewRecordHandler() {
-  const newRow = addEmptyRow()
+  // skip update row when it is `New record form`
+  const newRow = addEmptyRow(dataRef.value.length, true)
   if (newRow) expandForm?.(newRow, undefined, true)
 }
 
@@ -697,8 +698,17 @@ function scrollToRow(row?: number) {
   scrollToCell?.()
 }
 
-function addEmptyRow(row?: number) {
+async function saveEmptyRow(rowObj: Row) {
+  await updateOrSaveRow?.(rowObj)
+}
+
+function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   const rowObj = callAddEmptyRow?.(row)
+
+  if (!skipUpdate && rowObj) {
+    saveEmptyRow(rowObj)
+  }
+
   nextTick().then(() => {
     scrollToRow(row ?? dataRef.value.length - 1)
   })

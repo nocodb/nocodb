@@ -16,6 +16,7 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
+  rowDefaultData,
 } from '#imports'
 import type { CellRange, Row, UndoRedoAction } from '#imports'
 
@@ -53,9 +54,9 @@ export function useData(args: {
     },
   })
 
-  function addEmptyRow(addAfter = formattedData.value.length) {
+  function addEmptyRow(addAfter = formattedData.value.length, metaValue = meta.value) {
     formattedData.value.splice(addAfter, 0, {
-      row: {},
+      row: { ...rowDefaultData(metaValue?.columns) },
       oldRow: {},
       rowMeta: { new: true },
     })

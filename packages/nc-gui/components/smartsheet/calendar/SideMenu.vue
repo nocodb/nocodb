@@ -79,7 +79,7 @@ const activeDates = ref([new Date()])
         'h-[calc(100vh-40rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
         'h-[calc(100vh-29rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const),
       }" class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height">
-        <LazySmartsheetCalendarRecordCard v-for="(x, id) in Array(50)" :color="x%2 === 0 ? 'maroon': 'blue'"
+        <LazySmartsheetCalendarSideRecordCard v-for="(x, id) in Array(50)" :color="x%2 === 0 ? 'maroon': 'blue'"
                                           date="27 April 2003" name="Saturday HackNight" @click="emit('expand-record', id)"/>
       </div>
     </div>

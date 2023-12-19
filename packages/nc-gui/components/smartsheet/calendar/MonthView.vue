@@ -1,9 +1,32 @@
 <script setup lang="ts">
-import Draggable from 'vuedraggable'
 
 const { pageDate, selectedDate } = useCalendarViewStoreOrThrow();
 
+const events = ref([
+  {
+    "Id": 1,
+    "Title": "Event 01",
+    "from_date_time": "2023-12-15",
+    "to_date_time": "2023-12-20"
+  },
+  {
+    "Id": 2,
+    "Title": "Event 02",
+    "from_date_time": "2023-12-20",
+    "to_date_time": "2023-12-25"
+  }
+])
+
+interface EventData {
+  id: string;
+  from_col_id: string;
+  to_col_id: string | null;
+}
+
 const isMondayFirst = ref(false);
+
+
+const fields = inject(FieldsInj, ref([]))
 
 const days = computed(() => {
   if (isMondayFirst.value) {
@@ -30,6 +53,39 @@ const dates = computed(() => {
   return datesArray;
 });
 
+const getGridPosition = (event) => {
+
+  const firstDayOfMonth = new Date(pageDate.value.getFullYear(), pageDate.value.getMonth(), 1).getDay();
+
+  const startDate = new Date(event.from_date_time);
+  const startDayIndex = startDate.getDate() - 1 + firstDayOfMonth;
+  const endDate = new Date(event.to_date_time);
+  const endDayIndex = endDate.getDate() - 1 + firstDayOfMonth;
+
+  const startRow = Math.floor(startDayIndex / 7) + 1;
+  let endRow = Math.floor(endDayIndex / 7) + 1;
+
+  if (endDate.getMonth() !== pageDate.value.getMonth()) {
+    endRow = Math.ceil((new Date(pageDate.value.getFullYear(), pageDate.value.getMonth() + 1, 0).getDate() + firstDayOfMonth) / 7);
+  }
+
+  const startCol = startDayIndex % 7 + 1;
+  let endCol = endDayIndex % 7 + 1;
+
+  if (endCol === 1) {
+    endRow++;
+    endCol = 8;
+  }
+
+  return {
+    colStart: startCol,
+    colEnd: endCol,
+    rowStart: startRow,
+    rowEnd: endRow
+  };
+};
+
+
 const selectDate = (date: Date) => {
   if (!date) return;
   selectedDate.value = date;
@@ -46,16 +102,24 @@ const isDateSelected = (date: Date) => {
   return isSameDate(propDate, date);
 }
 
+const handleScroll = (event) => {
+  if (event.deltaY > 0) {
+    pageDate.value.setMonth(pageDate.value.getMonth() + 1);
+  } else {
+    pageDate.value.setMonth(pageDate.value.getMonth() - 1);
+  }
+}
+
 </script>
 
 <template>
-  <div class="h-full">
+  <div class="h-full" @="handleScroll">
     <div class="grid grid-cols-7">
       <div v-for="day in days" :key="day" class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-800">
         {{ day }}
       </div>
     </div>
-    <div class="grid grid-cols-7 h-full" >
+    <div class="grid relative grid-cols-7 h-full" >
       <div v-for="date in dates" :key="date" :class="{
         '!border-x-2 !border-y-2 border-brand-500': isDateSelected(date),
         '!bg-gray-50 !text-gray-400': !isDayInPagedMonth(date),
@@ -77,7 +141,17 @@ const isDateSelected = (date: Date) => {
           </NcButton>
           <span class="px-1 py-2">{{ date.getDate() }}</span>
         </div>
+
+        </div>
       </div>
+      <div v-for="event in events" :key="event.Id" :class="[
+  'absolute w-full mt-16 px-2',
+  `!col-start-[${getGridPosition(event, pageDate).colStart}]`,
+  `!col-span-[${getGridPosition(event, pageDate).colEnd - getGridPosition(event, pageDate).colStart}]`,
+  `!row-start-[${getGridPosition(event, pageDate).rowStart}]`,
+  `!row-span-[${getGridPosition(event, pageDate).rowEnd - getGridPosition(event, pageDate).rowStart}]`
+]" class="event-display">
+       <LazySmartsheetCalendarRecordCard :name="event.Title" :date="event.from_date_time" color="blue" />
       </div>
     </div>
   </div>

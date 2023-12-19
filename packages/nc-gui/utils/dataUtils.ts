@@ -98,8 +98,8 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(col.uidt) &&
       col?.cdf
     ) {
-      const defalutValue = col.cdf
-      acc[col.title!] = typeof defalutValue === 'string' ? defalutValue.replace(/^'/, '').replace(/'$/, '') : defalutValue
+      const defaultValue = col.cdf
+      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'/, '').replace(/'$/, '') : defaultValue
     }
     return acc
   }, {} as Record<string, any>)

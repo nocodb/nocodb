@@ -1027,13 +1027,11 @@ eventBus.on(async (event, payload) => {
     addColumnDropdown.value = true
   }
   if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
-    const removed = removeRowIfNew?.(payload)
+    clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
 
-    if (removed) {
-      clearSelectedRange()
-      activeCell.row = null
-      activeCell.col = null
-    }
+    removeRowIfNew?.(payload)
   }
 })
 

@@ -109,7 +109,6 @@ function formulaRegExpBased() {
         },
       });
 
-      console.log(formulaList[i]);
       unfilteredRecords = await listRow({ base, table });
       expect(unfilteredRecords[0].formula).to.equal(1);
     }

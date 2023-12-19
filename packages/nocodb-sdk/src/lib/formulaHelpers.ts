@@ -383,7 +383,7 @@ const formulas: Record<string, FormulaMeta> = {
       },
     },
     description: 'Extract day from a date(1-31)',
-    examples: ['DATESTR({column1})'],
+    examples: ['DAY({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
   MONTH: {

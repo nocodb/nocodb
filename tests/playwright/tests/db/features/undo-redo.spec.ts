@@ -134,13 +134,13 @@ test.describe('Undo Redo', () => {
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
     // Row.Create
-    await grid.addNewRow({ index: 10, value: '333', columnHeader: 'Number', networkValidation: true });
-    await grid.addNewRow({ index: 11, value: '444', columnHeader: 'Number', networkValidation: true });
+    await grid.addNewRow({ index: 10, value: '333', columnHeader: 'Number' });
+    await grid.addNewRow({ index: 11, value: '444', columnHeader: 'Number' });
     await verifyRecords([333, 444]);
 
     // Row.Update
-    await grid.editRow({ index: 10, value: '555', columnHeader: 'Number', networkValidation: true });
-    await grid.editRow({ index: 11, value: '666', columnHeader: 'Number', networkValidation: true });
+    await grid.editRow({ index: 10, value: '555', columnHeader: 'Number' });
+    await grid.editRow({ index: 11, value: '666', columnHeader: 'Number' });
     await verifyRecords([555, 666]);
 
     // Row.Delete

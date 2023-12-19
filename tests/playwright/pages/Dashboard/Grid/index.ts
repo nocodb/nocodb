@@ -125,14 +125,19 @@ export class GridPage extends BasePage {
     );
 
     await this.get().locator('.nc-grid-add-new-cell').click();
+    // Wait for to add new row
+    await addNewRowResponse;
 
     const rowCount = index + 1;
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
-    await this._fillRow({ index, columnHeader, value: rowValue });
+    // Start waiting for response before filling cell value
+    const updateCellResponse = this.rootPage.waitForResponse(
+      res => res.url().includes('api/v1/db/data/noco') && res.request().method() === 'PATCH' && res.status() === 200
+    );
 
-    // Wait for add new row api response
-    await addNewRowResponse;
+    await this._fillRow({ index, columnHeader, value: rowValue });
+    await updateCellResponse;
 
     await this.rootPage.keyboard.press('Escape');
     await this.rootPage.waitForTimeout(300);

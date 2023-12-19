@@ -102,12 +102,12 @@ jobs:
           pnpm run generate:ee &&
 
           # delete sourcemaps
-          find ./ee/dist -type f -name '*.js.map' -delete &&
-          find ./ee/dist -type f -name '*.css.map' -delete &&
+          find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          find ./ee/dist/ -type f -name '*.css.map' -delete &&
 
           # # delete sourcemaps refs - enable if needed
-          # find ./ee/dist -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +
-          # find ./ee/dist -type f -name '*.css' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.css\.map//g' {} +
+          # find ./ee/dist/ -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +
+          # find ./ee/dist/ -type f -name '*.css' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.css\.map//g' {} +
 
           # copy build to nocodb
           rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/

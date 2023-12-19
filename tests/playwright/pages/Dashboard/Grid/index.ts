@@ -125,8 +125,16 @@ export class GridPage extends BasePage {
     );
 
     await this.get().locator('.nc-grid-add-new-cell').click();
-    // Wait for to add new row
-    await addNewRowResponse;
+
+    const isRequiredCell = (await this.cell.get({ index, columnHeader }).getAttribute('class')).includes(
+      'nc-required-cell'
+    );
+
+    // The 'save row/insert row' API call will be skipped if the row contains the required cell.
+    if (!isRequiredCell) {
+      // Wait for to add new row
+      await addNewRowResponse;
+    }
 
     const rowCount = index + 1;
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
@@ -137,7 +145,12 @@ export class GridPage extends BasePage {
     );
 
     await this._fillRow({ index, columnHeader, value: rowValue });
-    await updateCellResponse;
+
+    if (isRequiredCell) {
+      await addNewRowResponse;
+    } else {
+      await updateCellResponse;
+    }
 
     await this.rootPage.keyboard.press('Escape');
     await this.rootPage.waitForTimeout(300);

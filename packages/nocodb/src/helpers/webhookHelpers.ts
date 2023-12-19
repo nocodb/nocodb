@@ -307,17 +307,20 @@ export async function invokeWebhook(
         const filteredData = [];
         for (let i = 0; i < newData.length; i++) {
           const data = newData[i];
-          const pData = prevData[i] ? prevData[i] : null;
 
-          // if condition is satisfied for prevData then return
-          // if filters are not defined then skip the check
-          if (
-            pData &&
-            filters.length &&
-            (await validateCondition(filters, pData))
-          ) {
-            continue;
-          }
+          // disable until we have a way to extract prevData for bulk operations
+          // const pData = prevData[i] ? prevData[i] : null;
+          //
+          // // if condition is satisfied for prevData then return
+          // // if filters are not defined then skip the check
+          // if (
+          //   pData &&
+          //   filters.length &&
+          //   (await validateCondition(filters, pData))
+          // ) {
+          //   continue;
+          // }
+
           if (
             await validateCondition(
               testFilters || (await hook.getFilters()),

@@ -33,26 +33,35 @@ export default class WorkspaceUser {
   ) {
     const { fk_workspace_id, fk_user_id } = workspaceUser;
 
-    const wsUser = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE_USER, {
-      fk_user_id,
-      fk_workspace_id,
-    });
+    const ncMetaTrans = await ncMeta.startTransaction();
 
-    if (wsUser) {
-      if (wsUser.deleted) {
-        await this.update(fk_workspace_id, fk_user_id, {
-          ...workspaceUser,
-          deleted: false,
-          deleted_at: null,
-        });
-      } else {
-        throw new Error('User already exists in workspace');
+    try {
+      const wsUser = await ncMetaTrans.metaGet2(
+        null,
+        null,
+        MetaTable.WORKSPACE_USER,
+        {
+          fk_user_id,
+          fk_workspace_id,
+        },
+      );
+
+      if (wsUser) {
+        if (wsUser.deleted) {
+          await this.delete(fk_workspace_id, fk_user_id, ncMetaTrans);
+        } else {
+          throw new Error('User already exists in workspace');
+        }
       }
-    } else {
-      const order = await ncMeta.metaGetNextOrder(MetaTable.WORKSPACE_USER, {
-        fk_user_id: workspaceUser.fk_user_id,
-      });
-      await ncMeta.metaInsert2(
+
+      const order = await ncMetaTrans.metaGetNextOrder(
+        MetaTable.WORKSPACE_USER,
+        {
+          fk_user_id: workspaceUser.fk_user_id,
+        },
+      );
+
+      await ncMetaTrans.metaInsert2(
         null,
         null,
         MetaTable.WORKSPACE_USER,
@@ -66,31 +75,36 @@ export default class WorkspaceUser {
         },
         true,
       );
+
+      await NocoCache.del(
+        `${CacheScope.WORKSPACE}:${workspaceUser.fk_workspace_id}:userCount`,
+      );
+
+      // clear base user list caches
+      const bases = await Base.listByWorkspace(
+        workspaceUser.fk_workspace_id,
+        ncMeta,
+      );
+      for (const base of bases) {
+        await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);
+      }
+
+      const res = await this.get(fk_workspace_id, fk_user_id, ncMetaTrans);
+
+      // add to workspace user list cache
+      await NocoCache.appendToList(
+        CacheScope.WORKSPACE_USER,
+        [fk_workspace_id],
+        `${CacheScope.WORKSPACE_USER}:${fk_workspace_id}:${fk_user_id}`,
+      );
+
+      await ncMetaTrans.commit();
+
+      return res;
+    } catch (e) {
+      await ncMetaTrans.rollback();
+      throw e;
     }
-
-    await NocoCache.del(
-      `${CacheScope.WORKSPACE}:${workspaceUser.fk_workspace_id}:userCount`,
-    );
-
-    // clear base user list caches
-    const bases = await Base.listByWorkspace(
-      workspaceUser.fk_workspace_id,
-      ncMeta,
-    );
-    for (const base of bases) {
-      await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);
-    }
-
-    const res = await this.get(fk_workspace_id, fk_user_id, ncMeta);
-
-    // add to workspace user list cache
-    await NocoCache.appendToList(
-      CacheScope.WORKSPACE_USER,
-      [fk_workspace_id],
-      `${CacheScope.WORKSPACE_USER}:${fk_workspace_id}:${fk_user_id}`,
-    );
-
-    return res;
   }
 
   static async get(workspaceId: string, userId: string, ncMeta = Noco.ncMeta) {

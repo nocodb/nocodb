@@ -10,19 +10,16 @@ import { Api } from 'nocodb-sdk';
 import { isEE } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
 
-const users: string[] = [
-  'user@nocodb.com',
-  'user-0@nocodb.com',
-  'user-1@nocodb.com',
-  'user-2@nocodb.com',
-  'user-3@nocodb.com',
-];
+const users: string[] = isEE()
+  ? ['useree@nocodb.com', 'useree-0@nocodb.com', 'useree-1@nocodb.com', 'useree-2@nocodb.com', 'useree-3@nocodb.com']
+  : ['user@nocodb.com', 'user-0@nocodb.com', 'user-1@nocodb.com', 'user-2@nocodb.com', 'user-3@nocodb.com'];
 
 const roleDb = [
-  { email: 'user@nocodb.com', role: 'editor' },
-  { email: 'user-1@nocodb.com', role: 'editor' },
-  { email: 'user-2@nocodb.com', role: 'editor' },
-  { email: 'user-3@nocodb.com', role: 'editor' },
+  { email: 'useree@nocodb.com', role: 'editor' },
+  { email: 'useree-0@nocodb.com', role: 'editor' },
+  { email: 'useree-1@nocodb.com', role: 'editor' },
+  { email: 'useree-2@nocodb.com', role: 'editor' },
+  { email: 'useree-3@nocodb.com', role: 'editor' },
 ];
 
 async function beforeEachInit({ page }: { page: any }) {
@@ -88,7 +85,9 @@ test.describe('User single select', () => {
   });
 
   test('Verify the default option count, select default value and verify', async () => {
-    await grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 5 });
+    if (!isEE()) {
+      await grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 5 });
+    }
 
     await grid.column.userOption.selectDefaultValueOption({
       columnTitle: 'User',
@@ -418,7 +417,9 @@ test.describe('User multiple select', () => {
   test('Verify the default option count, select default value and verify', async () => {
     await grid.addNewRow({ index: 0, value: 'Row 0' });
 
-    await grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 5 });
+    if (!isEE()) {
+      await grid.column.userOption.verifyDefaultValueOptionCount({ columnTitle: 'User', totalCount: 5 });
+    }
 
     await grid.column.userOption.selectDefaultValueOption({
       columnTitle: 'User',

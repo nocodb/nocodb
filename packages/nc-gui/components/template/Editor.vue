@@ -1028,7 +1028,7 @@ watch(modelRef, async () => {
   }
 
   :deep(.template-form-row) > td {
-    @apply p-1 mb-0 truncate max-w-50;
+    @apply !p-1 mb-0 truncate max-w-50;
     .ant-form-item {
       @apply mb-0;
     }

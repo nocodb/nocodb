@@ -125,7 +125,9 @@ const mysql2 = {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`REGEXP_SUBSTR(${source}, ${pattern}) ${colAlias}`),
+      builder: knex.raw(
+        `REGEXP_SUBSTR(${source}, ${pattern}, 1, 1, 'c') ${colAlias}`,
+      ),
     };
   },
   REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {

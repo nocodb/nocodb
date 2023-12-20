@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
-  CellClickHookInj,
   ColumnInj,
   EditColumnInj,
   EditModeInj,
@@ -232,8 +230,6 @@ const onSelect = () => {
   isEditable.value = false
 }
 
-const cellClickHook = inject(CellClickHookInj, null)
-
 const toggleMenu = (e: Event) => {
   // todo: refactor
   // check clicked element is clear icon
@@ -244,22 +240,11 @@ const toggleMenu = (e: Event) => {
     vModel.value = ''
     return e.stopPropagation()
   }
-  if (cellClickHook) return
 
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
 }
-
-const cellClickHookHandler = () => {
-  isOpen.value = editAllowed.value && !isOpen.value
-}
-onMounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
-onUnmounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
 
 const handleClose = (e: MouseEvent) => {
   if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {

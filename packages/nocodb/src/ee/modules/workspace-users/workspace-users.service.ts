@@ -268,13 +268,13 @@ export class WorkspaceUsersService {
       await WorkspaceUser.insert({
         fk_workspace_id: workspaceId,
         fk_user_id: user.id,
-        roles: roles || 'editor',
+        roles: roles || WorkspaceUserRoles.VIEWER,
       });
 
       this.sendInviteEmail({
         workspace,
         user,
-        roles: roles || 'viewer',
+        roles: roles || WorkspaceUserRoles.VIEWER,
         siteUrl: getWorkspaceSiteUrl({
           siteUrl: param.siteUrl,
           workspaceId: workspace.id,

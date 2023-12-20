@@ -209,8 +209,8 @@ const applyChanges = async (hookId?: string, nested = false, isConditionSupporte
   // it's used for bulk webhooks with filters since bulk webhooks don't support conditions at the moment
   if (!isConditionSupported) {
     // iterate in reverse order and delete all filters, reverse order is for getting the correct index
-    for (let i = localNestedFilters.value.length - 1; i >= 0; i--) {
-      await deleteFilter(localNestedFilters.value[i], i)
+    for (let i = filters.value.length - 1; i >= 0; i--) {
+      await deleteFilter(filters.value[i], i)
     }
   }
 

@@ -647,10 +647,7 @@ async function _formulaQueryBuilder(
 
           // create nested replace statement for each user
           const finalStatement = baseUsers.reduce((acc, user) => {
-            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-              user.id,
-              user.display_name || user.email,
-            ]);
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [user.id, user.email]);
             return qb.toQuery();
           }, knex.raw(`??`, [col.column_name]).toQuery());
 

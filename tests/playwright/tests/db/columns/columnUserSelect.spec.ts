@@ -4,6 +4,11 @@ import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
+import { WorkspacePage } from '../../../pages/WorkspacePage';
+import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
+import { Api } from 'nocodb-sdk';
+import { isEE } from '../../../setup/db';
+import { getDefaultPwd } from '../../utils/general';
 
 const users: string[] = [
   'user@nocodb.com',
@@ -13,13 +18,61 @@ const users: string[] = [
   'user-3@nocodb.com',
 ];
 
+const roleDb = [
+  { email: 'user@nocodb.com', role: 'editor' },
+  { email: 'user-1@nocodb.com', role: 'editor' },
+  { email: 'user-2@nocodb.com', role: 'editor' },
+  { email: 'user-3@nocodb.com', role: 'editor' },
+];
+
+async function beforeEachInit({ page }: { page: any }) {
+  let workspacePage: WorkspacePage;
+  let collaborationPage: CollaborationPage;
+  let api: Api<any>;
+
+  const context: any = await setup({ page, isEmptyProject: true });
+  const dashboard: DashboardPage = new DashboardPage(page, context.base);
+
+  if (isEE()) {
+    workspacePage = new WorkspacePage(page);
+    collaborationPage = workspacePage.collaboration;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    for (let i = 0; i < roleDb.length; i++) {
+      try {
+        await api.auth.signup({
+          email: roleDb[i].email,
+          password: getDefaultPwd(),
+        });
+      } catch (e) {
+        // ignore error even if user already exists
+      }
+    }
+
+    await dashboard.leftSidebar.clickTeamAndSettings();
+
+    for (const user of roleDb) {
+      await collaborationPage.addUsers(user.email, user.role);
+    }
+  }
+
+  return { dashboard, context };
+}
+
 test.describe('User single select', () => {
   let dashboard: DashboardPage, grid: GridPage, topbar: TopbarPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.base);
+    const initRsp = await beforeEachInit({ page: page });
+    context = initRsp.context;
+    dashboard = initRsp.dashboard;
     grid = dashboard.grid;
     topbar = dashboard.grid.topbar;
 
@@ -223,10 +276,11 @@ test.describe('User single select - filter, sort & GroupBy', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
-    dashboard = new DashboardPage(page, context.base);
-    toolbar = dashboard.grid.toolbar;
+    const initRsp = await beforeEachInit({ page: page });
+    context = initRsp.context;
+    dashboard = initRsp.dashboard;
     grid = dashboard.grid;
+    toolbar = dashboard.grid.toolbar;
 
     await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
@@ -345,8 +399,9 @@ test.describe('User multiple select', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: false });
-    dashboard = new DashboardPage(page, context.base);
+    const initRsp = await beforeEachInit({ page: page });
+    context = initRsp.context;
+    dashboard = initRsp.dashboard;
     grid = dashboard.grid;
     topbar = dashboard.grid.topbar;
 
@@ -561,10 +616,11 @@ test.describe('User multiple select - filter, sort & GroupBy', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page });
-    dashboard = new DashboardPage(page, context.base);
-    toolbar = dashboard.grid.toolbar;
+    const initRsp = await beforeEachInit({ page: page });
+    context = initRsp.context;
+    dashboard = initRsp.dashboard;
     grid = dashboard.grid;
+    toolbar = dashboard.grid.toolbar;
 
     await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 

@@ -8351,6 +8351,196 @@
         ]
       }
     },
+    "/api/v1/db/meta/tables/{tableId}/calendar": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "post": {
+        "summary": "Create Calendar View",
+        "operationId": "db-view-calendar-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw_569sqsrp2vuff4",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Calendar-1",
+                      "type": 6,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 5,
+                      "created_at": "2023-03-13T07:29:21.387Z",
+                      "updated_at": "2023-03-13T07:29:21.387Z",
+                      "meta": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewCreateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "My Calendar View",
+                    "type": 4,
+                    "copy_from_id": null,
+                    "fk_grp_col_id": null,
+                    "fk_geo_data_col_id": null,
+                    "calendar_range": [
+                      {
+                        "fk_from_column_id": "cl_g0a89q9xdry3lu",
+                        "fk_to_column_id": "cl_g0a89q9xdry3lu"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new Calendar View",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/calendar/{calendarViewId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_1eq2wk2xe3a9j5"
+          },
+          "name": "calendarViewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Calendar View ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Calendar View",
+        "operationId": "db-view-calendar-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
+                    "title": "Calendar - 2",
+                    "calendar_range": [
+                      {
+                        "id": "cl_gpoc4d1dfef",
+                        "fk_from_column_id": "cl_g0a89q9xdry3lu",
+                        "fk_to_column_id": "cl_g0a89q9xdry3lu"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the Calendar View data with Calendar ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get Calendar View",
+        "operationId": "db-view-calendar-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Calendar"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "description": "Get the Calendar View data by Calendar ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{baseId}/meta-diff": {
       "parameters": [
         {
@@ -20006,7 +20196,7 @@
                 "order": "1"
               }
             ],
-            "calendar_range_columns": [
+            "calendar_range": [
               {
                 "id": "kvc_2skkg5mi1eb37f",
                 "fk_view_id": "vw_wqs4zheuo5lgdy",
@@ -20204,7 +20394,15 @@
         "examples": [
           {
             "fk_cover_image_col_id": "cl_ib8l4j1kiu1efx",
-            "title": "Calendar 2"
+            "title": "Calendar 2",
+            "calendar_range": [
+              {
+                "id": "kvc_2skkg5mi1eb37f",
+                "fk_view_id": "vw_wqs4zheuo5lgdy",
+                "fk_from_column_id": "cl_hzos4ghyncqi4k",
+                "fk_to_column_id": "cl_hzos4ghyncqi4k"
+              }
+            ]
           }
         ],
         "title": "Calendar Update Request Model",
@@ -20221,6 +20419,13 @@
             "type": "string",
             "description": "Calendar Title",
             "example": "Calendar 01"
+          },
+          "calendar_range": {
+            "type": "array",
+            "description": "Calendar Columns",
+            "items": {
+              "$ref": "#/components/schemas/CalendarDateRange"
+            }
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -23548,7 +23753,13 @@
             "type": 4,
             "copy_from_id": null,
             "fk_grp_col_id": null,
-            "fk_geo_data_col_id": null
+            "fk_geo_data_col_id": null,
+            "calendar_range": [
+              {
+                "fk_from_column_id": "cl_5jestblzneb649",
+                "fk_to_column_id": "cl_5jestblzneb649"
+              }
+            ]
           },
           {
             "title": "My Map View",
@@ -23579,6 +23790,13 @@
           "fk_geo_data_col_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Geo Data Column. Used in creating Map View."
+          },
+          "calendar_range": {
+            "type": "array",
+            "description": "Calendar Range",
+            "items": {
+              "$ref": "#/components/schemas/CalendarDateRange"
+            }
           }
         },
         "required": [

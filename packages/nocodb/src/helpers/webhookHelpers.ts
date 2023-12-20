@@ -307,7 +307,7 @@ export async function invokeWebhook(
           const data = newData[i];
           const prevData = prevData ? prevData[i] : null;
 
-          if (hook.version === 'v3' && prevData) {
+          if (prevData) {
             // if condition is satisfied for prevData then return
             if (
               await validateCondition(
@@ -332,7 +332,7 @@ export async function invokeWebhook(
         }
         newData = filteredData;
       } else {
-        if (hook.version === 'v3' && prevData) {
+        if (prevData) {
           // if condition is satisfied for prevData then return
           if (
             await validateCondition(

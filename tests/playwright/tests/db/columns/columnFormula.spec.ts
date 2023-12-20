@@ -19,6 +19,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: '1 + 1',
         result: ['2', '2', '2', '2', '2'],
+        unSupDbType: [],
       },
       {
         formula: 'ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})',
@@ -126,6 +127,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: `DATETIME_DIFF("2023/10/14", "2023/01/12", "y")`,
         result: ['0', '0', '0', '0', '0'],
+        unSupDbType: [],
       },
       {
         formula: `DATETIME_DIFF("2023-01-12", "2021-08-29", "y")`,
@@ -166,6 +168,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         result: isPg(context)
           ? ['13.04566088154786', '24.74547123273205', '57.61253379902822', '126.94617671688704', '283.9609869087087']
           : ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
+        unSupDbType: ['sqlite3'],
       },
       {
         formula: `NOW()`,
@@ -203,18 +206,22 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'VALUE("12ab-c345")',
         result: ['-12345', '-12345', '-12345', '-12345', '-12345'],
+        unSupDbType: ['sqlite3'],
       },
       {
         formula: 'REGEX_MATCH({City}, "a[a-z]a")',
         result: ['0', '0', '0', '0', '1'],
+        unSupDbType: ['sqlite3'],
       },
       {
         formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
         result: ['', '', '', '', 'ana'],
+        unSupDbType: ['sqlite3'],
       },
       {
         formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
         result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
+        unSupDbType: ['sqlite3'],
       },
     ];
 };
@@ -247,26 +254,28 @@ test.describe('Virtual Columns', () => {
   async function formulaTestSpec(index: number) {
     // close 'Team & Auth' tab
     const formulaData = formulaDataByDbType(context, index);
+    const dbType = context.base.sources[0].type;
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.openTable({ title: 'City' });
-    // Create formula column
+    // Create dummy formula column which will then be updated for every testcase
     await dashboard.grid.column.create({
       title: 'NC_MATH_0',
       type: 'Formula',
-      formula: formulaData[1].formula,
+      formula: '1 + 1',
     });
 
     // verify different formula's
-    for (let i = 1; i < formulaData.length; i++) {
-      // Sqlite does not support log function
-      if (isSqlite(context) && formulaData[i].formula.includes('LOG(')) continue;
-
+    for (let i = 0; i < formulaData.length; i++) {
       await dashboard.grid.column.openEdit({
         title: 'NC_MATH_0',
         type: 'Formula',
         formula: formulaData[i].formula,
       });
+      if (formulaData[i].unSupDbType?.includes(dbType)) {
+        // assert for message not supported or greyed out save button.
+        continue;
+      }
       await dashboard.grid.column.save({ isUpdated: true });
       if (formulaData[i].formula !== `NOW()`) {
         await formulaResultVerify({

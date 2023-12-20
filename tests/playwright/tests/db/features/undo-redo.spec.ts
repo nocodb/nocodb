@@ -162,7 +162,10 @@ test.describe('Undo Redo', () => {
 
     // Undo : Row.Create
     await undo({ page, dashboard });
+    await verifyRecords([333, NaN]);
+    await undo({ page, dashboard });
     await verifyRecords([333]);
+    await undo({ page, dashboard });
     await undo({ page, dashboard });
     await verifyRecords([]);
   });

@@ -718,7 +718,15 @@ export function useMultiSelect(
               return message.info(t('msg.info.updateNotAllowedWithoutPK'))
             }
             if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
-              rowObj.row[columnObj.title] = ''
+              if (columnObj.uidt === UITypes.LongText) {
+                if (rowObj.row[columnObj.title] === '<br />') {
+                  rowObj.row[columnObj.title] = e.key
+                } else {
+                  rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
+                }
+              } else {
+                rowObj.row[columnObj.title] = ''
+              }
             }
             // editEnabled = true
           }

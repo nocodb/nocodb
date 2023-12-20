@@ -305,14 +305,14 @@ export async function invokeWebhook(
         const filteredData = [];
         for (let i = 0; i < newData.length; i++) {
           const data = newData[i];
-          const prevData = prevData ? prevData[i] : null;
+          const pData = prevData[i] ? prevData[i] : null;
 
           // if condition is satisfied for prevData then return
           if (
-            prevData &&
+            pData &&
             (await validateCondition(
               testFilters || (await hook.getFilters()),
-              prevData,
+              pData,
             ))
           ) {
             continue;

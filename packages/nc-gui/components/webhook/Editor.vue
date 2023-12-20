@@ -403,6 +403,10 @@ async function loadPluginList() {
   }
 }
 
+const isConditionSupport = computed(() => {
+  return hookRef.eventOperation && !hookRef.eventOperation.includes('bulk')
+})
+
 async function saveHooks() {
   loading.value = true
   try {
@@ -446,7 +450,7 @@ async function saveHooks() {
     }
 
     if (filterRef.value) {
-      await filterRef.value.applyChanges(hookRef.id)
+      await filterRef.value.applyChanges(hookRef.id, false, isConditionSupport.value)
     }
 
     // Webhook details updated successfully
@@ -519,10 +523,6 @@ onMounted(async () => {
       titleDomRef.value?.select()
     }
   }, 50)
-})
-
-const isConditionSupport = computed(() => {
-  return hookRef.eventOperation && !hookRef.eventOperation.includes('bulk')
 })
 </script>
 
@@ -774,7 +774,7 @@ const isConditionSupport = computed(() => {
               </a-form-item>
             </a-col>
           </a-row>
-          <a-row class="mb-5" type="flex" v-if="isConditionSupport">
+          <a-row v-show="isConditionSupport" class="mb-5" type="flex">
             <a-col :span="24">
               <div class="rounded-lg border-1 p-6">
                 <a-checkbox

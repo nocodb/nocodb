@@ -13,6 +13,7 @@ import {
   getListArgs,
   haveFormulaColumn,
   populatePk,
+  getColumnName
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
 import axios from 'axios';
@@ -1448,4 +1449,5 @@ export {
   extractSortsObject,
   getListArgs,
   haveFormulaColumn,
+  getColumnName,
 };

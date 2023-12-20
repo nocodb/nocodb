@@ -1695,7 +1695,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="contextMenuTarget"
+              v-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
               :disabled="isSystemColumn(fields[contextMenuTarget.col])"

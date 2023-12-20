@@ -522,7 +522,7 @@ onMounted(async () => {
 })
 
 const isConditionSupport = computed(() => {
-  return !hookRef.eventOperation.includes('bulk')
+  return hookRef.eventOperation && !hookRef.eventOperation.includes('bulk')
 })
 </script>
 

@@ -154,7 +154,7 @@ export class WorkspaceUsersService {
       await BaseUser.delete(base.id, userId);
     }
 
-    return await WorkspaceUser.delete(workspaceId, userId);
+    return await WorkspaceUser.softDelete(workspaceId, userId);
   }
 
   async invite(param: {

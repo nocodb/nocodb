@@ -7,12 +7,56 @@ import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 import Base from '~/models/Base';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
+import { extractProps } from '~/helpers/extractProps';
+import WorkspaceUser from '~/models/WorkspaceUser';
 
 export default class BaseUser extends BaseUserCE {
   fk_workspace_id?: string;
 
   protected static castType(baseUser: BaseUser): BaseUser {
     return baseUser && new BaseUser(baseUser);
+  }
+
+  public static async insert(
+    baseUser: Partial<BaseUser>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await Base.get(baseUser.base_id, ncMeta);
+    const workspace_id = (base as any)?.fk_workspace_id;
+
+    const wsUser = await WorkspaceUser.get(
+      workspace_id,
+      baseUser.fk_user_id,
+      ncMeta,
+    );
+
+    if (!wsUser) {
+      throw new Error('User is not part of workspace');
+    }
+
+    const insertObj = extractProps(baseUser, [
+      'fk_user_id',
+      'base_id',
+      'roles',
+    ]);
+
+    const { base_id, fk_user_id } = await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.PROJECT_USERS,
+      insertObj,
+      true,
+    );
+
+    const res = await this.get(base_id, fk_user_id, ncMeta);
+
+    await NocoCache.appendToList(
+      CacheScope.BASE_USER,
+      [base_id],
+      `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
+    );
+
+    return res;
   }
 
   static async get(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
@@ -112,6 +156,7 @@ export default class BaseUser extends BaseUserCE {
               `${MetaTable.PROJECT_USERS}.roles as roles`,
               `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
               `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+              `${MetaTable.WORKSPACE_USER}.deleted as deleted`,
             ]
           : []),
       );

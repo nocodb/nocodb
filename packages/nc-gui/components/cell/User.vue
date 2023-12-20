@@ -2,6 +2,7 @@
 import { onUnmounted } from '@vue/runtime-core'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
+import type { UserFieldRecordType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -25,7 +26,7 @@ import {
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: { id: string; email: string; display_name: string }[] | string | null
+  modelValue?: UserFieldRecordType[] | string | null
   rowIndex?: number
   location?: 'cell' | 'filter'
   forceMulti?: boolean
@@ -75,14 +76,15 @@ const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
 
-const options = computed<{ id: string; email: string; display_name: string }[]>(() => {
-  const collaborators: { id: string; email: string; display_name: string }[] = []
+const options = computed<UserFieldRecordType[]>(() => {
+  const collaborators: UserFieldRecordType[] = []
 
   collaborators.push(
     ...(baseUsers.value?.map((user: any) => ({
       id: user.id,
       email: user.email,
       display_name: user.display_name,
+      deleted: user.deleted,
     })) || []),
   )
   return collaborators
@@ -309,28 +311,29 @@ const filterOption = (input: string, option: any) => {
       <template #suffixIcon>
         <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
       </template>
-      <a-select-option
-        v-for="op of options"
-        :key="op.id || op.email"
-        :value="op.id"
-        :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-        :class="`nc-select-option-${column.title}-${op.email}`"
-        @click.stop
-      >
-        <a-tag class="rounded-tag" color="'#ccc'">
-          <span
-            :style="{
-              'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                ? '#fff'
-                : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
-            }"
-            :class="{ 'text-sm': isKanban }"
-          >
-            {{ op.display_name?.length ? op.display_name : op.email }}
-          </span>
-        </a-tag>
-      </a-select-option>
+      <template v-for="op of options" :key="op.id || op.email">
+        <a-select-option
+          v-if="!op.deleted"
+          :value="op.id"
+          :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+          :class="`nc-select-option-${column.title}-${op.email}`"
+          @click.stop
+        >
+          <a-tag class="rounded-tag" color="'#ccc'">
+            <span
+              :style="{
+                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  ? '#fff'
+                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+              :class="{ 'text-sm': isKanban }"
+            >
+              {{ op.display_name?.length ? op.display_name : op.email }}
+            </span>
+          </a-tag>
+        </a-select-option>
+      </template>
 
       <template #tagRender="{ label, value: val, onClose }">
         <a-tag

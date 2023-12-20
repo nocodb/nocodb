@@ -18,39 +18,65 @@ export default class WorkspaceUser {
   invite_token?: string;
   invite_accepted?: boolean;
   order?: number;
+  deleted?: boolean;
+  deleted_at?: string;
 
   constructor(data: WorkspaceUser) {
     Object.assign(this, data);
   }
 
   public static async insert(
-    baseUser: Partial<WorkspaceUser & { created_at?: any; updated_at?: any }>,
+    workspaceUser: Partial<
+      WorkspaceUser & { created_at?: any; updated_at?: any }
+    >,
     ncMeta = Noco.ncMeta,
   ) {
-    const order = await ncMeta.metaGetNextOrder(MetaTable.WORKSPACE_USER, {
-      fk_user_id: baseUser.fk_user_id,
+    const { fk_workspace_id, fk_user_id } = workspaceUser;
+
+    const wsUser = await ncMeta.metaGet2(null, null, MetaTable.WORKSPACE_USER, {
+      fk_user_id,
+      fk_workspace_id,
     });
-    const { fk_workspace_id, fk_user_id } = await ncMeta.metaInsert2(
-      null,
-      null,
-      MetaTable.WORKSPACE_USER,
-      {
-        fk_user_id: baseUser.fk_user_id,
-        fk_workspace_id: baseUser.fk_workspace_id,
-        roles: baseUser.roles,
-        created_at: baseUser.created_at,
-        updated_at: baseUser.updated_at,
-        order: baseUser.order ?? order,
-      },
-      true,
-    );
+
+    if (wsUser) {
+      if (wsUser.deleted) {
+        await this.update(fk_workspace_id, fk_user_id, {
+          ...workspaceUser,
+          deleted: false,
+          deleted_at: null,
+        });
+      } else {
+        throw new Error('User already exists in workspace');
+      }
+    } else {
+      const order = await ncMeta.metaGetNextOrder(MetaTable.WORKSPACE_USER, {
+        fk_user_id: workspaceUser.fk_user_id,
+      });
+      await ncMeta.metaInsert2(
+        null,
+        null,
+        MetaTable.WORKSPACE_USER,
+        {
+          fk_user_id: workspaceUser.fk_user_id,
+          fk_workspace_id: workspaceUser.fk_workspace_id,
+          roles: workspaceUser.roles,
+          created_at: workspaceUser.created_at,
+          updated_at: workspaceUser.updated_at,
+          order: workspaceUser.order ?? order,
+        },
+        true,
+      );
+    }
 
     await NocoCache.del(
-      `${CacheScope.WORKSPACE}:${baseUser.fk_workspace_id}:userCount`,
+      `${CacheScope.WORKSPACE}:${workspaceUser.fk_workspace_id}:userCount`,
     );
 
     // clear base user list caches
-    const bases = await Base.listByWorkspace(baseUser.fk_workspace_id, ncMeta);
+    const bases = await Base.listByWorkspace(
+      workspaceUser.fk_workspace_id,
+      ncMeta,
+    );
     for (const base of bases) {
       await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);
     }
@@ -107,6 +133,11 @@ export default class WorkspaceUser {
         );
       }
     }
+
+    if (workspaceUser?.deleted) {
+      workspaceUser = null;
+    }
+
     return workspaceUser;
   }
 
@@ -209,7 +240,10 @@ export default class WorkspaceUser {
   }
 
   static async userList(
-    { fk_workspace_id }: { fk_workspace_id: any },
+    {
+      fk_workspace_id,
+      include_deleted = false,
+    }: { fk_workspace_id: any; include_deleted?: boolean },
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(CacheScope.WORKSPACE_USER, [
@@ -229,15 +263,8 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
         `${MetaTable.WORKSPACE_USER}.created_at`,
         `${MetaTable.WORKSPACE_USER}.roles as roles`,
+        `${MetaTable.WORKSPACE_USER}.deleted`,
       );
-      // todo : pagination
-      // .offset(offset)
-      // .limit(limit);
-
-      // todo : search
-      // if (query) {
-      //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
-      // }
 
       queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
         this.on(
@@ -261,6 +288,12 @@ export default class WorkspaceUser {
       );
     }
 
+    if (!include_deleted) {
+      workspaceUsers = workspaceUsers.filter(
+        (workspaceUser) => !workspaceUser.deleted,
+      );
+    }
+
     return workspaceUsers;
   }
 
@@ -276,6 +309,7 @@ export default class WorkspaceUser {
         {
           condition: {
             fk_workspace_id: workspaceId,
+            deleted: false,
           },
           aggField: 'fk_workspace_id',
         },
@@ -299,7 +333,6 @@ export default class WorkspaceUser {
 
     const updateData = extractProps(_updateData, [
       'roles',
-      'deleted',
       'invite_token',
       'invite_accepted',
       'deleted',
@@ -325,16 +358,19 @@ export default class WorkspaceUser {
     return this.get(workspaceId, userId, ncMeta);
   }
 
-  static async delete(workspaceId: any, userId: any) {
-    const res = await Noco.ncMeta.metaDelete(
-      null,
-      null,
-      MetaTable.WORKSPACE_USER,
-      {
-        fk_user_id: userId,
-        fk_workspace_id: workspaceId,
-      },
-    );
+  static async softDelete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
+    return this.update(workspaceId, userId, {
+      roles: null,
+      deleted: true,
+      deleted_at: ncMeta.now(),
+    });
+  }
+
+  static async delete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
+    const res = await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
+      fk_user_id: userId,
+      fk_workspace_id: workspaceId,
+    });
 
     // delete cache
     await NocoCache.deepDel(

@@ -44,16 +44,18 @@ const loadCollaborators = async () => {
 
     totalCollaborators.value = totalRows
     collaborators.value = [
-      ...users.map((user: any) => ({
-        ...user,
-        base_roles: user.roles,
-        roles: extractRolesObj(user.main_roles)?.[OrgUserRoles.SUPER_ADMIN]
-          ? OrgUserRoles.SUPER_ADMIN
-          : user.roles ??
-            (user.workspace_roles
-              ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-              : ProjectRoles.NO_ACCESS),
-      })),
+      ...users
+        .filter((u: any) => !u?.deleted)
+        .map((user: any) => ({
+          ...user,
+          base_roles: user.roles,
+          roles: extractRolesObj(user.main_roles)?.[OrgUserRoles.SUPER_ADMIN]
+            ? OrgUserRoles.SUPER_ADMIN
+            : user.roles ??
+              (user.workspace_roles
+                ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+                : ProjectRoles.NO_ACCESS),
+        })),
     ]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

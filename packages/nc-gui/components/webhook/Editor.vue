@@ -520,6 +520,10 @@ onMounted(async () => {
     }
   }, 50)
 })
+
+const isConditionSupport = computed(() => {
+  return !hookRef.eventOperation.includes('bulk')
+})
 </script>
 
 <template>
@@ -770,8 +774,7 @@ onMounted(async () => {
               </a-form-item>
             </a-col>
           </a-row>
-
-          <a-row class="mb-5" type="flex">
+          <a-row class="mb-5" type="flex" v-if="isConditionSupport">
             <a-col :span="24">
               <div class="rounded-lg border-1 p-6">
                 <a-checkbox

@@ -212,8 +212,6 @@ function handleInput() {
 
   if (suggestion.value.length > 0 && suggestion.value[0].type !== 'column') {
     suggestionPreviewed.value = suggestion.value[0]
-  } else {
-    suggestionPreviewed.value = undefined
   }
 
   if (!isCurlyBracketBalanced()) {
@@ -237,7 +235,7 @@ function selectText() {
 function suggestionListUp() {
   if (suggestion.value) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
-    suggestionPreviewed.value = suggestionsList.value[selected.value]
+    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
     scrollToSelectedOption()
   }
 }
@@ -245,7 +243,7 @@ function suggestionListUp() {
 function suggestionListDown() {
   if (suggestion.value) {
     selected.value = ++selected.value % suggestion.value.length
-    suggestionPreviewed.value = suggestionsList.value[selected.value]
+    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
 
     scrollToSelectedOption()
   }
@@ -367,7 +365,6 @@ onMounted(() => {
               class="cursor-pointer !overflow-hidden hover:bg-gray-50"
               :class="{
                 '!bg-gray-100': selected === index,
-                '!bg-gray-50': suggestionPreviewed?.syntax === item.syntax && selected !== index,
               }"
               @click.prevent.stop="appendText(item)"
               @mouseenter="suggestionPreviewed = item"

@@ -90,10 +90,6 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         result: ['1', '3', '3', '5', '5'],
       },
       {
-        formula: 'VALUE("12ab-c345")',
-        result: ['-12345', '-12345', '-12345', '-12345', '-12345'],
-      },
-      {
         formula: 'TRUE()',
         result: ['1', '1', '1', '1', '1'],
       },
@@ -101,19 +97,6 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         formula: 'FALSE()',
         result: ['0', '0', '0', '0', '0'],
       },
-      {
-        formula: 'REGEX_MATCH({City}, "a[a-z]a")',
-        result: ['0', '0', '0', '0', '1'],
-      },
-      {
-        formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
-        result: ['', '', '', '', 'ana'],
-      },
-      {
-        formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
-        result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
-      },
-
       {
         formula: '"City Name: " & {City}',
         result: [
@@ -138,7 +121,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         result: ['1', '2', '3', '4', '5'],
       },
     ];
-  else
+  else if (index === 1)
     return [
       {
         formula: `DATETIME_DIFF("2023/10/14", "2023/01/12", "y")`,
@@ -215,6 +198,25 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         result: ['1', '1', '1', '1', '1'],
       },
     ];
+  else
+    return [
+      {
+        formula: 'VALUE("12ab-c345")',
+        result: ['-12345', '-12345', '-12345', '-12345', '-12345'],
+      },
+      {
+        formula: 'REGEX_MATCH({City}, "a[a-z]a")',
+        result: ['0', '0', '0', '0', '1'],
+      },
+      {
+        formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
+        result: ['', '', '', '', 'ana'],
+      },
+      {
+        formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
+        result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
+      },
+    ];
 };
 
 test.describe('Virtual Columns', () => {
@@ -282,5 +284,8 @@ test.describe('Virtual Columns', () => {
   });
   test('Formula - suite 1', async () => {
     await formulaTestSpec(1);
+  });
+  test('Formula selective - suite 2 (sqlite not supported) ', async () => {
+    await formulaTestSpec(2);
   });
 });

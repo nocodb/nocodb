@@ -123,6 +123,9 @@ export class GridPage extends BasePage {
 
     await this.get().locator('.nc-grid-add-new-cell').click();
 
+    // wait for insert row response
+    await this.rootPage.waitForTimeout(400);
+
     const rowCount = index + 1;
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
@@ -135,9 +138,13 @@ export class GridPage extends BasePage {
       await this.waitForResponse({
         uiAction: clickOnColumnHeaderToSave,
         requestUrlPathToMatch: 'api/v1/db/data/noco',
-        httpMethodsToMatch: ['POST'],
+        httpMethodsToMatch: [
+          // if the row does not contain the required cell, editing the row cell will emit a PATCH request; otherwise, it will emit a POST request.
+          'PATCH',
+          'POST',
+        ],
         // numerical types are returned in number format from the server
-        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(rowValue),
+        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(value),
       });
     } else {
       await clickOnColumnHeaderToSave();

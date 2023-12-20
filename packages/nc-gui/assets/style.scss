@@ -43,10 +43,6 @@ body {
   height: var(--topbar-height) !important;
 }
 
-.anticon-check-circle {
-  @apply !relative top-[-1px] left-0;
-}
-
 html,
 body,
 #__nuxt,
@@ -701,4 +697,7 @@ input[type='number'] {
 
 .ant-message-notice-content {
   @apply !rounded-md;
+  .ant-message-custom-content{
+    @apply flex items-center
+  }
 }

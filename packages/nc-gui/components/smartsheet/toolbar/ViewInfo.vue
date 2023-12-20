@@ -90,7 +90,7 @@ const openedBaseUrl = computed(() => {
           'max-w-none': isSharedBase && !isMobileMode,
         }"
       >
-        <NcTooltip class="truncate nc-active-table-title max-w-full">
+        <NcTooltip class="truncate nc-active-table-title max-w-full" show-on-truncate-only>
           <template #title>
             {{ activeTable?.title }}
           </template>

@@ -9,6 +9,7 @@ import {
   findIndexByPk,
   message,
   populateInsertObject,
+  rowDefaultData,
   rowPkData,
   storeToRefs,
   until,
@@ -53,9 +54,9 @@ export function useData(args: {
     },
   })
 
-  function addEmptyRow(addAfter = formattedData.value.length) {
+  function addEmptyRow(addAfter = formattedData.value.length, metaValue = meta.value) {
     formattedData.value.splice(addAfter, 0, {
-      row: {},
+      row: { ...rowDefaultData(metaValue?.columns) },
       oldRow: {},
       rowMeta: { new: true },
     })

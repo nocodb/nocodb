@@ -500,6 +500,9 @@ watch(
     if (props.hook) {
       setHook(props.hook)
       onEventChange()
+    } else {
+      // Set the default hook title only when creating a new hook.
+      hookRef.title = getDefaultHookName(hooks.value)
     }
   },
   { immediate: true },
@@ -513,7 +516,6 @@ onMounted(async () => {
   } else {
     hookRef.eventOperation = eventList.value[0].value.join(' ')
   }
-  hookRef.title = getDefaultHookName(hooks.value)
 
   onNotificationTypeChange()
 

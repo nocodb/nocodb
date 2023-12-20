@@ -263,8 +263,8 @@ const selectedOpt = computed(() => {
 
 <template>
   <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
-    <div v-if="!(active || isEditable)">
-      <a-tag v-if="selectedOpt" class="rounded-tag" :color="selectedOpt.color">
+    <div v-if="!(active || isEditable)" class="w-full">
+      <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
         <span
           :style="{
             'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -274,7 +274,21 @@ const selectedOpt = computed(() => {
           }"
           :class="{ 'text-sm': isKanban }"
         >
-          {{ selectedOpt.title }}
+          <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+            <template #title>
+              {{ selectedOpt.title }}
+            </template>
+            <span
+              class="text-ellipsis overflow-hidden"
+              :style="{
+                wordBreak: 'keep-all',
+                whiteSpace: 'nowrap',
+                display: 'inline',
+              }"
+            >
+              {{ selectedOpt.title }}
+            </span>
+          </NcTooltip>
         </span>
       </a-tag>
     </div>
@@ -305,7 +319,7 @@ const selectedOpt = computed(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag" :color="op.color">
+        <a-tag class="rounded-tag max-w-full" :color="op.color">
           <span
             :style="{
               'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -315,7 +329,21 @@ const selectedOpt = computed(() => {
             }"
             :class="{ 'text-sm': isKanban }"
           >
-            {{ op.title }}
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ op.title }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                {{ op.title }}
+              </span>
+            </NcTooltip>
           </span>
         </a-tag>
       </a-select-option>
@@ -342,6 +370,7 @@ const selectedOpt = computed(() => {
 
 :deep(.ant-select-clear) {
   opacity: 1;
+  border-radius: 100%;
 }
 
 .nc-single-select:not(.read-only) {
@@ -361,5 +390,11 @@ const selectedOpt = computed(() => {
 
 :deep(.ant-select-clear > span) {
   @apply block;
+}
+</style>
+
+<style lang="scss">
+.ant-select-item-option-content {
+  @apply !flex !items-center;
 }
 </style>

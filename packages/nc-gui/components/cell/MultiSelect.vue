@@ -558,3 +558,10 @@ const selectedOpts = computed(() => {
   @apply !text-xs;
 }
 </style>
+
+<style lang="scss">
+.ant-select-item-option-content,
+.ant-select-item-option-state {
+  @apply !flex !items-center;
+}
+</style>

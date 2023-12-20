@@ -392,3 +392,9 @@ const selectedOpt = computed(() => {
   @apply block;
 }
 </style>
+
+<style lang="scss">
+.ant-select-item-option-content {
+  @apply !flex !items-center;
+}
+</style>

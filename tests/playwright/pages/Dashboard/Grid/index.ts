@@ -103,10 +103,12 @@ export class GridPage extends BasePage {
     index = 0,
     columnHeader = 'Title',
     value,
+    networkValidation = true,
   }: {
     index?: number;
     columnHeader?: string;
     value?: string;
+    networkValidation?: boolean;
   } = {}) {
     const rowValue = value ?? `Row ${index}`;
     // wait for render to complete before count
@@ -119,37 +121,34 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(200);
     await this.rootPage.waitForLoadState('domcontentloaded');
 
-    // Start waiting for response before clicking add new cell. Note no await.
-    const addNewRowResponse = this.rootPage.waitForResponse(
-      res => res.url().includes('api/v1/db/data/noco') && res.request().method() === 'POST' && res.status() === 200
-    );
-
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    const isRequiredCell = (await this.cell.get({ index, columnHeader }).getAttribute('class')).includes(
-      'nc-required-cell'
-    );
-
-    // The 'save row/insert row' API call will be skipped if the row contains the required cell.
-    if (!isRequiredCell) {
-      // Wait for to add new row
-      await addNewRowResponse;
-    }
+    // wait for insert row response
+    await this.rootPage.waitForTimeout(400);
 
     const rowCount = index + 1;
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
-    // Start waiting for response before filling cell value
-    const updateCellResponse = this.rootPage.waitForResponse(
-      res => res.url().includes('api/v1/db/data/noco') && res.request().method() === 'PATCH' && res.status() === 200
-    );
-
     await this._fillRow({ index, columnHeader, value: rowValue });
 
-    if (isRequiredCell) {
-      await addNewRowResponse;
+    const clickOnColumnHeaderToSave = () =>
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[data-test-id="${columnHeader}"]`).click();
+
+    if (networkValidation) {
+      await this.waitForResponse({
+        uiAction: clickOnColumnHeaderToSave,
+        requestUrlPathToMatch: 'api/v1/db/data/noco',
+        httpMethodsToMatch: [
+          // if the row does not contain the required cell, editing the row cell will emit a PATCH request; otherwise, it will emit a POST request.
+          'PATCH',
+          'POST',
+        ],
+        // numerical types are returned in number format from the server
+        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(value),
+      });
     } else {
-      await updateCellResponse;
+      await clickOnColumnHeaderToSave();
+      await this.rootPage.waitForTimeout(300);
     }
 
     await this.rootPage.keyboard.press('Escape');

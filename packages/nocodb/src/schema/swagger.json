@@ -23864,6 +23864,27 @@
             "type": "boolean"
           }
         }
+      },
+      "UserFieldRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "required": true
+          },
+          "display_name": {
+            "type": "string",
+            "required": false
+          },
+          "email": {
+            "type": "string",
+            "required": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "required": false
+          }
+        }
       }
     },
     "responses": {

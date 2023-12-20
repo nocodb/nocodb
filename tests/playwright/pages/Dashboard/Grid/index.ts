@@ -103,12 +103,10 @@ export class GridPage extends BasePage {
     index = 0,
     columnHeader = 'Title',
     value,
-    networkValidation = true,
   }: {
     index?: number;
     columnHeader?: string;
     value?: string;
-    networkValidation?: boolean;
   } = {}) {
     const rowValue = value ?? `Row ${index}`;
     // wait for render to complete before count
@@ -121,6 +119,11 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(200);
     await this.rootPage.waitForLoadState('domcontentloaded');
 
+    // Start waiting for response before clicking add new cell. Note no await.
+    const addNewRowResponse = this.rootPage.waitForResponse(
+      res => res.url().includes('api/v1/db/data/noco') && res.request().method() === 'POST' && res.status() === 200
+    );
+
     await this.get().locator('.nc-grid-add-new-cell').click();
 
     const rowCount = index + 1;
@@ -128,21 +131,8 @@ export class GridPage extends BasePage {
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
-    const clickOnColumnHeaderToSave = () =>
-      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[data-test-id="${columnHeader}"]`).click();
-
-    if (networkValidation) {
-      await this.waitForResponse({
-        uiAction: clickOnColumnHeaderToSave,
-        requestUrlPathToMatch: 'api/v1/db/data/noco',
-        httpMethodsToMatch: ['POST'],
-        // numerical types are returned in number format from the server
-        responseJsonMatcher: resJson => String(resJson?.[columnHeader]) === String(rowValue),
-      });
-    } else {
-      await clickOnColumnHeaderToSave();
-      await this.rootPage.waitForTimeout(300);
-    }
+    // Wait for add new row api response
+    await addNewRowResponse;
 
     await this.rootPage.keyboard.press('Escape');
     await this.rootPage.waitForTimeout(300);

@@ -216,7 +216,7 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
         result: ['', '', '', '', 'ana'],
-        unSupDbType: ['sqlite3', 'mysql2'], // TODO: remove mysql2 after regex fix
+        unSupDbType: ['sqlite3'], // TODO: remove mysql2 after regex fix
       },
       {
         formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',

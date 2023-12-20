@@ -370,6 +370,20 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
+  async saveFail({ errorMessage }: { errorMessage?: string } = {}) {
+    await this.waitForResponse({
+      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
+      requestUrlPathToMatch: 'api/v1/db/meta',
+      httpMethodsToMatch: ['GET', 'PATCH'],
+      responseStatusCodeToMatch: 400,
+    });
+    await this.verifyLastToast({
+      message: errorMessage,
+    });
+    await this.get().waitFor({ state: 'visible' });
+    await this.rootPage.waitForTimeout(200);
+  }
+
   async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
     if (!isVisible) {
       return await expect(this.getColumnHeader(title)).not.toBeVisible();

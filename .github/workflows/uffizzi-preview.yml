@@ -13,8 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
-      compose-file-cache-key: ${{ env.COMPOSE_FILE_HASH }}
-      pr-number: ${{ env.PR_NUMBER }}
+      compose-file-cache-key: ${{ steps.hash.outputs.COMPOSE_FILE_HASH }}
+      git-ref: ${{ steps.event.outputs.GIT_REF }}
+      pr-number: ${{ steps.event.outputs.PR_NUMBER }}
+      action: ${{ steps.event.outputs.ACTION }}
     steps:
       - name: 'Download artifacts'
         # Fetch output (zip archive) from the workflow run that triggered this workflow.
@@ -29,6 +31,9 @@ jobs:
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "preview-spec"
             })[0];
+            if (matchArtifact === undefined) {
+              throw TypeError('Build Artifact not found!');
+            }
             let download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
@@ -37,44 +42,46 @@ jobs:
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/preview-spec.zip`, Buffer.from(download.data));
-      
-      - name: 'Unzip artifact'
-        run: unzip preview-spec.zip
-      
+
+      - name: 'Accept event from first stage'
+        run: unzip preview-spec.zip event.json
+
       - name: Read Event into ENV
+        id: event
         run: |
-          echo 'EVENT_JSON<<EOF' >> $GITHUB_ENV
-          cat event.json >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-      
+          echo PR_NUMBER=$(jq '.number | tonumber' < event.json) >> $GITHUB_OUTPUT
+          echo ACTION=$(jq --raw-output '.action | tostring | [scan("\\w+")][0]' < event.json) >> $GITHUB_OUTPUT
+          echo GIT_REF=$(jq --raw-output '.pull_request.head.sha | tostring | [scan("\\w+")][0]' < event.json) >> $GITHUB_OUTPUT
+
       - name: Hash Rendered Compose File
         id: hash
         # If the previous workflow was triggered by a PR close event, we will not have a compose file artifact.
-        if: ${{ fromJSON(env.EVENT_JSON).action != 'closed' }}
-        run: echo "COMPOSE_FILE_HASH=$(md5sum docker-compose.rendered.yml | awk '{ print $1 }')" >> $GITHUB_ENV
-      
+        if: ${{ steps.event.outputs.ACTION != 'closed' }}
+        run: |
+          unzip preview-spec.zip docker-compose.rendered.yml
+          echo "COMPOSE_FILE_HASH=$(md5sum docker-compose.rendered.yml | awk '{ print $1 }')" >> $GITHUB_OUTPUT
+
       - name: Cache Rendered Compose File
-        if: ${{ fromJSON(env.EVENT_JSON).action != 'closed' }}
+        if: ${{ steps.event.outputs.ACTION != 'closed' }}
         uses: actions/cache@v3
         with:
           path: docker-compose.rendered.yml
-          key: ${{ env.COMPOSE_FILE_HASH }}
+          key: ${{ steps.hash.outputs.COMPOSE_FILE_HASH }}
 
-      - name: Read PR Number From Event Object
-        id: pr
-        run: echo "PR_NUMBER=${{ fromJSON(env.EVENT_JSON).number }}" >> $GITHUB_ENV
-      
       - name: DEBUG - Print Job Outputs
         if: ${{ runner.debug }}
         run: |
-          echo "PR number: ${{ env.PR_NUMBER }}"
-          echo "Compose file hash: ${{ env.COMPOSE_FILE_HASH }}"
+          echo "PR number: ${{ steps.event.outputs.PR_NUMBER }}"
+          echo "Git Ref: ${{ steps.event.outputs.GIT_REF }}"
+          echo "Action: ${{ steps.event.outputs.ACTION }}"
+          echo "Compose file hash: ${{ steps.hash.outputs.COMPOSE_FILE_HASH }}"
           cat event.json
 
   deploy-uffizzi-preview:
     name: Use Remote Workflow to Preview on Uffizzi
     needs:
       - cache-compose-file
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: UffizziCloud/preview-action/.github/workflows/reusable.yaml@v2
     with:
       # If this workflow was triggered by a PR close event, cache-key will be an empty string

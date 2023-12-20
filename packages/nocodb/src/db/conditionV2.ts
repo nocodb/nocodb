@@ -495,7 +495,7 @@ const parseConditionV2 = async (
           if (qb?.client?.config?.client === 'pg') {
             qb = qb.where(knex.raw(`(${finalStatement}) ilike ?`, [val]));
           } else {
-            qb = qb.where(finalStatement, 'like', val);
+            qb = qb.where(knex.raw(`(${finalStatement}) like ?`, [val]));
           }
         } else {
           if (!val) {
@@ -507,11 +507,13 @@ const parseConditionV2 = async (
 
             qb.where((nestedQb) => {
               if (qb?.client?.config?.client === 'pg') {
-                nestedQb.where(
-                  knex.raw(`(${finalStatement}) not ilike ?`, [val]),
+                nestedQb.whereNot(
+                  knex.raw(`(${finalStatement}) ilike ?`, [val]),
                 );
               } else {
-                nestedQb.whereNot(finalStatement, 'like', val);
+                nestedQb.whereNot(
+                  knex.raw(`(${finalStatement}) like ?`, [val]),
+                );
               }
               if (val !== '%%') {
                 // if value is not empty, empty or null should be included

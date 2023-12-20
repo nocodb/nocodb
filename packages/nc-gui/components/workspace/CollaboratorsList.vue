@@ -85,13 +85,13 @@ onMounted(async () => {
                     :role="collab.roles"
                     :roles="accessibleRoles"
                     :description="false"
-                    class="bg-[red]"
+                    class="cursor-pointer"
                     :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
                   />
                 </div>
               </template>
               <template v-else>
-                <RolesBadge :role="collab.roles" />
+                <RolesBadge :role="collab.roles" class="cursor-default" />
               </template>
             </div>
             <div class="w-1/8 pl-6">

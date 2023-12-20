@@ -459,30 +459,17 @@ const parseConditionV2 = async (
           const filterVal = filter.value.toLowerCase();
 
           if (filterVal.startsWith('%') && filterVal.endsWith('%')) {
-            return (
-              user.display_name
-                .toLowerCase()
-                .includes(filterVal.substring(1, filterVal.length - 1)) ||
-              user.email
-                .toLowerCase()
-                .includes(filterVal.substring(1, filterVal.length - 1))
-            );
+            return (user.display_name || user.email)
+              .toLowerCase()
+              .includes(filterVal.substring(1, filterVal.length - 1));
           } else if (filterVal.startsWith('%')) {
-            return (
-              user.display_name
-                .toLowerCase()
-                .endsWith(filterVal.substring(1)) ||
-              user.email.toLowerCase().endsWith(filterVal.substring(1))
-            );
+            return (user.display_name || user.email)
+              .toLowerCase()
+              .endsWith(filterVal.substring(1));
           } else if (filterVal.endsWith('%')) {
-            return (
-              user.display_name
-                .toLowerCase()
-                .startsWith(filterVal.substring(0, filterVal.length - 1)) ||
-              user.email
-                .toLowerCase()
-                .startsWith(filterVal.substring(0, filterVal.length - 1))
-            );
+            return (user.display_name || user.email)
+              .toLowerCase()
+              .startsWith(filterVal.substring(0, filterVal.length - 1));
           }
 
           return (user.display_name || user.email)

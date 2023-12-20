@@ -722,7 +722,7 @@ export function useMultiSelect(
                 if (rowObj.row[columnObj.title] === '<br />') {
                   rowObj.row[columnObj.title] = e.key
                 } else {
-                  rowObj.row[columnObj.title] = rowObj.row[columnObj.title] + e.key ?? e.key
+                  rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
                 }
               } else {
                 rowObj.row[columnObj.title] = ''

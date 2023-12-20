@@ -1749,6 +1749,8 @@ export class ColumnsService {
 
             if (!dbColumn) {
               // create column in db
+
+              const column = sqlClient
             }
 
             await Column.insert({

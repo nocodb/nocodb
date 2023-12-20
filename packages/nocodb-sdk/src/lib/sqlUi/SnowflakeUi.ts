@@ -778,9 +778,11 @@ export class SnowflakeUi {
         break;
       case 'CreateTime':
         colProp.dt = 'TIMESTAMP';
+        colProp.cdf = 'current_timestamp()';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'TIMESTAMP';
+        colProp.cdf = 'current_timestamp()';
         break;
       case 'AutoNumber':
         colProp.dt = 'INT';

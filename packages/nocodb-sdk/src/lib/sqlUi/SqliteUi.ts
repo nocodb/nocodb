@@ -628,9 +628,11 @@ export class SqliteUi {
         break;
       case 'CreateTime':
         colProp.dt = 'datetime';
+        colProp.cdf =  'CURRENT_TIMESTAMP';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';
+        colProp.cdf =  'CURRENT_TIMESTAMP';
         break;
       case 'AutoNumber':
         colProp.dt = 'integer';

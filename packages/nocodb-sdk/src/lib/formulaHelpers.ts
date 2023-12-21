@@ -1202,6 +1202,7 @@ export function validateFormulaAndExtractTreeWithType({
     | 'oracledb'
     | 'mariadb'
     | 'sqlite'
+    | 'snowflake'
     | typeof MysqlUi
     | typeof MssqlUi
     | typeof SnowflakeUi

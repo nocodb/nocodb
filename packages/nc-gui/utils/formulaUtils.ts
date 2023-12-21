@@ -1,14 +1,30 @@
 import type { Input as AntInput } from 'ant-design-vue'
 
-const formulaTypes = {
-  NUMERIC: 'numeric',
-  STRING: 'string',
-  DATE: 'date',
-  LOGICAL: 'logical',
-  COND_EXP: 'conditional_expression',
+enum formulaTypes {
+  NUMERIC = 'numeric',
+  STRING = 'string',
+  DATE = 'date',
+  LOGICAL = 'logical',
+  COND_EXP = 'conditional_expression',
 }
 
-const formulas: Record<string, any> = {
+interface FormulaMeta {
+  type?: string
+  validation?: {
+    args?: {
+      min?: number
+      max?: number
+      rqd?: number
+    }
+  }
+  description?: string
+  syntax?: string
+  examples?: string[]
+  returnType?: ((args: any[]) => formulaTypes) | formulaTypes
+}
+
+const formulas: Record<string, FormulaMeta> = {
+
   AVG: {
     type: formulaTypes.NUMERIC,
     validation: {

@@ -43,13 +43,13 @@ export default {
 
     switch (args.pt.arguments[0].dataType as FormulaDataTypes) {
       case FormulaDataTypes.NUMERIC:
-        cond = `(${condArg}) IS NOT NULL OR (${condArg}) != 0`;
+        cond = `(${condArg}) IS NOT NULL AND (${condArg}) != 0`;
         break;
       case FormulaDataTypes.STRING:
-        cond = `(${condArg}) IS NOT NULL OR (${condArg}) != ''`;
+        cond = `(${condArg}) IS NOT NULL AND (${condArg}) != ''`;
         break;
       case FormulaDataTypes.BOOLEAN:
-        cond = `(${condArg}) IS NOT NULL OR (${condArg}) != false`;
+        cond = `(${condArg}) IS NOT NULL AND (${condArg}) != false`;
         break;
     }
 

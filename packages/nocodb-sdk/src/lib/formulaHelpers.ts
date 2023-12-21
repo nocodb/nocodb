@@ -102,7 +102,7 @@ export async function substituteColumnAliasWithIdInFormula(
   return jsepTreeToFormula(parsedFormula);
 }
 
-enum FormulaErrorType {
+export enum FormulaErrorType {
   NOT_AVAILABLE = 'NOT_AVAILABLE',
   NOT_SUPPORTED = 'NOT_SUPPORTED',
   MIN_ARG = 'MIN_ARG',
@@ -1152,7 +1152,7 @@ const formulas: Record<string, FormulaMeta> = {
   // },
 };
 
-class FormulaError extends Error {
+export class FormulaError extends Error {
   public type: FormulaErrorType;
   public extra: Record<string, any>;
 
@@ -1265,15 +1265,28 @@ export function validateFormulaAndExtractTreeWithType(
             (argType) =>
               argType !== expectedArgType && argType !== FormulaDataTypes.NULL
           )
-        )
+        ) {
+          let key = '';
+
+          if (expectedArgType === FormulaDataTypes.NUMERIC) {
+            key = 'msg.formula.numericTypeIsExpected';
+          } else if (expectedArgType === FormulaDataTypes.STRING) {
+            key = 'msg.formula.stringTypeIsExpected';
+          } else if (expectedArgType === FormulaDataTypes.BOOLEAN) {
+            key = 'msg.formula.booleanTypeIsExpected';
+          } else if (expectedArgType === FormulaDataTypes.DATE) {
+            key = 'msg.formula.dateTypeIsExpected';
+          }
+
           throw new FormulaError(
             FormulaErrorType.INVALID_ARG,
             {
-              key: 'msg.formula.invalidArgumentType',
+              key,
               calleeName,
             },
             'Invalid argument type'
           );
+        }
       }
 
       if (typeof formulas[calleeName].returnType === 'function') {

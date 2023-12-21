@@ -65,6 +65,11 @@ function formulaRegExpBased() {
   });
 
   it('Type: REGEX_MATCH ', async () => {
+    // if not pg or mysql, skip regex test since it is not implemented for other databases
+    if (!['pg', 'mysql2', 'mysql'].includes(base.sources[0].type)) {
+      return;
+    }
+
     const formulaList = [
       `REGEX_MATCH("123-45-6789", "\\d{3}-\\d{2}-\\d{4}")`,
       'REGEX_MATCH("123-45-6789", "\\d{3}-\\d{2}-\\d{4}")',

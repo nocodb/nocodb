@@ -9,7 +9,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType } from 'nocodb-sdk'
 import {
   MetaInj,
   NcAutocompleteTree,
@@ -21,12 +21,9 @@ import {
   iconMap,
   inject,
   insertAtCursor,
-  isDate,
   nextTick,
   onMounted,
   ref,
-  storeToRefs,
-  useBase,
   useColumnCreateStoreOrThrow,
   useDebounceFn,
   useI18n,
@@ -66,7 +63,7 @@ const validators = {
           if (!formula?.trim()) return reject(new Error('Required'))
 
           try {
-            await validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value, getMeta })
+            await validateFormulaAndExtractTreeWithType({ column: column.value, formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value, getMeta })
           } catch (e: any) {
             if (e instanceof FormulaError && e.extra?.key) {
               return reject(new Error(t(e.extra.key, e.extra)))

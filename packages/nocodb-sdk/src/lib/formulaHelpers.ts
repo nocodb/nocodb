@@ -1312,34 +1312,52 @@ export function validateFormulaAndExtractTreeWithType({
       // validate against expected arg types if present
       else if (formulas[calleeName].validation?.args?.type) {
         const expectedArgType = formulas[calleeName].validation.args.type;
-        if (
-          argTypes.some(
-            (argType) =>
-              argType !== expectedArgType &&
-              argType !== FormulaDataTypes.NULL &&
-              argType !== FormulaDataTypes.UNKNOWN
-          )
-        ) {
-          let key = '';
 
-          if (expectedArgType === FormulaDataTypes.NUMERIC) {
-            key = 'msg.formula.numericTypeIsExpected';
-          } else if (expectedArgType === FormulaDataTypes.STRING) {
-            key = 'msg.formula.stringTypeIsExpected';
-          } else if (expectedArgType === FormulaDataTypes.BOOLEAN) {
-            key = 'msg.formula.booleanTypeIsExpected';
-          } else if (expectedArgType === FormulaDataTypes.DATE) {
-            key = 'msg.formula.dateTypeIsExpected';
+        for (const argPt of validateResult) {
+          if (
+            argPt.dataType !== expectedArgType &&
+            argPt.dataType !== FormulaDataTypes.NULL &&
+            argPt.dataType !== FormulaDataTypes.UNKNOWN
+          ) {
+            if (argPt.type === JSEPNode.IDENTIFIER) {
+              throw new FormulaError(
+                FormulaErrorType.INVALID_ARG,
+                {
+                  key: 'msg.formula.columnWithTypeFoundButExpected',
+                  columnName: parsedTree.name,
+                  columnType: parsedTree.dataType,
+                  expectedType: expectedArgType,
+                },
+                `Field ${parsedTree.name} with ${parsedTree.dataType} type is found but ${expectedArgType} type is expected`
+              );
+            } else {
+              let key = '',
+                message = 'Invalid argument type';
+
+              if (expectedArgType === FormulaDataTypes.NUMERIC) {
+                key = 'msg.formula.numericTypeIsExpected';
+                message = 'Numeric type is expected';
+              } else if (expectedArgType === FormulaDataTypes.STRING) {
+                key = 'msg.formula.stringTypeIsExpected';
+                message = 'String type is expected';
+              } else if (expectedArgType === FormulaDataTypes.BOOLEAN) {
+                key = 'msg.formula.booleanTypeIsExpected';
+                message = 'Boolean type is expected';
+              } else if (expectedArgType === FormulaDataTypes.DATE) {
+                key = 'msg.formula.dateTypeIsExpected';
+                message = 'Date type is expected';
+              }
+
+              throw new FormulaError(
+                FormulaErrorType.INVALID_ARG,
+                {
+                  key,
+                  calleeName,
+                },
+                message
+              );
+            }
           }
-
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key,
-              calleeName,
-            },
-            'Invalid argument type'
-          );
         }
       }
 
@@ -1358,8 +1376,8 @@ export function validateFormulaAndExtractTreeWithType({
         throw new FormulaError(
           FormulaErrorType.INVALID_COLUMN,
           {
-            key: 'msg.formula.invalidColumn',
-            column: parsedTree.name,
+            key: 'msg.formula.columnNotAvailable',
+            columnName: parsedTree.name,
           },
           `Invalid column name/id ${JSON.stringify(parsedTree.name)} in formula`
         );

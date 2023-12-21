@@ -1496,16 +1496,38 @@ export function validateFormulaAndExtractTreeWithType({
       } else {
         res.dataType = FormulaDataTypes.STRING;
       }
-    } else if (
-      parsedTree.type === JSEPNode.BINARY_EXP ||
-      parsedTree.type === JSEPNode.UNARY_EXP
-    ) {
+    } else if (parsedTree.type === JSEPNode.UNARY_EXP) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Unary expression is not supported'
+      );
+    } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
       res.left = validateAndExtract(parsedTree.left);
       res.right = validateAndExtract(parsedTree.right);
 
       if (['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.COND_EXP;
-      } else res.dataType = FormulaDataTypes.NUMERIC;
+      }
+        else if (parsedTree.operator === '+') {
+        res.dataType = FormulaDataTypes.NUMERIC;
+        // if any side is string/date/other type, then the result will be concatenated string
+        // e.g. 1 + '2' = '12'
+          [res.left, res.right].some(
+            (r) =>
+              ![
+                FormulaDataTypes.NUMERIC,
+                FormulaDataTypes.BOOLEAN,
+                FormulaDataTypes.NULL,
+                FormulaDataTypes.UNKNOWN,
+              ].includes(r.dataType)
+          )
+        ) {
+          res.dataType = FormulaDataTypes.STRING;
+        }
+      } else {
+        res.dataType = FormulaDataTypes.NUMERIC;
+      }
     }
 
     return res;

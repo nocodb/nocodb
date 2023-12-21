@@ -833,6 +833,22 @@ async function _formulaQueryBuilder(
         );
       }
 
+      // if operator is + and expected return type is string, convert to concat
+      if (pt.operator === '+' && pt.dataType === FormulaDataTypes.STRING) {
+        return fn(
+          {
+            type: 'CallExpression',
+            arguments: [pt.left, pt.right],
+            callee: {
+              type: 'Identifier',
+              name: 'CONCAT',
+            },
+          },
+          alias,
+          prevBinaryOp,
+        );
+      }
+
       if (pt.operator === '==') {
         pt.operator = '=';
         // if left/right is of different type, convert to string and compare

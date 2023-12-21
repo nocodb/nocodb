@@ -1,3 +1,4 @@
+import { FormulaDataTypes } from 'nocodb-sdk';
 import type { MapFnArgs } from '../mapFunctionName';
 import { NcError } from '~/helpers/catchError';
 
@@ -36,11 +37,25 @@ export default {
     };
   },
   IF: async (args: MapFnArgs) => {
+    const condArg = (await args.fn(args.pt.arguments[0])).builder.toQuery();
+
+    let cond = condArg;
+
+    switch (args.pt.arguments[0].dataType as FormulaDataTypes) {
+      case FormulaDataTypes.NUMERIC:
+        cond = `(${condArg}) IS NOT NULL OR (${condArg}) != 0`;
+        break;
+      case FormulaDataTypes.STRING:
+        cond = `(${condArg}) IS NOT NULL OR (${condArg}) != ''`;
+        break;
+      case FormulaDataTypes.BOOLEAN:
+        cond = `(${condArg}) IS NOT NULL OR (${condArg}) != false`;
+        break;
+    }
+
     let query = args.knex
       .raw(
-        `\n\tWHEN ${(
-          await args.fn(args.pt.arguments[0])
-        ).builder.toQuery()} THEN ${(
+        `\n\tWHEN ${cond} THEN ${(
           await args.fn(args.pt.arguments[1])
         ).builder.toQuery()}`,
       )

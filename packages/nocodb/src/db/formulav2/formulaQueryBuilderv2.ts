@@ -2,6 +2,7 @@ import jsep from 'jsep';
 import {
   jsepCurlyHook,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
   validateDateWithUnknownFormat,
 } from 'nocodb-sdk';
 import mapFunctionName from '../mapFunctionName';
@@ -14,7 +15,10 @@ import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
-import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
+import {
+  convertDateFormatForConcat,
+  validateDateWithUnknownFormat,
+} from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 
 // todo: switch function based on database
@@ -62,14 +66,19 @@ async function _formulaQueryBuilder(
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
+  const columns = await model.getColumns();
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
-  const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
+  // const _tree1 = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
+  const tree = validateFormulaAndExtractTreeWithType(
+    _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
+    columns,
+  );
 
   const columnIdToUidt = {};
 
   // todo: improve - implement a common solution for filter, sort, formula, etc
-  for (const col of await model.getColumns()) {
+  for (const col of columns) {
     columnIdToUidt[col.id] = col.uidt;
     if (col.id in aliasToColumn) continue;
     switch (col.uidt) {

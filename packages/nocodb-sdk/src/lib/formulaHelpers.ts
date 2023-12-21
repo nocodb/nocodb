@@ -1,6 +1,6 @@
 import jsep from 'jsep';
 
-import { ColumnType } from './Api';
+import { ColumnType, LinkToAnotherRecordType, RollupType } from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
 import {
@@ -11,6 +11,7 @@ import {
   SnowflakeUi,
   SqlUiFactory,
 } from './sqlUi';
+import { RollupColumn } from '../../../nocodb/src/models';
 
 // todo: move to date utils and export, remove duplicate from gui
 
@@ -1240,7 +1241,167 @@ export class FormulaError extends Error {
   }
 }
 
-export function validateFormulaAndExtractTreeWithType({
+async function extractColumnIdentifierType({
+  col,
+  columns,
+  getMeta,
+  clientOrSqlUi,
+}: {
+  col: Record<string, any>;
+  columns: ColumnType[];
+  getMeta: (tableId: string) => Promise<any>;
+  clientOrSqlUi:
+    | 'mysql'
+    | 'pg'
+    | 'sqlite3'
+    | 'mssql'
+    | 'mysql2'
+    | 'oracledb'
+    | 'mariadb'
+    | 'sqlite'
+    | 'snowflake'
+    | MysqlUi
+    | MssqlUi
+    | SnowflakeUi
+    | PgUi
+    | OracleUi;
+}) {
+  const res: {
+    dataType?: FormulaDataTypes;
+    errors?: Set<string>;
+    [p: string]: any;
+  } = {};
+
+  switch (col?.uidt) {
+    // string
+    case UITypes.SingleLineText:
+    case UITypes.LongText:
+    case UITypes.MultiSelect:
+    case UITypes.SingleSelect:
+    case UITypes.PhoneNumber:
+    case UITypes.Email:
+    case UITypes.URL:
+      res.dataType = FormulaDataTypes.STRING;
+      break;
+    // numeric
+    case UITypes.Year:
+    case UITypes.Number:
+    case UITypes.Decimal:
+    case UITypes.Rating:
+    case UITypes.Count:
+    case UITypes.AutoNumber:
+      res.dataType = FormulaDataTypes.NUMERIC;
+      break;
+    // date
+    case UITypes.Date:
+    case UITypes.DateTime:
+    case UITypes.CreateTime:
+    case UITypes.LastModifiedTime:
+      res.dataType = FormulaDataTypes.DATE;
+      break;
+
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Duration:
+    case UITypes.Links:
+      res.dataType = FormulaDataTypes.NUMERIC;
+      break;
+
+    case UITypes.Rollup:
+      {
+        const rollupFunction = col.colOptions.rollup_function;
+        if (
+          [
+            'count',
+            'avg',
+            'sum',
+            'countDistinct',
+            'sumDistinct',
+            'avgDistinct',
+          ].includes(rollupFunction)
+        ) {
+          // these functions produce a numeric value, which can be used in numeric functions
+          res.dataType = FormulaDataTypes.NUMERIC;
+        } else {
+          const relationColumnOpt = columns.find(
+            (column) =>
+              column.id === (<RollupType>col.colOptions).fk_relation_column_id
+          );
+
+          // the value is based on the foreign rollup column type
+          const refTableMeta = await getMeta(
+            (<LinkToAnotherRecordType>relationColumnOpt.colOptions)
+              .fk_related_model_id
+          );
+
+          const refTableColumns = refTableMeta.columns;
+          const childFieldColumn = refTableColumns.find(
+            (column: ColumnType) =>
+              column.id === col.colOptions.fk_rollup_column_id
+          );
+
+          // extract type and add to res
+          Object.assign(
+            res,
+            await extractColumnIdentifierType({
+              col: childFieldColumn,
+              columns: refTableColumns,
+              getMeta,
+              clientOrSqlUi,
+            })
+          );
+        }
+      }
+      break;
+
+    case UITypes.Attachment:
+      res.dataType = FormulaDataTypes.STRING;
+      break;
+    case UITypes.Checkbox:
+      res.dataType = FormulaDataTypes.NUMERIC;
+      break;
+    case UITypes.ID:
+    case UITypes.ForeignKey:
+    case UITypes.SpecificDBType:
+      {
+        const sqlUI =
+          typeof clientOrSqlUi === 'string'
+            ? SqlUiFactory.create({ client: clientOrSqlUi })
+            : clientOrSqlUi;
+        if (sqlUI) {
+          const abstractType = sqlUI.getAbstractType(col);
+          if (['integer', 'float', 'decimal'].includes(abstractType)) {
+            res.dataType = FormulaDataTypes.NUMERIC;
+          } else if (['boolean'].includes(abstractType)) {
+            res.dataType = FormulaDataTypes.BOOLEAN;
+          } else if (
+            ['date', 'datetime', 'time', 'year'].includes(abstractType)
+          ) {
+            res.dataType = FormulaDataTypes.DATE;
+          } else {
+            res.dataType = FormulaDataTypes.STRING;
+          }
+        } else {
+          res.dataType = FormulaDataTypes.UNKNOWN;
+        }
+      }
+      break;
+    // not supported
+    case UITypes.Time:
+    case UITypes.Lookup:
+    case UITypes.Barcode:
+    case UITypes.Button:
+    case UITypes.Collaborator:
+    case UITypes.QrCode:
+    default:
+      res.dataType = FormulaDataTypes.UNKNOWN;
+      break;
+  }
+
+  return res;
+}
+
+export async function validateFormulaAndExtractTreeWithType({
   formula,
   columns,
   clientOrSqlUi,
@@ -1273,7 +1434,7 @@ export function validateFormulaAndExtractTreeWithType({
     colIdToColMap[col.id] = col;
   }
 
-  const validateAndExtract = (parsedTree: any) => {
+  const validateAndExtract = async (parsedTree: any) => {
     const res: {
       dataType?: FormulaDataTypes;
       errors?: Set<string>;
@@ -1431,7 +1592,7 @@ export function validateFormulaAndExtractTreeWithType({
 
         const formulaRes =
           col.colOptions?.parsed_tree ||
-          validateFormulaAndExtractTreeWithType(
+          (await validateFormulaAndExtractTreeWithType(
             // formula may include double curly brackets in previous version
             // convert to single curly bracket here for compatibility
             {
@@ -1442,89 +1603,20 @@ export function validateFormulaAndExtractTreeWithType({
               clientOrSqlUi,
               getMeta,
             }
-          );
+          ));
 
         res.dataType = (formulaRes as any)?.dataType;
       } else {
-        switch (col?.uidt) {
-          // string
-          case UITypes.SingleLineText:
-          case UITypes.LongText:
-          case UITypes.MultiSelect:
-          case UITypes.SingleSelect:
-          case UITypes.PhoneNumber:
-          case UITypes.Email:
-          case UITypes.URL:
-            res.dataType = FormulaDataTypes.STRING;
-            break;
-          // numeric
-          case UITypes.Year:
-          case UITypes.Number:
-          case UITypes.Decimal:
-          case UITypes.Rating:
-          case UITypes.Count:
-          case UITypes.AutoNumber:
-            res.dataType = FormulaDataTypes.NUMERIC;
-            break;
-          // date
-          case UITypes.Date:
-          case UITypes.DateTime:
-          case UITypes.CreateTime:
-          case UITypes.LastModifiedTime:
-            res.dataType = FormulaDataTypes.DATE;
-            break;
-
-          case UITypes.Currency:
-          case UITypes.Percent:
-          case UITypes.Duration:
-          case UITypes.Links:
-          case UITypes.Rollup:
-            res.dataType = FormulaDataTypes.NUMERIC;
-            break;
-
-          case UITypes.Attachment:
-            res.dataType = FormulaDataTypes.STRING;
-            break;
-          case UITypes.Checkbox:
-            res.dataType = FormulaDataTypes.NUMERIC;
-            break;
-          case UITypes.ID:
-          case UITypes.ForeignKey:
-          case UITypes.SpecificDBType:
-            {
-              const sqlUI =
-                typeof clientOrSqlUi === 'string'
-                  ? SqlUiFactory.create({ client: clientOrSqlUi })
-                  : clientOrSqlUi;
-              if (sqlUI) {
-                const abstractType = sqlUI.getAbstractType(col);
-                if (['integer', 'float', 'decimal'].includes(abstractType)) {
-                  res.dataType = FormulaDataTypes.NUMERIC;
-                } else if (['boolean'].includes(abstractType)) {
-                  res.dataType = FormulaDataTypes.BOOLEAN;
-                } else if (
-                  ['date', 'datetime', 'time', 'year'].includes(abstractType)
-                ) {
-                  res.dataType = FormulaDataTypes.DATE;
-                } else {
-                  res.dataType = FormulaDataTypes.STRING;
-                }
-              } else {
-                res.dataType = FormulaDataTypes.UNKNOWN;
-              }
-            }
-            break;
-          // not supported
-          case UITypes.Time:
-          case UITypes.Lookup:
-          case UITypes.Barcode:
-          case UITypes.Button:
-          case UITypes.Collaborator:
-          case UITypes.QrCode:
-          default:
-            res.dataType = FormulaDataTypes.UNKNOWN;
-            break;
-        }
+        // extract type and add to res
+        Object.assign(
+          res,
+          await extractColumnIdentifierType({
+            col,
+            columns,
+            getMeta,
+            clientOrSqlUi,
+          })
+        );
       }
     } else if (parsedTree.type === JSEPNode.LITERAL) {
       if (typeof parsedTree.value === 'number') {
@@ -1576,7 +1668,7 @@ export function validateFormulaAndExtractTreeWithType({
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
   const parsedFormula = jsep(formula);
-  const result = validateAndExtract(parsedFormula);
+  const result = await validateAndExtract(parsedFormula);
   return result;
 }
 

@@ -1095,7 +1095,8 @@ export function validateFormulaAndExtractTreeWithType(
       res.name = col.id;
 
       if (col?.uidt === UITypes.Formula) {
-        // todo: check for circular reference
+        // check for circular reference
+        checkForCircularFormulaRef(col, parsedTree, columns);
 
         const formulaRes = col.colOptions?.parsed_tree || validateFormulaAndExtractTreeWithType(
           // formula may include double curly brackets in previous version
@@ -1180,7 +1181,6 @@ export function validateFormulaAndExtractTreeWithType(
   const result = validateAndExtract(parsedFormula);
   return result;
 }
-/*
 
 function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
   // check circular reference
@@ -1188,15 +1188,15 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
 
   // get all formula columns excluding itself
   const formulaPaths = columns.value
-    .filter((c) => c.id !== formulaCol.value?.id && c.uidt === UITypes.Formula)
+    .filter((c) => c.id !== formulaCol?.id && c.uidt === UITypes.Formula)
     .reduce((res: Record<string, any>[], c: Record<string, any>) => {
       // in `formula`, get all the (unique) target neighbours
       // i.e. all column id (e.g. cxxxxxxxxxxxxxx) with formula type
       const neighbours = [
         ...new Set(
-          (c.colOptions.formula.match(/c\w{15}/g) || []).filter(
+          (c.colOptions.formula.match(/c_?\w{14,15}/g) || []).filter(
             (colId: string) =>
-              columns.value.filter(
+              columns.filter(
                 (col: ColumnType) =>
                   col.id === colId && col.uidt === UITypes.Formula
               ).length
@@ -1211,13 +1211,13 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
     }, []);
 
   // include target formula column (i.e. the one to be saved if applicable)
-  const targetFormulaCol = columns.value.find(
+  const targetFormulaCol = columns.find(
     (c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula
   );
 
-  if (targetFormulaCol && formulaCol.value?.id) {
+  if (targetFormulaCol && formulaCol?.id) {
     formulaPaths.push({
-      [formulaCol.value?.id as string]: [targetFormulaCol.id],
+      [formulaCol?.id as string]: [targetFormulaCol.id],
     });
   }
   const vertices = formulaPaths.length;
@@ -1273,4 +1273,4 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
     }
   }
 }
-*/
+

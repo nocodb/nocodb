@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
+import { Api, PaginatedType, ProjectListType, UITypes } from 'nocodb-sdk';
 import { enableQuickRun, isEE, isMysql, isPg, isSqlite } from '../../../setup/db';
 import { getKnexConfig } from '../../utils/config';
 import { getBrowserTimezoneOffset } from '../../utils/general';
@@ -778,7 +778,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     // Hence, we skip seconds from API response
     //
 
-    const records = await api.dbTableRow.list('noco', context.base.id, 'MyTable', { limit: 10 });
+    const records = (await api.dbTableRow.list('noco', context.base.id, 'MyTable', { limit: 10 })) as {
+      list: Record<string, any>[];
+      pageInfo: PaginatedType;
+    };
+    records.list = records.list.filter(record => record.DatetimeWithoutTz && record.DatetimeWithTz);
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 
@@ -1082,7 +1086,11 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     // Hence, we skip seconds from API response
     //
 
-    const records = await api.dbTableRow.list('sakila', context.base.id, 'MyTable', { limit: 10 });
+    const records = (await api.dbTableRow.list('sakila', context.base.id, 'MyTable', { limit: 10 })) as {
+      list: Record<string, any>[];
+      pageInfo: PaginatedType;
+    };
+    records.list = records.list.filter(record => record.DatetimeWithoutTz && record.DatetimeWithTz);
     let dateTimeWithoutTz = records.list.map(record => record.DatetimeWithoutTz);
     let dateTimeWithTz = records.list.map(record => record.DatetimeWithTz);
 

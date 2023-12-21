@@ -448,7 +448,8 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 }
 
 async function openNewRecordHandler() {
-  const newRow = addEmptyRow()
+  // skip update row when it is `New record form`
+  const newRow = addEmptyRow(dataRef.value.length, true)
   if (newRow) expandForm?.(newRow, undefined, true)
 }
 
@@ -697,8 +698,17 @@ function scrollToRow(row?: number) {
   scrollToCell?.()
 }
 
-function addEmptyRow(row?: number) {
+async function saveEmptyRow(rowObj: Row) {
+  await updateOrSaveRow?.(rowObj)
+}
+
+function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   const rowObj = callAddEmptyRow?.(row)
+
+  if (!skipUpdate && rowObj) {
+    saveEmptyRow(rowObj)
+  }
+
   nextTick().then(() => {
     scrollToRow(row ?? dataRef.value.length - 1)
   })
@@ -1484,7 +1494,6 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="items-center flex gap-1 min-w-[60px]">
                         <div
-                          v-if="!readOnly || isMobileMode"
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                         >
@@ -1696,7 +1705,7 @@ onKeyStroke('ArrowDown', onDown)
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="contextMenuTarget"
+              v-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
               :disabled="isSystemColumn(fields[contextMenuTarget.col])"

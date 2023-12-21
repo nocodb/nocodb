@@ -210,7 +210,7 @@ export class ColumnsService {
             colBody.formula_raw || colBody.formula,
             table.columns,
           );
-          colBody.parsed_tree = validateFormulaAndExtractTreeWithType({
+          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
             formula: colBody.formula_raw || colBody.formula,
             columns: table.columns,
             clientOrSqlUi: source.type,
@@ -939,7 +939,7 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
-                      parsed_tree: validateFormulaAndExtractTreeWithType({
+                      parsed_tree: await validateFormulaAndExtractTreeWithType({
                         formula: new_formula_raw,
                         columns: table.columns,
                         clientOrSqlUi: source.type,
@@ -1005,7 +1005,7 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
-                      parsed_tree: validateFormulaAndExtractTreeWithType({
+                      parsed_tree: await validateFormulaAndExtractTreeWithType({
                         formula: new_formula_raw,
                         columns: table.columns,
                         clientOrSqlUi: source.type,
@@ -1215,7 +1215,7 @@ export class ColumnsService {
           colBody.formula_raw || colBody.formula,
           table.columns,
         );
-        colBody.parsed_tree = validateFormulaAndExtractTreeWithType({
+        colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
           // formula may include double curly brackets in previous version
           // convert to single curly bracket here for compatibility
           formula:

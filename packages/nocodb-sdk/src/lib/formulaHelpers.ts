@@ -6,12 +6,10 @@ import dayjs from 'dayjs';
 import {
   MssqlUi,
   MysqlUi,
-  OracleUi,
   PgUi,
   SnowflakeUi,
   SqlUiFactory,
 } from './sqlUi';
-import { RollupColumn } from '../../../nocodb/src/models';
 
 // todo: move to date utils and export, remove duplicate from gui
 
@@ -1260,11 +1258,10 @@ async function extractColumnIdentifierType({
     | 'mariadb'
     | 'sqlite'
     | 'snowflake'
-    | MysqlUi
-    | MssqlUi
-    | SnowflakeUi
-    | PgUi
-    | OracleUi;
+    | typeof MysqlUi
+    | typeof MssqlUi
+    | typeof SnowflakeUi
+    | typeof PgUi
 }) {
   const res: {
     dataType?: FormulaDataTypes;
@@ -1422,8 +1419,7 @@ export async function validateFormulaAndExtractTreeWithType({
     | typeof MysqlUi
     | typeof MssqlUi
     | typeof SnowflakeUi
-    | typeof PgUi
-    | typeof OracleUi;
+    | typeof PgUi;
   getMeta?: (tableId: string) => Promise<any>;
 }) {
   const colAliasToColMap = {};

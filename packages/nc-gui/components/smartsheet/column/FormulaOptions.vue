@@ -105,8 +105,9 @@ const validators = {
           if (!formula?.trim()) return reject(new Error('Required'))
 
           try {
-            validateFormulaAndExtractTreeWithType(formula, supportedColumns.value)
+            validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value })
           } catch (e: any) {
+            console.log(e)
             if (e instanceof FormulaError && e.extra?.key) {
               return reject(new Error(t(e.extra.key, e.extra)))
             }

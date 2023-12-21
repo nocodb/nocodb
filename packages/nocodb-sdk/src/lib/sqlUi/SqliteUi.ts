@@ -883,6 +883,9 @@ export class SqliteUi {
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',
+      'DAY',
+      'MONTH',
+      'HOUR',
     ];
   }
 }

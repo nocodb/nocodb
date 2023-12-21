@@ -3,13 +3,7 @@ import jsep from 'jsep';
 import { ColumnType, LinkToAnotherRecordType, RollupType } from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
-import {
-  MssqlUi,
-  MysqlUi,
-  PgUi,
-  SnowflakeUi,
-  SqlUiFactory,
-} from './sqlUi';
+import { MssqlUi, MysqlUi, PgUi, SnowflakeUi, SqlUiFactory } from './sqlUi';
 
 // todo: move to date utils and export, remove duplicate from gui
 
@@ -205,7 +199,7 @@ export function jsepTreeToFormula(node, isCallExpId = false) {
 
   if (node.type === 'Literal') {
     if (typeof node.value === 'string') {
-      return String.raw`"${escapeLiteral(node.value)}"`;
+      return String.raw`"${escapeLiteral(node.raw.slice(1, -1))}"`;
     }
     return '' + node.value;
   }
@@ -248,11 +242,11 @@ function escapeLiteral(v: string) {
   return (
     v
       // replace \ to \\
-      .replace(/\\/g, `\\\\`)
+      .replace(/([^\\]|^)\\(?!\\)/g, `$1\\\\`)
       // replace " to \"
-      .replace(/"/g, `\\"`)
+      .replace(/([^\\]|^)"/g, `$1\\"`)
       // replace ' to \'
-      .replace(/'/g, `\\'`)
+      .replace(/([^\\]|^)'/g, `$1\\'`)
   );
 }
 
@@ -1261,7 +1255,7 @@ async function extractColumnIdentifierType({
     | typeof MysqlUi
     | typeof MssqlUi
     | typeof SnowflakeUi
-    | typeof PgUi
+    | typeof PgUi;
 }) {
   const res: {
     dataType?: FormulaDataTypes;
@@ -1496,11 +1490,11 @@ export async function validateFormulaAndExtractTreeWithType({
         }
       }
       // get args type and validate
-      const validateResult = (res.arguments = await Promise.all(parsedTree.arguments.map(
-        (arg) => {
+      const validateResult = (res.arguments = await Promise.all(
+        parsedTree.arguments.map((arg) => {
           return validateAndExtract(arg);
-        }
-      )));
+        })
+      ));
 
       const argTypes = validateResult.map((v: any) => v.dataType);
 

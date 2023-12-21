@@ -2,7 +2,16 @@
 import { OrgUserRoles } from 'nocodb-sdk'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
 import type { User } from '#imports'
-import { extractSdkResponseErrorMsg, iconMap, useApi, useCopy, useDashboard, useDebounceFn, useNuxtApp } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  iconMap,
+  useApi,
+  useCopy,
+  useDashboard,
+  useDebounceFn,
+  useNuxtApp,
+  useUserSorts,
+} from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -19,7 +28,13 @@ const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = useUserSorts()
+
 const users = ref<UserType[]>([])
+
+const sortedUsers = computed(() => {
+  return handleGetSortsData(users.value, sorts.value) as UserType[]
+})
 
 const currentPage = ref(1)
 
@@ -64,6 +79,7 @@ const loadUsers = useDebounceFn(async (page = currentPage.value, limit = current
 
 onMounted(() => {
   loadUsers()
+  loadSorts()
 })
 
 const updateRole = async (userId: string, roles: string) => {
@@ -176,10 +192,21 @@ const openDeleteModal = (user: UserType) => {
       </div>
       <div class="w-full rounded-md max-w-250 h-[calc(100%-12rem)] rounded-md overflow-hidden mt-5">
         <div class="flex w-full bg-gray-50 border-1 rounded-t-md">
-          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6" data-rec="true">
-            {{ $t('labels.email') }}
+          <div
+            class="py-3.5 text-gray-500 font-medium text-3.5 w-2/3 text-start pl-6 flex items-center space-x-2"
+            data-rec="true"
+          >
+            <span>
+              {{ $t('labels.email') }}
+            </span>
+            <LazyAccountUserMenu :direction="sortDirection['email']" field="email" :handle-user-sort="saveOrUpdate" />
           </div>
-          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start" data-rec="true">{{ $t('objects.role') }}</div>
+          <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start flex items-center space-x-2" data-rec="true">
+            <span>
+              {{ $t('objects.role') }}
+            </span>
+            <LazyAccountUserMenu :direction="sortDirection['roles']" field="roles" :handle-user-sort="saveOrUpdate" />
+          </div>
           <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4" data-rec="true">
             {{ $t('labels.action') }}
           </div>
@@ -193,7 +220,7 @@ const openDeleteModal = (user: UserType) => {
         </div>
         <section v-else class="tbody h-[calc(100%-4rem)] nc-scrollbar-md border-t-0 !overflow-auto">
           <div
-            v-for="el of users"
+            v-for="el of sortedUsers"
             :key="el.id"
             data-testid="nc-token-list"
             class="user flex py-3 justify-around px-1 border-b-1 border-l-1 border-r-1"
@@ -261,7 +288,7 @@ const openDeleteModal = (user: UserType) => {
               <div
                 class="flex items-center gap-2"
                 :class="{
-                  'opacity-0': el.roles?.includes('super'),
+                  'opacity-0 pointer-events-none': el.roles?.includes('super'),
                 }"
               >
                 <NcDropdown :trigger="['click']">

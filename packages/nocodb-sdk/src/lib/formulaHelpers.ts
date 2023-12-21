@@ -2,6 +2,7 @@ import jsep from 'jsep';
 
 import { ColumnType } from './Api';
 import UITypes from './UITypes';
+import { validateDateWithUnknownFormat } from '../../../nc-gui/utils';
 
 export const jsepCurlyHook = {
   name: 'curly',
@@ -71,6 +72,20 @@ export async function substituteColumnAliasWithIdInFormula(
   const parsedFormula = jsep(formula);
   await substituteId(parsedFormula);
   return jsepTreeToFormula(parsedFormula);
+}
+
+enum FormulaErrorType {
+  NOT_AVAILABLE = 'NOT_AVAILABLE',
+  NOT_SUPPORTED = 'NOT_SUPPORTED',
+  MIN_ARG = 'MIN_ARG',
+  MAX_ARG = 'MAX_ARG',
+  TYPE_MISMATCH = 'TYPE_MISMATCH',
+  INVALID_ARG = 'INVALID_ARG',
+  INVALID_ARG_TYPE = 'INVALID_ARG_TYPE',
+  INVALID_ARG_VALUE = 'INVALID_ARG_VALUE',
+  INVALID_ARG_COUNT = 'INVALID_ARG_COUNT',
+  CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
+  INVALID_FUNCTION_NAME = 'INVALID_FUNCTION_NAME',
 }
 
 export function substituteColumnIdWithAliasInFormula(
@@ -747,6 +762,40 @@ const formulas: Record<string, FormulaMeta> = {
         min: 1,
         max: 2,
       },
+      validator(argTypes: FormulaDataTypes[], parsedTree: any) {
+        if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.firstParamWeekDayHaveDate' },
+              'First parameter of WEEKDY should be a date'
+            );
+          }
+        }
+
+        if (parsedTree.arguments[1].type === JSEPNode.LITERAL) {
+          const value = parsedTree.arguments[0].value;
+          if (
+            typeof value !== 'string' ||
+            ![
+              'sunday',
+              'monday',
+              'tuesday',
+              'wednesday',
+              'thursday',
+              'friday',
+              'saturday',
+            ].includes(value.toLowerCase())
+          ) {
+            typeErrors.add(t('msg.formula.secondParamWeekDayHaveDate'));
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.secondParamWeekDayHaveDate' },
+              'Second parameter of WEEKDY should be day of week string'
+            );
+          }
+        }
+      },
     },
     description:
       'Returns the day of the week as an integer between 0 and 6 inclusive starting from Monday by default',
@@ -984,20 +1033,6 @@ const formulas: Record<string, FormulaMeta> = {
   // },
 };
 
-enum FormulaErrorType {
-  NOT_AVAILABLE = 'NOT_AVAILABLE',
-  NOT_SUPPORTED = 'NOT_SUPPORTED',
-  MIN_ARG = 'MIN_ARG',
-  MAX_ARG = 'MAX_ARG',
-  TYPE_MISMATCH = 'TYPE_MISMATCH',
-  INVALID_ARG = 'INVALID_ARG',
-  INVALID_ARG_TYPE = 'INVALID_ARG_TYPE',
-  INVALID_ARG_VALUE = 'INVALID_ARG_VALUE',
-  INVALID_ARG_COUNT = 'INVALID_ARG_COUNT',
-  CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
-  INVALID_FUNCTION_NAME = 'INVALID_FUNCTION_NAME',
-}
-
 class FormulaError extends Error {
   public type: FormulaErrorType;
   public extra: Record<string, any>;
@@ -1043,7 +1078,149 @@ export function validateFormulaAndExtractTreeWithType(
           {},
           'Function not available'
         );
-        //t('msg.formula.functionNotAvailable', { function: calleeName })
+
+        // validate data type
+        if (parsedTree.callee.type === JSEPNode.IDENTIFIER) {
+          const expectedType = formulas[calleeName.toUpperCase()].type;
+          if (expectedType === formulaTypes.NUMERIC) {
+            if (calleeName === 'WEEKDAY') {
+              // parsedTree.arguments[0] = date
+              validateAgainstType(
+                parsedTree.arguments[0],
+                formulaTypes.DATE,
+                (v: any) => {
+                  if (!validateDateWithUnknownFormat(v)) {
+                    typeErrors.add(t('msg.formula.firstParamWeekDayHaveDate'));
+                  }
+                },
+                typeErrors
+              );
+              // parsedTree.arguments[1] = startDayOfWeek (optional)
+              validateAgainstType(
+                parsedTree.arguments[1],
+                formulaTypes.STRING,
+                (v: any) => {
+                  if (
+                    typeof v !== 'string' ||
+                    ![
+                      'sunday',
+                      'monday',
+                      'tuesday',
+                      'wednesday',
+                      'thursday',
+                      'friday',
+                      'saturday',
+                    ].includes(v.toLowerCase())
+                  ) {
+                    typeErrors.add(t('msg.formula.secondParamWeekDayHaveDate'));
+                  }
+                },
+                typeErrors
+              );
+            } else {
+              parsedTree.arguments.map((arg: Record<string, any>) =>
+                validateAgainstType(arg, expectedType, null, typeErrors)
+              );
+            }
+          } else if (expectedType === formulaTypes.DATE) {
+            if (calleeName === 'DATEADD') {
+              // parsedTree.arguments[0] = date
+              validateAgainstType(
+                parsedTree.arguments[0],
+                formulaTypes.DATE,
+                (v: any) => {
+                  if (!validateDateWithUnknownFormat(v)) {
+                    typeErrors.add(t('msg.formula.firstParamDateAddHaveDate'));
+                  }
+                },
+                typeErrors
+              );
+              // parsedTree.arguments[1] = numeric
+              validateAgainstType(
+                parsedTree.arguments[1],
+                formulaTypes.NUMERIC,
+                (v: any) => {
+                  if (typeof v !== 'number') {
+                    typeErrors.add(
+                      t('msg.formula.secondParamDateAddHaveNumber')
+                    );
+                  }
+                },
+                typeErrors
+              );
+              // parsedTree.arguments[2] = ["day" | "week" | "month" | "year"]
+              validateAgainstType(
+                parsedTree.arguments[2],
+                formulaTypes.STRING,
+                (v: any) => {
+                  if (!['day', 'week', 'month', 'year'].includes(v)) {
+                    typeErrors.add(
+                      typeErrors.add(t('msg.formula.thirdParamDateAddHaveDate'))
+                    );
+                  }
+                },
+                typeErrors
+              );
+            } else if (calleeName === 'DATETIME_DIFF') {
+              // parsedTree.arguments[0] = date
+              validateAgainstType(
+                parsedTree.arguments[0],
+                formulaTypes.DATE,
+                (v: any) => {
+                  if (!validateDateWithUnknownFormat(v)) {
+                    typeErrors.add(t('msg.formula.firstParamDateDiffHaveDate'));
+                  }
+                },
+                typeErrors
+              );
+              // parsedTree.arguments[1] = date
+              validateAgainstType(
+                parsedTree.arguments[1],
+                formulaTypes.DATE,
+                (v: any) => {
+                  if (!validateDateWithUnknownFormat(v)) {
+                    typeErrors.add(
+                      t('msg.formula.secondParamDateDiffHaveDate')
+                    );
+                  }
+                },
+                typeErrors
+              );
+              // parsedTree.arguments[2] = ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"]
+              validateAgainstType(
+                parsedTree.arguments[2],
+                formulaTypes.STRING,
+                (v: any) => {
+                  if (
+                    ![
+                      'milliseconds',
+                      'ms',
+                      'seconds',
+                      's',
+                      'minutes',
+                      'm',
+                      'hours',
+                      'h',
+                      'days',
+                      'd',
+                      'weeks',
+                      'w',
+                      'months',
+                      'M',
+                      'quarters',
+                      'Q',
+                      'years',
+                      'y',
+                    ].includes(v)
+                  ) {
+                    typeErrors.add(t('msg.formula.thirdParamDateDiffHaveDate'));
+                  }
+                },
+                typeErrors
+              );
+            }
+          }
+        }
       }
       // validate arguments
       const validation =

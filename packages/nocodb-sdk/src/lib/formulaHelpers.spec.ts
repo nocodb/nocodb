@@ -10,6 +10,7 @@ describe('Formula parsing and type validation', () => {
       formula: '1 + 2',
       columns: [],
       clientOrSqlUi: 'mysql2',
+      getMeta: async () => ({})
     });
 
     expect(result.dataType).toEqual(FormulaDataTypes.NUMERIC);
@@ -26,6 +27,7 @@ describe('Formula parsing and type validation', () => {
         },
       ],
       clientOrSqlUi: 'mysql2',
+      getMeta: async () => ({})
     });
 
     expect(result.dataType).toEqual(FormulaDataTypes.STRING);
@@ -47,6 +49,7 @@ describe('Formula parsing and type validation', () => {
         },
       ],
       clientOrSqlUi: 'mysql2',
+      getMeta: async () => ({})
     });
 
     expect(result.dataType).toEqual(FormulaDataTypes.STRING);
@@ -66,6 +69,7 @@ describe('Formula parsing and type validation', () => {
         },
       ],
       clientOrSqlUi: 'mysql2',
+      getMeta: async () => ({})
     });
 
     expect(result1.dataType).toEqual(FormulaDataTypes.NUMERIC);

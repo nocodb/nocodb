@@ -214,6 +214,11 @@ export class ColumnsService {
             formula: colBody.formula_raw || colBody.formula,
             columns: table.columns,
             clientOrSqlUi: source.type,
+            getMeta: async (modelId) => {
+              const model = await Model.get(modelId);
+              await model.getColumns();
+              return model;
+            },
           });
 
           try {
@@ -943,6 +948,11 @@ export class ColumnsService {
                         formula: new_formula_raw,
                         columns: table.columns,
                         clientOrSqlUi: source.type,
+                        getMeta: async (modelId) => {
+                          const model = await Model.get(modelId);
+                          await model.getColumns();
+                          return model;
+                        },
                       }),
                     });
                   }
@@ -1009,6 +1019,11 @@ export class ColumnsService {
                         formula: new_formula_raw,
                         columns: table.columns,
                         clientOrSqlUi: source.type,
+                        getMeta: async (modelId) => {
+                          const model = await Model.get(modelId);
+                          await model.getColumns();
+                          return model;
+                        },
                       }),
                     });
                   }
@@ -1223,6 +1238,11 @@ export class ColumnsService {
             colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
           columns: table.columns,
           clientOrSqlUi: source.type,
+          getMeta: async (modelId) => {
+            const model = await Model.get(modelId);
+            await model.getColumns();
+            return model;
+          },
         });
 
         try {

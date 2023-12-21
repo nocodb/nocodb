@@ -389,7 +389,10 @@ const formulas: Record<string, FormulaMeta> = {
             );
           }
         }
-        if (parsedTree.arguments[2].type === JSEPNode.LITERAL) {
+        if (
+          parsedTree.arguments[2] &&
+          parsedTree.arguments[2].type === JSEPNode.LITERAL
+        ) {
           if (
             ![
               'milliseconds',
@@ -410,7 +413,7 @@ const formulas: Record<string, FormulaMeta> = {
               'Q',
               'years',
               'y',
-            ].includes(parsedTree.arguments[0].value)
+            ].includes(parsedTree.arguments[2].value)
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
@@ -896,8 +899,12 @@ const formulas: Record<string, FormulaMeta> = {
           }
         }
 
-        if (parsedTree.arguments[1].type === JSEPNode.LITERAL) {
-          const value = parsedTree.arguments[0].value;
+        // if second argument is present and literal then validate it
+        if (
+          parsedTree.arguments[1] &&
+          parsedTree.arguments[1].type === JSEPNode.LITERAL
+        ) {
+          const value = parsedTree.arguments[1].value;
           if (
             typeof value !== 'string' ||
             ![
@@ -1343,23 +1350,37 @@ export function validateFormulaAndExtractTreeWithType(
           case UITypes.LastModifiedTime:
             res.dataType = FormulaDataTypes.DATE;
             break;
-          // not supported
-          case UITypes.ForeignKey:
-          case UITypes.Attachment:
-          case UITypes.ID:
-          case UITypes.Time:
+
           case UITypes.Currency:
           case UITypes.Percent:
           case UITypes.Duration:
+          case UITypes.Links:
           case UITypes.Rollup:
+            res.dataType = FormulaDataTypes.NUMERIC;
+            break;
+
+          case UITypes.Attachment:
+            res.dataType = FormulaDataTypes.STRING;
+            break;
+          case UITypes.Checkbox:
+            res.dataType = FormulaDataTypes.NUMERIC;
+            break;
+          case UITypes.ID:
+          case UITypes.ForeignKey:
+            {
+              res.dataType = FormulaDataTypes.NUMERIC;
+            }
+            break;
+          // not supported
+          case UITypes.Time:
           case UITypes.Lookup:
           case UITypes.Barcode:
           case UITypes.Button:
-          case UITypes.Checkbox:
           case UITypes.Collaborator:
           case UITypes.QrCode:
           default:
-            throw new FormulaError(FormulaErrorType.NOT_SUPPORTED, {});
+            break;
+          // throw new FormulaError(FormulaErrorType.NOT_SUPPORTED, {});
         }
       }
     } else if (parsedTree.type === JSEPNode.LITERAL) {

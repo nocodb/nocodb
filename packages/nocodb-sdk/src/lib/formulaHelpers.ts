@@ -664,16 +664,28 @@ const formulas: Record<string, FormulaMeta> = {
       'IF(5 > 1, "YES", "NO") => "YES"',
       'IF({column} > 1, "YES", "NO")',
     ],
-    returnType: (argsTypes: FormulaDataTypes[]) => {
-      if (argsTypes.slice(1).includes(FormulaDataTypes.STRING)) {
+    returnType: (argTypes: FormulaDataTypes[]) => {
+      // extract all return types except NULL, since null can be returned by any type
+      const returnValueTypes = new Set(
+        argTypes.slice(1).filter((type) => type !== FormulaDataTypes.NULL)
+      );
+      // if there are more than one return types or if there is a string return type
+      // return type as string else return the type
+      if (
+        returnValueTypes.size > 1 ||
+        returnValueTypes.has(FormulaDataTypes.STRING)
+      ) {
         return FormulaDataTypes.STRING;
-      } else if (argsTypes.slice(1).includes(FormulaDataTypes.NUMERIC)) {
+      } else if (returnValueTypes.has(FormulaDataTypes.NUMERIC)) {
         return FormulaDataTypes.NUMERIC;
-      } else if (argsTypes.slice(1).includes(FormulaDataTypes.BOOLEAN)) {
+      } else if (returnValueTypes.has(FormulaDataTypes.BOOLEAN)) {
         return FormulaDataTypes.BOOLEAN;
+      } else if (returnValueTypes.has(FormulaDataTypes.DATE)) {
+        return FormulaDataTypes.DATE;
       }
 
-      return argsTypes[1];
+      // if none of the above conditions are met, return the first return argument type
+      return argTypes[1];
     },
   },
   SWITCH: {
@@ -681,7 +693,7 @@ const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         min: 3,
-      },
+      }
     },
     description: 'Switch case value based on expr output',
     syntax: 'SWITCH(expr, [pattern, value, ..., default])',
@@ -691,19 +703,29 @@ const formulas: Record<string, FormulaMeta> = {
       'SWITCH(3, 1, "One", 2, "Two", "N/A") => "N/A"',
       'SWITCH({column1}, 1, "One", 2, "Two", "N/A")',
     ],
-    // todo: resolve return type based on the args
     returnType: (argTypes: FormulaDataTypes[]) => {
-      const returnArgTypes = argTypes.slice(2).filter((_, i) => i % 2 === 0);
+      // extract all return types except NULL, since null can be returned by any type
+      const returnValueTypes = new Set(
+        argTypes.slice(2).filter((_, i) => i % 2 === 0)
+      );
 
-      if (returnArgTypes.includes(FormulaDataTypes.STRING)) {
+      // if there are more than one return types or if there is a string return type
+      // return type as string else return the type
+      if (
+        returnValueTypes.size > 1 ||
+        returnValueTypes.has(FormulaDataTypes.STRING)
+      ) {
         return FormulaDataTypes.STRING;
-      } else if (returnArgTypes.includes(FormulaDataTypes.NUMERIC)) {
+      } else if (returnValueTypes.has(FormulaDataTypes.NUMERIC)) {
         return FormulaDataTypes.NUMERIC;
-      } else if (returnArgTypes.includes(FormulaDataTypes.BOOLEAN)) {
+      } else if (returnValueTypes.has(FormulaDataTypes.BOOLEAN)) {
         return FormulaDataTypes.BOOLEAN;
+      } else if (returnValueTypes.has(FormulaDataTypes.DATE)) {
+        return FormulaDataTypes.DATE;
       }
 
-      return returnArgTypes[0];
+      // if none of the above conditions are met, return the first return argument type
+      return argTypes[1];
     },
   },
   URL: {
@@ -965,13 +987,13 @@ const formulas: Record<string, FormulaMeta> = {
 enum FormulaErrorType {
   NOT_AVAILABLE = 'NOT_AVAILABLE',
   NOT_SUPPORTED = 'NOT_SUPPORTED',
-  'MIN_ARG' = 'MIN_ARG',
-  'MAX_ARG' = 'MAX_ARG',
-  'TYPE_MISMATCH' = 'TYPE_MISMATCH',
-  'INVALID_ARG' = 'INVALID_ARG',
-  'INVALID_ARG_TYPE' = 'INVALID_ARG_TYPE',
-  'INVALID_ARG_VALUE' = 'INVALID_ARG_VALUE',
-  'INVALID_ARG_COUNT' = 'INVALID_ARG_COUNT',
+  MIN_ARG = 'MIN_ARG',
+  MAX_ARG = 'MAX_ARG',
+  TYPE_MISMATCH = 'TYPE_MISMATCH',
+  INVALID_ARG = 'INVALID_ARG',
+  INVALID_ARG_TYPE = 'INVALID_ARG_TYPE',
+  INVALID_ARG_VALUE = 'INVALID_ARG_VALUE',
+  INVALID_ARG_COUNT = 'INVALID_ARG_COUNT',
   CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
   INVALID_FUNCTION_NAME = 'INVALID_FUNCTION_NAME',
 }
@@ -1075,11 +1097,11 @@ export function validateFormulaAndExtractTreeWithType(
         }
       ));
 
-      const argsTypes = validateResult.map((v: any) => v.dataType);
+      const argTypes = validateResult.map((v: any) => v.dataType);
 
       if (typeof formulas[calleeName].returnType === 'function') {
         res.dataType = (formulas[calleeName].returnType as any)?.(
-          argsTypes
+          argTypes
         ) as FormulaDataTypes;
       } else if (formulas[calleeName].returnType) {
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;

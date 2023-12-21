@@ -8351,7 +8351,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/calendar": {
+    "/api/v1/db/meta/tables/{tableId}/calendars": {
       "parameters": [
         {
           "schema": {
@@ -8442,7 +8442,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/calendar/{calendarViewId}": {
+    "/api/v1/db/meta/calendars/{calendarViewId}": {
       "parameters": [
         {
           "schema": {
@@ -20358,20 +20358,16 @@
         "title": "Calendar Date Range Model",
         "type": "object",
         "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
           "fk_from_column_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
           "fk_to_column_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
           "fk_view_id": {
-            "$ref": "#/components/schemas/Id",
+            "$ref": "#/components/schemas/StringOrNull",
             "x-stoplight": {
               "id": "t1fy4zy561ih8"
             },
@@ -23750,7 +23746,7 @@
           },
           {
             "title": "My Calendar View",
-            "type": 4,
+            "type": 6,
             "copy_from_id": null,
             "fk_grp_col_id": null,
             "fk_geo_data_col_id": null,

@@ -97,6 +97,7 @@ export const metaModuleMetadata = {
           AuditsController,
           SourcesController,
           CachesController,
+          CalendarsController,
           ColumnsController,
           FiltersController,
           FormColumnsController,

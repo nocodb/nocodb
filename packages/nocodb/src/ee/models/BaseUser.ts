@@ -131,9 +131,11 @@ export default class BaseUser extends BaseUserCE {
     {
       base_id,
       mode = 'full',
+      include_ws_deleted = true,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
+      include_ws_deleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -196,6 +198,10 @@ export default class BaseUser extends BaseUserCE {
         'base_id',
         'id',
       ]);
+    }
+
+    if (!include_ws_deleted) {
+      baseUsers = baseUsers.filter((u) => !u.deleted);
     }
 
     return baseUsers;

@@ -960,6 +960,36 @@ export class ColumnsService {
         ...colBody,
       });
     } else if (colBody.uidt === UITypes.User) {
+      // handle default value for user column
+      if (colBody.cdf) {
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: source.base_id,
+          include_ws_deleted: false,
+        });
+
+        const emailOrIds = colBody.cdf.split(',');
+        const emailsNotPresent = emailOrIds.filter((el) => {
+          return !baseUsers.find((user) => user.id === el || user.email === el);
+        });
+
+        if (emailsNotPresent.length) {
+          NcError.badRequest(
+            `The following default users are not part of workspace: ${emailsNotPresent.join(
+              ', ',
+            )}`,
+          );
+        }
+
+        const ids = emailOrIds.map((el) => {
+          const user = baseUsers.find(
+            (user) => user.id === el || user.email === el,
+          );
+          return user.id;
+        });
+
+        colBody.cdf = ids.join(',');
+      }
+
       if (column.uidt === UITypes.User) {
         // multi user to single user
         if (
@@ -1729,6 +1759,40 @@ export class ColumnsService {
                   colBody.dt = 'text';
                 }
               }
+            }
+          }
+
+          if (colBody.uidt === UITypes.User) {
+            // handle default value for user column
+            if (colBody.cdf) {
+              const baseUsers = await BaseUser.getUsersList({
+                base_id: base.id,
+                include_ws_deleted: false,
+              });
+
+              const emailOrIds = colBody.cdf.split(',');
+              const emailsNotPresent = emailOrIds.filter((el) => {
+                return !baseUsers.find(
+                  (user) => user.id === el || user.email === el,
+                );
+              });
+
+              if (emailsNotPresent.length) {
+                NcError.badRequest(
+                  `The following default users are not part of workspace: ${emailsNotPresent.join(
+                    ', ',
+                  )}`,
+                );
+              }
+
+              const ids = emailOrIds.map((el) => {
+                const user = baseUsers.find(
+                  (user) => user.id === el || user.email === el,
+                );
+                return user.id;
+              });
+
+              colBody.cdf = ids.join(',');
             }
           }
 

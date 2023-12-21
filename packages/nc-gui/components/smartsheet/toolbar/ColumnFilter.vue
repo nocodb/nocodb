@@ -208,8 +208,17 @@ const filtersCount = computed(() => {
   }, 0)
 })
 
-const applyChanges = async (hookId?: string, _nested = false) => {
-  await sync(hookId, _nested)
+const applyChanges = async (hookId?: string, nested = false, isConditionSupported = true) => {
+  // if condition is not supported, delete all filters present
+  // it's used for bulk webhooks with filters since bulk webhooks don't support conditions at the moment
+  if (!isConditionSupported) {
+    // iterate in reverse order and delete all filters, reverse order is for getting the correct index
+    for (let i = filters.value.length - 1; i >= 0; i--) {
+      await deleteFilter(filters.value[i], i)
+    }
+  }
+
+  await sync(hookId, nested)
 
   if (!localNestedFilters.value?.length) return
 

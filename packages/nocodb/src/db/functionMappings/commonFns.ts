@@ -51,6 +51,9 @@ export default {
       case FormulaDataTypes.BOOLEAN:
         cond = `(${condArg}) IS NOT NULL AND (${condArg}) != false`;
         break;
+      case FormulaDataTypes.DATE:
+        cond = `(${condArg}) IS NOT NULL`;
+        break;
     }
 
     let query = args.knex

@@ -435,6 +435,17 @@ const formulas: Record<string, FormulaMeta> = {
 
       return argsTypes[1]
     },
+    returnType: (argTypes: formulaTypes[]) => {
+      if (argTypes.slice(1).includes(formulaTypes.STRING)) {
+        return formulaTypes.STRING
+      } else if (argTypes.slice(1).includes(formulaTypes.NUMERIC)) {
+        return formulaTypes.NUMERIC
+      } else if (argTypes.slice(1).includes(formulaTypes.BOOLEAN)) {
+        return formulaTypes.BOOLEAN
+      }
+
+      return argTypes[1]
+    },
   },
   SWITCH: {
     type: formulaTypes.COND_EXP,
@@ -453,7 +464,17 @@ const formulas: Record<string, FormulaMeta> = {
     ],
     // todo: resolve return type based on the args
     returnType: (argTypes: formulaTypes[]) => {
-      return formulaTypes.STRING
+      const returnArgTypes = argTypes.slice(2).filter((_, i) => i % 2 === 1)
+
+      if (returnArgTypes.slice(1).includes(formulaTypes.STRING)) {
+        return formulaTypes.STRING
+      } else if (returnArgTypes.slice(1).includes(formulaTypes.NUMERIC)) {
+        return formulaTypes.NUMERIC
+      } else if (returnArgTypes.slice(1).includes(formulaTypes.BOOLEAN)) {
+        return formulaTypes.BOOLEAN
+      }
+
+      return returnArgTypes[1]
     },
   },
   URL: {

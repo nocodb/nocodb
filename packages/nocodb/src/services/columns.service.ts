@@ -8,6 +8,7 @@ import type {
 } from 'nocodb-sdk';
 import {
   AppEvents,
+  isCreatedTimeOrUpdatedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
@@ -17,7 +18,6 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
-import { isCreatedTimeOrUpdatedTimeCol } from 'nocodb-sdk/build/main/lib/UITypes';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -1734,7 +1734,12 @@ export class ColumnsService {
           // check if column already exists, then just create a new column in meta
           // else create a new column in meta and db
           const existingColumn = await table.getColumns().then((col) => {
-            return col.find((c) => c.uidt === colBody.uidt);
+            return col.find(
+              (c) =>
+                c.uidt === colBody.uidt ||
+                c.column_name ===
+                  (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
+            );
           });
 
           if (!existingColumn) {

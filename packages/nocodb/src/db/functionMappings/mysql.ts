@@ -125,7 +125,9 @@ const mysql2 = {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`REGEXP_SUBSTR(${source}, ${pattern}) ${colAlias}`),
+      builder: knex.raw(
+        `REGEXP_SUBSTR(${source}, ${pattern}, 1, 1, 'c') ${colAlias}`,
+      ),
     };
   },
   REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -134,7 +136,7 @@ const mysql2 = {
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
       builder: knex.raw(
-        `REGEXP_REPLACE(${source}, ${pattern}, ${replacement}) ${colAlias}`,
+        `REGEXP_REPLACE(${source}, ${pattern}, ${replacement}, 1, 0, 'c') ${colAlias}`,
       ),
     };
   },
@@ -157,6 +159,15 @@ const mysql2 = {
   WHEN LENGTH(REGEXP_REPLACE(${value}, '[^%]', '')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}, '[^-]',''))) * (REGEXP_REPLACE(${value}, '[^0-9.]+', '')) / 100
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}, '[^-]', ''))) * (REGEXP_REPLACE(${value}, '[^0-9.]+', ''))
 END) ${colAlias}`,
+      ),
+    };
+  },
+  STRING: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `CAST(${(await args.fn(args.pt.arguments[0])).builder} AS CHAR) ${
+          args.colAlias
+        }`,
       ),
     };
   },

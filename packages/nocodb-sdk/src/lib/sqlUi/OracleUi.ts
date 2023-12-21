@@ -948,6 +948,7 @@ export class OracleUi {
       'COUNT',
       'ROUNDDOWN',
       'ROUNDUP',
+      'DATESTR',
     ];
   }
 }

@@ -308,6 +308,7 @@ export default class Column<T = any> implements ColumnType {
             fk_column_id: colId,
             formula: column.formula,
             formula_raw: column.formula_raw,
+            parsed_tree: column.parsed_tree,
           },
           ncMeta,
         );
@@ -713,7 +714,11 @@ export default class Column<T = any> implements ColumnType {
             title: col?.title,
           })
         )
-          await FormulaColumn.update(formulaCol.id, formula, ncMeta);
+          await FormulaColumn.update(
+            formulaCol.id,
+            formula as FormulaColumn & { parsed_tree?: any },
+            ncMeta,
+          );
       }
     }
 

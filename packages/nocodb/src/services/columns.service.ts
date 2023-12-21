@@ -1210,7 +1210,9 @@ export class ColumnsService {
           table.columns,
         );
         colBody.parsed_tree = validateFormulaAndExtractTreeWithType(
-          colBody.formula_raw || colBody.formula,
+          // formula may include double curly brackets in previous version
+          // convert to single curly bracket here for compatibility
+          colBody.formula_raw || colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
           table.columns,
         );
 

@@ -1097,9 +1097,10 @@ export function validateFormulaAndExtractTreeWithType(
       if (col?.uidt === UITypes.Formula) {
         // todo: check for circular reference
 
-        // todo: extract the type and return
-        const formulaRes = validateFormulaAndExtractTreeWithType(
-          col.colOptions.formula,
+        const formulaRes = col.colOptions?.parsed_tree || validateFormulaAndExtractTreeWithType(
+          // formula may include double curly brackets in previous version
+          // convert to single curly bracket here for compatibility
+          col.colOptions.formula.replaceAll('{{', '{').replaceAll('}}', '}'),
           columns
         );
 

@@ -311,23 +311,21 @@ export default class WorkspaceUser {
     return workspaceUsers;
   }
 
-  static async count({ workspaceId }: { workspaceId: any }) {
+  static async count(
+    { workspaceId }: { workspaceId: any },
+    ncMeta = Noco.ncMeta,
+  ) {
     const key = `${CacheScope.WORKSPACE}:${workspaceId}:userCount`;
     let count = await NocoCache.get(key, CacheGetType.TYPE_STRING);
 
     if (!count) {
-      count = await Noco.ncMeta.metaCount(
-        null,
-        null,
-        MetaTable.WORKSPACE_USER,
-        {
-          condition: {
-            fk_workspace_id: workspaceId,
-            deleted: false,
-          },
-          aggField: 'fk_workspace_id',
+      count = await ncMeta.metaCount(null, null, MetaTable.WORKSPACE_USER, {
+        condition: {
+          fk_workspace_id: workspaceId,
+          deleted: false,
         },
-      );
+        aggField: 'fk_workspace_id',
+      });
 
       await NocoCache.set(key, count);
     } else {
@@ -354,16 +352,10 @@ export default class WorkspaceUser {
       'order',
     ]);
 
-    await Noco.ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.WORKSPACE_USER,
-      updateData,
-      {
-        fk_user_id: userId,
-        fk_workspace_id: workspaceId,
-      },
-    );
+    await ncMeta.metaUpdate(null, null, MetaTable.WORKSPACE_USER, updateData, {
+      fk_user_id: userId,
+      fk_workspace_id: workspaceId,
+    });
 
     // clear existing cache
     await NocoCache.del(key);
@@ -373,11 +365,15 @@ export default class WorkspaceUser {
   }
 
   static async softDelete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
-    return this.update(workspaceId, userId, {
+    const res = await this.update(workspaceId, userId, {
       roles: null,
       deleted: true,
       deleted_at: ncMeta.now(),
     });
+
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+
+    return res;
   }
 
   static async delete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
@@ -397,8 +393,12 @@ export default class WorkspaceUser {
     return res;
   }
 
-  static async getByToken(invitationToken: any, userId: string) {
-    const workspaceUser = await Noco.ncMeta.metaGet2(
+  static async getByToken(
+    invitationToken: any,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspaceUser = await ncMeta.metaGet2(
       null,
       null,
       MetaTable.WORKSPACE_USER,

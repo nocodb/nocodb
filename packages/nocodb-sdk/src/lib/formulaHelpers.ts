@@ -277,7 +277,7 @@ interface FormulaMeta {
   returnType?: ((args: any[]) => FormulaDataTypes) | FormulaDataTypes;
 }
 
-const formulas: Record<string, FormulaMeta> = {
+export const formulas: Record<string, FormulaMeta> = {
   AVG: {
     validation: {
       args: {

@@ -5511,13 +5511,17 @@ class BaseModelSqlv2 {
                   if (user.includes('@')) {
                     const u = baseUsers.find((u) => u.email === user);
                     if (!u) {
-                      throw new Error(`User with email '${user}' not found`);
+                      NcError.unprocessableEntity(
+                        `User with email '${user}' is not part of this workspace`,
+                      );
                     }
                     userIds.push(u.id);
                   } else {
                     const u = baseUsers.find((u) => u.id === user);
                     if (!u) {
-                      throw new Error(`User with id '${user}' not found`);
+                      NcError.unprocessableEntity(
+                        `User with id '${user}' is not part of this workspace`,
+                      );
                     }
                     userIds.push(u.id);
                   }
@@ -5537,7 +5541,9 @@ class BaseModelSqlv2 {
                   if ('id' in user) {
                     const u = baseUsers.find((u) => u.id === user.id);
                     if (!u) {
-                      throw new Error(`User with id '${user.id}' not found`);
+                      NcError.unprocessableEntity(
+                        `User with id '${user.id}' is not part of this workspace`,
+                      );
                     }
                     userIds.push(u.id);
                   } else if ('email' in user) {
@@ -5549,13 +5555,13 @@ class BaseModelSqlv2 {
                     if (user.email.length === 0) continue;
                     const u = baseUsers.find((u) => u.email === user.email);
                     if (!u) {
-                      throw new Error(
-                        `User with email '${user.email}' not found`,
+                      NcError.unprocessableEntity(
+                        `User with email '${user.email}' is not part of this workspace`,
                       );
                     }
                     userIds.push(u.id);
                   } else {
-                    throw new Error('Invalid user object');
+                    NcError.unprocessableEntity('Invalid user object');
                   }
                 } catch (e) {
                   NcError.unprocessableEntity(e.message);

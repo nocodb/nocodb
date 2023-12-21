@@ -419,7 +419,7 @@ async function _formulaQueryBuilder(
                     '',
                     lookupModel,
                     aliasToColumn,
-                    formulaOption.getParsedTree()
+                    formulaOption.getParsedTree(),
                   );
                   if (isMany) {
                     const qb = selectQb;
@@ -963,6 +963,7 @@ export default async function formulaQueryBuilderv2(
   aliasToColumn = {},
   tableAlias?: string,
   validateFormula = false,
+  parsedTree?: any,
 ) {
   const knex = baseModelSqlv2.dbDriver;
   // register jsep curly hook once only
@@ -975,9 +976,10 @@ export default async function formulaQueryBuilderv2(
     model,
     aliasToColumn,
     tableAlias,
-    await column
-      ?.getColOptions<FormulaColumn>()
-      .then((formula) => formula?.getParsedTree()),
+    parsedTree ??
+      (await column
+        ?.getColOptions<FormulaColumn>()
+        .then((formula) => formula?.getParsedTree())),
   );
 
   if (!validateFormula) return qb;

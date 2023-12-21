@@ -11,8 +11,10 @@ export default class FormulaColumn {
   error: string;
   private parsed_tree?: any;
 
-  constructor(data: Partial<FormulaColumn>) {
-    Object.assign(this, data);
+  constructor(data: Partial<FormulaColumn> & { parsed_tree?: any }) {
+    const { parsed_tree, ...rest } = data;
+    this.parsed_tree = parsed_tree;
+    Object.assign(this, rest);
   }
 
   public static async insert(

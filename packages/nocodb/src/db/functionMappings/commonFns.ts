@@ -38,27 +38,70 @@ export default {
     const count = Math.floor((args.pt.arguments.length - 1) / 2);
     let query = '';
 
+    const returnArgsType = new Set(
+      args.pt.arguments
+        .filter(
+          (type, i) => i > 1 && i % 2 === 0 && type !== FormulaDataTypes.NULL,
+        )
+        .map((type) => type.dataType),
+    );
+
+    // if else case present then push that to types
+    if (args.pt.arguments.length % 2 === 0) {
+      returnArgsType.add(
+        args.pt.arguments[args.pt.arguments.length - 1].dataType,
+      );
+    }
+
     const switchVal = (await args.fn(args.pt.arguments[0])).builder.toQuery();
 
     for (let i = 0; i < count; i++) {
+      let val;
+      // cast to string if the return value types are different
+      if (returnArgsType.size > 1) {
+        val = (
+          await args.fn({
+            type: 'CallExpression',
+            arguments: [args.pt.arguments[i * 2 + 2]],
+            callee: {
+              type: 'Identifier',
+              name: 'STRING',
+            },
+          } as any)
+        ).builder.toQuery();
+      } else {
+        val = (await args.fn(args.pt.arguments[i * 2 + 2])).builder.toQuery();
+      }
+
       query += args.knex
         .raw(
           `\n\tWHEN ${(
             await args.fn(args.pt.arguments[i * 2 + 1])
-          ).builder.toQuery()} THEN ${(
-            await args.fn(args.pt.arguments[i * 2 + 2])
-          ).builder.toQuery()}`,
+          ).builder.toQuery()} THEN ${val}`,
         )
         .toQuery();
     }
     if (args.pt.arguments.length % 2 === 0) {
-      query += args.knex
-        .raw(
-          `\n\tELSE ${(
-            await args.fn(args.pt.arguments[args.pt.arguments.length - 1])
-          ).builder.toQuery()}`,
-        )
-        .toQuery();
+      let val;
+      // cast to string if the return value types are different
+      if (returnArgsType.size > 1) {
+        val = (
+          await args.fn({
+            type: 'CallExpression',
+            arguments: [args.pt.arguments[args.pt.arguments.length - 1]],
+            callee: {
+              type: 'Identifier',
+              name: 'STRING',
+            },
+          } as any)
+        ).builder.toQuery();
+      } else {
+        val = (
+          await args.fn(args.pt.arguments[args.pt.arguments.length - 1])
+        ).builder.toQuery();
+      }
+
+      query += `\n\tELSE ${val}`;
     }
     return {
       builder: args.knex.raw(

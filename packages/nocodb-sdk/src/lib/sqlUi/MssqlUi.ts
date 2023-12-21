@@ -919,6 +919,7 @@ export class MssqlUi {
       'COUNT',
       'ROUNDDOWN',
       'ROUNDUP',
+      'DATESTR',
     ];
   }
 }

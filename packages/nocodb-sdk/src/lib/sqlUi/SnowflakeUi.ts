@@ -980,6 +980,7 @@ export class SnowflakeUi {
       'VALUE',
       'COUNTA',
       'COUNT',
+      'DATESTR',
     ];
   }
 }

@@ -1408,6 +1408,7 @@ export function validateFormulaAndExtractTreeWithType({
             break;
           case UITypes.ID:
           case UITypes.ForeignKey:
+          case UITypes.SpecificDBType:
             {
               const sqlUI =
                 typeof clientOrSqlUi === 'string'

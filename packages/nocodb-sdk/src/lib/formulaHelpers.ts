@@ -1565,10 +1565,11 @@ export async function validateFormulaAndExtractTreeWithType({
 
       res.name = col.id;
 
-      if (col?.uidt === UITypes.Formula && column) {
-        // check for circular reference
-        checkForCircularFormulaRef(column, parsedTree, columns);
-
+      if (col?.uidt === UITypes.Formula) {
+        if (column) {
+          // check for circular reference when column is present(only available when calling root formula)
+          checkForCircularFormulaRef(column, parsedTree, columns);
+        }
         const formulaRes =
           col.colOptions?.parsed_tree ||
           (await validateFormulaAndExtractTreeWithType(

@@ -17,8 +17,16 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
+import { isCreatedTimeOrUpdatedTimeCol } from 'nocodb-sdk/build/main/lib/UITypes';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UserType,
+} from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type {Base, LinkToAnotherRecordColumn} from '~/models';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -30,6 +38,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
+import { Column, FormulaColumn, KanbanView, Model, Source } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -63,7 +72,6 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
-import {isCreatedTimeOrUpdatedTimeCol} from "nocodb-sdk/build/main/lib/UITypes";
 
 // todo: move
 export enum Altered {

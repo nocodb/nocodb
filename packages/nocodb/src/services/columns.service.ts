@@ -6,6 +6,7 @@ import {
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
@@ -184,6 +185,7 @@ export class ColumnsService {
     let colBody = { ...param.column } as Column & {
       formula?: string;
       formula_raw?: string;
+      parsed_tree?: any;
     };
     if (
       [
@@ -208,6 +210,17 @@ export class ColumnsService {
             colBody.formula_raw || colBody.formula,
             table.columns,
           );
+          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+            formula: colBody.formula || colBody.formula_raw,
+            columns: table.columns,
+            column,
+            clientOrSqlUi: source.type,
+            getMeta: async (modelId) => {
+              const model = await Model.get(modelId);
+              await model.getColumns();
+              return model;
+            },
+          });
 
           try {
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -227,6 +240,7 @@ export class ColumnsService {
               {},
               null,
               true,
+              colBody.parsed_tree,
             );
           } catch (e) {
             console.error(e);
@@ -931,6 +945,17 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
+                      parsed_tree: await validateFormulaAndExtractTreeWithType({
+                        formula: new_formula_raw,
+                        columns: table.columns,
+                        column,
+                        clientOrSqlUi: source.type,
+                        getMeta: async (modelId) => {
+                          const model = await Model.get(modelId);
+                          await model.getColumns();
+                          return model;
+                        },
+                      }),
                     });
                   }
                 }
@@ -992,6 +1017,17 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
+                      parsed_tree: await validateFormulaAndExtractTreeWithType({
+                        formula: new_formula_raw,
+                        columns: table.columns,
+                        column,
+                        clientOrSqlUi: source.type,
+                        getMeta: async (modelId) => {
+                          const model = await Model.get(modelId);
+                          await model.getColumns();
+                          return model;
+                        },
+                      }),
                     });
                   }
                 }
@@ -1197,6 +1233,22 @@ export class ColumnsService {
           colBody.formula_raw || colBody.formula,
           table.columns,
         );
+        colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+          // formula may include double curly brackets in previous version
+          // convert to single curly bracket here for compatibility
+          formula: colBody.formula,
+          column: {
+            ...colBody,
+            colOptions: colBody,
+          },
+          columns: table.columns,
+          clientOrSqlUi: source.type,
+          getMeta: async (modelId) => {
+            const model = await Model.get(modelId);
+            await model.getColumns();
+            return model;
+          },
+        });
 
         try {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>

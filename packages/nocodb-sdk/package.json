@@ -36,6 +36,7 @@
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
+    "test:unit": "ENV_FILE=./config/.env.test jest",
     "watch:build": "tsc -p tsconfig.json -w",
     "generate:sdk": "pnpm dlx swagger-typescript-api@10.0.3 -r -p ../nocodb/src/schema/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates",
     "generate:sdk:ee": "node build-script/mergeAndGenerateSwagger && pnpm dlx  swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json",
@@ -52,15 +53,18 @@
     "cspell": "^4.2.8",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^8.10.0",
+    "@types/jest": "^29.5.2",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^5.0.8",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^4.2.1",
+    "jest": "^29.7.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.5",
     "tsc-alias": "^1.8.8",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "ts-jest": "^29.1.1"
   },
   "files": [
     "build/main",

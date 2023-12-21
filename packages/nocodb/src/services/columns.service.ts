@@ -211,7 +211,7 @@ export class ColumnsService {
             table.columns,
           );
           colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
-            formula: colBody.formula_raw || colBody.formula,
+            formula: colBody.formula || colBody.formula_raw,
             columns: table.columns,
             column,
             clientOrSqlUi: source.type,
@@ -1236,10 +1236,8 @@ export class ColumnsService {
         colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
           // formula may include double curly brackets in previous version
           // convert to single curly bracket here for compatibility
-          formula:
-            colBody.formula_raw ||
-            colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
-          column:{
+          formula: colBody.formula,
+          column: {
             ...colBody,
             colOptions: colBody,
           },

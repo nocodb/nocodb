@@ -5498,6 +5498,7 @@ class BaseModelSqlv2 {
 
             const baseUsers = await BaseUser.getUsersList({
               base_id: this.model.base_id,
+              include_ws_deleted: false,
             });
 
             if (typeof data[column.column_name] === 'string') {

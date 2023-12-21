@@ -110,9 +110,12 @@ export default class BaseUser {
     {
       base_id,
       mode = 'full',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      include_ws_deleted = true,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
+      include_ws_deleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser)[]> {

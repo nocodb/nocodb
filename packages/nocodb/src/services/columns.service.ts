@@ -213,6 +213,7 @@ export class ColumnsService {
           colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
             formula: colBody.formula_raw || colBody.formula,
             columns: table.columns,
+            column,
             clientOrSqlUi: source.type,
             getMeta: async (modelId) => {
               const model = await Model.get(modelId);
@@ -947,6 +948,7 @@ export class ColumnsService {
                       parsed_tree: await validateFormulaAndExtractTreeWithType({
                         formula: new_formula_raw,
                         columns: table.columns,
+                        column,
                         clientOrSqlUi: source.type,
                         getMeta: async (modelId) => {
                           const model = await Model.get(modelId);
@@ -1018,6 +1020,7 @@ export class ColumnsService {
                       parsed_tree: await validateFormulaAndExtractTreeWithType({
                         formula: new_formula_raw,
                         columns: table.columns,
+                        column,
                         clientOrSqlUi: source.type,
                         getMeta: async (modelId) => {
                           const model = await Model.get(modelId);
@@ -1236,6 +1239,10 @@ export class ColumnsService {
           formula:
             colBody.formula_raw ||
             colBody.formula?.replaceAll('{{', '{').replaceAll('}}', '}'),
+          column:{
+            ...colBody,
+            colOptions: colBody,
+          },
           columns: table.columns,
           clientOrSqlUi: source.type,
           getMeta: async (modelId) => {

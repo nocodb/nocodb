@@ -1400,6 +1400,7 @@ async function extractColumnIdentifierType({
 
 export async function validateFormulaAndExtractTreeWithType({
   formula,
+  column,
   columns,
   clientOrSqlUi,
   getMeta,
@@ -1420,6 +1421,7 @@ export async function validateFormulaAndExtractTreeWithType({
     | typeof MssqlUi
     | typeof SnowflakeUi
     | typeof PgUi;
+  column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
 }) {
   const colAliasToColMap = {};
@@ -1582,9 +1584,9 @@ export async function validateFormulaAndExtractTreeWithType({
 
       res.name = col.id;
 
-      if (col?.uidt === UITypes.Formula) {
+      if (col?.uidt === UITypes.Formula && column) {
         // check for circular reference
-        checkForCircularFormulaRef(col, parsedTree, columns);
+        checkForCircularFormulaRef(column, parsedTree, columns);
 
         const formulaRes =
           col.colOptions?.parsed_tree ||

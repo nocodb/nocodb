@@ -84,6 +84,7 @@ const permissionScopes = {
     'baseUserMetaUpdate',
     'galleryViewGet',
     'kanbanViewGet',
+    'calendarViewGet',
     'gridViewUpdate',
     'groupedDataList',
     'mmList',
@@ -252,6 +253,7 @@ const rolePermissions:
 
       galleryViewGet: true,
       kanbanViewGet: true,
+      calendarViewGet: true,
       groupedDataList: true,
 
       mmList: true,

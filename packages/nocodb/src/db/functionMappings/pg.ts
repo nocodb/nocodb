@@ -3,6 +3,7 @@ import commonFns from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import {FormulaDataTypes} from "nocodb-sdk";
 const replaceCharClassShorthandlers = (str: string) => {
   return str.replace(/(.|^)\\([dDsSwW])/g, (fullMatch, prevChar, alias) => {
     if (prevChar === '\\') return fullMatch;
@@ -76,7 +77,7 @@ const pg = {
     return {
       builder: knex.raw(
         `(${(await fn(pt.arguments[0])).builder})${
-          pt.arguments[0].type !== 'DATE' ? '::DATE' : ''
+          pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : ''
         } + (${(await fn(pt.arguments[1])).builder} || 
       '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,

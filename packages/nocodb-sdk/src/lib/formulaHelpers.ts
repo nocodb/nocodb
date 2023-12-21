@@ -402,8 +402,28 @@ const formulas: Record<string, FormulaMeta> = {
         rqd: 1,
       },
     },
-    description: 'Formats a datetime into a string (YYYY-MM-DD)',
+    description: 'Extract day from a date(1-31)',
     examples: ['DATESTR({column1})'],
+    returnType: FormulaDataTypes.STRING,
+  },
+  MONTH: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Extract month from a date(1-12)',
+    examples: ['MONTH({column1})'],
+    returnType: FormulaDataTypes.STRING,
+  },
+  HOUR: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Extract hour from a datetime(0-23)',
+    examples: ['HOUR({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
   DATETIME_DIFF: {

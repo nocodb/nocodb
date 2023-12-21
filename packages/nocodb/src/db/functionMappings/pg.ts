@@ -229,11 +229,6 @@ const pg = {
   REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
 
-    // replace shorthand character classes with their equivalent character sets
-    if (pt.arguments[1].type === 'Literal') {
-      pt.arguments[1].value = pt.arguments[1].value;
-    }
-
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
@@ -243,11 +238,6 @@ const pg = {
   },
   REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-
-    // replace shorthand character classes with their equivalent character sets
-    if (pt.arguments[1].type === 'Literal') {
-      pt.arguments[1].value = pt.arguments[1].value;
-    }
 
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
@@ -261,11 +251,6 @@ const pg = {
   REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
-
-    // replace shorthand character classes with their equivalent character sets
-    if (pt.arguments[1].type === 'Literal') {
-      pt.arguments[1].value = pt.arguments[1].value;
-    }
 
     const replacement = (await fn(pt.arguments[2])).builder;
     return {

@@ -339,6 +339,56 @@ const formulas: Record<string, FormulaMeta> = {
         min: 2,
         max: 3,
       },
+      validator: (args: FormulaDataTypes[], parsedTree: any) => {
+
+        if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.firstParamDateDiffHaveDate' },
+              'First parameter of DATETIME_DIFF should be a date'
+            );
+          }
+        }
+
+        if (parsedTree.arguments[1].type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(parsedTree.arguments[1].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.secondParamDateDiffHaveDate' },
+              'Second parameter of DATETIME_DIFF should be a date'
+            );
+          }
+        }
+        if (parsedTree.arguments[2].type === JSEPNode.LITERAL) {
+          if (![
+            'milliseconds',
+            'ms',
+            'seconds',
+            's',
+            'minutes',
+            'm',
+            'hours',
+            'h',
+            'days',
+            'd',
+            'weeks',
+            'w',
+            'months',
+            'M',
+            'quarters',
+            'Q',
+            'years',
+            'y',
+          ].includes(parsedTree.arguments[0].value)) {
+            throw new FormulaError(
+              FormulaErrorType.TYPE_MISMATCH,
+              { key: 'msg.formula.thirdParamDateDiffHaveDate' },
+              'Third parameter of DATETIME_DIFF should be one of \'milliseconds\', \'ms\', \'seconds\', \'s\', \'minutes\', \'m\', \'hours\', \'h\', \'days\', \'d\', \'weeks\', \'w\', \'months\', \'M\', \'quarters\', \'Q\', \'years\', \'y\'''
+            );
+          }
+        }
+      }
     },
     description:
       'Calculate the difference of two given date / datetime in specified units.',

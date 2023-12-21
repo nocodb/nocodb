@@ -1386,7 +1386,7 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
   // e.g. formula1 -> formula2 -> formula1 should return circular reference error
 
   // get all formula columns excluding itself
-  const formulaPaths = columns.value
+  const formulaPaths = columns
     .filter((c) => c.id !== formulaCol?.id && c.uidt === UITypes.Formula)
     .reduce((res: Record<string, any>[], c: Record<string, any>) => {
       // in `formula`, get all the (unique) target neighbours

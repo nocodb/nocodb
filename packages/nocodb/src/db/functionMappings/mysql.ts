@@ -160,6 +160,15 @@ END) ${colAlias}`,
       ),
     };
   },
+  STRING: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `CAST(${(await args.fn(args.pt.arguments[0])).builder} AS CHAR) ${
+          args.colAlias
+        }`,
+      ),
+    };
+  },
 };
 
 export default mysql2;

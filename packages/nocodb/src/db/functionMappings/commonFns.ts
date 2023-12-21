@@ -67,23 +67,51 @@ export default {
     };
   },
   IF: async (args: MapFnArgs) => {
-    const cond = await treatArgAsConditionalExp(args);
+    const cond = (await treatArgAsConditionalExp(args)).builder;
+    let thenArg;
+    let elseArg;
+    const returnArgsType = new Set(
+      [args.pt.arguments[1].dataType, args.pt.arguments[2].dataType].filter(
+        (type) => type !== FormulaDataTypes.NULL,
+      ),
+    );
+    // cast to string if the return value types are different
+    if (returnArgsType.size > 1) {
+      thenArg = (
+        await args.fn({
+          type: 'CallExpression',
+          arguments: [args.pt.arguments[1]],
+          callee: {
+            type: 'Identifier',
+            name: 'STRING',
+          },
+        } as any)
+      ).builder;
+      elseArg = (
+        await args.fn({
+          type: 'CallExpression',
+          arguments: [args.pt.arguments[2]],
+          callee: {
+            type: 'Identifier',
+            name: 'STRING',
+          },
+        } as any)
+      ).builder;
+    } else {
+      thenArg = (await args.fn(args.pt.arguments[1])).builder.toQuery();
+      elseArg = (await args.fn(args.pt.arguments[1])).builder.toQuery();
+    }
 
-    let query = args.knex
-      .raw(
-        `\n\tWHEN ${cond} THEN ${(
-          await args.fn(args.pt.arguments[1])
-        ).builder.toQuery()}`,
-      )
-      .toQuery();
+    let query = args.knex.raw(`\n\tWHEN ${cond} THEN ${thenArg}`).toQuery();
     if (args.pt.arguments[2]) {
-      query += args.knex
-        .raw(
-          `\n\tELSE ${(await args.fn(args.pt.arguments[2])).builder.toQuery()}`,
-        )
-        .toQuery();
+      query += args.knex.raw(`\n\tELSE ${elseArg}`).toQuery();
     }
     return { builder: args.knex.raw(`CASE ${query}\n END${args.colAlias}`) };
+  },
+  // used only for casting to string internally, this one is dummy function
+  // and will work as fallback for dbs which don't support/implemented CAST
+  STRING(args: MapFnArgs) {
+    return args.fn(args.pt?.arguments?.[0]);
   },
   AND: async (args: MapFnArgs) => {
     return {

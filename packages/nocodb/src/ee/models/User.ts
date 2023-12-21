@@ -392,16 +392,18 @@ export default class User extends UserCE implements UserType {
       // extract base level roles
       new Promise((resolve) => {
         if (args.baseId) {
-          BaseUser.get(args.baseId, user.id).then(async (baseUser) => {
-            const roles = baseUser?.roles;
-            // + (user.roles ? `,${user.roles}` : '');
-            if (roles) {
-              resolve(extractRolesObj(roles));
-            } else {
-              resolve(null);
-            }
-            // todo: cache
-          });
+          BaseUser.get(args.baseId, user.id)
+            .then(async (baseUser) => {
+              const roles = baseUser?.roles;
+              // + (user.roles ? `,${user.roles}` : '');
+              if (roles) {
+                resolve(extractRolesObj(roles));
+              } else {
+                resolve(null);
+              }
+              // todo: cache
+            })
+            .catch(() => resolve(null));
         } else {
           resolve(null);
         }

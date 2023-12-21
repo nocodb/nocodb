@@ -5,7 +5,7 @@ import {
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
-  UITypes,
+  UITypes, validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
@@ -1194,6 +1194,10 @@ export class ColumnsService {
         break;
       case UITypes.Formula:
         colBody.formula = await substituteColumnAliasWithIdInFormula(
+          colBody.formula_raw || colBody.formula,
+          table.columns,
+        );
+        colBody.parsed_tree = validateFormulaAndExtractTreeWithType(
           colBody.formula_raw || colBody.formula,
           table.columns,
         );

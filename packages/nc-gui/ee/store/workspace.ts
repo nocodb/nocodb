@@ -230,6 +230,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('a:workspace:settings:remove-user')
 
     await loadCollaborators()
+    basesStore.clearBasesUser()
   }
 
   // update existing collaborator role
@@ -249,6 +250,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       },
     )
     await loadCollaborators()
+    basesStore.clearBasesUser()
   }
 
   const loadWorkspace = async (workspaceId: string) => {

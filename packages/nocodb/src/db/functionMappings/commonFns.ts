@@ -142,7 +142,7 @@ export default {
       ).builder;
     } else {
       thenArg = (await args.fn(args.pt.arguments[1])).builder.toQuery();
-      elseArg = (await args.fn(args.pt.arguments[1])).builder.toQuery();
+      elseArg = (await args.fn(args.pt.arguments[2])).builder.toQuery();
     }
 
     let query = args.knex.raw(`\n\tWHEN ${cond} THEN ${thenArg}`).toQuery();

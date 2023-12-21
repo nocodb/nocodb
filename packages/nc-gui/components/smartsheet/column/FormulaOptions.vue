@@ -25,7 +25,6 @@ import {
   NcAutocompleteTree,
   computed,
   formulaList,
-  formulaTypes,
   formulas,
   getUIDTIcon,
   getWordUntilCaret,
@@ -62,18 +61,6 @@ const { t } = useI18n()
 
 const { predictFunction: _predictFunction } = useNocoEe()
 
-enum JSEPNode {
-  COMPOUND = 'Compound',
-  IDENTIFIER = 'Identifier',
-  MEMBER_EXP = 'MemberExpression',
-  LITERAL = 'Literal',
-  THIS_EXP = 'ThisExpression',
-  CALL_EXP = 'CallExpression',
-  UNARY_EXP = 'UnaryExpression',
-  BINARY_EXP = 'BinaryExpression',
-  ARRAY_EXP = 'ArrayExpression',
-}
-
 const meta = inject(MetaInj, ref())
 
 const supportedColumns = computed(
@@ -107,16 +94,12 @@ const validators = {
           try {
             validateFormulaAndExtractTreeWithType({ formula, columns: supportedColumns.value, clientOrSqlUi: sqlUi.value })
           } catch (e: any) {
-            console.log(e)
             if (e instanceof FormulaError && e.extra?.key) {
               return reject(new Error(t(e.extra.key, e.extra)))
             }
 
             return reject(new Error(e.message))
           }
-          // if (res !== true) {
-          //   return reject(new Error(res))
-          // }
           resolve()
         })
       },
@@ -610,53 +593,6 @@ function validateAgainstType(
           type = formulaTypes.DATE
           break
 
-        case UITypes.Rollup: {
-          const rollupFunction = col.colOptions.rollup_function
-          if (['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(rollupFunction)) {
-            // these functions produce a numeric value, which can be used in numeric functions
-            if (expectedType !== formulaTypes.NUMERIC) {
-              typeErrors.add(
-                t('msg.formula.columnWithTypeFoundButExpected', {
-                  columnName: parsedTree.name,
-                  columnType: formulaTypes.NUMERIC,
-                  expectedType,
-                }),
-              )
-            }
-          } else {
-            // the value is based on the foreign rollup column type
-            const selectedTable = refTables.value.find((t) => t.column.id === col.colOptions.fk_relation_column_id)
-            const refTableColumns = metas.value[selectedTable.id].columns.filter(
-              (c: ColumnType) =>
-                vModel.value.fk_lookup_column_id === c.id ||
-                (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
-            )
-            const childFieldColumn = refTableColumns.find(
-              (column: ColumnType) => column.id === col.colOptions.fk_rollup_column_id,
-            )
-            const abstractType = sqlUi.value.getAbstractType(childFieldColumn)
-
-            if (expectedType === formulaTypes.DATE && !isDate(childFieldColumn, sqlUi.value.getAbstractType(childFieldColumn))) {
-              typeErrors.add(
-                t('msg.formula.columnWithTypeFoundButExpected', {
-                  columnName: parsedTree.name,
-                  columnType: abstractType,
-                  expectedType,
-                }),
-              )
-            } else if (expectedType === formulaTypes.NUMERIC && !isNumericCol(childFieldColumn)) {
-              typeErrors.add(
-                t('msg.formula.columnWithTypeFoundButExpected', {
-                  columnName: parsedTree.name,
-                  columnType: abstractType,
-                  expectedType,
-                }),
-              )
-            }
-          }
-          break
-        }
-
         // not supported
         case UITypes.ForeignKey:
         case UITypes.Attachment:
@@ -664,6 +600,7 @@ function validateAgainstType(
         case UITypes.Time:
         case UITypes.Percent:
         case UITypes.Duration:
+        case UITypes.Rollup:
         case UITypes.Lookup:
         case UITypes.Barcode:
         case UITypes.Button:
@@ -871,10 +808,6 @@ setAdditionalValidations({
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
-
-// const predictFunction = async () => {
-//   await _predictFunction(formState, meta, supportedColumns, suggestionsList, vModel)
-// }
 </script>
 
 <template>

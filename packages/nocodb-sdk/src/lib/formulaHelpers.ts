@@ -1384,6 +1384,10 @@ async function extractColumnIdentifierType({
     errors?: Set<string>;
     [p: string]: any;
   } = {};
+  const sqlUI =
+    typeof clientOrSqlUi === 'string'
+      ? SqlUiFactory.create({ client: clientOrSqlUi })
+      : clientOrSqlUi;
 
   switch (col?.uidt) {
     // string
@@ -1477,10 +1481,6 @@ async function extractColumnIdentifierType({
     case UITypes.ForeignKey:
     case UITypes.SpecificDBType:
       {
-        const sqlUI =
-          typeof clientOrSqlUi === 'string'
-            ? SqlUiFactory.create({ client: clientOrSqlUi })
-            : clientOrSqlUi;
         if (sqlUI) {
           const abstractType = sqlUI.getAbstractType(col);
           if (['integer', 'float', 'decimal'].includes(abstractType)) {
@@ -1540,6 +1540,11 @@ export async function validateFormulaAndExtractTreeWithType({
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
 }) {
+  const sqlUI =
+    typeof clientOrSqlUi === 'string'
+      ? SqlUiFactory.create({ client: clientOrSqlUi })
+      : clientOrSqlUi;
+
   const colAliasToColMap = {};
   const colIdToColMap = {};
 
@@ -1558,11 +1563,11 @@ export async function validateFormulaAndExtractTreeWithType({
     if (parsedTree.type === JSEPNode.CALL_EXP) {
       const calleeName = parsedTree.callee.name.toUpperCase();
       // validate function name
-      if (!formulas[calleeName]) {
+      if (!formulas[calleeName] || sqlUI?.getUnsupportedFnList().includes(calleeName)) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
           {},
-          'Function not available'
+          `Function ${calleeName} is not available`
         );
       }
 

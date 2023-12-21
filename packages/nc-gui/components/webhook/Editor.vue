@@ -795,7 +795,7 @@ onMounted(async () => {
                   :show-loading="false"
                   :hook-id="hookRef.id"
                   :web-hook="true"
-                  @update:filtersLength="hookRef.condition = $event > 0"
+                  @update:filters-length="hookRef.condition = $event > 0"
                 />
               </div>
             </a-col>

@@ -360,7 +360,7 @@ END ${colAlias}`,
 
     return {
       builder: knex.raw(
-        `ROUND((FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder})))${colAlias}`,
+        `(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder}))${colAlias}`,
       ),
     };
   },
@@ -374,7 +374,7 @@ END ${colAlias}`,
 
     return {
       builder: knex.raw(
-        `ROUND((CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))::numeric(30,${precisionBuilder}))${colAlias}`,
+        `(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder}))${colAlias}`,
       ),
     };
   },

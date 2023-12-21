@@ -1,8 +1,8 @@
 import jsep from 'jsep';
 
-import { ColumnType } from './Api';
+import {ColumnType} from './Api';
 import UITypes from './UITypes';
-import { validateDateWithUnknownFormat } from '../../../nc-gui/utils';
+import {validateDateWithUnknownFormat} from '../../../nc-gui/utils';
 
 export const jsepCurlyHook = {
   name: 'curly',
@@ -11,7 +11,7 @@ export const jsepCurlyHook = {
       const OCURLY_CODE = 123; // {
       const CCURLY_CODE = 125; // }
       let start = -1;
-      const { context } = env;
+      const {context} = env;
       if (
         !jsep.isIdentifierStart(context.code) &&
         context.code === OCURLY_CODE
@@ -28,10 +28,10 @@ export const jsepCurlyHook = {
             name: /{{(.*?)}}/.test(context.expr)
               ? // start would be the position of the first curly bracket
                 // add 2 to point to the first character for expressions like {{col1}}
-                context.expr.slice(start + 2, context.index - 1)
+              context.expr.slice(start + 2, context.index - 1)
               : // start would be the position of the first curly bracket
                 // add 1 to point to the first character for expressions like {col1}
-                context.expr.slice(start + 1, context.index - 1),
+              context.expr.slice(start + 1, context.index - 1),
           };
           return env.node;
         } else {
@@ -235,8 +235,8 @@ interface FormulaMeta {
       min?: number;
       max?: number;
       rqd?: number;
-      validator?: (args: FormulaDataTypes[]) => boolean;
     };
+    custom?: (args: FormulaDataTypes[], parseTree: any) => void;
   };
   description?: string;
   syntax?: string;
@@ -282,12 +282,12 @@ const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 3,
       },
-      validator: (args: FormulaDataTypes[], parsedTree: any) => {
+      custom: (args: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.firstParamDateAddHaveDate' },
+              {key: 'msg.formula.firstParamDateAddHaveDate'},
               'First parameter of DATEADD should be a date'
             );
           }
@@ -297,7 +297,7 @@ const formulas: Record<string, FormulaMeta> = {
           if (typeof parsedTree.arguments[1].value !== 'number') {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.secondParamDateAddHaveNumber' },
+              {key: 'msg.formula.secondParamDateAddHaveNumber'},
               'Second parameter of DATEADD should be a number'
             );
           }
@@ -310,7 +310,7 @@ const formulas: Record<string, FormulaMeta> = {
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.thirdParamDateAddHaveDate' },
+              {key: 'msg.formula.thirdParamDateAddHaveDate'},
               "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year'"
             );
           }
@@ -339,13 +339,13 @@ const formulas: Record<string, FormulaMeta> = {
         min: 2,
         max: 3,
       },
-      validator: (args: FormulaDataTypes[], parsedTree: any) => {
+      custom: (args: FormulaDataTypes[], parsedTree: any) => {
 
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.firstParamDateDiffHaveDate' },
+              {key: 'msg.formula.firstParamDateDiffHaveDate'},
               'First parameter of DATETIME_DIFF should be a date'
             );
           }
@@ -355,7 +355,7 @@ const formulas: Record<string, FormulaMeta> = {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[1].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.secondParamDateDiffHaveDate' },
+              {key: 'msg.formula.secondParamDateDiffHaveDate'},
               'Second parameter of DATETIME_DIFF should be a date'
             );
           }
@@ -383,8 +383,8 @@ const formulas: Record<string, FormulaMeta> = {
           ].includes(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.thirdParamDateDiffHaveDate' },
-              'Third parameter of DATETIME_DIFF should be one of \'milliseconds\', \'ms\', \'seconds\', \'s\', \'minutes\', \'m\', \'hours\', \'h\', \'days\', \'d\', \'weeks\', \'w\', \'months\', \'M\', \'quarters\', \'Q\', \'years\', \'y\'''
+              {key: 'msg.formula.thirdParamDateDiffHaveDate'},
+              'Third parameter of DATETIME_DIFF should be one of \'milliseconds\', \'ms\', \'seconds\', \'s\', \'minutes\', \'m\', \'hours\', \'h\', \'days\', \'d\', \'weeks\', \'w\', \'months\', \'M\', \'quarters\', \'Q\', \'years\', \'y\''
             );
           }
         }
@@ -846,12 +846,12 @@ const formulas: Record<string, FormulaMeta> = {
         min: 1,
         max: 2,
       },
-      validator(argTypes: FormulaDataTypes[], parsedTree: any) {
+      custom(argTypes: FormulaDataTypes[], parsedTree: any) {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
           if (!validateDateWithUnknownFormat(parsedTree.arguments[0].value)) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.firstParamWeekDayHaveDate' },
+              {key: 'msg.formula.firstParamWeekDayHaveDate'},
               'First parameter of WEEKDAY should be a date'
             );
           }
@@ -873,7 +873,7 @@ const formulas: Record<string, FormulaMeta> = {
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
-              { key: 'msg.formula.secondParamWeekDayHaveDate' },
+              {key: 'msg.formula.secondParamWeekDayHaveDate'},
               'Second parameter of WEEKDAY should be day of week string'
             );
           }
@@ -1150,7 +1150,7 @@ export function validateFormulaAndExtractTreeWithType(
       dataType?: FormulaDataTypes;
       errors?: Set<string>;
       [key: string]: any;
-    } = { ...parsedTree };
+    } = {...parsedTree};
 
     if (parsedTree.type === JSEPNode.CALL_EXP) {
       const calleeName = parsedTree.callee.name.toUpperCase();
@@ -1161,150 +1161,8 @@ export function validateFormulaAndExtractTreeWithType(
           {},
           'Function not available'
         );
-
-        // validate data type
-        if (parsedTree.callee.type === JSEPNode.IDENTIFIER) {
-          const expectedType = formulas[calleeName.toUpperCase()].type;
-          if (expectedType === formulaTypes.NUMERIC) {
-            if (calleeName === 'WEEKDAY') {
-              // parsedTree.arguments[0] = date
-              validateAgainstType(
-                parsedTree.arguments[0],
-                formulaTypes.DATE,
-                (v: any) => {
-                  if (!validateDateWithUnknownFormat(v)) {
-                    typeErrors.add(t('msg.formula.firstParamWeekDayHaveDate'));
-                  }
-                },
-                typeErrors
-              );
-              // parsedTree.arguments[1] = startDayOfWeek (optional)
-              validateAgainstType(
-                parsedTree.arguments[1],
-                formulaTypes.STRING,
-                (v: any) => {
-                  if (
-                    typeof v !== 'string' ||
-                    ![
-                      'sunday',
-                      'monday',
-                      'tuesday',
-                      'wednesday',
-                      'thursday',
-                      'friday',
-                      'saturday',
-                    ].includes(v.toLowerCase())
-                  ) {
-                    typeErrors.add(t('msg.formula.secondParamWeekDayHaveDate'));
-                  }
-                },
-                typeErrors
-              );
-            } else {
-              parsedTree.arguments.map((arg: Record<string, any>) =>
-                validateAgainstType(arg, expectedType, null, typeErrors)
-              );
-            }
-          } else if (expectedType === formulaTypes.DATE) {
-            if (calleeName === 'DATEADD') {
-              // parsedTree.arguments[0] = date
-              validateAgainstType(
-                parsedTree.arguments[0],
-                formulaTypes.DATE,
-                (v: any) => {
-                  if (!validateDateWithUnknownFormat(v)) {
-                    typeErrors.add(t('msg.formula.firstParamDateAddHaveDate'));
-                  }
-                },
-                typeErrors
-              );
-              // parsedTree.arguments[1] = numeric
-              validateAgainstType(
-                parsedTree.arguments[1],
-                formulaTypes.NUMERIC,
-                (v: any) => {
-                  if (typeof v !== 'number') {
-                    typeErrors.add(
-                      t('msg.formula.secondParamDateAddHaveNumber')
-                    );
-                  }
-                },
-                typeErrors
-              );
-              // parsedTree.arguments[2] = ["day" | "week" | "month" | "year"]
-              validateAgainstType(
-                parsedTree.arguments[2],
-                formulaTypes.STRING,
-                (v: any) => {
-                  if (!['day', 'week', 'month', 'year'].includes(v)) {
-                    typeErrors.add(
-                      typeErrors.add(t('msg.formula.thirdParamDateAddHaveDate'))
-                    );
-                  }
-                },
-                typeErrors
-              );
-            } else if (calleeName === 'DATETIME_DIFF') {
-              // parsedTree.arguments[0] = date
-              validateAgainstType(
-                parsedTree.arguments[0],
-                formulaTypes.DATE,
-                (v: any) => {
-                  if (!validateDateWithUnknownFormat(v)) {
-                    typeErrors.add(t('msg.formula.firstParamDateDiffHaveDate'));
-                  }
-                },
-                typeErrors
-              );
-              // parsedTree.arguments[1] = date
-              validateAgainstType(
-                parsedTree.arguments[1],
-                formulaTypes.DATE,
-                (v: any) => {
-                  if (!validateDateWithUnknownFormat(v)) {
-                    typeErrors.add(
-                      t('msg.formula.secondParamDateDiffHaveDate')
-                    );
-                  }
-                },
-                typeErrors
-              );
-              // parsedTree.arguments[2] = ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"]
-              validateAgainstType(
-                parsedTree.arguments[2],
-                formulaTypes.STRING,
-                (v: any) => {
-                  if (
-                    ![
-                      'milliseconds',
-                      'ms',
-                      'seconds',
-                      's',
-                      'minutes',
-                      'm',
-                      'hours',
-                      'h',
-                      'days',
-                      'd',
-                      'weeks',
-                      'w',
-                      'months',
-                      'M',
-                      'quarters',
-                      'Q',
-                      'years',
-                      'y',
-                    ].includes(v)
-                  ) {
-                    typeErrors.add(t('msg.formula.thirdParamDateDiffHaveDate'));
-                  }
-                },
-                typeErrors
-              );
-            }
-          }
-        }
       }
+
       // validate arguments
       const validation =
         formulas[calleeName] && formulas[calleeName].validation;
@@ -1358,6 +1216,11 @@ export function validateFormulaAndExtractTreeWithType(
       ));
 
       const argTypes = validateResult.map((v: any) => v.dataType);
+
+      // if validation function is present, call it
+      if (formulas[calleeName].validation?.custom) {
+        formulas[calleeName].validation?.custom(argTypes, parsedTree);
+      }
 
       if (typeof formulas[calleeName].returnType === 'function') {
         res.dataType = (formulas[calleeName].returnType as any)?.(
@@ -1487,7 +1350,7 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
       ];
       if (neighbours.length > 0) {
         // e.g. formula column 1 -> [formula column 2, formula column3]
-        res.push({ [c.id]: neighbours });
+        res.push({[c.id]: neighbours});
       }
       return res;
     }, []);

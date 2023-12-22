@@ -241,17 +241,13 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-<<<<<<< HEAD
         class="!absolute right-0 bottom-1 hidden nc-text-area-expand-btn"
-        :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
-=======
-        class="!absolute right-0 nc-text-area-expand-btn"
         :class="{
-          'right-0': editEnabled,
+          'right-0 bottom-1': editEnabled,
+          '!bottom-0': !isRichMode,
           'top-1 hidden !group-hover:block': isExpandedFormOpen,
           'bottom-1': !isExpandedFormOpen,
         }"
->>>>>>> c82848799 (fix: Fixed styling issues)
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

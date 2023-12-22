@@ -341,6 +341,16 @@ const selectedOpts = computed(() => {
     return selectedOptions
   }, [])
 })
+
+const onKeyDown = (e: KeyboardEvent) => {
+  // Tab
+  if (e.key === 'Tab') {
+    isOpen.value = false
+    return
+  }
+
+  e.stopPropagation()
+}
 </script>
 
 <template>
@@ -403,7 +413,7 @@ const selectedOpts = computed(() => {
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       @search="search"
-      @keydown.stop
+      @keydown="onKeyDown"
       @focus="isOpen = true"
       @blur="isOpen = false"
     >

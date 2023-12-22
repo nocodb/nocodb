@@ -102,6 +102,21 @@ const openListDlg = () => {
 
   listItemsDlg.value = true
 }
+
+const plusBtnRef = ref<HTMLElement | null>(null)
+const childListDlgRef = ref<HTMLElement | null>(null)
+
+watch([childListDlg], () => {
+  if (!childListDlg.value) {
+    childListDlgRef.value?.focus()
+  }
+})
+
+watch([listItemsDlg], () => {
+  if (!listItemsDlg.value) {
+    plusBtnRef.value?.focus()
+  }
+})
 </script>
 
 <template>
@@ -109,6 +124,7 @@ const openListDlg = () => {
     <div class="block flex-shrink truncate">
       <component
         :is="isUnderLookup ? 'span' : 'a'"
+        ref="childListDlgRef"
         v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
@@ -124,6 +140,7 @@ const openListDlg = () => {
 
     <div
       v-if="!isUnderLookup"
+      ref="plusBtnRef"
       tabindex="0"
       class="!xs:hidden flex group justify-end group-hover:flex items-center"
       @keydown.enter.stop="openListDlg"

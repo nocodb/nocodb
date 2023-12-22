@@ -215,6 +215,14 @@ const onKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
     e.stopPropagation()
   }
+
+  if (e.key === 'Escape') {
+    isOpen.value = false
+
+    setTimeout(() => {
+      aselect.value?.$el.querySelector('.ant-select-selection-search > input').focus()
+    }, 100)
+  }
 }
 
 const onSelect = () => {
@@ -259,6 +267,17 @@ useEventListener(document, 'click', handleClose, true)
 const selectedOpt = computed(() => {
   return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.trim())
 })
+
+watch(aselect, () => {
+  if (aselect.value) {
+    const inputDom = aselect.value.$el.querySelector('.ant-select-selection-search > input')
+
+    // Add tabindex="-1" to input element
+    if (inputDom) {
+      inputDom.setAttribute('tabindex', '-1')
+    }
+  }
+})
 </script>
 
 <template>
@@ -299,7 +318,7 @@ const selectedOpt = computed(() => {
       </a-tag>
     </div>
 
-    <a-select
+    <NcSelect
       v-else
       ref="aselect"
       v-model:value="vModel"
@@ -311,11 +330,11 @@ const selectedOpt = computed(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :show-arrow="hasEditRoles && !readOnly && active && vModel === null"
-      :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-200px ${isOpen && active ? 'active' : ''}`"
-      :show-search="!isMobileMode && isOpen && active"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
+      @blur="isOpen = false"
     >
       <a-select-option
         v-for="op of options"
@@ -361,7 +380,7 @@ const selectedOpt = computed(() => {
           </div>
         </div>
       </a-select-option>
-    </a-select>
+    </NcSelect>
   </div>
 </template>
 

@@ -64,11 +64,10 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     <JsBarcodeWrapper
       v-if="showBarcode && rowHeight"
       :barcode-value="barcodeValue"
-      tabindex="0"
+      tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
       :custom-style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem`, width: 40 }"
       @on-click-barcode="showBarcodeModal"
-      @keydown.enter.stop="showBarcodeModal"
     >
       <template #barcodeRenderError>
         <div class="text-left text-wrap mt-2 text-[#e65100] text-xs" data-testid="barcode-invalid-input-message">
@@ -78,11 +77,10 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     </JsBarcodeWrapper>
     <JsBarcodeWrapper
       v-else-if="showBarcode"
-      tabindex="0"
+      tabindex="-1"
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
       @on-click-barcode="showBarcodeModal"
-      @keydown.enter.stop="showBarcodeModal"
     >
       <template #barcodeRenderError>
         <div class="text-left text-wrap mt-2 text-[#e65100] text-xs" data-testid="barcode-invalid-input-message">

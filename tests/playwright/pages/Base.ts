@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import { readFileSync } from 'fs';
 
 type ResponseSelector = (json: any) => boolean;
@@ -16,6 +16,12 @@ export default abstract class BasePage {
     await this.rootPage.locator('.ant-message .ant-message-notice-content', { hasText: message }).last().isVisible();
   }
 
+  async verifyLastToast({ message }: { message: string }) {
+    await expect(
+      this.rootPage.locator('.ant-message .ant-message-notice-content', { hasText: message }).last()
+    ).toHaveText(message);
+  }
+
   async waitForResponse({
     // Playwright action that triggers the request i.e locatorSomething.click()
     uiAction,
@@ -24,18 +30,20 @@ export default abstract class BasePage {
     // A function that takes the response body and returns true if the response is the one we are looking for
     responseJsonMatcher,
     timeout,
+    responseStatusCodeToMatch = 200,
   }: {
     uiAction: () => Promise<any>;
     requestUrlPathToMatch: string;
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
     timeout?: number;
+    responseStatusCodeToMatch?: number;
   }) {
     const [res] = await Promise.all([
       this.rootPage.waitForResponse(
         res =>
           res.url().includes(requestUrlPathToMatch) &&
-          res.status() === 200 &&
+          res.status() === responseStatusCodeToMatch &&
           httpMethodsToMatch.includes(res.request().method()),
         timeout ? { timeout } : undefined
       ),

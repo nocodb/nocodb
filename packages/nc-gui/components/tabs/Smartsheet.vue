@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type {ColumnType, LinkToAnotherRecordType, TableType} from 'nocodb-sdk'
+import {isLinksOrLTAR, UITypes} from 'nocodb-sdk'
 
+import type {TabItem} from '#imports'
 import {
   ActiveViewInj,
+  computed,
+  createEventHook,
   FieldsInj,
   IsFormInj,
   IsLockedInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  provide,
   ReadonlyInj,
+  ref,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
   TabMetaInj,
-  computed,
-  createEventHook,
-  provide,
-  ref,
   toRef,
   useMetas,
+  useProvideCalendarViewStore,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
-  useProvideCalendarViewStore,
   useRoles,
   useSqlEditor,
 } from '#imports'
-import type { TabItem } from '#imports'
 
 const props = defineProps<{
   activeTab: TabItem
@@ -187,8 +187,6 @@ watch([activeViewTitleOrId, activeTableId], () => {
                   <LazySmartsheetCalendar v-else-if="isCalendar" />
 
                   <LazySmartsheetMap v-else-if="isMap" />
-
-                  <LazySmartsheetGallery v-else-if="isGallery" />
                 </template>
               </div>
             </div>

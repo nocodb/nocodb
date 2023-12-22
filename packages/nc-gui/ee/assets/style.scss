@@ -36,6 +36,10 @@ body {
   overflow-y: visible !important;
 }
 
+.rc-virtual-list-holder-inner {
+  @apply !px-1.5
+}
+
 .ant-layout-header {
   height: var(--topbar-height) !important;
 }

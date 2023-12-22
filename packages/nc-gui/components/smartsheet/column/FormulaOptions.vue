@@ -306,6 +306,14 @@ onMounted(() => {
       <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-3">
         {{ example }}
       </div>
+      <div class="flex flex-row mt-1 mb-3 justify-end">
+        <a target="_blank" rel="noopener noreferrer" href="https://docs.nocodb.com/fields/field-types/formula/date-functions">
+          <NcButton type="text" class="!text-gray-500 !hover:text-gray-800"
+            >View in Docs
+            <GeneralIcon icon="openInNew" class="ml-1" />
+          </NcButton>
+        </a>
+      </div>
     </div>
     <a-form-item v-bind="validateInfos.formula_raw" class="!pb-1" :label="$t('datatype.Formula')">
       <!-- <GeneralIcon

@@ -19,6 +19,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
+import { Base, BaseUser } from '~/models';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -679,6 +680,26 @@ async function _formulaQueryBuilder(
         } else {
           aliasToColumn[col.id] = () =>
             Promise.resolve({ builder: col.column_name });
+        }
+        break;
+      case UITypes.User:
+        {
+          const base = await Base.get(model.base_id);
+          const baseUsers = await BaseUser.getUsersList({
+            base_id: base.id,
+          });
+
+          // create nested replace statement for each user
+          const finalStatement = baseUsers.reduce((acc, user) => {
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [user.id, user.email]);
+            return qb.toQuery();
+          }, knex.raw(`??`, [col.column_name]).toQuery());
+
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(finalStatement).wrap('(', ')'),
+            };
+          };
         }
         break;
       default:

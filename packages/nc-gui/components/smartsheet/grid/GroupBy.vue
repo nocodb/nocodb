@@ -167,11 +167,21 @@ const parseKey = (group: Group) => {
   if (key && group.column?.uidt === UITypes.Time && dayjs(key).isValid()) {
     return [dayjs(key).format(timeFormats[0])]
   }
+
+  if (key && group.column?.uidt === UITypes.User) {
+    try {
+      const parsedKey = JSON.parse(key)
+      return [parsedKey]
+    } catch {
+      return null
+    }
+  }
+
   return [key]
 }
 
 const shouldRenderCell = (column) =>
-  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links].includes(column?.uidt)
+  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links, UITypes.User].includes(column?.uidt)
 </script>
 
 <template>

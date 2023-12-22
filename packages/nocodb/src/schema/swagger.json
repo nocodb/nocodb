@@ -17343,7 +17343,8 @@
               "URL",
               "Year",
               "QrCode",
-              "Links"
+              "Links",
+              "User"
             ],
             "type": "string"
           },
@@ -20563,7 +20564,8 @@
               "URL",
               "Year",
               "QrCode",
-              "Links"
+              "Links",
+              "User"
             ],
             "type": "string",
             "description": "UI Data Type"
@@ -23860,6 +23862,27 @@
         "properties": {
           "is_read": {
             "type": "boolean"
+          }
+        }
+      },
+      "UserFieldRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "required": true
+          },
+          "display_name": {
+            "type": "string",
+            "required": false
+          },
+          "email": {
+            "type": "string",
+            "required": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "required": false
           }
         }
       }

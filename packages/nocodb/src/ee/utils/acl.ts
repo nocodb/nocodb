@@ -133,6 +133,7 @@ const permissionScopes = {
     'bulkDataDeleteAll',
     'relationDataRemove',
     'relationDataAdd',
+    'baseUserList',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -207,6 +208,7 @@ const rolePermissions:
     include: {
       workspaceBaseList: true,
       workspaceGet: true,
+      workspaceUserList: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
@@ -286,6 +288,8 @@ const rolePermissions:
       widgetsList: true,
       widgetGet: true,
       widgetFilterList: true,
+
+      baseUserList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

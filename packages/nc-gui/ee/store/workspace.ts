@@ -15,7 +15,6 @@ interface NcWorkspace extends WorkspaceType {
 export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
-  const { clearBases } = basesStore
 
   const { loadRoles } = useRoles()
 
@@ -212,6 +211,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       )
       $e('a:workspace:settings:invite-user')
       await loadCollaborators()
+      basesStore.clearBasesUser()
     } finally {
       isInvitingCollaborators.value = false
     }
@@ -230,6 +230,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     $e('a:workspace:settings:remove-user')
 
     await loadCollaborators()
+    basesStore.clearBasesUser()
   }
 
   // update existing collaborator role
@@ -249,6 +250,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       },
     )
     await loadCollaborators()
+    basesStore.clearBasesUser()
   }
 
   const loadWorkspace = async (workspaceId: string) => {
@@ -379,7 +381,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const clearWorkspaces = async () => {
-    await clearBases()
+    await basesStore.clearBases()
     workspaces.value.clear()
   }
   const upgradeActiveWorkspace = async () => {

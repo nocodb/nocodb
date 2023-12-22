@@ -2,7 +2,7 @@ import type { Base, Source } from '~/models';
 import KnexMigratorv2 from '~/db/sql-migrator/lib/KnexMigratorv2';
 
 export default async function syncMigration(base: Base): Promise<void> {
-  for (const source of await base.getBases()) {
+  for (const source of await base.getSources()) {
     try {
       /* create sql-migrator */
       const migrator = new KnexMigratorv2(base);

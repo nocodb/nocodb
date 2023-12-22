@@ -912,7 +912,7 @@ export class MetaService {
     );
   }
 
-  private now(): any {
+  public now(): any {
     return dayjs()
       .utc()
       .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');

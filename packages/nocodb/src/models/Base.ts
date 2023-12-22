@@ -117,7 +117,7 @@ export default class Base implements BaseType {
     );
     const castedProjectList = baseList.map((m) => this.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   }
@@ -147,7 +147,7 @@ export default class Base implements BaseType {
     return this.castType(baseData);
   }
 
-  async getBases(ncMeta = Noco.ncMeta): Promise<Source[]> {
+  async getSources(ncMeta = Noco.ncMeta): Promise<Source[]> {
     return (this.sources = await Source.list({ baseId: this.id }, ncMeta));
   }
 
@@ -182,10 +182,11 @@ export default class Base implements BaseType {
       }
     }
     if (baseData) {
-      const base = new Base(baseData);
-      await base.getBases(ncMeta);
+      const base = this.castType(baseData);
 
-      return this.castType(base);
+      await base.getSources(ncMeta);
+
+      return base;
     }
     return null;
   }
@@ -208,8 +209,6 @@ export default class Base implements BaseType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
-
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
     await NocoCache.del(CacheScope.INSTANCE_META);
 
@@ -296,8 +295,6 @@ export default class Base implements BaseType {
     let base = await this.get(baseId);
     const users = await BaseUser.getUsersList({
       base_id: baseId,
-      offset: 0,
-      limit: 1000,
     });
 
     for (const user of users) {
@@ -319,8 +316,6 @@ export default class Base implements BaseType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.title}`);
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
     }
-
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
     await NocoCache.deepDel(
       CacheScope.PROJECT,
@@ -359,7 +354,9 @@ export default class Base implements BaseType {
 
   static async getWithInfoByTitle(title: string, ncMeta = Noco.ncMeta) {
     const base = await this.getByTitle(title, ncMeta);
-    if (base) await base.getBases(ncMeta);
+    if (base) {
+      await base.getSources(ncMeta);
+    }
 
     return base;
   }
@@ -441,7 +438,9 @@ export default class Base implements BaseType {
     // parse meta
     base.meta = parseMetaProp(base);
 
-    if (base) await base.getBases(ncMeta);
+    if (base) {
+      await base.getSources(ncMeta);
+    }
 
     return base;
   }
@@ -449,7 +448,7 @@ export default class Base implements BaseType {
   static async clearConnectionPool(baseId: string, ncMeta = Noco.ncMeta) {
     const base = await this.get(baseId, ncMeta);
     if (base) {
-      const sources = await base.getBases(ncMeta);
+      const sources = await base.getSources(ncMeta);
       for (const source of sources) {
         await NcConnectionMgrv2.deleteAwait(source);
       }

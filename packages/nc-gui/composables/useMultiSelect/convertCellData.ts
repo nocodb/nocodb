@@ -195,6 +195,24 @@ export default function convertCellData(
 
       return validVals.join(',')
     }
+    case UITypes.User: {
+      let parsedVal
+      try {
+        try {
+          parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+        } catch {
+          parsedVal = value
+        }
+      } catch (e) {
+        if (isMultiple) {
+          return null
+        } else {
+          throw new Error('Invalid user data')
+        }
+      }
+
+      return parsedVal || value
+    }
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:
     case UITypes.Rollup:

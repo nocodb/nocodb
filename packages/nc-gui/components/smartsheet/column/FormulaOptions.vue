@@ -145,6 +145,13 @@ const suggestionsList = computed(() => {
 // set default suggestion list
 const suggestion: Ref<Record<string, any>[]> = ref(suggestionsList.value)
 
+const suggestedFormulas = computed(() => {
+  return suggestion.value.filter((s) => s && s.type !== 'column')
+})
+const variableList = computed(() => {
+  return suggestion.value.filter((s) => s && s.type === 'column')
+})
+
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
   for (const sug of suggestionsList.value) {
@@ -214,9 +221,15 @@ function handleInput() {
 }
 
 function selectText() {
-  if (suggestion.value && selected.value > -1 && selected.value < suggestion.value.length) {
-    appendText(suggestion.value[selected.value])
+  if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {
+    if (selected.value < suggestedFormulas.value.length) {
+      appendText(suggestedFormulas.value[selected.value])
+    } else {
+      appendText(variableList.value[selected.value + suggestedFormulas.value.length])
+    }
   }
+
+  selected.value = 0
 }
 
 function suggestionListUp() {
@@ -305,31 +318,13 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="mb-2 nc-formula-input"
+        class="!mb-4 nc-formula-input !rounded-md"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
         @change="handleInputDeb"
       />
     </a-form-item>
-
-    <div class="text-gray-600 mt-2 mb-4 prose-sm">
-      {{
-        // As using {} in translation will be treated as placeholder, and this translation contain {} as part of th text
-        $t('msg.formula.hintStart', {
-          placeholder1: '{}',
-          placeholder2: '{column_name}',
-        })
-      }}
-      <a
-        class="prose-sm"
-        href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features"
-        target="_blank"
-        rel="noopener"
-      >
-        {{ $t('msg.formula.hintEnd') }}
-      </a>
-    </div>
 
     <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-md">
       <template v-if="suggestedFormulas.length > 0">

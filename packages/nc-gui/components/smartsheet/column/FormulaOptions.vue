@@ -55,6 +55,8 @@ const supportedColumns = computed(
 )
 const { getMeta } = useMetas()
 
+const suggestionPreviewed = ref<Record<any, string> | undefined>()
+
 const validators = {
   formula_raw: [
     {
@@ -93,6 +95,8 @@ const formulaRef = ref()
 
 const sugListRef = ref()
 
+const variableListRef = ref<(typeof AntListItem)[]>([])
+
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 
 const wordToComplete = ref<string | undefined>('')
@@ -116,6 +120,7 @@ const suggestionsList = computed(() => {
         description: formulas[fn].description,
         syntax: formulas[fn].syntax,
         examples: formulas[fn].examples,
+        docsUrl: formulas[fn].docsUrl,
       })),
     ...supportedColumns.value
       .filter((c) => {
@@ -147,6 +152,14 @@ const acTree = computed(() => {
     ref.add(sug)
   }
   return ref
+})
+
+const suggestedFormulas = computed(() => {
+  return suggestion.value.filter((s) => s && s.type !== 'column')
+})
+
+const variableList = computed(() => {
+  return suggestion.value.filter((s) => s && s.type === 'column')
 })
 
 function isCurlyBracketBalanced() {
@@ -196,6 +209,11 @@ function handleInput() {
   suggestion.value = acTree.value
     .complete(wordToComplete.value)
     ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
+
+  if (suggestion.value.length > 0 && suggestion.value[0].type !== 'column') {
+    suggestionPreviewed.value = suggestion.value[0]
+  }
+
   if (!isCurlyBracketBalanced()) {
     suggestion.value = suggestion.value.filter((v) => v.type === 'column')
   }
@@ -203,14 +221,21 @@ function handleInput() {
 }
 
 function selectText() {
-  if (suggestion.value && selected.value > -1 && selected.value < suggestion.value.length) {
-    appendText(suggestion.value[selected.value])
+  if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {
+    if (selected.value < suggestedFormulas.value.length) {
+      appendText(suggestedFormulas.value[selected.value])
+    } else {
+      appendText(variableList.value[selected.value + suggestedFormulas.value.length])
+    }
   }
+
+  selected.value = 0
 }
 
 function suggestionListUp() {
   if (suggestion.value) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
+    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
     scrollToSelectedOption()
   }
 }
@@ -218,6 +243,8 @@ function suggestionListUp() {
 function suggestionListDown() {
   if (suggestion.value) {
     selected.value = ++selected.value % suggestion.value.length
+    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
+
     scrollToSelectedOption()
   }
 }
@@ -226,9 +253,9 @@ function scrollToSelectedOption() {
   nextTick(() => {
     if (sugOptionsRef.value[selected.value]) {
       try {
-        sugListRef.value.$el.scrollTo({
-          top: sugOptionsRef.value[selected.value].$el.offsetTop,
-          behavior: 'smooth',
+        sugOptionsRef.value[selected.value].$el.scrollIntoView({
+          block: 'nearest',
+          inline: 'start',
         })
       } catch (e) {}
     }
@@ -256,8 +283,52 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="formula-wrapper">
-    <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
+  <div class="formula-wrapper relative">
+    <div
+      v-if="suggestionPreviewed && suggestionPreviewed.type === 'function'"
+      class="absolute -left-91 w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+    >
+      <div class="pr-3">
+        <div class="flex flex-row w-full justify-between pb-1 border-b-1">
+          <div class="flex items-center gap-x-1 font-semibold text-base">
+            <component :is="iconMap.function" class="text-lg" />
+            {{ suggestionPreviewed.text }}
+          </div>
+          <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
+            <GeneralIcon icon="close" />
+          </NcButton>
+        </div>
+      </div>
+      <div class="flex flex-col max-h-120 nc-scrollbar-md pr-2">
+        <div class="flex mt-3">{{ suggestionPreviewed.description }}</div>
+
+        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
+        <div class="bg-white rounded-md py-1 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
+        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
+        <div
+          v-for="(example, index) of suggestionPreviewed.examples"
+          :key="example"
+          class="bg-gray-100 py-1 px-2"
+          :class="{
+            'border-t-1 border-gray-200': index !== 0,
+            'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
+            'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
+            'rounded-md': suggestionPreviewed.examples.length === 1,
+          }"
+        >
+          {{ example }}
+        </div>
+      </div>
+      <div class="flex flex-row mt-1 mb-3 justify-end pr-3">
+        <a target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
+          <NcButton type="text" class="!text-gray-400 !hover:text-gray-800 !text-xs"
+            >View in Docs
+            <GeneralIcon icon="openInNew" class="ml-1" />
+          </NcButton>
+        </a>
+      </div>
+    </div>
+    <a-form-item v-bind="validateInfos.formula_raw" class="!pb-1" :label="$t('datatype.Formula')">
       <!-- <GeneralIcon
         v-if="isEeUI"
         icon="magic"
@@ -268,7 +339,7 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="mb-2 nc-formula-input"
+        class="nc-formula-input !rounded-md !my-1"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -276,73 +347,90 @@ onMounted(() => {
       />
     </a-form-item>
 
-    <div class="text-gray-600 mt-2 mb-4 prose-sm">
-      {{
-        // As using {} in translation will be treated as placeholder, and this translation contain {} as part of th text
-        $t('msg.formula.hintStart', {
-          placeholder1: '{}',
-          placeholder2: '{column_name}',
-        })
-      }}
-      <a
-        class="prose-sm"
-        href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features"
-        target="_blank"
-        rel="noopener"
-      >
-        {{ $t('msg.formula.hintEnd') }}
-      </a>
-    </div>
+    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-md">
+      <template v-if="suggestedFormulas.length > 0">
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Formulas</div>
 
-    <div class="h-[250px] overflow-auto scrollbar-thin-primary">
-      <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
-        <template #renderItem="{ item, index }">
-          <a-list-item
-            :ref="
-              (el) => {
-                sugOptionsRef[index] = el
-              }
-            "
-            class="cursor-pointer"
-            @click.prevent.stop="appendText(item)"
-          >
-            <a-list-item-meta>
-              <template #title>
-                <div class="flex">
-                  <a-col :span="6">
+        <a-list
+          :data-source="suggestedFormulas"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          class="border-1 border-t-0 rounded-b-lg !mb-4"
+        >
+          <template #renderItem="{ item, index }">
+            <a-list-item
+              :ref="
+                (el) => {
+                  sugOptionsRef[index] = el
+                }
+              "
+              class="cursor-pointer !overflow-hidden hover:bg-gray-50"
+              :class="{
+                '!bg-gray-100': selected === index,
+              }"
+              @click.prevent.stop="appendText(item)"
+              @mouseenter="suggestionPreviewed = item"
+            >
+              <a-list-item-meta>
+                <template #title>
+                  <div class="flex items-center gap-x-1">
+                    <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
+
+                    <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
+
+                    <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
                     <span class="prose-sm text-gray-600">{{ item.text }}</span>
-                  </a-col>
+                  </div>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </template>
 
-                  <a-col :span="18">
-                    <div v-if="item.type === 'function'" class="text-xs text-gray-500">
-                      {{ item.description }} <br /><br />
-                      {{ $t('labels.syntax') }}: <br />
-                      {{ item.syntax }} <br /><br />
-                      {{ $t('labels.examples') }}: <br />
+      <template v-if="variableList.length > 0">
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Fields</div>
 
-                      <div v-for="(example, idx) of item.examples" :key="idx">
-                        <div>({{ idx + 1 }}): {{ example }}</div>
-                      </div>
-                    </div>
+        <a-list
+          ref="variableListRef"
+          :data-source="variableList"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          class="border-1 border-t-0 rounded-b-lg !overflow-hidden"
+        >
+          <template #renderItem="{ item, index }">
+            <a-list-item
+              :ref="
+                (el) => {
+                  sugOptionsRef[index + suggestedFormulas.length] = el
+                }
+              "
+              :class="{
+                '!bg-gray-100': selected === index + suggestedFormulas.length,
+              }"
+              class="cursor-pointer hover:bg-gray-50"
+              @click.prevent.stop="appendText(item)"
+            >
+              <a-list-item-meta>
+                <template #title>
+                  <div class="flex items-center gap-x-1">
+                    <component :is="item.icon" class="text-lg" />
 
-                    <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
-                      <a-badge-ribbon :text="item.uidt" color="gray" />
-                    </div>
-                  </a-col>
-                </div>
-              </template>
-
-              <template #avatar>
-                <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
-
-                <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
-
-                <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
-              </template>
-            </a-list-item-meta>
-          </a-list-item>
-        </template>
-      </a-list>
+                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                  </div>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </template>
+      <div v-if="suggestion.length === 0">
+        <span class="text-gray-500">Empty</span>
+      </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-list-item) {
+  @apply !pt-1.75 pb-0.75 !px-2;
+}
+</style>

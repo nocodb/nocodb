@@ -305,9 +305,18 @@ onMounted(() => {
         <div class="flex mt-3">{{ suggestionPreviewed.description }}</div>
 
         <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
-        <div class="bg-gray-800 text-white rounded-md py-1 px-2">{{ suggestionPreviewed.syntax }}</div>
+        <div class="bg-white rounded-md py-1 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
         <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
-        <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-3">
+        <div
+          v-for="(example, index) of suggestionPreviewed.examples"
+          :key="example"
+          class="bg-gray-100 py-1 px-2"
+          :class="{
+            'border-t-1 border-gray-200': index !== 0 || suggestionPreviewed.examples.length === 1,
+            'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
+            'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
+          }"
+        >
           {{ example }}
         </div>
       </div>

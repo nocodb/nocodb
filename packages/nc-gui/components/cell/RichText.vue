@@ -19,6 +19,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:value'])
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
 const turndownService = new TurndownService({})
 
 turndownService.addRule('lineBreak', {
@@ -171,7 +173,8 @@ watch(editorDom, () => {
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
         'ml-1 mt-2.5 flex-grow': props.fullMode,
-        'nc-scrollbar-md': !props.fullMode && !props.readonly,
+        'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
+        'flex-grow': isExpandedFormOpen,
       }"
     />
   </div>

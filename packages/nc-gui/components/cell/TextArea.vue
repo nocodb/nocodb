@@ -171,16 +171,16 @@ watch(editEnabled, () => {
 <template>
   <NcDropdown
     v-model:visible="isVisible"
-    class="overflow-hidden"
+    class="overflow-hidden group"
     :trigger="[]"
     placement="bottomLeft"
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full rich-wrapper"
+      class="flex flex-row pt-0.5 w-full rich-wrapper long-text-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
-        'min-h-6.5': rowHeight === 1 && !isExpandedFormOpen,
+        'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
         'h-full': isForm,
       }"
     >
@@ -200,7 +200,7 @@ watch(editEnabled, () => {
         :ref="focus"
         v-model="vModel"
         rows="4"
-        class="h-full w-full outline-none border-none nc-scrollbar-md"
+        class="h-full w-full outline-none border-none nc-scrollbar-lg"
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
@@ -241,8 +241,17 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
+<<<<<<< HEAD
         class="!absolute right-0 bottom-1 hidden nc-text-area-expand-btn"
         :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
+=======
+        class="!absolute right-0 nc-text-area-expand-btn"
+        :class="{
+          'right-0': editEnabled,
+          'top-1 hidden !group-hover:block': isExpandedFormOpen,
+          'bottom-1': !isExpandedFormOpen,
+        }"
+>>>>>>> c82848799 (fix: Fixed styling issues)
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

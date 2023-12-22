@@ -10,6 +10,7 @@ import { AttachmentsSecureController } from '~/controllers/attachments-secure.co
 import { AuditsController } from '~/controllers/audits.controller';
 import { SourcesController } from '~/controllers/sources.controller';
 import { CachesController } from '~/controllers/caches.controller';
+import { CalendarsController } from '~/controllers/calendars.controller';
 import { ColumnsController } from '~/controllers/columns.controller';
 import { FiltersController } from '~/controllers/filters.controller';
 import { FormColumnsController } from '~/controllers/form-columns.controller';
@@ -41,6 +42,7 @@ import { AuditsService } from '~/services/audits.service';
 import { SourcesService } from '~/services/sources.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CachesService } from '~/services/caches.service';
+import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { FormColumnsService } from '~/services/form-columns.service';
@@ -137,6 +139,7 @@ export const metaModuleMetadata = {
     AuditsService,
     SourcesService,
     CachesService,
+    CalendarsService,
     ColumnsService,
     FiltersService,
     FormColumnsService,

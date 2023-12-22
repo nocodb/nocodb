@@ -20344,7 +20344,7 @@
           "id": "psbv6c6y9qvbu"
         }
       },
-      "CalendarDateRange": {
+      "CalendarRange": {
         "description": "Model for Calendar Date Range",
         "examples": [
           {
@@ -20359,7 +20359,7 @@
         "type": "object",
         "properties": {
           "fk_from_column_id": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
           "fk_to_column_id": {
@@ -22487,6 +22487,31 @@
         ],
         "title": "TextOrNull Model"
       },
+      "CalendarRangeOrNull": {
+        "description": "Model for CalendarRangeOrNull",
+        "example": [{
+          "id": "kvc_2skkg5mi1eb37f",
+          "fk_from_column_id": "cl_hzos4ghyncqi4k",
+          "fk_to_column_id": "cl_hzos4ghyncqi4k",
+          "fk_view_id": "vw_wqs4zheuo5lgdy",
+          "label": "string"
+        }],
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarRange"
+            }
+          }
+        ],
+        "title": "CalendarRangeOrNull Model",
+        "x-stoplight": {
+          "id": "p1g7xrgdsn540"
+        }
+      },
       "StringOrNull": {
         "description": "Model for StringOrNull",
         "examples": [
@@ -23788,11 +23813,8 @@
             "description": "Foreign Key to Geo Data Column. Used in creating Map View."
           },
           "calendar_range": {
-            "type": "array",
-            "description": "Calendar Range",
-            "items": {
-              "$ref": "#/components/schemas/CalendarDateRange"
-            }
+            "description": "Calendar Range or Null",
+            "$ref": "#/components/schemas/CalendarRangeOrNull"
           }
         },
         "required": [

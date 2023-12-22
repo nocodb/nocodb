@@ -53,13 +53,13 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
-const active = computed(() => activeCell.value || isEditable.value)
+const active = computed(() => activeCell.value || isEditable.value || isForm.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
-
-const isForm = inject(IsFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -70,6 +70,8 @@ const selectedIds = ref<string[]>([])
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+
+const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -180,9 +182,7 @@ watch(isOpen, (n, _o) => {
   if (!n) searchVal.value = ''
 
   if (editAllowed.value) {
-    if (!n) {
-      aselect.value?.$el?.querySelector('input')?.blur()
-    } else {
+    if (n) {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
@@ -303,6 +303,9 @@ const cellClickHook = inject(CellClickHookInj, null)
 
 const toggleMenu = () => {
   if (cellClickHook) return
+
+  if (isFocusing.value) return
+
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
@@ -350,6 +353,16 @@ const onKeyDown = (e: KeyboardEvent) => {
   }
 
   e.stopPropagation()
+}
+
+const onFocus = () => {
+  isFocusing.value = true
+
+  setTimeout(() => {
+    isFocusing.value = false
+  }, 250)
+
+  isOpen.value = true
 }
 </script>
 
@@ -414,7 +427,7 @@ const onKeyDown = (e: KeyboardEvent) => {
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown="onKeyDown"
-      @focus="isOpen = true"
+      @focus="onFocus"
       @blur="isOpen = false"
     >
       <template #suffixIcon>

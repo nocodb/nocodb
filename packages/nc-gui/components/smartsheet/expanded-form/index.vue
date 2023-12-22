@@ -684,7 +684,7 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="nc-data-cell bg-white rounded-lg w-80 xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    class="bg-white w-80 xs:w-full px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     :class="{
                       '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
                     }"

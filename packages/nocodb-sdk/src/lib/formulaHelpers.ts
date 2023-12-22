@@ -511,7 +511,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         min: 1,
-        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Concatenated string of input parameters',

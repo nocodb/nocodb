@@ -5654,7 +5654,7 @@ function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map((c) => row[c.title]).join('___');
 }
 
-function haveFormulaColumn(columns: Column[]) {
+export function haveFormulaColumn(columns: Column[]) {
   return columns.some((c) => c.uidt === UITypes.Formula);
 }
 

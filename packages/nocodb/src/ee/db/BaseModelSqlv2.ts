@@ -11,6 +11,7 @@ import {
   extractFilterFromXwhere,
   extractSortsObject,
   getListArgs,
+  haveFormulaColumn,
   populatePk,
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
@@ -1430,4 +1431,5 @@ export {
   extractFilterFromXwhere,
   extractSortsObject,
   getListArgs,
+  haveFormulaColumn
 };

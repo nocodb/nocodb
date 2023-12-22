@@ -1036,23 +1036,24 @@ export default async function formulaQueryBuilderv2(
   const knex = baseModelSqlv2.dbDriver;
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
-  // generate qb
-  const qb = await _formulaQueryBuilder(
-    baseModelSqlv2,
-    _tree,
-    alias,
-    model,
-    aliasToColumn,
-    tableAlias,
-    parsedTree ??
-      (await column
-        ?.getColOptions<FormulaColumn>()
-        .then((formula) => formula?.getParsedTree())),
-  );
-
-  if (!validateFormula) return qb;
-
+  let qb;
   try {
+    // generate qb
+    qb = await _formulaQueryBuilder(
+      baseModelSqlv2,
+      _tree,
+      alias,
+      model,
+      aliasToColumn,
+      tableAlias,
+      parsedTree ??
+        (await column
+          ?.getColOptions<FormulaColumn>()
+          .then((formula) => formula?.getParsedTree())),
+    );
+
+    if (!validateFormula) return qb;
+
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await baseModelSqlv2.execAndParse(
@@ -1074,6 +1075,8 @@ export default async function formulaQueryBuilderv2(
       }
     }
   } catch (e) {
+    if (!validateFormula) throw e;
+
     console.error(e);
     if (column) {
       const formula = await column.getColOptions<FormulaColumn>();

@@ -53,7 +53,7 @@ export class DuplicateController {
       throw new Error(`Base not found for id '${sharedBaseId}'`);
     }
 
-    const source = (await base.getBases())[0];
+    const source = (await base.getSources())[0];
 
     if (!source) {
       throw new Error(`Source not found!`);
@@ -124,7 +124,7 @@ export class DuplicateController {
 
     const source = sourceId
       ? await Source.get(sourceId)
-      : (await base.getBases())[0];
+      : (await base.getSources())[0];
 
     if (!source) {
       throw new Error(`Source not found!`);

@@ -91,6 +91,9 @@ import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
 
+import PhUsers from '~icons/ph/users'
+import PhUser from '~icons/ph/user'
+
 // Roles
 import SuperAdmin from '~icons/nc-icons/super-admin'
 import Owner from '~icons/nc-icons/owner'
@@ -320,6 +323,8 @@ export const iconMap = {
   lock: h('span', { class: 'material-symbols' }, 'lock'),
   account: h('span', { class: 'material-symbols' }, 'person'),
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
+  phUser: PhUser,
+  phUsers: PhUsers,
   users: NcUsers,
   cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
   download: MsDownloadRounded,

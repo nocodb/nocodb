@@ -11,7 +11,7 @@ const dropTablesAllNonExternalProjects = async () => {
     bases
       .filter((base) => base.is_meta)
       .map(async (base) => {
-        await base.getBases();
+        await base.getSources();
         const source = base.sources && base.sources[0];
         if (!source) return;
 

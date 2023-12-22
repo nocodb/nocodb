@@ -26,7 +26,7 @@ const serverInit = async () => {
 
 const isFirstTimeRun = () => !server;
 
-export default async function (forceReset = false) {
+export default async function (forceReset = false, roles = 'editor') {
   const { default: TestDbMngr } = await import('../TestDbMngr');
 
   if (isFirstTimeRun()) {
@@ -39,7 +39,7 @@ export default async function (forceReset = false) {
   // }
   await cleanupMeta();
 
-  const { token } = await createUser({ app: server }, { roles: 'editor' });
+  const { token } = await createUser({ app: server }, { roles });
 
   const extra: any = {};
 

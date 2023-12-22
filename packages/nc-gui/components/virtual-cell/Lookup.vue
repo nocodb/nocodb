@@ -97,20 +97,16 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 </script>
 
 <template>
-  <div
-    class="h-full w-full nc-lookup-cell"
-    :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
-    @dblclick="activateShowEditNonEditableFieldWarning"
-  >
+  <div class="h-full w-full nc-lookup-cell" @dblclick="activateShowEditNonEditableFieldWarning">
     <div
-      class="h-full w-full flex gap-1 p-1"
+      class="h-full w-full flex gap-1"
       :class="{
         '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden': rowHeight === 1,
       }"
     >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn)" class="flex">
+        <div v-if="isVirtualCol(lookupColumn)" class="flex h-full">
           <!-- If non-belongs-to LTAR column then pass the array value, else iterate and render -->
           <template
             v-if="
@@ -151,7 +147,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
               }"
             >
               <div
-                class="flex gap-1.5 w-full"
+                class="flex gap-1.5 w-full h-full py-[3px]"
                 :class="{
                   'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                   '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
@@ -162,11 +158,12 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                   v-for="(v, i) of arrValue"
                   :key="i"
                   :class="{
-                    'bg-gray-100 px-1 rounded-full min-h-7.5': !isAttachment(lookupColumn),
-                    'border-gray-200 rounded border-1 pt-0.75': ![
+                    'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
+                    'border-gray-200 rounded border-1': ![
                       UITypes.Attachment,
                       UITypes.MultiSelect,
                       UITypes.SingleSelect,
+                      UITypes.User,
                     ].includes(lookupColumn.uidt),
                     'min-h-0 min-w-0': isAttachment(lookupColumn),
                   }"
@@ -180,7 +177,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     class=""
                     :class="{
                       'min-h-0 min-w-0': isAttachment(lookupColumn),
-                      '!max-w-40 !min-w-20 !w-auto px-2': !isAttachment(lookupColumn),
+                      '!min-w-20 !w-auto pl-2': !isAttachment(lookupColumn),
                     }"
                   />
                 </div>

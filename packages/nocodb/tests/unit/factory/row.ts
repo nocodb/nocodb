@@ -224,7 +224,7 @@ const listRow = async ({
     sortArr?: Sort[];
   };
 }) => {
-  const sources = await base.getBases();
+  const sources = await base.getSources();
   const baseModel = await Model.getBaseModelSQL({
     id: table.id,
     dbDriver: await NcConnectionMgrv2.get(sources[0]!),

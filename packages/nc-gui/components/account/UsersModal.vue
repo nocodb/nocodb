@@ -34,6 +34,8 @@ const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
 
+const { clearBasesUser } = useBases()
+
 const usersData = ref<Users>({ emails: '', role: OrgUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
@@ -64,6 +66,8 @@ const saveUser = async () => {
 
     // Successfully updated the user details
     message.success(t('msg.success.userAdded'))
+
+    clearBasesUser()
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))

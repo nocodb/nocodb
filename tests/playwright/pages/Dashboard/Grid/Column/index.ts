@@ -4,17 +4,20 @@ import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { UserOptionColumnPageObject } from './UserOptionColumn';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
   readonly attachmentColumnPageObject: AttachmentColumnPageObject;
+  readonly userOption: UserOptionColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
     this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
+    this.userOption = new UserOptionColumnPageObject(this);
   }
 
   get() {
@@ -184,6 +187,8 @@ export class ColumnPageObject extends BasePage {
           })
           .nth(0)
           .click();
+        break;
+      case 'User':
         break;
       default:
         break;

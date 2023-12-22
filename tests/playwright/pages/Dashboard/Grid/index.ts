@@ -467,4 +467,9 @@ export class GridPage extends BasePage {
     // kludge: wait for paste to complete
     await this.rootPage.waitForTimeout(1000);
   }
+
+  async clearWithMouse({ index, columnHeader }: CellProps) {
+    await this.cell.get({ index, columnHeader }).click({ button: 'right' });
+    await this.get().page().getByTestId('context-menu-item-clear').click();
+  }
 }

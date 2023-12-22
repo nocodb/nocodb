@@ -134,6 +134,10 @@ const uiTypes = [
     name: UITypes.SpecificDBType,
     icon: iconMap.specificDbType,
   },
+  {
+    name: UITypes.User,
+    icon: iconMap.account,
+  },
 ]
 
 const getUIDTIcon = (uidt: UITypes | string) => {

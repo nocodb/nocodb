@@ -463,7 +463,8 @@ export interface ColumnType {
     | 'URL'
     | 'Year'
     | 'QrCode'
-    | 'Links';
+    | 'Links'
+    | 'User';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1780,7 +1781,8 @@ export interface NormalColumnRequestType {
     | 'URL'
     | 'Year'
     | 'QrCode'
-    | 'Links';
+    | 'Links'
+    | 'User';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -2759,6 +2761,13 @@ export interface NotificationListType {
 
 export interface NotificationUpdateType {
   is_read?: boolean;
+}
+
+export interface UserFieldRecordType {
+  id: string;
+  display_name?: string;
+  email: string;
+  deleted?: boolean;
 }
 
 import type {

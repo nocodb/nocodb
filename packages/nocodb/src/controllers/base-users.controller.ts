@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ProjectUserReqType } from 'nocodb-sdk';
+import { ProjectRoles, ProjectUserReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { NcError } from '~/helpers/catchError';
@@ -27,12 +27,19 @@ export class BaseUsersController {
     '/api/v1/db/meta/projects/:baseId/users',
     '/api/v2/meta/bases/:baseId/users',
   ])
-  @Acl('userList')
+  @Acl('baseUserList')
   async userList(@Param('baseId') baseId: string, @Req() req: Request) {
+    const baseRoles = Object.keys(req.user?.base_roles ?? {});
+    const mode =
+      baseRoles.includes(ProjectRoles.OWNER) ||
+      baseRoles.includes(ProjectRoles.CREATOR)
+        ? 'full'
+        : 'viewer';
+
     return {
       users: await this.baseUsersService.userList({
         baseId,
-        query: req.query,
+        mode,
       }),
     };
   }

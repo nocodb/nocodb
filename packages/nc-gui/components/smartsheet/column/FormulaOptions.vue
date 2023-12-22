@@ -99,8 +99,6 @@ const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 
-const varOptionsRef = ref<(typeof AntListItem)[]>([])
-
 const wordToComplete = ref<string | undefined>('')
 
 const selected = ref(0)
@@ -222,6 +220,7 @@ function selectText() {
 }
 
 function suggestionListUp() {
+  console.log('suggestionListUp', suggestion.value)
   if (suggestion.value) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
     scrollToSelectedOption()
@@ -238,10 +237,11 @@ function suggestionListDown() {
 function scrollToSelectedOption() {
   nextTick(() => {
     if (sugOptionsRef.value[selected.value]) {
+      console.log('scrollToSelectedOption', selected.value, sugOptionsRef.value[selected.value].$el, sugListRef.value)
       try {
-        sugListRef.value.$el.scrollTo({
-          top: sugOptionsRef.value[selected.value].$el.offsetTop,
-          behavior: 'smooth',
+        sugOptionsRef.value[selected.value].$el.scrollIntoView({
+          block: 'nearest',
+          inline: 'start',
         })
       } catch (e) {}
     }
@@ -340,7 +340,10 @@ onMounted(() => {
                   sugOptionsRef[index] = el
                 }
               "
-              class="cursor-pointer"
+              class="cursor-pointer !overflow-hidden"
+              :class="{
+                'bg-gray-100': selected === index,
+              }"
               @click.prevent.stop="appendText(item)"
               @mouseenter="suggestionPreviewed = item"
             >
@@ -368,15 +371,18 @@ onMounted(() => {
           ref="variableListRef"
           :data-source="variableList"
           :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
-          class="border-1 border-t-0 rounded-b-lg"
+          class="border-1 border-t-0 rounded-b-lg !overflow-hidden"
         >
           <template #renderItem="{ item, index }">
             <a-list-item
               :ref="
                 (el) => {
-                  varOptionsRef[index] = el
+                  sugOptionsRef[index + suggestedFormulas.length] = el
                 }
               "
+              :class="{
+                'bg-gray-100': selected === index + suggestedFormulas.length,
+              }"
               class="cursor-pointer"
               @click.prevent.stop="appendText(item)"
             >

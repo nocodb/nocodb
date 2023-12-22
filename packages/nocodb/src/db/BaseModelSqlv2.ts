@@ -5136,7 +5136,14 @@ class BaseModelSqlv2 {
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
                 (id) =>
-                  !childRows.find((r) => r[parentColumn.column_name] === id),
+                  !childRows.find(
+                    (r) =>
+                      r[parentColumn.column_name] ===
+                      (typeof id === 'object'
+                        ? id[parentTable.primaryKey.title] ||
+                          id[parentTable.primaryKey.column_name]
+                        : id),
+                  ),
               );
 
               NcError.unprocessableEntity(
@@ -5175,9 +5182,28 @@ class BaseModelSqlv2 {
         {
           // validate Ids
           {
-            const childRowsQb = this.dbDriver(childTn)
-              .select(childTable.primaryKey.column_name)
-              .whereIn(childTable.primaryKey.column_name, childIds);
+            const childRowsQb = this.dbDriver(childTn).select(
+              childTable.primaryKey.column_name,
+            );
+
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else if (typeof childIds[0] === 'object') {
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                childIds.map(
+                  (c) =>
+                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.column_name],
+                ),
+              );
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
 
             const childRows = await this.execAndParse(childRowsQb, null, {
               raw: true,
@@ -5186,7 +5212,14 @@ class BaseModelSqlv2 {
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
                 (id) =>
-                  !childRows.find((r) => r[parentColumn.column_name] === id),
+                  !childRows.find(
+                    (r) =>
+                      r[parentColumn.column_name] ===
+                      (typeof id === 'object'
+                        ? id[parentTable.primaryKey.title] ||
+                          id[parentTable.primaryKey.column_name]
+                        : id),
+                  ),
               );
 
               NcError.unprocessableEntity(

@@ -82,14 +82,16 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full items-center"
+    class="flex cursor-pointer w-full h-full items-center focus:outline-transparent"
     :class="{
       'w-full flex-start pl-2': isForm || isGallery || isExpandedFormOpen,
       'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
     }"
+    tabindex="0"
     @click="onClick(false, $event)"
+    @keydown.enter.stop="onClick(false, $event)"
   >
     <div
       class="items-center"

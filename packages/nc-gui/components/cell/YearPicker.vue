@@ -113,6 +113,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 <template>
   <a-date-picker
     v-model:value="localState"
+    tabindex="0"
     picker="year"
     :bordered="false"
     class="!w-full !px-1 !border-none"
@@ -125,6 +126,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
     @ok="open = !open"
+    @keydown.enter="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

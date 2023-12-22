@@ -275,6 +275,7 @@ interface FormulaMeta {
   syntax?: string;
   examples?: string[];
   returnType?: ((args: any[]) => FormulaDataTypes) | FormulaDataTypes;
+  docsUrl?: string;
 }
 
 export const formulas: Record<string, FormulaMeta> = {
@@ -293,6 +294,8 @@ export const formulas: Record<string, FormulaMeta> = {
       'AVG({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
   },
   ADD: {
     validation: {
@@ -309,8 +312,12 @@ export const formulas: Record<string, FormulaMeta> = {
       'ADD({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
   },
   DATEADD: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#dateadd',
     validation: {
       args: {
         rqd: 3,
@@ -407,6 +414,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   DATETIME_DIFF: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#datetime_diff',
+
     validation: {
       args: {
         min: 2,
@@ -486,6 +496,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   AND: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#and',
+
     validation: {
       args: {
         min: 1,
@@ -497,6 +510,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.COND_EXP,
   },
   OR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#or',
+
     validation: {
       args: {
         min: 1,
@@ -508,6 +524,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.COND_EXP,
   },
   CONCAT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#concat',
+
     validation: {
       args: {
         min: 1,
@@ -522,6 +541,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   TRIM: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#trim',
+
     validation: {
       args: {
         rqd: 1,
@@ -537,6 +559,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   UPPER: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#upper',
+
     validation: {
       args: {
         rqd: 1,
@@ -549,6 +574,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LOWER: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#lower',
+
     validation: {
       args: {
         rqd: 1,
@@ -561,6 +589,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LEN: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#len',
+
     validation: {
       args: {
         rqd: 1,
@@ -573,6 +604,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MIN: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#min',
+
     validation: {
       args: {
         min: 1,
@@ -585,6 +619,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MAX: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#max',
+
     validation: {
       args: {
         min: 1,
@@ -597,6 +634,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   CEILING: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#ceiling',
+
     validation: {
       args: {
         rqd: 1,
@@ -609,6 +649,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   FLOOR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#floor',
+
     validation: {
       args: {
         rqd: 1,
@@ -622,6 +665,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ROUND: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#round',
+
     validation: {
       args: {
         min: 1,
@@ -640,6 +686,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MOD: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#mod',
+
     validation: {
       args: {
         rqd: 2,
@@ -652,6 +701,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   REPEAT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#repeat',
+
     validation: {
       args: {
         rqd: 2,
@@ -666,6 +718,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LOG: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#log',
+
     validation: {
       args: {
         type: FormulaDataTypes.NUMERIC,
@@ -678,6 +733,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   EXP: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#exp',
+
     validation: {
       args: {
         type: FormulaDataTypes.NUMERIC,
@@ -689,6 +747,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   POWER: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#power',
+
     validation: {
       args: {
         rqd: 2,
@@ -701,6 +762,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   SQRT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#sqrt',
+
     validation: {
       args: {
         rqd: 1,
@@ -713,6 +777,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ABS: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#abs',
+
     validation: {
       args: {
         rqd: 1,
@@ -725,6 +792,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   NOW: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#now',
+
     validation: {
       args: {
         rqd: 0,
@@ -737,6 +807,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   REPLACE: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#replace',
+
     validation: {
       args: {
         rqd: 3,
@@ -753,6 +826,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SEARCH: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#search',
+
     validation: {
       args: {
         rqd: 2,
@@ -768,6 +844,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   INT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#int',
+
     validation: {
       args: {
         rqd: 1,
@@ -780,6 +859,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   RIGHT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#right',
+
     validation: {
       args: {
         rqd: 2,
@@ -792,6 +874,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LEFT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#left',
+
     validation: {
       args: {
         rqd: 2,
@@ -804,6 +889,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SUBSTR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#substr',
+
     validation: {
       args: {
         min: 2,
@@ -822,6 +910,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MID: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#mid',
+
     validation: {
       args: {
         rqd: 3,
@@ -834,6 +925,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   IF: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#if',
+
     validation: {
       args: {
         min: 2,
@@ -871,6 +965,9 @@ export const formulas: Record<string, FormulaMeta> = {
     },
   },
   SWITCH: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#switch',
+
     validation: {
       args: {
         min: 3,
@@ -913,6 +1010,9 @@ export const formulas: Record<string, FormulaMeta> = {
     },
   },
   URL: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#url',
+
     validation: {
       args: {
         rqd: 1,
@@ -925,6 +1025,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#weekday',
+
     validation: {
       args: {
         min: 1,
@@ -986,6 +1089,9 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'TRUE()',
     examples: ['TRUE()'],
     returnType: FormulaDataTypes.NUMERIC,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#true',
   },
 
   FALSE: {
@@ -998,6 +1104,9 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'FALSE()',
     examples: ['FALSE()'],
     returnType: FormulaDataTypes.NUMERIC,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#false',
   },
 
   REGEX_MATCH: {
@@ -1025,6 +1134,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_EXTRACT(string, regex)',
     examples: ['REGEX_EXTRACT({title}, "abc.*")'],
     returnType: FormulaDataTypes.STRING,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_extract',
   },
   REGEX_REPLACE: {
     validation: {
@@ -1038,6 +1149,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_MATCH(string, regex, replacement)',
     examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
     returnType: FormulaDataTypes.STRING,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_replace',
   },
   BLANK: {
     validation: {
@@ -1049,6 +1162,9 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'BLANK()',
     examples: ['BLANK()'],
     returnType: FormulaDataTypes.NULL,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#blank',
   },
   XOR: {
     validation: {
@@ -1062,6 +1178,9 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'XOR(expression, [exp2, ...])',
     examples: ['XOR(TRUE(), FALSE(), TRUE())'],
     returnType: FormulaDataTypes.BOOLEAN,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#xor',
   },
   EVEN: {
     validation: {
@@ -1075,6 +1194,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'EVEN(value)',
     examples: ['EVEN({column})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#even',
   },
   ODD: {
     validation: {
@@ -1088,6 +1209,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ODD(value)',
     examples: ['ODD({column})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#odd',
   },
   RECORD_ID: {
     validation: {
@@ -1114,6 +1237,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNTA(value1, [value2, ...])',
     examples: ['COUNTA({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#counta',
   },
   COUNT: {
     validation: {
@@ -1125,6 +1250,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNT(value1, [value2, ...])',
     examples: ['COUNT({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#count',
   },
   COUNTALL: {
     validation: {
@@ -1136,6 +1263,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNTALL(value1, [value2, ...])',
     examples: ['COUNTALL({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#countall',
   },
   ROUNDDOWN: {
     validation: {
@@ -1150,6 +1279,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ROUNDDOWN(value, [precision])',
     examples: ['ROUNDDOWN({field1})', 'ROUNDDOWN({field1}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#rounddown',
   },
   ROUNDUP: {
     validation: {
@@ -1164,6 +1295,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ROUNDUP(value, [precision])',
     examples: ['ROUNDUP({field1})', 'ROUNDUP({field1}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#roundup',
   },
   VALUE: {
     validation: {
@@ -1176,6 +1309,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'VALUE(value)',
     examples: ['VALUE({field})', 'VALUE("abc10000%")', 'VALUE("$10000")'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#value',
   },
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas

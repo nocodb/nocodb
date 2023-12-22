@@ -310,9 +310,10 @@ onMounted(() => {
           :key="example"
           class="bg-gray-100 py-1 px-2"
           :class="{
-            'border-t-1 border-gray-200': index !== 0 || suggestionPreviewed.examples.length === 1,
+            'border-t-1 border-gray-200': index !== 0,
             'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
             'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
+            'rounded-md': suggestionPreviewed.examples.length === 1,
           }"
         >
           {{ example }}

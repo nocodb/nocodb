@@ -275,6 +275,7 @@ interface FormulaMeta {
   syntax?: string;
   examples?: string[];
   returnType?: ((args: any[]) => FormulaDataTypes) | FormulaDataTypes;
+  docsUrl?: string;
 }
 
 export const formulas: Record<string, FormulaMeta> = {
@@ -293,6 +294,8 @@ export const formulas: Record<string, FormulaMeta> = {
       'AVG({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
   },
   ADD: {
     validation: {
@@ -309,8 +312,12 @@ export const formulas: Record<string, FormulaMeta> = {
       'ADD({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
   },
   DATEADD: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#dateadd',
     validation: {
       args: {
         rqd: 3,
@@ -351,9 +358,9 @@ export const formulas: Record<string, FormulaMeta> = {
         }
       },
     },
-    description: 'Adds a "count" units to Datetime.',
+    description: 'Adds "count" units to Datetime.',
     syntax:
-      'DATEADD(date | datetime, value, ["day" | "week" | "month" | "year"])',
+      'DATEADD(date | datetime, count, ["day" | "week" | "month" | "year"])',
     examples: [
       'DATEADD({column1}, 2, "day")',
       'DATEADD({column1}, -2, "day")',
@@ -372,7 +379,8 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 1,
       },
     },
-    description: 'Formats a datetime into a string (YYYY-MM-DD)',
+    syntax: 'DATESTR(date | datetime)',
+    description: 'Formats input field into a string in "YYYY-MM-DD" format',
     examples: ['DATESTR({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
@@ -382,7 +390,8 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 1,
       },
     },
-    description: 'Extract day from a date(1-31)',
+    syntax: 'DAY(date | datetime)',
+    description: 'Extract day from a date field (1-31)',
     examples: ['DAY({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
@@ -392,7 +401,8 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 1,
       },
     },
-    description: 'Extract month from a date(1-12)',
+    syntax: 'MONTH(date | datetime)',
+    description: 'Extract month from a date field (1-12)',
     examples: ['MONTH({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
@@ -402,11 +412,15 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 1,
       },
     },
-    description: 'Extract hour from a datetime(0-23)',
+    syntax: 'DAY(time | datetime)',
+    description: 'Extract hour from a time field (0-23)',
     examples: ['HOUR({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
   DATETIME_DIFF: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#datetime_diff',
+
     validation: {
       args: {
         min: 2,
@@ -469,7 +483,7 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Calculate the difference of two given date / datetime in specified units.',
+      'Calculate the difference of two given date / datetime fields in specified units.',
     syntax:
       'DATETIME_DIFF(date | datetime, date | datetime, ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"])',
     examples: [
@@ -486,34 +500,43 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   AND: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#and',
+
     validation: {
       args: {
         min: 1,
       },
     },
-    description: 'TRUE if all expr evaluate to TRUE',
+    description: 'Result is TRUE if all conditions are met',
     syntax: 'AND(expr1, [expr2, ...])',
     examples: ['AND(5 > 2, 5 < 10) => 1', 'AND({column1} > 2, {column2} < 10)'],
     returnType: FormulaDataTypes.COND_EXP,
   },
   OR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#or',
+
     validation: {
       args: {
         min: 1,
       },
     },
-    description: 'TRUE if at least one expr evaluates to TRUE',
+    description: 'Result is TRUE if at least one condition is met',
     syntax: 'OR(expr1, [expr2, ...])',
     examples: ['OR(5 > 2, 5 < 10) => 1', 'OR({column1} > 2, {column2} < 10)'],
     returnType: FormulaDataTypes.COND_EXP,
   },
   CONCAT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#concat',
+
     validation: {
       args: {
         min: 1,
       },
     },
-    description: 'Concatenated string of input parameters',
+    description: 'Concatenate input parameters into a single string',
     syntax: 'CONCAT(str1, [str2, ...])',
     examples: [
       'CONCAT("AA", "BB", "CC") => "AABBCC"',
@@ -522,6 +545,9 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   TRIM: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#trim',
+
     validation: {
       args: {
         rqd: 1,
@@ -537,78 +563,84 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   UPPER: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#upper',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Upper case converted string of input parameter',
+    description: 'Converts the input parameter to an upper-case string.',
     syntax: 'UPPER(str)',
     examples: ['UPPER("nocodb") => "NOCODB"', 'UPPER({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
   LOWER: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#lower',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Lower case converted string of input parameter',
+    description: 'Converts the input parameter to an lower-case string.',
     syntax: 'LOWER(str)',
     examples: ['LOWER("NOCODB") => "nocodb"', 'LOWER({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
   LEN: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#len',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Input parameter character length',
+    description: 'Calculate the character length of the input parameter.',
     syntax: 'LEN(value)',
     examples: ['LEN("NocoDB") => 6', 'LEN({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   MIN: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#min',
+
     validation: {
       args: {
         min: 1,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Minimum value amongst input parameters',
+    description: 'Find the minimum value among the input parameters.',
     syntax: 'MIN(value1, [value2, ...])',
     examples: ['MIN(1000, 2000) => 1000', 'MIN({column1}, {column2})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   MAX: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#max',
+
     validation: {
       args: {
         min: 1,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Maximum value amongst input parameters',
+    description: 'Find the maximum value among the input parameters.',
     syntax: 'MAX(value1, [value2, ...])',
     examples: ['MAX(1000, 2000) => 2000', 'MAX({column1}, {column2})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   CEILING: {
-    validation: {
-      args: {
-        rqd: 1,
-        type: FormulaDataTypes.NUMERIC,
-      },
-    },
-    description: 'Rounded next largest integer value of input parameter',
-    syntax: 'CEILING(value)',
-    examples: ['CEILING(1.01) => 2', 'CEILING({column1})'],
-    returnType: FormulaDataTypes.NUMERIC,
-  },
-  FLOOR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#ceiling',
+
     validation: {
       args: {
         rqd: 1,
@@ -616,12 +648,30 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Rounded largest integer less than or equal to input parameter',
+      'Rounds the input parameter to the next largest integer value.',
+    syntax: 'CEILING(value)',
+    examples: ['CEILING(1.01) => 2', 'CEILING({column1})'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  FLOOR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#floor',
+
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.NUMERIC,
+      },
+    },
+    description: 'Round down the input parameter to the nearest integer.',
     syntax: 'FLOOR(value)',
     examples: ['FLOOR(3.1415) => 3', 'FLOOR({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   ROUND: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#round',
+
     validation: {
       args: {
         min: 1,
@@ -630,7 +680,7 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Rounded number to a specified number of decimal places or the nearest integer if not specified',
+      'Rounds the number to a specified decimal places or the nearest integer if precision is not specified',
     syntax: 'ROUND(value, precision), ROUND(value)',
     examples: [
       'ROUND(3.1415) => 3',
@@ -640,18 +690,25 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MOD: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#mod',
+
     validation: {
       args: {
         rqd: 2,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Remainder after integer division of input parameters',
+    description:
+      'Calculate the remainder resulting from integer division of input parameters.',
     syntax: 'MOD(value1, value2)',
     examples: ['MOD(1024, 1000) => 24', 'MOD({column}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   REPEAT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#repeat',
+
     validation: {
       args: {
         rqd: 2,
@@ -660,83 +717,105 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Specified copies of the input parameter string concatenated together',
+      'Concatenate the specified number of copies of the input parameter string.',
     syntax: 'REPEAT(str, count)',
     examples: ['REPEAT("A", 5) => "AAAAA"', 'REPEAT({column}, 5)'],
     returnType: FormulaDataTypes.STRING,
   },
   LOG: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#log',
+
     validation: {
       args: {
         type: FormulaDataTypes.NUMERIC,
       },
     },
     description:
-      'Logarithm of input parameter to the base (default = e) specified',
+      'Compute the logarithm of the input parameter to the specified base (default = e).',
     syntax: 'LOG([base], value)',
     examples: ['LOG(2, 1024) => 10', 'LOG(2, {column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   EXP: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#exp',
+
     validation: {
       args: {
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Exponential value of input parameter (e ^ power)',
+    description:
+      'Compute the exponential value of the input parameter (e raised to the power specified)',
     syntax: 'EXP(power)',
     examples: ['EXP(1) => 2.718281828459045', 'EXP({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   POWER: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#power',
+
     validation: {
       args: {
         rqd: 2,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'base to the exponent power, as in base ^ exponent',
+    description: 'Compute base raised to the exponent power.',
     syntax: 'POWER(base, exponent)',
     examples: ['POWER(2, 10) => 1024', 'POWER({column1}, 10)'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   SQRT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#sqrt',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Square root of the input parameter',
+    description: 'Calculate the square root of the input parameter.',
     syntax: 'SQRT(value)',
     examples: ['SQRT(100) => 10', 'SQRT({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   ABS: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#abs',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Absolute value of the input parameter',
+    description: 'Obtain the absolute value of the input parameter.',
     syntax: 'ABS(value)',
     examples: ['ABS({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   NOW: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#now',
+
     validation: {
       args: {
         rqd: 0,
         type: FormulaDataTypes.DATE,
       },
     },
-    description: 'Returns the current time and day',
+    description: 'Retrieve the current time and day.',
     syntax: 'NOW()',
     examples: ['NOW() => 2022-05-19 17:20:43'],
     returnType: FormulaDataTypes.DATE,
   },
   REPLACE: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#replace',
+
     validation: {
       args: {
         rqd: 3,
@@ -744,8 +823,8 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'String, after replacing all occurrences of srchStr with rplcStr',
-    syntax: 'REPLACE(str, srchStr, rplcStr)',
+      'Replace all occurrences of "searchStr" with "replaceStr" in the given string.',
+    syntax: 'REPLACE(str, searchStr, replaceStr)',
     examples: [
       'REPLACE("AABBCC", "AA", "BB") => "BBBBCC"',
       'REPLACE({column1}, {column2}, {column3})',
@@ -753,14 +832,18 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SEARCH: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#search',
+
     validation: {
       args: {
         rqd: 2,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Index of srchStr specified if found, 0 otherwise',
-    syntax: 'SEARCH(str, srchStr)',
+    description:
+      'Retrieve the index of the specified "searchStr" if found; otherwise, returns 0.',
+    syntax: 'SEARCH(str, searchStr)',
     examples: [
       'SEARCH("HELLO WORLD", "WORLD") => 7',
       'SEARCH({column1}, "abc")',
@@ -768,42 +851,54 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   INT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#int',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.NUMERIC,
       },
     },
-    description: 'Integer value of input parameter',
+    description: 'Obtain the integer value of the input parameter',
     syntax: 'INT(value)',
     examples: ['INT(3.1415) => 3', 'INT({column1})'],
     returnType: FormulaDataTypes.NUMERIC,
   },
   RIGHT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#right',
+
     validation: {
       args: {
         rqd: 2,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'n characters from the end of input parameter',
+    description: 'Retrieve the last n characters from the input string.',
     syntax: 'RIGHT(str, n)',
     examples: ['RIGHT("HELLO WORLD", 5) => WORLD', 'RIGHT({column1}, 3)'],
     returnType: FormulaDataTypes.STRING,
   },
   LEFT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#left',
+
     validation: {
       args: {
         rqd: 2,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'n characters from the beginning of input parameter',
+    description: 'Retrieve the first n characters from the input string.',
     syntax: 'LEFT(str, n)',
     examples: ['LEFT({column1}, 2)', 'LEFT("ABCD", 2) => "AB"'],
     returnType: FormulaDataTypes.STRING,
   },
   SUBSTR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#substr',
+
     validation: {
       args: {
         min: 2,
@@ -812,7 +907,7 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Substring of length n of input string from the postition specified',
+      'Extracts a substring of length "n" from the input string, starting from the specified position.',
     syntax: '	SUBTR(str, position, [n])',
     examples: [
       'SUBSTR("HELLO WORLD", 7) => WORLD',
@@ -822,26 +917,33 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MID: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#mid',
+
     validation: {
       args: {
         rqd: 3,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Alias for SUBSTR',
+    description: 'Extracts a substring; an alias for SUBSTR.',
     syntax: 'MID(str, position, [count])',
     examples: ['MID("NocoDB", 3, 2) => "co"', 'MID({column1}, 3, 2)'],
     returnType: FormulaDataTypes.STRING,
   },
   IF: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#if',
+
     validation: {
       args: {
         min: 2,
         max: 3,
       },
     },
-    description: 'SuccessCase if expr evaluates to TRUE, elseCase otherwise',
-    syntax: 'IF(expr, successCase, elseCase)',
+    description:
+      'Evaluate successCase if the expression is TRUE, else the failureCase.',
+    syntax: 'IF(expr, successCase, failureCase)',
     examples: [
       'IF(5 > 1, "YES", "NO") => "YES"',
       'IF({column} > 1, "YES", "NO")',
@@ -871,6 +973,9 @@ export const formulas: Record<string, FormulaMeta> = {
     },
   },
   SWITCH: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#switch',
+
     validation: {
       args: {
         min: 3,
@@ -879,7 +984,8 @@ export const formulas: Record<string, FormulaMeta> = {
         // Todo: Add validation for switch
       },
     },
-    description: 'Switch case value based on expr output',
+    description:
+      'Evaluate case value based on expression output; if no match is found, evaluate default case.',
     syntax: 'SWITCH(expr, [pattern, value, ..., default])',
     examples: [
       'SWITCH(1, 1, "One", 2, "Two", "N/A") => "One""',
@@ -913,18 +1019,25 @@ export const formulas: Record<string, FormulaMeta> = {
     },
   },
   URL: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#url',
+
     validation: {
       args: {
         rqd: 1,
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Convert to a hyperlink if it is a valid URL',
+    description:
+      'Verify and convert to a hyperlink if the input is a valid URL.',
     syntax: 'URL(str)',
     examples: ['URL("https://github.com/nocodb/nocodb")', 'URL({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#weekday',
+
     validation: {
       args: {
         min: 1,
@@ -970,7 +1083,7 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Returns the day of the week as an integer between 0 and 6 inclusive starting from Monday by default',
+      'Retrieve the day of the week as an integer (0-6), starting from Monday by default.',
     syntax: 'WEEKDAY(date, [startDayOfWeek])',
     examples: ['WEEKDAY("2021-06-09")', 'WEEKDAY(NOW(), "sunday")'],
     returnType: FormulaDataTypes.NUMERIC,
@@ -986,6 +1099,9 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'TRUE()',
     examples: ['TRUE()'],
     returnType: FormulaDataTypes.NUMERIC,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#true',
   },
 
   FALSE: {
@@ -998,6 +1114,9 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'FALSE()',
     examples: ['FALSE()'],
     returnType: FormulaDataTypes.NUMERIC,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#false',
   },
 
   REGEX_MATCH: {
@@ -1008,7 +1127,7 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Returns 1 if the input text matches a regular expression or 0 if it does not.',
+      'Verifies whether the input text matches a regular expression, returning 1 for a match and 0 otherwise.',
     syntax: 'REGEX_MATCH(string, regex)',
     examples: ['REGEX_MATCH({title}, "abc.*")'],
     returnType: FormulaDataTypes.NUMERIC,
@@ -1021,10 +1140,13 @@ export const formulas: Record<string, FormulaMeta> = {
         type: FormulaDataTypes.STRING,
       },
     },
-    description: 'Returns the first match of a regular expression in a string.',
+    description:
+      'Retrieve the first match of a regular expression in a string.',
     syntax: 'REGEX_EXTRACT(string, regex)',
     examples: ['REGEX_EXTRACT({title}, "abc.*")'],
     returnType: FormulaDataTypes.STRING,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_extract',
   },
   REGEX_REPLACE: {
     validation: {
@@ -1034,10 +1156,12 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Replaces all matches of a regular expression in a string with a replacement string',
+      'Replace all occurrences of a regular expression in a string with a specified replacement string.',
     syntax: 'REGEX_MATCH(string, regex, replacement)',
     examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
     returnType: FormulaDataTypes.STRING,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_replace',
   },
   BLANK: {
     validation: {
@@ -1045,10 +1169,13 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 0,
       },
     },
-    description: 'Returns a blank value(null)',
+    description: 'Yields a null value.',
     syntax: 'BLANK()',
     examples: ['BLANK()'],
     returnType: FormulaDataTypes.NULL,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#blank',
   },
   XOR: {
     validation: {
@@ -1058,10 +1185,13 @@ export const formulas: Record<string, FormulaMeta> = {
       // todo: validation for boolean
     },
     description:
-      'Returns true if an odd number of arguments are true, and false otherwise.',
+      'Verifies whether an odd number of arguments are true, returning true if so, and false otherwise.',
     syntax: 'XOR(expression, [exp2, ...])',
     examples: ['XOR(TRUE(), FALSE(), TRUE())'],
     returnType: FormulaDataTypes.BOOLEAN,
+    // TODO: Add docs url
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#xor',
   },
   EVEN: {
     validation: {
@@ -1071,10 +1201,12 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Returns the nearest even integer that is greater than or equal to the specified value',
+      'Rounds up the specified value to the nearest even integer that is greater than or equal to the specified value',
     syntax: 'EVEN(value)',
     examples: ['EVEN({column})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#even',
   },
   ODD: {
     validation: {
@@ -1084,10 +1216,12 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Returns the nearest odd integer that is greater than or equal to the specified value',
+      'Rounds up the specified value to the nearest odd integer that is greater than or equal to the specified value',
     syntax: 'ODD(value)',
     examples: ['ODD({column})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#odd',
   },
   RECORD_ID: {
     validation: {
@@ -1095,7 +1229,7 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 0,
       },
     },
-    description: 'Returns the record id of the current record',
+    description: 'Retrieve the record ID of the current record.',
     syntax: 'RECORD_ID()',
     examples: ['RECORD_ID()'],
 
@@ -1110,10 +1244,12 @@ export const formulas: Record<string, FormulaMeta> = {
         min: 1,
       },
     },
-    description: 'Counts the number of non-empty arguments',
+    description: 'Counts non-empty arguments',
     syntax: 'COUNTA(value1, [value2, ...])',
     examples: ['COUNTA({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#counta',
   },
   COUNT: {
     validation: {
@@ -1121,10 +1257,12 @@ export const formulas: Record<string, FormulaMeta> = {
         min: 1,
       },
     },
-    description: 'Count the number of arguments that are numbers',
+    description: 'Counts numerical arguments',
     syntax: 'COUNT(value1, [value2, ...])',
     examples: ['COUNT({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#count',
   },
   COUNTALL: {
     validation: {
@@ -1136,6 +1274,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNTALL(value1, [value2, ...])',
     examples: ['COUNTALL({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#countall',
   },
   ROUNDDOWN: {
     validation: {
@@ -1146,10 +1286,12 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Round down the value after the decimal point to the number of decimal places given by "precision"(default is 0)',
+      'Rounds down the value after the decimal point to the specified number of decimal places given by "precision" (default is 0).',
     syntax: 'ROUNDDOWN(value, [precision])',
     examples: ['ROUNDDOWN({field1})', 'ROUNDDOWN({field1}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#rounddown',
   },
   ROUNDUP: {
     validation: {
@@ -1160,10 +1302,12 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Round up the value after the decimal point to the number of decimal places given by "precision"(default is 0)',
+      'Rounds up the value after the decimal point to the specified number of decimal places given by "precision" (default is 0).',
     syntax: 'ROUNDUP(value, [precision])',
     examples: ['ROUNDUP({field1})', 'ROUNDUP({field1}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#roundup',
   },
   VALUE: {
     validation: {
@@ -1172,10 +1316,12 @@ export const formulas: Record<string, FormulaMeta> = {
       },
     },
     description:
-      'Extract the numeric value from a string, if `%` or `-` is present, it will handle it accordingly and return the numeric value',
+      'Extracts the numeric value from a string, handling % or - appropriately, and returns the resulting numeric value.',
     syntax: 'VALUE(value)',
     examples: ['VALUE({field})', 'VALUE("abc10000%")', 'VALUE("$10000")'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#value',
   },
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas

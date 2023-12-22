@@ -55,6 +55,8 @@ const supportedColumns = computed(
 )
 const { getMeta } = useMetas()
 
+const suggestionPreviewed = ref<Record<any, string> | undefined>()
+
 const validators = {
   formula_raw: [
     {
@@ -94,6 +96,8 @@ const formulaRef = ref()
 const sugListRef = ref()
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
+
+const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const wordToComplete = ref<string | undefined>('')
 
@@ -196,6 +200,13 @@ function handleInput() {
   suggestion.value = acTree.value
     .complete(wordToComplete.value)
     ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
+
+  if (suggestion.value.length > 0 && suggestion.value[0].type !== 'column') {
+    suggestionPreviewed.value = suggestion.value[0]
+  } else {
+    suggestionPreviewed.value = undefined
+  }
+
   if (!isCurlyBracketBalanced()) {
     suggestion.value = suggestion.value.filter((v) => v.type === 'column')
   }
@@ -256,7 +267,24 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="formula-wrapper">
+  <div class="formula-wrapper relative">
+    <div
+      v-if="suggestionPreviewed && suggestionPreviewed.type === 'function'"
+      class="absolute -left-91 w-84 top-0 bg-white z-10 p-3 border-1 shadow-md rounded-xl"
+    >
+      <div class="flex flex-row w-full justify-between pb-1 border-b-1">
+        <div class="font-semibold text-base">{{ suggestionPreviewed.text }}</div>
+        <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
+          <GeneralIcon icon="close" />
+        </NcButton>
+      </div>
+      <div class="text-gray-500 uppercase text-xs mt-3 mb-1">Syntax</div>
+      <div class="bg-gray-800 text-white rounded-md py-1 px-2">{{ suggestionPreviewed.syntax }}</div>
+      <div class="text-gray-500 uppercase text-xs mt-3 mb-1">Examples</div>
+      <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-1">
+        {{ example }}
+      </div>
+    </div>
     <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
       <!-- <GeneralIcon
         v-if="isEeUI"
@@ -294,55 +322,82 @@ onMounted(() => {
       </a>
     </div>
 
-    <div class="h-[250px] overflow-auto scrollbar-thin-primary">
-      <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
-        <template #renderItem="{ item, index }">
-          <a-list-item
-            :ref="
-              (el) => {
-                sugOptionsRef[index] = el
-              }
-            "
-            class="cursor-pointer"
-            @click.prevent.stop="appendText(item)"
-          >
-            <a-list-item-meta>
-              <template #title>
-                <div class="flex">
-                  <a-col :span="6">
-                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
-                  </a-col>
+    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-md">
+      <template v-if="suggestedFormulas.length > 0">
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Formulas</div>
 
-                  <a-col :span="18">
-                    <div v-if="item.type === 'function'" class="text-xs text-gray-500">
-                      {{ item.description }} <br /><br />
-                      {{ $t('labels.syntax') }}: <br />
-                      {{ item.syntax }} <br /><br />
-                      {{ $t('labels.examples') }}: <br />
+        <a-list
+          :data-source="suggestedFormulas"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          class="border-1 border-t-0 rounded-b-lg !mb-4"
+        >
+          <template #renderItem="{ item, index }">
+            <a-list-item
+              :ref="
+                (el) => {
+                  sugOptionsRef[index] = el
+                }
+              "
+              class="cursor-pointer"
+              @click.prevent.stop="appendText(item)"
+              @mouseenter="suggestionPreviewed = item"
+            >
+              <a-list-item-meta>
+                <template #title>
+                  <div class="flex">
+                    <a-col :span="6">
+                      <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                    </a-col>
+                  </div>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </template>
 
-                      <div v-for="(example, idx) of item.examples" :key="idx">
-                        <div>({{ idx + 1 }}): {{ example }}</div>
-                      </div>
-                    </div>
+      <template v-if="variableList.length > 0">
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Fields</div>
 
-                    <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
-                      <a-badge-ribbon :text="item.uidt" color="gray" />
-                    </div>
-                  </a-col>
-                </div>
-              </template>
+        <a-list
+          ref="variableListRef"
+          :data-source="variableList"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          class="border-1 border-t-0 rounded-b-lg"
+        >
+          <template #renderItem="{ item, index }">
+            <a-list-item
+              :ref="
+                (el) => {
+                  variableList[index] = el
+                }
+              "
+              class="cursor-pointer"
+              @click.prevent.stop="appendText(item)"
+            >
+              <a-list-item-meta>
+                <template #title>
+                  <div class="flex">
+                    <a-col :span="6">
+                      <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                    </a-col>
+                  </div>
+                </template>
 
-              <template #avatar>
-                <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
-
-                <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
-
-                <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
-              </template>
-            </a-list-item-meta>
-          </a-list-item>
-        </template>
-      </a-list>
+                <template #avatar>
+                  <component :is="item.icon" class="text-lg" />
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </template>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-list-item) {
+  @apply !pt-1.75 pb-0.75 !px-3;
+}
+</style>

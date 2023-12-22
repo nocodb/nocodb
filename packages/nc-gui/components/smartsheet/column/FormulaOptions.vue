@@ -220,9 +220,9 @@ function selectText() {
 }
 
 function suggestionListUp() {
-  console.log('suggestionListUp', suggestion.value)
   if (suggestion.value) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
+    suggestionPreviewed.value = suggestionsList.value[selected.value]
     scrollToSelectedOption()
   }
 }
@@ -230,6 +230,8 @@ function suggestionListUp() {
 function suggestionListDown() {
   if (suggestion.value) {
     selected.value = ++selected.value % suggestion.value.length
+    suggestionPreviewed.value = suggestionsList.value[selected.value]
+
     scrollToSelectedOption()
   }
 }
@@ -272,18 +274,23 @@ onMounted(() => {
   <div class="formula-wrapper relative">
     <div
       v-if="suggestionPreviewed && suggestionPreviewed.type === 'function'"
-      class="absolute -left-91 w-84 top-0 bg-white z-10 p-3 border-1 shadow-md rounded-xl"
+      class="absolute -left-91 w-84 top-0 bg-white z-10 px-3 pt-3 border-1 shadow-md rounded-xl"
     >
       <div class="flex flex-row w-full justify-between pb-1 border-b-1">
-        <div class="font-semibold text-base">{{ suggestionPreviewed.text }}</div>
+        <div class="flex items-center gap-x-1 font-semibold text-base">
+          <component :is="iconMap.function" class="text-lg" />
+          {{ suggestionPreviewed.text }}
+        </div>
         <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
           <GeneralIcon icon="close" />
         </NcButton>
       </div>
-      <div class="text-gray-500 uppercase text-xs mt-3 mb-1">Syntax</div>
+      <div class="flex mt-3">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptatum.</div>
+
+      <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
       <div class="bg-gray-800 text-white rounded-md py-1 px-2">{{ suggestionPreviewed.syntax }}</div>
-      <div class="text-gray-500 uppercase text-xs mt-3 mb-1">Examples</div>
-      <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-1">
+      <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
+      <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-3">
         {{ example }}
       </div>
     </div>
@@ -332,6 +339,7 @@ onMounted(() => {
           :data-source="suggestedFormulas"
           :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
           class="border-1 border-t-0 rounded-b-lg !mb-4"
+          @mouseleave="suggestionPreviewed = suggestionsList[selected]"
         >
           <template #renderItem="{ item, index }">
             <a-list-item
@@ -340,9 +348,9 @@ onMounted(() => {
                   sugOptionsRef[index] = el
                 }
               "
-              class="cursor-pointer !overflow-hidden"
+              class="cursor-pointer !overflow-hidden hover:bg-gray-50"
               :class="{
-                'bg-gray-100': selected === index,
+                '!bg-gray-100': selected === index,
               }"
               @click.prevent.stop="appendText(item)"
               @mouseenter="suggestionPreviewed = item"
@@ -381,9 +389,9 @@ onMounted(() => {
                 }
               "
               :class="{
-                'bg-gray-100': selected === index + suggestedFormulas.length,
+                '!bg-gray-100': selected === index + suggestedFormulas.length,
               }"
-              class="cursor-pointer"
+              class="cursor-pointer hover:bg-gray-50"
               @click.prevent.stop="appendText(item)"
             >
               <a-list-item-meta>

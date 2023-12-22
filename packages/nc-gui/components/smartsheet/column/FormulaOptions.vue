@@ -95,9 +95,11 @@ const formulaRef = ref()
 
 const sugListRef = ref()
 
+const variableListRef = ref<(typeof AntListItem)[]>([])
+
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 
-const variableListRef = ref<(typeof AntListItem)[]>([])
+const varOptionsRef = ref<(typeof AntListItem)[]>([])
 
 const wordToComplete = ref<string | undefined>('')
 
@@ -369,7 +371,7 @@ onMounted(() => {
             <a-list-item
               :ref="
                 (el) => {
-                  variableList[index] = el
+                  varOptionsRef[index] = el
                 }
               "
               class="cursor-pointer"

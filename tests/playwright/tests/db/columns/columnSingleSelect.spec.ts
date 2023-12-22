@@ -39,7 +39,12 @@ test.describe('Single select', () => {
 
     await grid.column.selectOption.addOption({ index: 2, option: 'Option 3', columnTitle: 'SingleSelect' });
 
-    await grid.cell.selectOption.select({ index: 0, columnHeader: 'SingleSelect', option: 'Option 3' });
+    await grid.cell.selectOption.select({
+      index: 0,
+      columnHeader: 'SingleSelect',
+      option: 'Option 3',
+      ignoreDblClick: true,
+    });
     await grid.cell.selectOption.verify({ index: 0, columnHeader: 'SingleSelect', option: 'Option 3' });
 
     await grid.column.selectOption.editOption({ index: 2, columnTitle: 'SingleSelect', newOption: 'New Option 3' });

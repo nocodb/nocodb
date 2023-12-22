@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
-  CellClickHookInj,
   ColumnInj,
   EditColumnInj,
   EditModeInj,
@@ -299,25 +297,11 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj, null)
-
 const toggleMenu = () => {
-  if (cellClickHook) return
-
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
 }
-
-const cellClickHookHandler = () => {
-  isOpen.value = editAllowed.value && !isOpen.value
-}
-onMounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
-onUnmounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
 
 const handleClose = (e: MouseEvent) => {
   // close dropdown if clicked outside of dropdown

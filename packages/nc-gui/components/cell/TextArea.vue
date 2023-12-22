@@ -58,6 +58,8 @@ const isDragging = ref(false)
 const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
+  if (isExpandedFormOpen.value) return 36 * 4
+
   if (!rowHeight.value || rowHeight.value === 1) return 36
 
   return rowHeight.value * 36
@@ -169,16 +171,16 @@ watch(editEnabled, () => {
 <template>
   <NcDropdown
     v-model:visible="isVisible"
-    class="overflow-visible"
+    class="overflow-hidden group"
     :trigger="[]"
     placement="bottomLeft"
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full rich-wrapper"
+      class="flex flex-row pt-0.5 w-full rich-wrapper long-text-wrapper"
       :class="{
-        'min-h-10': rowHeight !== 1,
-        'min-h-6.5': rowHeight === 1,
+        'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
+        'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
         'h-full': isForm,
       }"
     >
@@ -198,7 +200,7 @@ watch(editEnabled, () => {
         :ref="focus"
         v-model="vModel"
         rows="4"
-        class="h-full w-full outline-none border-none"
+        class="h-full w-full outline-none border-none nc-scrollbar-lg"
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
@@ -240,7 +242,12 @@ watch(editEnabled, () => {
         v-if="!isVisible"
         placement="bottom"
         class="!absolute right-0 bottom-1 hidden nc-text-area-expand-btn"
-        :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
+        :class="{
+          'right-0 bottom-1': editEnabled,
+          '!bottom-0': !isRichMode,
+          'top-1 hidden !group-hover:block': isExpandedFormOpen,
+          'bottom-1': !isExpandedFormOpen,
+        }"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

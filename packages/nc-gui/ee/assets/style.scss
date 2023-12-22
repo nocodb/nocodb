@@ -226,6 +226,11 @@ a {
   }
 }
 
+// select dropdown border style
+.ant-select-dropdown {
+  @apply border-1 border-gray-200
+}
+
 // menu item styling
 .nc-menu-item {
   @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
@@ -426,6 +431,10 @@ a {
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
+
+  &.ant-dropdown-menu-submenu-popup{
+    @apply border-1 border-gray-200
+  }
 
   .ant-dropdown-menu,
   .ant-menu {
@@ -692,7 +701,7 @@ a {
 
 .ant-message-notice-content {
   @apply !rounded-md;
-  
+
   .ant-message-custom-content{
     @apply flex items-center
   }

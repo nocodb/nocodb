@@ -5,10 +5,10 @@ import {extractProps} from '~/helpers/extractProps';
 import {CacheGetType, CacheScope, MetaTable} from '~/utils/globals';
 
 export default class CalendarRange implements CalendarRangeType {
-    id: string;
-    fk_from_column_id: string;
-    fk_to_column_id: string | null;
-    fk_view_id: string;
+    id?: string;
+    fk_from_column_id?: string;
+    fk_to_column_id?: string | null;
+    fk_view_id?: string;
 
     constructor(data: Partial<CalendarRange>) {
         Object.assign(this, data);

@@ -63,6 +63,7 @@ export default class View implements ViewType {
     | MapViewColumn
       | CalendarViewColumn
   >;
+  calendar_range?: Array<CalendarRange>;
 
   sorts: Sort[];
   filter: Filter;
@@ -134,6 +135,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(this.id, ncMeta);
+        this.calendar_range = (await CalendarRange.read(this.id, ncMeta)).ranges;
         break;
     }
     return this.view;
@@ -280,7 +282,7 @@ export default class View implements ViewType {
         Partial<FormView | GridView | GalleryView | KanbanView | MapView | CalendarView> & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
-      calendar_range?: Partial<CalendarRange>[];
+        calendar_range?: Partial<CalendarRange>[];
       },
     ncMeta = Noco.ncMeta,
   ) {

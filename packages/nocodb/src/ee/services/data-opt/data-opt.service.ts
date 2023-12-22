@@ -6,6 +6,7 @@ import {
   singleQueryList as mysqlSingleQueryList,
   singleQueryRead as mysqlSingleQueryRead,
 } from '~/services/data-opt/mysql-helpers';
+import { haveFormulaColumn } from '~/db/BaseModelSqlv2';
 
 @Injectable()
 export class DataOptService {
@@ -15,6 +16,7 @@ export class DataOptService {
     source: Source;
     params;
     throwErrorIfInvalidParams?: boolean;
+    validateFormula?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 
@@ -30,10 +32,20 @@ export class DataOptService {
           params.sortArr = JSON.parse(params.sortArrJson);
         } catch (e) {}
     }
-    if (['mysql', 'mysql2'].includes(ctx.source.type)) {
-      return mysqlSingleQueryList({ ...ctx, params });
+    try {
+      if (['mysql', 'mysql2'].includes(ctx.source.type)) {
+        return await mysqlSingleQueryList({ ...ctx, params });
+      }
+      return await singleQueryList({ ...ctx, params });
+    } catch (e) {
+      if (
+        ctx.validateFormula ||
+        !haveFormulaColumn(await ctx.model.getColumns())
+      )
+        throw e;
+      console.log(e);
+      return this.list({ ...ctx, validateFormula: true });
     }
-    return singleQueryList({ ...ctx, params });
   }
 
   async read(ctx: {
@@ -43,10 +55,21 @@ export class DataOptService {
     params;
     id: string;
     throwErrorIfInvalidParams?: boolean;
+    validateFormula?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
-    if (['mysql', 'mysql2'].includes(ctx.source.type)) {
-      return mysqlSingleQueryRead(ctx);
+    try {
+      if (['mysql', 'mysql2'].includes(ctx.source.type)) {
+        return mysqlSingleQueryRead(ctx);
+      }
+      return singleQueryRead(ctx);
+    } catch (e) {
+      if (
+        ctx.validateFormula ||
+        !haveFormulaColumn(await ctx.model.getColumns())
+      )
+        throw e;
+      console.log(e);
+      return this.read({ ...ctx, validateFormula: true });
     }
-    return singleQueryRead(ctx);
   }
 }

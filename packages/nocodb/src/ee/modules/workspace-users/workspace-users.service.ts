@@ -137,24 +137,36 @@ export class WorkspaceUsersService {
   async delete(param: { workspaceId: string; userId: string }) {
     const { workspaceId, userId } = param;
 
-    const user = await WorkspaceUser.get(workspaceId, userId);
+    const ncMeta = await Noco.ncMeta.startTransaction();
 
-    if (!user) NcError.notFound('User not found');
+    try {
+      const user = await WorkspaceUser.get(workspaceId, userId, ncMeta);
 
-    if (user.roles === WorkspaceUserRoles.OWNER)
-      NcError.badRequest('Owner cannot be deleted');
+      if (!user) NcError.notFound('User not found');
 
-    // get all bases user is part of and delete them
-    const workspaceBases = await Base.listByWorkspaceAndUser(
-      workspaceId,
-      userId,
-    );
+      if (user.roles === WorkspaceUserRoles.OWNER)
+        NcError.badRequest('Owner cannot be deleted');
 
-    for (const base of workspaceBases) {
-      await BaseUser.delete(base.id, userId);
+      // get all bases user is part of and delete them
+      const workspaceBases = await Base.listByWorkspaceAndUser(
+        workspaceId,
+        userId,
+        ncMeta,
+      );
+
+      for (const base of workspaceBases) {
+        await BaseUser.delete(base.id, userId, ncMeta);
+      }
+
+      const res = await WorkspaceUser.softDelete(workspaceId, userId, ncMeta);
+
+      await ncMeta.commit();
+
+      return res;
+    } catch (e) {
+      await ncMeta.rollback();
+      throw e;
     }
-
-    return await WorkspaceUser.delete(workspaceId, userId);
   }
 
   async invite(param: {
@@ -268,13 +280,13 @@ export class WorkspaceUsersService {
       await WorkspaceUser.insert({
         fk_workspace_id: workspaceId,
         fk_user_id: user.id,
-        roles: roles || 'editor',
+        roles: roles || WorkspaceUserRoles.VIEWER,
       });
 
       this.sendInviteEmail({
         workspace,
         user,
-        roles: roles || 'viewer',
+        roles: roles || WorkspaceUserRoles.VIEWER,
         siteUrl: getWorkspaceSiteUrl({
           siteUrl: param.siteUrl,
           workspaceId: workspace.id,

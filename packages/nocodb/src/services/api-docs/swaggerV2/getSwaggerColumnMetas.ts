@@ -8,7 +8,7 @@ export default async (
   base: Base,
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
-  const dbType = await base.getBases().then((b) => b?.[0]?.type);
+  const dbType = await base.getSources().then((b) => b?.[0]?.type);
   return Promise.all(
     columns.map(async (c) => {
       const field: SwaggerColumn = {

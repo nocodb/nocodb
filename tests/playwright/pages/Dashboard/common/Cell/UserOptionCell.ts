@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { CellPageObject } from '.';
 import BasePage from '../../../Base';
 
-export class SelectOptionCellPageObject extends BasePage {
+export class UserOptionCellPageObject extends BasePage {
   readonly cell: CellPageObject;
 
   constructor(cell: CellPageObject) {
@@ -19,13 +19,11 @@ export class SelectOptionCellPageObject extends BasePage {
     columnHeader,
     option,
     multiSelect,
-    ignoreDblClick,
   }: {
     index: number;
     columnHeader: string;
     option: string;
     multiSelect?: boolean;
-    ignoreDblClick?: boolean;
   }) {
     const selectCell = this.get({ index, columnHeader });
 
@@ -34,7 +32,7 @@ export class SelectOptionCellPageObject extends BasePage {
       !(await selectCell.getAttribute('class')).includes('active') &&
       (await selectCell.locator('.nc-selected-option').count()) === 0
     ) {
-      if (!ignoreDblClick) await selectCell.click();
+      await selectCell.click();
     }
 
     await selectCell.click();
@@ -71,11 +69,11 @@ export class SelectOptionCellPageObject extends BasePage {
     }
 
     await this.get({ index, columnHeader }).click();
-    await this.rootPage.locator('.ant-select-single > .ant-select-clear').click();
+    await this.rootPage.locator('.ant-tag > .ant-tag-close-icon').click();
 
     // Press `Escape` to close the dropdown
     await this.rootPage.keyboard.press('Escape');
-    await this.rootPage.locator(`.nc-dropdown-single-select-cell`).waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
   }
 
   async verify({
@@ -101,7 +99,7 @@ export class SelectOptionCellPageObject extends BasePage {
 
   async verifyNoOptionsSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
     return await expect(
-      this.cell.get({ index, columnHeader }).locator('.ant-select-selection-item > .ant-tag')
+      this.cell.get({ index, columnHeader }).locator('.ant-select-selection-overflow-item >> .ant-tag')
     ).toBeHidden();
   }
 
@@ -132,41 +130,7 @@ export class SelectOptionCellPageObject extends BasePage {
       counter++;
     }
     await this.rootPage.keyboard.press('Escape');
-    await this.rootPage.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({ state: 'hidden' });
-  }
-
-  async addNewOption({
-    index,
-    columnHeader,
-    option,
-    multiSelect = false,
-  }: {
-    index: number;
-    columnHeader: string;
-    option: string;
-    multiSelect?: boolean;
-  }) {
-    const selectCell = this.get({ index, columnHeader });
-
-    // check if cell active
-    if (!(await selectCell.getAttribute('class')).includes('active')) {
-      await selectCell.click();
-    }
-
-    await selectCell.locator('.ant-select-selection-search-input').type(option);
-
-    // await selectCell.locator('.ant-select-selection-search-input').press('Enter');
-
-    // Wait for update api call
-    const saveRowAction = () => selectCell.locator('.ant-select-selection-search-input').press('Enter');
-    await this.waitForResponse({
-      uiAction: saveRowAction,
-      requestUrlPathToMatch: 'api/v1/db/data/noco/',
-      httpMethodsToMatch: ['PATCH'],
-      responseJsonMatcher: resJson => String(resJson?.[columnHeader]).includes(String(option)),
-    });
-
-    if (multiSelect) await selectCell.locator('.ant-select-selection-search-input').press('Escape');
+    await this.rootPage.locator(`.nc-dropdown-user-select-cell`).nth(index).waitFor({ state: 'hidden' });
   }
 
   async verifySelectedOptions({

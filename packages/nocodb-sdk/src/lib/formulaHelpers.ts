@@ -530,7 +530,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         min: 1,
-        type: FormulaDataTypes.STRING,
       },
     },
     description: 'Concatenated string of input parameters',
@@ -1563,7 +1562,10 @@ export async function validateFormulaAndExtractTreeWithType({
     if (parsedTree.type === JSEPNode.CALL_EXP) {
       const calleeName = parsedTree.callee.name.toUpperCase();
       // validate function name
-      if (!formulas[calleeName] || sqlUI?.getUnsupportedFnList().includes(calleeName)) {
+      if (
+        !formulas[calleeName] ||
+        sqlUI?.getUnsupportedFnList().includes(calleeName)
+      ) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
           {},
@@ -1640,15 +1642,20 @@ export async function validateFormulaAndExtractTreeWithType({
             argPt.dataType !== FormulaDataTypes.UNKNOWN
           ) {
             if (argPt.type === JSEPNode.IDENTIFIER) {
+              const name =
+                columns?.find(
+                  (c) => c.id === argPt.name || c.title === argPt.name
+                )?.title || argPt.name;
+
               throw new FormulaError(
                 FormulaErrorType.INVALID_ARG,
                 {
                   key: 'msg.formula.columnWithTypeFoundButExpected',
-                  columnName: parsedTree.name,
-                  columnType: parsedTree.dataType,
+                  columnName: name,
+                  columnType: argPt.dataType,
                   expectedType: expectedArgType,
                 },
-                `Field ${parsedTree.name} with ${parsedTree.dataType} type is found but ${expectedArgType} type is expected`
+                `Field ${name} with ${argPt.dataType} type is found but ${expectedArgType} type is expected`
               );
             } else {
               let key = '',

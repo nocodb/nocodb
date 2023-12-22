@@ -58,7 +58,7 @@ export default class Base extends BaseCE {
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
     );
     return baseList
-      .map((m) => new Base(m))
+      .map((m) => this.castType(m))
       .filter((p) => !param?.type || p.type === param.type);
   }
 
@@ -176,7 +176,7 @@ export default class Base extends BaseCE {
     let base: Base = await super.getWithInfo(baseId, ncMeta);
 
     if (base && base.type === ProjectTypes.DASHBOARD) {
-      base = new Base(base);
+      base = this.castType(base);
       await base.getLinkedDbProjects(ncMeta);
     }
 
@@ -188,9 +188,6 @@ export default class Base extends BaseCE {
     const users = await BaseUser.getUsersList(
       {
         base_id: baseId,
-        workspace_id: (base as Base).fk_workspace_id,
-        offset: 0,
-        limit: 1000,
       },
       ncMeta,
     );
@@ -219,8 +216,6 @@ export default class Base extends BaseCE {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.title}`);
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
     }
-
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
     await NocoCache.deepDel(
       CacheScope.PROJECT,
@@ -255,8 +250,6 @@ export default class Base extends BaseCE {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
-
-    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
     await NocoCache.del(CacheScope.INSTANCE_META);
 
@@ -348,7 +341,7 @@ export default class Base extends BaseCE {
 
     const castedProjectList = bases.map((m) => this.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   };
@@ -369,7 +362,7 @@ export default class Base extends BaseCE {
 
     const castedProjectList = bases.map((m) => this.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   }

@@ -19,6 +19,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
+import { Base, BaseUser } from '~/models';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -681,6 +682,26 @@ async function _formulaQueryBuilder(
             Promise.resolve({ builder: col.column_name });
         }
         break;
+      case UITypes.User:
+        {
+          const base = await Base.get(model.base_id);
+          const baseUsers = await BaseUser.getUsersList({
+            base_id: base.id,
+          });
+
+          // create nested replace statement for each user
+          const finalStatement = baseUsers.reduce((acc, user) => {
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [user.id, user.email]);
+            return qb.toQuery();
+          }, knex.raw(`??`, [col.column_name]).toQuery());
+
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(finalStatement).wrap('(', ')'),
+            };
+          };
+        }
+        break;
       default:
         aliasToColumn[col.id] = () =>
           Promise.resolve({ builder: col.column_name });
@@ -1036,23 +1057,24 @@ export default async function formulaQueryBuilderv2(
   const knex = baseModelSqlv2.dbDriver;
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
-  // generate qb
-  const qb = await _formulaQueryBuilder(
-    baseModelSqlv2,
-    _tree,
-    alias,
-    model,
-    aliasToColumn,
-    tableAlias,
-    parsedTree ??
-      (await column
-        ?.getColOptions<FormulaColumn>()
-        .then((formula) => formula?.getParsedTree())),
-  );
-
-  if (!validateFormula) return qb;
-
+  let qb;
   try {
+    // generate qb
+    qb = await _formulaQueryBuilder(
+      baseModelSqlv2,
+      _tree,
+      alias,
+      model,
+      aliasToColumn,
+      tableAlias,
+      parsedTree ??
+        (await column
+          ?.getColOptions<FormulaColumn>()
+          .then((formula) => formula?.getParsedTree())),
+    );
+
+    if (!validateFormula) return qb;
+
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await baseModelSqlv2.execAndParse(
@@ -1074,6 +1096,8 @@ export default async function formulaQueryBuilderv2(
       }
     }
   } catch (e) {
+    if (!validateFormula) throw e;
+
     console.error(e);
     if (column) {
       const formula = await column.getColOptions<FormulaColumn>();

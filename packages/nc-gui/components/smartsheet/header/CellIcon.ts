@@ -31,6 +31,7 @@ import {
   isTextArea,
   isTime,
   isURL,
+  isUser,
   isYear,
   storeToRefs,
   toRef,
@@ -82,6 +83,11 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.percent
   } else if (isGeometry(column)) {
     return iconMap.calculator
+  } else if (isUser(column)) {
+    if ((column.meta as { is_multi: boolean; notify: boolean }).is_multi) {
+      return iconMap.phUsers
+    }
+    return iconMap.phUser
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.number
   } else if (isString(column, abstractType)) {

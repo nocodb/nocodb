@@ -12,7 +12,7 @@ export const useBases = defineStore('basesStore', () => {
   const bases = ref<Map<string, NcProject>>(new Map())
 
   const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at))
-  const baseUserCount = ref<number | undefined>(undefined)
+  const basesUser = ref<Map<string, User[]>>(new Map())
 
   const router = useRouter()
   const route = router.currentRoute
@@ -48,31 +48,33 @@ export const useBases = defineStore('basesStore', () => {
 
   const isProjectsLoading = ref(false)
 
-  async function getProjectUsers({
-    baseId,
-    limit,
-    page,
-    searchText,
-  }: {
-    baseId: string
-    limit: number
-    page: number
-    searchText: string | undefined
-  }) {
+  async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
+    if (!force && basesUser.value.has(baseId)) {
+      const users = basesUser.value.get(baseId)
+      return {
+        users,
+        totalRows: users?.length ?? 0,
+      }
+    }
+
     const response: any = await api.auth.baseUserList(baseId, {
       query: {
-        limit,
-        offset: (page - 1) * limit,
         query: searchText,
       },
     } as RequestParams)
 
     const totalRows = response.users.pageInfo.totalRows ?? 0
 
+    basesUser.value.set(baseId, response.users.list)
+
     return {
       users: response.users.list,
       totalRows,
     }
+  }
+
+  const clearBasesUser = () => {
+    basesUser.value.clear()
   }
 
   const createProjectUser = async (baseId: string, user: User) => {
@@ -295,7 +297,6 @@ export const useBases = defineStore('basesStore', () => {
   return {
     bases,
     basesList,
-    baseUserCount,
     loadProjects,
     loadProject,
     getSqlUi,
@@ -312,13 +313,15 @@ export const useBases = defineStore('basesStore', () => {
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
-    getProjectUsers,
+    getBaseUsers,
     createProjectUser,
     updateProjectUser,
     navigateToProject,
     removeProjectUser,
     navigateToFirstProjectOrHome,
     toggleStarred,
+    basesUser,
+    clearBasesUser,
   }
 })
 

@@ -90,6 +90,12 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
     }
 
+    if (col.uidt === UITypes.User) {
+      if (!value) {
+        return GROUP_BY_VARS.NULL
+      }
+    }
+
     // convert to JSON string if non-string value
     if (value && typeof value === 'object') {
       value = JSON.stringify(value)
@@ -155,6 +161,11 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
         acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
       } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
+      } else if (curr.column_uidt === UITypes.User) {
+        try {
+          const value = JSON.parse(curr.key)
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${value.map((v: any) => v.id).join(',')})`
+        } catch (e) {}
       } else {
         acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
       }

@@ -82,7 +82,7 @@
  */
 
 import 'mocha';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import {UITypes, ViewTypes, WorkspaceUserRoles} from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
@@ -98,6 +98,7 @@ import {
 import { createView, updateView } from '../../factory/view';
 
 import { isPg } from '../../init/db';
+import { defaultUserArgs } from '../../factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
@@ -2731,6 +2732,248 @@ function linkBased() {
   });
 }
 
+function userFieldBased() {
+  // prepare data for test cases
+  beforeEach(async function () {
+    context = await init(false, 'creator');
+    base = await createProject(context);
+    table = await createTable(context, base, {
+      table_name: 'userBased',
+      title: 'userBased',
+      columns: customColumns('userBased'),
+    });
+
+    // retrieve column meta
+    columns = await table.getColumns();
+
+    // add users to workspace
+    const users = [
+      'a@nocodb.com',
+      'b@nocodb.com',
+      'c@nocodb.com',
+      'd@nocodb.com',
+      'e@nocodb.com',
+    ];
+    for (const email of users) {
+      await addUsers(email);
+    }
+    const userList = await getUsers();
+    userList[userList.length] = { email: null };
+    userList[userList.length] = { email: '' };
+
+    // build records
+    const rowAttributes = [];
+    for (let i = 0; i < 400; i++) {
+      const row = {
+        userFieldSingle: [{ email: userList[i % userList.length].email }],
+        userFieldMulti: [
+          { email: userList[i % userList.length].email },
+          { email: userList[(i + 1) % userList.length].email },
+        ],
+      };
+      rowAttributes.push(row);
+    }
+
+    // insert records
+    await createBulkRows(context, {
+      base,
+      table,
+      values: rowAttributes,
+    });
+
+    // retrieve inserted records
+    insertedRecords = await listRow({ base, table });
+
+    // verify length of unfiltered records to be 400
+    expect(insertedRecords.length).to.equal(400);
+  });
+
+  async function addUsers(email) {
+    const response = await request(context.app)
+      .post('/api/v1/auth/user/signup')
+      .send({ email, password: defaultUserArgs.password })
+      .expect(200);
+
+    const token = response.body.token;
+    expect(token).to.be.a('string');
+
+    // invite users to workspace
+    if (process.env.EE === 'true') {
+      let rsp = await request(context.app)
+        .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
+        .set('xc-auth', context.token)
+        .send({ email, roles: WorkspaceUserRoles.VIEWER });
+      console.log(rsp);
+    }
+  }
+
+  async function getUsers() {
+    const response = await request(context.app)
+      .get(`/api/v2/meta/bases/${base.id}/users`)
+      .set('xc-auth', context.token);
+
+    expect(response.body).to.have.keys(['users']);
+    expect(response.body.users.list).to.have.length(6);
+    return response.body.users.list;
+  }
+
+  it('List records', async function () {
+    // retrieve inserted records
+    insertedRecords = await listRow({ base, table });
+
+    // verify length of unfiltered records to be 400
+    expect(insertedRecords.length).to.equal(400);
+    expect(insertedRecords[0].userFieldSingle[0]).to.have.keys([
+      'email',
+      'id',
+      'display_name',
+    ]);
+    expect(insertedRecords[0].userFieldMulti[0]).to.have.keys([
+      'email',
+      'id',
+      'display_name',
+    ]);
+  });
+
+  it('List: sort, ascending', async function () {
+    const sortColumn = columns.find((c) => c.title === 'userFieldSingle');
+    const rsp = await ncAxiosGet({
+      query: { sort: 'userFieldSingle', limit: 400 },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+    expect(sortedArray).to.deep.equal(
+      sortedArray.sort((a, b) => {
+        const emailA = a ? a[0]?.email?.toLowerCase() : '';
+        const emailB = b ? b[0]?.email?.toLowerCase() : '';
+
+        if (emailA < emailB) {
+          return -1;
+        }
+        if (emailA > emailB) {
+          return 1;
+        }
+
+        // Emails are equal, no change in order
+        return 0;
+      }),
+    );
+  });
+
+  it('List: filter, single', async function () {
+    const userList = await getUsers();
+    const rsp = await ncAxiosGet({
+      query: {
+        where: `(userFieldSingle,eq,${userList[2].id})`,
+        limit: 400,
+      },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    const filteredArray = rsp.body.list.map((r) => r.userFieldSingle);
+    expect(filteredArray).to.deep.equal(filteredArray.fill(userList[2]));
+  });
+
+  it('List: sort, ascending for user multi field', async function () {
+    const sortColumn = columns.find((c) => c.title === 'userFieldMulti');
+    const rsp = await ncAxiosGet({
+      query: { sort: 'userFieldMulti', limit: 400 },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+    expect(sortedArray).to.deep.equal(
+      sortedArray.sort((a, b) => {
+        const emailA = a ? a[0]?.email?.toLowerCase() : '';
+        const emailB = b ? b[0]?.email?.toLowerCase() : '';
+
+        if (emailA < emailB) {
+          return -1;
+        }
+        if (emailA > emailB) {
+          return 1;
+        }
+
+        // Emails are equal, no change in order
+        return 0;
+      }),
+    );
+  });
+
+  it('List: filter, user multi field', async function () {
+    const userList = await getUsers();
+    const rsp = await ncAxiosGet({
+      query: {
+        where: `(userFieldMulti,anyof,${userList[2].id})`,
+        limit: 400,
+      },
+    });
+
+    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    expect(rsp.body.list.length).to.equal(100);
+  });
+
+  it('Create record : using email', async function () {
+    const newRecord = {
+      userFieldSingle: 'a@nocodb.com',
+      userFieldMulti: 'a@nocodb.com,b@nocodb.com',
+    };
+    const rsp = await ncAxiosPost({ body: newRecord });
+    expect(rsp.body).to.deep.equal({ Id: 401 });
+
+    const record = await ncAxiosGet({
+      url: `/api/v2/tables/${table.id}/records/401`,
+    });
+    expect(record.body.Id).to.equal(401);
+    expect(record.body.userFieldSingle[0].email).to.equal('a@nocodb.com');
+    expect(record.body.userFieldMulti[0].email).to.equal('a@nocodb.com');
+    expect(record.body.userFieldMulti[1].email).to.equal('b@nocodb.com');
+  });
+
+  it('Create record : using ID', async function () {
+    const userList = await getUsers();
+
+    const id0 = userList.find((u) => u.email === 'test@example.com').id;
+    const id1 = userList.find((u) => u.email === 'a@nocodb.com').id;
+
+    const newRecord = {
+      userFieldSingle: id0,
+      userFieldMulti: `${id0},${id1}`,
+    };
+    const rsp = await ncAxiosPost({ body: newRecord });
+    expect(rsp.body).to.deep.equal({ Id: 401 });
+
+    const record = await ncAxiosGet({
+      url: `/api/v2/tables/${table.id}/records/401`,
+    });
+    expect(record.body.Id).to.equal(401);
+    expect(record.body.userFieldSingle[0].email).to.equal('test@example.com');
+    expect(record.body.userFieldMulti[0].email).to.equal('test@example.com');
+    expect(record.body.userFieldMulti[1].email).to.equal('a@nocodb.com');
+  });
+
+  it('Create record : duplicate ID', async function () {
+    const userList = await getUsers();
+
+    const newRecord1 = {
+      userFieldSingle: userList[0].id,
+      userFieldMulti: `${userList[0].id},${userList[0].id}`,
+    };
+    const rsp = await ncAxiosPost({ body: newRecord1, status: 422 });
+    expect(rsp.body.msg).to.equal('Duplicate users not allowed for user field');
+
+    const newRecord2 = {
+      userFieldSingle: `${userList[0].id},${userList[1].id}`,
+      userFieldMulti: `${userList[0].id},${userList[1].id}`,
+    };
+    const rsp2 = await ncAxiosPost({ body: newRecord2, status: 422 });
+    expect(rsp2.body.msg).to.equal(
+      "Multiple users not allowed for 'userFieldSingle'",
+    );
+  });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2742,8 +2985,9 @@ export default function () {
   describe('Select based', selectBased);
   describe('Date based', dateBased);
   describe('Link based', linkBased);
+  describe('User field based', userFieldBased);
 
-  // based out of sakila db, for link based tests
+  // based out of Sakila db, for link based tests
   describe('General', generalDb);
 }
 

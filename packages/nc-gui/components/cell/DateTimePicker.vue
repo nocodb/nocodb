@@ -303,6 +303,7 @@ const isColDisabled = computed(() => {
     :open="isOpen"
     @click="clickHandler"
     @ok="okHandler"
+    @keydown.enter="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

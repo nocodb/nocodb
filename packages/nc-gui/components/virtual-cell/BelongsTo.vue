@@ -83,6 +83,14 @@ const belongsToColumn = computed(
   () =>
     relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
 )
+
+const plusBtnRef = ref<HTMLElement | null>(null)
+
+watch([listItemsDlg], () => {
+  if (!listItemsDlg.value) {
+    plusBtnRef.value?.focus()
+  }
+})
 </script>
 
 <template>
@@ -101,11 +109,14 @@ const belongsToColumn = computed(
 
     <div
       v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
-      class="flex justify-end gap-1 min-h-[30px] items-center"
+      ref="plusBtnRef"
+      class="flex justify-end group gap-1 min-h-[30px] items-center"
+      tabindex="0"
+      @keydown.enter.stop="listItemsDlg = true"
     >
       <GeneralIcon
         :icon="addIcon"
-        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
+        class="text-sm nc-action-icon group-focus:visible invisible text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
         @click.stop="listItemsDlg = true"
       />
     </div>
@@ -121,13 +132,19 @@ const belongsToColumn = computed(
 
 <style scoped lang="scss">
 .nc-action-icon {
-  @apply hidden cursor-pointer;
+  @apply cursor-pointer;
 }
 
 .chips-wrapper:hover,
 .chips-wrapper.active {
   .nc-action-icon {
     @apply inline-block;
+  }
+}
+
+.chips-wrapper:hover {
+  .nc-action-icon {
+    @apply visible;
   }
 }
 </style>

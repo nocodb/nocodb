@@ -11,7 +11,6 @@ import * as ejs from 'ejs';
 import validator from 'validator';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -20,8 +19,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, User } from '~/models';
-
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
 
@@ -29,20 +27,15 @@ import { getProjectRolePower } from '~/utils/roleHelper';
 export class BaseUsersService {
   constructor(protected appHooksService: AppHooksService) {}
 
-  async userList(param: { baseId: string; query: any }) {
-    return new PagedResponseImpl(
-      await BaseUser.getUsersList({
-        ...param.query,
-        base_id: param.baseId,
-      }),
-      {
-        ...param.query,
-        count: await BaseUser.getUsersCount({
-          base_id: param.baseId,
-          ...param.query,
-        }),
-      },
-    );
+  async userList(param: { baseId: string; mode?: 'full' | 'viewer' }) {
+    const baseUsers = await BaseUser.getUsersList({
+      base_id: param.baseId,
+      mode: param.mode,
+    });
+
+    return new PagedResponseImpl(baseUsers, {
+      count: baseUsers.length,
+    });
   }
 
   async userInvite(param: {
@@ -112,7 +105,7 @@ export class BaseUsersService {
           return NcError.badRequest('Invalid base id');
         }
 
-        if (baseUser) {
+        if (baseUser && baseUser.roles) {
           NcError.badRequest(
             `${user.email} with role ${baseUser.roles} already exists in this base`,
           );
@@ -131,19 +124,6 @@ export class BaseUsersService {
           ip: param.req.clientIp,
           req: param.req,
         });
-
-        const cachedUser = await NocoCache.get(
-          `${CacheScope.USER}:${email}___${param.baseId}`,
-          CacheGetType.TYPE_OBJECT,
-        );
-
-        if (cachedUser) {
-          cachedUser.roles = param.baseUser.roles || 'editor';
-          await NocoCache.set(
-            `${CacheScope.USER}:${email}___${param.baseId}`,
-            cachedUser,
-          );
-        }
       } else {
         try {
           // create new user with invite token

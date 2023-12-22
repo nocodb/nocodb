@@ -4,17 +4,20 @@ import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
+import { UserOptionColumnPageObject } from './UserOptionColumn';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
   readonly attachmentColumnPageObject: AttachmentColumnPageObject;
+  readonly userOption: UserOptionColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
     this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
+    this.userOption = new UserOptionColumnPageObject(this);
   }
 
   get() {
@@ -184,6 +187,8 @@ export class ColumnPageObject extends BasePage {
           })
           .nth(0)
           .click();
+        break;
+      case 'User':
         break;
       default:
         break;
@@ -367,6 +372,20 @@ export class ColumnPageObject extends BasePage {
       message: isUpdated ? 'Column updated' : 'Column created',
     });
     await this.get().waitFor({ state: 'hidden' });
+    await this.rootPage.waitForTimeout(200);
+  }
+
+  async saveFail({ errorMessage }: { errorMessage?: string } = {}) {
+    await this.waitForResponse({
+      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
+      requestUrlPathToMatch: 'api/v1/db/meta',
+      httpMethodsToMatch: ['GET', 'PATCH'],
+      responseStatusCodeToMatch: 400,
+    });
+    await this.verifyLastToast({
+      message: errorMessage,
+    });
+    await this.get().waitFor({ state: 'visible' });
     await this.rootPage.waitForTimeout(200);
   }
 

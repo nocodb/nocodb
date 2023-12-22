@@ -20,6 +20,7 @@ import {
   extractFilterFromXwhere,
   extractSortsObject,
   getListArgs,
+  haveFormulaColumn,
 } from '~/db/BaseModelSqlv2';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
@@ -71,6 +72,7 @@ export async function extractColumns({
   baseModel,
   ast,
   throwErrorIfInvalidParams,
+  validateFormula,
 }: {
   columns: Column[];
   // allowedCols?: Record<string, boolean>;
@@ -83,6 +85,7 @@ export async function extractColumns({
   // dependencyFields: DependantFields;
   ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
+  validateFormula: boolean;
 }) {
   const extractColumnPromises = [];
   for (const column of columns) {
@@ -104,6 +107,7 @@ export async function extractColumns({
         baseModel,
         ast: ast?.[column.title],
         throwErrorIfInvalidParams,
+        validateFormula,
       }),
     );
   }
@@ -123,6 +127,7 @@ export async function extractColumn({
   // dependencyFields,
   ast,
   throwErrorIfInvalidParams,
+  validateFormula,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -135,6 +140,7 @@ export async function extractColumn({
   // dependencyFields: DependantFields;
   ast: Record<string, any>;
   throwErrorIfInvalidParams: boolean;
+  validateFormula: boolean;
 }) {
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -250,6 +256,7 @@ export async function extractColumn({
                 // dependencyFields,
                 ast,
                 throwErrorIfInvalidParams,
+                validateFormula,
               });
 
               qb.joinRaw(
@@ -305,6 +312,7 @@ export async function extractColumn({
                 // dependencyFields,
                 ast,
                 throwErrorIfInvalidParams,
+                validateFormula,
               });
 
               qb.joinRaw(
@@ -365,6 +373,7 @@ export async function extractColumn({
                 // dependencyFields,
                 ast,
                 throwErrorIfInvalidParams,
+                validateFormula,
               });
 
               qb.joinRaw(
@@ -492,6 +501,7 @@ export async function extractColumn({
           // dependencyFields,
           ast,
           throwErrorIfInvalidParams,
+          validateFormula,
         });
 
         if (!result.isArray) {
@@ -551,6 +561,10 @@ export async function extractColumn({
           formula.formula,
           null,
           model,
+          column,
+          {},
+          undefined,
+          validateFormula,
         );
         qb.select(knex.raw(`?? as ??`, [selectQb.builder, column.id]));
       }
@@ -589,6 +603,7 @@ export async function extractColumn({
           // dependencyFields,
           ast,
           throwErrorIfInvalidParams,
+          validateFormula,
         });
       }
       break;
@@ -613,6 +628,7 @@ export async function extractColumn({
           // dependencyFields,
           ast,
           throwErrorIfInvalidParams,
+          validateFormula,
         });
       }
       break;
@@ -693,6 +709,7 @@ export async function singleQueryRead(ctx: {
   id: string;
   getHiddenColumn?: boolean;
   throwErrorIfInvalidParams?: boolean;
+  validateFormula?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   await ctx.model.getColumns();
 
@@ -700,7 +717,8 @@ export async function singleQueryRead(ctx: {
     throw new Error('Single query only supported in postgres');
   }
 
-  let skipCache = process.env.NC_DISABLE_CACHE === 'true';
+  let skipCache =
+    process.env.NC_DISABLE_CACHE === 'true' || ctx.validateFormula;
 
   // skip using cached query if  filterArr is present since it will be different query
   if (
@@ -821,6 +839,7 @@ export async function singleQueryRead(ctx: {
     baseModel,
     ast,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    validateFormula: ctx.validateFormula,
   });
 
   // const dataAlias = getAlias();
@@ -874,13 +893,15 @@ export async function singleQueryList(ctx: {
   source: Source;
   params;
   throwErrorIfInvalidParams?: boolean;
+  validateFormula?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
   }
 
   let dbQueryTime;
-  let skipCache = process.env.NC_DISABLE_CACHE === 'true';
+  let skipCache =
+    process.env.NC_DISABLE_CACHE === 'true' || ctx.validateFormula;
 
   // skip using cached query if sortArr or filterArr is present since it will be different query
   if (
@@ -1025,6 +1046,7 @@ export async function singleQueryList(ctx: {
     baseModel,
     ast,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    validateFormula: ctx.validateFormula,
   });
 
   if (skipCache) {

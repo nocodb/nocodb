@@ -319,8 +319,6 @@ export function useViewData(
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    console.log('test')
-
     const expandedRowIndex = getExpandedRowIndex()
 
     // calculate next row index based on direction

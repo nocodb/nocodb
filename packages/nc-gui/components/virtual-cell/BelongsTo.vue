@@ -101,11 +101,13 @@ const belongsToColumn = computed(
 
     <div
       v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
-      class="flex justify-end gap-1 min-h-[30px] items-center"
+      class="flex justify-end group gap-1 min-h-[30px] items-center"
+      tabindex="0"
+      @keydown.enter.stop="listItemsDlg = true"
     >
       <GeneralIcon
         :icon="addIcon"
-        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
+        class="text-sm nc-action-icon group-focus:visible invisible text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
         @click.stop="listItemsDlg = true"
       />
     </div>
@@ -121,13 +123,19 @@ const belongsToColumn = computed(
 
 <style scoped lang="scss">
 .nc-action-icon {
-  @apply hidden cursor-pointer;
+  @apply cursor-pointer;
 }
 
 .chips-wrapper:hover,
 .chips-wrapper.active {
   .nc-action-icon {
     @apply inline-block;
+  }
+}
+
+.chips-wrapper:hover {
+  .nc-action-icon {
+    @apply visible;
   }
 }
 </style>

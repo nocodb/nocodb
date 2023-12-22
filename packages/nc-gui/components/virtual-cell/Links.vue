@@ -113,17 +113,24 @@ const openListDlg = () => {
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"
+        tabindex="0"
         @click.stop.prevent="openChildList"
+        @keydown.enter.stop.prevent="openChildList"
       >
         {{ textVal }}
       </component>
     </div>
     <div class="flex-grow" />
 
-    <div v-if="!isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
+    <div
+      v-if="!isUnderLookup"
+      tabindex="0"
+      class="!xs:hidden flex group justify-end group-hover:flex items-center"
+      @keydown.enter.stop="openListDlg"
+    >
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
-        class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
+        class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
         @click.stop="openListDlg"
       />
     </div>

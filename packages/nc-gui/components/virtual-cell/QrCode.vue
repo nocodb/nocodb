@@ -89,11 +89,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   >
     <img
       v-if="showQrCode && rowHeight"
+      tabindex="0"
       :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"
       @click="showQrModal"
+      @keydown.enter.stop="showQrModal"
     />
     <img v-else-if="showQrCode" class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
   </div>

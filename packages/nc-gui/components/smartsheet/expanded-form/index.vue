@@ -658,7 +658,7 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="bg-white rounded-lg w-80 xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    class="nc-data-cell bg-white rounded-lg w-80 xs:w-full border-1 border-gray-200 overflow-hidden px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     :class="{
                       '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
                     }"
@@ -893,5 +893,9 @@ export default {
 
 :deep(.ant-select-selection-item) {
   @apply !xs:(mt-1.75 ml-1);
+}
+
+.nc-data-cell:focus-within {
+  @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
 }
 </style>

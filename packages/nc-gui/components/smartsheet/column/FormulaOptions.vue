@@ -321,7 +321,7 @@ onMounted(() => {
       </div>
       <div class="flex flex-row mt-1 mb-3 justify-end pr-3">
         <a target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
-          <NcButton type="text" class="!text-gray-500 !hover:text-gray-800"
+          <NcButton type="text" class="!text-gray-400 !hover:text-gray-800 !text-xs"
             >View in Docs
             <GeneralIcon icon="openInNew" class="ml-1" />
           </NcButton>

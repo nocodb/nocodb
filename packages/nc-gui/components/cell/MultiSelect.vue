@@ -404,6 +404,8 @@ const selectedOpts = computed(() => {
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown.stop
+      @focus="isOpen = true"
+      @blur="isOpen = false"
     >
       <template #suffixIcon>
         <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />

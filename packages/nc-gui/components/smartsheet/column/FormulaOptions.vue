@@ -318,7 +318,7 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="nc-formula-input !rounded-md !mb-1"
+        class="nc-formula-input !rounded-md !my-1"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"

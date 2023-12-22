@@ -97,7 +97,12 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 </script>
 
 <template>
-  <div class="h-full w-full nc-lookup-cell" @dblclick="activateShowEditNonEditableFieldWarning">
+  <div
+    class="h-full w-full nc-lookup-cell"
+    tabindex="-1"
+    :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
+    @dblclick="activateShowEditNonEditableFieldWarning"
+  >
     <div
       class="h-full w-full flex gap-1"
       :class="{

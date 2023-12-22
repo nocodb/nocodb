@@ -36,14 +36,37 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     vModel.value = +e.key === +vModel.value ? 0 : +e.key
   }
 })
+
+const onKeyPress = (e: KeyboardEvent) => {
+  if (/^\d$/.test(e.key)) {
+    e.stopPropagation()
+    vModel.value = +e.key === +vModel.value ? 0 : +e.key
+  }
+}
+
+const rateDomRef = ref()
+
+// Remove tabindex from rate inputs set by antd
+watch(rateDomRef, () => {
+  if (!rateDomRef.value) return
+
+  const rateInputs = rateDomRef.value.$el.querySelectorAll('div[role="radio"]')
+  if (!rateInputs) return
+
+  for (let i = 0; i < rateInputs.length; i++) {
+    rateInputs[i].setAttribute('tabindex', '-1')
+  }
+})
 </script>
 
 <template>
   <a-rate
+    ref="rateDomRef"
     v-model:value="vModel"
     :disabled="readonly"
     :count="ratingMeta.max"
     :style="`color: ${ratingMeta.color}; padding: 0px 5px`"
+    @keydown="onKeyPress"
   >
     <template #character>
       <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />

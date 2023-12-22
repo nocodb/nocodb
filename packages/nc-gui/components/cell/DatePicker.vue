@@ -238,6 +238,7 @@ const clickHandler = () => {
   <a-date-picker
     v-model:value="localState"
     :picker="picker"
+    tabindex="0"
     :bordered="false"
     class="!w-full !px-1 !border-none"
     :class="{ 'nc-null': modelValue === null && showNull }"
@@ -249,6 +250,7 @@ const clickHandler = () => {
     :open="isOpen"
     @click="clickHandler"
     @update:open="updateOpen"
+    @keydown.enter="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

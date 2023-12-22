@@ -120,6 +120,7 @@ const suggestionsList = computed(() => {
         description: formulas[fn].description,
         syntax: formulas[fn].syntax,
         examples: formulas[fn].examples,
+        docsUrl: formulas[fn].docsUrl,
       })),
     ...supportedColumns.value
       .filter((c) => {
@@ -287,27 +288,31 @@ onMounted(() => {
   <div class="formula-wrapper relative">
     <div
       v-if="suggestionPreviewed && suggestionPreviewed.type === 'function'"
-      class="absolute -left-91 w-84 top-0 bg-white z-10 px-3 pt-3 border-1 shadow-md rounded-xl"
+      class="absolute -left-91 w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
     >
-      <div class="flex flex-row w-full justify-between pb-1 border-b-1">
-        <div class="flex items-center gap-x-1 font-semibold text-base">
-          <component :is="iconMap.function" class="text-lg" />
-          {{ suggestionPreviewed.text }}
+      <div class="pr-3">
+        <div class="flex flex-row w-full justify-between pb-1 border-b-1">
+          <div class="flex items-center gap-x-1 font-semibold text-base">
+            <component :is="iconMap.function" class="text-lg" />
+            {{ suggestionPreviewed.text }}
+          </div>
+          <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
-        <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
-          <GeneralIcon icon="close" />
-        </NcButton>
       </div>
-      <div class="flex mt-3">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptatum.</div>
+      <div class="flex flex-col max-h-120 nc-scrollbar-md pr-2">
+        <div class="flex mt-3">{{ suggestionPreviewed.description }}</div>
 
-      <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
-      <div class="bg-gray-800 text-white rounded-md py-1 px-2">{{ suggestionPreviewed.syntax }}</div>
-      <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
-      <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-3">
-        {{ example }}
+        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
+        <div class="bg-gray-800 text-white rounded-md py-1 px-2">{{ suggestionPreviewed.syntax }}</div>
+        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
+        <div v-for="example of suggestionPreviewed.examples" :key="example" class="bg-gray-100 rounded-md py-1 px-2 mb-3">
+          {{ example }}
+        </div>
       </div>
-      <div class="flex flex-row mt-1 mb-3 justify-end">
-        <a target="_blank" rel="noopener noreferrer" href="https://docs.nocodb.com/fields/field-types/formula/date-functions">
+      <div class="flex flex-row mt-1 mb-3 justify-end pr-3">
+        <a target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
           <NcButton type="text" class="!text-gray-500 !hover:text-gray-800"
             >View in Docs
             <GeneralIcon icon="openInNew" class="ml-1" />
@@ -342,7 +347,6 @@ onMounted(() => {
           :data-source="suggestedFormulas"
           :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
           class="border-1 border-t-0 rounded-b-lg !mb-4"
-          @mouseleave="suggestionPreviewed = suggestionsList[selected]"
         >
           <template #renderItem="{ item, index }">
             <a-list-item
@@ -354,6 +358,7 @@ onMounted(() => {
               class="cursor-pointer !overflow-hidden hover:bg-gray-50"
               :class="{
                 '!bg-gray-100': selected === index,
+                '!bg-gray-50': suggestionPreviewed?.syntax === item.syntax && selected !== index,
               }"
               @click.prevent.stop="appendText(item)"
               @mouseenter="suggestionPreviewed = item"

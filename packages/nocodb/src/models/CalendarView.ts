@@ -33,7 +33,7 @@ export default class CalendarView implements CalendarType {
                 CacheGetType.TYPE_OBJECT,
             ));
         if (!view) {
-            view = await ncMeta.metaGet2(null, null, MetaTable.CALENDAR, {
+            view = await ncMeta.metaGet2(null, null, MetaTable.CALENDAR_VIEW, {
                 fk_view_id: viewId,
             });
             await NocoCache.set(`${CacheScope.CALENDAR_VIEW}:${viewId}`, view);
@@ -57,7 +57,7 @@ export default class CalendarView implements CalendarType {
             insertObj.source_id = viewRef.source_id;
         }
 
-        await ncMeta.metaInsert2(null, null, MetaTable.CALENDAR, insertObj, true);
+        await ncMeta.metaInsert2(null, null, MetaTable.CALENDAR_VIEW, insertObj, true);
 
         return this.get(view.fk_view_id, ncMeta);
     }
@@ -96,7 +96,7 @@ export default class CalendarView implements CalendarType {
         }*/
 
         // update meta
-        return await ncMeta.metaUpdate(null, null, MetaTable.CALENDAR, updateObj, {
+        return await ncMeta.metaUpdate(null, null, MetaTable.CALENDAR_VIEW, updateObj, {
             fk_view_id: calendarId,
         });
     }

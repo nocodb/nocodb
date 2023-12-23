@@ -277,7 +277,7 @@ const onFocus = () => {
     @keydown.enter.stop.prevent="toggleMenu"
   >
     <div v-if="!(active || isEditable)" class="w-full">
-      <a-tag v-if="selectedOpt" class="rounded-tag  max-w-full" :color="selectedOpt.color">
+      <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
         <span
           :style="{
             'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })

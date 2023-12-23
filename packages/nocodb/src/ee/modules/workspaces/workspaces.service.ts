@@ -267,13 +267,19 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       // check workspace user exists or not and if exists then update workspace user
       // and if not then create new workspace user
-      if (
-        (
-          await WorkspaceUser.userList({
+
+      const workspaceUsers = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.WORKSPACE_USER,
+        {
+          condition: {
             fk_workspace_id: workspace.id,
-          })
-        ).length > 0
-      ) {
+          },
+        },
+      );
+
+      if (workspaceUsers.length) {
         // update workspace user
         await ncMeta.metaUpdate(
           null,
@@ -289,9 +295,9 @@ export class WorkspacesService implements OnApplicationBootstrap {
         );
       } else {
         // create workspace user
-        await ncMeta.metaInsert(null, null, MetaTable.WORKSPACE_USER, {
-          fk_user_id: user.id,
+        await WorkspaceUser.insert({
           fk_workspace_id: workspace.id,
+          fk_user_id: user.id,
           roles: WorkspaceUserRoles.OWNER,
         });
       }

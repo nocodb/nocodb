@@ -152,7 +152,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
               }"
             >
               <div
-                class="flex gap-1.5 w-full h-full py-[3px]"
+                class="flex items-start gap-1.5 w-full h-full py-[3px]"
                 :class="{
                   'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                   '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
@@ -179,7 +179,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     :edit-enabled="false"
                     :virtual="true"
                     :read-only="true"
-                    class=""
                     :class="{
                       'min-h-0 min-w-0': isAttachment(lookupColumn),
                       '!min-w-20 !w-auto pl-2': !isAttachment(lookupColumn),

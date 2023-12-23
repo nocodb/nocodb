@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { capitalize } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
@@ -195,7 +195,13 @@ async function onSubmit() {
           data = await api.dbView.mapCreate(tableId.value, form)
           break
         case ViewTypes.CALENDAR:
-          data = await api.dbView.calendarCreate(tableId.value, form)
+          data = await api.dbView.calendarCreate(tableId.value, {
+            ...form,
+            calendar_range: form.calendarRange.map((range) => ({
+              fk_from_column_id: range.fk_from_column_id,
+              fk_to_column_id: range.fk_to_column_id,
+            })),
+          })
           break
       }
 
@@ -364,56 +370,56 @@ onMounted(async () => {
         </div>
         <a
           v-if="!form.copy_from_id"
+          class="text-sm !no-underline !hover:text-brand-500 text-brand-500"
           href="https://docs.nocodb.com/views/view-types/calendar/"
           target="_blank"
-          class="text-sm !no-underline !hover:text-brand-500 text-brand-500"
         >
           Go to Docs
         </a>
       </div>
     </template>
     <div class="mt-2">
-      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" layout="vertical" :model="form">
-        <a-form-item name="title" :rules="viewNameRules">
+      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical">
+        <a-form-item :rules="viewNameRules" name="title">
           <a-input
             ref="inputEl"
             v-model:value="form.title"
-            class="nc-input-md h-10"
-            autofocus
             :placeholder="$t('labels.viewName')"
+            autofocus
+            class="nc-input-md h-10"
             @keydown.enter="onSubmit"
           />
         </a-form-item>
         <a-form-item
           v-if="form.type === ViewTypes.KANBAN"
           :label="$t('general.groupingField')"
-          name="fk_grp_col_id"
           :rules="groupingFieldColumnRules"
+          name="fk_grp_col_id"
         >
           <NcSelect
             v-model:value="form.fk_grp_col_id"
-            class="w-full nc-kanban-grouping-field-select"
             :disabled="isMetaLoading"
             :loading="isMetaLoading"
+            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
             :options="viewSelectFieldOptions"
             :placeholder="$t('placeholder.selectGroupField')"
-            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
+            class="w-full nc-kanban-grouping-field-select"
           />
         </a-form-item>
         <a-form-item
           v-if="form.type === ViewTypes.MAP"
           :label="$t('general.geoDataField')"
-          name="fk_geo_data_col_id"
           :rules="geoDataFieldColumnRules"
+          name="fk_geo_data_col_id"
         >
           <NcSelect
             v-model:value="form.fk_geo_data_col_id"
-            class="w-full"
-            :options="viewSelectFieldOptions"
             :disabled="isMetaLoading"
             :loading="isMetaLoading"
-            :placeholder="$t('placeholder.selectGeoField')"
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
+            :options="viewSelectFieldOptions"
+            :placeholder="$t('placeholder.selectGeoField')"
+            class="w-full"
           />
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
@@ -424,10 +430,10 @@ onMounted(async () => {
               </span>
               <NcSelect
                 v-model:value="range.fk_from_column_id"
-                class="w-full"
                 :disabled="isMetaLoading"
                 :loading="isMetaLoading"
                 :options="viewSelectFieldOptions"
+                class="w-full"
               />
             </div>
             <div v-if="range.fk_to_column_id === null && isEeUI" class="flex flex-col justify-end w-1/2">
@@ -453,18 +459,18 @@ onMounted(async () => {
               </div>
               <NcSelect
                 v-model:value="range.fk_to_column_id"
-                class="w-full"
                 :disabled="isMetaLoading"
                 :loading="isMetaLoading"
                 :options="viewSelectFieldOptions"
                 :placeholder="$t('placeholder.notSelected')"
+                class="w-full"
               />
             </div>
           </div>
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
-        <GeneralIcon icon="warning" class="!text-5xl text-orange-500" />
+        <GeneralIcon class="!text-5xl text-orange-500" icon="warning" />
         <div class="text-gray-500">
           <h2 class="font-semibold text-sm text-gray-800">Suitable fields not present</h2>
           {{ errorMessages[form.type] }}
@@ -478,9 +484,9 @@ onMounted(async () => {
 
         <NcButton
           v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
-          type="primary"
           :disabled="!isNecessaryColumnsPresent"
           :loading="isViewCreating"
+          type="primary"
           @click="onSubmit"
         >
           {{ $t('labels.createView') }}

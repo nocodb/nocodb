@@ -1777,11 +1777,14 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = FormulaDataTypes.STRING;
       }
     } else if (parsedTree.type === JSEPNode.UNARY_EXP) {
-      throw new FormulaError(
-        FormulaErrorType.NOT_SUPPORTED,
-        {},
-        'Unary expression is not supported'
-      );
+      // only support unary +/-
+      if (!['-', '+'].includes(parsedTree.operator)) {
+        throw new FormulaError(
+          FormulaErrorType.NOT_SUPPORTED,
+          {},
+          `Unary expression '${parsedTree.operator}' is not supported`
+        );
+      }
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
       res.left = await validateAndExtract(parsedTree.left);
       res.right = await validateAndExtract(parsedTree.right);

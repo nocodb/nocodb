@@ -60,7 +60,7 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
 const height = computed(() => {
   if (isExpandedFormOpen.value) return 36 * 4
 
-  if (!rowHeight.value || rowHeight.value === 1) return 36
+  if (!rowHeight.value || rowHeight.value === 1 || isEditColumn.value) return 36
 
   return rowHeight.value * 36
 })

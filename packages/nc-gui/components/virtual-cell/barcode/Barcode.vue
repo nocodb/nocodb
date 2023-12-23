@@ -55,9 +55,9 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
   </a-modal>
   <div
     v-if="!tooManyCharsForBarcode"
-    class="flex ml-2 w-full items-center barcode-wrapper"
+    class="flex w-full items-center barcode-wrapper"
     :class="{
-      'justify-start': isExpandedFormOpen,
+      'justify-start ml-2': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
@@ -66,7 +66,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
       :barcode-value="barcodeValue"
       tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
-      :custom-style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
+      :custom-style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>

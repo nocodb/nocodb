@@ -305,7 +305,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       if (workspace.fk_user_id === mockUser.id) {
         // prepopulate more workspaces if required
-        this.prepopulateWorkspaces(param.req);
+        this.prepopulateWorkspaces(param.req).catch((e) => {
+          this.logger.error('### Failed to prepopulate workspace');
+          this.logger.error(e);
+        });
       }
     } catch (e) {
       await ncMeta.rollback();

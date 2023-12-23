@@ -92,7 +92,8 @@ useSelectedCellKeyupListener(active, (e) => {
       'opacity-0': readOnly && !vModel,
     }"
     :style="{
-      height: isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+      height:
+        isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     @click="onClick(false, $event)"
     @keydown.enter.stop="onClick(false, $event)"

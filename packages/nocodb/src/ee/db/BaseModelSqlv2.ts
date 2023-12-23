@@ -1421,5 +1421,5 @@ export {
   extractFilterFromXwhere,
   extractSortsObject,
   getListArgs,
-  haveFormulaColumn
+  haveFormulaColumn,
 };

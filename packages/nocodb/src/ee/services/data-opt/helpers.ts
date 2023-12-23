@@ -20,7 +20,6 @@ import {
   extractFilterFromXwhere,
   extractSortsObject,
   getListArgs,
-  haveFormulaColumn,
 } from '~/db/BaseModelSqlv2';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';

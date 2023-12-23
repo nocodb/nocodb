@@ -77,6 +77,21 @@ export function parseStringDate(v: string, dateFormat: string) {
   return v;
 }
 
+export function parseStringDateTime(
+  v: string,
+  dateTimeFormat: string = `${dateFormats[0]} ${timeFormats[0]}`
+) {
+  const dayjsObj = dayjs(v).local();
+
+  if (dayjsObj.isValid()) {
+    v = dayjsObj.format(dateTimeFormat);
+  } else {
+    v = dayjs(v, dateTimeFormat).local().format(dateTimeFormat);
+  }
+
+  return v;
+}
+
 export function convertToTargetFormat(
   v: string,
   oldDataFormat,

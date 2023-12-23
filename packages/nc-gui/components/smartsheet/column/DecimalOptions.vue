@@ -32,8 +32,10 @@ onMounted(() => {
 })
 
 // update datatype precision when precision is less than the new value
+// avoid downgrading precision if the new value is less than the current precision
+// to avoid fractional part data loss(eg. 1.2345 -> 1.23)
 const onPrecisionChange = (value: number) => {
-  vModel.value.dtxs = vModel.value.dtxs < value ? value : vModel.value.dtxs
+  vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
 </script>
 

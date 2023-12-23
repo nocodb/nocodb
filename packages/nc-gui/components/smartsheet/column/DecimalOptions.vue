@@ -30,6 +30,11 @@ onMounted(() => {
     vModel.value.meta.precision = precisionFormats[0]
   }
 })
+
+// update datatype precision when precision is less than the new value
+const onPrecisionChange = (value: number) => {
+  vModel.value.dtxs = vModel.value.dtxs < value ? value : vModel.value.dtxs
+}
 </script>
 
 <template>
@@ -38,6 +43,7 @@ onMounted(() => {
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
       dropdown-class-name="nc-dropdown-decimal-format"
+      @change="onPrecisionChange"
     >
       <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
         <div class="flex gap-2 w-full justify-between items-center">

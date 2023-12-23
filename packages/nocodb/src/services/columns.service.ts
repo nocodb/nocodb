@@ -1,11 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-  UserType,
-} from 'nocodb-sdk';
 import {
   AppEvents,
   isCreatedTimeOrUpdatedTimeCol,
@@ -18,13 +11,6 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-  UserType,
-} from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
@@ -38,7 +24,6 @@ import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
-import { Column, FormulaColumn, KanbanView, Model, Source } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -318,34 +303,6 @@ export class ColumnsService {
         ...column,
         title: colBody.title,
       });
-
-      if (!existingColumn) {
-        const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-          NcConnectionMgrv2.getSqlClient(source),
-        );
-        const dbColumns = (
-          await sqlClient.columnList({
-            tn: table.table_name,
-            schema: source.getConfig()?.schema,
-          })
-        )?.data?.list;
-
-        // todo:  check type as well
-        const dbColumn = dbColumns.find(
-          (c) =>
-            c.column_name ===
-            (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
-        );
-
-        if (!dbColumn) {
-          // create column in db
-        }
-
-        await Column.insert({
-          ...colBody,
-          fk_model_id: table.id,
-        });
-      }
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
@@ -1763,7 +1720,7 @@ export class ColumnsService {
             if (!dbColumn) {
               // create column in db
 
-              const column = sqlClient
+              const column = sqlClient;
             }
 
             await Column.insert({

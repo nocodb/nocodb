@@ -1777,8 +1777,14 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = FormulaDataTypes.STRING;
       }
     } else if (parsedTree.type === JSEPNode.UNARY_EXP) {
-      // only support unary +/-
-      if (!['-', '+'].includes(parsedTree.operator)) {
+      // only support -ve values
+      if (
+        ['-'].includes(parsedTree.operator) &&
+        parsedTree.argument.type === JSEPNode.LITERAL &&
+        typeof parsedTree.argument.value === 'number'
+      ) {
+        res.dataType = FormulaDataTypes.NUMERIC;
+      } else {
         throw new FormulaError(
           FormulaErrorType.NOT_SUPPORTED,
           {},

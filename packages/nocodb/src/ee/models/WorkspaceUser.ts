@@ -126,25 +126,24 @@ export default class WorkspaceUser {
         },
       );
       if (workspaceUser) {
-        const {
-          id,
-          email,
-          display_name,
-          roles: main_roles,
-        } = await User.get(userId, ncMeta);
+        const user = await User.get(userId, ncMeta);
 
-        workspaceUser = {
-          ...workspaceUser,
-          id,
-          email,
-          display_name,
-          main_roles,
-        };
+        if (user) {
+          const { id, email, display_name, roles: main_roles } = user;
 
-        await NocoCache.set(
-          `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
-          workspaceUser,
-        );
+          workspaceUser = {
+            ...workspaceUser,
+            id,
+            email,
+            display_name,
+            main_roles,
+          };
+
+          await NocoCache.set(
+            `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+            workspaceUser,
+          );
+        }
       }
     }
 

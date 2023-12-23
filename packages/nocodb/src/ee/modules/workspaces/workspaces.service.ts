@@ -265,19 +265,36 @@ export class WorkspacesService implements OnApplicationBootstrap {
         workspace.id,
       );
 
-      // update workspace user
-      await ncMeta.metaUpdate(
-        null,
-        null,
-        MetaTable.WORKSPACE_USER,
-        {
+      // check workspace user exists or not and if exists then update workspace user
+      // and if not then create new workspace user
+      if (
+        (
+          await WorkspaceUser.userList({
+            fk_workspace_id: workspace.id,
+          })
+        ).length > 0
+      ) {
+        // update workspace user
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.WORKSPACE_USER,
+          {
+            fk_user_id: user.id,
+          },
+          {
+            fk_workspace_id: workspace.id,
+            roles: WorkspaceUserRoles.OWNER,
+          },
+        );
+      } else {
+        // create workspace user
+        await ncMeta.metaInsert(null, null, MetaTable.WORKSPACE_USER, {
           fk_user_id: user.id,
-        },
-        {
           fk_workspace_id: workspace.id,
           roles: WorkspaceUserRoles.OWNER,
-        },
-      );
+        });
+      }
 
       // get all bases
       const bases = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {

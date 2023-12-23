@@ -6,6 +6,7 @@ import {
   WorkspaceRolesToProjectRoles,
   extractRolesObj,
   timeAgo,
+  parseStringDateTime,
 } from 'nocodb-sdk'
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
 import { isEeUI, storeToRefs } from '#imports'
@@ -145,8 +146,8 @@ const filteredCollaborators = computed(() =>
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
             <div class="text-gray-700 users-email-grid">{{ $t('objects.users') }}</div>
-            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
             <div class="text-gray-700 user-access-grid">{{ $t('general.access') }}</div>
+            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
           </div>
 
           <div class="flex flex-col nc-scrollbar-md">
@@ -161,7 +162,6 @@ const filteredCollaborators = computed(() =>
                   {{ collab.email }}
                 </span>
               </div>
-              <div class="date-joined-grid">{{ timeAgo(collab.created_at) }}</div>
               <div class="user-access-grid">
                 <template v-if="accessibleRoles.includes(collab.roles)">
                   <RolesSelector
@@ -179,6 +179,16 @@ const filteredCollaborators = computed(() =>
                 <template v-else>
                   <RolesBadge :role="collab.roles" />
                 </template>
+              </div>
+              <div class="date-joined-grid">
+                <NcTooltip class="max-w-full">
+                  <template #title>
+                    {{ parseStringDateTime(collab.created_at) }}
+                  </template>
+                  <span>
+                    {{ timeAgo(collab.created_at) }}
+                  </span>
+                </NcTooltip>
               </div>
             </div>
           </div>
@@ -206,12 +216,11 @@ const filteredCollaborators = computed(() =>
 }
 
 .date-joined-grid {
-  @apply flex items-start;
-  width: calc(50% - 10rem);
+  @apply w-1/4 flex items-start;
 }
 
 .user-access-grid {
-  @apply w-40;
+  @apply w-1/4 flex justify-start;
 }
 
 .user-row {

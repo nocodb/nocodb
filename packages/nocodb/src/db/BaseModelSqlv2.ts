@@ -3846,9 +3846,6 @@ class BaseModelSqlv2 {
       return;
     }
 
-    const options = await column
-      .getColOptions<{ options: SelectOption[] }>()
-      .then(({ options }) => options.map((opt) => opt.title));
     const columnTitle = column.title;
     const columnName = column.column_name;
     const columnValue =
@@ -3856,6 +3853,13 @@ class BaseModelSqlv2 {
     if (!columnValue) {
       return;
     }
+
+    const options = await column
+      .getColOptions<{ options: SelectOption[] }>()
+      .then(
+        (selectOptionsMeta) =>
+          selectOptionsMeta?.options?.map((opt) => opt.title) || [],
+      );
 
     // if multi select, then split the values
     const columnValueArr =

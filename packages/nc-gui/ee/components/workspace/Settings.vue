@@ -114,51 +114,51 @@ const onCancel = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center nc-workspace-settings-settings">
-    <div class="item flex flex-col w-full">
-      <div class="font-medium text-base">Change Workspace Name</div>
-      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
-        <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
-        <a-form-item name="title" :rules="formRules.title">
-          <a-input
-            v-model:value="form.title"
-            class="w-full !rounded-md !py-1.5"
-            placeholder="Workspace name"
-            data-testid="nc-workspace-settings-settings-rename-input"
-          />
-        </a-form-item>
-        <div class="flex flex-row w-full justify-end mt-8 gap-4">
-          <NcButton
-            v-if="isCancelButtonVisible"
-            type="secondary"
-            data-testid="nc-workspace-settings-settings-rename-cancel"
-            @click="onCancel"
-          >
-            Cancel
-          </NcButton>
-          <NcButton
-            v-e="['c:workspace:settings:rename']"
-            type="primary"
-            html-type="submit"
-            :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
-            :loading="isDeleting"
-            data-testid="nc-workspace-settings-settings-rename-submit"
-          >
-            <template #loading> Renaming Workspace </template>
-            Rename Workspace
-          </NcButton>
-        </div>
-      </a-form>
-    </div>
-    <div class="item flex flex-col border-1 border-red-500">
-      <div class="font-medium text-base">Delete Workspace</div>
-      <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
-      <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
-        <component :is="iconMap.error" class="text-red-500 text-xl" />
-        <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
+  <div class="flex flex-col items-center nc-workspace-settings-settings h-[calc(100vh-134px)] pb-10 overflow-y-auto nc-scrollbar-x-lg">
+      <div class="item flex flex-col w-full">
+        <div class="font-medium text-base">Change Workspace Name</div>
+        <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
+          <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
+          <a-form-item name="title" :rules="formRules.title">
+            <a-input
+              v-model:value="form.title"
+              class="w-full !rounded-md !py-1.5"
+              placeholder="Workspace name"
+              data-testid="nc-workspace-settings-settings-rename-input"
+            />
+          </a-form-item>
+          <div class="flex flex-row w-full justify-end mt-8 gap-4">
+            <NcButton
+              v-if="isCancelButtonVisible"
+              type="secondary"
+              data-testid="nc-workspace-settings-settings-rename-cancel"
+              @click="onCancel"
+            >
+              Cancel
+            </NcButton>
+            <NcButton
+              v-e="['c:workspace:settings:rename']"
+              type="primary"
+              html-type="submit"
+              :disabled="isErrored || (form.title && form.title === activeWorkspace.title)"
+              :loading="isDeleting"
+              data-testid="nc-workspace-settings-settings-rename-submit"
+            >
+              <template #loading> Renaming Workspace </template>
+              Rename Workspace
+            </NcButton>
+          </div>
+        </a-form>
       </div>
-      <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton v-e="['c:workspace:settings:delete']" type="danger" @click="handleDelete"> Delete Workspace </NcButton>
+      <div class="item flex flex-col border-1 border-red-500">
+        <div class="font-medium text-base">Delete Workspace</div>
+        <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
+        <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
+          <component :is="iconMap.error" class="text-red-500 text-xl" />
+          <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
+        </div>
+        <div class="flex flex-row w-full justify-end mt-8">
+          <NcButton v-e="['c:workspace:settings:delete']" type="danger" @click="handleDelete"> Delete Workspace </NcButton>
       </div>
     </div>
   </div>

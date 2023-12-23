@@ -38,12 +38,12 @@ const form = reactive({
 const formRules: Record<string, RuleObject[]> = {
   email: [
     // E-mail is required
-    { required: true, message: t('msg.error.signUpRules.emailReqd') },
+    { required: true, message: t('msg.error.signUpRules.emailRequired') },
     // E-mail must be valid format
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (validateEmail(v)) return resolve()
+          if (!v?.length || validateEmail(v)) return resolve()
 
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })

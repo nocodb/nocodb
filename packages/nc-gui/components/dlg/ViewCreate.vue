@@ -1,20 +1,10 @@
 <script setup lang="ts">
-import type {ComponentPublicInstance} from '@vue/runtime-core'
-import {capitalize} from '@vue/runtime-core'
-import type {Form as AntForm, SelectProps} from 'ant-design-vue'
-import {
-  CalendarType,
-  FormType,
-  GalleryType,
-  GridType,
-  isSystemColumn,
-  KanbanType,
-  MapType,
-  TableType,
-  UITypes,
-  ViewTypes
-} from 'nocodb-sdk'
-import {computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch} from '#imports'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
+import { capitalize } from '@vue/runtime-core'
+import type { Form as AntForm, SelectProps } from 'ant-design-vue'
+import type { CalendarType, FormType, GalleryType, GridType, KanbanType, MapType, TableType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -24,8 +14,8 @@ interface Props {
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
   tableId: string
-  calendar_range: Array<{
-    fk_from_column_id: string,
+  calendarRange: Array<{
+    fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
 }
@@ -45,8 +35,8 @@ interface Form {
   fk_geo_data_col_id: string | null
 
   // for calendar view only
-  calendar_range: Array<{
-    fk_from_column_id: string,
+  calendarRange: Array<{
+    fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
 }
@@ -55,7 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
   groupingFieldColumnId: undefined,
   geoDataFieldColumnId: undefined,
-  calendar_range: undefined,
+  calendarRange: undefined,
 })
 
 const emits = defineEmits<Emits>()
@@ -98,10 +88,15 @@ const form = reactive<Form>({
   copy_from_id: null,
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
-  calendar_range: ViewTypes.CALENDAR === props.type ? props.calendar_range : [{
-    fk_from_column_id: '',
-    fk_to_column_id: null
-  }],
+  calendarRange:
+    ViewTypes.CALENDAR === props.type
+      ? props.calendarRange
+      : [
+          {
+            fk_from_column_id: '',
+            fk_to_column_id: null,
+          },
+        ],
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -289,10 +284,12 @@ onMounted(async () => {
 
         if (viewSelectFieldOptions.value?.length) {
           // take the first option
-          form.calendar_range = [{
-            fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
-            fk_to_column_id: null // for ee only
-          }]
+          form.calendarRange = [
+            {
+              fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
+              fk_to_column_id: null, // for ee only
+            },
+          ]
         } else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
@@ -315,58 +312,62 @@ onMounted(async () => {
     <template #header>
       <div class="flex w-full flex-row justify-between items-center">
         <div class="flex gap-x-1.5 items-center">
-        <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
-        <template v-if="form.type === ViewTypes.GRID">
-          <template v-if="form.copy_from_id">
-            {{ $t('labels.duplicateGridView') }}
+          <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-xl" />
+          <template v-if="form.type === ViewTypes.GRID">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateGridView') }}
+            </template>
+            <template v-else>
+              {{ $t('labels.createGridView') }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.GALLERY">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateGalleryView') }}
+            </template>
+            <template v-else>
+              {{ $t('labels.createGalleryView') }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.FORM">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateFormView') }}
+            </template>
+            <template v-else>
+              {{ $t('labels.createFormView') }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.KANBAN">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateKanbanView') }}
+            </template>
+            <template v-else>
+              {{ $t('labels.createKanbanView') }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.CALENDAR">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateCalendarView') }}
+            </template>
+            <template v-else>
+              {{ $t('labels.createCalendarView') }}
+            </template>
           </template>
           <template v-else>
-            {{ $t('labels.createGridView') }}
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateMapView') }}
+            </template>
+            <template v-else>
+              {{ $t('labels.duplicateView') }}
+            </template>
           </template>
-        </template>
-        <template v-else-if="form.type === ViewTypes.GALLERY">
-          <template v-if="form.copy_from_id">
-            {{ $t('labels.duplicateGalleryView') }}
-          </template>
-          <template v-else>
-            {{ $t('labels.createGalleryView') }}
-          </template>
-        </template>
-        <template v-else-if="form.type === ViewTypes.FORM">
-          <template v-if="form.copy_from_id">
-            {{ $t('labels.duplicateFormView') }}
-          </template>
-          <template v-else>
-            {{ $t('labels.createFormView') }}
-          </template>
-        </template>
-        <template v-else-if="form.type === ViewTypes.KANBAN">
-          <template v-if="form.copy_from_id">
-            {{ $t('labels.duplicateKanbanView') }}
-          </template>
-          <template v-else>
-            {{ $t('labels.createKanbanView') }}
-          </template>
-        </template>
-        <template v-else-if="form.type === ViewTypes.CALENDAR">
-          <template v-if="form.copy_from_id">
-            {{ $t('labels.duplicateCalendarView') }}
-          </template>
-          <template v-else>
-            {{ $t('labels.createCalendarView') }}
-          </template>
-        </template>
-        <template v-else>
-          <template v-if="form.copy_from_id">
-            {{ $t('labels.duplicateMapView') }}
-          </template>
-          <template v-else>
-            {{ $t('labels.duplicateView') }}
-          </template>
-        </template>
         </div>
-        <a v-if="!form.copy_from_id" href="https://docs.nocodb.com/views/view-types/calendar/" target="_blank"
-           class="text-sm !no-underline !hover:text-brand-500 text-brand-500 ">
+        <a
+          v-if="!form.copy_from_id"
+          href="https://docs.nocodb.com/views/view-types/calendar/"
+          target="_blank"
+          class="text-sm !no-underline !hover:text-brand-500 text-brand-500"
+        >
           Go to Docs
         </a>
       </div>
@@ -415,47 +416,52 @@ onMounted(async () => {
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
           />
         </a-form-item>
-        <div v-if="form.type === ViewTypes.CALENDAR"  v-for="range in form.calendar_range" class="flex w-full gap-3">
-          <div class="flex flex-col gap-2 w-1/2">
-            <span>
-              {{ $t('labels.organizeRecordsBy') }}
-            </span>
-            <NcSelect
+        <template v-if="form.type === ViewTypes.CALENDAR">
+          <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full gap-3">
+            <div class="flex flex-col gap-2 w-1/2">
+              <span>
+                {{ $t('labels.organizeRecordsBy') }}
+              </span>
+              <NcSelect
                 v-model:value="range.fk_from_column_id"
-              class="w-full"
-              :disabled="isMetaLoading"
-              :loading="isMetaLoading"
-              :options="viewSelectFieldOptions"
-            />
-          </div>
-          <div v-if="range.fk_to_column_id === null && isEeUI" class="flex flex-col justify-end w-1/2">
-            <div class="cursor-pointer flex items-center font-medium gap-1 mb-1"
-                 @click="range.fk_to_column_id = ''">
-              <component :is="iconMap.plus" class="h-4 w-4"/>
-              {{ $t('activity.setEndDate') }}
+                class="w-full"
+                :disabled="isMetaLoading"
+                :loading="isMetaLoading"
+                :options="viewSelectFieldOptions"
+              />
             </div>
-
-          </div>
-          <div v-else-if="isEeUI" class="flex gap-2 flex-col w-1/2">
-            <div class="flex flex-row justify-between">
-            <span>
-              {{ $t('labels.endDateField') }}
-            </span>
-              <component :is="iconMap.delete" class="h-4 w-4 cursor-pointer text-red-500"
-                         @click="() => {
-                           range.fk_to_column_id = null
-                         }"/>
+            <div v-if="range.fk_to_column_id === null && isEeUI" class="flex flex-col justify-end w-1/2">
+              <div class="cursor-pointer flex items-center font-medium gap-1 mb-1" @click="range.fk_to_column_id = ''">
+                <component :is="iconMap.plus" class="h-4 w-4" />
+                {{ $t('activity.setEndDate') }}
+              </div>
             </div>
-            <NcSelect
+            <div v-else-if="isEeUI" class="flex gap-2 flex-col w-1/2">
+              <div class="flex flex-row justify-between">
+                <span>
+                  {{ $t('labels.endDateField') }}
+                </span>
+                <component
+                  :is="iconMap.delete"
+                  class="h-4 w-4 cursor-pointer text-red-500"
+                  @click="
+                    () => {
+                      range.fk_to_column_id = null
+                    }
+                  "
+                />
+              </div>
+              <NcSelect
                 v-model:value="range.fk_to_column_id"
-              class="w-full"
-              :disabled="isMetaLoading"
-              :loading="isMetaLoading"
-              :options="viewSelectFieldOptions"
-              :placeholder="$t('placeholder.notSelected')"
-            />
+                class="w-full"
+                :disabled="isMetaLoading"
+                :loading="isMetaLoading"
+                :options="viewSelectFieldOptions"
+                :placeholder="$t('placeholder.notSelected')"
+              />
+            </div>
           </div>
-        </div>
+        </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
         <GeneralIcon icon="warning" class="!text-5xl text-orange-500" />

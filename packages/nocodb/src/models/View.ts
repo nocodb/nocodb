@@ -1,14 +1,14 @@
-import type {BoolType, ColumnReqType, ViewType} from 'nocodb-sdk';
-import {isSystemColumn, UITypes, ViewTypes} from 'nocodb-sdk';
+import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
 import GridView from '~/models/GridView';
 import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
-import CalendarView from "~/models/CalendarView";
+import CalendarView from '~/models/CalendarView';
 import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
-import CalendarRange from "~/models/CalendarRange";
+import CalendarRange from '~/models/CalendarRange';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -17,11 +17,16 @@ import KanbanViewColumn from '~/models/KanbanViewColumn';
 import Column from '~/models/Column';
 import MapView from '~/models/MapView';
 import MapViewColumn from '~/models/MapViewColumn';
-import {extractProps} from '~/helpers/extractProps';
+import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import {CacheDelDirection, CacheGetType, CacheScope, MetaTable,} from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 import Noco from '~/Noco';
-import {parseMetaProp, stringifyMetaProp} from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -54,14 +59,20 @@ export default class View implements ViewType {
 
   fk_model_id: string;
   model?: Model;
-  view?: FormView | GridView | KanbanView | GalleryView | MapView | CalendarView;
+  view?:
+    | FormView
+    | GridView
+    | KanbanView
+    | GalleryView
+    | MapView
+    | CalendarView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
     | GalleryViewColumn
     | KanbanViewColumn
     | MapViewColumn
-      | CalendarViewColumn
+    | CalendarViewColumn
   >;
 
   sorts: Sort[];
@@ -277,7 +288,9 @@ export default class View implements ViewType {
 
   static async insert(
     view: Partial<View> &
-        Partial<FormView | GridView | GalleryView | KanbanView | MapView | CalendarView> & {
+      Partial<
+        FormView | GridView | GalleryView | KanbanView | MapView | CalendarView
+      > & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
         calendar_range?: Partial<CalendarRange>[];
@@ -386,18 +399,21 @@ export default class View implements ViewType {
         );
         break;
       case ViewTypes.CALENDAR:
-        const obj = extractProps(view, ["calendar_range"])
+        const obj = extractProps(view, ['calendar_range']);
         if (!obj.calendar_range) break;
         const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
         calendarRange.forEach((range) => {
           range.fk_view_id = view_id;
-        })
+        });
 
-        await CalendarView.insert({
-          ...(copyFromView?.view || {}),
-          ...view,
-          fk_view_id: view_id,
-        }, ncMeta,)
+        await CalendarView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
 
         await CalendarRange.bulkInsert(calendarRange, ncMeta);
     }
@@ -456,12 +472,12 @@ export default class View implements ViewType {
       if (view.type === ViewTypes.CALENDAR) {
         const calRange = await CalendarRange.read(view_id, ncMeta);
         if (calRange) {
-          const calIds: Set<string> = new Set()
+          const calIds: Set<string> = new Set();
           calRange.ranges.forEach((range) => {
             calIds.add(range.fk_from_column_id);
             if (!range.fk_to_column_id) return;
             calIds.add(range.fk_to_column_id);
-          })
+          });
           calendarRanges = Array.from(calIds) as Array<string>;
         }
       }
@@ -491,9 +507,9 @@ export default class View implements ViewType {
 
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
-        let underline = false;
-        let bold = false;
-        let italic = false;
+        const underline = false;
+        const bold = false;
+        const italic = false;
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(view_id, ncMeta);
@@ -644,7 +660,8 @@ export default class View implements ViewType {
       italic?;
       fk_column_id;
       id?: string;
-    } & Partial<FormViewColumn> & Partial<CalendarViewColumn>,
+    } & Partial<FormViewColumn> &
+      Partial<CalendarViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(param.view_id, ncMeta);
@@ -706,8 +723,9 @@ export default class View implements ViewType {
           );
         }
         break;
-      case ViewTypes.CALENDAR: {
-        col = await CalendarViewColumn.insert(
+      case ViewTypes.CALENDAR:
+        {
+          col = await CalendarViewColumn.insert(
             {
               ...param,
               fk_view_id: view.id,
@@ -739,7 +757,7 @@ export default class View implements ViewType {
       | GalleryViewColumn
       | KanbanViewColumn
       | MapViewColumn
-        | CalendarViewColumn
+      | CalendarViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -1002,7 +1020,7 @@ export default class View implements ViewType {
             show: colData.show,
           });
         case ViewTypes.CALENDAR:
-          // todo: calendar view column
+        // todo: calendar view column
       }
       return await ncMeta.metaInsert2(view.base_id, view.source_id, table, {
         fk_view_id: viewId,
@@ -1223,8 +1241,12 @@ export default class View implements ViewType {
     if (view.type === ViewTypes.CALENDAR) {
       await ncMeta.metaDelete(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
         fk_view_id: viewId,
-      })
-      await NocoCache.deepDel(CacheScope.CALENDAR_VIEW_RANGE, `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`, CacheDelDirection.CHILD_TO_PARENT)
+      });
+      await NocoCache.deepDel(
+        CacheScope.CALENDAR_VIEW_RANGE,
+        `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
     }
     await NocoCache.deepDel(
       `${columnTableScope}:${viewId}`,

@@ -712,8 +712,18 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-
-        type: FormulaDataTypes.STRING,
+      },
+      custom(argTypes: FormulaDataTypes[], parsedTree) {
+        if (argTypes[1] !== FormulaDataTypes.NUMERIC) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.numericTypeIsExpected',
+              calleeName: parsedTree.callee?.name?.toUpperCase(),
+            },
+            'Numeric type is expected'
+          );
+        }
       },
     },
     description:
@@ -1767,11 +1777,20 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = FormulaDataTypes.STRING;
       }
     } else if (parsedTree.type === JSEPNode.UNARY_EXP) {
-      throw new FormulaError(
-        FormulaErrorType.NOT_SUPPORTED,
-        {},
-        'Unary expression is not supported'
-      );
+      // only support -ve values
+      if (
+        ['-'].includes(parsedTree.operator) &&
+        parsedTree.argument.type === JSEPNode.LITERAL &&
+        typeof parsedTree.argument.value === 'number'
+      ) {
+        res.dataType = FormulaDataTypes.NUMERIC;
+      } else {
+        throw new FormulaError(
+          FormulaErrorType.NOT_SUPPORTED,
+          {},
+          `Unary expression '${parsedTree.operator}' is not supported`
+        );
+      }
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
       res.left = await validateAndExtract(parsedTree.left);
       res.right = await validateAndExtract(parsedTree.right);

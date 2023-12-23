@@ -13,7 +13,7 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
           if (!value || value.length === 0) {
-            callback(t('msg.error.signUpRules.emailReqd'))
+            callback(t('msg.error.signUpRules.emailRequired'))
             return
           }
           const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))

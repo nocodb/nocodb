@@ -177,7 +177,7 @@ watch(editEnabled, () => {
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full rich-wrapper long-text-wrapper"
+      class="flex flex-row pt-0.5 w-full long-text-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
@@ -307,12 +307,6 @@ textarea:focus {
 
 <style lang="scss">
 .cell:hover .nc-text-area-expand-btn {
-  @apply !block;
-}
-.rich-wrapper:hover,
-.rich-wrapper:active {
-  :deep(.nc-text-area-expand-btn) {
-    @apply !block cursor-pointer;
-  }
+  @apply !block cursor-pointer;
 }
 </style>

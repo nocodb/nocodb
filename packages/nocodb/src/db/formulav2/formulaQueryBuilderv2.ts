@@ -1027,11 +1027,22 @@ async function _formulaQueryBuilder(
       }
       return { builder: query };
     } else if (pt.type === 'UnaryExpression') {
-      const query = knex.raw(
-        `${pt.operator}${(
-          await fn(pt.argument, null, pt.operator)
-        ).builder.toQuery()}${colAlias}`,
-      );
+      let query;
+      if (
+        (pt.operator === '-' || pt.operator === '+') &&
+        pt.dataType === FormulaDataTypes.NUMERIC
+      ) {
+        query = knex.raw('?', [
+          (pt.operator === '-' ? -1 : 1) * pt.argument.value,
+        ]);
+      } else {
+        query = knex.raw(
+          `${pt.operator}${(
+            await fn(pt.argument, null, pt.operator)
+          ).builder.toQuery()}${colAlias}`,
+        );
+      }
+
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }

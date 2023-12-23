@@ -20,6 +20,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
+const wrapperRef = ref<HTMLElement>()
+
 const vModel = computed({
   get: () => _vModel.value,
   set: (value) => {
@@ -56,6 +58,18 @@ const onBlur = () => {
 
 const onFocus = () => {
   cellFocused.value = true
+  editEnabled.value = true
+  expandedEditEnabled.value = true
+}
+
+const onWrapperFocus = () => {
+  cellFocused.value = true
+  editEnabled.value = true
+  expandedEditEnabled.value = true
+
+  nextTick(() => {
+    wrapperRef.value?.querySelector('input')?.focus()
+  })
 }
 
 const onMouseover = () => {
@@ -67,10 +81,41 @@ const onMouseleave = () => {
     expandedEditEnabled.value = false
   }
 }
+
+const onTabPress = (e: KeyboardEvent) => {
+  if (e.shiftKey) {
+    e.preventDefault()
+
+    // Shift + Tab does not work for percent cell
+    // so we manually focus on the last form item
+
+    const focusesNcCellIndex = Array.from(document.querySelectorAll('.nc-expanded-form-row .nc-data-cell')).findIndex((el) => {
+      return el.querySelector('.nc-filter-value-select') === wrapperRef.value
+    })
+
+    if (focusesNcCellIndex >= 0) {
+      const nodes = document.querySelectorAll('.nc-expanded-form-row .nc-data-cell')
+      for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
+        const lastFormItem = nodes[i].querySelector('[tabindex="0"]') as HTMLElement
+        if (lastFormItem) {
+          lastFormItem.focus()
+          break
+        }
+      }
+    }
+  }
+}
 </script>
 
 <template>
-  <div class="nc-filter-value-select w-full" @mouseover="onMouseover" @mouseleave="onMouseleave">
+  <div
+    ref="wrapperRef"
+    tabindex="0"
+    class="nc-filter-value-select w-full focus:outline-transparent"
+    @mouseover="onMouseover"
+    @mouseleave="onMouseleave"
+    @focus="onWrapperFocus"
+  >
     <input
       v-if="(!isExpandedFormOpen && editEnabled) || (isExpandedFormOpen && expandedEditEnabled)"
       :ref="focus"
@@ -86,6 +131,7 @@ const onMouseleave = () => {
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @keydown.tab="onTabPress"
       @selectstart.capture.stop
       @mousedown.stop
     />

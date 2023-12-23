@@ -39,7 +39,7 @@ export class CollaborationPage extends BasePage {
     await this.rootPage.keyboard.press('Enter');
 
     // role
-    await this.selector_role.click();
+    await this.selector_role.first().click();
     const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');
     await menu.locator(`.nc-role-select-workspace-level-${role.toLowerCase()}:visible`).first().click();
 

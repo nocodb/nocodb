@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
-import { isLinksOrLTAR, isNumericCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from '#imports'
 import {
   MetaInj,
@@ -102,31 +102,27 @@ const cellIcon = (column: ColumnType) =>
 
 const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
 
+const allFunctions = [
+  { text: t('datatype.Count'), value: 'count' },
+  { text: t('general.min'), value: 'min' },
+  { text: t('general.max'), value: 'max' },
+  { text: t('general.avg'), value: 'avg' },
+  { text: t('general.sum'), value: 'sum' },
+  { text: t('general.countDistinct'), value: 'countDistinct' },
+  { text: t('general.sumDistinct'), value: 'sumDistinct' },
+  { text: t('general.avgDistinct'), value: 'avgDistinct' },
+]
+
 watch(
   () => vModel.value.fk_rollup_column_id,
   () => {
     const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
-    const showNumericFunctions = isNumericCol(childFieldColumn)
-    const nonNumericFunctions = [
-      // functions for non-numeric types,
-      // e.g. count / min / max / countDistinct date field
-      { text: t('datatype.Count'), value: 'count' },
-      { text: t('general.min'), value: 'min' },
-      { text: t('general.max'), value: 'max' },
-      { text: t('general.countDistinct'), value: 'countDistinct' },
-    ]
-    const numericFunctions = showNumericFunctions
-      ? [
-          { text: t('general.avg'), value: 'avg' },
-          { text: t('general.sum'), value: 'sum' },
-          { text: t('general.sumDistinct'), value: 'sumDistinct' },
-          { text: t('general.avgDistinct'), value: 'avgDistinct' },
-        ]
-      : []
 
-    aggFunctionsList.value = [...nonNumericFunctions, ...numericFunctions]
+    aggFunctionsList.value = allFunctions.filter((func) =>
+      getAvailableRollupForUiType(childFieldColumn?.uidt as UITypes).includes(func.value),
+    )
 
-    if (!showNumericFunctions && ['avg', 'sum', 'sumDistinct', 'avgDistinct'].includes(vModel.value.rollup_function)) {
+    if (!aggFunctionsList.value.includes(vModel.value.rollup_function)) {
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
       vModel.value.rollup_function = aggFunctionsList.value[0].value

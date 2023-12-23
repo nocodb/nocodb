@@ -32,6 +32,7 @@ export const isGeoData = (column: ColumnType) => column.uidt === UITypes.GeoData
 export const isPercent = (column: ColumnType) => column.uidt === UITypes.Percent
 export const isSpecificDBType = (column: ColumnType) => column.uidt === UITypes.SpecificDBType
 export const isGeometry = (column: ColumnType) => column.uidt === UITypes.Geometry
+export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isAutoSaved = (column: ColumnType) =>
   [
     UITypes.SingleLineText,

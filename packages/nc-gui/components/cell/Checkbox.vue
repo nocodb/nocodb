@@ -84,7 +84,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full items-center"
+    class="flex cursor-pointer w-full h-full items-center focus:outline-transparent"
     :class="{
       'w-full flex-start pl-2': isForm || isGallery || isExpandedFormOpen,
       'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,
@@ -94,7 +94,9 @@ useSelectedCellKeyupListener(active, (e) => {
     :style="{
       height: isForm || isExpandedFormOpen || isGallery ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
+    tabindex="0"
     @click="onClick(false, $event)"
+    @keydown.enter.stop="onClick(false, $event)"
   >
     <div
       class="flex items-center"

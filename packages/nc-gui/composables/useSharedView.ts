@@ -19,6 +19,10 @@ export function useSharedView() {
 
   const baseStore = useBase()
 
+  const basesStore = useBases()
+
+  const { basesUser } = storeToRefs(basesStore)
+
   const { base } = storeToRefs(baseStore)
 
   const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
@@ -99,6 +103,10 @@ export function useSharedView() {
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+
+    if (viewMeta.users) {
+      basesUser.value.set(viewMeta.base_id, viewMeta.users)
+    }
   }
 
   const fetchSharedViewData = async (param: {

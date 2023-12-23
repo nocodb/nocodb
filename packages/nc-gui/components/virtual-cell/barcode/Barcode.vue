@@ -64,6 +64,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     <JsBarcodeWrapper
       v-if="showBarcode && rowHeight"
       :barcode-value="barcodeValue"
+      tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
       :custom-style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
       @on-click-barcode="showBarcodeModal"
@@ -76,6 +77,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     </JsBarcodeWrapper>
     <JsBarcodeWrapper
       v-else-if="showBarcode"
+      tabindex="-1"
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
       @on-click-barcode="showBarcodeModal"

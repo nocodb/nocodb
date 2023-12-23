@@ -486,6 +486,7 @@ test.describe('Form view', () => {
       columnHeader: 'MultiSelect',
       option: 'jan',
       multiSelect: true,
+      ignoreDblClick: true,
     };
     await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'jan' });
     await sharedForm.cell.selectOption.select({ ...multiSelectParams, option: 'feb' });

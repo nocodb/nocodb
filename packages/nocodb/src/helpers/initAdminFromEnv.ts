@@ -169,11 +169,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 existingUserWithNewEmail.id,
               );
 
-              // clear cache
-              await NocoCache.delAll(
-                CacheScope.USER,
-                `${existingUserWithNewEmail.email}___*`,
-              );
               await NocoCache.del(
                 `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
               );
@@ -237,11 +232,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           // check user account already present with the new admin email
           const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
           if (existingUserWithNewEmail?.id) {
-            // clear cache
-            await NocoCache.delAll(
-              CacheScope.USER,
-              `${existingUserWithNewEmail.email}___*`,
-            );
             await NocoCache.del(
               `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
             );

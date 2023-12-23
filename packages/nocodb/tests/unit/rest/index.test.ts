@@ -10,6 +10,7 @@ import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
 import newDataApisTest from './tests/newDataApis.test';
 import groupByTest from './tests/groupby.test';
+import formulaTests from './tests/formula.test';
 
 let workspaceTest = () => {};
 if (process.env.EE === 'true') {
@@ -31,6 +32,7 @@ function restTests() {
   newDataApisTest();
   groupByTest();
   workspaceTest();
+  formulaTests();
 
   // Enable for dashboard feature
   // widgetTest();

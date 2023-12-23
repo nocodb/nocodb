@@ -5,6 +5,7 @@ import {extractProps} from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import {CacheGetType, CacheScope, MetaTable} from '~/utils/globals';
+import CalendarRange from "~/models/CalendarRange";
 
 export default class CalendarView implements CalendarType {
     fk_view_id: string;
@@ -12,7 +13,7 @@ export default class CalendarView implements CalendarType {
     base_id?: string;
     source_id?: string;
     meta?: MetaType;
-
+    calendar_range?: Array<Partial<CalendarRange>>
     fk_cover_image_col_id?: string;
     // below fields are not in use at this moment
     // keep them for time being
@@ -32,10 +33,21 @@ export default class CalendarView implements CalendarType {
                 `${CacheScope.CALENDAR_VIEW}:${viewId}`,
                 CacheGetType.TYPE_OBJECT,
             ));
-        if (!view) {
+        if (view) {
+            const calendarRange = await CalendarRange.read(viewId, ncMeta);
+            if (calendarRange) {
+                view.calendar_range = calendarRange.ranges;
+            } else {
+                view.calendar_range = [];
+            }
+        } else {
             view = await ncMeta.metaGet2(null, null, MetaTable.CALENDAR_VIEW, {
                 fk_view_id: viewId,
             });
+            const calendarRange = await CalendarRange.read(viewId);
+            if (calendarRange) {
+                view.calendar_range = calendarRange.ranges;
+            }
             await NocoCache.set(`${CacheScope.CALENDAR_VIEW}:${viewId}`, view);
         }
 
@@ -83,18 +95,18 @@ export default class CalendarView implements CalendarType {
             await NocoCache.set(key, o);
         }
 
-        // TODO: Update this when API is ready
-        /*if (body.fk_geo_data_col_id != null) {
-            const mapViewColumns = await MapViewColumn.list(mapId);
-            const mapViewMappedByColumn = mapViewColumns.find(
-                (mapViewColumn) =>
-                    mapViewColumn.fk_column_id === body.fk_geo_data_col_id,
-            );
-            await View.updateColumn(body.fk_view_id, mapViewMappedByColumn.id, {
-                show: true,
+        if (body.calendar_range) {
+            await NocoCache.del(`${CacheScope.CALENDAR_VIEW_RANGE}:${calendarId}`);
+            await ncMeta.metaDelete(null, null, MetaTable.CALENDAR_VIEW_RANGE, {}, {
+                fk_view_id: calendarId,
             });
-        }*/
-
+            await CalendarRange.bulkInsert(body.calendar_range.map((range) => {
+                return {
+                    fk_view_id: calendarId,
+                    ...range
+                }
+            }));
+        }
         // update meta
         return await ncMeta.metaUpdate(null, null, MetaTable.CALENDAR_VIEW, updateObj, {
             fk_view_id: calendarId,

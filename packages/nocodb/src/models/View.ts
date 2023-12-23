@@ -63,7 +63,6 @@ export default class View implements ViewType {
     | MapViewColumn
       | CalendarViewColumn
   >;
-  calendar_range?: Array<CalendarRange>;
 
   sorts: Sort[];
   filter: Filter;
@@ -135,7 +134,6 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(this.id, ncMeta);
-        this.calendar_range = (await CalendarRange.read(this.id, ncMeta)).ranges;
         break;
     }
     return this.view;

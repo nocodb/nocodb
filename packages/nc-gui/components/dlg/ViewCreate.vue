@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import type { ComponentPublicInstance } from '@vue/runtime-core'
-import type { Form as AntForm, SelectProps } from 'ant-design-vue'
-import { capitalize } from '@vue/runtime-core'
-import {CalendarType, FormType, GalleryType, GridType, KanbanType, MapType, TableType} from 'nocodb-sdk'
-import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
-import { computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch } from '#imports'
+import type {ComponentPublicInstance} from '@vue/runtime-core'
+import {capitalize} from '@vue/runtime-core'
+import type {Form as AntForm, SelectProps} from 'ant-design-vue'
+import {
+  CalendarType,
+  FormType,
+  GalleryType,
+  GridType,
+  isSystemColumn,
+  KanbanType,
+  MapType,
+  TableType,
+  UITypes,
+  ViewTypes
+} from 'nocodb-sdk'
+import {computed, message, nextTick, onBeforeMount, reactive, ref, useApi, useI18n, useVModel, watch} from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -22,6 +32,7 @@ interface Props {
 
 interface Emits {
   (event: 'update:modelValue', value: boolean): void
+
   (event: 'created', value: GridType | KanbanType | GalleryType | FormType | MapType | CalendarType): void
 }
 
@@ -354,7 +365,8 @@ onMounted(async () => {
           </template>
         </template>
         </div>
-        <a v-if="!form.copy_from_id" href="https://docs.nocodb.com/views/view-types/calendar/" target="_blank" class="text-sm !no-underline !hover:text-brand-500 text-brand-500 ">
+        <a v-if="!form.copy_from_id" href="https://docs.nocodb.com/views/view-types/calendar/" target="_blank"
+           class="text-sm !no-underline !hover:text-brand-500 text-brand-500 ">
           Go to Docs
         </a>
       </div>
@@ -409,7 +421,7 @@ onMounted(async () => {
               {{ $t('labels.organizeRecordsBy') }}
             </span>
             <NcSelect
-              v-model:value="range.fk_from_column_id"
+                v-model:value="range.fk_from_column_id"
               class="w-full"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
@@ -435,7 +447,7 @@ onMounted(async () => {
                          }"/>
             </div>
             <NcSelect
-              v-model:value="range.fk_to_column_id"
+                v-model:value="range.fk_to_column_id"
               class="w-full"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"

@@ -712,8 +712,18 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-
-        type: FormulaDataTypes.STRING,
+      },
+      custom(argTypes: FormulaDataTypes[], parsedTree) {
+        if (argTypes[1] !== FormulaDataTypes.NUMERIC) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.numericTypeIsExpected',
+              calleeName: parsedTree.callee?.name?.toUpperCase(),
+            },
+            'Numeric type is expected'
+          );
+        }
       },
     },
     description:

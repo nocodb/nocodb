@@ -21,7 +21,6 @@ import {
   isDate,
   isDateTime,
   isDecimal,
-  isDrawerExist,
   isDuration,
   isEmail,
   isFloat,

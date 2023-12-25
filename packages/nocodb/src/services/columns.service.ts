@@ -1720,7 +1720,30 @@ export class ColumnsService {
             if (!dbColumn) {
               // create column in db
 
-              const column = sqlClient;
+              const tableUpdateBody = {
+                ...table,
+                tn: table.table_name,
+                originalColumns: table.columns.map((c) => ({
+                  ...c,
+                  cn: c.column_name,
+                })),
+                columns: [
+                  ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+                  {
+                    ...colBody,
+                    cn: UITypes.CreateTime ? 'created_at' : 'updated_at',
+                    altered: Altered.NEW_COLUMN,
+                  },
+                ],
+              };
+
+              const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+                NcConnectionMgrv2.getSqlClient(source),
+              );
+              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+                ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+              );
+              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
             }
 
             await Column.insert({

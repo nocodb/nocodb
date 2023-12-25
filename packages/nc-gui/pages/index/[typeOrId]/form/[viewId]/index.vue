@@ -68,6 +68,10 @@ p {
 }
 
 .nc-form-view {
+  .nc-data-cell {
+    @apply border-solid border-1 border-gray-300 dark:border-slate-200;
+  }
+
   .nc-cell {
     @apply bg-white dark:bg-slate-500;
 
@@ -91,7 +95,7 @@ p {
       @apply bg-white dark:bg-slate-500;
 
       &.nc-input {
-        @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-gray-300 dark:border-slate-200;
+        @apply w-full px-2 min-h-[40px] flex items-center;
 
         .duration-cell-wrapper {
           @apply w-full;

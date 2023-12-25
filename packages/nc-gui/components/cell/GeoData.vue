@@ -103,7 +103,7 @@ const openInOSM = () => {
       v-else
       data-testid="nc-geo-data-lat-long-set"
       tabindex="0"
-      class="focus-visible:!outline-none h-full w-full flex items-center"
+      class="focus-visible:!outline-none focus:!outline-none h-full w-full flex items-center"
     >
       {{ latLongStr }}
     </div>

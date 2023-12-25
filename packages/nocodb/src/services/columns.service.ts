@@ -1716,7 +1716,6 @@ export class ColumnsService {
                 c.column_name ===
                 (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
             );
-
             if (!dbColumn) {
               // create column in db
 
@@ -1736,10 +1735,6 @@ export class ColumnsService {
                   },
                 ],
               };
-
-              const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-                NcConnectionMgrv2.getSqlClient(source),
-              );
               const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
                 ProjectMgrv2.getSqlMgr({ id: source.base_id }),
               );

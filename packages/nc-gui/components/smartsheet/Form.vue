@@ -739,7 +739,7 @@ const onFormItemClick = (element: any) => {
                     <a-form-item
                       v-if="isVirtualCol(element)"
                       :name="element.title"
-                      class="!mb-0 nc-input-required-error"
+                      class="!mb-0 nc-input-required-error nc-form-input-item"
                       :rules="[
                         {
                           required: isRequired(element, element.required),
@@ -761,7 +761,7 @@ const onFormItemClick = (element: any) => {
                     <a-form-item
                       v-else
                       :name="element.title"
-                      class="!mb-0 nc-input-required-error"
+                      class="!mb-0 nc-input-required-error nc-form-input-item"
                       :rules="[
                         {
                           required: isRequired(element, element.required),
@@ -932,6 +932,14 @@ const onFormItemClick = (element: any) => {
     .nc-attachment-cell-dropzone {
       @apply rounded bg-gray-400/75;
     }
+  }
+}
+
+.nc-form-input-item .nc-data-cell {
+  @apply !border-none rounded-none;
+
+  &:focus-within {
+    @apply !border-none;
   }
 }
 </style>

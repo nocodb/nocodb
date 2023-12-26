@@ -77,11 +77,16 @@ export default {
 
       if (
         args.pt.arguments[i * 2 + 1].type === 'CallExpression' &&
-        args.pt.arguments[i * 2 + 1].callee?.name === 'BLANK' &&
-        args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.STRING
+        args.pt.arguments[i * 2 + 1].callee?.name === 'BLANK'
       ) {
         elseValPrefix += args.knex
-          .raw(`\n\tWHEN ${switchVal} IS NULL OR ${switchVal} = '' THEN ${val}`)
+          .raw(
+            `\n\tWHEN ${switchVal} IS NULL ${
+              args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.STRING
+                ? `OR ${switchVal} = ''`
+                : ''
+            } THEN ${val}`,
+          )
           .toQuery();
       } else if (
         args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.NULL
@@ -353,6 +358,13 @@ export default {
       ),
     };
   },
+  ISNULL: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+
+    return {
+      builder: knex.raw(`(${valueBuilder} IS NULL)${colAlias}`),
+    };
+  },
   ISNOTBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
 
@@ -360,6 +372,13 @@ export default {
       builder: knex.raw(
         `(${valueBuilder} IS NOT NULL AND ${valueBuilder} != '')${colAlias}`,
       ),
+    };
+  },
+  ISNOTNULL: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+
+    return {
+      builder: knex.raw(`(${valueBuilder} IS NOT NULL)${colAlias}`),
     };
   },
 };

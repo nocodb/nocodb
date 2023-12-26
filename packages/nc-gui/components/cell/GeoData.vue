@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, iconMap, latLongToJoinedString, useVModel } from '#imports'
+import { Modal as AModal, iconMap, latLongToJoinedString, useVModel, IsExpandedFormOpenInj } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -15,6 +15,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpanded = ref(false)
 
@@ -103,7 +105,10 @@ const openInOSM = () => {
       v-else
       data-testid="nc-geo-data-lat-long-set"
       tabindex="0"
-      class="focus-visible:!outline-none focus:!outline-none h-full w-full flex items-center"
+      class="h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
+      :class="{
+        'px-2': isExpandedFormOpen,
+      }"
     >
       {{ latLongStr }}
     </div>

@@ -78,7 +78,10 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="w-full h-full text-sm border-none rounded-md outline-none focus:outline-transparent focus:ring-0"
+    class="w-full h-full text-sm border-none rounded-md px-0 py-1 outline-none focus:outline-none focus:ring-0"
+    :class="{
+      '!px-2': isExpandedFormOpen,
+    }"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="submitCurrency"
     @keydown.down.stop

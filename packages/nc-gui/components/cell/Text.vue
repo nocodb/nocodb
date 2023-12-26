@@ -32,11 +32,11 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
     v-if="!readonly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="h-full w-full outline-none p-2 bg-transparent"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    class="h-full w-full outline-none py-1 bg-transparent"
     :class="{
-      'px-1': isExpandedFormOpen,
+      'px-2': isExpandedFormOpen,
     }"
+    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop

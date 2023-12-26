@@ -33,7 +33,6 @@ async function treatArgAsConditionalExp(
 }
 
 export default {
-  // todo: handle default case
   SWITCH: async (args: MapFnArgs) => {
     const count = Math.floor((args.pt.arguments.length - 1) / 2);
     let query = '';
@@ -55,6 +54,9 @@ export default {
 
     const switchVal = (await args.fn(args.pt.arguments[0])).builder.toQuery();
 
+    // used it for null value check
+    let elseValPrefix = '';
+
     for (let i = 0; i < count; i++) {
       let val;
       // cast to string if the return value types are different
@@ -73,13 +75,29 @@ export default {
         val = (await args.fn(args.pt.arguments[i * 2 + 2])).builder.toQuery();
       }
 
-      query += args.knex
-        .raw(
-          `\n\tWHEN ${(
-            await args.fn(args.pt.arguments[i * 2 + 1])
-          ).builder.toQuery()} THEN ${val}`,
-        )
-        .toQuery();
+      if (
+        args.pt.arguments[i * 2 + 1].type === 'CallExpression' &&
+        args.pt.arguments[i * 2 + 1].callee?.name === 'BLANK' &&
+        args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.STRING
+      ) {
+        elseValPrefix += args.knex
+          .raw(`\n\tWHEN ${switchVal} IS NULL OR ${switchVal} = '' THEN ${val}`)
+          .toQuery();
+      } else if (
+        args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.NULL
+      ) {
+        elseValPrefix += args.knex
+          .raw(`\n\tWHEN ${switchVal} IS NULL THEN ${val}`)
+          .toQuery();
+      } else {
+        query += args.knex
+          .raw(
+            `\n\tWHEN ${(
+              await args.fn(args.pt.arguments[i * 2 + 1])
+            ).builder.toQuery()} THEN ${val}`,
+          )
+          .toQuery();
+      }
     }
     if (args.pt.arguments.length % 2 === 0) {
       let val;
@@ -100,8 +118,13 @@ export default {
           await args.fn(args.pt.arguments[args.pt.arguments.length - 1])
         ).builder.toQuery();
       }
-
-      query += `\n\tELSE ${val}`;
+      if (elseValPrefix) {
+        query += `\n\tELSE (CASE ${elseValPrefix} ELSE ${val} END)`;
+      } else {
+        query += `\n\tELSE ${val}`;
+      }
+    } else if (elseValPrefix) {
+      query += `\n\tELSE (CASE ${elseValPrefix} END)`;
     }
     return {
       builder: args.knex.raw(

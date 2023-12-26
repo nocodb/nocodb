@@ -877,10 +877,12 @@ async function _formulaQueryBuilder(
       if (pt.operator === '==' || pt.operator === '!=') {
         if (pt.left.callee?.name !== pt.right.callee?.name) {
           // if left/right is BLANK, accept both NULL and empty string
-         for(const operand of ['left', 'right']){
+          for (const operand of ['left', 'right']) {
             if (
               pt[operand].type === 'CallExpression' &&
-              pt[operand].callee.name === 'BLANK'
+              pt[operand].callee.name === 'BLANK' &&
+              pt[operand === 'left' ?'right' : 'left'].dataType ===
+                FormulaDataTypes.STRING
             ) {
               return fn(
                 {

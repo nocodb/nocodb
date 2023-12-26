@@ -321,4 +321,22 @@ export default {
       ),
     };
   },
+  ISBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+
+    return {
+      builder: knex.raw(
+        `(${valueBuilder} IS NULL OR ${valueBuilder} = '')${colAlias}`,
+      ),
+    };
+  },
+  ISNOTBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const { builder: valueBuilder } = await fn(pt.arguments[0]);
+
+    return {
+      builder: knex.raw(
+        `(${valueBuilder} IS NOT NULL AND ${valueBuilder} != '')${colAlias}`,
+      ),
+    };
+  },
 };

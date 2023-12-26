@@ -569,7 +569,7 @@ export async function extractColumn({
           model,
           column,
           {},
-          undefined,
+          rootAlias,
           validateFormula,
         );
         qb.select(

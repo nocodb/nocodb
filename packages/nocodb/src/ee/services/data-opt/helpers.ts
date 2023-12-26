@@ -562,7 +562,7 @@ export async function extractColumn({
           model,
           column,
           {},
-          undefined,
+          rootAlias,
           validateFormula,
         );
         qb.select(knex.raw(`?? as ??`, [selectQb.builder, column.id]));
@@ -1046,6 +1046,7 @@ export async function singleQueryList(ctx: {
     ast,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     validateFormula: ctx.validateFormula,
+    alias: ROOT_ALIAS,
   });
 
   if (skipCache) {

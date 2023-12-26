@@ -880,17 +880,26 @@ async function _formulaQueryBuilder(
           for (const operand of ['left', 'right']) {
             if (
               pt[operand].type === 'CallExpression' &&
-              pt[operand].callee.name === 'BLANK' &&
-              pt[operand === 'left' ?'right' : 'left'].dataType ===
-                FormulaDataTypes.STRING
+              pt[operand].callee.name === 'BLANK'
             ) {
+              const isString =
+                pt[operand === 'left' ? 'right' : 'left'].dataType ===
+                FormulaDataTypes.STRING;
+              let calleeName;
+
+              if (pt.operator === '==') {
+                calleeName = isString ? 'ISBLANK' : 'ISNULL';
+              } else {
+                calleeName = isString ? 'ISNOTBLANK' : 'ISNOTNULL';
+              }
+
               return fn(
                 {
                   type: 'CallExpression',
                   arguments: [operand === 'left' ? pt.right : pt.left],
                   callee: {
                     type: 'Identifier',
-                    name: pt.operator === '==' ? 'ISBLANK' : 'NOTBLANK',
+                    name: calleeName,
                   },
                 },
                 alias,

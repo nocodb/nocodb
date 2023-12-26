@@ -74,8 +74,6 @@ export default class FormulaColumn {
       'parsed_tree',
     ]);
 
-    updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
-
     // get existing cache
     const key = `${CacheScope.COL_FORMULA}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -84,6 +82,8 @@ export default class FormulaColumn {
       // set cache
       await NocoCache.set(key, o);
     }
+    if ('parsed_tree' in updateObj)
+      updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.COL_FORMULA, updateObj, id);
   }

@@ -897,6 +897,11 @@ const onFormItemClick = (element: any) => {
 .nc-input {
   @apply appearance-none w-full !bg-white rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
 
+  &.nc-cell-rating,
+  &.nc-cell-geodata {
+    @apply !py-1;
+  }
+
   :deep(input) {
     @apply !px-1;
   }

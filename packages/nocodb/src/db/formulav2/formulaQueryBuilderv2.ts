@@ -875,9 +875,9 @@ async function _formulaQueryBuilder(
 
       // if operator is == or !=, then handle comparison with BLANK which should accept NULL and empty string
       if (pt.operator === '==' || pt.operator === '!=') {
-        if (pt.left.callee?.name !== pt.left.callee?.name) {
+        if (pt.left.callee?.name !== pt.right.callee?.name) {
           // if left/right is BLANK, accept both NULL and empty string
-          ['left', 'right'].forEach((operand) => {
+         for(const operand of ['left', 'right']){
             if (
               pt[operand].type === 'CallExpression' &&
               pt[operand].callee.name === 'BLANK'
@@ -895,7 +895,7 @@ async function _formulaQueryBuilder(
                 prevBinaryOp,
               );
             }
-          });
+          }
         }
       }
 

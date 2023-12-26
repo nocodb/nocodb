@@ -5600,10 +5600,14 @@ class BaseModelSqlv2 {
     model?: Model;
     knex?: XKnex;
   }) {
-    const columnName = 'updated_at';
+    const columnName = await model.getColumns().then((columns) => {
+      return columns.find((c) => c.uidt === UITypes.LastModifiedTime)?.column_name;
+    });
+
+    if(!columnName) return;
 
     const qb = knex(model.table_name).update({
-      [columnName]: this.dbDriver.fn.now(),
+      [columnName]: Noco.ncMeta.now(),
     });
 
     for (const rowId of Array.isArray(rowIds) ? rowIds : [rowIds]) {

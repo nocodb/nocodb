@@ -1692,10 +1692,10 @@ export class ColumnsService {
           // else create a new column in meta and db
           const existingColumn = await table.getColumns().then((col) => {
             return col.find(
-              (c) =>
-                c.uidt === colBody.uidt ||
-                c.column_name ===
-                  (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
+              (c) => c.uidt === colBody.uidt && c.system,
+              // ||
+              // c.column_name ===
+              //   (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
             );
           });
 
@@ -1741,6 +1741,17 @@ export class ColumnsService {
               await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
             }
 
+            const title = getUniqueColumnAliasName(
+              table.columns,
+              UITypes.CreateTime ? 'CreatedAt' : 'UpdatedAt',
+            );
+
+            await Column.insert({
+              ...colBody,
+              title,
+              system: 1,
+              fk_model_id: table.id,
+            });
             await Column.insert({
               ...colBody,
               fk_model_id: table.id,

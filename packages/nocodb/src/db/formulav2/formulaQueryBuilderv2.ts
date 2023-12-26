@@ -888,7 +888,7 @@ async function _formulaQueryBuilder(
                   arguments: [operand === 'left' ? pt.right : pt.left],
                   callee: {
                     type: 'Identifier',
-                    name: 'ISBLANK',
+                    name: pt.operator === '==' ? 'ISBLANK' : 'NOTBLANK',
                   },
                 },
                 alias,

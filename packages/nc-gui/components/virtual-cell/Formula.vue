@@ -5,12 +5,12 @@ import type { Ref } from 'vue'
 import {
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   computed,
   inject,
   renderValue,
   replaceUrlsWithLink,
   useBase,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck

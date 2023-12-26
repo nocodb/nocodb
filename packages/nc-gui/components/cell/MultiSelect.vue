@@ -8,6 +8,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -27,7 +28,6 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
-  IsExpandedFormOpenInj,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 

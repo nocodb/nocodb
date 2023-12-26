@@ -7,10 +7,10 @@ import {
   ActiveCellInj,
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   IsUnderLookupInj,
   inject,
   useSelectedCellKeyupListener,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 const value = inject(CellValueInj, ref(0))

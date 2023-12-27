@@ -873,6 +873,43 @@ async function _formulaQueryBuilder(
         );
       }
 
+      // if operator is == or !=, then handle comparison with BLANK which should accept NULL and empty string
+      if (pt.operator === '==' || pt.operator === '!=') {
+        if (pt.left.callee?.name !== pt.right.callee?.name) {
+          // if left/right is BLANK, accept both NULL and empty string
+          for (const operand of ['left', 'right']) {
+            if (
+              pt[operand].type === 'CallExpression' &&
+              pt[operand].callee.name === 'BLANK'
+            ) {
+              const isString =
+                pt[operand === 'left' ? 'right' : 'left'].dataType ===
+                FormulaDataTypes.STRING;
+              let calleeName;
+
+              if (pt.operator === '==') {
+                calleeName = isString ? 'ISBLANK' : 'ISNULL';
+              } else {
+                calleeName = isString ? 'ISNOTBLANK' : 'ISNOTNULL';
+              }
+
+              return fn(
+                {
+                  type: 'CallExpression',
+                  arguments: [operand === 'left' ? pt.right : pt.left],
+                  callee: {
+                    type: 'Identifier',
+                    name: calleeName,
+                  },
+                },
+                alias,
+                prevBinaryOp,
+              );
+            }
+          }
+        }
+      }
+
       if (pt.operator === '==') {
         pt.operator = '=';
         // if left/right is of different type, convert to string and compare

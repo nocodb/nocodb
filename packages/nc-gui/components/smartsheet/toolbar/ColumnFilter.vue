@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
+import type { Filter } from '#imports'
 import {
   ActiveViewInj,
   AllFiltersInj,
@@ -17,7 +18,6 @@ import {
   useViewFilters,
   watch,
 } from '#imports'
-import type { Filter } from '#imports'
 
 interface Props {
   nestedLevel?: number
@@ -241,7 +241,10 @@ const selectFilterField = (filter: Filter, index: number) => {
     isComparisonOpAllowed(filter, compOp),
   )?.value as FilterType['comparison_op']
 
-  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
+  if (
+    [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt as UITypes) &&
+    !['blank', 'notblank'].includes(filter.comparison_op!)
+  ) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
     } else {

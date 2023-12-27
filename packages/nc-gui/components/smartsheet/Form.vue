@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
-import type { Permission } from '#imports'
+import {getSystemColumns, isLinksOrLTAR, isVirtualCol, RelationTypes, UITypes, ViewTypes} from 'nocodb-sdk'
+import type {Permission} from '#imports'
 import {
   ActiveViewInj,
-  IsFormInj,
-  IsGalleryInj,
-  MetaInj,
-  ReloadViewDataHookInj,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
   iconMap,
   inject,
+  IsFormInj,
+  IsGalleryInj,
   message,
+  MetaInj,
   onClickOutside,
   provide,
   reactive,
   ref,
+  ReloadViewDataHookInj,
   useDebounceFn,
   useGlobal,
   useI18n,
@@ -34,7 +34,7 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
-const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.Barcode, UITypes.SpecificDBType]
+const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.Barcode, UITypes.SpecificDBType, UITypes.CreateTime, UITypes.LastModifiedTime]
 
 const { isMobileMode, user } = useGlobal()
 

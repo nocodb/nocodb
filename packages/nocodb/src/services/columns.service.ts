@@ -1767,7 +1767,7 @@ export class ColumnsService {
           await Column.insert({
             ...colBody,
             fk_model_id: table.id,
-            column_name: columnName,
+            column_name: null,
           });
         }
         break;

@@ -1,19 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { CalendarsService } from '~/services/calendars.service';
-import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
@@ -25,7 +14,7 @@ export class CalendarsController {
     '/api/v1/db/meta/calendars/:calendarViewId',
     '/api/v2/meta/calendars/:calendarViewId',
   ])
-  @Acl('calendarViewGet')
+  // @Acl('calendarViewGet')
   async calendarViewGet(@Param('calendarViewId') calendarViewId: string) {
     return await this.calendarsService.calendarViewGet({
       calendarViewId,
@@ -37,7 +26,7 @@ export class CalendarsController {
     '/api/v2/meta/tables/:tableId/calendars',
   ])
   @HttpCode(200)
-  @Acl('calendarViewCreate')
+  // @Acl('calendarViewCreate')
   async calendarViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
@@ -60,13 +49,21 @@ export class CalendarsController {
   async calendarViewUpdate(
     @Param('calendarViewId') calendarViewId: string,
     @Body() body,
-
     @Req() req: Request,
   ) {
     return await this.calendarsService.calendarViewUpdate({
       calendarViewId,
       calendar: body,
       req,
+    });
+  }
+
+
+  @Get('/api/v1/db/data/calendars/:calendarViewId/count')
+  async calendarRecordCountGet(@Param('calendarViewId') calendarViewId: string, @Req() req: Request) {
+    return await this.calendarsService.calendarRecordCountGet({
+      calendarViewId,
+      req
     });
   }
 }

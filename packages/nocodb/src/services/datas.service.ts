@@ -966,4 +966,43 @@ export class DatasService {
 
     return column;
   }
+
+  async getDataAggregateBy(param: {
+    viewId: string;
+    query?: any;
+    aggregateColumnName: string;
+    aggregateFunction: string;
+    groupByColumnName?: string;
+    ignoreFilters?: boolean;
+    sort?: {
+      column_name: string;
+      direction: 'asc' | 'desc';
+    };
+  }) {
+    const {viewId, query = {} } = param;
+
+    const view = await View.get(viewId)
+
+    const source = await Source.get(view.source_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: view.fk_model_id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const data = await baseModel.groupByAndAggregate(
+      param.aggregateColumnName,
+      param.aggregateFunction,
+      {
+        groupByColumnName: param.groupByColumnName,
+        sortBy: param.sort,
+        ...query,
+      },
+    );
+
+    return new PagedResponseImpl(data, {
+      ...query,
+    });
+  }
 }

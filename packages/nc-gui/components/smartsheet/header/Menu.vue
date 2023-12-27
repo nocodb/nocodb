@@ -377,7 +377,7 @@ const isDeleteAllowed = computed(() => {
         </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pv && isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
+        <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
           <div class="nc-column-delete nc-header-menu-item text-red-600">
             <component :is="iconMap.delete" />
             <!-- Delete -->

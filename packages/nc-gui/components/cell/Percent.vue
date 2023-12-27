@@ -69,6 +69,7 @@ const onWrapperFocus = () => {
 
   nextTick(() => {
     wrapperRef.value?.querySelector('input')?.focus()
+    wrapperRef.value?.querySelector('input')?.select()
   })
 }
 

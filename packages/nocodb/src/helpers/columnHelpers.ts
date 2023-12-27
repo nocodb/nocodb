@@ -290,8 +290,15 @@ export const sanitizeColumnName = (name: string) => {
 
 // if column is an alias column then return the original column
 // for example CreatedTime is an alias column for CreateTime system column
-export const getRefColumnIfAlias = (column: Column, columns?: Column[]) => {
-  if (![UITypes.CreateTime, UITypes.LastModifiedTime].includes(column.uidt))
+export const getRefColumnIfAlias = async (
+  column: Column,
+  columns?: Column[],
+) => {
+  if (
+    !([UITypes.CreateTime, UITypes.LastModifiedTime] as UITypes[]).includes(
+      column.uidt,
+    )
+  )
     return column;
 
   return (

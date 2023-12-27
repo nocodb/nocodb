@@ -111,9 +111,10 @@ export class MysqlUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreateTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
@@ -134,9 +135,10 @@ export class MysqlUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }
@@ -1073,11 +1075,11 @@ export class MysqlUi {
         break;
       case 'CreateTime':
         colProp.dt = 'timestamp';
-        colProp.cdf = 'CURRENT_TIMESTAMP'
+        colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'timestamp';
-        colProp.cdf = 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
+        colProp.cdf = 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

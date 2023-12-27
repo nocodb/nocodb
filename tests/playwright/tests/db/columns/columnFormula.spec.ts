@@ -117,10 +117,12 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
       {
         formula: 'ROUNDDOWN({CityId} + 2.49, 1)',
         result: ['3.4', '4.4', '5.4', '6.4', '7.4'],
+        unSupDbType: ['sqlite3'],
       },
       {
         formula: 'ROUNDUP({CityId} + 2.49, 1)',
         result: ['3.5', '4.5', '5.5', '6.5', '7.5'],
+        unSupDbType: ['sqlite3'],
       },
       {
         formula: 'RECORD_ID()',
@@ -132,13 +134,11 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         unSupDbType: ['sqlite3'],
       },
       {
-        // TODO: this is bug in mysql, its being case in-sensitive.
         formula: 'REGEX_EXTRACT({City}, "a[a-z]a")',
         result: ['', '', '', '', 'ana'],
         unSupDbType: ['sqlite3'],
       },
       {
-        // TODO: this is bug in mysql, its being case in-sensitive.
         formula: 'REGEX_REPLACE({City}, "a[a-z]a","...")',
         result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
         unSupDbType: ['sqlite3'],
@@ -277,9 +277,10 @@ test.describe('Virtual Columns', () => {
         type: 'Formula',
         formula: formulaData[i].formula,
       });
+      console.log(`running test function: ${formulaData[i].formula}`);
       if (formulaData[i].unSupDbType?.includes(dbType)) {
         // assert for message not supported or greyed out save button.
-        await dashboard.grid.column.saveFail({ errorMessage: 'Invalid Formula' });
+        await dashboard.grid.column.checkMessageAndClose({ errorMessage: new RegExp('Function .* is not available') });
         continue;
       }
       await dashboard.grid.column.save({ isUpdated: true });

@@ -375,17 +375,12 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
-  async saveFail({ errorMessage }: { errorMessage?: string } = {}) {
-    await this.waitForResponse({
-      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
-      requestUrlPathToMatch: 'api/v1/db/meta',
-      httpMethodsToMatch: ['GET', 'PATCH'],
-      responseStatusCodeToMatch: 400,
-    });
-    await this.verifyLastToast({
+  async checkMessageAndClose({ errorMessage }: { errorMessage?: RegExp } = {}) {
+    await this.verifyErrorMessage({
       message: errorMessage,
     });
-    await this.get().waitFor({ state: 'visible' });
+    await this.get().locator('button:has-text("Cancel")').click();
+    await this.get().waitFor({ state: 'hidden' });
     await this.rootPage.waitForTimeout(200);
   }
 

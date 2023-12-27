@@ -16,10 +16,8 @@ export default abstract class BasePage {
     await this.rootPage.locator('.ant-message .ant-message-notice-content', { hasText: message }).last().isVisible();
   }
 
-  async verifyLastToast({ message }: { message: string }) {
-    await expect(
-      this.rootPage.locator('.ant-message .ant-message-notice-content', { hasText: message }).last()
-    ).toHaveText(message);
+  async verifyErrorMessage({ message }: { message: RegExp }) {
+    await expect(this.get().locator('.ant-form-item-explain-error', { hasText: message })).toBeVisible();
   }
 
   async waitForResponse({

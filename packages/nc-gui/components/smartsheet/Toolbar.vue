@@ -52,7 +52,7 @@ const { allowCSVDownload } = useSharedView()
       </template>
 
       <LazySmartsheetToolbarSearchData
-        v-if="(isGrid || isGallery || isKanban) && !isPublic"
+        v-if="isGrid || isGallery || isKanban"
         :class="{
           'shrink': !isMobileMode,
           'w-full': isMobileMode,

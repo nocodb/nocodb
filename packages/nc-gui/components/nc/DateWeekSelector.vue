@@ -16,7 +16,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
   isDisabled: false,
-  isMondayFirst: false,
+  isMondayFirst: true,
   pageDate: new Date(),
   weekPicker: false,
   disablePagination: false,

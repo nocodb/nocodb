@@ -1,38 +1,76 @@
-<script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+<script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk';
+import { computed, ref, type Row } from '#imports';
+
+interface Props {
+  isEmbed?: boolean
+  data?: Row[] | null
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isEmbed: false,
+  data: null,
+})
 
 const emit = defineEmits(['expand-record'])
+const meta = inject(MetaInj, ref())
+const fields = inject(FieldsInj, ref([]))
 
-const { pageDate, selectedDate, calDataType } = useCalendarViewStoreOrThrow()
+const data = toRefs(props).data
 
-const events = ref([
-  {
-    Id: 1,
-    Title: 'Event 01',
-    from_date_time: '2023-12-15',
-    to_date_time: '2023-12-20',
-  },
-  {
-    Id: 2,
-    Title: 'Event 02',
-    from_date_time: '2023-12-20',
-    to_date_time: '2023-12-25',
-  },
-])
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
+
+const { pageDate, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
+
+const hours = computed(() => {
+  const hours = []
+  for (let i = 0; i < 24; i++) {
+    hours.push(i)
+  }
+  return hours
+})
+
+const renderData = computed(() => {
+  console.log(data.value)
+  if (data.value) {
+
+    return data.value
+  }
+  return formattedData.value
+})
 </script>
 
 <template>
-  <div v-if="calDataType === UITypes.Date" class="flex flex-col px-2 gap-4 pt-4">
-    <LazySmartsheetCalendarRecordCard
-      v-for="event in events"
-      :key="event.Id"
-      :name="event.Title"
-      :date="event.from_date_time"
-      color="blue"
-      size="medium"
-      @click="emit('expand-record', 'xxx')"
-    />
-  </div>
+  <template v-if="formattedData.length">
+    <div
+      v-if="calDataType === UITypes.Date"
+      :class="{
+        'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
+        'border-r-1 h-full border-gray-200 hover:bg-gray-50 ': props.isEmbed,
+      }"
+      class="flex flex-col pt-3 gap-2 h-full w-full px-1"
+    >
+      <LazySmartSheetRow v-for="(record, rowIndex) in renderData" :row="record">
+        <LazySmartsheetCalendarRecordCard
+          :key="rowIndex"
+          :date="record.row[calendarRange[0].fk_from_col.title]"
+          :name="record.row[displayField.title]"
+          color="blue"
+          size="small"
+          @click="emit('expand-record', record)"
+        />
+      </LazySmartSheetRow>
+    </div>
+    <div
+      v-else-if="calDataType === UITypes.DateTime"
+      :class="{
+        'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
+        'border-r-1 h-full border-gray-200 ': props.isEmbed,
+      }"
+      class="flex flex-col mt-3 gap-2 w-full px-1"
+    ></div>
+  </template>
+  <div v-else-if="!data" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">No Records in this day</div>
 </template>
 
-<style scoped lang="scss"></style>
+<style lang="scss" scoped></style>

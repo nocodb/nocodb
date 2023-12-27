@@ -1,13 +1,9 @@
-<script setup lang="ts">
-import { CalendarViewTypeInj } from '#imports'
-
+<script lang="ts" setup>
 const props = defineProps<{
   visible: boolean
 }>()
 
 const emit = defineEmits(['expand-record'])
-
-const activeCalendarView = inject(CalendarViewTypeInj, ref<'month' | 'day' | 'year' | 'week'>('month' as const))
 
 const { t } = useI18n()
 
@@ -44,9 +40,7 @@ const options = computed(() => {
   }
 })
 
-const { pageDate, selectedDate, selectedDateRange } = useCalendarViewStoreOrThrow()
-
-const activeDates = ref([new Date()])
+const { pageDate, selectedDate, selectedDateRange, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
 </script>
 
 <template>
@@ -112,4 +106,4 @@ const activeDates = ref([new Date()])
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style lang="scss" scoped></style>

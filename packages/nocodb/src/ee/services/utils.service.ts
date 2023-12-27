@@ -176,7 +176,7 @@ export class UtilsService extends UtilsServiceCE {
   async predictColumnType(param: { title: any }) {
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${param.title}' column:`,
+      prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreatedTime,AutoNumber,Geometry select most appropiate type for '${param.title}' column:`,
       temperature: 0.7,
       max_tokens: 200,
       top_p: 1,
@@ -231,7 +231,7 @@ export class UtilsService extends UtilsServiceCE {
       : 'no';
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
-      prompt: `Using types: SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry
+      prompt: `Using types: SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreatedTime,AutoNumber,Geometry
     Predict next 5 column for '${param.table}' table which have ${colPrompt} columns and return as json { title: string; type: string }[]`,
       temperature: 0.7,
       max_tokens: 200,

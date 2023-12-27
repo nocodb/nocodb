@@ -6,7 +6,7 @@ import { MetaTable } from '~/utils/globals';
 import { Column, Model } from '~/models';
 
 // An upgrader for upgrading created_at and updated_at columns
-// to system column and convert to new uidt CreateTime and LastModifiedTime
+// to system column and convert to new uidt CreatedTime and LastModifiedTime
 
 const logger = new Logger('XcdbCreatedAndUpdatedTimeUpgrader');
 
@@ -31,7 +31,7 @@ async function upgradeModels({
       for (const column of columns) {
         if (column.column_name === 'created_at') {
           await Column.update(column.id, {
-            uidt: UITypes.CreateTime,
+            uidt: UITypes.CreatedTime,
             system: true,
           });
         }

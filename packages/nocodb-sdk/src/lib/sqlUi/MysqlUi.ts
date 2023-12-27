@@ -111,7 +111,7 @@ export class MysqlUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.CreateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
         system: true,
@@ -1073,7 +1073,7 @@ export class MysqlUi {
       case 'DateTime':
         colProp.dt = 'datetime';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'timestamp';
         colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
@@ -1265,7 +1265,7 @@ export class MysqlUi {
         return ['date', 'datetime', 'timestamp', 'varchar'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return ['datetime', 'timestamp', 'varchar'];
 

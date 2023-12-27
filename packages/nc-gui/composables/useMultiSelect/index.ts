@@ -136,7 +136,7 @@ export function useMultiSelect(
       })
     }
 
-    if ([UITypes.DateTime, UITypes.CreateTime, UITypes.LastModifiedTime].includes(columnObj.uidt)) {
+    if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(columnObj.uidt)) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')

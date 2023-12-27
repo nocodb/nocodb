@@ -39,7 +39,7 @@ export default async function getColumnPropsFromUIDT(
 
   const finalColumnMeta = { ...newColumn, ...column };
 
-  if (finalColumnMeta.uidt === UITypes.CreateTime) {
+  if (finalColumnMeta.uidt === UITypes.CreatedTime) {
     finalColumnMeta.column_name = 'created_at';
   } else if (finalColumnMeta.uidt === UITypes.LastModifiedTime) {
     finalColumnMeta.column_name = 'updated_at';

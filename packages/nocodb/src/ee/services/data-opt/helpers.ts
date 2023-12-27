@@ -647,7 +647,7 @@ export async function extractColumn({
         );
       }
       break;
-    case UITypes.CreateTime:
+    case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
     case UITypes.DateTime: {
       const columnName = getColumnName(column, columns);

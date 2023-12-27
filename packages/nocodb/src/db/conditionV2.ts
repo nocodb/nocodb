@@ -556,7 +556,7 @@ const parseConditionV2 = async (
           [
             UITypes.Date,
             UITypes.DateTime,
-            UITypes.CreateTime,
+            UITypes.CreatedTime,
             UITypes.LastModifiedTime,
           ].includes(column.uidt)
         ) {
@@ -673,7 +673,7 @@ const parseConditionV2 = async (
               if (
                 [
                   UITypes.DateTime,
-                  UITypes.CreateTime,
+                  UITypes.CreatedTime,
                   UITypes.LastModifiedTime,
                 ].includes(column.uidt)
               ) {
@@ -962,7 +962,7 @@ const parseConditionV2 = async (
                 !isNumericCol(column.uidt) &&
                 ![
                   UITypes.Date,
-                  UITypes.CreateTime,
+                  UITypes.CreatedTime,
                   UITypes.LastModifiedTime,
                   UITypes.DateTime,
                   UITypes.Time,
@@ -985,7 +985,7 @@ const parseConditionV2 = async (
                 ![
                   UITypes.Date,
                   UITypes.DateTime,
-                  UITypes.CreateTime,
+                  UITypes.CreatedTime,
                   UITypes.LastModifiedTime,
                   UITypes.Time,
                 ].includes(column.uidt)

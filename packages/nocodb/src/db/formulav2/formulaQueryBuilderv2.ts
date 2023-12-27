@@ -638,7 +638,7 @@ async function _formulaQueryBuilder(
             };
         };
         break;
-      case UITypes.CreateTime:
+      case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {

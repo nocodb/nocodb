@@ -170,7 +170,7 @@ export class PgUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.CreateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
         system: true,
@@ -1551,7 +1551,7 @@ export class PgUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -1687,7 +1687,7 @@ export class PgUi {
       case 'DateTime':
         colProp.dt = 'timestamp';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'timestamp';
         colProp.cdf = 'now()';
         break;
@@ -1937,7 +1937,7 @@ export class PgUi {
         ];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return [
           'timestamp',

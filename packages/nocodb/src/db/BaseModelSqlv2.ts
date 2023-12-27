@@ -103,9 +103,9 @@ function checkColumnRequired(
 
 export function getColumnName(column: Column<any>, columns: Column[] = []) {
   switch (column.uidt) {
-    case UITypes.CreateTime: {
+    case UITypes.CreatedTime: {
       const createdTimeSystemCol = columns.find(
-        (col) => col.system && col.uidt === UITypes.CreateTime,
+        (col) => col.system && col.uidt === UITypes.CreatedTime,
       );
       if (createdTimeSystemCol) return createdTimeSystemCol.column_name;
       return column.column_name || 'created_at';
@@ -2135,7 +2135,7 @@ class BaseModelSqlv2 {
       if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
       switch (column.uidt) {
-        case UITypes.CreateTime:
+        case UITypes.CreatedTime:
         case UITypes.LastModifiedTime:
         case UITypes.DateTime:
           {
@@ -5639,7 +5639,7 @@ class BaseModelSqlv2 {
         [
           UITypes.Attachment,
           UITypes.User,
-          UITypes.CreateTime,
+          UITypes.CreatedTime,
           UITypes.LastModifiedTime,
         ].includes(c.uidt),
       )
@@ -5647,7 +5647,7 @@ class BaseModelSqlv2 {
       for (const column of this.model.columns) {
         if (
           isInsertData &&
-          column.uidt === UITypes.CreateTime &&
+          column.uidt === UITypes.CreatedTime &&
           column.system
         ) {
           data[column.column_name] = Noco.ncMeta.now();

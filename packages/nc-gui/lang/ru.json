@@ -273,7 +273,7 @@
     "Count": "Количество",
     "Lookup": "Подстановка (Lookup)",
     "DateTime": "Дата и время",
-    "CreateTime": "Создан",
+    "CreatedTime": "Создан",
     "LastModifiedTime": "Изменен",
     "AutoNumber": "Счетчик",
     "Barcode": "Штрих-код",

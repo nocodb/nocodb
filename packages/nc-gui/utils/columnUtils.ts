@@ -139,7 +139,7 @@ const uiTypes = [
     icon: iconMap.account,
   },
   {
-    name: UITypes.CreateTime,
+    name: UITypes.CreatedTime,
     icon: iconMap.clock,
   },
   {
@@ -153,7 +153,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
     [
       ...uiTypes,
       {
-        name: UITypes.CreateTime,
+        name: UITypes.CreatedTime,
         icon: iconMap.calendar,
       },
       {

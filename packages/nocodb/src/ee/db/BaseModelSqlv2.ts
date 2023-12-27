@@ -420,8 +420,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  async prepareNocoData(data) {
-    return super.prepareNocoData(data);
+  async prepareNocoData(data, isInsertData = false) {
+    return super.prepareNocoData(data, isInsertData);
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {

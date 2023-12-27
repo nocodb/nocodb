@@ -1688,6 +1688,7 @@ export class ColumnsService {
       case UITypes.CreateTime:
       case UITypes.LastModifiedTime:
         {
+          let columnName: string;
           const columns = await table.getColumns();
           // check if column already exists, then just create a new column in meta
           // else create a new column in meta and db
@@ -1699,7 +1700,7 @@ export class ColumnsService {
           );
 
           if (!existingColumn) {
-            let columnName =
+            columnName =
               colBody.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at';
             // const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
             //   NcConnectionMgrv2.getSqlClient(source),
@@ -1718,9 +1719,14 @@ export class ColumnsService {
               columnName = getUniqueColumnName(columns, columnName);
             }
 
-            if (!dbColumn) {
-              // create column in db
+            {
+              // remove default value for SQLite since it doesn't support default value as function when adding column
+              // only support default value as constant value
+              if (source.type === 'sqlite3') {
+                colBody.cdf = null;
+              }
 
+              // create column in db
               const tableUpdateBody = {
                 ...table,
                 tn: table.table_name,
@@ -1732,7 +1738,7 @@ export class ColumnsService {
                   ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
                   {
                     ...colBody,
-                    cn: UITypes.CreateTime ? 'created_at' : 'updated_at',
+                    cn: columnName,
                     altered: Altered.NEW_COLUMN,
                   },
                 ],
@@ -1753,11 +1759,15 @@ export class ColumnsService {
               title,
               system: 1,
               fk_model_id: table.id,
+              column_name: columnName,
             });
+          } else {
+            columnName = existingColumn.column_name;
           }
           await Column.insert({
             ...colBody,
             fk_model_id: table.id,
+            column_name: columnName,
           });
         }
         break;

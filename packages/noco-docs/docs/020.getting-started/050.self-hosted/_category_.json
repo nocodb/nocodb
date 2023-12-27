@@ -1,5 +1,8 @@
 {
   "label": "In Open Source",
   "collapsible": true,
-  "collapsed": false
+  "collapsed": false,
+  "link": {
+    "type": "generated-index"
+  }
 }

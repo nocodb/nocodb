@@ -97,7 +97,7 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     tabindex="0"
     @click="onClick(false, $event)"
-    @keydown.enter.stop="onClick(false, $event)"
+    @keydown.enter.stop="onClick(true, $event)"
   >
     <div
       class="flex items-center"

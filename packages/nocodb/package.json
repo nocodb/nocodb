@@ -76,7 +76,7 @@
     "auto-bind": "^4.0.0",
     "aws-kcl": "^2.2.2",
     "aws-sdk": "^2.1455.0",
-    "axios": "^1.6.2",
+    "axios": "^1.6.3",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "boxen": "^5.1.2",

@@ -92,10 +92,8 @@ const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value
       v-if="editEnabled"
       :ref="focus"
       v-model="localState"
-      class="w-full !border-none !outline-none px-0 py-1"
-      :class="{
-        '!px-2': isExpandedFormOpen,
-      }"
+      class="w-full !border-none !outline-none py-1"
+      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"

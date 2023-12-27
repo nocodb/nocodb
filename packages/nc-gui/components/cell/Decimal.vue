@@ -94,10 +94,8 @@ watch(isExpandedFormOpen, () => {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none px-0 py-1 border-none rounded-md w-full h-full !text-sm"
-    :class="{
-      '!px-2': isExpandedFormOpen,
-    }"
+    class="outline-none py-1 border-none rounded-md w-full h-full !text-sm"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     type="number"
     :step="precision"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"

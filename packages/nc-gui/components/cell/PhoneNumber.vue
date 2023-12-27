@@ -62,10 +62,8 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-0 py-1"
-    :class="{
-      '!px-2': isExpandedFormOpen,
-    }"
+    class="w-full outline-none text-sm py-1"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop

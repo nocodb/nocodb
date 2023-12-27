@@ -34,13 +34,7 @@ export default class Minio implements IStorageAdapterV2 {
       // call S3 to retrieve upload file to specified bucket
       this.minioClient
         .putObject(this.input?.bucket, key, fileStream, metaData)
-        .then(() => {
-          resolve(
-            `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
-              this.input.port
-            }/${this.input.bucket}/${key}`,
-          );
-        })
+        .then(() => resolve(this.getFileUrl(key)))
         .catch(reject);
     });
   }
@@ -116,13 +110,7 @@ export default class Minio implements IStorageAdapterV2 {
           // call S3 to retrieve upload file to specified bucket
           this.minioClient
             .putObject(this.input?.bucket, key, response.data, metaData)
-            .then(() => {
-              resolve(
-                `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
-                  this.input.port
-                }/${this.input.bucket}/${key}`,
-              );
-            })
+            .then(() => resolve(this.getFileUrl(key)))
             .catch(reject);
         })
         .catch((error) => {
@@ -144,5 +132,13 @@ export default class Minio implements IStorageAdapterV2 {
   // TODO - implement
   getDirectoryList(_path: string): Promise<string[]> {
     return Promise.resolve(undefined);
+  }
+
+  private getFileUrl(key: string): string {
+    let fileUrlPrefix = `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${this.input.port}`
+    if (this.input.cdnEndpoint) {
+      fileUrlPrefix = this.input.cdnEndpoint;
+    }
+    return `${fileUrlPrefix}/${key}`;
   }
 }

@@ -23,6 +23,13 @@ const config: XcPluginConfig = {
         required: true,
       },
       {
+        key: 'cdnEndPoint',
+        label: 'Minio CDN Endpoint',
+        placeholder: 'https://example.com',
+        type: XcType.SingleLineText,
+        required: false,
+      },
+      {
         key: 'port',
         label: 'Port',
         placeholder: 'Port',

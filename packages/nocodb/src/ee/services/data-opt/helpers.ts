@@ -108,6 +108,7 @@ export async function extractColumns({
         ast: ast?.[column.title],
         throwErrorIfInvalidParams,
         validateFormula,
+        columns,
       }),
     );
   }
@@ -128,6 +129,7 @@ export async function extractColumn({
   ast,
   throwErrorIfInvalidParams,
   validateFormula,
+  columns
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -141,6 +143,7 @@ export async function extractColumn({
   ast: Record<string, any>;
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
+  columns?: Column[];
 }) {
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -647,7 +650,7 @@ export async function extractColumn({
     case UITypes.CreateTime:
     case UITypes.LastModifiedTime:
     case UITypes.DateTime: {
-      const columnName = getColumnName(column);
+      const columnName = getColumnName(column, columns);
 
       // if there is no timezone info,
       // convert to database timezone,

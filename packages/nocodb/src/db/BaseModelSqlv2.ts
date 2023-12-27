@@ -101,12 +101,23 @@ function checkColumnRequired(
   return !fields || fields.includes(column.title);
 }
 
-export function getColumnName(column: Column<any>) {
+export function getColumnName(column: Column<any>, columns: Column[] = []) {
   switch (column.uidt) {
-    case UITypes.CreateTime:
-      return 'created_at';
-    case UITypes.LastModifiedTime:
-      return 'updated_at';
+    case UITypes.CreateTime: {
+      const createdTimeSystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.CreateTime,
+      );
+      if (createdTimeSystemCol) return createdTimeSystemCol.column_name;
+      return column.column_name || 'created_at';
+    }
+    case UITypes.LastModifiedTime: {
+      const lastModifiedTimeSystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.LastModifiedTime,
+      );
+      if (lastModifiedTimeSystemCol)
+        return lastModifiedTimeSystemCol.column_name;
+      return column.column_name || 'created_at';
+    }
     default:
       return column.column_name;
   }
@@ -2128,7 +2139,10 @@ class BaseModelSqlv2 {
         case UITypes.LastModifiedTime:
         case UITypes.DateTime:
           {
-            const columnName = getColumnName(column);
+            const columnName = getColumnName(
+              column,
+              await this.model.getColumns(),
+            );
             if (this.isMySQL) {
               // MySQL stores timestamp in UTC but display in timezone
               // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
@@ -5601,10 +5615,11 @@ class BaseModelSqlv2 {
     knex?: XKnex;
   }) {
     const columnName = await model.getColumns().then((columns) => {
-      return columns.find((c) => c.uidt === UITypes.LastModifiedTime)?.column_name;
+      return columns.find((c) => c.uidt === UITypes.LastModifiedTime)
+        ?.column_name;
     });
 
-    if(!columnName) return;
+    if (!columnName) return;
 
     const qb = knex(model.table_name).update({
       [columnName]: Noco.ncMeta.now(),

@@ -642,50 +642,50 @@ async function _formulaQueryBuilder(
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {
-          const col = await getRefColumnIfAlias(col);
+          const refCol = await getRefColumnIfAlias(col);
 
           if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[refCol.id] = async (): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex.raw(
                   `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                  [col.column_name],
+                  [refCol.column_name],
                 ),
               };
             };
           } else if (
             knex.clientType() === 'pg' &&
-            col.dt !== 'timestamp with time zone' &&
-            col.dt !== 'timestamptz'
+            refCol.dt !== 'timestamp with time zone' &&
+            refCol.dt !== 'timestamptz'
           ) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[refCol.id] = async (): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex
                   .raw(
                     `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                    [col.column_name],
+                    [refCol.column_name],
                   )
                   .wrap('(', ')'),
               };
             };
           } else if (
             knex.clientType() === 'mssql' &&
-            col.dt !== 'datetimeoffset'
+            refCol.dt !== 'datetimeoffset'
           ) {
             // convert from DB timezone to UTC
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[refCol.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [col.column_name],
+                  [refCol.column_name],
                 ),
               };
             };
           } else {
-            aliasToColumn[col.id] = () =>
-              Promise.resolve({ builder: col.column_name });
+            aliasToColumn[refCol.id] = () =>
+              Promise.resolve({ builder: refCol.column_name });
           }
         }
         break;

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { OrgUserRoles } from 'nocodb-sdk'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
-import rfdc from 'rfdc'
 import type { User } from '#imports'
 import {
   extractSdkResponseErrorMsg,
@@ -34,7 +33,6 @@ const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = us
 const users = ref<UserType[]>([])
 
 const sortedUsers = computed(() => {
-  console.log('users', users.value)
   return handleGetSortsData(users.value, sorts.value) as UserType[]
 })
 
@@ -55,8 +53,6 @@ const pagination = reactive({
   pageSize: 10,
   position: ['bottomCenter'],
 })
-
-const clone = rfdc()
 
 const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
@@ -93,7 +89,7 @@ const updateRole = async (userId: string, roles: string) => {
     } as OrgUserReqType)
     message.success(t('msg.success.roleUpdated'))
 
-    users.value = clone(users.value).map((user) => {
+    users.value.forEach((user) => {
       if (user.id === userId) {
         user.roles = roles
       }

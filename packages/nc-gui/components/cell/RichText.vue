@@ -46,6 +46,15 @@ turndownService.addRule('taskList', {
   },
 })
 
+turndownService.addRule('strikethrough', {
+  filter: ['s'],
+  replacement: (content) => {
+    return `~${content}~`
+  },
+})
+
+turndownService.keep(['u', 'del'])
+
 const checkListItem = {
   name: 'checkListItem',
   level: 'block',

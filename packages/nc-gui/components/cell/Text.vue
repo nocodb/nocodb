@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj, inject, ref, useVModel } from '#imports'
+import {
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  ReadonlyInj,
+  RowHeightInj,
+  inject,
+  ref,
+  useVModel,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -24,7 +34,10 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

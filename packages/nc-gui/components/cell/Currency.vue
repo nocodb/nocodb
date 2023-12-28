@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
+import {
+  ColumnInj,
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  computed,
+  inject,
+  parseProp,
+  useVModel,
+} from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -57,7 +67,10 @@ const currency = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {

@@ -42,6 +42,8 @@ const readOnly = inject(ReadonlyInj)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
+const rowHeight = inject(RowHeightInj, ref())
+
 const checkboxMeta = computed(() => {
   return {
     icon: {
@@ -82,18 +84,28 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full items-center"
+    class="flex cursor-pointer w-full h-full items-center focus:outline-transparent"
     :class="{
       'w-full flex-start pl-2': isForm || isGallery || isExpandedFormOpen,
       'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
     }"
+    :style="{
+      height:
+        isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+    }"
+    tabindex="0"
     @click="onClick(false, $event)"
+    @keydown.enter.stop="onClick(false, $event)"
   >
     <div
-      class="items-center"
-      :class="{ 'w-full justify-start': isEditColumnMenu || isGallery || isForm, 'py-2': isEditColumnMenu }"
+      class="flex items-center"
+      :class="{
+        'w-full justify-start': isEditColumnMenu || isGallery || isForm,
+        'justify-center': !isEditColumnMenu && !isGallery && !isForm,
+        'py-2': isEditColumnMenu,
+      }"
       @click="onClick(true)"
     >
       <Transition name="layout" mode="out-in" :duration="100">

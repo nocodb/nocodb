@@ -784,7 +784,10 @@ watch(modelRef, async () => {
 
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'source_column'">
-                <span>{{ record.srcCn }}</span>
+                <NcTooltip class="truncate"
+                  ><template #title>{{ record.srcCn }}</template
+                  >{{ record.srcCn }}</NcTooltip
+                >
               </template>
 
               <template v-else-if="column.key === 'destination_column'">
@@ -1025,7 +1028,7 @@ watch(modelRef, async () => {
   }
 
   :deep(.template-form-row) > td {
-    @apply p-0 mb-0;
+    @apply p-1 mb-0 truncate max-w-50;
     .ant-form-item {
       @apply mb-0;
     }

@@ -118,11 +118,15 @@ export class ToolbarGroupByPage extends BasePage {
         .nth(ascending ? 0 : 1)
         .click();
 
-    await this.waitForResponse({
-      uiAction: selectSortDirection,
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-    });
+    const selectedSortDirection = await this.rootPage.locator('.nc-sort-dir-select').last().textContent();
+
+    if ((ascending && selectedSortDirection != 'A → Z') || (!ascending && selectedSortDirection != 'Z → A')) {
+      await this.waitForResponse({
+        uiAction: selectSortDirection,
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+      });
+    }
 
     await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
 

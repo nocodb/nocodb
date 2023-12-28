@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType, UserFieldRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
@@ -110,6 +110,16 @@ export function useMultiSelect(
 
     if (columnObj.uidt === UITypes.Checkbox) {
       textToCopy = !!textToCopy
+    }
+
+    if (columnObj.uidt === UITypes.User) {
+      if (textToCopy && Array.isArray(textToCopy)) {
+        textToCopy = textToCopy
+          .map((user: UserFieldRecordType) => {
+            return user.email
+          })
+          .join(', ')
+      }
     }
 
     if (typeof textToCopy === 'object') {
@@ -718,7 +728,15 @@ export function useMultiSelect(
               return message.info(t('msg.info.updateNotAllowedWithoutPK'))
             }
             if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
-              rowObj.row[columnObj.title] = ''
+              if (columnObj.uidt === UITypes.LongText) {
+                if (rowObj.row[columnObj.title] === '<br />') {
+                  rowObj.row[columnObj.title] = e.key
+                } else {
+                  rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
+                }
+              } else {
+                rowObj.row[columnObj.title] = ''
+              }
             }
             // editEnabled = true
           }

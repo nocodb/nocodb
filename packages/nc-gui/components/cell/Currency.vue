@@ -78,7 +78,7 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="w-full h-full text-sm border-none rounded-md outline-none"
+    class="w-full h-full text-sm border-none rounded-md outline-none focus:outline-transparent focus:ring-0"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="submitCurrency"
     @keydown.down.stop

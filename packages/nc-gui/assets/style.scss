@@ -43,10 +43,6 @@ body {
   height: var(--topbar-height) !important;
 }
 
-.anticon-check-circle {
-  @apply !relative top-[-1px] left-0;
-}
-
 html,
 body,
 #__nuxt,
@@ -61,7 +57,7 @@ main {
 }
 
 .mobile {
-  .nc-scrollbar-md, .nc-scrollbar-x-md, .nc-scrollbar-dark-md, .nc-scrollbar-x-md-dark, .nc-scrollbar-x-lg {
+  .nc-scrollbar-md, .nc-scrollbar-lg, .nc-scrollbar-x-md, .nc-scrollbar-dark-md, .nc-scrollbar-x-md-dark, .nc-scrollbar-x-lg {
     &::-webkit-scrollbar {
       width: 0px;
     }
@@ -76,6 +72,30 @@ main {
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    width: 0px;
+  }
+  &::-webkit-scrollbar {
+    @apply bg-transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    width: 4px;
+    @apply bg-gray-200;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-300;
+  }
+}
+
+.nc-scrollbar-lg {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-width: thin !important;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
   &::-webkit-scrollbar-track-piece {
     width: 0px;
@@ -701,4 +721,7 @@ input[type='number'] {
 
 .ant-message-notice-content {
   @apply !rounded-md;
+  .ant-message-custom-content{
+    @apply flex items-center
+  }
 }

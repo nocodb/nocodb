@@ -3,13 +3,14 @@ import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, BaseUser, Column, Model, Source, View } from '~/models';
 
 @Injectable()
 export class PublicMetasService {
   async viewMetaGet(param: { sharedViewUuid: string; password: string }) {
     const view: View & {
       relatedMetas?: { [ket: string]: Model };
+      users?: { id: string; display_name: string; email: string }[];
       client?: string;
     } = await View.getByUUID(param.sharedViewUuid);
 
@@ -67,6 +68,18 @@ export class PublicMetasService {
     }
 
     view.relatedMetas = relatedMetas;
+
+    if (view.model.columns.some((c) => c.uidt === UITypes.User)) {
+      const baseUsers = await BaseUser.getUsersList({
+        base_id: view.model.base_id,
+      });
+
+      view.users = baseUsers.map((u) => ({
+        id: u.id,
+        display_name: u.display_name,
+        email: u.email,
+      }));
+    }
 
     return view;
   }

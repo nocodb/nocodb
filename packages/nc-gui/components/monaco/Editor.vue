@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import TypescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
+
 import type { editor as MonacoEditor } from 'monaco-editor'
-import { deepCompare, isDrawerOrModalExist, onMounted, ref, watch } from '#imports'
+import { deepCompare, initWorker, isDrawerOrModalExist, onMounted, ref, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -45,15 +45,17 @@ const isValid = ref(true)
  * Adding monaco editor to Vite
  *
  * @ts-expect-error */
-self.MonacoEnvironment = {
-  getWorker(_: any, label: string) {
+self.MonacoEnvironment = window.MonacoEnvironment = {
+  async getWorker(_: any, label: string) {
     switch (label) {
-      case 'json':
-        return new JsonWorker()
-      case 'typescript':
-        return new TypescriptWorker()
-      default:
-        return new EditorWorker()
+      case 'json': {
+        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
+        return await initWorker(URL.createObjectURL(workerBlob))
+      }
+      default: {
+        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
+        return await initWorker(URL.createObjectURL(workerBlob))
+      }
     }
   },
 }

@@ -1,6 +1,6 @@
 import BasePage from '../../../Base';
 import { TopbarPage } from '../Topbar';
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 
 export class TopbarSharePage extends BasePage {
   readonly topbar: TopbarPage;
@@ -25,6 +25,7 @@ export class TopbarSharePage extends BasePage {
   }
 
   async clickShareViewPublicAccess() {
+    await expect(this.get().locator(`[data-testid="share-view-toggle"]`)).toHaveCount(1);
     await this.get().locator(`[data-testid="share-view-toggle"]`).click();
   }
 

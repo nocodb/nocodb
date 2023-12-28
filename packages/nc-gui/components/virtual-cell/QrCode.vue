@@ -77,25 +77,26 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     </template>
     <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" />
   </a-modal>
-  <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-[10px]">
-    {{ $t('labels.qrCodeValueTooLong') }}
-  </div>
   <div
-    class="pl-2 w-full flex"
+    v-if="showQrCode"
+    class="w-full flex"
     :class="{
-      'flex-start': isExpandedFormOpen,
+      'flex-start pl-2': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
     <img
-      v-if="showQrCode && rowHeight"
-      :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
+      v-if="rowHeight"
+      :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"
       @click="showQrModal"
     />
-    <img v-else-if="showQrCode" class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+    <img v-else class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+  </div>
+  <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+    {{ $t('labels.qrCodeValueTooLong') }}
   </div>
   <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}

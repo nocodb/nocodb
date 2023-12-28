@@ -1,6 +1,6 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
-import User from '~/models/User';
+import type User from '~/models/User';
 import Base from '~/models/Base';
 import {
   // CacheDelDirection,
@@ -44,10 +44,15 @@ export default class BaseUser {
       true,
     );
 
-    // reset all user bases cache
-    await NocoCache.delAll(CacheScope.USER_PROJECT, `${baseUser.fk_user_id}:*`);
+    const res = await this.get(base_id, fk_user_id, ncMeta);
 
-    return this.get(base_id, fk_user_id, ncMeta);
+    await NocoCache.appendToList(
+      CacheScope.BASE_USER,
+      [base_id],
+      `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
+    );
+
+    return res;
   }
 
   // public static async update(id, user: Partial<BaseUser>, ncMeta = Noco.ncMeta) {
@@ -58,18 +63,45 @@ export default class BaseUser {
       baseId &&
       userId &&
       (await NocoCache.get(
-        `${CacheScope.PROJECT_USER}:${baseId}:${userId}`,
+        `${CacheScope.BASE_USER}:${baseId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (!baseUser) {
-      baseUser = await ncMeta.metaGet2(null, null, MetaTable.PROJECT_USERS, {
-        fk_user_id: userId,
-        base_id: baseId,
+    if (!baseUser || !baseUser.roles) {
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select(
+          `${MetaTable.USERS}.id`,
+          `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
+          `${MetaTable.USERS}.invite_token`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          `${MetaTable.PROJECT_USERS}.roles as roles`,
+        );
+
+      queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          '=',
+          ncMeta.knex.raw('?', [baseId]),
+        );
       });
-      await NocoCache.set(
-        `${CacheScope.PROJECT_USER}:${baseId}:${userId}`,
-        baseUser,
-      );
+
+      queryBuilder.where(`${MetaTable.USERS}.id`, userId);
+
+      baseUser = await queryBuilder.first();
+
+      if (baseUser) {
+        await NocoCache.set(
+          `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+          baseUser,
+        );
+      }
     }
     return this.castType(baseUser);
   }
@@ -77,48 +109,61 @@ export default class BaseUser {
   public static async getUsersList(
     {
       base_id,
-      limit = 25,
-      offset = 0,
-      query,
+      mode = 'full',
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      include_ws_deleted = true,
     }: {
       base_id: string;
-      limit: number;
-      offset: number;
-      query?: string;
+      mode?: 'full' | 'viewer';
+      include_ws_deleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser)[]> {
-    const queryBuilder = ncMeta
-      .knex(MetaTable.USERS)
-      .select(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.invite_token`,
-        `${MetaTable.USERS}.roles as main_roles`,
-        `${MetaTable.USERS}.created_at as created_at`,
-        `${MetaTable.PROJECT_USERS}.base_id`,
-        `${MetaTable.PROJECT_USERS}.roles as roles`,
-      )
-      .offset(offset)
-      .limit(limit);
+    const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
+    let { list: baseUsers } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !baseUsers.length) {
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select(
+          `${MetaTable.USERS}.id`,
+          `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
+          ...(mode === 'full'
+            ? [
+                `${MetaTable.USERS}.invite_token`,
+                `${MetaTable.USERS}.roles as main_roles`,
+                `${MetaTable.USERS}.created_at as created_at`,
+                `${MetaTable.PROJECT_USERS}.base_id`,
+                `${MetaTable.PROJECT_USERS}.roles as roles`,
+              ]
+            : []),
+        );
 
-    if (query) {
-      queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
+      queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          '=',
+          ncMeta.knex.raw('?', [base_id]),
+        );
+      });
+
+      baseUsers = await queryBuilder;
+
+      baseUsers = baseUsers.map((baseUser) => {
+        baseUser.base_id = base_id;
+        return this.castType(baseUser);
+      });
+
+      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+        'base_id',
+        'id',
+      ]);
     }
-
-    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
-      this.on(
-        `${MetaTable.PROJECT_USERS}.fk_user_id`,
-        '=',
-        `${MetaTable.USERS}.id`,
-      ).andOn(
-        `${MetaTable.PROJECT_USERS}.base_id`,
-        '=',
-        ncMeta.knex.raw('?', [base_id]),
-      );
-    });
-
-    const baseUsers = await queryBuilder;
 
     return baseUsers;
   }
@@ -161,26 +206,14 @@ export default class BaseUser {
     ncMeta = Noco.ncMeta,
   ) {
     // get existing cache
-    const key = `${CacheScope.PROJECT_USER}:${baseId}:${userId}`;
+    const key = `${CacheScope.BASE_USER}:${baseId}:${userId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
       o.roles = roles;
       // set cache
       await NocoCache.set(key, o);
     }
-    // update user cache
-    const user = await User.get(userId);
-    if (user) {
-      const email = user.email;
-      for (const key of [`${CacheScope.USER}:${email}___${baseId}`]) {
-        const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-        if (o) {
-          o.roles = roles;
-          // set cache
-          await NocoCache.set(key, o);
-        }
-      }
-    }
+
     // set meta
     return await ncMeta.metaUpdate(
       null,
@@ -204,76 +237,38 @@ export default class BaseUser {
   ) {
     const updateObj = extractProps(baseUser, ['starred', 'hidden', 'order']);
 
-    // get existing cache
-    const key = `${CacheScope.PROJECT_USER}:${baseId}:${userId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      Object.assign(o, updateObj);
-      // set cache
-      await NocoCache.set(key, o);
-    }
-    // update user cache
-    const user = await User.get(userId);
-    if (user) {
-      const email = user.email;
-      for (const key of [
-        `${CacheScope.USER}:${email}`,
-        `${CacheScope.USER}:${email}___${baseId}`,
-      ]) {
-        const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-        if (o) {
-          Object.assign(o, updateObj);
-          // set cache
-          await NocoCache.set(key, o);
-        }
-      }
-    }
+    const key = `${CacheScope.BASE_USER}:${baseId}:${userId}`;
+
     // set meta
-    return await ncMeta.metaUpdate(
+    await ncMeta.metaUpdate(null, null, MetaTable.PROJECT_USERS, updateObj, {
+      fk_user_id: userId,
+      base_id: baseId,
+    });
+
+    // delete cache
+    await NocoCache.del(key);
+
+    // cache and return
+    return await this.get(baseId, userId, ncMeta);
+  }
+
+  static async delete(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
+    // delete meta
+    const response = await ncMeta.metaDelete(
       null,
       null,
       MetaTable.PROJECT_USERS,
-      updateObj,
       {
         fk_user_id: userId,
         base_id: baseId,
       },
     );
-  }
 
-  static async delete(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
-    const { email } = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-      id: userId,
-    });
-    if (email) {
-      await NocoCache.delAll(CacheScope.USER, `${email}*`);
-    }
+    // delete list cache to refresh list
+    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:${userId}`);
+    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:list`);
 
-    // remove base from user base list cache
-    const cachedList = await NocoCache.getList(CacheScope.USER_PROJECT, [
-      userId,
-    ]);
-    let { list: cachedProjectList } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && cachedProjectList?.length) {
-      cachedProjectList = cachedProjectList.filter((p) => p.id !== baseId);
-      // delete the whole list first so that the old one won't be included
-      await NocoCache.del(`${CacheScope.USER_PROJECT}:${userId}:list`);
-      if (cachedProjectList.length > 0) {
-        // set the updated list (i.e. excluding the to-be-deleted base id)
-        await NocoCache.setList(
-          CacheScope.USER_PROJECT,
-          [userId],
-          cachedProjectList,
-        );
-      }
-    }
-
-    await NocoCache.del(`${CacheScope.PROJECT_USER}:${baseId}:${userId}`);
-    return await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
-      fk_user_id: userId,
-      base_id: baseId,
-    });
+    return response;
   }
 
   static async getProjectsIdList(
@@ -290,18 +285,7 @@ export default class BaseUser {
     params: any,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
-    // let baseList: BaseType[];
-
-    // todo: pagination
-    // todo: caching based on filter type
-    //   = await NocoCache.getList(CacheScope.USER_PROJECT, [
-    //   userId,
-    // ]);
-
-    // if (baseList.length) {
-    //   return baseList;
-    // }
-
+    // TODO implement CacheScope.USER_BASE
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.id`)
@@ -373,15 +357,13 @@ export default class BaseUser {
       for (const base of baseList) {
         base.meta = parseMetaProp(base);
       }
-
-      await NocoCache.setList(CacheScope.USER_PROJECT, [userId], baseList);
     }
 
     const castedProjectList = baseList
       .filter((p) => !params?.type || p.type === params.type)
       .map((m) => Base.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getBases(ncMeta)));
+    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 
     return castedProjectList;
   }

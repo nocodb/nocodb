@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Row } from 'lib'
 import { isColumnRequiredAndNull } from './columnUtils'
@@ -85,4 +85,24 @@ export async function populateInsertObject({
   }
 
   return { missingRequiredColumns, insertObj }
+}
+
+// a function to get default values of row
+export const rowDefaultData = (columns: ColumnType[] = []) => {
+  const defaultData: Record<string, string> = columns.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+    //  avoid setting default value for system col, virtual col, rollup, formula, barcode, qrcode, links, ltar
+    if (
+      !isSystemColumn(col) &&
+      !isVirtualCol(col) &&
+      !isLinksOrLTAR({ uidt: col.uidt! }) &&
+      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(col.uidt) &&
+      col?.cdf
+    ) {
+      const defaultValue = col.cdf
+      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'/, '').replace(/'$/, '') : defaultValue
+    }
+    return acc
+  }, {} as Record<string, any>)
+
+  return defaultData
 }

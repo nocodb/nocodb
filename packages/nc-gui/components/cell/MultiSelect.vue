@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
-  CellClickHookInj,
   ColumnInj,
   EditColumnInj,
   EditModeInj,
@@ -53,13 +51,13 @@ const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
-const active = computed(() => activeCell.value || isEditable.value)
+const active = computed(() => activeCell.value || isEditable.value || isForm.value)
 
 const isPublic = inject(IsPublicInj, ref(false))
-
-const isForm = inject(IsFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -70,6 +68,8 @@ const selectedIds = ref<string[]>([])
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+
+const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -180,9 +180,7 @@ watch(isOpen, (n, _o) => {
   if (!n) searchVal.value = ''
 
   if (editAllowed.value) {
-    if (!n) {
-      aselect.value?.$el?.querySelector('input')?.blur()
-    } else {
+    if (n) {
       aselect.value?.$el?.querySelector('input')?.focus()
     }
   }
@@ -299,22 +297,11 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const cellClickHook = inject(CellClickHookInj, null)
-
 const toggleMenu = () => {
-  if (cellClickHook) return
-  isOpen.value = editAllowed.value && !isOpen.value
-}
+  if (isFocusing.value) return
 
-const cellClickHookHandler = () => {
   isOpen.value = editAllowed.value && !isOpen.value
 }
-onMounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
-onUnmounted(() => {
-  cellClickHook?.on(cellClickHookHandler)
-})
 
 const handleClose = (e: MouseEvent) => {
   // close dropdown if clicked outside of dropdown
@@ -341,6 +328,26 @@ const selectedOpts = computed(() => {
     return selectedOptions
   }, [])
 })
+
+const onKeyDown = (e: KeyboardEvent) => {
+  // Tab
+  if (e.key === 'Tab') {
+    isOpen.value = false
+    return
+  }
+
+  e.stopPropagation()
+}
+
+const onFocus = () => {
+  isFocusing.value = true
+
+  setTimeout(() => {
+    isFocusing.value = false
+  }, 250)
+
+  isOpen.value = true
+}
 </script>
 
 <template>
@@ -357,7 +364,7 @@ const selectedOpts = computed(() => {
       }"
     >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" :color="selectedOpt.color">
+        <a-tag class="rounded-tag max-w-full" :color="selectedOpt.color">
           <span
             :style="{
               'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -367,7 +374,21 @@ const selectedOpts = computed(() => {
             }"
             :class="{ 'text-sm': isKanban }"
           >
-            {{ selectedOpt.title }}
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ selectedOpt.title }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                {{ selectedOpt.title }}
+              </span>
+            </NcTooltip>
           </span>
         </a-tag>
       </template>
@@ -389,7 +410,9 @@ const selectedOpts = computed(() => {
       :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       @search="search"
-      @keydown.stop
+      @keydown="onKeyDown"
+      @focus="onFocus"
+      @blur="isOpen = false"
     >
       <template #suffixIcon>
         <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
@@ -402,7 +425,7 @@ const selectedOpts = computed(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag" :color="op.color">
+        <a-tag class="rounded-tag max-w-full" :color="op.color">
           <span
             :style="{
               'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -412,7 +435,21 @@ const selectedOpts = computed(() => {
             }"
             :class="{ 'text-sm': isKanban }"
           >
-            {{ op.title }}
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ op.title }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                {{ op.title }}
+              </span>
+            </NcTooltip>
           </span>
         </a-tag>
       </a-select-option>
@@ -528,5 +565,12 @@ const selectedOpts = computed(() => {
 
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
+}
+</style>
+
+<style lang="scss">
+.ant-select-item-option-content,
+.ant-select-item-option-state {
+  @apply !flex !items-center;
 }
 </style>

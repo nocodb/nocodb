@@ -55,17 +55,18 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
   </a-modal>
   <div
     v-if="!tooManyCharsForBarcode"
-    class="flex ml-2 w-full items-center"
+    class="flex w-full items-center barcode-wrapper"
     :class="{
-      'justify-start': isExpandedFormOpen,
+      'justify-start ml-2': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
     }"
   >
     <JsBarcodeWrapper
       v-if="showBarcode && rowHeight"
       :barcode-value="barcodeValue"
+      tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
-      :custom-style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem`, width: 40 }"
+      :custom-style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>
@@ -76,6 +77,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     </JsBarcodeWrapper>
     <JsBarcodeWrapper
       v-else-if="showBarcode"
+      tabindex="-1"
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
       @on-click-barcode="showBarcodeModal"
@@ -98,3 +100,11 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     {{ $t('msg.warning.nonEditableFields.barcodeFieldsCannotBeDirectlyChanged') }}
   </div>
 </template>
+
+<style lang="scss" scoped>
+.barcode-wrapper {
+  & > div {
+    @apply max-w-8.2rem;
+  }
+}
+</style>

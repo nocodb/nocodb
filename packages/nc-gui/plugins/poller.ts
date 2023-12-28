@@ -1,7 +1,7 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import { defineNuxtPlugin } from '#imports'
 
-export default defineNuxtPlugin(async (nuxtApp) => {
+const pollPlugin = async (nuxtApp) => {
   const api: BaseAPI<any> = nuxtApp.$api as any
 
   // unsubscribe all if signed out
@@ -89,4 +89,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   }
 
   nuxtApp.provide('poller', poller)
+}
+
+export default defineNuxtPlugin(async function (nuxtApp) {
+  if (!isEeUI) return await pollPlugin(nuxtApp)
 })
+
+export { pollPlugin }

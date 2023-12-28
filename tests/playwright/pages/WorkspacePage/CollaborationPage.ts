@@ -19,7 +19,7 @@ export class CollaborationPage extends BasePage {
     this.workspace = workspace;
     this.button_addUser = this.get().locator('button.ant-btn.ant-btn-primary');
     this.input_email = this.get().locator('input[id="email"]');
-    this.selector_role = this.get().locator('[data-testid="invite"] >> [data-testid="roles"]');
+    this.selector_role = this.get().locator('.ant-select-selector');
     this.list_collaborators = this.get().locator('.nc-collaborators-list-table');
   }
 
@@ -39,9 +39,9 @@ export class CollaborationPage extends BasePage {
     await this.rootPage.keyboard.press('Enter');
 
     // role
-    await this.selector_role.click();
+    await this.selector_role.first().click();
     const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');
-    await menu.locator(`.nc-role-select-workspace-level-${role.toLowerCase()}:visible`).click();
+    await menu.locator(`.nc-role-select-workspace-level-${role.toLowerCase()}:visible`).first().click();
 
     // submit
 

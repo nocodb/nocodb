@@ -1,4 +1,4 @@
-import UITypes from './UITypes';
+import UITypes, { isNumericCol } from './UITypes';
 import { RolesObj, RolesType } from './globals';
 
 // import {RelationTypes} from "./globals";
@@ -45,6 +45,45 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
   return rolesArr.join(',');
 };
 
+const getAvailableRollupForUiType = (type: string) => {
+  if (isNumericCol(type as UITypes)) {
+    return [
+      'sum',
+      'count',
+      'min',
+      'max',
+      'avg',
+      'countDistinct',
+      'sumDistinct',
+      'avgDistinct',
+    ];
+  } else if ([UITypes.Date, UITypes.DateTime].includes(type as UITypes)) {
+    return ['count', 'min', 'max', 'countDistinct'];
+  } else if (
+    [
+      UITypes.SingleLineText,
+      UITypes.LongText,
+      UITypes.User,
+      UITypes.Email,
+      UITypes.PhoneNumber,
+      UITypes.URL,
+    ].includes(type as UITypes)
+  ) {
+    return ['count'];
+  } else {
+    return [
+      'sum',
+      'count',
+      'min',
+      'max',
+      'avg',
+      'countDistinct',
+      'sumDistinct',
+      'avgDistinct',
+    ];
+  }
+};
+
 export {
   filterOutSystemColumns,
   getSystemColumnsIds,
@@ -52,4 +91,5 @@ export {
   isSystemColumn,
   extractRolesObj,
   stringifyRolesObj,
+  getAvailableRollupForUiType,
 };

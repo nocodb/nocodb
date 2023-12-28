@@ -88,7 +88,7 @@ export class ExportService {
                   `SELECT pg_get_serial_sequence('??', ?) as seq;`,
                   [baseModel.getTnPath(model.table_name), column.column_name],
                 );
-                if (seq.rows.length > 0) {
+                if (seq.rows.length > 0 && seq.rows[0].seq) {
                   const seqName = seq.rows[0].seq;
 
                   const res = await sqlClient.raw(
@@ -450,6 +450,17 @@ export class ExportService {
                 try {
                   row[colId] = JSON.stringify(v);
                 } catch (e) {
+                  row[colId] = v;
+                }
+                break;
+              case UITypes.User:
+                if (v) {
+                  const userIds = [];
+                  for (const user of v as { id: string }[]) {
+                    userIds.push(user.id);
+                  }
+                  row[colId] = userIds.join(',');
+                } else {
                   row[colId] = v;
                 }
                 break;

@@ -3,8 +3,13 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { BaseUser } from '~/models';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
+import { Base, BaseUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 export default class User implements UserType {
@@ -66,6 +71,16 @@ export default class User implements UserType {
 
     await NocoCache.del(CacheScope.INSTANCE_META);
 
+    // clear all base user related cache for instance
+    const bases = await Base.list({}, ncMeta);
+    for (const base of bases) {
+      await NocoCache.deepDel(
+        CacheScope.BASE_USER,
+        `${CacheScope.BASE_USER}:${base.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
+
     return this.get(id, ncMeta);
   }
 
@@ -106,25 +121,12 @@ export default class User implements UserType {
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
-    // as <baseId> is unknown, delete user:<email>___<baseId> in cache
-    await NocoCache.delAll(CacheScope.USER, `${existingUser.email}___*`);
+    await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
 
-    // get existing cache
-    const keys = [
-      // update user:<id>
-      `${CacheScope.USER}:${id}`,
-    ];
-    for (const key of keys) {
-      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        o = { ...o, ...updateObj };
-        // set cache
-        await NocoCache.set(key, o);
-      }
-    }
+    // clear all user related cache
+    await this.clearCache(id, ncMeta);
 
-    // set meta
-    return await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
+    return this.get(id, ncMeta);
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
@@ -240,10 +242,7 @@ export default class User implements UserType {
     if (!user) NcError.badRequest('User not found');
 
     // clear all user related cache
-    await NocoCache.delAll(CacheScope.USER, `${userId}___*`);
-    await NocoCache.delAll(CacheScope.USER, `${user.email}___*`);
-    await NocoCache.del(`${CacheScope.USER}:${userId}`);
-    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
+    await this.clearCache(userId, ncMeta);
 
     return await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
   }
@@ -282,5 +281,24 @@ export default class User implements UserType {
       roles: user.roles ? extractRolesObj(user.roles) : null,
       base_roles: baseRoles ? baseRoles : null,
     } as any;
+  }
+
+  protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
+    const user = await this.get(userId, ncMeta);
+    if (!user) NcError.badRequest('User not found');
+
+    const bases = await BaseUser.getProjectsList(userId, {}, ncMeta);
+
+    for (const base of bases) {
+      await NocoCache.deepDel(
+        CacheScope.BASE_USER,
+        `${CacheScope.BASE_USER}:${base.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
+
+    // clear all user related cache
+    await NocoCache.del(`${CacheScope.USER}:${userId}`);
+    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
   }
 }

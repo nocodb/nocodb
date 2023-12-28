@@ -6,6 +6,7 @@ import {
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
@@ -43,7 +44,14 @@ import {
 } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
-import { Column, FormulaColumn, KanbanView, Model, Source } from '~/models';
+import {
+  BaseUser,
+  Column,
+  FormulaColumn,
+  KanbanView,
+  Model,
+  Source,
+} from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -184,6 +192,7 @@ export class ColumnsService {
     let colBody = { ...param.column } as Column & {
       formula?: string;
       formula_raw?: string;
+      parsed_tree?: any;
     };
     if (
       [
@@ -208,6 +217,17 @@ export class ColumnsService {
             colBody.formula_raw || colBody.formula,
             table.columns,
           );
+          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+            formula: colBody.formula || colBody.formula_raw,
+            columns: table.columns,
+            column,
+            clientOrSqlUi: source.type,
+            getMeta: async (modelId) => {
+              const model = await Model.get(modelId);
+              await model.getColumns();
+              return model;
+            },
+          });
 
           try {
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -227,6 +247,7 @@ export class ColumnsService {
               {},
               null,
               true,
+              colBody.parsed_tree,
             );
           } catch (e) {
             console.error(e);
@@ -931,6 +952,17 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
+                      parsed_tree: await validateFormulaAndExtractTreeWithType({
+                        formula: new_formula_raw,
+                        columns: table.columns,
+                        column,
+                        clientOrSqlUi: source.type,
+                        getMeta: async (modelId) => {
+                          const model = await Model.get(modelId);
+                          await model.getColumns();
+                          return model;
+                        },
+                      }),
                     });
                   }
                 }
@@ -952,6 +984,393 @@ export class ColumnsService {
       await Column.update(param.columnId, {
         ...colBody,
       });
+    } else if (colBody.uidt === UITypes.User) {
+      // handle default value for user column
+      if (colBody.cdf) {
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: source.base_id,
+          include_ws_deleted: false,
+        });
+
+        const emailOrIds = colBody.cdf.split(',');
+        const emailsNotPresent = emailOrIds.filter((el) => {
+          return !baseUsers.find((user) => user.id === el || user.email === el);
+        });
+
+        if (emailsNotPresent.length) {
+          NcError.badRequest(
+            `The following default users are not part of workspace: ${emailsNotPresent.join(
+              ', ',
+            )}`,
+          );
+        }
+
+        const ids = emailOrIds.map((el) => {
+          const user = baseUsers.find(
+            (user) => user.id === el || user.email === el,
+          );
+          return user.id;
+        });
+
+        colBody.cdf = ids.join(',');
+      }
+
+      if (column.uidt === UITypes.User) {
+        // multi user to single user
+        if (
+          colBody.meta?.is_multi === false &&
+          column.meta?.is_multi === true
+        ) {
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL({
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(source),
+              ),
+            }),
+          );
+
+          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          );
+          const driverType = dbDriver.clientType();
+
+          // MultiSelect to SingleSelect
+          if (driverType === 'mysql' || driverType === 'mysql2') {
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else if (driverType === 'pg') {
+            await sqlClient.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
+              baseModel.getTnPath(table.table_name),
+              column.column_name,
+              column.column_name,
+            ]);
+          } else if (driverType === 'mssql') {
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else if (driverType === 'sqlite3') {
+            await sqlClient.raw(
+              `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          }
+        }
+
+        colBody = await getColumnPropsFromUIDT(colBody, source);
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: await Promise.all(
+            table.columns.map(async (c) => {
+              if (c.id === param.columnId) {
+                const res = {
+                  ...c,
+                  ...colBody,
+                  cn: colBody.column_name,
+                  cno: c.column_name,
+                  altered: Altered.UPDATE_COLUMN,
+                };
+
+                // update formula with new column name
+                if (c.column_name != colBody.column_name) {
+                  const formulas = await Noco.ncMeta
+                    .knex(MetaTable.COL_FORMULA)
+                    .where('formula', 'like', `%${c.id}%`);
+                  if (formulas) {
+                    const new_column = c;
+                    new_column.column_name = colBody.column_name;
+                    new_column.title = colBody.title;
+                    for (const f of formulas) {
+                      // the formula with column IDs only
+                      const formula = f.formula;
+                      // replace column IDs with alias to get the new formula_raw
+                      const new_formula_raw =
+                        substituteColumnIdWithAliasInFormula(formula, [
+                          new_column,
+                        ]);
+                      await FormulaColumn.update(c.id, {
+                        formula_raw: new_formula_raw,
+                      });
+                    }
+                  }
+                }
+                return Promise.resolve(res);
+              } else {
+                (c as any).cn = c.column_name;
+              }
+              return Promise.resolve(c);
+            }),
+          ),
+        };
+
+        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+        );
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+        await Column.update(param.columnId, {
+          ...colBody,
+        });
+      } else if (
+        [UITypes.SingleLineText, UITypes.Email].includes(column.uidt)
+      ) {
+        // email/text to user
+        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+          Model.getBaseModelSQL({
+            id: table.id,
+            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+              NcConnectionMgrv2.get(source),
+            ),
+          }),
+        );
+
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: column.base_id,
+        });
+
+        try {
+          const data = await baseModel.execAndParse(
+            sqlClient.knex
+              .raw('SELECT DISTINCT ?? FROM ??', [
+                column.column_name,
+                baseModel.getTnPath(table.table_name),
+              ])
+              .toQuery(),
+          );
+
+          let isMultiple = false;
+
+          const rows = data.map((el) => el[column.column_name]);
+          const emails = rows
+            .map((el) => {
+              const res = el.split(',').map((e) => e.trim());
+              if (res.length > 1) {
+                isMultiple = true;
+              }
+              return res;
+            })
+            .flat();
+
+          // check if emails are present baseUsers
+          const emailsNotPresent = emails.filter((el) => {
+            return !baseUsers.find((user) => user.email === el);
+          });
+
+          if (emailsNotPresent.length) {
+            NcError.badRequest(
+              `Some of the emails are not present in the database.`,
+            );
+          }
+
+          if (isMultiple) {
+            colBody.meta = {
+              is_multi: true,
+            };
+          }
+        } catch (e) {
+          NcError.badRequest('Some of the emails are present in the database.');
+        }
+
+        // create nested replace statement for each user
+        const setStatement = baseUsers.reduce((acc, user) => {
+          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.email,
+            user.id,
+          ]);
+          return qb.toQuery();
+        }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
+
+        await sqlClient.raw(`UPDATE ?? SET ?? = ${setStatement};`, [
+          baseModel.getTnPath(table.table_name),
+          column.column_name,
+        ]);
+
+        colBody = await getColumnPropsFromUIDT(colBody, source);
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: await Promise.all(
+            table.columns.map(async (c) => {
+              if (c.id === param.columnId) {
+                const res = {
+                  ...c,
+                  ...colBody,
+                  cn: colBody.column_name,
+                  cno: c.column_name,
+                  altered: Altered.UPDATE_COLUMN,
+                };
+
+                // update formula with new column name
+                if (c.column_name != colBody.column_name) {
+                  const formulas = await Noco.ncMeta
+                    .knex(MetaTable.COL_FORMULA)
+                    .where('formula', 'like', `%${c.id}%`);
+                  if (formulas) {
+                    const new_column = c;
+                    new_column.column_name = colBody.column_name;
+                    new_column.title = colBody.title;
+                    for (const f of formulas) {
+                      // the formula with column IDs only
+                      const formula = f.formula;
+                      // replace column IDs with alias to get the new formula_raw
+                      const new_formula_raw =
+                        substituteColumnIdWithAliasInFormula(formula, [
+                          new_column,
+                        ]);
+                      await FormulaColumn.update(c.id, {
+                        formula_raw: new_formula_raw,
+                      });
+                    }
+                  }
+                }
+                return Promise.resolve(res);
+              } else {
+                (c as any).cn = c.column_name;
+              }
+              return Promise.resolve(c);
+            }),
+          ),
+        };
+
+        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+        );
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+        await Column.update(param.columnId, {
+          ...colBody,
+        });
+      } else {
+        NcError.notImplemented(
+          `Updating ${column.uidt} => ${colBody.uidt} is not supported at the moment`,
+        );
+      }
+    } else if (column.uidt === UITypes.User) {
+      if ([UITypes.SingleLineText, UITypes.Email].includes(colBody.uidt)) {
+        // user to email/text
+        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+          Model.getBaseModelSQL({
+            id: table.id,
+            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+              NcConnectionMgrv2.get(source),
+            ),
+          }),
+        );
+
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: column.base_id,
+        });
+
+        // create nested replace statement for each user
+        const setStatement = baseUsers.reduce((acc, user) => {
+          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.id,
+            user.email,
+          ]);
+          return qb.toQuery();
+        }, sqlClient.knex.raw(`??`, [column.column_name]).toQuery());
+
+        await sqlClient.raw(`UPDATE ?? SET ?? = ${setStatement};`, [
+          baseModel.getTnPath(table.table_name),
+          column.column_name,
+        ]);
+
+        colBody = await getColumnPropsFromUIDT(colBody, source);
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: await Promise.all(
+            table.columns.map(async (c) => {
+              if (c.id === param.columnId) {
+                const res = {
+                  ...c,
+                  ...colBody,
+                  cn: colBody.column_name,
+                  cno: c.column_name,
+                  altered: Altered.UPDATE_COLUMN,
+                };
+
+                // update formula with new column name
+                if (c.column_name != colBody.column_name) {
+                  const formulas = await Noco.ncMeta
+                    .knex(MetaTable.COL_FORMULA)
+                    .where('formula', 'like', `%${c.id}%`);
+                  if (formulas) {
+                    const new_column = c;
+                    new_column.column_name = colBody.column_name;
+                    new_column.title = colBody.title;
+                    for (const f of formulas) {
+                      // the formula with column IDs only
+                      const formula = f.formula;
+                      // replace column IDs with alias to get the new formula_raw
+                      const new_formula_raw =
+                        substituteColumnIdWithAliasInFormula(formula, [
+                          new_column,
+                        ]);
+                      await FormulaColumn.update(c.id, {
+                        formula_raw: new_formula_raw,
+                      });
+                    }
+                  }
+                }
+                return Promise.resolve(res);
+              } else {
+                (c as any).cn = c.column_name;
+              }
+              return Promise.resolve(c);
+            }),
+          ),
+        };
+
+        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+          ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+        );
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+        await Column.update(param.columnId, {
+          ...colBody,
+        });
+      } else {
+        NcError.notImplemented(
+          `Updating ${column.uidt} => ${colBody.uidt} is not supported at the moment`,
+        );
+      }
     } else {
       colBody = await getColumnPropsFromUIDT(colBody, source);
       const tableUpdateBody = {
@@ -992,6 +1411,17 @@ export class ColumnsService {
                       ]);
                     await FormulaColumn.update(c.id, {
                       formula_raw: new_formula_raw,
+                      parsed_tree: await validateFormulaAndExtractTreeWithType({
+                        formula: new_formula_raw,
+                        columns: table.columns,
+                        column,
+                        clientOrSqlUi: source.type,
+                        getMeta: async (modelId) => {
+                          const model = await Model.get(modelId);
+                          await model.getColumns();
+                          return model;
+                        },
+                      }),
                     });
                   }
                 }
@@ -1197,6 +1627,22 @@ export class ColumnsService {
           colBody.formula_raw || colBody.formula,
           table.columns,
         );
+        colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+          // formula may include double curly brackets in previous version
+          // convert to single curly bracket here for compatibility
+          formula: colBody.formula,
+          column: {
+            ...colBody,
+            colOptions: colBody,
+          },
+          columns: table.columns,
+          clientOrSqlUi: source.type,
+          getMeta: async (modelId) => {
+            const model = await Model.get(modelId);
+            await model.getColumns();
+            return model;
+          },
+        });
 
         try {
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -1365,6 +1811,40 @@ export class ColumnsService {
                   colBody.dt = 'text';
                 }
               }
+            }
+          }
+
+          if (colBody.uidt === UITypes.User) {
+            // handle default value for user column
+            if (colBody.cdf) {
+              const baseUsers = await BaseUser.getUsersList({
+                base_id: base.id,
+                include_ws_deleted: false,
+              });
+
+              const emailOrIds = colBody.cdf.split(',');
+              const emailsNotPresent = emailOrIds.filter((el) => {
+                return !baseUsers.find(
+                  (user) => user.id === el || user.email === el,
+                );
+              });
+
+              if (emailsNotPresent.length) {
+                NcError.badRequest(
+                  `The following default users are not part of workspace: ${emailsNotPresent.join(
+                    ', ',
+                  )}`,
+                );
+              }
+
+              const ids = emailOrIds.map((el) => {
+                const user = baseUsers.find(
+                  (user) => user.id === el || user.email === el,
+                );
+                return user.id;
+              });
+
+              colBody.cdf = ids.join(',');
             }
           }
 

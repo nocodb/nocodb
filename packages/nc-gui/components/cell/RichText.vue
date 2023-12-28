@@ -19,6 +19,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:value'])
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
 const turndownService = new TurndownService({})
 
 turndownService.addRule('lineBreak', {
@@ -108,7 +110,7 @@ const editor = useEditor({
   editable: !props.readonly,
 })
 
-const setEditorContent = (contentMd: any) => {
+const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
 
   const selection = editor.value.view.state.selection
@@ -120,6 +122,15 @@ const setEditorContent = (contentMd: any) => {
   editor.value.chain().setContent(content).setTextSelection(selection.to).run()
 
   setTimeout(() => {
+    if (focusEndOfDoc) {
+      const docSize = editor.value!.state.doc.nodeSize
+
+      editor.value
+        ?.chain()
+        .setTextSelection(docSize - 1)
+        .run()
+    }
+
     ;(editor.value!.state as any).history$.prevRanges = null
     ;(editor.value!.state as any).history$.done.eventCount = 0
   }, 100)
@@ -134,7 +145,7 @@ if (props.syncValueChange) {
 watch(editorDom, () => {
   if (!editorDom.value) return
 
-  setEditorContent(vModel.value)
+  setEditorContent(vModel.value, true)
 
   // Focus editor after editor is mounted
   setTimeout(() => {
@@ -162,7 +173,8 @@ watch(editorDom, () => {
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
         'ml-1 mt-2.5 flex-grow': props.fullMode,
-        'nc-scrollbar-md': !props.fullMode && !props.readonly,
+        'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
+        'flex-grow': isExpandedFormOpen,
       }"
     />
   </div>

@@ -24,7 +24,7 @@ export class AccessSettingsPage extends BasePage {
       if (userEmail === email) {
         const roleDropdown = user.locator('.nc-roles-selector');
 
-        const selectedRole = await user.locator('.nc-roles-selector .badge-text').innerText();
+        const selectedRole = await user.locator('.nc-roles-selector').innerText();
 
         await roleDropdown.click();
         const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');

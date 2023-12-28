@@ -5,14 +5,14 @@ import {
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
   extractRolesObj,
+  parseStringDateTime,
   timeAgo,
 } from 'nocodb-sdk'
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs } from '#imports'
 
 const basesStore = useBases()
-const { getProjectUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
+const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
@@ -30,7 +30,6 @@ interface Collaborators {
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
 const userSearchText = ref('')
-const currentPage = ref(0)
 
 const isLoading = ref(false)
 const isSearching = ref(false)
@@ -38,50 +37,30 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 
 const loadCollaborators = async () => {
   try {
-    currentPage.value += 1
-
-    const { users, totalRows } = await getProjectUsers({
+    const { users, totalRows } = await getBaseUsers({
       baseId: activeProjectId.value!,
-      page: currentPage.value,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
-      limit: 20,
+      force: true,
     })
 
     totalCollaborators.value = totalRows
     collaborators.value = [
-      ...collaborators.value,
-      ...users.map((user: any) => ({
-        ...user,
-        base_roles: user.roles,
-        roles: extractRolesObj(user.main_roles)?.[OrgUserRoles.SUPER_ADMIN]
-          ? OrgUserRoles.SUPER_ADMIN
-          : user.roles ??
-            (user.workspace_roles
-              ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-              : ProjectRoles.NO_ACCESS),
-      })),
+      ...users
+        .filter((u: any) => !u?.deleted)
+        .map((user: any) => ({
+          ...user,
+          base_roles: user.roles,
+          roles: extractRolesObj(user.main_roles)?.[OrgUserRoles.SUPER_ADMIN]
+            ? OrgUserRoles.SUPER_ADMIN
+            : user.roles ??
+              (user.workspace_roles
+                ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+                : ProjectRoles.NO_ACCESS),
+        })),
     ]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const loadListData = async ($state: any) => {
-  const prevUsersCount = collaborators.value?.length || 0
-  if (collaborators.value?.length === totalCollaborators.value) {
-    $state.complete()
-    return
-  }
-  $state.loading()
-  // const oldPagesCount = currentPage.value || 0
-
-  await loadCollaborators()
-
-  if (prevUsersCount === collaborators.value?.length) {
-    $state.complete()
-    return
-  }
-  $state.loaded()
 }
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
@@ -115,29 +94,6 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   }
 }
 
-watchDebounced(
-  userSearchText,
-  async () => {
-    isSearching.value = true
-
-    currentPage.value = 0
-    totalCollaborators.value = 0
-    collaborators.value = []
-
-    try {
-      await loadCollaborators()
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isSearching.value = false
-    }
-  },
-  {
-    debounce: 300,
-    maxWait: 600,
-  },
-)
-
 onMounted(async () => {
   isLoading.value = true
   try {
@@ -156,6 +112,10 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+const filteredCollaborators = computed(() =>
+  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
+)
 </script>
 
 <template>
@@ -177,7 +137,7 @@ onMounted(async () => {
       </div>
 
       <div
-        v-else-if="!collaborators?.length"
+        v-else-if="!filteredCollaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
         <Empty description="$t('title.noMembersFound')" />
@@ -186,13 +146,13 @@ onMounted(async () => {
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
             <div class="text-gray-700 users-email-grid">{{ $t('objects.users') }}</div>
-            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
             <div class="text-gray-700 user-access-grid">{{ $t('general.access') }}</div>
+            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
           </div>
 
           <div class="flex flex-col nc-scrollbar-md">
             <div
-              v-for="(collab, i) of collaborators"
+              v-for="(collab, i) of filteredCollaborators"
               :key="i"
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >
@@ -202,7 +162,6 @@ onMounted(async () => {
                   {{ collab.email }}
                 </span>
               </div>
-              <div class="date-joined-grid">{{ timeAgo(collab.created_at) }}</div>
               <div class="user-access-grid">
                 <template v-if="accessibleRoles.includes(collab.roles)">
                   <RolesSelector
@@ -221,20 +180,19 @@ onMounted(async () => {
                   <RolesBadge :role="collab.roles" />
                 </template>
               </div>
+              <div class="date-joined-grid">
+                <NcTooltip class="max-w-full">
+                  <template #title>
+                    {{ parseStringDateTime(collab.created_at) }}
+                  </template>
+                  <span>
+                    {{ timeAgo(collab.created_at) }}
+                  </span>
+                </NcTooltip>
+              </div>
             </div>
           </div>
         </div>
-
-        <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
-          <template #spinner>
-            <div class="flex flex-row w-full justify-center mt-2">
-              <GeneralLoader />
-            </div>
-          </template>
-          <template #complete>
-            <span></span>
-          </template>
-        </InfiniteLoading>
       </div>
     </template>
   </div>
@@ -258,12 +216,11 @@ onMounted(async () => {
 }
 
 .date-joined-grid {
-  @apply flex items-start;
-  width: calc(50% - 10rem);
+  @apply w-1/4 flex items-start;
 }
 
 .user-access-grid {
-  @apply w-40;
+  @apply w-1/4 flex justify-start;
 }
 
 .user-row {

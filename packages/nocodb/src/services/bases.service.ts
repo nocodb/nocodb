@@ -203,7 +203,7 @@ export class BasesService {
     await syncMigration(base);
 
     // populate metadata if existing table
-    for (const source of await base.getBases()) {
+    for (const source of await base.getSources()) {
       if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
         const info = await populateMeta(source, base);
 

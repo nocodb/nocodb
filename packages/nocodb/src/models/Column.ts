@@ -3,6 +3,7 @@ import {
   isLinksOrLTAR,
   UITypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -28,6 +29,7 @@ import {
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 
 const selectColors = [
   '#cfdffe',
@@ -41,6 +43,8 @@ const selectColors = [
   '#ede2fe',
   '#eeeeee',
 ];
+
+const logger = new Logger('Column');
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -308,6 +312,7 @@ export default class Column<T = any> implements ColumnType {
             fk_column_id: colId,
             formula: column.formula,
             formula_raw: column.formula_raw,
+            parsed_tree: column.parsed_tree,
           },
           ncMeta,
         );
@@ -713,7 +718,11 @@ export default class Column<T = any> implements ColumnType {
             title: col?.title,
           })
         )
-          await FormulaColumn.update(formulaCol.id, formula, ncMeta);
+          await FormulaColumn.update(
+            formulaCol.id,
+            formula as FormulaColumn & { parsed_tree?: any },
+            ncMeta,
+          );
       }
     }
 
@@ -1154,6 +1163,26 @@ export default class Column<T = any> implements ColumnType {
 
     // on column update, delete any optimised single query cache
     await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${oldCol.fk_model_id}:*`);
+
+    const updatedColumn = await Column.get({ colId });
+
+    // invalidate formula parsed-tree in which current column is used
+    // whenever a new request comes for that formula, it will be populated again
+    getFormulasReferredTheColumn({
+      column: updatedColumn,
+      columns: await Column.list({ fk_model_id: column.fk_model_id }),
+    })
+      .then(async (formulas) => {
+        for (const formula of formulas) {
+          await FormulaColumn.update(formula.id, {
+            parsed_tree: null,
+          });
+        }
+      })
+      // ignore the error and continue, if formula is no longer valid it will be captured in the next run
+      .catch((err) => {
+        logger.error(err);
+      });
   }
 
   static async updateAlias(

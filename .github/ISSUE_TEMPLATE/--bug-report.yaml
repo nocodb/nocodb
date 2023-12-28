@@ -2,8 +2,6 @@ name: 🐛 Bug Report
 description: Create a bug report to help improve NocoDB
 title: "🐛 Bug: "
 labels: [Type : Bug]
-assignees:
-- o1lab
 body:
 - type: markdown
   attributes:

@@ -268,7 +268,7 @@ const filterOption = (input: string, option: any) => {
       v-if="!active"
       class="flex flex-wrap"
       :class="{
-        '!px-2': isExpandedFormOpen,
+        'px-2': isExpandedFormOpen,
       }"
       :style="{
         'display': '-webkit-box',

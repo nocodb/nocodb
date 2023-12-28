@@ -283,7 +283,7 @@ const onFocus = () => {
       v-if="!(active || isEditable)"
       class="w-full"
       :class="{
-        '!px-2': isExpandedFormOpen,
+        'px-2': isExpandedFormOpen,
       }"
     >
       <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">

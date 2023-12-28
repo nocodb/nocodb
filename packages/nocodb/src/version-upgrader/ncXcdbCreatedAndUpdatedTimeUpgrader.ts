@@ -8,7 +8,7 @@ import { Column, Model } from '~/models';
 // An upgrader for upgrading created_at and updated_at columns
 // to system column and convert to new uidt CreatedTime and LastModifiedTime
 
-const logger = new Logger('XcdbCreatedAndUpdatedTimeUpgrader');
+const logger = new Logger('ncXcdbCreatedAndUpdatedTimeUpgrader');
 
 async function upgradeModels({
   ncMeta,
@@ -29,6 +29,7 @@ async function upgradeModels({
     models.map(async (model: any) => {
       const columns = await model.getColumns(ncMeta);
       for (const column of columns) {
+        if(column.uidt !== UITypes.DateTime) continue;
         if (column.column_name === 'created_at') {
           await Column.update(column.id, {
             uidt: UITypes.CreatedTime,

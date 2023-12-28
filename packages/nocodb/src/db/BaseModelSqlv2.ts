@@ -116,7 +116,7 @@ export function getColumnName(column: Column<any>, columns: Column[] = []) {
       );
       if (lastModifiedTimeSystemCol)
         return lastModifiedTimeSystemCol.column_name;
-      return column.column_name || 'created_at';
+      return column.column_name || 'updated_at';
     }
     default:
       return column.column_name;

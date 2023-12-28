@@ -29,18 +29,26 @@ async function upgradeModels({
     models.map(async (model: any) => {
       const columns = await model.getColumns(ncMeta);
       for (const column of columns) {
-        if(column.uidt !== UITypes.DateTime) continue;
+        if (column.uidt !== UITypes.DateTime) continue;
         if (column.column_name === 'created_at') {
-          await Column.update(column.id, {
-            uidt: UITypes.CreatedTime,
-            system: true,
-          });
+          await Column.update(
+            column.id,
+            {
+              uidt: UITypes.CreatedTime,
+              system: true,
+            },
+            ncMeta,
+          );
         }
         if (column.uidt === 'updated_at') {
-          await Column.update(column.id, {
-            uidt: UITypes.LastModifiedTime,
-            system: true,
-          });
+          await Column.update(
+            column.id,
+            {
+              uidt: UITypes.LastModifiedTime,
+              system: true,
+            },
+            ncMeta,
+          );
         }
       }
       logger.log(`Upgraded model ${model.name} from source ${source.name}`);

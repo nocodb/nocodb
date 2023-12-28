@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { CalendarType, PaginatedType, UITypes, ViewType } from 'nocodb-sdk'
+import type { Api, CalendarType, PaginatedType, UITypes, ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { addDays, addMonths, addYears } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState } from '#imports'
@@ -31,6 +31,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const calDataType = ref<UITypes.Date | UITypes.DateTime>()
 
+    const searchQuery = reactive({
+      value: '',
+      field: '',
+    })
+
     const selectedDate = ref<Date>(new Date())
 
     const isCalendarDataLoading = ref<boolean>(false)
@@ -43,9 +48,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       end: dayjs(selectedDate.value).startOf('week').add(6, 'day').toDate(), // This will be the following Saturday
     })
 
-    const defaultPageSize = 1000
+    const defaultPageSize = 25
 
     const formattedData = ref<Row[]>([])
+
+    const formattedSideBarData = ref<Row[]>([])
+
+    const sideBarFilterOption = ref<string>(activeCalendarView.value)
 
     const { api } = useApi()
 
@@ -81,12 +90,123 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       })
     })
 
+    const sideBarxWhere = computed(() => {
+      if (!calendarRange.value) return ''
+      let whereClause = ''
+      if (activeCalendarView.value === 'day') {
+        switch (sideBarFilterOption.value) {
+          case 'day':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},eq,exactDate,${dayjs(selectedDate.value).format(
+              'YYYY-MM-DD',
+            )})`
+            break
+          case 'withoutDates':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            break
+          case 'allRecords':
+            whereClause = ''
+            break
+        }
+      } else if (activeCalendarView.value === 'week') {
+        switch (sideBarFilterOption.value) {
+          case 'week':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(
+              selectedDateRange.value.start,
+            ).format('YYYY-MM-DD')})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(
+              selectedDateRange.value.end,
+            ).format('YYYY-MM-DD')})`
+            break
+          case 'withoutDates':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            break
+          case 'allRecords':
+            whereClause = ''
+            break
+          case 'selectedDate':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value).format(
+              'YYYY-MM-DD',
+            )})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            break
+        }
+      } else if (activeCalendarView.value === 'month') {
+        switch (sideBarFilterOption.value) {
+          case 'month':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value)
+              .startOf('month')
+              .format('YYYY-MM-DD')})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value)
+              .endOf('month')
+              .format('YYYY-MM-DD')})`
+            break
+          case 'withoutDates':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            break
+          case 'allRecords':
+            whereClause = ''
+            break
+          case 'selectedDate':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value).format(
+              'YYYY-MM-DD',
+            )})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            break
+        }
+      } else if (activeCalendarView.value === 'year') {
+        switch (sideBarFilterOption.value) {
+          case 'year':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value)
+              .startOf('year')
+              .format('YYYY-MM-DD')})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value)
+              .endOf('year')
+              .format('YYYY-MM-DD')})`
+            break
+          case 'withoutDates':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            break
+          case 'allRecords':
+            whereClause = ''
+            break
+          case 'selectedDate':
+            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value).format(
+              'YYYY-MM-DD',
+            )})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            break
+        }
+      }
+      if (searchQuery.field && searchQuery.value) {
+        if (whereClause.length > 0) {
+          whereClause += '~and'
+        }
+        whereClause += `(${searchQuery.field},like,${searchQuery.value})`
+      }
+      return whereClause
+    })
+
+    async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+
+      const response = !isPublic.value
+        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...params,
+            ...{},
+            ...{},
+            where: sideBarxWhere.value,
+          })
+        : await fetchSharedViewData({
+            ...params,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            offset: params.offset,
+            where: sideBarxWhere.value,
+          })
+
+      formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
+    }
+
     const xWhere = computed(() => {
       if (!meta.value || !meta.value.columns || !calendarMetaData.value || !calendarMetaData.value.calendar_range) return ''
       // If CalendarView, then we need to add the date filter to the where clause
       let whereClause = where?.value ?? ''
       if (whereClause.length > 0) {
-        whereClause += '~and('
+        whereClause += '~and'
       }
       if (activeCalendarView.value === 'week') {
         whereClause += `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDateRange.value.start).format(
@@ -243,22 +363,49 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
+    const loadSidebarData = async () => {
+      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
+      const res = await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+        ...queryParams.value,
+        ...{},
+        where: sideBarxWhere?.value,
+      })
+      formattedSideBarData.value = formatData(res!.list)
+    }
+
     watch(selectedDate, async () => {
-      if (activeCalendarView.value === 'year') return
-      await loadCalendarData()
+      if (activeCalendarView.value !== 'year') {
+        await loadCalendarData()
+      }
+      await loadSidebarData()
     })
 
     watch(selectedDateRange, async () => {
       if (activeCalendarView.value !== 'week') return
       await loadCalendarData()
+      await loadSidebarData()
     })
 
     watch(activeCalendarView, async () => {
+      sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
       await loadCalendarData()
+      await loadSidebarData()
+    })
+
+    watch(sideBarFilterOption, async () => {
+      await loadSidebarData()
+    })
+
+    watch(searchQuery, async () => {
+      await loadSidebarData()
     })
 
     return {
       filteredData,
+      formattedSideBarData,
+      loadMoreSidebarData,
+      sideBarFilterOption,
+      searchQuery,
       activeDates,
       isCalendarDataLoading,
       changeCalendarView,

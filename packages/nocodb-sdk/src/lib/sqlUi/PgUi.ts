@@ -1692,6 +1692,7 @@ export class PgUi {
         colProp.cdf = 'now()';
         break;
       case 'LastModifiedTime':
+        colProp.dt = 'timestamp';
         colProp.cdf = 'now()';
         colProp.au = true;
         break;

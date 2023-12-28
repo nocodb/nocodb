@@ -1722,6 +1722,8 @@ export class ColumnsService {
             }
 
             {
+              colBody = await getColumnPropsFromUIDT(colBody, source);
+
               // remove default value for SQLite since it doesn't support default value as function when adding column
               // only support default value as constant value
               if (source.type === 'sqlite3') {

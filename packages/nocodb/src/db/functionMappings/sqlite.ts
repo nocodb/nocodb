@@ -45,7 +45,11 @@ const sqlite3 = {
       ),
     };
   },
-  NOW: 'DATE',
+  NOW: (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(`DATETIME('now', 'localtime')${args.colAlias}`),
+    };
+  },
   SEARCH: 'INSTR',
   async INT(args: MapFnArgs) {
     return {

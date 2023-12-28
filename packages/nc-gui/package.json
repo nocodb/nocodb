@@ -65,7 +65,7 @@
     "locale-codes": "^1.3.1",
     "monaco-editor": "^0.33.0",
     "monaco-sql-languages": "^0.11.0",
-    "nocodb-sdk": "workspace:^",
+    "nocodb-sdk": "0.203.0",
     "papaparse": "^5.4.1",
     "parse-github-url": "^1.0.2",
     "pinia": "^2.1.7",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isCreatedTimeOrUpdatedTimeCol, isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,

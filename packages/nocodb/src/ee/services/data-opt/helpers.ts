@@ -129,7 +129,7 @@ export async function extractColumn({
   ast,
   throwErrorIfInvalidParams,
   validateFormula,
-  columns
+  columns,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;

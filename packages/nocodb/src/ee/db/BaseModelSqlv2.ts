@@ -10,10 +10,10 @@ import {
   extractCondition,
   extractFilterFromXwhere,
   extractSortsObject,
+  getColumnName,
   getListArgs,
   haveFormulaColumn,
   populatePk,
-  getColumnName
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
 import axios from 'axios';

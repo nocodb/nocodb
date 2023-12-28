@@ -115,7 +115,10 @@ onUnmounted(() => {
       <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
       <LazyVirtualCellCount v-else-if="isCount(column)" />
       <LazyVirtualCellLookup v-else-if="isLookup(column)" />
-      <LazyCellReadOnlyDateTimePicker v-else-if="isCreatedTimeOrUpdatedTimeCol(column)" :model-value="row && row.row && row.row[column.title]" />
+      <LazyCellReadOnlyDateTimePicker
+        v-else-if="isCreatedTimeOrUpdatedTimeCol(column)"
+        :model-value="row && row.row && row.row[column.title]"
+      />
     </template>
   </div>
 </template>

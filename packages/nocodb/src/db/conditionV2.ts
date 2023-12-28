@@ -21,7 +21,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
-import {getRefColumnIfAlias} from "~/helpers";
+import { getRefColumnIfAlias } from '~/helpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);

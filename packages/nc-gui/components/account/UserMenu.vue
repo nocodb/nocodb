@@ -12,7 +12,7 @@ const isOpen = ref(false)
 
 const sortUserBy = async (direction?: UsersSortType['direction']) => {
   handleUserSort({
-    field: field,
+    field,
     direction,
   })
   isOpen.value = false

@@ -134,7 +134,7 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
           path: scripts/pkg-executable/mac-dist
           retention-days: 1
 
@@ -145,7 +145,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@master
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
           path: scripts/pkg-executable/mac-dist
 
 

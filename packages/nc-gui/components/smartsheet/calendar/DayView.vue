@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk';
-import { computed, ref, type Row } from '#imports';
+import { UITypes } from 'nocodb-sdk'
+import { type Row, computed, ref } from '#imports'
 
 interface Props {
   isEmbed?: boolean
@@ -20,7 +20,7 @@ const data = toRefs(props).data
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const { pageDate, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
+const { pageDate, selectedDate, calDataType, filteredData, calendarRange } = useCalendarViewStoreOrThrow()
 
 const hours = computed(() => {
   const hours = []
@@ -33,15 +33,14 @@ const hours = computed(() => {
 const renderData = computed(() => {
   console.log(data.value)
   if (data.value) {
-
     return data.value
   }
-  return formattedData.value
+  return filteredData.value
 })
 </script>
 
 <template>
-  <template v-if="formattedData.length">
+  <template v-if="filteredData && filteredData.length">
     <div
       v-if="calDataType === UITypes.Date"
       :class="{
@@ -70,7 +69,9 @@ const renderData = computed(() => {
       class="flex flex-col mt-3 gap-2 w-full px-1"
     ></div>
   </template>
-  <div v-else-if="!data" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">No Records in this day</div>
+  <div v-else-if="!data" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">
+    No Records in this day
+  </div>
 </template>
 
 <style lang="scss" scoped></style>

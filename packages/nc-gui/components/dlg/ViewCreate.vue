@@ -424,53 +424,42 @@ onMounted(async () => {
           />
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
-          <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full gap-3">
-            <div class="flex flex-col gap-2 w-1/2">
+          <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full items-center gap-2">
+            <span>
+              {{ $t('labels.organizeBy') }}
+            </span>
+            <NcSelect
+              v-model:value="range.fk_from_column_id"
+              :disabled="isMetaLoading"
+              :loading="isMetaLoading"
+              :options="viewSelectFieldOptions"
+            />
+            <div
+              v-if="range.fk_to_column_id === null && isEeUI"
+              class="cursor-pointer flex items-center gap-1 mb-1"
+              @click="range.fk_to_column_id = ''"
+            >
+              <component :is="iconMap.plus" class="h-4 w-4" />
+              {{ $t('activity.setEndDate') }}
+            </div>
+            <template v-else-if="isEeUI">
               <span>
-                {{ $t('labels.organizeRecordsBy') }}
+                {{ $t('activity.withEndDate') }}
               </span>
-              <NcSelect
-                v-model:value="range.fk_from_column_id"
-                :disabled="isMetaLoading"
-                :loading="isMetaLoading"
-                :options="viewSelectFieldOptions"
-                class="w-full"
-              />
-            </div>
-            <div v-if="range.fk_to_column_id === null && isEeUI" class="flex flex-col justify-end w-1/2">
-              <div class="cursor-pointer flex items-center font-medium gap-1 mb-1" @click="range.fk_to_column_id = ''">
-                <component :is="iconMap.plus" class="h-4 w-4" />
-                {{ $t('activity.setEndDate') }}
-              </div>
-            </div>
-            <div v-else-if="isEeUI" class="flex gap-2 flex-col w-1/2">
-              <div class="flex flex-row justify-between">
-                <span>
-                  {{ $t('labels.endDateField') }}
-                </span>
-                <component
-                  :is="iconMap.delete"
-                  class="h-4 w-4 cursor-pointer text-red-500"
-                  @click="
-                    () => {
-                      range.fk_to_column_id = null
-                    }
-                  "
+              <div class="flex">
+                <NcSelect
+                  v-model:value="range.fk_to_column_id"
+                  :disabled="isMetaLoading"
+                  :loading="isMetaLoading"
+                  :options="viewSelectFieldOptions"
+                  :placeholder="$t('placeholder.notSelected')"
+                  class="!rounded-r-none nc-to-select"
                 />
+                <NcButton class="!rounded-l-none" size="small" type="secondary" @click="range.fk_to_column_id = null">
+                  <component :is="iconMap.delete" class="h-4 w-4" />
+                </NcButton>
               </div>
-              <NcSelect
-                v-model:value="range.fk_to_column_id"
-                :disabled="isMetaLoading"
-                :loading="isMetaLoading"
-                :options="
-                  viewSelectFieldOptions.filter(
-                    (el) => el.uidt === viewSelectFieldOptions.find((el) => el.id === range.fk_from_column_id),
-                  )
-                "
-                :placeholder="$t('placeholder.notSelected')"
-                class="w-full"
-              />
-            </div>
+            </template>
           </div>
         </template>
       </a-form>

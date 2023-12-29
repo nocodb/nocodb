@@ -101,7 +101,11 @@ function checkColumnRequired(
   return !fields || fields.includes(column.title);
 }
 
-export function getColumnName(column: Column<any>, columns: Column[] = []) {
+export async function getColumnName(
+  column: Column<any>,
+  columns?: Column[] = [],
+) {
+  columns = columns || (await Column.list({ fk_model_id: column.fk_model_id }));
   switch (column.uidt) {
     case UITypes.CreatedTime: {
       const createdTimeSystemCol = columns.find(
@@ -2139,7 +2143,7 @@ class BaseModelSqlv2 {
         case UITypes.LastModifiedTime:
         case UITypes.DateTime:
           {
-            const columnName = getColumnName(
+            const columnName = await getColumnName(
               column,
               await this.model.getColumns(),
             );

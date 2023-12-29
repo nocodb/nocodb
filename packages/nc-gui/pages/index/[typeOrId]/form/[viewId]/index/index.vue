@@ -22,6 +22,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 }
 
 const { isMobileMode } = useGlobal()
+
 const fieldTitleForCurrentScan = ref('')
 
 const scannerIsReady = ref(false)

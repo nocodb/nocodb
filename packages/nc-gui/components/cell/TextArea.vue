@@ -192,6 +192,7 @@ watch(editEnabled, () => {
           minHeight: `${height}px !important`,
         }"
         @dblclick="onExpand"
+        @keydown.enter="onExpand"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
@@ -241,13 +242,8 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 bottom-1 hidden nc-text-area-expand-btn"
-        :class="{
-          'right-0 bottom-1': editEnabled,
-          '!bottom-0': !isRichMode,
-          'top-1 hidden !group-hover:block': isExpandedFormOpen,
-          'bottom-1': !isExpandedFormOpen,
-        }"
+        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block"
+        :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

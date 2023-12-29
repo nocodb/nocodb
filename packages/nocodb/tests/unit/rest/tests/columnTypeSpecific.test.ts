@@ -106,7 +106,7 @@ function columnTypeSpecificTests() {
   let columns: any[];
   let unfilteredRecords: any[] = [];
 
-  describe.skip('CreatedAt, LastModifiedAt Field', () => {
+  describe('CreatedAt, LastModifiedAt Field', () => {
     beforeEach(async function () {
       context = await init();
       base = await createProject(context);
@@ -120,20 +120,10 @@ function columnTypeSpecificTests() {
             uidt: UITypes.ID,
           },
           {
-            column_name: 'Date',
-            title: 'Date',
+            column_name: 'DateField',
+            title: 'DateField',
             uidt: UITypes.Date,
           },
-          // {
-          //   column_name: 'CreatedAt',
-          //   title: 'CreatedAt',
-          //   uidt: UITypes.CreatedTime,
-          // },
-          // {
-          //   column_name: 'LastModifiedAt',
-          //   title: 'LastModifiedAt',
-          //   uidt: UITypes.LastModifiedTime,
-          // },
         ],
       });
 
@@ -142,7 +132,7 @@ function columnTypeSpecificTests() {
       const rowAttributes = [];
       for (let i = 0; i < 100; i++) {
         const row = {
-          Date: rowMixedValue(columns[1], i),
+          DateField: rowMixedValue(columns[1], i),
         };
         rowAttributes.push(row);
       }
@@ -158,8 +148,120 @@ function columnTypeSpecificTests() {
       expect(unfilteredRecords.length).to.equal(100);
     });
 
-    it('should filter records by created-at field', async () => {
-      console.log('test');
+    describe('Basic verification', async () => {
+
+      it('New table: verify system fields are added by default', async () => {
+        // Id, Date, CreatedAt, LastModifiedAt
+        expect(columns.length).to.equal(4);
+        expect(columns[2].title).to.equal('CreatedAt');
+        expect(columns[2].uidt).to.equal(UITypes.CreatedTime);
+        expect(columns[2].system).to.equal(true);
+        expect(columns[3].title).to.equal('UpdatedAt');
+        expect(columns[3].uidt).to.equal(UITypes.LastModifiedTime);
+        expect(columns[3].system).to.equal(true);
+      });
+
+      it('New record: verify created-at is filled with current dateTime, last-modified-at is null', async () => {
+        // get current date time
+        const currentDateTime = new Date();
+        const storedDateTime = new Date(unfilteredRecords[0].CreatedAt);
+
+        // calculate difference between current date time and stored date time
+        const difference = currentDateTime.getTime() - storedDateTime.getTime();
+        expect(difference).to.be.lessThan(1000);
+
+        expect(unfilteredRecords[0].CreatedAt).to.not.equal(null);
+        expect(unfilteredRecords[0].LastModifiedAt).to.equal(null);
+      });
+
+      it('Modify record: verify last-modified-at is updated', async () => {
+        // get current date time
+        const currentDateTime = new Date();
+        const d1 = new Date();
+        d1.setDate(d1.getDate() - 200);
+
+        // sleep for 3 seconds
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        // update record
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              DateField: d1.toISOString().slice(0, 10),
+            },
+          ])
+          .expect(200);
+
+        // get updated record
+        let updatedRecord = await listRow({
+          base,
+          table,
+          options: { limit: 1 },
+        });
+
+        // get stored date time
+        const storedDateTime1 = new Date(updatedRecord[0].UpdatedAt);
+
+        // calculate difference between current date time and stored date time
+        let difference = storedDateTime1.getTime() - currentDateTime.getTime();
+        expect(difference).to.be.greaterThan(1500);
+        expect(updatedRecord[0].UpdatedAt).to.not.equal(null);
+
+        // Update again & confirm last modified time is updated
+        // sleep for 3 seconds
+        await new Promise((resolve) => setTimeout(resolve, 3100));
+
+        // update record
+        d1.setDate(d1.getDate() - 100);
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              DateField: d1.toISOString().slice(0, 10),
+            },
+          ])
+          .expect(200);
+
+        // get updated record
+        updatedRecord = await listRow({
+          base,
+          table,
+          options: { limit: 1 },
+        });
+
+        // get stored date time
+        const storedDateTime2 = new Date(updatedRecord[0].UpdatedAt);
+
+        // calculate difference between current date time and stored date time
+        difference = storedDateTime2.getTime() - storedDateTime1.getTime();
+        expect(difference).to.be.greaterThan(1500);
+      });
+
+      it('Add field: verify contents of both fields are same', async () => {
+        // add another CreatedTime field
+        await createColumn(context, table, {
+          title: 'CreatedAt2',
+          uidt: UITypes.CreatedTime,
+          column_name: 'CreatedAt2',
+        });
+
+        // get all columns
+        const columns = await getColumnsByAPI(context, base, table);
+
+        // get all records
+        const records = await listRow({ base, table });
+
+        // verify contents of both fields are same
+        expect(columns.columns[4].title).to.equal('CreatedAt2');
+        expect(columns.columns[4].uidt).to.equal(UITypes.CreatedTime);
+        expect(columns.columns[4].system).to.equal(false);
+        expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
+      });
     });
   });
 }

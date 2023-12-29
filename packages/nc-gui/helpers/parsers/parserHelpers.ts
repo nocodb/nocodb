@@ -225,3 +225,36 @@ export const extractNextDefaultName = (namesData: string[], defaultName: string,
     ? `${defaultName}${splitOperator}${extractedSortedNumbers[extractedSortedNumbers.length - 1] + 1}`
     : `${defaultName}${splitOperator}1`
 }
+
+/**
+ * Validates whether an object matches the expected type.
+ *
+ * @param obj - The object to be validated.
+ * @param expectedType - The expected type of the object.
+ * @returns `true` if the object matches the expected type, `false` otherwise.
+ *
+ * @template T - The type representing the expected structure of the object.
+ *
+ * @example
+ * // Define a type representing the expected structure.
+ * interface MyType {
+ *   id: number;
+ *   name: string;
+ * }
+ *
+ * // Object to validate
+ * const objToValidate = {
+ *   id: 1,
+ *   name: 'John Doe',
+ * };
+ *
+ * // Check if the object matches the expected type.
+ * const isValid = isValidObjectType(objToValidate, {} as MyType);
+ * console.log(isValid); // Should print true
+ */
+export const isValidObjectType = <T extends Record<string, any>>(obj: Record<string, any>, expectedType: T): boolean => {
+  // Check if the obj has the expected keys and values
+  return Object.entries(expectedType).every(([key, expectedValue]) => {
+    return Object.prototype.hasOwnProperty.call(obj, key) && typeof obj[key] === typeof expectedValue
+  })
+}

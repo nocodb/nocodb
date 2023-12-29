@@ -2,6 +2,7 @@ import rfdc from 'rfdc'
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { UsersSortType } from '~/lib'
 import { useGlobal } from '#imports'
+import { isValidObjectType } from '~/helpers/parsers/parserHelpers'
 
 /**
  * Hook for managing user sorts and sort configurations.
@@ -41,11 +42,15 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
       // Retrieve sort configuration from local storage
       const storedConfig = localStorage.getItem(userSortConfigKey)
 
-      const sortConfig = storedConfig ? JSON.parse(storedConfig) : {}
-      sorts.value = sortConfig
+      const sortConfig = storedConfig ? JSON.parse(storedConfig) : ({} as Record<string, UsersSortType>)
+      if (isValidObjectType(sortConfig, {} as Record<string, UsersSortType>)) {
+        sorts.value = sortConfig
 
-      // Load user-specific sort configurations or default configurations
-      sorts.value = user.value?.id ? sortConfig[user.value.id] || {} : sortConfig[defaultUserId] || {}
+        // Load user-specific sort configurations or default configurations
+        sorts.value = user.value?.id ? sortConfig[user.value.id] || {} : sortConfig[defaultUserId] || {}
+      } else {
+        sorts.value = {}
+      }
     } catch (error) {
       console.error('Error while retrieving sort configuration from local storage:', error)
       // Set sorts to an empty obj in case of an error
@@ -135,10 +140,10 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
     })
 
     if (superUser && superUser.length) {
-      if (sortsConfig.direction === 'asc') {
-        sortedData = [superUser[0], ...sortedData]
-      } else {
+      if (sortsConfig.direction === 'desc') {
         sortedData = [...sortedData, superUser[0]]
+      } else {
+        sortedData = [superUser[0], ...sortedData]
       }
     }
 

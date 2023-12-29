@@ -84,7 +84,7 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <div
-    class="flex cursor-pointer w-full h-full items-center focus:outline-transparent"
+    class="flex cursor-pointer w-full h-full items-center focus:outline-none"
     :class="{
       'w-full flex-start pl-2': isForm || isGallery || isExpandedFormOpen,
       'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,

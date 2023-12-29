@@ -60,6 +60,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
 
+  const basesStore = useBases()
+  const { basesUser } = storeToRefs(basesStore)
+
   const { t } = useI18n()
 
   const formState = ref<Record<string, any>>({})
@@ -127,6 +130,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const relatedMetas = { ...viewMeta.relatedMetas }
 
       Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+
+      if (viewMeta.users) {
+        basesUser.value.set(viewMeta.base_id, viewMeta.users)
+      }
     } catch (e: any) {
       if (e.response && e.response.status === 404) {
         notFound.value = true

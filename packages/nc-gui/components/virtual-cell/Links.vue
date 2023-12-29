@@ -3,7 +3,15 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import { ActiveCellInj, CellValueInj, ColumnInj, IsUnderLookupInj, inject, useSelectedCellKeyupListener } from '#imports'
+import {
+  ActiveCellInj,
+  CellValueInj,
+  ColumnInj,
+  IsExpandedFormOpenInj,
+  IsUnderLookupInj,
+  inject,
+  useSelectedCellKeyupListener,
+} from '#imports'
 
 const value = inject(CellValueInj, ref(0))
 
@@ -18,6 +26,8 @@ const isForm = inject(IsFormInj)
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const colTitle = computed(() => column.value?.title || '')
 
@@ -102,28 +112,58 @@ const openListDlg = () => {
 
   listItemsDlg.value = true
 }
+
+const plusBtnRef = ref<HTMLElement | null>(null)
+const childListDlgRef = ref<HTMLElement | null>(null)
+
+watch([childListDlg], () => {
+  if (!childListDlg.value) {
+    childListDlgRef.value?.focus()
+  }
+})
+
+watch([listItemsDlg], () => {
+  if (!listItemsDlg.value) {
+    plusBtnRef.value?.focus()
+  }
+})
 </script>
 
 <template>
-  <div class="flex w-full group items-center nc-links-wrapper" @dblclick.stop="openChildList">
+  <div
+    class="flex w-full group items-center nc-links-wrapper py-1"
+    :class="{
+      'px-2': isExpandedFormOpen,
+    }"
+    @dblclick.stop="openChildList"
+  >
     <div class="block flex-shrink truncate">
       <component
         :is="isUnderLookup ? 'span' : 'a'"
+        ref="childListDlgRef"
         v-e="['c:cell:links:modal:open']"
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"
+        tabindex="0"
         @click.stop.prevent="openChildList"
+        @keydown.enter.stop.prevent="openChildList"
       >
         {{ textVal }}
       </component>
     </div>
     <div class="flex-grow" />
 
-    <div v-if="!isUnderLookup" class="!xs:hidden flex justify-end hidden group-hover:flex items-center">
+    <div
+      v-if="!isUnderLookup"
+      ref="plusBtnRef"
+      tabindex="0"
+      class="!xs:hidden flex group justify-end group-hover:flex items-center"
+      @keydown.enter.stop="openListDlg"
+    >
       <MdiPlus
         v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
-        class="select-none !text-md text-gray-700 nc-action-icon nc-plus"
+        class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
         @click.stop="openListDlg"
       />
     </div>

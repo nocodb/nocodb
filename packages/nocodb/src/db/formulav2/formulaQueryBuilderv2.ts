@@ -1,23 +1,27 @@
 import jsep from 'jsep';
 import {
+  FormulaDataTypes,
   jsepCurlyHook,
   UITypes,
   validateDateWithUnknownFormat,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import mapFunctionName from '../mapFunctionName';
 import genRollupSelectv2 from '../genRollupSelectv2';
-import type Column from '~/models/Column';
-import type Model from '~/models/Model';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type Column from '~/models/Column';
+import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
+import { Base, BaseUser } from '~/models';
 
-// todo: switch function based on database
+const logger = new Logger('FormulaQueryBuilderv2');
 
 // @ts-ignore
 const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
@@ -59,17 +63,56 @@ async function _formulaQueryBuilder(
   model: Model,
   aliasToColumn: Record<string, () => Promise<{ builder: any }>> = {},
   tableAlias?: string,
+  parsedTree?: any,
+  column: Column = null,
 ) {
   const knex = baseModelSqlv2.dbDriver;
 
-  // formula may include double curly brackets in previous version
-  // convert to single curly bracket here for compatibility
-  const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
+  const columns = await model.getColumns();
+
+  let tree = parsedTree;
+  if (!tree) {
+    // formula may include double curly brackets in previous version
+    // convert to single curly bracket here for compatibility
+    // const _tree1 = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
+    tree = await validateFormulaAndExtractTreeWithType({
+      formula: _tree.replaceAll('{{', '{').replaceAll('}}', '}'),
+      columns,
+      column,
+      clientOrSqlUi: baseModelSqlv2.clientType as
+        | 'mysql'
+        | 'pg'
+        | 'sqlite3'
+        | 'mssql'
+        | 'mysql2'
+        | 'oracledb'
+        | 'mariadb'
+        | 'sqlite'
+        | 'snowflake',
+      getMeta: async (modelId) => {
+        const model = await Model.get(modelId);
+        await model.getColumns();
+        return model;
+      },
+    });
+
+    // populate and save parsedTree to column if not exist
+    if (column) {
+      FormulaColumn.update(column.id, { parsed_tree: tree }).then(
+        () => {
+          // ignore
+        },
+        (err) => {
+          logger.error(err);
+        },
+      );
+    }
+  }
 
   const columnIdToUidt = {};
 
   // todo: improve - implement a common solution for filter, sort, formula, etc
-  for (const col of await model.getColumns()) {
+  for (const col of columns) {
     columnIdToUidt[col.id] = col.uidt;
     if (col.id in aliasToColumn) continue;
     switch (col.uidt) {
@@ -84,6 +127,7 @@ async function _formulaQueryBuilder(
               model,
               { ...aliasToColumn, [col.id]: null },
               tableAlias,
+              formulOption.getParsedTree(),
             );
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -404,6 +448,7 @@ async function _formulaQueryBuilder(
                     '',
                     lookupModel,
                     aliasToColumn,
+                    formulaOption.getParsedTree(),
                   );
                   if (isMany) {
                     const qb = selectQb;
@@ -637,6 +682,26 @@ async function _formulaQueryBuilder(
             Promise.resolve({ builder: col.column_name });
         }
         break;
+      case UITypes.User:
+        {
+          const base = await Base.get(model.base_id);
+          const baseUsers = await BaseUser.getUsersList({
+            base_id: base.id,
+          });
+
+          // create nested replace statement for each user
+          const finalStatement = baseUsers.reduce((acc, user) => {
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [user.id, user.email]);
+            return qb.toQuery();
+          }, knex.raw(`??`, [col.column_name]).toQuery());
+
+          aliasToColumn[col.id] = async (): Promise<any> => {
+            return {
+              builder: knex.raw(finalStatement).wrap('(', ')'),
+            };
+          };
+        }
+        break;
       default:
         aliasToColumn[col.id] = () =>
           Promise.resolve({ builder: col.column_name });
@@ -792,8 +857,85 @@ async function _formulaQueryBuilder(
         );
       }
 
+      // if operator is + and expected return type is string, convert to concat
+      if (pt.operator === '+' && pt.dataType === FormulaDataTypes.STRING) {
+        return fn(
+          {
+            type: 'CallExpression',
+            arguments: [pt.left, pt.right],
+            callee: {
+              type: 'Identifier',
+              name: 'CONCAT',
+            },
+          },
+          alias,
+          prevBinaryOp,
+        );
+      }
+
+      // if operator is == or !=, then handle comparison with BLANK which should accept NULL and empty string
+      if (pt.operator === '==' || pt.operator === '!=') {
+        if (pt.left.callee?.name !== pt.right.callee?.name) {
+          // if left/right is BLANK, accept both NULL and empty string
+          for (const operand of ['left', 'right']) {
+            if (
+              pt[operand].type === 'CallExpression' &&
+              pt[operand].callee.name === 'BLANK'
+            ) {
+              const isString =
+                pt[operand === 'left' ? 'right' : 'left'].dataType ===
+                FormulaDataTypes.STRING;
+              let calleeName;
+
+              if (pt.operator === '==') {
+                calleeName = isString ? 'ISBLANK' : 'ISNULL';
+              } else {
+                calleeName = isString ? 'ISNOTBLANK' : 'ISNOTNULL';
+              }
+
+              return fn(
+                {
+                  type: 'CallExpression',
+                  arguments: [operand === 'left' ? pt.right : pt.left],
+                  callee: {
+                    type: 'Identifier',
+                    name: calleeName,
+                  },
+                },
+                alias,
+                prevBinaryOp,
+              );
+            }
+          }
+        }
+      }
+
       if (pt.operator === '==') {
         pt.operator = '=';
+        // if left/right is of different type, convert to string and compare
+        if (
+          pt.left.dataType !== pt.right.dataType &&
+          [pt.left.dataType, pt.right.dataType].every(
+            (type) => type !== FormulaDataTypes.NULL,
+          )
+        ) {
+          pt.left = {
+            type: 'CallExpression',
+            arguments: [pt.left],
+            callee: {
+              type: 'Identifier',
+              name: 'STRING',
+            },
+          };
+          pt.right = {
+            type: 'CallExpression',
+            arguments: [pt.right],
+            callee: {
+              type: 'Identifier',
+              name: 'STRING',
+            },
+          };
+        }
       }
 
       if (pt.operator === '/') {
@@ -922,11 +1064,22 @@ async function _formulaQueryBuilder(
       }
       return { builder: query };
     } else if (pt.type === 'UnaryExpression') {
-      const query = knex.raw(
-        `${pt.operator}${(
-          await fn(pt.argument, null, pt.operator)
-        ).builder.toQuery()}${colAlias}`,
-      );
+      let query;
+      if (
+        (pt.operator === '-' || pt.operator === '+') &&
+        pt.dataType === FormulaDataTypes.NUMERIC
+      ) {
+        query = knex.raw('?', [
+          (pt.operator === '-' ? -1 : 1) * pt.argument.value,
+        ]);
+      } else {
+        query = knex.raw(
+          `${pt.operator}${(
+            await fn(pt.argument, null, pt.operator)
+          ).builder.toQuery()}${colAlias}`,
+        );
+      }
+
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }
@@ -947,23 +1100,29 @@ export default async function formulaQueryBuilderv2(
   aliasToColumn = {},
   tableAlias?: string,
   validateFormula = false,
+  parsedTree?: any,
 ) {
   const knex = baseModelSqlv2.dbDriver;
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
-  // generate qb
-  const qb = await _formulaQueryBuilder(
-    baseModelSqlv2,
-    _tree,
-    alias,
-    model,
-    aliasToColumn,
-    tableAlias,
-  );
-
-  if (!validateFormula) return qb;
-
+  let qb;
   try {
+    // generate qb
+    qb = await _formulaQueryBuilder(
+      baseModelSqlv2,
+      _tree,
+      alias,
+      model,
+      aliasToColumn,
+      tableAlias,
+      parsedTree ??
+        (await column
+          ?.getColOptions<FormulaColumn>()
+          .then((formula) => formula?.getParsedTree())),
+    );
+
+    if (!validateFormula) return qb;
+
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await baseModelSqlv2.execAndParse(
@@ -985,6 +1144,8 @@ export default async function formulaQueryBuilderv2(
       }
     }
   } catch (e) {
+    if (!validateFormula) throw e;
+
     console.error(e);
     if (column) {
       const formula = await column.getColOptions<FormulaColumn>();

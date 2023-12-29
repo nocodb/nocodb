@@ -160,14 +160,26 @@ export async function serializeCellValue({
         }
       } catch {}
 
-      return (data || []).map(
-        (attachment) =>
-          `${encodeURI(attachment.title)}(${encodeURI(
-            attachment.signedPath
-              ? `${siteUrl}/${attachment.signedPath}`
-              : attachment.signedUrl,
-          )})`,
-      );
+      return (data || [])
+        .map(
+          (attachment) =>
+            `${encodeURI(attachment.title)}(${encodeURI(
+              attachment.signedPath
+                ? `${siteUrl}/${attachment.signedPath}`
+                : attachment.signedUrl,
+            )})`,
+        )
+        .join(', ');
+    }
+    case UITypes.User: {
+      let data = value;
+      try {
+        if (typeof value === 'string') {
+          data = JSON.parse(value);
+        }
+      } catch {}
+
+      return (data || []).map((user) => `${user.email}`).join(', ');
     }
     case UITypes.Lookup:
       {

@@ -126,6 +126,7 @@ type NcProject = BaseType & {
   edit?: boolean
   starred?: boolean
   uuid?: string
+  users?: User[]
 }
 
 interface UndoRedoAction {

@@ -2,34 +2,28 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import {
+  FormulaError,
   UITypes,
-  isLinksOrLTAR,
-  isNumericCol,
-  isSystemColumn,
   jsepCurlyHook,
   substituteColumnIdWithAliasInFormula,
-  validateDateWithUnknownFormat,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
+import type { ColumnType, FormulaType } from 'nocodb-sdk'
 import {
   MetaInj,
   NcAutocompleteTree,
   computed,
   formulaList,
-  formulaTypes,
   formulas,
   getUIDTIcon,
   getWordUntilCaret,
   iconMap,
   inject,
   insertAtCursor,
-  isDate,
   nextTick,
   onMounted,
   ref,
-  storeToRefs,
-  useBase,
   useColumnCreateStoreOrThrow,
   useDebounceFn,
   useI18n,
@@ -52,59 +46,40 @@ const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCrea
 
 const { t } = useI18n()
 
-const baseStore = useBase()
-
-const { tables } = storeToRefs(baseStore)
-
 const { predictFunction: _predictFunction } = useNocoEe()
-
-enum JSEPNode {
-  COMPOUND = 'Compound',
-  IDENTIFIER = 'Identifier',
-  MEMBER_EXP = 'MemberExpression',
-  LITERAL = 'Literal',
-  THIS_EXP = 'ThisExpression',
-  CALL_EXP = 'CallExpression',
-  UNARY_EXP = 'UnaryExpression',
-  BINARY_EXP = 'BinaryExpression',
-  ARRAY_EXP = 'ArrayExpression',
-}
 
 const meta = inject(MetaInj, ref())
 
 const supportedColumns = computed(
   () => meta?.value?.columns?.filter((col) => !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) || [],
 )
-const { metas } = useMetas()
+const { getMeta } = useMetas()
 
-const refTables = computed(() => {
-  if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
-    return []
-  }
-
-  const _refTables = meta.value.columns
-    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
-    .map((column) => ({
-      col: column.colOptions,
-      column,
-      ...tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id),
-    }))
-    .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
-  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
-})
+const suggestionPreviewed = ref<Record<any, string> | undefined>()
 
 const validators = {
   formula_raw: [
     {
       validator: (_: any, formula: any) => {
-        return new Promise<void>((resolve, reject) => {
-          if (!formula?.trim()) return reject(new Error('Required'))
-          const res = parseAndValidateFormula(formula)
-          if (res !== true) {
-            return reject(new Error(res))
+        return (async () => {
+          if (!formula?.trim()) throw new Error('Required')
+
+          try {
+            await validateFormulaAndExtractTreeWithType({
+              column: column.value,
+              formula,
+              columns: supportedColumns.value,
+              clientOrSqlUi: sqlUi.value,
+              getMeta,
+            })
+          } catch (e: any) {
+            if (e instanceof FormulaError && e.extra?.key) {
+              throw new Error(t(e.extra.key, e.extra))
+            }
+
+            throw new Error(e.message)
           }
-          resolve()
-        })
+        })()
       },
     },
   ],
@@ -119,6 +94,8 @@ const autocomplete = ref(false)
 const formulaRef = ref()
 
 const sugListRef = ref()
+
+const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 
@@ -143,6 +120,7 @@ const suggestionsList = computed(() => {
         description: formulas[fn].description,
         syntax: formulas[fn].syntax,
         examples: formulas[fn].examples,
+        docsUrl: formulas[fn].docsUrl,
       })),
     ...supportedColumns.value
       .filter((c) => {
@@ -176,521 +154,13 @@ const acTree = computed(() => {
   return ref
 })
 
-function parseAndValidateFormula(formula: string) {
-  try {
-    const parsedTree = jsep(formula)
-    const metaErrors = validateAgainstMeta(parsedTree)
-    if (metaErrors.size) {
-      return [...metaErrors].join(', ')
-    }
-    return true
-  } catch (e: any) {
-    return e.message
-  }
-}
+const suggestedFormulas = computed(() => {
+  return suggestion.value.filter((s) => s && s.type !== 'column')
+})
 
-function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = new Set()) {
-  if (parsedTree.type === JSEPNode.CALL_EXP) {
-    const calleeName = parsedTree.callee.name.toUpperCase()
-    // validate function name
-    if (!availableFunctions.includes(calleeName)) {
-      errors.add(t('msg.formula.functionNotAvailable', { function: calleeName }))
-    }
-    // validate arguments
-    const validation = formulas[calleeName] && formulas[calleeName].validation
-    if (validation && validation.args) {
-      if (validation.args.rqd !== undefined && validation.args.rqd !== parsedTree.arguments.length) {
-        errors.add(t('msg.formula.requiredArgumentsFormula', { requiredArguments: validation.args.rqd, calleeName }))
-      } else if (validation.args.min !== undefined && validation.args.min > parsedTree.arguments.length) {
-        errors.add(t('msg.formula.minRequiredArgumentsFormula', { minRequiredArguments: validation.args.min, calleeName }))
-      } else if (validation.args.max !== undefined && validation.args.max < parsedTree.arguments.length) {
-        errors.add(t('msg.formula.maxRequiredArgumentsFormula', { maxRequiredArguments: validation.args.max, calleeName }))
-      }
-    }
-    parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstMeta(arg, errors))
-
-    // validate data type
-    if (parsedTree.callee.type === JSEPNode.IDENTIFIER) {
-      const expectedType = formulas[calleeName.toUpperCase()].type
-      if (expectedType === formulaTypes.NUMERIC) {
-        if (calleeName === 'WEEKDAY') {
-          // parsedTree.arguments[0] = date
-          validateAgainstType(
-            parsedTree.arguments[0],
-            formulaTypes.DATE,
-            (v: any) => {
-              if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add(t('msg.formula.firstParamWeekDayHaveDate'))
-              }
-            },
-            typeErrors,
-          )
-          // parsedTree.arguments[1] = startDayOfWeek (optional)
-          validateAgainstType(
-            parsedTree.arguments[1],
-            formulaTypes.STRING,
-            (v: any) => {
-              if (
-                typeof v !== 'string' ||
-                !['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].includes(v.toLowerCase())
-              ) {
-                typeErrors.add(t('msg.formula.secondParamWeekDayHaveDate'))
-              }
-            },
-            typeErrors,
-          )
-        } else {
-          parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstType(arg, expectedType, null, typeErrors))
-        }
-      } else if (expectedType === formulaTypes.DATE) {
-        if (calleeName === 'DATEADD') {
-          // parsedTree.arguments[0] = date
-          validateAgainstType(
-            parsedTree.arguments[0],
-            formulaTypes.DATE,
-            (v: any) => {
-              if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add(t('msg.formula.firstParamDateAddHaveDate'))
-              }
-            },
-            typeErrors,
-          )
-          // parsedTree.arguments[1] = numeric
-          validateAgainstType(
-            parsedTree.arguments[1],
-            formulaTypes.NUMERIC,
-            (v: any) => {
-              if (typeof v !== 'number') {
-                typeErrors.add(t('msg.formula.secondParamDateAddHaveNumber'))
-              }
-            },
-            typeErrors,
-          )
-          // parsedTree.arguments[2] = ["day" | "week" | "month" | "year"]
-          validateAgainstType(
-            parsedTree.arguments[2],
-            formulaTypes.STRING,
-            (v: any) => {
-              if (!['day', 'week', 'month', 'year'].includes(v)) {
-                typeErrors.add(typeErrors.add(t('msg.formula.thirdParamDateAddHaveDate')))
-              }
-            },
-            typeErrors,
-          )
-        } else if (calleeName === 'DATETIME_DIFF') {
-          // parsedTree.arguments[0] = date
-          validateAgainstType(
-            parsedTree.arguments[0],
-            formulaTypes.DATE,
-            (v: any) => {
-              if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add(t('msg.formula.firstParamDateDiffHaveDate'))
-              }
-            },
-            typeErrors,
-          )
-          // parsedTree.arguments[1] = date
-          validateAgainstType(
-            parsedTree.arguments[1],
-            formulaTypes.DATE,
-            (v: any) => {
-              if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add(t('msg.formula.secondParamDateDiffHaveDate'))
-              }
-            },
-            typeErrors,
-          )
-          // parsedTree.arguments[2] = ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"]
-          validateAgainstType(
-            parsedTree.arguments[2],
-            formulaTypes.STRING,
-            (v: any) => {
-              if (
-                ![
-                  'milliseconds',
-                  'ms',
-                  'seconds',
-                  's',
-                  'minutes',
-                  'm',
-                  'hours',
-                  'h',
-                  'days',
-                  'd',
-                  'weeks',
-                  'w',
-                  'months',
-                  'M',
-                  'quarters',
-                  'Q',
-                  'years',
-                  'y',
-                ].includes(v)
-              ) {
-                typeErrors.add(t('msg.formula.thirdParamDateDiffHaveDate'))
-              }
-            },
-            typeErrors,
-          )
-        }
-      }
-    }
-
-    errors = new Set([...errors, ...typeErrors])
-  } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    if (supportedColumns.value.filter((c) => !column || column.value?.id !== c.id).every((c) => c.title !== parsedTree.name)) {
-      errors.add(
-        t('msg.formula.columnNotAvailable', {
-          columnName: parsedTree.name,
-        }),
-      )
-    }
-
-    // check circular reference
-    // e.g. formula1 -> formula2 -> formula1 should return circular reference error
-
-    // get all formula columns excluding itself
-    const formulaPaths = supportedColumns.value
-      .filter((c) => c.id !== column.value?.id && c.uidt === UITypes.Formula)
-      .reduce((res: Record<string, any>[], c: Record<string, any>) => {
-        // in `formula`, get all the (unique) target neighbours
-        // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
-        const neighbours = [
-          ...new Set(
-            (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
-              (colId: string) =>
-                supportedColumns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
-            ),
-          ),
-        ]
-        if (neighbours.length > 0) {
-          // e.g. formula column 1 -> [formula column 2, formula column3]
-          res.push({ [c.id]: neighbours })
-        }
-        return res
-      }, [])
-    // include target formula column (i.e. the one to be saved if applicable)
-    const targetFormulaCol = supportedColumns.value.find(
-      (c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula,
-    )
-
-    if (targetFormulaCol && column.value?.id) {
-      formulaPaths.push({
-        [column.value?.id as string]: [targetFormulaCol.id],
-      })
-    }
-    const vertices = formulaPaths.length
-    if (vertices > 0) {
-      // perform kahn's algo for cycle detection
-      const adj = new Map()
-      const inDegrees = new Map()
-      // init adjacency list & indegree
-
-      for (const [_, v] of Object.entries(formulaPaths)) {
-        const src = Object.keys(v)[0]
-        const neighbours = v[src]
-        inDegrees.set(src, inDegrees.get(src) || 0)
-        for (const neighbour of neighbours) {
-          adj.set(src, (adj.get(src) || new Set()).add(neighbour))
-          inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1)
-        }
-      }
-      const queue: string[] = []
-      // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
-      inDegrees.forEach((inDegree, col) => {
-        if (inDegree === 0) {
-          // in-degree = 0 means we start traversing from this node
-          queue.push(col)
-        }
-      })
-      // init count of visited vertices
-      let visited = 0
-      // BFS
-      while (queue.length !== 0) {
-        // remove a vertex from the queue
-        const src = queue.shift()
-        // if this node has neighbours, increase visited by 1
-        const neighbours = adj.get(src) || new Set()
-        if (neighbours.size > 0) {
-          visited += 1
-        }
-        // iterate each neighbouring nodes
-        neighbours.forEach((neighbour: string) => {
-          // decrease in-degree of its neighbours by 1
-          inDegrees.set(neighbour, inDegrees.get(neighbour) - 1)
-          // if in-degree becomes 0
-          if (inDegrees.get(neighbour) === 0) {
-            // then put the neighboring node to the queue
-            queue.push(neighbour)
-          }
-        })
-      }
-      // vertices not same as visited = cycle found
-      if (vertices !== visited) {
-        errors.add(t('msg.formula.cantSaveCircularReference'))
-      }
-    }
-  } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
-    if (!availableBinOps.includes(parsedTree.operator)) {
-      errors.add(t('msg.formula.operationNotAvailable', { operation: parsedTree.operator }))
-    }
-    validateAgainstMeta(parsedTree.left, errors)
-    validateAgainstMeta(parsedTree.right, errors)
-  } else if (parsedTree.type === JSEPNode.LITERAL || parsedTree.type === JSEPNode.UNARY_EXP) {
-    // do nothing
-  } else if (parsedTree.type === JSEPNode.COMPOUND) {
-    if (parsedTree.body.length) {
-      errors.add(t('msg.formula.cantSaveFieldFormulaInvalid'))
-    }
-  } else {
-    errors.add(t('msg.formula.cantSaveFieldFormulaInvalid'))
-  }
-  return errors
-}
-
-function validateAgainstType(parsedTree: any, expectedType: string, func: any, typeErrors = new Set()) {
-  if (parsedTree === false || typeof parsedTree === 'undefined') {
-    return typeErrors
-  }
-  if (parsedTree.type === JSEPNode.LITERAL) {
-    if (typeof func === 'function') {
-      func(parsedTree.value)
-    } else if (expectedType === formulaTypes.NUMERIC) {
-      if (typeof parsedTree.value !== 'number') {
-        typeErrors.add(t('msg.formula.numericTypeIsExpected'))
-      }
-    } else if (expectedType === formulaTypes.STRING) {
-      if (typeof parsedTree.value !== 'string') {
-        typeErrors.add(t('msg.formula.stringTypeIsExpected'))
-      }
-    }
-  } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    const col = supportedColumns.value.find((c) => c.title === parsedTree.name)
-
-    if (col === undefined) {
-      return
-    }
-
-    if (col.uidt === UITypes.Formula) {
-      const foundType = getRootDataType(jsep(col.colOptions?.formula_raw))
-      if (foundType === 'N/A') {
-        typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: col.title }))
-      } else if (expectedType !== foundType) {
-        typeErrors.add(
-          t('msg.formula.typeIsExpectedButFound', {
-            type: expectedType,
-            found: foundType,
-          }),
-        )
-      }
-    } else {
-      switch (col.uidt) {
-        // string
-        case UITypes.SingleLineText:
-        case UITypes.LongText:
-        case UITypes.MultiSelect:
-        case UITypes.SingleSelect:
-        case UITypes.PhoneNumber:
-        case UITypes.Email:
-        case UITypes.URL:
-          if (expectedType !== formulaTypes.STRING) {
-            typeErrors.add(
-              t('msg.formula.columnWithTypeFoundButExpected', {
-                columnName: parsedTree.name,
-                columnType: formulaTypes.STRING,
-                expectedType,
-              }),
-            )
-          }
-          break
-
-        // numeric
-        case UITypes.Year:
-        case UITypes.Number:
-        case UITypes.Decimal:
-        case UITypes.Rating:
-        case UITypes.Count:
-        case UITypes.AutoNumber:
-        case UITypes.Currency:
-          if (expectedType !== formulaTypes.NUMERIC) {
-            typeErrors.add(
-              t('msg.formula.columnWithTypeFoundButExpected', {
-                columnName: parsedTree.name,
-                columnType: formulaTypes.NUMERIC,
-                expectedType,
-              }),
-            )
-          }
-          break
-
-        // date
-        case UITypes.Date:
-        case UITypes.DateTime:
-        case UITypes.CreateTime:
-        case UITypes.LastModifiedTime:
-          if (expectedType !== formulaTypes.DATE) {
-            typeErrors.add(
-              t('msg.formula.columnWithTypeFoundButExpected', {
-                columnName: parsedTree.name,
-                columnType: formulaTypes.DATE,
-                expectedType,
-              }),
-            )
-          }
-          break
-
-        case UITypes.Rollup: {
-          const rollupFunction = col.colOptions.rollup_function
-          if (['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(rollupFunction)) {
-            // these functions produce a numeric value, which can be used in numeric functions
-            if (expectedType !== formulaTypes.NUMERIC) {
-              typeErrors.add(
-                t('msg.formula.columnWithTypeFoundButExpected', {
-                  columnName: parsedTree.name,
-                  columnType: formulaTypes.NUMERIC,
-                  expectedType,
-                }),
-              )
-            }
-          } else {
-            // the value is based on the foreign rollup column type
-            const selectedTable = refTables.value.find((t) => t.column.id === col.colOptions.fk_relation_column_id)
-            const refTableColumns = metas.value[selectedTable.id].columns.filter(
-              (c: ColumnType) =>
-                vModel.value.fk_lookup_column_id === c.id ||
-                (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
-            )
-            const childFieldColumn = refTableColumns.find(
-              (column: ColumnType) => column.id === col.colOptions.fk_rollup_column_id,
-            )
-            const abstractType = sqlUi.value.getAbstractType(childFieldColumn)
-
-            if (expectedType === formulaTypes.DATE && !isDate(childFieldColumn, sqlUi.value.getAbstractType(childFieldColumn))) {
-              typeErrors.add(
-                t('msg.formula.columnWithTypeFoundButExpected', {
-                  columnName: parsedTree.name,
-                  columnType: abstractType,
-                  expectedType,
-                }),
-              )
-            } else if (expectedType === formulaTypes.NUMERIC && !isNumericCol(childFieldColumn)) {
-              typeErrors.add(
-                t('msg.formula.columnWithTypeFoundButExpected', {
-                  columnName: parsedTree.name,
-                  columnType: abstractType,
-                  expectedType,
-                }),
-              )
-            }
-          }
-          break
-        }
-
-        // not supported
-        case UITypes.ForeignKey:
-        case UITypes.Attachment:
-        case UITypes.ID:
-        case UITypes.Time:
-        case UITypes.Percent:
-        case UITypes.Duration:
-        case UITypes.Lookup:
-        case UITypes.Barcode:
-        case UITypes.Button:
-        case UITypes.Checkbox:
-        case UITypes.Collaborator:
-        case UITypes.QrCode:
-        default:
-          typeErrors.add(t('msg.formula.notSupportedToReferenceColumn', { columnName: parsedTree.name }))
-          break
-      }
-    }
-  } else if (parsedTree.type === JSEPNode.UNARY_EXP || parsedTree.type === JSEPNode.BINARY_EXP) {
-    if (expectedType !== formulaTypes.NUMERIC) {
-      // parsedTree.name won't be available here
-      typeErrors.add(
-        t('msg.formula.typeIsExpectedButFound', {
-          type: formulaTypes.NUMERIC,
-          found: expectedType,
-        }),
-      )
-    }
-  } else if (parsedTree.type === JSEPNode.CALL_EXP) {
-    const calleeName = parsedTree.callee.name.toUpperCase()
-    if (formulas[calleeName]?.type && expectedType !== formulas[calleeName].type) {
-      typeErrors.add(
-        t('msg.formula.typeIsExpectedButFound', {
-          type: expectedType,
-          found: formulas[calleeName].type,
-        }),
-      )
-    }
-  }
-  return typeErrors
-}
-
-function getRootDataType(parsedTree: any): any {
-  // given a parse tree, return the data type of it
-  if (parsedTree.type === JSEPNode.CALL_EXP) {
-    return formulas[parsedTree.callee.name.toUpperCase()].type
-  } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    const col = supportedColumns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
-    if (col?.uidt === UITypes.Formula) {
-      return getRootDataType(jsep(col?.formula_raw))
-    } else {
-      switch (col?.uidt) {
-        // string
-        case UITypes.SingleLineText:
-        case UITypes.LongText:
-        case UITypes.MultiSelect:
-        case UITypes.SingleSelect:
-        case UITypes.PhoneNumber:
-        case UITypes.Email:
-        case UITypes.URL:
-          return formulaTypes.STRING
-
-        // numeric
-        case UITypes.Year:
-        case UITypes.Number:
-        case UITypes.Decimal:
-        case UITypes.Rating:
-        case UITypes.Count:
-        case UITypes.AutoNumber:
-          return formulaTypes.NUMERIC
-
-        // date
-        case UITypes.Date:
-        case UITypes.DateTime:
-        case UITypes.CreateTime:
-        case UITypes.LastModifiedTime:
-          return formulaTypes.DATE
-
-        // not supported
-        case UITypes.ForeignKey:
-        case UITypes.Attachment:
-        case UITypes.ID:
-        case UITypes.Time:
-        case UITypes.Currency:
-        case UITypes.Percent:
-        case UITypes.Duration:
-        case UITypes.Rollup:
-        case UITypes.Lookup:
-        case UITypes.Barcode:
-        case UITypes.Button:
-        case UITypes.Checkbox:
-        case UITypes.Collaborator:
-        case UITypes.QrCode:
-        default:
-          return 'N/A'
-      }
-    }
-  } else if (parsedTree.type === JSEPNode.BINARY_EXP || parsedTree.type === JSEPNode.UNARY_EXP) {
-    return formulaTypes.NUMERIC
-  } else if (parsedTree.type === JSEPNode.LITERAL) {
-    return typeof parsedTree.value
-  } else {
-    return 'N/A'
-  }
-}
+const variableList = computed(() => {
+  return suggestion.value.filter((s) => s && s.type === 'column')
+})
 
 function isCurlyBracketBalanced() {
   // count number of opening curly brackets and closing curly brackets
@@ -739,6 +209,11 @@ function handleInput() {
   suggestion.value = acTree.value
     .complete(wordToComplete.value)
     ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
+
+  if (suggestion.value.length > 0 && suggestion.value[0].type !== 'column') {
+    suggestionPreviewed.value = suggestion.value[0]
+  }
+
   if (!isCurlyBracketBalanced()) {
     suggestion.value = suggestion.value.filter((v) => v.type === 'column')
   }
@@ -746,14 +221,21 @@ function handleInput() {
 }
 
 function selectText() {
-  if (suggestion.value && selected.value > -1 && selected.value < suggestion.value.length) {
-    appendText(suggestion.value[selected.value])
+  if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {
+    if (selected.value < suggestedFormulas.value.length) {
+      appendText(suggestedFormulas.value[selected.value])
+    } else {
+      appendText(variableList.value[selected.value + suggestedFormulas.value.length])
+    }
   }
+
+  selected.value = 0
 }
 
 function suggestionListUp() {
   if (suggestion.value) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
+    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
     scrollToSelectedOption()
   }
 }
@@ -761,6 +243,8 @@ function suggestionListUp() {
 function suggestionListDown() {
   if (suggestion.value) {
     selected.value = ++selected.value % suggestion.value.length
+    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
+
     scrollToSelectedOption()
   }
 }
@@ -769,9 +253,9 @@ function scrollToSelectedOption() {
   nextTick(() => {
     if (sugOptionsRef.value[selected.value]) {
       try {
-        sugListRef.value.$el.scrollTo({
-          top: sugOptionsRef.value[selected.value].$el.offsetTop,
-          behavior: 'smooth',
+        sugOptionsRef.value[selected.value].$el.scrollIntoView({
+          block: 'nearest',
+          inline: 'start',
         })
       } catch (e) {}
     }
@@ -796,15 +280,55 @@ setAdditionalValidations({
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
-
-// const predictFunction = async () => {
-//   await _predictFunction(formState, meta, supportedColumns, suggestionsList, vModel)
-// }
 </script>
 
 <template>
-  <div class="formula-wrapper">
-    <a-form-item v-bind="validateInfos.formula_raw" :label="$t('datatype.Formula')">
+  <div class="formula-wrapper relative">
+    <div
+      v-if="suggestionPreviewed && suggestionPreviewed.type === 'function'"
+      class="absolute -left-91 w-84 top-0 bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+    >
+      <div class="pr-3">
+        <div class="flex flex-row w-full justify-between pb-1 border-b-1">
+          <div class="flex items-center gap-x-1 font-semibold text-base">
+            <component :is="iconMap.function" class="text-lg" />
+            {{ suggestionPreviewed.text }}
+          </div>
+          <NcButton type="text" size="small" @click="suggestionPreviewed = undefined">
+            <GeneralIcon icon="close" />
+          </NcButton>
+        </div>
+      </div>
+      <div class="flex flex-col max-h-120 nc-scrollbar-md pr-2">
+        <div class="flex mt-3">{{ suggestionPreviewed.description }}</div>
+
+        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Syntax</div>
+        <div class="bg-white rounded-md py-1 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
+        <div class="text-gray-500 uppercase text-xs mt-3 mb-2">Examples</div>
+        <div
+          v-for="(example, index) of suggestionPreviewed.examples"
+          :key="example"
+          class="bg-gray-100 py-1 px-2"
+          :class="{
+            'border-t-1 border-gray-200': index !== 0,
+            'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
+            'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
+            'rounded-md': suggestionPreviewed.examples.length === 1,
+          }"
+        >
+          {{ example }}
+        </div>
+      </div>
+      <div class="flex flex-row mt-1 mb-3 justify-end pr-3">
+        <a target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
+          <NcButton type="text" class="!text-gray-400 !hover:text-gray-800 !text-xs"
+            >View in Docs
+            <GeneralIcon icon="openInNew" class="ml-1" />
+          </NcButton>
+        </a>
+      </div>
+    </div>
+    <a-form-item v-bind="validateInfos.formula_raw" class="!pb-1" :label="$t('datatype.Formula')">
       <!-- <GeneralIcon
         v-if="isEeUI"
         icon="magic"
@@ -815,7 +339,7 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="mb-2 nc-formula-input"
+        class="nc-formula-input !rounded-md !my-1"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -823,73 +347,90 @@ onMounted(() => {
       />
     </a-form-item>
 
-    <div class="text-gray-600 mt-2 mb-4 prose-sm">
-      {{
-        // As using {} in translation will be treated as placeholder, and this translation contain {} as part of th text
-        $t('msg.formula.hintStart', {
-          placeholder1: '{}',
-          placeholder2: '{column_name}',
-        })
-      }}
-      <a
-        class="prose-sm"
-        href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features"
-        target="_blank"
-        rel="noopener"
-      >
-        {{ $t('msg.formula.hintEnd') }}
-      </a>
-    </div>
+    <div ref="sugListRef" class="h-[250px] overflow-auto nc-scrollbar-md">
+      <template v-if="suggestedFormulas.length > 0">
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Formulas</div>
 
-    <div class="h-[250px] overflow-auto scrollbar-thin-primary">
-      <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
-        <template #renderItem="{ item, index }">
-          <a-list-item
-            :ref="
-              (el) => {
-                sugOptionsRef[index] = el
-              }
-            "
-            class="cursor-pointer"
-            @click.prevent.stop="appendText(item)"
-          >
-            <a-list-item-meta>
-              <template #title>
-                <div class="flex">
-                  <a-col :span="6">
+        <a-list
+          :data-source="suggestedFormulas"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          class="border-1 border-t-0 rounded-b-lg !mb-4"
+        >
+          <template #renderItem="{ item, index }">
+            <a-list-item
+              :ref="
+                (el) => {
+                  sugOptionsRef[index] = el
+                }
+              "
+              class="cursor-pointer !overflow-hidden hover:bg-gray-50"
+              :class="{
+                '!bg-gray-100': selected === index,
+              }"
+              @click.prevent.stop="appendText(item)"
+              @mouseenter="suggestionPreviewed = item"
+            >
+              <a-list-item-meta>
+                <template #title>
+                  <div class="flex items-center gap-x-1">
+                    <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
+
+                    <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
+
+                    <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
                     <span class="prose-sm text-gray-600">{{ item.text }}</span>
-                  </a-col>
+                  </div>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </template>
 
-                  <a-col :span="18">
-                    <div v-if="item.type === 'function'" class="text-xs text-gray-500">
-                      {{ item.description }} <br /><br />
-                      {{ $t('labels.syntax') }}: <br />
-                      {{ item.syntax }} <br /><br />
-                      {{ $t('labels.examples') }}: <br />
+      <template v-if="variableList.length > 0">
+        <div class="rounded-t-lg border-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs">Fields</div>
 
-                      <div v-for="(example, idx) of item.examples" :key="idx">
-                        <div>({{ idx + 1 }}): {{ example }}</div>
-                      </div>
-                    </div>
+        <a-list
+          ref="variableListRef"
+          :data-source="variableList"
+          :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }"
+          class="border-1 border-t-0 rounded-b-lg !overflow-hidden"
+        >
+          <template #renderItem="{ item, index }">
+            <a-list-item
+              :ref="
+                (el) => {
+                  sugOptionsRef[index + suggestedFormulas.length] = el
+                }
+              "
+              :class="{
+                '!bg-gray-100': selected === index + suggestedFormulas.length,
+              }"
+              class="cursor-pointer hover:bg-gray-50"
+              @click.prevent.stop="appendText(item)"
+            >
+              <a-list-item-meta>
+                <template #title>
+                  <div class="flex items-center gap-x-1">
+                    <component :is="item.icon" class="text-lg" />
 
-                    <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
-                      <a-badge-ribbon :text="item.uidt" color="gray" />
-                    </div>
-                  </a-col>
-                </div>
-              </template>
-
-              <template #avatar>
-                <component :is="iconMap.function" v-if="item.type === 'function'" class="text-lg" />
-
-                <component :is="iconMap.calculator" v-if="item.type === 'op'" class="text-lg" />
-
-                <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
-              </template>
-            </a-list-item-meta>
-          </a-list-item>
-        </template>
-      </a-list>
+                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                  </div>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
+      </template>
+      <div v-if="suggestion.length === 0">
+        <span class="text-gray-500">Empty</span>
+      </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-list-item) {
+  @apply !pt-1.75 pb-0.75 !px-2;
+}
+</style>

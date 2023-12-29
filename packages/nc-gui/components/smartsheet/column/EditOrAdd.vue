@@ -81,6 +81,10 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
 
+// To close column type dropdown on escape and
+// close modal only when the type popup is close
+const isColumnTypeOpen = ref(false)
+
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   if (!appInfo.value.ee) return true
 
@@ -199,12 +203,24 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
+  if (isColumnTypeOpen.value) return
+
   if (event.key === 'Escape') emit('cancel')
 }
 
 const isFieldsTab = computed(() => {
   return openedViewsTab.value === 'field'
 })
+
+const onDropdownChange = (value: boolean) => {
+  if (value) {
+    isColumnTypeOpen.value = value
+  } else {
+    setTimeout(() => {
+      isColumnTypeOpen.value = value
+    }, 300)
+  }
+}
 
 if (props.fromTableExplorer) {
   watch(
@@ -224,7 +240,7 @@ if (props.fromTableExplorer) {
       'bg-white': !props.fromTableExplorer,
       'w-[400px]': !props.embedMode,
       '!w-146': isTextArea(formState) && formState.meta?.richMode,
-      '!w-[600px]': formState.uidt === UITypes.Formula && !props.embedMode,
+      '!w-116 overflow-visible': formState.uidt === UITypes.Formula && !props.embedMode,
       '!w-[500px]': formState.uidt === UITypes.Attachment && !props.embedMode && !appInfo.ee,
       'shadow-lg border-1 border-gray-200 shadow-gray-300 rounded-xl p-6': !embedMode,
     }"
@@ -275,6 +291,7 @@ if (props.fromTableExplorer) {
               class="nc-column-type-input !rounded"
               :disabled="isKanban || readOnly"
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-md border-gray-200"
+              @dropdown-visible-change="onDropdownChange"
               @change="onUidtOrIdTypeChange"
               @dblclick="showDeprecated = !showDeprecated"
             >
@@ -323,6 +340,7 @@ if (props.fromTableExplorer) {
           <LazySmartsheetColumnLinkOptions v-if="isEdit && formState.uidt === UITypes.Links" v-model:value="formState" />
           <LazySmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
           <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+          <LazySmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
           <SmartsheetColumnSelectOptions
             v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
             v-model:value="formState"

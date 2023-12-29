@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -20,6 +20,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
+const wrapperRef = ref<HTMLElement>()
+
 const vModel = computed({
   get: () => _vModel.value,
   set: (value) => {
@@ -33,7 +35,10 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 const cellFocused = ref(false)
 
@@ -56,6 +61,19 @@ const onBlur = () => {
 
 const onFocus = () => {
   cellFocused.value = true
+  editEnabled.value = true
+  expandedEditEnabled.value = true
+}
+
+const onWrapperFocus = () => {
+  cellFocused.value = true
+  editEnabled.value = true
+  expandedEditEnabled.value = true
+
+  nextTick(() => {
+    wrapperRef.value?.querySelector('input')?.focus()
+    wrapperRef.value?.querySelector('input')?.select()
+  })
 }
 
 const onMouseover = () => {
@@ -67,16 +85,51 @@ const onMouseleave = () => {
     expandedEditEnabled.value = false
   }
 }
+
+const onTabPress = (e: KeyboardEvent) => {
+  if (e.shiftKey && (isExpandedFormOpen.value || isForm.value)) {
+    e.preventDefault()
+
+    // Shift + Tab does not work for percent cell
+    // so we manually focus on the last form item
+    const focusesNcCellIndex = Array.from(
+      document.querySelectorAll(`${isExpandedFormOpen.value ? '.nc-expanded-form-row' : '.nc-form-wrapper'} .nc-data-cell`),
+    ).findIndex((el) => {
+      return el.querySelector('.nc-filter-value-select') === wrapperRef.value
+    })
+
+    if (focusesNcCellIndex >= 0) {
+      const nodes = document.querySelectorAll(
+        `${isExpandedFormOpen.value ? '.nc-expanded-form-row' : '.nc-form-wrapper'} .nc-data-cell`,
+      )
+
+      for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
+        const lastFormItem = nodes[i].querySelector('[tabindex="0"]') as HTMLElement
+        if (lastFormItem) {
+          lastFormItem.focus()
+          break
+        }
+      }
+    }
+  }
+}
 </script>
 
 <template>
-  <div class="nc-filter-value-select w-full" @mouseover="onMouseover" @mouseleave="onMouseleave">
+  <div
+    ref="wrapperRef"
+    tabindex="0"
+    class="nc-filter-value-select w-full focus:outline-transparent"
+    @mouseover="onMouseover"
+    @mouseleave="onMouseleave"
+    @focus="onWrapperFocus"
+  >
     <input
-      v-if="(!isExpandedFormOpen && editEnabled) || (isExpandedFormOpen && expandedEditEnabled)"
+      v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base p-1"
-      :class="{ '!px-2': editEnabled }"
+      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
+      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
@@ -86,6 +139,7 @@ const onMouseleave = () => {
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @keydown.tab="onTabPress"
       @selectstart.capture.stop
       @mousedown.stop
     />
@@ -104,3 +158,17 @@ const onMouseleave = () => {
     <span v-else>{{ vModel }}&nbsp;</span>
   </div>
 </template>
+
+<style lang="scss" scoped>
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+</style>

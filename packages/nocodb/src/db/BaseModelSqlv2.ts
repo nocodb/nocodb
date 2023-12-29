@@ -33,6 +33,7 @@ import type {
   QrCodeColumn,
   RollupColumn,
   SelectOption,
+  User,
 } from '~/models';
 import type { SortType } from 'nocodb-sdk';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -45,6 +46,7 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import {
   Audit,
+  BaseUser,
   Column,
   Filter,
   Model,
@@ -706,11 +708,34 @@ class BaseModelSqlv2 {
         continue;
       }
 
-      qb.orderBy(
-        groupByColumns[sort.fk_column_id].id,
-        sort.direction,
-        sort.direction === 'desc' ? 'LAST' : 'FIRST',
-      );
+      const column = groupByColumns[sort.fk_column_id];
+
+      if (column.uidt === UITypes.User) {
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: column.base_id,
+        });
+
+        // create nested replace statement for each user
+        const finalStatement = baseUsers.reduce((acc, user) => {
+          const qb = this.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.id,
+            user.display_name || user.email,
+          ]);
+          return qb.toQuery();
+        }, this.dbDriver.raw(`??`, [column.column_name]).toQuery());
+
+        qb.orderBy(
+          sanitize(this.dbDriver.raw(finalStatement)),
+          sort.direction,
+          sort.direction === 'desc' ? 'LAST' : 'FIRST',
+        );
+      } else {
+        qb.orderBy(
+          column.id,
+          sort.direction,
+          sort.direction === 'desc' ? 'LAST' : 'FIRST',
+        );
+      }
     }
 
     // group by using the column aliases
@@ -2304,7 +2329,7 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareAttachmentData(insertObj);
+      await this.prepareNocoData(insertObj);
 
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -2547,7 +2572,7 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      await this.prepareAttachmentData(updateObj);
+      await this.prepareNocoData(updateObj);
 
       const prevData = await this.readByPk(
         id,
@@ -3015,7 +3040,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.prepareAttachmentData(insertObj);
+          await this.prepareNocoData(insertObj);
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
@@ -3153,7 +3178,7 @@ class BaseModelSqlv2 {
           continue;
         }
         if (!raw) {
-          await this.prepareAttachmentData(d);
+          await this.prepareNocoData(d);
 
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {
@@ -3821,9 +3846,6 @@ class BaseModelSqlv2 {
       return;
     }
 
-    const options = await column
-      .getColOptions<{ options: SelectOption[] }>()
-      .then(({ options }) => options.map((opt) => opt.title));
     const columnTitle = column.title;
     const columnName = column.column_name;
     const columnValue =
@@ -3831,6 +3853,13 @@ class BaseModelSqlv2 {
     if (!columnValue) {
       return;
     }
+
+    const options = await column
+      .getColOptions<{ options: SelectOption[] }>()
+      .then(
+        (selectOptionsMeta) =>
+          selectOptionsMeta?.options?.map((opt) => opt.title) || [],
+      );
 
     // if multi select, then split the values
     const columnValueArr =
@@ -4376,12 +4405,14 @@ class BaseModelSqlv2 {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
+      skipUserConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
     } = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
+      skipUserConversion: false,
       raw: false,
       first: false,
     },
@@ -4390,6 +4421,7 @@ class BaseModelSqlv2 {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
+      options.skipUserConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -4420,6 +4452,11 @@ class BaseModelSqlv2 {
     // update date time fields
     if (!options.skipDateConversion) {
       data = this.convertDateFormat(data, childTable);
+    }
+
+    // update user fields
+    if (!options.skipUserConversion) {
+      data = await this.convertUserFormat(data, childTable);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -4513,6 +4550,84 @@ class BaseModelSqlv2 {
     });
 
     return data;
+  }
+
+  protected async convertUserFormat(
+    data: Record<string, any>,
+    childTable?: Model,
+  ) {
+    // user is stored as id within the database
+    // convertUserFormat is used to convert the response in id to user object in API response
+    if (data) {
+      if (childTable && !childTable?.columns) {
+        await childTable.getColumns();
+      } else if (!this.model?.columns) {
+        await this.model.getColumns();
+      }
+
+      const userColumns = [];
+
+      const columns = childTable ? childTable.columns : this.model.columns;
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedUidt(col)) === UITypes.User) {
+            userColumns.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.User) {
+            userColumns.push(col);
+          }
+        }
+      }
+
+      if (userColumns.length) {
+        const baseUsers = await BaseUser.getUsersList({
+          base_id: childTable ? childTable.base_id : this.model.base_id,
+        });
+
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) => this._convertUserFormat(userColumns, baseUsers, d)),
+          );
+        } else {
+          data = await this._convertUserFormat(userColumns, baseUsers, data);
+        }
+      }
+    }
+    return data;
+  }
+
+  protected _convertUserFormat(
+    userColumns: Record<string, any>[],
+    baseUsers: Partial<User>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        for (const col of userColumns) {
+          if (d[col.id] && d[col.id].length) {
+            d[col.id] = d[col.id].split(',');
+          } else {
+            d[col.id] = null;
+          }
+
+          if (d[col.id]?.length) {
+            d[col.id] = d[col.id].map((fid) => {
+              const { id, email, display_name } = baseUsers.find(
+                (u) => u.id === fid,
+              );
+              return {
+                id,
+                email,
+                display_name: display_name?.length ? display_name : null,
+              };
+            });
+          }
+        }
+      }
+    } catch {}
+    return d;
   }
 
   protected async _convertAttachmentType(
@@ -5136,7 +5251,14 @@ class BaseModelSqlv2 {
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
                 (id) =>
-                  !childRows.find((r) => r[parentColumn.column_name] === id),
+                  !childRows.find(
+                    (r) =>
+                      r[parentColumn.column_name] ===
+                      (typeof id === 'object'
+                        ? id[parentTable.primaryKey.title] ||
+                          id[parentTable.primaryKey.column_name]
+                        : id),
+                  ),
               );
 
               NcError.unprocessableEntity(
@@ -5175,9 +5297,28 @@ class BaseModelSqlv2 {
         {
           // validate Ids
           {
-            const childRowsQb = this.dbDriver(childTn)
-              .select(childTable.primaryKey.column_name)
-              .whereIn(childTable.primaryKey.column_name, childIds);
+            const childRowsQb = this.dbDriver(childTn).select(
+              childTable.primaryKey.column_name,
+            );
+
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else if (typeof childIds[0] === 'object') {
+              childRowsQb.whereIn(
+                parentTable.primaryKey.column_name,
+                childIds.map(
+                  (c) =>
+                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.column_name],
+                ),
+              );
+            } else {
+              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+            }
 
             const childRows = await this.execAndParse(childRowsQb, null, {
               raw: true,
@@ -5186,7 +5327,14 @@ class BaseModelSqlv2 {
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
                 (id) =>
-                  !childRows.find((r) => r[parentColumn.column_name] === id),
+                  !childRows.find(
+                    (r) =>
+                      r[parentColumn.column_name] ===
+                      (typeof id === 'object'
+                        ? id[parentTable.primaryKey.title] ||
+                          id[parentTable.primaryKey.column_name]
+                        : id),
+                  ),
               );
 
               NcError.unprocessableEntity(
@@ -5353,8 +5501,12 @@ class BaseModelSqlv2 {
     }
   }
 
-  prepareAttachmentData(data) {
-    if (this.model.columns.some((c) => c.uidt === UITypes.Attachment)) {
+  async prepareNocoData(data) {
+    if (
+      this.model.columns.some((c) =>
+        [UITypes.Attachment, UITypes.User].includes(c.uidt),
+      )
+    ) {
       for (const column of this.model.columns) {
         if (column.uidt === UITypes.Attachment) {
           if (data[column.column_name]) {
@@ -5368,6 +5520,113 @@ class BaseModelSqlv2 {
                   'size',
                   'icon',
                 ]);
+              }
+            }
+          }
+        } else if (column.uidt === UITypes.User) {
+          if (data[column.column_name]) {
+            const userIds = [];
+
+            if (typeof data[column.column_name] === 'string') {
+              try {
+                data[column.column_name] = JSON.parse(data[column.column_name]);
+              } catch (e) {}
+            }
+
+            const baseUsers = await BaseUser.getUsersList({
+              base_id: this.model.base_id,
+              include_ws_deleted: false,
+            });
+
+            if (typeof data[column.column_name] === 'string') {
+              const users = data[column.column_name]
+                .split(',')
+                .map((u) => u.trim());
+              for (const user of users) {
+                try {
+                  if (user.length === 0) continue;
+                  if (user.includes('@')) {
+                    const u = baseUsers.find((u) => u.email === user);
+                    if (!u) {
+                      NcError.unprocessableEntity(
+                        `User with email '${user}' is not part of this workspace`,
+                      );
+                    }
+                    userIds.push(u.id);
+                  } else {
+                    const u = baseUsers.find((u) => u.id === user);
+                    if (!u) {
+                      NcError.unprocessableEntity(
+                        `User with id '${user}' is not part of this workspace`,
+                      );
+                    }
+                    userIds.push(u.id);
+                  }
+                } catch (e) {
+                  NcError.unprocessableEntity(e.message);
+                }
+              }
+            } else {
+              const users: { id?: string; email?: string }[] = Array.isArray(
+                data[column.column_name],
+              )
+                ? data[column.column_name]
+                : [data[column.column_name]];
+              for (const userObj of users) {
+                const user = extractProps(userObj, ['id', 'email']);
+                try {
+                  if ('id' in user) {
+                    const u = baseUsers.find((u) => u.id === user.id);
+                    if (!u) {
+                      NcError.unprocessableEntity(
+                        `User with id '${user.id}' is not part of this workspace`,
+                      );
+                    }
+                    userIds.push(u.id);
+                  } else if ('email' in user) {
+                    // skip null input
+                    if (!user.email) continue;
+                    // trim extra spaces
+                    user.email = user.email.trim();
+                    // skip empty input
+                    if (user.email.length === 0) continue;
+                    const u = baseUsers.find((u) => u.email === user.email);
+                    if (!u) {
+                      NcError.unprocessableEntity(
+                        `User with email '${user.email}' is not part of this workspace`,
+                      );
+                    }
+                    userIds.push(u.id);
+                  } else {
+                    NcError.unprocessableEntity('Invalid user object');
+                  }
+                } catch (e) {
+                  NcError.unprocessableEntity(e.message);
+                }
+              }
+            }
+
+            if (userIds.length === 0) {
+              data[column.column_name] = null;
+            } else {
+              const userSet = new Set(userIds);
+
+              if (userSet.size !== userIds.length) {
+                NcError.unprocessableEntity(
+                  'Duplicate users not allowed for user field',
+                );
+              }
+
+              if (column.meta?.is_multi) {
+                data[column.column_name] = userIds.join(',');
+              } else {
+                if (userIds.length > 1) {
+                  NcError.unprocessableEntity(
+                    `Multiple users not allowed for '${column.title}'`,
+                  );
+                } else {
+                  data[column.column_name] = userIds[0];
+                }
               }
             }
           }
@@ -5654,7 +5913,7 @@ function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map((c) => row[c.title]).join('___');
 }
 
-function haveFormulaColumn(columns: Column[]) {
+export function haveFormulaColumn(columns: Column[]) {
   return columns.some((c) => c.uidt === UITypes.Formula);
 }
 

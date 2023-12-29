@@ -791,7 +791,7 @@ onClickOutside(tableBodyEl, (e) => {
   // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
   // or single/multi select options
   const activePickerOrDropdownEl = document.querySelector(
-    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-dropdown-user-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
   )
   if (
     e.target &&
@@ -1005,7 +1005,13 @@ const showFillHandle = computed(
     !readOnly.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
-    !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new,
+    !dataRef.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
+    activeCell.col !== null &&
+    !(
+      isLookup(fields.value[activeCell.col]) ||
+      isRollup(fields.value[activeCell.col]) ||
+      isFormula(fields.value[activeCell.col])
+    ),
 )
 
 watch(
@@ -1266,7 +1272,10 @@ onKeyStroke('ArrowDown', onDown)
       ></div>
     </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
-      <div v-show="isPaginationLoading" class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10">
+      <div
+        v-show="isPaginationLoading"
+        class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
+      >
         <div class="flex flex-col justify-center gap-2">
           <GeneralLoader size="xlarge" />
           <span class="text-center" v-html="loaderText"></span>
@@ -1583,7 +1592,7 @@ onKeyStroke('ArrowDown', onDown)
                       @dblclick="makeEditable(row, columnObj)"
                       @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                     >
-                      <div v-if="!switchingTab" class="w-full h-full">
+                      <div v-if="!switchingTab" class="w-full">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(columnObj) && columnObj.title"
                           v-model="row.row[columnObj.title]"
@@ -1728,6 +1737,7 @@ onKeyStroke('ArrowDown', onDown)
               "
               class="nc-base-menu-item"
               :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="flex gap-2 items-center">
@@ -1741,6 +1751,7 @@ onKeyStroke('ArrowDown', onDown)
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              data-testid="context-menu-item-clear"
               @click="clearSelectedRangeOfCells()"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
@@ -1748,17 +1759,16 @@ onKeyStroke('ArrowDown', onDown)
                 {{ $t('general.clear') }}
               </div>
             </NcMenuItem>
-            <NcDivider />
-            <NcMenuItem
-              v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode"
-              class="nc-base-menu-item"
-              @click="commentRow(contextMenuTarget.row)"
-            >
-              <div v-e="['a:row:comment']" class="flex gap-2 items-center">
-                <MdiMessageOutline class="h-4 w-4" />
-                {{ $t('general.comment') }}
-              </div>
-            </NcMenuItem>
+
+            <template v-if="contextMenuTarget && selectedRange.isSingleCell() && isUIAllowed('commentEdit') && !isMobileMode">
+              <NcDivider />
+              <NcMenuItem class="nc-base-menu-item" @click="commentRow(contextMenuTarget.row)">
+                <div v-e="['a:row:comment']" class="flex gap-2 items-center">
+                  <MdiMessageOutline class="h-4 w-4" />
+                  {{ $t('general.comment') }}
+                </div>
+              </NcMenuItem>
+            </template>
 
             <template v-if="hasEditPermission">
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />

@@ -222,7 +222,7 @@ export class AclMiddleware implements NestInterceptor {
         : getUserRoleForScope(req.user, scope);
 
     if (!userScopeRole) {
-      NcError.forbidden('Unauthorized access');
+      NcError.forbidden("You don't have permission to access this resource");
     }
 
     // assign owner role to super admin for all bases

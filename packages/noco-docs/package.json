@@ -28,11 +28,11 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docusaurus/core": "3.0.0",
-    "@docusaurus/plugin-client-redirects": "3.0.0",
-    "@docusaurus/plugin-ideal-image": "3.0.0",
-    "@docusaurus/plugin-sitemap": "3.0.0",
-    "@docusaurus/preset-classic": "3.0.0",
+    "@docusaurus/core": "3.0.1",
+    "@docusaurus/plugin-client-redirects": "3.0.1",
+    "@docusaurus/plugin-ideal-image": "3.0.1",
+    "@docusaurus/plugin-sitemap": "3.0.1",
+    "@docusaurus/preset-classic": "3.0.1",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^1.2.1",
     "docusaurus-plugin-sass": "^0.2.5",
@@ -45,7 +45,7 @@
     "sass": "^1.69.5"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.0.0",
+    "@docusaurus/module-type-aliases": "3.0.1",
     "@tsconfig/docusaurus": "^1.0.7",
     "typescript": "^4.9.5"
   },

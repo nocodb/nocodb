@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, iconMap, latLongToJoinedString, useVModel } from '#imports'
+import { Modal as AModal, IsExpandedFormOpenInj, iconMap, latLongToJoinedString, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -15,6 +15,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpanded = ref(false)
 
@@ -86,7 +88,8 @@ const openInOSM = () => {
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :trigger="['click']">
     <div
       v-if="!isLocationSet"
-      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500) my-1"
+      tabindex="0"
     >
       <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
         <component
@@ -98,7 +101,17 @@ const openInOSM = () => {
         </div>
       </div>
     </div>
-    <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
+    <div
+      v-else
+      data-testid="nc-geo-data-lat-long-set"
+      tabindex="0"
+      class="h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
+      :class="{
+        'px-2': isExpandedFormOpen,
+      }"
+    >
+      {{ latLongStr }}
+    </div>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col w-max-64 border-1 border-gray-200" @finish="handleFinish">
         <a-form-item>

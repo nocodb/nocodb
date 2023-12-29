@@ -463,7 +463,8 @@ export interface ColumnType {
     | 'URL'
     | 'Year'
     | 'QrCode'
-    | 'Links';
+    | 'Links'
+    | 'User';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1780,7 +1781,8 @@ export interface NormalColumnRequestType {
     | 'URL'
     | 'Year'
     | 'QrCode'
-    | 'Links';
+    | 'Links'
+    | 'User';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -2761,6 +2763,13 @@ export interface NotificationUpdateType {
   is_read?: boolean;
 }
 
+export interface UserFieldRecordType {
+  id: string;
+  display_name?: string;
+  email: string;
+  deleted?: boolean;
+}
+
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -3341,7 +3350,7 @@ export class Api<
       }),
 
     /**
- * @description Regenerate user refresh token
+ * @description Creates a new refresh token and JWT auth token for the user. The refresh token is sent as a cookie, while the JWT auth token is included in the response body.
  * 
  * @tags Auth
  * @name TokenRefresh
@@ -3349,7 +3358,7 @@ export class Api<
  * @request POST:/api/v1/auth/token/refresh
  * @response `200` `{
   \**
-   * New access token for user
+   * New JWT auth token for user
    * @example 96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63
    *\
   token?: string,
@@ -3365,7 +3374,7 @@ export class Api<
       this.request<
         {
           /**
-           * New access token for user
+           * New JWT auth token for user
            * @example 96751db2d53fb834382b682268874a2ea9ee610e4d904e688d1513f11d3c30d62d36d9e05dec0d63
            */
           token?: string;

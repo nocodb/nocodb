@@ -882,7 +882,10 @@ export class SqliteUi {
       'COUNT',
       'ROUNDDOWN',
       'ROUNDUP',
-
+      'DATESTR',
+      'DAY',
+      'MONTH',
+      'HOUR',
     ];
   }
 }

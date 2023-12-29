@@ -205,7 +205,7 @@ export function useViewData(
             } as any,
             { cancelToken: controller.value.token },
           )
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
     } catch (error) {
       // if the request is canceled, then do nothing
       if (error.code === 'ERR_CANCELED') {
@@ -319,8 +319,6 @@ export function useViewData(
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    console.log('test')
-
     const expandedRowIndex = getExpandedRowIndex()
 
     // calculate next row index based on direction

@@ -157,6 +157,25 @@ const customColumns = function (type: string, options: any = {}) {
           dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
         },
       ];
+    case 'userBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'userFieldSingle',
+          title: 'userFieldSingle',
+          uidt: UITypes.User,
+        },
+        {
+          column_name: 'userFieldMulti',
+          title: 'userFieldMulti',
+          uidt: UITypes.User,
+          meta: { is_multi: true },
+        },
+      ];
     case 'custom':
       return [{ title: 'Id', column_name: 'Id', uidt: UITypes.ID }, ...options];
   }
@@ -194,7 +213,7 @@ const createRollupColumn = async (
     relatedTableColumnTitle: string;
   },
 ) => {
-  const childBases = await base.getBases();
+  const childBases = await base.getSources();
   const childTable = await Model.getByIdOrName({
     base_id: base.id,
     source_id: childBases[0].id!,
@@ -243,7 +262,7 @@ const createLookupColumn = async (
     relationColumnId?: string;
   },
 ) => {
-  const childBases = await base.getBases();
+  const childBases = await base.getSources();
   const childTable = await Model.getByIdOrName({
     base_id: base.id,
     source_id: childBases[0].id!,
@@ -386,6 +405,23 @@ const updateViewColumn = async (
   return updatedColumn;
 };
 
+const updateColumn = async (
+  context,
+  { table, column, attr }: { column: Column; table: Model; attr: any },
+) => {
+  const res = await request(context.app)
+    .patch(`/api/v2/meta/columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .send({
+      ...attr,
+    });
+
+  const updatedColumn: Column = (await table.getColumns()).find(
+    (column) => column.id === column.id,
+  );
+  return updatedColumn;
+};
+
 export {
   customColumns,
   defaultColumns,
@@ -396,4 +432,5 @@ export {
   createLookupColumn,
   createLtarColumn,
   updateViewColumn,
+  updateColumn,
 };

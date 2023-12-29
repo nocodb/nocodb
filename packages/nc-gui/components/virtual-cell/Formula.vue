@@ -2,14 +2,28 @@
 import { handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, computed, inject, renderValue, replaceUrlsWithLink, useBase } from '#imports'
+import {
+  CellValueInj,
+  ColumnInj,
+  IsExpandedFormOpenInj,
+  computed,
+  inject,
+  renderValue,
+  replaceUrlsWithLink,
+  useBase,
+  useGlobal,
+} from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
 const cellValue = inject(CellValueInj)
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
 const { isPg } = useBase()
+
+const { showNull } = useGlobal()
 
 const result = computed(() =>
   isPg(column.value.source_id) ? renderValue(handleTZ(cellValue?.value)) : renderValue(cellValue?.value),
@@ -29,8 +43,15 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
       </template>
       <span>ERR!</span>
     </a-tooltip>
-
-    <div v-else class="py-2" @dblclick="activateShowEditNonEditableFieldWarning">
+    <span v-else-if="cellValue === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+    <div
+      v-else
+      class="py-1"
+      :class="{
+        'px-2': isExpandedFormOpen,
+      }"
+      @dblclick="activateShowEditNonEditableFieldWarning"
+    >
       <div v-if="urls" v-html="urls" />
 
       <div v-else>{{ result }}</div>

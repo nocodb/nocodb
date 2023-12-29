@@ -21,7 +21,6 @@ import {
   isDate,
   isDateTime,
   isDecimal,
-  isDrawerExist,
   isDuration,
   isEmail,
   isFloat,
@@ -40,6 +39,7 @@ import {
   isTextArea,
   isTime,
   isURL,
+  isUser,
   isYear,
   provide,
   ref,
@@ -204,7 +204,6 @@ onUnmounted(() => {
         'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
         '!min-h-30 resize-y': isTextArea(column) && (isForm || isSurveyForm),
-        '!border-2 !border-brand-500': props.editEnabled && (isSurveyForm || isForm) && !isDrawerExist(),
       },
     ]"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
@@ -245,6 +244,7 @@ onUnmounted(() => {
         <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
         <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
         <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
+        <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
         <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
         <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
         <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />

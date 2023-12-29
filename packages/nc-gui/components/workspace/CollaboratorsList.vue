@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, WorkspaceUserRoles, timeAgo } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, WorkspaceUserRoles, parseStringDateTime, timeAgo } from 'nocodb-sdk'
 import { storeToRefs, useWorkspace } from '#imports'
 
 const { workspaceRoles, loadRoles } = useRoles()
@@ -59,9 +59,9 @@ onMounted(async () => {
     <div v-else class="nc-collaborators-list mt-6 h-full">
       <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
         <div class="flex flex-row bg-gray-50 min-h-12 items-center">
-          <div class="text-gray-700 users-email-grid w-3/8 ml-10">{{ $t('objects.users') }}</div>
-          <div class="text-gray-700 date-joined-grid w-2/8 mr-3 pl-1">{{ $t('title.dateJoined') }}</div>
+          <div class="text-gray-700 users-email-grid w-3/8 ml-10 mr-3">{{ $t('objects.users') }}</div>
           <div class="text-gray-700 user-access-grid w-2/8 mr-3">{{ $t('general.access') }}</div>
+          <div class="text-gray-700 date-joined-grid w-2/8 mr-3">{{ $t('title.dateJoined') }}</div>
           <div class="text-gray-700 user-access-grid w-1/8">Actions</div>
         </div>
 
@@ -77,7 +77,6 @@ onMounted(async () => {
                 {{ collab.email }}
               </span>
             </div>
-            <div class="date-joined-grid w-2/8">{{ timeAgo(collab.created_at) }}</div>
             <div class="user-access-grid w-2/8">
               <template v-if="accessibleRoles.includes(collab.roles)">
                 <div class="w-[30px]">
@@ -85,14 +84,24 @@ onMounted(async () => {
                     :role="collab.roles"
                     :roles="accessibleRoles"
                     :description="false"
-                    class="bg-[red]"
+                    class="cursor-pointer"
                     :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
                   />
                 </div>
               </template>
               <template v-else>
-                <RolesBadge :role="collab.roles" />
+                <RolesBadge :role="collab.roles" class="cursor-default" />
               </template>
+            </div>
+            <div class="date-joined-grid w-2/8 flex justify-start">
+              <NcTooltip class="max-w-full">
+                <template #title>
+                  {{ parseStringDateTime(collab.created_at) }}
+                </template>
+                <span>
+                  {{ timeAgo(collab.created_at) }}
+                </span>
+              </NcTooltip>
             </div>
             <div class="w-1/8 pl-6">
               <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">

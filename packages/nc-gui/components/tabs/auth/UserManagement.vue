@@ -33,6 +33,8 @@ const { isUIAllowed } = useRoles()
 
 const { dashboardUrl } = useDashboard()
 
+const { clearBasesUser } = useBases()
+
 const users = ref<null | User[]>(null)
 
 const selectedUser = ref<null | User>(null)
@@ -83,6 +85,9 @@ const inviteUser = async (user: User) => {
     }
 
     await api.auth.baseUserAdd(base.value.id, user as ProjectUserReqType)
+
+    // clear bases user state
+    clearBasesUser()
 
     // Successfully added user to base
     message.success(t('msg.success.userAddedToProject'))

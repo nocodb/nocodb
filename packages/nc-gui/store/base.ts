@@ -172,6 +172,10 @@ export const useBase = defineStore('baseStore', () => {
 
     await loadTables()
 
+    await basesStore.getBaseUsers({
+      baseId: base.value.id || baseId.value,
+    })
+
     // if (withTheme) setTheme(baseMeta.value?.theme)
 
     return baseLoadedHook.trigger(base.value)

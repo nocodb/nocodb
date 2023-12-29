@@ -38,7 +38,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits, { defaultValue: column?.value.cdf ? String(column?.value.cdf) : '' })
+const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -55,10 +55,13 @@ const position = ref<
 
 const isDragging = ref(false)
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && isForm.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
-  if (!rowHeight.value || rowHeight.value === 1) return 36
+  if (isExpandedFormOpen.value) return 36 * 4
+
+  if (!rowHeight.value || rowHeight.value === 1 || isEditColumn.value) return 36
 
   return rowHeight.value * 36
 })
@@ -169,16 +172,16 @@ watch(editEnabled, () => {
 <template>
   <NcDropdown
     v-model:visible="isVisible"
-    class="overflow-visible"
+    class="overflow-hidden group"
     :trigger="[]"
     placement="bottomLeft"
     :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
   >
     <div
-      class="flex flex-row pt-0.5 w-full rich-wrapper"
+      class="flex flex-row pt-0.5 w-full long-text-wrapper"
       :class="{
-        'min-h-10': rowHeight !== 1,
-        'min-h-6.5': rowHeight === 1,
+        'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
+        'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
         'h-full': isForm,
       }"
     >
@@ -190,6 +193,7 @@ watch(editEnabled, () => {
           minHeight: `${height}px !important`,
         }"
         @dblclick="onExpand"
+        @keydown.enter="onExpand"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
@@ -198,11 +202,11 @@ watch(editEnabled, () => {
         :ref="focus"
         v-model="vModel"
         rows="4"
-        class="h-full w-full outline-none border-none"
+        class="h-full w-full outline-none border-none nc-scrollbar-lg"
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
-          'px-1': isExpandedFormOpen,
+          'px-2': isExpandedFormOpen,
         }"
         :style="{
           minHeight: `${height}px`,
@@ -239,8 +243,8 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 bottom-1 hidden nc-text-area-expand-btn"
-        :class="{ 'right-0 bottom-1': editEnabled, '!bottom-0': !isRichMode }"
+        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block"
+        :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
@@ -300,12 +304,6 @@ textarea:focus {
 
 <style lang="scss">
 .cell:hover .nc-text-area-expand-btn {
-  @apply !block;
-}
-.rich-wrapper:hover,
-.rich-wrapper:active {
-  :deep(.nc-text-area-expand-btn) {
-    @apply !block cursor-pointer;
-  }
+  @apply !block cursor-pointer;
 }
 </style>

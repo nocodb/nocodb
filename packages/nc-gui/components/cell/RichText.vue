@@ -19,6 +19,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:value'])
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
 const turndownService = new TurndownService({})
 
 turndownService.addRule('lineBreak', {
@@ -43,6 +45,15 @@ turndownService.addRule('taskList', {
     return `[${isChecked ? 'x' : ' '}] ${processContent}\n\n`
   },
 })
+
+turndownService.addRule('strikethrough', {
+  filter: ['s'],
+  replacement: (content) => {
+    return `~${content}~`
+  },
+})
+
+turndownService.keep(['u', 'del'])
 
 const checkListItem = {
   name: 'checkListItem',
@@ -154,11 +165,12 @@ watch(editorDom, () => {
 
 <template>
   <div
-    class="h-full"
+    class="h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,
     }"
+    tabindex="0"
   >
     <div v-if="props.showMenu" class="absolute top-0 right-0.5">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
@@ -171,7 +183,8 @@ watch(editorDom, () => {
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
         'ml-1 mt-2.5 flex-grow': props.fullMode,
-        'nc-scrollbar-md': !props.fullMode && !props.readonly,
+        'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
+        'flex-grow': isExpandedFormOpen,
       }"
     />
   </div>

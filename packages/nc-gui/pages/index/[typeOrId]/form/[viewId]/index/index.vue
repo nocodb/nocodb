@@ -69,13 +69,7 @@ const onDecode = async (scannedCodeValue: string) => {
 </script>
 
 <template>
-  <div
-    class="h-full flex flex-col items-center"
-    :class="{
-      mobile: isMobileMode,
-      desktop: !isMobileMode,
-    }"
-  >
+  <div class="h-full flex flex-col items-center" :class="isMobileMode ? 'mobile' : 'desktop'">
     <div
       class="color-transition flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >

@@ -8,6 +8,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -46,6 +47,8 @@ const isEditable = inject(EditModeInj, ref(false))
 const activeCell = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
@@ -272,7 +275,7 @@ const onFocus = () => {
 <template>
   <div
     class="h-full w-full flex items-center nc-single-select focus:outline-transparent"
-    :class="{ 'read-only': readOnly }"
+    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
     @click="toggleMenu"
     @keydown.enter.stop.prevent="toggleMenu"
   >

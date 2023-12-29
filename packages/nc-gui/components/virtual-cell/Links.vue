@@ -3,7 +3,15 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import { ActiveCellInj, CellValueInj, ColumnInj, IsUnderLookupInj, inject, useSelectedCellKeyupListener } from '#imports'
+import {
+  ActiveCellInj,
+  CellValueInj,
+  ColumnInj,
+  IsExpandedFormOpenInj,
+  IsUnderLookupInj,
+  inject,
+  useSelectedCellKeyupListener,
+} from '#imports'
 
 const value = inject(CellValueInj, ref(0))
 
@@ -18,6 +26,8 @@ const isForm = inject(IsFormInj)
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const colTitle = computed(() => column.value?.title || '')
 
@@ -120,7 +130,13 @@ watch([listItemsDlg], () => {
 </script>
 
 <template>
-  <div class="flex w-full group items-center nc-links-wrapper" @dblclick.stop="openChildList">
+  <div
+    class="flex w-full group items-center nc-links-wrapper py-1"
+    :class="{
+      'px-2': isExpandedFormOpen,
+    }"
+    @dblclick.stop="openChildList"
+  >
     <div class="block flex-shrink truncate">
       <component
         :is="isUnderLookup ? 'span' : 'a'"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -35,7 +35,10 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 const cellFocused = ref(false)
 
@@ -69,6 +72,7 @@ const onWrapperFocus = () => {
 
   nextTick(() => {
     wrapperRef.value?.querySelector('input')?.focus()
+    wrapperRef.value?.querySelector('input')?.select()
   })
 }
 
@@ -83,18 +87,22 @@ const onMouseleave = () => {
 }
 
 const onTabPress = (e: KeyboardEvent) => {
-  if (e.shiftKey) {
+  if (e.shiftKey && (isExpandedFormOpen.value || isForm.value)) {
     e.preventDefault()
 
     // Shift + Tab does not work for percent cell
     // so we manually focus on the last form item
-
-    const focusesNcCellIndex = Array.from(document.querySelectorAll('.nc-expanded-form-row .nc-data-cell')).findIndex((el) => {
+    const focusesNcCellIndex = Array.from(
+      document.querySelectorAll(`${isExpandedFormOpen.value ? '.nc-expanded-form-row' : '.nc-form-wrapper'} .nc-data-cell`),
+    ).findIndex((el) => {
       return el.querySelector('.nc-filter-value-select') === wrapperRef.value
     })
 
     if (focusesNcCellIndex >= 0) {
-      const nodes = document.querySelectorAll('.nc-expanded-form-row .nc-data-cell')
+      const nodes = document.querySelectorAll(
+        `${isExpandedFormOpen.value ? '.nc-expanded-form-row' : '.nc-form-wrapper'} .nc-data-cell`,
+      )
+
       for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
         const lastFormItem = nodes[i].querySelector('[tabindex="0"]') as HTMLElement
         if (lastFormItem) {
@@ -117,11 +125,11 @@ const onTabPress = (e: KeyboardEvent) => {
     @focus="onWrapperFocus"
   >
     <input
-      v-if="(!isExpandedFormOpen && editEnabled) || (isExpandedFormOpen && expandedEditEnabled)"
+      v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base p-1"
-      :class="{ '!px-2': editEnabled }"
+      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
+      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
@@ -150,3 +158,17 @@ const onTabPress = (e: KeyboardEvent) => {
     <span v-else>{{ vModel }}&nbsp;</span>
   </div>
 </template>
+
+<style lang="scss" scoped>
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+</style>

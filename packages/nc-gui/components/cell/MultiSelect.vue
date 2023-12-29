@@ -8,6 +8,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -62,6 +63,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const selectedIds = ref<string[]>([])
 
@@ -351,7 +354,11 @@ const onFocus = () => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"

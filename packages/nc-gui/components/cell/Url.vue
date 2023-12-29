@@ -6,6 +6,7 @@ import {
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   IsSurveyFormInj,
   computed,
   inject,
@@ -70,7 +71,10 @@ const { cellUrlOptions } = useCellUrlConfig(url)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -92,7 +96,8 @@ watch(
       :ref="focus"
       v-model="vModel"
       :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
-      class="outline-none text-sm w-full px-2 py-2 bg-transparent h-full"
+      class="outline-none text-sm w-full py-1 bg-transparent h-full"
+      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
       @blur="editEnabled = false"
       @keydown.down.stop
       @keydown.left.stop

@@ -2,11 +2,11 @@
 import {
   ActiveCellInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   computed,
   inject,
   parseProp,
   useSelectedCellKeyupListener,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 interface Props {

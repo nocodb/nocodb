@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, iconMap, latLongToJoinedString, useVModel, IsExpandedFormOpenInj } from '#imports'
+import { Modal as AModal, IsExpandedFormOpenInj, iconMap, latLongToJoinedString, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null

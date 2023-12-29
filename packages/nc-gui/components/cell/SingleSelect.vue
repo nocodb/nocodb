@@ -8,6 +8,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -23,7 +24,6 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 interface Props {

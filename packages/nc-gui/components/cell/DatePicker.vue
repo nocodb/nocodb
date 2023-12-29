@@ -7,6 +7,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   ReadonlyInj,
   computed,
   inject,
@@ -20,7 +21,6 @@ import {
   useI18n,
   useSelectedCellKeyupListener,
   watch,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 interface Props {

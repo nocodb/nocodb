@@ -1,24 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
+  AppEvents,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
   UITypes,
 } from 'nocodb-sdk';
-import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
-import type { MetaService } from '~/meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type {
   ColumnType,
   NormalColumnRequestType,
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcRequest } from '~/interface/config';
+import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -26,7 +27,6 @@ import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
-import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
@@ -377,6 +377,19 @@ export class TablesService {
 
     if (param.sourceId) {
       source = base.sources.find((b) => b.id === param.sourceId);
+    }
+
+    // add CreatedBy and LastModifiedBy system columns if missing in request payload
+    {
+      for (const uidt of [UITypes.CreatedTime, UITypes.LastModifiedTime]) {
+        if (
+          !tableCreatePayLoad.columns.find((c) => c.uidt === uidt && c.system)
+        ) {
+          tableCreatePayLoad.columns.push(
+            await getColumnPropsFromUIDT({ uidt } as any, source),
+          );
+        }
+      }
     }
 
     if (

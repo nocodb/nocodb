@@ -7,6 +7,7 @@ import MdiStar from '~icons/mdi/star'
 import MdiStarOutline from '~icons/mdi/star-outline'
 import MdiHeart from '~icons/mdi/heart'
 import MdiHeartOutline from '~icons/mdi/heart-outline'
+import LayoutSidebar from '~icons/tabler/layout-sidebar'
 import MdiMoonFull from '~icons/mdi/moon-full'
 import MdiMoonNew from '~icons/mdi/moon-new'
 import MdiThumbUp from '~icons/mdi/thumb-up'
@@ -361,6 +362,7 @@ export const iconMap = {
   arrowLeft: Left,
   arrowUp: Up,
   layout: PhLayout,
+  sidebar: LayoutSidebar,
   doubleRightArrow: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_right'),
   doubleLeftArrow: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_left'),
   sidebarMinimise: PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),

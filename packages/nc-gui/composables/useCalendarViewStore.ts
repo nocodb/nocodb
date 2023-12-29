@@ -54,6 +54,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const formattedSideBarData = ref<Row[]>([])
 
+    const isSidebarLoading = ref<boolean>(false)
+
     const sideBarFilterOption = ref<string>(activeCalendarView.value)
 
     const { api } = useApi()
@@ -280,8 +282,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       // TODO: Fetch Calendar Meta
       const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
       calendarMetaData.value = res
-      activeCalendarView.value =
-        typeof res.meta === 'string' ? JSON.parse(res.meta)?.active_view : res.meta?.active_view ?? 'month'
+      activeCalendarView.value = typeof res.meta === 'string' ? JSON.parse(res.meta)?.active_view : res.meta?.active_view
       calDataType.value = calendarRange.value[0].fk_from_col.uidt
     }
 
@@ -376,29 +377,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const loadSidebarData = async () => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
+      isSidebarLoading.value = true
       const res = await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
         ...queryParams.value,
         ...{},
         where: sideBarxWhere?.value,
       })
       formattedSideBarData.value = formatData(res!.list)
+      isSidebarLoading.value = false
     }
 
     watch(selectedDate, async () => {
-      await loadCalendarData()
-      await loadSidebarData()
+      await Promise.all([loadCalendarData(), loadSidebarData()])
     })
 
     watch(selectedDateRange, async () => {
       if (activeCalendarView.value !== 'week') return
-      await loadCalendarData()
-      await loadSidebarData()
+      await Promise.all([loadCalendarData(), loadSidebarData()])
     })
 
     watch(activeCalendarView, async () => {
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
-      await loadCalendarData()
-      await loadSidebarData()
+      await Promise.all([loadCalendarData(), loadSidebarData()])
     })
 
     watch(sideBarFilterOption, async () => {
@@ -422,6 +422,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       loadCalendarMeta,
       calendarRange,
       loadCalendarData,
+      isSidebarLoading,
       updateCalendarMeta,
       calendarMetaData,
       activeCalendarView,

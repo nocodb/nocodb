@@ -31,7 +31,6 @@ const hours = computed(() => {
 })
 
 const renderData = computed(() => {
-  console.log(data.value)
   if (data.value) {
     return data.value
   }
@@ -40,7 +39,7 @@ const renderData = computed(() => {
 </script>
 
 <template>
-  <template v-if="filteredData && filteredData.length">
+  <template v-if="filteredData && filteredData.length && displayField.title && calendarRange[0].fk_from_col">
     <div
       v-if="calDataType === UITypes.Date"
       :class="{
@@ -49,7 +48,7 @@ const renderData = computed(() => {
       }"
       class="flex flex-col pt-3 gap-2 h-full w-full px-1"
     >
-      <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :row="record">
+      <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
         <LazySmartsheetCalendarRecordCard
           :key="rowIndex"
           :date="record.row[calendarRange[0].fk_from_col.title]"

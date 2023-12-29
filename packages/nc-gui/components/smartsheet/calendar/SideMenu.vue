@@ -22,6 +22,7 @@ const {
   selectedDateRange,
   activeDates,
   activeCalendarView,
+  isSidebarLoading,
   formattedSideBarData,
   calDataType,
   loadMoreSidebarData,
@@ -125,15 +126,23 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         <span class="text-2xl font-bold">{{ t('objects.Records') }}</span>
         <NcSelect v-model:value="sideBarFilterOption" :options="options" />
       </div>
-      <a-input
-        v-model:value="searchQuery.value"
-        class="!rounded-lg !border-gray-200 !px-4 !py-2"
-        placeholder="Search your records"
-      >
-        <template #prefix>
-          <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
-        </template>
-      </a-input>
+      <div class="flex items-center gap-3">
+        <a-input
+          v-model:value="searchQuery.value"
+          class="!rounded-lg !border-gray-200 !px-4 !py-2"
+          placeholder="Search your records"
+        >
+          <template #prefix>
+            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+          </template>
+        </a-input>
+        <NcButton type="secondary">
+          <div class="px-4 flex items-center gap-2 justify-center">
+            <component :is="iconMap.plus" class="h-4 w-4 text-gray-700" />
+            {{ t('activity.newRecord') }}
+          </div>
+        </NcButton>
+      </div>
 
       <div
         v-if="displayField && calendarRange && calendarRange.length"
@@ -145,14 +154,23 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
         @scroll="sideBarListScrollHandle"
       >
-        <LazySmartsheetRow v-for="(record, rowIndex) in formattedSideBarData" :key="rowIndex" :row="record">
-          <LazySmartsheetCalendarSideRecordCard
-            :date="record.row[calendarRange[0].fk_from_col.title]"
-            :name="record.row[displayField.title]"
-            color="blue"
-            @click="emit('expand-record', record)"
-          />
-        </LazySmartsheetRow>
+        <div v-if="formattedSideBarData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
+          <GeneralLoader v-if="isSidebarLoading" size="large" />
+
+          <div v-else class="text-gray-500">
+            {{ t('msg.noRecordsFound') }}
+          </div>
+        </div>
+        <template v-else-if="formattedSideBarData.length > 0">
+          <LazySmartsheetRow v-for="(record, rowIndex) in formattedSideBarData" :key="rowIndex" :row="record">
+            <LazySmartsheetCalendarSideRecordCard
+              :date="record.row[calendarRange[0].fk_from_col.title]"
+              :name="record.row[displayField.title]"
+              color="blue"
+              @click="emit('expand-record', record)"
+            />
+          </LazySmartsheetRow>
+        </template>
       </div>
     </div>
   </div>

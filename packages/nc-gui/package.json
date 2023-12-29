@@ -88,7 +88,6 @@
     "unique-names-generator": "^4.7.1",
     "v3-infinite-loading": "^1.2.2",
     "validator": "^13.7.0",
-    "vue": "3.3.13",
     "vue-barcode-reader": "^1.0.3",
     "vue-chartjs": "^5.2.0",
     "vue-dompurify-html": "^3.0.0",

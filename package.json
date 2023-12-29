@@ -46,7 +46,7 @@
   },
   "pnpm": {
     "overrides": {
-      "vue": "latest",
+      "vue": "3.3.13",
       "typescript": "latest"
     }
   }

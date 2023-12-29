@@ -17,7 +17,7 @@ const { activeProjectId } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = useUserSorts('Project')
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -40,7 +40,7 @@ const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const sortedCollaborators = computed(() => {
-  return handleGetSortsData(collaborators.value, sorts.value)
+  return handleGetSortedData(collaborators.value, sorts.value)
 })
 
 const loadCollaborators = async () => {

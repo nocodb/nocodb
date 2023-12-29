@@ -44,15 +44,17 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
       const sortConfig = storedConfig ? JSON.parse(storedConfig) : ({} as Record<string, UsersSortType>)
 
       if (sortConfig && isValidSortConfig(sortConfig)) {
-        sorts.value = sortConfig
         // Load user-specific sort configurations or default configurations
         sorts.value = user.value?.id ? sortConfig[user.value.id] || {} : sortConfig[defaultUserId] || {}
       } else {
-        // remove sortConfig from localStorage if it's invalid
-        localStorage.removeItem(userSortConfigKey)
-        sorts.value = {}
+        throw new Error('Invalid sort config stored in local storage')
       }
-    } catch {
+    } catch (error) {
+      console.error(error)
+
+      // remove sortConfig from localStorage in case of error
+      localStorage.removeItem(userSortConfigKey)
+
       // Set sorts to an empty obj in case of an error
       sorts.value = {}
     }
@@ -88,7 +90,7 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
 
       localStorage.setItem(userSortConfigKey, JSON.stringify(sortConfig))
     } catch (error) {
-      console.error('Error while retrieving sort configuration from local storage:', error)
+      console.error('Error while saving sort configuration into local storage:', error)
     }
   }
 
@@ -100,7 +102,7 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
    * @returns A new array containing sorted objects.
    * @template T - The type of objects in the input array.
    */
-  function handleGetSortsData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType = sorts.value): T[] {
+  function handleGetSortedData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType = sorts.value): T[] {
     let userRoleOrder: string[] = []
     if (roleType === 'Workspace') {
       userRoleOrder = Object.values(WorkspaceUserRoles)
@@ -171,5 +173,5 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
     return true
   }
 
-  return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData }
+  return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData }
 }

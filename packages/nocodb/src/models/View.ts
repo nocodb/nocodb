@@ -86,70 +86,6 @@ export default class View implements ViewType {
     Object.assign(this, data);
   }
 
-  async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
-    return (this.model = await Model.getByIdOrName(
-      { id: this.fk_model_id },
-      ncMeta,
-    ));
-  }
-
-  async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
-    return (this.model = await Model.getWithInfo(
-      { id: this.fk_model_id },
-      ncMeta,
-    ));
-  }
-
-  async getView<T>(): Promise<T> {
-    switch (this.type) {
-      case ViewTypes.GRID:
-        this.view = await GridView.get(this.id);
-        break;
-      case ViewTypes.KANBAN:
-        this.view = await KanbanView.get(this.id);
-        break;
-      case ViewTypes.GALLERY:
-        this.view = await GalleryView.get(this.id);
-        break;
-      case ViewTypes.MAP:
-        this.view = await MapView.get(this.id);
-        break;
-      case ViewTypes.FORM:
-        this.view = await FormView.get(this.id);
-        break;
-      case ViewTypes.CALENDAR:
-        this.view = await CalendarView.get(this.id);
-        break;
-    }
-    return <T>this.view;
-  }
-
-  async getViewWithInfo(
-    ncMeta = Noco.ncMeta,
-  ): Promise<FormView | GridView | KanbanView | GalleryView> {
-    switch (this.type) {
-      case ViewTypes.GRID:
-        this.view = await GridView.getWithInfo(this.id, ncMeta);
-        break;
-      case ViewTypes.KANBAN:
-        this.view = await KanbanView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.GALLERY:
-        this.view = await GalleryView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.MAP:
-        this.view = await MapView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.FORM:
-        this.view = await FormView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.CALENDAR:
-        this.view = await CalendarView.get(this.id, ncMeta);
-        break;
-    }
-    return this.view;
-  }
-
   public static async get(viewId: string, ncMeta = Noco.ncMeta) {
     let view =
       viewId &&
@@ -273,19 +209,6 @@ export default class View implements ViewType {
     return viewsList?.map((v) => new View(v));
   }
 
-  public async getFilters(ncMeta = Noco.ncMeta) {
-    return (this.filter = (await Filter.getFilterObject(
-      {
-        viewId: this.id,
-      },
-      ncMeta,
-    )) as any);
-  }
-
-  public async getSorts(ncMeta = Noco.ncMeta) {
-    return (this.sorts = await Sort.list({ viewId: this.id }, ncMeta));
-  }
-
   static async insert(
     view: Partial<View> &
       Partial<
@@ -398,7 +321,7 @@ export default class View implements ViewType {
           ncMeta,
         );
         break;
-      case ViewTypes.CALENDAR:
+      case ViewTypes.CALENDAR: {
         const obj = extractProps(view, ['calendar_range']);
         if (!obj.calendar_range) break;
         const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
@@ -416,6 +339,7 @@ export default class View implements ViewType {
         );
 
         await CalendarRange.bulkInsert(calendarRange, ncMeta);
+      }
     }
 
     if (copyFromView) {
@@ -786,10 +710,6 @@ export default class View implements ViewType {
     }
 
     return columns;
-  }
-
-  async getColumns(ncMeta = Noco.ncMeta) {
-    return (this.columns = await View.getColumns(this.id, ncMeta));
   }
 
   static async getViewColumnId(
@@ -1270,106 +1190,6 @@ export default class View implements ViewType {
     );
   }
 
-  private static extractViewColumnsTableName(view: View) {
-    let table;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW_COLUMNS;
-        break;
-      case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW_COLUMNS;
-        break;
-      case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW_COLUMNS;
-        break;
-      case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW_COLUMNS;
-        break;
-      case ViewTypes.MAP:
-        table = MetaTable.MAP_VIEW_COLUMNS;
-        break;
-      case ViewTypes.CALENDAR:
-        table = MetaTable.CALENDAR_VIEW_COLUMNS;
-        break;
-    }
-    return table;
-  }
-
-  private static extractViewTableName(view: View) {
-    let table;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW;
-        break;
-      case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW;
-        break;
-      case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW;
-        break;
-      case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW;
-        break;
-      case ViewTypes.MAP:
-        table = MetaTable.MAP_VIEW;
-        break;
-      case ViewTypes.CALENDAR:
-        table = MetaTable.CALENDAR_VIEW;
-        break;
-    }
-    return table;
-  }
-
-  private static extractViewColumnsTableNameScope(view: View) {
-    let scope;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        scope = CacheScope.GRID_VIEW_COLUMN;
-        break;
-      case ViewTypes.GALLERY:
-        scope = CacheScope.GALLERY_VIEW_COLUMN;
-        break;
-      case ViewTypes.MAP:
-        scope = CacheScope.MAP_VIEW_COLUMN;
-        break;
-      case ViewTypes.KANBAN:
-        scope = CacheScope.KANBAN_VIEW_COLUMN;
-        break;
-      case ViewTypes.FORM:
-        scope = CacheScope.FORM_VIEW_COLUMN;
-        break;
-      case ViewTypes.CALENDAR:
-        scope = CacheScope.CALENDAR_VIEW_COLUMN;
-        break;
-    }
-    return scope;
-  }
-
-  private static extractViewTableNameScope(view: View) {
-    let scope;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        scope = CacheScope.GRID_VIEW;
-        break;
-      case ViewTypes.GALLERY:
-        scope = CacheScope.GALLERY_VIEW;
-        break;
-      case ViewTypes.MAP:
-        scope = CacheScope.MAP_VIEW;
-        break;
-      case ViewTypes.KANBAN:
-        scope = CacheScope.KANBAN_VIEW;
-        break;
-      case ViewTypes.FORM:
-        scope = CacheScope.FORM_VIEW;
-        break;
-      case ViewTypes.CALENDAR:
-        scope = CacheScope.CALENDAR_VIEW;
-        break;
-    }
-    return scope;
-  }
-
   static async showAllColumns(
     viewId,
     ignoreColdIds = [],
@@ -1519,10 +1339,6 @@ export default class View implements ViewType {
           }
         : null,
     );
-  }
-
-  async delete(ncMeta = Noco.ncMeta) {
-    await View.delete(this.id, ncMeta);
   }
 
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
@@ -1681,6 +1497,191 @@ export default class View implements ViewType {
     );
 
     await NocoCache.del(deleteKeys);
+  }
+
+  private static extractViewColumnsTableName(view: View) {
+    let table;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        table = MetaTable.GRID_VIEW_COLUMNS;
+        break;
+      case ViewTypes.GALLERY:
+        table = MetaTable.GALLERY_VIEW_COLUMNS;
+        break;
+      case ViewTypes.KANBAN:
+        table = MetaTable.KANBAN_VIEW_COLUMNS;
+        break;
+      case ViewTypes.FORM:
+        table = MetaTable.FORM_VIEW_COLUMNS;
+        break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW_COLUMNS;
+        break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW_COLUMNS;
+        break;
+    }
+    return table;
+  }
+
+  private static extractViewTableName(view: View) {
+    let table;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        table = MetaTable.GRID_VIEW;
+        break;
+      case ViewTypes.GALLERY:
+        table = MetaTable.GALLERY_VIEW;
+        break;
+      case ViewTypes.KANBAN:
+        table = MetaTable.KANBAN_VIEW;
+        break;
+      case ViewTypes.FORM:
+        table = MetaTable.FORM_VIEW;
+        break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW;
+        break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW;
+        break;
+    }
+    return table;
+  }
+
+  private static extractViewColumnsTableNameScope(view: View) {
+    let scope;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        scope = CacheScope.GRID_VIEW_COLUMN;
+        break;
+      case ViewTypes.GALLERY:
+        scope = CacheScope.GALLERY_VIEW_COLUMN;
+        break;
+      case ViewTypes.MAP:
+        scope = CacheScope.MAP_VIEW_COLUMN;
+        break;
+      case ViewTypes.KANBAN:
+        scope = CacheScope.KANBAN_VIEW_COLUMN;
+        break;
+      case ViewTypes.FORM:
+        scope = CacheScope.FORM_VIEW_COLUMN;
+        break;
+      case ViewTypes.CALENDAR:
+        scope = CacheScope.CALENDAR_VIEW_COLUMN;
+        break;
+    }
+    return scope;
+  }
+
+  private static extractViewTableNameScope(view: View) {
+    let scope;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        scope = CacheScope.GRID_VIEW;
+        break;
+      case ViewTypes.GALLERY:
+        scope = CacheScope.GALLERY_VIEW;
+        break;
+      case ViewTypes.MAP:
+        scope = CacheScope.MAP_VIEW;
+        break;
+      case ViewTypes.KANBAN:
+        scope = CacheScope.KANBAN_VIEW;
+        break;
+      case ViewTypes.FORM:
+        scope = CacheScope.FORM_VIEW;
+        break;
+      case ViewTypes.CALENDAR:
+        scope = CacheScope.CALENDAR_VIEW;
+        break;
+    }
+    return scope;
+  }
+
+  async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    return (this.model = await Model.getByIdOrName(
+      { id: this.fk_model_id },
+      ncMeta,
+    ));
+  }
+
+  async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
+    return (this.model = await Model.getWithInfo(
+      { id: this.fk_model_id },
+      ncMeta,
+    ));
+  }
+
+  async getView<T>(): Promise<T> {
+    switch (this.type) {
+      case ViewTypes.GRID:
+        this.view = await GridView.get(this.id);
+        break;
+      case ViewTypes.KANBAN:
+        this.view = await KanbanView.get(this.id);
+        break;
+      case ViewTypes.GALLERY:
+        this.view = await GalleryView.get(this.id);
+        break;
+      case ViewTypes.MAP:
+        this.view = await MapView.get(this.id);
+        break;
+      case ViewTypes.FORM:
+        this.view = await FormView.get(this.id);
+        break;
+      case ViewTypes.CALENDAR:
+        this.view = await CalendarView.get(this.id);
+        break;
+    }
+    return <T>this.view;
+  }
+
+  async getViewWithInfo(
+    ncMeta = Noco.ncMeta,
+  ): Promise<FormView | GridView | KanbanView | GalleryView> {
+    switch (this.type) {
+      case ViewTypes.GRID:
+        this.view = await GridView.getWithInfo(this.id, ncMeta);
+        break;
+      case ViewTypes.KANBAN:
+        this.view = await KanbanView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.GALLERY:
+        this.view = await GalleryView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.MAP:
+        this.view = await MapView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.FORM:
+        this.view = await FormView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.CALENDAR:
+        this.view = await CalendarView.get(this.id, ncMeta);
+        break;
+    }
+    return this.view;
+  }
+
+  public async getFilters(ncMeta = Noco.ncMeta) {
+    return (this.filter = (await Filter.getFilterObject(
+      {
+        viewId: this.id,
+      },
+      ncMeta,
+    )) as any);
+  }
+
+  public async getSorts(ncMeta = Noco.ncMeta) {
+    return (this.sorts = await Sort.list({ viewId: this.id }, ncMeta));
+  }
+
+  async getColumns(ncMeta = Noco.ncMeta) {
+    return (this.columns = await View.getColumns(this.id, ncMeta));
+  }
+
+  async delete(ncMeta = Noco.ncMeta) {
+    await View.delete(this.id, ncMeta);
   }
 
   static async bulkColumnInsertToViews(

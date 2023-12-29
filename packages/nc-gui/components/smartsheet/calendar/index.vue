@@ -92,6 +92,9 @@ const expandRecord = (row: RowType, isNew = false) => {
 onMounted(async () => {
   await loadCalendarMeta()
   await loadCalendarData()
+  if (!activeCalendarView.value) {
+    activeCalendarView.value = 'month'
+  }
 })
 
 reloadViewMetaHook?.on(async () => {

@@ -7,7 +7,7 @@ import {
   extractRolesObj,
   timeAgo,
 } from 'nocodb-sdk'
-import type { WorkspaceUserRoles } from 'nocodb-sdk'
+import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
@@ -26,6 +26,7 @@ interface Collaborators {
   email: string
   main_roles: OrgUserRoles
   roles: ProjectRoles
+  base_roles: Roles
   workspace_roles: WorkspaceUserRoles
   created_at: string
 }
@@ -91,28 +92,32 @@ const loadListData = async ($state: any) => {
 }
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
+  const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
+
   try {
     if (
       !roles ||
       (roles === ProjectRoles.NO_ACCESS && !isEeUI) ||
-      (collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles] === roles && isEeUI)
+      (currentCollaborator.workspace_roles &&
+        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
+        isEeUI)
     ) {
       await removeProjectUser(activeProjectId.value!, collab)
       if (
-        collab.workspace_roles &&
-        WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles] === roles &&
+        currentCollaborator.workspace_roles &&
+        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
         isEeUI
       ) {
-        collab.roles = WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles]
+        currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
       } else {
-        collab.roles = ProjectRoles.NO_ACCESS
+        currentCollaborator.roles = ProjectRoles.NO_ACCESS
       }
-    } else if (collab.base_roles) {
-      collab.roles = roles
+    } else if (currentCollaborator.base_roles) {
+      currentCollaborator.roles = roles
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
-      collab.roles = roles
-      collab.base_roles = roles
+      currentCollaborator.roles = roles
+      currentCollaborator.base_roles = roles
       await createProjectUser(activeProjectId.value!, collab)
     }
   } catch (e: any) {

@@ -16,6 +16,7 @@ import {
   inject,
   provide,
   ref,
+  rowDefaultData,
   useI18n,
 } from '#imports'
 
@@ -72,8 +73,9 @@ const expandedFormOnRowIdDlg = computed({
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
+const expandedFormRowState = ref<Record<string, any>>()
 
-const expandRecord = (row: RowType, isNew = false) => {
+const expandRecord = (row: RowType) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
@@ -87,6 +89,20 @@ const expandRecord = (row: RowType, isNew = false) => {
     expandedFormRow.value = row
     expandedFormDlg.value = true
   }
+}
+
+const newRecord = () => {
+  // TODO: The default values has to be filled based on the active calendar view
+  // and selected sidebar filter option
+  expandRecord({
+    row: {
+      ...rowDefaultData(meta.value?.columns),
+    },
+    oldRow: {},
+    rowMeta: {
+      new: true,
+    },
+  })
 }
 
 onMounted(async () => {
@@ -160,8 +176,24 @@ const headerText = computed(() => {
         <GeneralLoader size="xlarge" />
       </div>
     </div>
-    <LazySmartsheetCalendarSideMenu v-if="!isMobileMode" :visible="showSideMenu" @expand-record="expandRecord" />
+    <LazySmartsheetCalendarSideMenu
+      v-if="!isMobileMode"
+      :visible="showSideMenu"
+      @expand-record="expandRecord"
+      @new-record="newRecord"
+    />
   </div>
+
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :meta="meta"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :view="view"
+    />
+  </Suspense>
 
   <Suspense>
     <LazySmartsheetExpandedForm

@@ -7,7 +7,7 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const emit = defineEmits(['expand-record'])
+const emit = defineEmits(['expand-record', 'new-record'])
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
@@ -136,7 +136,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcButton type="secondary">
+        <NcButton type="secondary" @click="emit('new-record')">
           <div class="px-4 flex items-center gap-2 justify-center">
             <component :is="iconMap.plus" class="h-4 w-4 text-gray-700" />
             {{ t('activity.newRecord') }}

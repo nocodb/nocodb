@@ -61,6 +61,11 @@ export default class CalendarRange implements CalendarRangeType {
       MetaTable.CALENDAR_VIEW_RANGE,
       insertObj,
     );
+    // clear cache
+    const uniqueFks = [...new Set(bulkData.map((d) => d.fk_view_id))];
+    for (const fk of uniqueFks) {
+      await NocoCache.delAll(CacheScope.CALENDAR_VIEW_RANGE, `${fk}:*`);
+    }
 
     for (const d of bulkData) {
       await NocoCache.appendToList(

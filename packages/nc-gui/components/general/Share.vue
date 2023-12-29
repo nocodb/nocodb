@@ -12,16 +12,13 @@ interface Props {
   width?: string
 }
 
-const {
-  url,
-  socialMedias,
-  title = 'NocoDB',
-  summary,
-  hashTags = '',
-  css = '',
-  iconClass = '',
-  width = '45px',
-} = defineProps<Props>()
+const { url, socialMedias, title, summary, hashTags, css, iconClass, width } = withDefaults(defineProps<Props>(), {
+  title: 'NocoDB',
+  hashTags: '',
+  css: '',
+  iconClass: '',
+  width: '45px',
+})
 
 const summaryArr = [
   'Instant #Rest & #GraphQL APIs on any #SQL Database (Supports : MySQL, PostgresSQL, MsSQL, SQLite, MariaDB) #nocodb ',

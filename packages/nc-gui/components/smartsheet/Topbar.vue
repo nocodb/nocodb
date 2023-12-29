@@ -1,7 +1,7 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { IsPublicInj, inject, ref, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
 
-const { isGrid, isForm, isGallery, isKanban, isMap } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -37,7 +37,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       <GeneralApiLoader v-if="!isMobileMode" />
 
       <LazyGeneralShareProject
-        v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic && !isMobileMode"
+        v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"
         is-view-toolbar
       />
 

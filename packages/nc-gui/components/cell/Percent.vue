@@ -121,10 +121,8 @@ const onTabPress = (e: KeyboardEvent) => {
       v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base px-0 py-1"
-      :class="{
-        '!px-2': isExpandedFormOpen,
-      }"
+      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
+      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"

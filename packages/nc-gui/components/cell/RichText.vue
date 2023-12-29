@@ -165,7 +165,7 @@ watch(editorDom, () => {
 
 <template>
   <div
-    class="h-full focus:!outline-none focus-visible:!outline-none"
+    class="h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,

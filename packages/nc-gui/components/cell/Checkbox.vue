@@ -96,7 +96,7 @@ useSelectedCellKeyupListener(active, (e) => {
         isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     @click="onClick(false, $event)"
-    @keydown.enter.stop="onClick(false, $event)"
+    @keydown.enter.stop="onClick(true, $event)"
   >
     <div
       class="flex items-center"

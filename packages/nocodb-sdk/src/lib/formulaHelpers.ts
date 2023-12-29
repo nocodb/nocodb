@@ -913,7 +913,38 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         min: 2,
         max: 3,
-        type: FormulaDataTypes.STRING,
+      },
+      custom(argTypes: FormulaDataTypes[], parsedTree) {
+        if (argTypes[0] !== FormulaDataTypes.STRING) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.stringTypeIsExpected',
+              calleeName: parsedTree.callee?.name?.toUpperCase(),
+            },
+            'String type is expected'
+          );
+        }
+        if (argTypes[1] !== FormulaDataTypes.NUMERIC) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.numericTypeIsExpected',
+              calleeName: parsedTree.callee?.name?.toUpperCase(),
+            },
+            'Numeric type is expected'
+          );
+        }
+        if (argTypes[2] && argTypes[2] !== FormulaDataTypes.NUMERIC) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.numericTypeIsExpected',
+              calleeName: parsedTree.callee?.name?.toUpperCase(),
+            },
+            'Numeric type is expected'
+          );
+        }
       },
     },
     description:

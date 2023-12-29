@@ -29,8 +29,19 @@ const editLog = ref<AuditType>()
 
 const isEditing = ref<boolean>(false)
 
-const commentInputDomRef = ref<HTMLInputElement>()
+const isCommentMode = ref(false)
 
+const focusCommentInput: VNodeRef = (el) => {
+  if (!isExpandedFormLoading.value && (isCommentMode.value || isExpandedFormCommentMode.value) && !isEditing.value) {
+    if (isExpandedFormCommentMode.value) {
+      setTimeout(() => {
+        isExpandedFormCommentMode.value = false
+      }, 400)
+    }
+    return (el as HTMLInputElement)?.focus()
+  }
+  return el
+}
 const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 function onKeyDown(event: KeyboardEvent) {
@@ -55,6 +66,9 @@ function onKeyEsc(event: KeyboardEvent) {
 
 async function onEditComment() {
   if (!isEditing.value || !editLog.value) return
+
+  isCommentMode.value = true
+
   await updateComment(editLog.value.id!, {
     description: editLog.value.description,
   })
@@ -106,6 +120,7 @@ const isSaving = ref(false)
 const saveComment = async () => {
   if (isSaving.value) return
 
+  isCommentMode.value = true
   isSaving.value = true
 
   try {
@@ -128,15 +143,6 @@ const onClickAudit = () => {
 
   tab.value = 'audits'
 }
-
-watch(commentInputDomRef, () => {
-  if (commentInputDomRef.value && isExpandedFormCommentMode.value) {
-    setTimeout(() => {
-      commentInputDomRef.value?.focus()
-      isExpandedFormCommentMode.value = false
-    }, 400)
-  }
-})
 </script>
 
 <template>
@@ -254,12 +260,13 @@ watch(commentInputDomRef, () => {
           <div class="h-14 flex flex-row w-full bg-white py-2.75 px-1.5 items-center rounded-xl border-1 border-gray-200">
             <GeneralUserIcon size="base" class="!w-10" :email="user?.email" :name="user?.display_name" />
             <a-input
-              ref="commentInputDomRef"
+              :ref="focusCommentInput"
               v-model:value="comment"
               class="!rounded-lg border-1 bg-white !px-2.5 !py-2 !border-gray-200 nc-comment-box !outline-none"
               placeholder="Start typing..."
               data-testid="expanded-form-comment-input"
               :bordered="false"
+              :disabled="isSaving"
               @keyup.enter.prevent="saveComment"
             >
             </a-input>

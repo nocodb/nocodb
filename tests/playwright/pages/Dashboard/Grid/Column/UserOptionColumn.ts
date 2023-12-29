@@ -57,13 +57,13 @@ export class UserOptionColumnPageObject extends BasePage {
       for (const op of optionsToSelect) {
         await this.selectOption({ option: op });
       }
+
+      // Press `Escape` to close the dropdown
+      await this.rootPage.keyboard.press('Escape');
+      await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
     } else if (!Array.isArray(option)) {
       await this.selectOption({ option });
     }
-
-    // Press `Escape` to close the dropdown
-    await this.rootPage.keyboard.press('Escape');
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
 
     await this.column.save({ isUpdated: true });
   }

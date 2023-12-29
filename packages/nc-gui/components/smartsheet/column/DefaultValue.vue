@@ -47,7 +47,7 @@ watch(
   <div class="!my-3 text-xs">{{ $t('placeholder.defaultValue') }}</div>
   <div class="flex flex-row gap-2">
     <div
-      class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md"
+      class="border-1 flex items-center w-full px-3 my-[-4px] border-gray-300 rounded-md sm:min-h-[32px] xs:min-h-13 flex items-center focus-within:(border-brand-500 shadow-none ring-0)"
       :class="{
         '!border-brand-500': editEnabled,
       }"

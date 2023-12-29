@@ -184,7 +184,7 @@ const onImageClick = (item: any) => {
       height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center w-full xs:(min-h-12 max-h-32)"
-    :class="{ 'justify-center': !active, 'justify-between': active }"
+    :class="{ 'justify-center': !active, 'justify-between': active, 'px-2': isExpandedForm }"
   >
     <LazyCellAttachmentCarousel />
 

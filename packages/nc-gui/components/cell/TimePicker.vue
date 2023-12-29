@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import {
   ActiveCellInj,
   EditColumnInj,
+  IsExpandedFormOpenInj,
   ReadonlyInj,
   inject,
   onClickOutside,
@@ -33,6 +34,8 @@ const editable = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isTimeInvalid = ref(false)
 
@@ -130,8 +133,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full !px-1 !border-none"
-    :class="{ 'nc-null': modelValue === null && showNull }"
+    class="!w-full !py-1 !border-none"
+    :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"

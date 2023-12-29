@@ -9,6 +9,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -47,6 +48,8 @@ const readOnly = inject(ReadonlyInj)!
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const basesStore = useBases()
 
@@ -260,7 +263,11 @@ const filterOption = (input: string, option: any) => {
 </script>
 
 <template>
-  <div class="nc-user-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-user-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
@@ -48,7 +48,10 @@ const vModel = computed({
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 function onKeyDown(e: any) {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -85,11 +88,9 @@ function onKeyDown(e: any) {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none py-2 px-1 border-none w-full h-full text-sm"
+    class="outline-none py-1 border-none w-full h-full text-sm"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     type="number"
-    :class="{
-      'pl-2': isExpandedFormOpen,
-    }"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"

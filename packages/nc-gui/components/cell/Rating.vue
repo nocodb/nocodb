@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, computed, inject, parseProp, useSelectedCellKeyupListener } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  IsExpandedFormOpenInj,
+  computed,
+  inject,
+  parseProp,
+  useSelectedCellKeyupListener,
+} from '#imports'
 
 interface Props {
   modelValue?: number | null | undefined
@@ -12,6 +20,8 @@ const emits = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)!
 
 const readonly = inject(ReadonlyInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const ratingMeta = computed(() => {
   return {
@@ -65,7 +75,7 @@ watch(rateDomRef, () => {
     v-model:value="vModel"
     :disabled="readonly"
     :count="ratingMeta.max"
-    :style="`color: ${ratingMeta.color}; padding: 0px 5px`"
+    :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 5px'};`"
     @keydown="onKeyPress"
   >
     <template #character>

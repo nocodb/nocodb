@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, EditColumnInj, EditModeInj, IsExpandedFormOpenInj, computed, inject, parseProp, useVModel } from '#imports'
+import {
+  ColumnInj,
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  computed,
+  inject,
+  parseProp,
+  useVModel,
+} from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -57,7 +67,10 @@ const currency = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 const submitCurrency = () => {
   if (lastSaved.value !== vModel.value) {
@@ -78,7 +91,8 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="w-full h-full text-sm border-none rounded-md outline-none focus:outline-transparent focus:ring-0"
+    class="w-full h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="submitCurrency"
     @keydown.down.stop
@@ -99,3 +113,17 @@ onMounted(() => {
   <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />
 </template>
+
+<style lang="scss" scoped>
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+</style>

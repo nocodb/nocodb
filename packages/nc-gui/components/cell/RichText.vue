@@ -46,6 +46,15 @@ turndownService.addRule('taskList', {
   },
 })
 
+turndownService.addRule('strikethrough', {
+  filter: ['s'],
+  replacement: (content) => {
+    return `~${content}~`
+  },
+})
+
+turndownService.keep(['u', 'del'])
+
 const checkListItem = {
   name: 'checkListItem',
   level: 'block',
@@ -156,11 +165,12 @@ watch(editorDom, () => {
 
 <template>
   <div
-    class="h-full"
+    class="h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,
     }"
+    tabindex="0"
   >
     <div v-if="props.showMenu" class="absolute top-0 right-0.5">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />

@@ -84,7 +84,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
   } else if (isGeometry(column)) {
     return iconMap.calculator
   } else if (isUser(column)) {
-    if ((column.meta as { is_multi: boolean; notify: boolean }).is_multi) {
+    if ((column.meta as { is_multi?: boolean; notify?: boolean })?.is_multi) {
       return iconMap.phUsers
     }
     return iconMap.phUser

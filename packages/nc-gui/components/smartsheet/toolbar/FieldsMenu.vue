@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { CalendarType, ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
@@ -76,7 +76,7 @@ watch(
 const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
 const gridDisplayValueField = computed(() => {
-  if (activeView.value?.type !== ViewTypes.GRID) return null
+  if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
   const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
 })
@@ -300,11 +300,11 @@ useMenuCloseOnEsc(open)
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
     class="!xs:hidden"
+    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
   >
     <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
-      <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button v-e="['c:fields']" :disabled="isLocked" class="nc-fields-menu-btn nc-toolbar-btn">
         <div class="flex items-center gap-2">
           <GeneralIcon
             v-if="
@@ -312,8 +312,8 @@ useMenuCloseOnEsc(open)
               activeView?.type === ViewTypes.GALLERY ||
               activeView?.type === ViewTypes.CALENDAR
             "
-            icon="creditCard"
             class="h-4 w-4"
+            icon="creditCard"
           />
           <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
@@ -354,18 +354,18 @@ useMenuCloseOnEsc(open)
           <div class="flex text-sm select-none">Select cover image field</div>
           <a-select
             v-model:value="coverImageColumnId"
-            class="w-full"
             :options="coverOptions"
+            class="w-full"
             dropdown-class-name="nc-dropdown-cover-image"
             @click.stop
           >
-            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+            <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
           </a-select>
         </div>
 
         <div class="pr-4" @click.stop>
           <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
-            <template #prefix> <img src="~/assets/nc-icons/search.svg" class="h-3.5 w-3.5 mr-1" /> </template
+            <template #prefix> <img class="h-3.5 w-3.5 mr-1" src="~/assets/nc-icons/search.svg" /> </template
           ></a-input>
         </div>
 
@@ -390,8 +390,8 @@ useMenuCloseOnEsc(open)
                       .includes(field)
                   "
                   :key="field.id"
-                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
                   :data-testid="`nc-fields-menu-${field.title}`"
+                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
@@ -406,7 +406,7 @@ useMenuCloseOnEsc(open)
                     "
                   >
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                    <NcTooltip show-on-truncate-only class="flex-1 px-1 truncate">
+                    <NcTooltip class="flex-1 px-1 truncate" show-on-truncate-only>
                       <template #title>
                         {{ field.title }}
                       </template>
@@ -419,20 +419,20 @@ useMenuCloseOnEsc(open)
                   <div class="flex-1" />
                 </div>
               </template>
-              <template v-if="activeView?.type === ViewTypes.GRID" #header>
+              <template v-if="activeView?.type === ViewTypes.GRID || activeView?.type === ViewTypes.CALENDAR" #header>
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"
-                  class="pl-7.4 pr-2 py-2 flex flex-row items-center border-1 border-gray-200"
                   :class="{
                     'rounded-t-lg': filteredFieldList.length > 1,
                     'rounded-lg': filteredFieldList.length === 1,
                   }"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
+                  class="pl-7.4 pr-2 py-2 flex flex-row items-center border-1 border-gray-200"
                   @click.stop
                 >
                   <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-                  <NcTooltip show-on-truncate-only class="px-1 flex-1 truncate">
+                  <NcTooltip class="px-1 flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ filteredFieldList[0].title }}</template>
                     <template #default>{{ filteredFieldList[0].title }}</template>
                   </NcTooltip>
@@ -446,18 +446,18 @@ useMenuCloseOnEsc(open)
         <div class="flex pr-4 mt-1 gap-2">
           <NcButton
             v-if="!filterQuery"
-            type="ghost"
-            size="sm"
             class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
+            size="sm"
+            type="ghost"
             @click="showAllColumns = !showAllColumns"
           >
             {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
             v-if="!isPublic && !filterQuery"
-            type="ghost"
-            size="sm"
             class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
+            size="sm"
+            type="ghost"
             @click="showSystemField = !showSystemField"
           >
             {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
@@ -468,7 +468,7 @@ useMenuCloseOnEsc(open)
   </NcDropdown>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 // :deep(.ant-checkbox-inner) {
 //   @apply transform scale-60;
 // }

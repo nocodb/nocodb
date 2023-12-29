@@ -660,7 +660,7 @@ export async function extractColumn({
     case UITypes.LastModifiedTime:
     case UITypes.DateTime:
       {
-        const columnName = getColumnName(column, columns);
+        const columnName = await getColumnName(column, columns);
         // MySQL stores timestamp in UTC but display in timezone
         // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
         // If it's SYSTEM, then the timezone is read from the configuration file

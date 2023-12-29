@@ -650,7 +650,7 @@ export async function extractColumn({
     case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
     case UITypes.DateTime: {
-      const columnName = getColumnName(column, columns);
+      const columnName = await getColumnName(column, columns);
 
       // if there is no timezone info,
       // convert to database timezone,

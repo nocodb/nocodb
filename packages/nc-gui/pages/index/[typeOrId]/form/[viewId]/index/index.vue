@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { iconMap, useSharedFormStoreOrThrow } from '#imports'
+import { iconMap, useGlobal, useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
   useSharedFormStoreOrThrow()
@@ -21,6 +21,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
 }
 
+const { isMobileMode } = useGlobal()
 const fieldTitleForCurrentScan = ref('')
 
 const scannerIsReady = ref(false)
@@ -68,7 +69,13 @@ const onDecode = async (scannedCodeValue: string) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col items-center">
+  <div
+    class="h-full flex flex-col items-center"
+    :class="{
+      mobile: isMobileMode,
+      desktop: !isMobileMode,
+    }"
+  >
     <div
       class="color-transition flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >

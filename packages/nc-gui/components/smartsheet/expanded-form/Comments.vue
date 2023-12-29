@@ -116,6 +116,10 @@ const saveComment = async () => {
     console.error(e)
   } finally {
     isSaving.value = false
+
+    setTimeout(() => {
+      commentInputDomRef.value?.focus()
+    }, 400)
   }
 }
 

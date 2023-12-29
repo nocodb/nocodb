@@ -38,7 +38,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits, { defaultValue: column?.value.cdf ? String(column?.value.cdf) : '' })
+const vModel = useVModel(props, 'modelValue', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -55,7 +55,8 @@ const position = ref<
 
 const isDragging = ref(false)
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLTextAreaElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && isForm.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (isExpandedFormOpen.value) return 36 * 4
@@ -192,6 +193,7 @@ watch(editEnabled, () => {
           minHeight: `${height}px !important`,
         }"
         @dblclick="onExpand"
+        @keydown.enter="onExpand"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
       </div>
@@ -204,7 +206,7 @@ watch(editEnabled, () => {
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
-          'px-1': isExpandedFormOpen,
+          'px-2': isExpandedFormOpen,
         }"
         :style="{
           minHeight: `${height}px`,
@@ -241,13 +243,8 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 bottom-1 hidden nc-text-area-expand-btn"
-        :class="{
-          'right-0 bottom-1': editEnabled,
-          '!bottom-0': !isRichMode,
-          'top-1 hidden !group-hover:block': isExpandedFormOpen,
-          'bottom-1': !isExpandedFormOpen,
-        }"
+        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block"
+        :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

@@ -4,6 +4,7 @@ import {
   EditColumnInj,
   EditModeInj,
   IsExpandedFormOpenInj,
+  IsFormInj,
   IsSurveyFormInj,
   computed,
   inject,
@@ -50,7 +51,10 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const isForm = inject(IsFormInj)!
+
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
@@ -70,7 +74,8 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-1 py-2"
+    class="w-full outline-none text-sm py-1"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop

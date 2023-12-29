@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
@@ -63,6 +63,8 @@ const precision = computed(() => {
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
+const isForm = inject(IsFormInj)!
+
 // Handle the arrow keys as its default behavior is to increment/decrement the value
 const onKeyDown = (e: any) => {
   if (e.key === 'ArrowDown') {
@@ -80,7 +82,8 @@ const onKeyDown = (e: any) => {
   }
 }
 
-const focus: VNodeRef = (el) => !isExpandedFormOpen.value && !isEditColumn.value && (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) =>
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(isExpandedFormOpen, () => {
   if (!isExpandedFormOpen.value) {
@@ -94,7 +97,8 @@ watch(isExpandedFormOpen, () => {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none !py-2 !px-1 border-none rounded-md w-full h-full !text-sm"
+    class="outline-none py-1 border-none rounded-md w-full h-full !text-sm"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     type="number"
     :step="precision"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"

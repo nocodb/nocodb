@@ -38,8 +38,12 @@ const isLoading = ref(false)
 const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
+const filteredCollaborators = computed(() =>
+  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
+)
+
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(collaborators.value, sorts.value)
+  return handleGetSortedData(filteredCollaborators.value, sorts.value)
 })
 
 const loadCollaborators = async () => {
@@ -124,10 +128,6 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
-
-const filteredCollaborators = computed(() =>
-  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
-)
 </script>
 
 <template>
@@ -163,7 +163,7 @@ const filteredCollaborators = computed(() =>
               </span>
               <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
             </div>
-           
+
             <div class="text-gray-700 user-access-grid flex items-center space-x-2">
               <span>
                 {{ $t('general.access') }}
@@ -175,7 +175,7 @@ const filteredCollaborators = computed(() =>
 
           <div class="flex flex-col nc-scrollbar-md">
             <div
-              v-for="(collab, i) of filteredCollaborators"
+              v-for="(collab, i) of sortedCollaborators"
               :key="i"
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >

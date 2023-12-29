@@ -1019,7 +1019,7 @@ export const formulas: Record<string, FormulaMeta> = {
             'String type is expected'
           );
         }
-        for(const i in [1,2]) {
+        for(const i of [1,2]) {
           if (argTypes[i] !== FormulaDataTypes.NUMERIC) {
             throw new FormulaError(
               FormulaErrorType.INVALID_ARG,

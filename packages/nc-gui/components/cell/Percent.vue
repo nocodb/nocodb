@@ -150,3 +150,17 @@ const onTabPress = (e: KeyboardEvent) => {
     <span v-else>{{ vModel }}&nbsp;</span>
   </div>
 </template>
+
+<style lang="scss" scoped>
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+</style>

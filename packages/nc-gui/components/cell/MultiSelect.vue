@@ -354,13 +354,14 @@ const onFocus = () => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"
-      :class="{
-        'px-2': isExpandedFormOpen,
-      }"
       :style="{
         'display': '-webkit-box',
         'max-width': '100%',
@@ -413,7 +414,7 @@ const onFocus = () => {
       :show-arrow="editAllowed && !readOnly"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :class="{ 'caret-transparent': !hasEditRoles, '!px-2': isExpandedFormOpen }"
+      :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown="onKeyDown"

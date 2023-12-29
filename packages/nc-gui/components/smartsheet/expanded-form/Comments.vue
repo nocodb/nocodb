@@ -260,6 +260,7 @@ watch(commentInputDomRef, () => {
               placeholder="Start typing..."
               data-testid="expanded-form-comment-input"
               :bordered="false"
+              :disabled="isSaving"
               @keyup.enter.prevent="saveComment"
             >
             </a-input>

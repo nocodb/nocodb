@@ -6,7 +6,7 @@ interface Props {
   animate?: boolean
 }
 
-const { size, animate } = withDefaults(defineProps<Props>(), { size: 90, animate: false })
+const { size = 90, animate = false } = defineProps<Props>()
 
 const ping = autoResetRef(false, 1000)
 

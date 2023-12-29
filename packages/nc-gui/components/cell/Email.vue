@@ -70,7 +70,10 @@ watch(
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm px-1 py-2"
+    class="w-full outline-none text-sm px-0 py-1"
+    :class="{
+      '!px-2': isExpandedFormOpen,
+    }"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop

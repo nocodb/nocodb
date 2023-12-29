@@ -27,6 +27,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  IsExpandedFormOpenInj,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -62,6 +63,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const selectedIds = ref<string[]>([])
 
@@ -355,6 +358,9 @@ const onFocus = () => {
     <div
       v-if="!active"
       class="flex flex-wrap"
+      :class="{
+        '!px-2': isExpandedFormOpen,
+      }"
       :style="{
         'display': '-webkit-box',
         'max-width': '100%',
@@ -407,7 +413,7 @@ const onFocus = () => {
       :show-arrow="editAllowed && !readOnly"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :class="{ 'caret-transparent': !hasEditRoles }"
+      :class="{ 'caret-transparent': !hasEditRoles, '!px-2': isExpandedFormOpen }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown="onKeyDown"

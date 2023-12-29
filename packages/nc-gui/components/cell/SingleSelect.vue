@@ -23,6 +23,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  IsExpandedFormOpenInj,
 } from '#imports'
 
 interface Props {
@@ -46,6 +47,8 @@ const isEditable = inject(EditModeInj, ref(false))
 const activeCell = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
@@ -276,7 +279,13 @@ const onFocus = () => {
     @click="toggleMenu"
     @keydown.enter.stop.prevent="toggleMenu"
   >
-    <div v-if="!(active || isEditable)" class="w-full">
+    <div
+      v-if="!(active || isEditable)"
+      class="w-full"
+      :class="{
+        '!px-2': isExpandedFormOpen,
+      }"
+    >
       <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
         <span
           :style="{
@@ -311,7 +320,7 @@ const onFocus = () => {
       ref="aselect"
       v-model:value="vModel"
       class="w-full overflow-hidden xs:min-h-12"
-      :class="{ 'caret-transparent': !hasEditRoles }"
+      :class="{ 'caret-transparent': !hasEditRoles, '!px-2': isExpandedFormOpen }"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"

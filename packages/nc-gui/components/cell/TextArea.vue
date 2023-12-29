@@ -204,7 +204,7 @@ watch(editEnabled, () => {
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
-          'px-1': isExpandedFormOpen,
+          'px-2': isExpandedFormOpen,
         }"
         :style="{
           minHeight: `${height}px`,

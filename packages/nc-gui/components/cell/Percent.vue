@@ -117,11 +117,13 @@ const onTabPress = (e: KeyboardEvent) => {
     @focus="onWrapperFocus"
   >
     <input
-      v-if="(!isExpandedFormOpen && editEnabled) || (isExpandedFormOpen && expandedEditEnabled)"
+      v-if="editEnabled"
       :ref="focus"
       v-model="vModel"
-      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base p-1"
-      :class="{ '!px-2': editEnabled }"
+      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base px-0 py-1"
+      :class="{
+        '!px-2': isExpandedFormOpen,
+      }"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"

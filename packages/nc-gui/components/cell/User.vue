@@ -22,6 +22,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  IsExpandedFormOpenInj,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -47,6 +48,8 @@ const readOnly = inject(ReadonlyInj)!
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const basesStore = useBases()
 
@@ -264,6 +267,9 @@ const filterOption = (input: string, option: any) => {
     <div
       v-if="!active"
       class="flex flex-wrap"
+      :class="{
+        '!px-2': isExpandedFormOpen,
+      }"
       :style="{
         'display': '-webkit-box',
         'max-width': '100%',
@@ -302,7 +308,7 @@ const filterOption = (input: string, option: any) => {
       :show-arrow="editAllowed && !readOnly"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :class="{ 'caret-transparent': !hasEditRoles }"
+      :class="{ 'caret-transparent': !hasEditRoles, '!px-2': isExpandedFormOpen }"
       :dropdown-class-name="`nc-dropdown-user-select-cell ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
       @search="search"

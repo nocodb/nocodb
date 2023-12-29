@@ -11,6 +11,7 @@ import {
   renderValue,
   replaceUrlsWithLink,
   useBase,
+  useGlobal,
 } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck

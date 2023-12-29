@@ -263,13 +263,14 @@ const filterOption = (input: string, option: any) => {
 </script>
 
 <template>
-  <div class="nc-user-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+  <div
+    class="nc-user-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
+    @click="toggleMenu"
+  >
     <div
       v-if="!active"
       class="flex flex-wrap"
-      :class="{
-        'px-2': isExpandedFormOpen,
-      }"
       :style="{
         'display': '-webkit-box',
         'max-width': '100%',
@@ -308,7 +309,7 @@ const filterOption = (input: string, option: any) => {
       :show-arrow="editAllowed && !readOnly"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :class="{ 'caret-transparent': !hasEditRoles, '!px-2': isExpandedFormOpen }"
+      :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-user-select-cell ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
       @search="search"

@@ -275,17 +275,11 @@ const onFocus = () => {
 <template>
   <div
     class="h-full w-full flex items-center nc-single-select focus:outline-transparent"
-    :class="{ 'read-only': readOnly }"
+    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
     @click="toggleMenu"
     @keydown.enter.stop.prevent="toggleMenu"
   >
-    <div
-      v-if="!(active || isEditable)"
-      class="w-full"
-      :class="{
-        'px-2': isExpandedFormOpen,
-      }"
-    >
+    <div v-if="!(active || isEditable)" class="w-full">
       <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
         <span
           :style="{
@@ -320,7 +314,7 @@ const onFocus = () => {
       ref="aselect"
       v-model:value="vModel"
       class="w-full overflow-hidden xs:min-h-12"
-      :class="{ 'caret-transparent': !hasEditRoles, '!px-2': isExpandedFormOpen }"
+      :class="{ 'caret-transparent': !hasEditRoles }"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"

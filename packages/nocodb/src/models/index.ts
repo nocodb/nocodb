@@ -5,6 +5,7 @@ export { default as Source } from './Source';
 export { default as Column } from './Column';
 export { default as CalendarView } from './CalendarView';
 export { default as CalendarViewColumn } from './CalendarViewColumn';
+export { default as CalendarRange } from './CalendarRange';
 export { default as Filter } from './Filter';
 export { default as FormulaColumn } from './FormulaColumn';
 export { default as FormView } from './FormView';

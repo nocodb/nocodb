@@ -3,7 +3,7 @@ interface Props {
   nav?: boolean
 }
 
-const { nav = false } = defineProps<Props>()
+const { nav } = withDefaults(defineProps<Props>(), { nav: false })
 </script>
 
 <template>

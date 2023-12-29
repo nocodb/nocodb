@@ -45,7 +45,7 @@ interface Props {
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly, sourceId, ...rest } = withDefaults(defineProps<Props>(), { importDataOnly: false })
 
 const emit = defineEmits(['update:modelValue'])
 

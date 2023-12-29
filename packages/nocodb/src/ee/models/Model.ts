@@ -3,6 +3,8 @@ import type { TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import View from '~/models/View';
 import Source from '~/models/Source';
+import ModelStat from '~/models/ModelStat';
+import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 
@@ -47,5 +49,11 @@ export default class Model extends ModelCE implements TableType {
       viewId: args.viewId,
       model,
     });
+  }
+
+  async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
+    const workspaceId = await getWorkspaceForBase(this.base_id);
+    await ModelStat.delete(workspaceId, this.id, ncMeta);
+    return super.delete(ncMeta, force);
   }
 }

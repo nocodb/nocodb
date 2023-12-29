@@ -2,11 +2,15 @@ import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { Model, Source } from '~/models';
 
 export default class ModelStat {
+  // primary: [fk_workspace_id, fk_model_id]
+  // indexes: [fk_workspace_id, fk_model_id], [fk_workspace_id]
   fk_workspace_id?: string;
   fk_model_id?: string;
   row_count?: number;
+  is_external?: boolean;
 
   created_at?: string;
   updated_at?: string;
@@ -58,6 +62,12 @@ export default class ModelStat {
         fk_model_id: modelId,
       });
     } else {
+      const model = await Model.get(modelId, ncMeta);
+
+      const source = await Source.get(model.source_id, false, ncMeta);
+
+      const is_external = !source.isMeta();
+
       await ncMeta.metaInsert2(
         null,
         null,
@@ -65,6 +75,7 @@ export default class ModelStat {
         {
           fk_workspace_id: workspaceId,
           fk_model_id: modelId,
+          is_external,
           ...insertObject,
         },
         true,
@@ -112,6 +123,7 @@ export default class ModelStat {
         .sum('row_count')
         .where({
           fk_workspace_id: workspaceId,
+          is_external: false,
         });
 
       statData = {

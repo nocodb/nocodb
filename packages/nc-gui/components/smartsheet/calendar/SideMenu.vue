@@ -164,7 +164,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         <template v-else-if="formattedSideBarData.length > 0">
           <LazySmartsheetRow v-for="(record, rowIndex) in formattedSideBarData" :key="rowIndex" :row="record">
             <LazySmartsheetCalendarSideRecordCard
-              :date="record.row[calendarRange[0].fk_from_col.title]"
+              :date="record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']"
               :name="record.row[displayField.title]"
               color="blue"
               @click="emit('expand-record', record)"

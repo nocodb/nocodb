@@ -87,23 +87,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         // Get the column data for the calendar range
         return {
           fk_from_col: meta.value!.columns!.find((col) => col.id === range.fk_from_column_id),
-          fk_to_col: meta.value!.columns!.find((col) => col.id === range.fk_to_column_id),
+          fk_to_col: meta.value!.columns!.find((col) => col.id === range.fk_to_column_id) ?? null,
         }
       })
     })
 
     const sideBarxWhere = computed(() => {
-      if (!calendarRange.value || !calendarRange.value[0].fk_from_col) return ''
+      if (!calendarRange.value || !calendarRange.value[0] || !calendarRange.value[0]) return ''
+      const fromCol = calendarRange.value[0].fk_from_col
+
       let whereClause = ''
       if (activeCalendarView.value === 'day') {
         switch (sideBarFilterOption.value) {
           case 'day':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},eq,exactDate,${dayjs(selectedDate.value).format(
-              'YYYY-MM-DD',
-            )})`
+            whereClause = `(${fromCol.title},eq,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
             break
           case 'withoutDates':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            whereClause = `(${fromCol.title},is,blank)`
             break
           case 'allRecords':
             whereClause = ''
@@ -112,67 +112,66 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       } else if (activeCalendarView.value === 'week') {
         switch (sideBarFilterOption.value) {
           case 'week':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(
-              selectedDateRange.value.start,
-            ).format('YYYY-MM-DD')})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(
-              selectedDateRange.value.end,
-            ).format('YYYY-MM-DD')})`
+            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')})~and(${
+              fromCol.title
+            },lte,exactDate,${dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')})`
             break
           case 'withoutDates':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            whereClause = `(${fromCol.title},is,blank)`
             break
           case 'allRecords':
             whereClause = ''
             break
           case 'selectedDate':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value).format(
-              'YYYY-MM-DD',
-            )})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})~and(${
+              fromCol.title
+            },lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
             break
         }
       } else if (activeCalendarView.value === 'month') {
         switch (sideBarFilterOption.value) {
           case 'month':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value)
+            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value)
               .startOf('month')
-              .format('YYYY-MM-DD')})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value)
+              .format('YYYY-MM-DD')})~and(${fromCol.title},lte,exactDate,${dayjs(selectedDate.value)
               .endOf('month')
               .format('YYYY-MM-DD')})`
             break
           case 'withoutDates':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            whereClause = `(${fromCol.title},is,blank)`
             break
           case 'allRecords':
             whereClause = ''
             break
           case 'selectedDate':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value).format(
-              'YYYY-MM-DD',
-            )})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})~and(${
+              fromCol.title
+            },lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
             break
         }
       } else if (activeCalendarView.value === 'year') {
         switch (sideBarFilterOption.value) {
           case 'year':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value)
+            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value)
               .startOf('year')
-              .format('YYYY-MM-DD')})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value)
+              .format('YYYY-MM-DD')})~and(${fromCol.title},lte,exactDate,${dayjs(selectedDate.value)
               .endOf('year')
               .format('YYYY-MM-DD')})`
             break
           case 'withoutDates':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},is,blank)`
+            whereClause = `(${fromCol},is,blank)`
             break
           case 'allRecords':
             whereClause = ''
             break
           case 'selectedDate':
-            whereClause = `(${calendarRange.value[0].fk_from_col.title},gte,exactDate,${dayjs(selectedDate.value).format(
-              'YYYY-MM-DD',
-            )})~and(${calendarRange.value[0].fk_from_col.title},lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})~and(${
+              fromCol.title
+            },lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
             break
         }
       }
+
       if (searchQuery.field && searchQuery.value) {
         if (whereClause.length > 0) {
           whereClause += '~and'
@@ -237,8 +236,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     // Set of Dates that have data
     const activeDates = computed(() => {
+      if (!formattedData.value || !calendarRange.value || !calendarRange.value[0]) return []
       const dates = new Set<Date>()
-      if (!formattedData.value || !calendarRange.value || !calendarRange.value[0].fk_from_col) return []
+
       formattedData.value.forEach((row) => {
         const start = row.row[calendarRange.value[0].fk_from_col?.title ?? '']
         let end
@@ -257,6 +257,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           dates.add(new Date(start))
         }
       })
+
       return Array.from(dates)
     })
 
@@ -383,6 +384,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         ...{},
         where: sideBarxWhere?.value,
       })
+
       formattedSideBarData.value = formatData(res!.list)
       isSidebarLoading.value = false
     }

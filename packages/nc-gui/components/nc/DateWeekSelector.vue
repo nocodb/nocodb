@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   activeDates: [],
   selectedWeek: null,
 })
-const emit = defineEmits(['change', 'update:selected-date', 'update:page-date', 'update:selected-week'])
+const emit = defineEmits(['change', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 const selectedDate = useVModel(props, 'selectedDate', emit)
@@ -102,10 +102,10 @@ const handleSelectDate = (date: Date) => {
   } else {
     if (!isDayInPagedMonth(date)) {
       pageDate.value = new Date(date)
-      emit('update:page-date', date)
+      emit('update:pageDate', date)
     }
     selectedDate.value = date
-    emit('update:selected-date', date)
+    emit('update:selectedDate', date)
   }
 }
 
@@ -128,7 +128,7 @@ const paginate = (action: 'next' | 'prev') => {
     newDate.setMonth(newDate.getMonth() - 1)
   }
   pageDate.value = newDate
-  emit('update:page-date', newDate)
+  emit('update:pageDate', newDate)
 }
 </script>
 

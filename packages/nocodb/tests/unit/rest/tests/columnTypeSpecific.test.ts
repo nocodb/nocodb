@@ -5,7 +5,11 @@ import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
-import { createColumn, createQrCodeColumn } from '../../factory/column';
+import {
+  createColumn,
+  createQrCodeColumn,
+  deleteColumn,
+} from '../../factory/column';
 import {
   createTable,
   getColumnsByAPI,
@@ -149,7 +153,6 @@ function columnTypeSpecificTests() {
     });
 
     describe('Basic verification', async () => {
-
       it('New table: verify system fields are added by default', async () => {
         // Id, Date, CreatedAt, LastModifiedAt
         expect(columns.length).to.equal(4);
@@ -159,6 +162,32 @@ function columnTypeSpecificTests() {
         expect(columns[3].title).to.equal('UpdatedAt');
         expect(columns[3].uidt).to.equal(UITypes.LastModifiedTime);
         expect(columns[3].system).to.equal(true);
+      });
+
+      it('New table: should not be able to delete system fields', async () => {
+        await request(context.app)
+          .delete(`/api/v2/meta/columns/${columns[2].id}`)
+          .set('xc-auth', context.token)
+          .send({})
+          .expect(400);
+
+        await request(context.app)
+          .delete(`/api/v2/meta/columns/${columns[3].id}`)
+          .set('xc-auth', context.token)
+          .send({})
+          .expect(400);
+
+        // try to delete system fields (using v1 api)
+        await request(context.app)
+          .delete(`/api/v1/db/meta/columns/${columns[2].id}`)
+          .set('xc-auth', context.token)
+          .send({})
+          .expect(400);
+        await request(context.app)
+          .delete(`/api/v1/db/meta/columns/${columns[3].id}`)
+          .set('xc-auth', context.token)
+          .send({})
+          .expect(400);
       });
 
       it('New record: verify created-at is filled with current dateTime, last-modified-at is null', async () => {
@@ -242,7 +271,25 @@ function columnTypeSpecificTests() {
         expect(difference).to.be.greaterThan(1500);
       });
 
-      it('Add field: verify contents of both fields are same', async () => {
+      it('Modify record: verify that system fields are RO', async () => {
+        const d1 = new Date();
+        d1.setDate(d1.getDate() - 200);
+
+        // update record
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              CreatedAt: d1.toISOString().slice(0, 10),
+              UpdatedAt: d1.toISOString().slice(0, 10),
+            },
+          ])
+          .expect(400);
+      });
+
+      it('Add field: verify contents of both fields are same & new field is RO', async () => {
         // add another CreatedTime field
         await createColumn(context, table, {
           title: 'CreatedAt2',
@@ -252,6 +299,51 @@ function columnTypeSpecificTests() {
 
         // get all columns
         const columns = await getColumnsByAPI(context, base, table);
+
+        // get all records
+        const records = await listRow({ base, table });
+
+        // verify contents of both fields are same
+        expect(columns.columns[4].title).to.equal('CreatedAt2');
+        expect(columns.columns[4].uidt).to.equal(UITypes.CreatedTime);
+        expect(columns.columns[4].system).to.equal(false);
+        expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
+
+        const d1 = new Date();
+        d1.setDate(d1.getDate() - 200);
+
+        // update record should fail
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              CreatedAt2: d1.toISOString().slice(0, 10),
+            },
+          ])
+          .expect(400);
+      });
+
+      it('Delete & add field: verify contents of both fields are same', async () => {
+        // add another CreatedTime field
+        await createColumn(context, table, {
+          title: 'CreatedAt2',
+          uidt: UITypes.CreatedTime,
+          column_name: 'CreatedAt2',
+        });
+        // get all columns
+        let columns = await getColumnsByAPI(context, base, table);
+        // delete the field
+        await deleteColumn(context, { table, column: columns.columns[4] });
+        // create column again
+        await createColumn(context, table, {
+          title: 'CreatedAt2',
+          uidt: UITypes.CreatedTime,
+          column_name: 'CreatedAt2',
+        });
+        // get all columns
+        columns = await getColumnsByAPI(context, base, table);
 
         // get all records
         const records = await listRow({ base, table });

@@ -422,6 +422,17 @@ const updateColumn = async (
   return updatedColumn;
 };
 
+const deleteColumn = async (
+  context,
+  { table, column }: { column: Column; table: Model },
+) => {
+  const res = await request(context.app)
+    .delete(`/api/v2/meta/columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .send({})
+    .expect(200);
+};
+
 export {
   customColumns,
   defaultColumns,
@@ -433,4 +444,5 @@ export {
   createLtarColumn,
   updateViewColumn,
   updateColumn,
+  deleteColumn,
 };

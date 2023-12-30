@@ -115,7 +115,7 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
     data = clone(data)
 
     const superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
-    const superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
+    const superUser = sortsConfig.field === 'roles' && superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
 
     let sortedData = data.sort((a, b) => {
       switch (sortsConfig.field) {

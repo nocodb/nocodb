@@ -62,6 +62,29 @@ const hours = computed<dayjs.Dayjs>(() => {
   return hours
 })
 
+const getEventStyle = (record: Row) => {
+  if (!calendarRange.value || !calendarRange.value[0]) return ''
+  const startCol = calendarRange.value[0].fk_from_col
+  const endCol = calendarRange.value[0].fk_to_col
+
+  if (!endCol && startCol) {
+    const startDate = dayjs(record.row[startCol.title])
+    return {
+      top: `${(startDate.diff(dayjs(startDate).startOf('day'), 'minute') / 60) * 100}%`,
+      height: '1.5rem',
+    }
+  } else if (endCol && startCol) {
+    const startDate = dayjs(record.row[startCol.title])
+    const endDate = dayjs(record.row[endCol.title])
+    const startDiff = (startDate.diff(dayjs(startDate).startOf('day'), 'minute') / 60) * 100
+    const endDiff = (endDate.diff(dayjs(endDate).startOf('day'), 'minute') / 60) * 100
+    return {
+      top: `${startDiff}%`,
+      height: `${endDiff - startDiff}%`,
+    }
+  }
+}
+
 const renderData = computed(() => {
   if (data.value) {
     return data.value
@@ -98,7 +121,7 @@ const renderData = computed(() => {
         'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
         'border-r-1 h-full border-gray-200 ': props.isEmbed,
       }"
-      class="flex flex-col w-full"
+      class="flex flex-col w-full relative"
     >
       <div
         v-for="hour in hours"
@@ -125,6 +148,24 @@ const renderData = computed(() => {
         >
           <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
         </NcButton>
+      </div>
+      <div class="absolute left-0 right-0 w-full">
+        <LazySmartsheetRow
+          v-for="(record, rowIndex) in formattedData"
+          :key="rowIndex"
+          :row="record"
+          :style="getEventStyle(record)"
+        >
+          <LazySmartsheetCalendarRecordCard
+            :key="rowIndex"
+            :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('H:mm')"
+            :name="record.row[displayField.title]"
+            :position="getRecordPosition(record)"
+            color="blue"
+            size="small"
+            @click="emit('expand-record', record)"
+          />
+        </LazySmartsheetRow>
       </div>
     </div>
   </template>

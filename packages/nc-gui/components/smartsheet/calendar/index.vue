@@ -170,6 +170,7 @@ const headerText = computed(() => {
           v-else-if="activeCalendarView === 'day'"
           class="flex-grow-1"
           @expand-record="expandRecord"
+          @new-record="newRecord"
         />
       </template>
       <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">

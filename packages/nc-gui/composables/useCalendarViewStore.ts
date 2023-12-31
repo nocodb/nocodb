@@ -36,6 +36,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const selectedDate = ref<Date>(new Date())
 
+    const selectedTime = ref<Date>()
+
     const isCalendarDataLoading = ref<boolean>(false)
 
     const selectedDateRange = ref<{
@@ -460,6 +462,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       loadCalendarData,
       formattedData,
       isSidebarLoading,
+      selectedTime,
       updateCalendarMeta,
       calendarMetaData,
       activeCalendarView,

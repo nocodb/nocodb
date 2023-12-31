@@ -10,7 +10,6 @@ import {
   iconMap,
   inject,
   ref,
-  useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
   watch,
 } from '#imports'
@@ -25,7 +24,9 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
-const { fields, loadViewColumns } = useViewColumnsOrThrow()
+const { loadViewColumns } = useViewColumnsOrThrow()
+
+const { loadCalendarMeta, loadCalendarData, loadSidebarData } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
@@ -67,6 +68,8 @@ const saveCalendarRanges = async () => {
       await $api.dbView.calendarUpdate(activeView.value?.id as string, {
         calendar_range: calRanges as { fk_from_column_id: string; fk_to_column_id: string | null }[],
       })
+      await loadCalendarMeta()
+      await Promise.all([loadCalendarData(), loadSidebarData()])
     } catch (e) {
       console.log(e)
       message.error('There was an error while updating view!')
@@ -123,8 +126,8 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
               v-model:value="cal.fk_from_column_id"
               :options="dateFieldOptions"
               class="w-full"
-              @click.stop
               @change="saveCalendarRanges"
+              @click.stop
             />
           </div>
           <div v-if="cal.fk_to_column_id === null && isEeUI" class="flex flex-col justify-end w-1/2">
@@ -151,12 +154,12 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
             </div>
             <NcSelect
               v-model:value="cal.fk_to_column_id"
-              :options="dateFieldOptions"
               :disabled="!cal.fk_from_column_id"
+              :options="dateFieldOptions"
               :placeholder="$t('placeholder.notSelected')"
               class="w-full"
-              @click.stop
               @change="saveCalendarRanges"
+              @click.stop
             />
           </div>
         </div>

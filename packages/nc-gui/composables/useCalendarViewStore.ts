@@ -426,6 +426,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     return {
       formattedSideBarData,
       loadMoreSidebarData,
+      loadSidebarData,
       sideBarFilterOption,
       searchQuery,
       activeDates,

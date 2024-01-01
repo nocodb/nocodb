@@ -231,74 +231,97 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
         toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
       }
-      if (!fromCol && !toCol) {
-        return []
-      } else if (fromCol && !toCol) {
-        return [
-          {
-            fk_column_id: fromCol.id,
-            comparison_op: 'btw',
-            value: `${fromDate},${toDate}`,
-          },
-        ]
-      } else if (fromCol && toCol) {
+      if (fromCol && toCol) {
         return [
           {
             is_group: true,
-            logical_op: 'or',
+            logical_op: 'and',
             children: [
               {
-                fk_column_id: fromCol.id,
-                comparison_op: 'btw',
-                value: `${dayjs(fromDate).format('YYYY-MM-DD')},${dayjs(toDate).format('YYYY-MM-DD')}`,
-              },
-              {
-                fk_column_id: toCol.id,
-                comparison_op: 'btw',
-                value: `${dayjs(fromDate).format('YYYY-MM-DD')},${dayjs(toDate).format('YYYY-MM-DD')}`,
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'btw',
+                    comparison_sub_op: 'exactDate',
+                    value: `${fromDate},${toDate}`,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'btw',
+                    comparison_sub_op: 'exactDate',
+                    value: `${fromDate},${toDate}`,
+                  },
+                ],
               },
               {
                 is_group: true,
                 logical_op: 'or',
                 children: [
                   {
-                    is_group: true,
-                    logical_op: 'and',
-                    children: [
-                      {
-                        fk_column_id: fromCol.id,
-                        comparison_op: 'lte',
-                        value: `${dayjs(fromDate).format('YYYY-MM-DD')}`,
-                      },
-                      {
-                        fk_column_id: toCol.id,
-                        comparison_op: 'gte',
-                        value: `${dayjs(toDate).format('YYYY-MM-DD')}`,
-                      },
-                    ],
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'lte',
+                    comparison_sub_op: 'exactDate',
+                    value: fromDate,
                   },
                   {
-                    is_group: true,
-                    logical_op: 'and',
-                    children: [
-                      {
-                        fk_column_id: fromCol.id,
-                        comparison_op: 'gte',
-                        value: `${dayjs(fromDate).format('YYYY-MM-DD')}`,
-                      },
-                      {
-                        fk_column_id: toCol.id,
-                        comparison_op: 'lte',
-                        value: `${dayjs(toDate).format('YYYY-MM-DD')}`,
-                      },
-                    ],
+                    fk_column_id: toCol.id,
+                    comparison_op: 'gte',
+                    comparison_sub_op: 'exactDate',
+                    value: toDate,
+                  },
+                ],
+              },
+              {
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'gte',
+                    comparison_sub_op: 'exactDate',
+                    value: fromDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'lte',
+                    comparison_sub_op: 'exactDate',
+                    value: toDate,
                   },
                 ],
               },
             ],
           },
+          {
+            is_group: true,
+            logical_op: 'or',
+            children: [
+              {
+                fk_column_id: fromCol.id,
+                comparison_op: 'eq',
+                comparison_sub_op: 'exactDate',
+                value: fromDate,
+              },
+              {
+                fk_column_id: toCol.id,
+                comparison_op: 'eq',
+                comparison_sub_op: 'exactDate',
+                value: toDate,
+              },
+            ],
+          },
         ]
-      }
+      } else if (fromCol) {
+        return [
+          {
+            fk_column_id: fromCol.id,
+            comparison_op: 'btw',
+            comparison_sub_op: 'exactDate',
+            value: `${fromDate},${toDate}`,
+          },
+        ]
+      } else return []
     })
 
     // Set of Dates that have data
@@ -355,7 +378,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     async function loadCalendarData() {
-      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
+      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !filterJSON.value) && !isPublic?.value) return
       isCalendarDataLoading.value = true
       const res = !isPublic.value
         ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {

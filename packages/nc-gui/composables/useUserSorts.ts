@@ -61,16 +61,18 @@ export function useUserSorts() {
         if (fieldIndex !== -1) {
           // Update the direction if the field exists
           sorts.value = [
-            ...clone(sorts.value).map((sort) => {
-              if (sort.field === newSortConfig.field) {
-                sort.direction = newSortConfig.direction
-              }
-              return sort
-            }),
+            ...clone(sorts.value)
+              .map((sort) => {
+                if (sort.field === newSortConfig.field) {
+                  sort.direction = newSortConfig.direction
+                }
+                return sort
+              })
+              .filter((sort) => sort.field !== newSortConfig.field), // For now it is only single level of sorting so remove another sort field
           ]
         } else {
-          // Add a new sort configuration if the field does not exist
-          sorts.value = [...clone(sorts.value), newSortConfig]
+          // Add a new sort configuration
+          sorts.value = [newSortConfig]
         }
       } else {
         if (fieldIndex !== -1) {

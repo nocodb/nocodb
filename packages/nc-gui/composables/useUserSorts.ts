@@ -1,12 +1,13 @@
 import rfdc from 'rfdc'
 import type { UsersSortType } from '~/lib'
 import { useGlobal } from '#imports'
+import { extractRolesObj, ProjectRoles, OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 /**
  * Hook for managing user sorts and sort configurations.
  * @returns An object containing reactive values and functions related to user sorts.
  */
-export function useUserSorts() {
+export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
   const clone = rfdc()
 
   const { user } = useGlobal()
@@ -68,7 +69,7 @@ export function useUserSorts() {
                 }
                 return sort
               })
-              .filter((sort) => sort.field !== newSortConfig.field), // For now it is only single level of sorting so remove another sort field
+              .filter((sort) => sort.field === newSortConfig.field), // For now it is only single level of sorting so remove another sort field
           ]
         } else {
           // Add a new sort configuration
@@ -112,16 +113,53 @@ export function useUserSorts() {
    * @template T - The type of objects in the input array.
    */
   function handleGetSortsData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType[] = sorts.value): T[] {
-    const sortedData = clone(data).sort((a, b) => {
+    let userRoleOrder: string[] = []
+    if (roleType === 'Workspace') {
+      userRoleOrder = Object.values(WorkspaceUserRoles)
+    } else if (roleType === 'Org') {
+      userRoleOrder = Object.values(OrgUserRoles)
+    } else if (roleType === 'Project') {
+      userRoleOrder = Object.values(ProjectRoles)
+    }
+    data = clone(data)
+    // let superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
+    // let superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
+    // console.log('super', superUser)
+    const sortedData = data.sort((a, b) => {
       let sortCondition = 0
 
       for (const { field, direction } of sortsConfig) {
         if (!a[field]) continue
 
-        if (direction === 'asc') {
-          sortCondition = sortCondition || a[field]?.localeCompare(b[field])
-        } else if (direction === 'desc') {
-          sortCondition = sortCondition || b[field]?.localeCompare(a[field])
+        if (field === 'roles') {
+          for (const role of userRoleOrder) {
+            const indexA = a?.roles?.split(',')?.indexOf(role) ?? -1
+            const indexB = b?.roles?.split(',')?.indexOf(role) ?? -1
+
+            // if (indexA === -1) {
+            //   sortCondition = sortCondition || direction === 'asc' ? 1 : -1 // Role A is missing, so it should come last
+            //   break
+            // }
+
+            // if (indexB === -1) {
+            //   sortCondition = sortCondition || direction === 'asc' ? -1 : 1 // Role B is missing, so it should come last
+            //   break
+            // }
+
+            if (direction === 'asc') {
+              sortCondition = sortCondition || indexA - indexB
+              break
+            } else if (direction === 'desc') {
+              sortCondition = sortCondition || indexB - indexA
+              break
+            }
+          }
+        } else {
+          if (direction === 'asc') {
+            sortCondition = sortCondition || a[field]?.localeCompare(b[field])
+          } else if (direction === 'desc') {
+            sortCondition = sortCondition || b[field]?.localeCompare(a[field])
+          }
         }
       }
 

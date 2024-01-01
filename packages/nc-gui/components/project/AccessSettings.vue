@@ -9,13 +9,16 @@ import {
   timeAgo,
 } from 'nocodb-sdk'
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import { isEeUI, storeToRefs } from '#imports'
+import InfiniteLoading from 'v3-infinite-loading'
+import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
+
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -34,6 +37,11 @@ const userSearchText = ref('')
 const isLoading = ref(false)
 const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
+
+const sortedCollaborators = computed(() => {
+  console.log('collaborator', sorts.value, collaborators.value)
+  return handleGetSortsData([...collaborators.value], sorts.value)
+})
 
 const loadCollaborators = async () => {
   try {
@@ -106,6 +114,7 @@ onMounted(async () => {
     } else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
     }
+    loadSorts()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -152,7 +161,7 @@ const filteredCollaborators = computed(() =>
 
           <div class="flex flex-col nc-scrollbar-md">
             <div
-              v-for="(collab, i) of filteredCollaborators"
+              v-for="(collab, i) of sortedCollaborators"
               :key="i"
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >

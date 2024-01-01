@@ -22,14 +22,7 @@ interface Props {
   readonly?: boolean
 }
 
-const {
-  value,
-  item,
-  column,
-  showUnlinkButton,
-  border,
-  readonly: readonlyProp,
-} = withDefaults(defineProps<Props>(), { border: true })
+const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 

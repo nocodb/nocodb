@@ -20,7 +20,7 @@ interface Props {
   showValidationError?: boolean
 }
 
-const { modelValue, showValidationError = true } = defineProps<Props>()
+const { modelValue, showValidationError } = withDefaults(defineProps<Props>(), { showValidationError: true })
 
 const emit = defineEmits(['update:modelValue'])
 

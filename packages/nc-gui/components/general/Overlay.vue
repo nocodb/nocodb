@@ -22,7 +22,12 @@ interface Emits {
   (event: 'open'): void
 }
 
-const { transition = true, teleportDisabled = false, inline = false, target, zIndex = 100, ...rest } = defineProps<Props>()
+const { transition, teleportDisabled, inline, target, zIndex, ...rest } = withDefaults(defineProps<Props>(), {
+  transition: true,
+  teleportDisabled: false,
+  inline: false,
+  zIndex: 100,
+})
 
 const emits = defineEmits<Emits>()
 

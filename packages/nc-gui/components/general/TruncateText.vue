@@ -18,7 +18,7 @@ interface Props {
   length?: number
 }
 
-const { placement = 'bottom', length = 20 } = defineProps<Props>()
+const { placement, length } = withDefaults(defineProps<Props>(), { placement: 'bottom', length: 20 })
 
 const text = ref<HTMLDivElement>()
 

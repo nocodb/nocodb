@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, CalendarType, PaginatedType, ViewType } from 'nocodb-sdk'
+import type { Api, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { addDays, addMonths, addYears } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState } from '#imports'
@@ -16,7 +16,7 @@ const formatData = (list: Record<string, any>[]) =>
 
 const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
   (
-    meta: Ref<(CalendarType & { id: string }) | undefined>,
+    meta: Ref<((CalendarType & { id: string }) | TableType) | undefined>,
     viewMeta: Ref<(ViewType | CalendarType | undefined) & { id: string }> | ComputedRef<(ViewType & { id: string }) | undefined>,
     shared = false,
     where?: ComputedRef<string | undefined>,
@@ -26,6 +26,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const pageDate = ref<Date>(new Date())
+
+    const displayField = ref<ColumnType>()
 
     const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
 
@@ -178,11 +180,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       }
 
-      if (searchQuery.field && searchQuery.value) {
+      if (displayField.value && searchQuery.value) {
         if (whereClause.length > 0) {
           whereClause += '~and'
         }
-        whereClause += `(${searchQuery.field},like,${searchQuery.value})`
+        whereClause += `(${displayField.value.title},like,${searchQuery.value})`
       }
       return whereClause
     })
@@ -349,6 +351,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
       calendarMetaData.value = res
       activeCalendarView.value = typeof res.meta === 'string' ? JSON.parse(res.meta)?.active_view : res.meta?.active_view
+      displayField.value = meta.value.columns.find((col) => col.pv)
     }
 
     async function loadCalendarData() {
@@ -419,6 +422,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         ...queryParams.value,
         ...{},
         where: sideBarxWhere?.value,
+        ignoreViewFilters: true,
       })
 
       formattedSideBarData.value = formatData(res!.list)
@@ -451,6 +455,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       formattedSideBarData,
       loadMoreSidebarData,
       loadSidebarData,
+      displayField,
       sideBarFilterOption,
       searchQuery,
       activeDates,

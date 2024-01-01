@@ -33,7 +33,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "watch:run": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
-    "watch:run:ee": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/ee/run/docker --log-error --project tsconfig.ee.json\"",
+    "watch:run:ee": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/ee/run/docker --log-error --project tsconfig.ee.json\" | npx pino-pretty",
     "watch:run:mysql": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
     "watch:run:mysql:ee": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/ee/run/dockerRunMysql --log-error --project tsconfig.ee.json\"",
     "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",

@@ -5662,7 +5662,11 @@ class BaseModelSqlv2 {
         ) {
           data[column.column_name] = Noco.ncMeta.now();
         }
-        if (column.uidt === UITypes.LastModifiedTime && column.system) {
+        if (
+          !isInsertData &&
+          column.uidt === UITypes.LastModifiedTime &&
+          column.system
+        ) {
           data[column.column_name] = Noco.ncMeta.now();
         }
         if (column.uidt === UITypes.Attachment) {

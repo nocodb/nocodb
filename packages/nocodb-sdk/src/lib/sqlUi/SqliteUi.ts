@@ -80,7 +80,7 @@ export class SqliteUi {
         title: 'CreatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -104,14 +104,13 @@ export class SqliteUi {
         title: 'UpdatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
@@ -634,7 +633,6 @@ export class SqliteUi {
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';
-        colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
       case 'AutoNumber':
         colProp.dt = 'integer';

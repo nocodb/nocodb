@@ -130,6 +130,8 @@ const parseConditionV2 = async (
       (filter.comparison_op as any) === 'gb_eq' ||
       (filter.comparison_op as any) === 'gb_null'
     ) {
+      (filter as any).groupby = true;
+
       const column = await getRefColumnIfAlias(await filter.getColumn());
 
       if (
@@ -682,7 +684,9 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
+                  if ((filter as any).groupby)
+                    qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
+                  else qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
                   qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }

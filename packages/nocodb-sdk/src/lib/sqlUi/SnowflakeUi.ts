@@ -92,7 +92,7 @@ export class SnowflakeUi {
         title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -116,15 +116,13 @@ export class SnowflakeUi {
         title: 'UpdatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        au: true,
-        cdf: 'current_timestamp()',
         clen: 45,
         np: null,
         ns: null,
@@ -784,7 +782,6 @@ export class SnowflakeUi {
         break;
       case 'LastModifiedTime':
         colProp.dt = 'TIMESTAMP';
-        colProp.cdf = 'current_timestamp()';
         break;
       case 'AutoNumber':
         colProp.dt = 'INT';

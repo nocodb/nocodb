@@ -21,30 +21,23 @@ withDefaults(defineProps<Props>(), {
 <template>
   <div
     :class="{
-      'h-12': size === 'medium',
-      'h-16': size === 'large',
-      'h-10': size === 'small',
-      'pl-3': position === 'leftRounded',
-      'pr-3': position === 'rightRounded',
-      'px-3': position === 'rounded',
+      'min-h-12': size === 'medium',
+      'min-h-16': size === 'large',
+      'min-h-10': size === 'small',
+      'rounded-l-lg ml-3': position === 'leftRounded',
+      'rounded-r-lg mr-3': position === 'rightRounded',
+      'rounded-lg mx-3': position === 'rounded',
+      'rounded-none': position === 'none',
+      'bg-maroon-50': color === 'maroon',
+      'bg-blue-50': color === 'blue',
+      'bg-green-50': color === 'green',
+      'bg-yellow-50': color === 'yellow',
+      'bg-pink-50': color === 'pink',
+      'bg-purple-50': color === 'purple',
     }"
-    class="w-full gap-2 relative"
+    class="gap-2 border-gray-200 border-1"
   >
-    <div
-      :class="{
-        'bg-maroon-50': color === 'maroon',
-        'bg-blue-50': color === 'blue',
-        'bg-green-50': color === 'green',
-        'bg-yellow-50': color === 'yellow',
-        'bg-pink-50': color === 'pink',
-        'bg-purple-50': color === 'purple',
-        'rounded-l-lg': position === 'leftRounded',
-        'rounded-r-lg': position === 'rightRounded',
-        'rounded-lg': position === 'rounded',
-        'rounded-none': position === 'none',
-      }"
-      class="flex items-center border-1 px-2 cursor-pointer border-gray-200 py-2"
-    >
+    <div class="flex items-center relative px-2 cursor-pointer py-2">
       <span
         v-if="position === 'leftRounded' || position === 'rounded'"
         :class="{

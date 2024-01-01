@@ -22,6 +22,13 @@ const data = toRefs(props).data
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const { pageDate, selectedTime, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
+
+const renderData = computed(() => {
+  if (data.value) {
+    return data.value
+  }
+  return formattedData.value
+})
 const getRecordPosition = (record: Row) => {
   if (!calendarRange.value || !calendarRange.value[0]) return ''
   const startCol = calendarRange.value[0].fk_from_col
@@ -56,8 +63,62 @@ const getRecordPosition = (record: Row) => {
     } else if (startDate.isAfter(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day')) {
       return 'rounded'
     } else {
-      return 'none'
+      return 'rounded'
     }
+  }
+}
+
+const timeSlots = reactive({})
+const getRecordStyles = (record) => {
+  if (!calendarRange.value || !calendarRange.value[0]) return ''
+
+  const startColTitle = calendarRange.value[0].fk_from_col.title
+  const endColTitle = calendarRange.value[0].fk_to_col.title
+
+  const scheduleStart = dayjs(selectedDate.value).startOf('day').toDate()
+  const scheduleEnd = dayjs(selectedDate.value).endOf('day').toDate()
+
+  let fromDate = record.row[startColTitle] ? new Date(record.row[startColTitle]) : null
+  let endDate = record.row[endColTitle] ? new Date(record.row[endColTitle]) : null
+
+  if (!fromDate && !endDate) return null
+
+  if (!fromDate) {
+    fromDate = new Date(endDate.getTime() - 60 * 60000)
+  } else if (!endDate) {
+    endDate = new Date(fromDate.getTime() + 60 * 60000)
+  }
+
+  const scaleMinutes = (scheduleEnd - scheduleStart) / 60000
+  const startMinutes = Math.max(0, (fromDate - scheduleStart) / 60000)
+  const endMinutes = Math.min(scaleMinutes, (endDate - scheduleStart) / 60000)
+
+  if (endMinutes < startMinutes) return null
+
+  const height = ((endMinutes - startMinutes) / scaleMinutes) * 100
+  const timeslot = `${fromDate.getHours()}:${Math.floor(fromDate.getMinutes() / 15) * 15}`
+
+  // Calculate the column index based on timeSlots
+  let columnIndex = -1
+  if (timeSlots[timeslot]) {
+    columnIndex = timeSlots[timeslot].findIndex((colEndTime) => startMinutes >= colEndTime)
+    if (columnIndex === -1 && timeSlots[timeslot].length < 10) {
+      columnIndex = timeSlots[timeslot].length
+    } else if (columnIndex === -1) {
+      columnIndex = 9 // Last column if there are already 10 columns
+    }
+  }
+
+  // Calculate the width and left based on the column index
+  const numColumns = columnIndex !== -1 ? Math.min(timeSlots[timeslot].length, 10) : 1
+  const width = 100 / numColumns
+  const left = columnIndex !== -1 ? width * columnIndex : 0
+
+  return {
+    top: `${(startMinutes / scaleMinutes) * 100}%`,
+    height: `${height}%`,
+    left: `calc(${left}% + 40px)`,
+    width: `${width}%`,
   }
 }
 
@@ -73,14 +134,15 @@ const getSpanningRecords = computed(() => {
   // StartDate is same as selectedDate and EndDate is Before selectedDate -> Spanning Left
   // StartDate is after selectedDate and EndDate is same as selectedDate -> Spanning Right
   // StartDate is after selectedDate and EndDate is before selectedDate -> Spanning Both
-  for (const record of formattedData.value) {
+  for (const record of renderData.value) {
     if (endCol && startCol) {
       const startDate = dayjs(record.row[startCol.title])
       const endDate = dayjs(record.row[endCol.title])
       if (
         (startDate.isSame(selectedDate.value, 'day') && endDate.isAfter(selectedDate.value, 'day')) ||
         (startDate.isBefore(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day')) ||
-        (startDate.isSame(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day'))
+        (startDate.isSame(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day')) ||
+        (startDate.isAfter(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day'))
       ) {
         recordsSpanning.push(record)
       }
@@ -104,13 +166,6 @@ const hours = computed<dayjs.Dayjs>(() => {
     )
   }
   return hours
-})
-
-const renderData = computed(() => {
-  if (data.value) {
-    return data.value
-  }
-  return formattedData.value
 })
 </script>
 
@@ -144,18 +199,14 @@ const renderData = computed(() => {
       }"
       class="flex flex-col w-full"
     >
-      <div v-if="getSpanningRecords && getSpanningRecords.length" class="pb-3 bg-gray-50">
-        <span class="text-xs text-gray-500 pl-3 pt-3 font-bold"> Records spanning multiple days </span>
-        <LazySmartsheetRow
-          v-for="(record, rowIndex) in getSpanningRecords.slice(0, 3)"
-          :key="rowIndex"
-          :row="record"
-          class="mb-2"
-        >
+      <div v-if="getSpanningRecords && getSpanningRecords.length" class="pb-3">
+        <div class="text-xs text-gray-500 pl-3 py-3 font-bold">Records spanning multiple days</div>
+        <LazySmartsheetRow v-for="(record, rowIndex) in getSpanningRecords.slice(0, 4)" :key="rowIndex" :row="record">
           <LazySmartsheetCalendarRecordCard
             :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('H:mm')"
             :name="record.row[displayField.title]"
             :position="getRecordPosition(record)"
+            class="mb-2"
             color="blue"
             size="small"
             @click="emit('expand-record', record)"
@@ -189,17 +240,24 @@ const renderData = computed(() => {
             <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
           </NcButton>
         </div>
-        <div class="absolute left-0 right-0 w-full">
-          <LazySmartsheetRow
-            v-for="(record, rowIndex) in formattedData.filter((rec) => !getSpanningRecords.includes(rec))"
-            :key="rowIndex"
-            :row="record"
-          >
+        <div
+          v-for="(record, rowIndex) in renderData.filter((rec) => !getSpanningRecords.includes(rec))"
+          :key="rowIndex"
+          :class="{
+            'ml-3': getRecordPosition(record) === 'leftRounded',
+            'mr-3': getRecordPosition(record) === 'rightRounded',
+            'mx-3': getRecordPosition(record) === 'rounded',
+          }"
+          :style="getRecordStyles(record)"
+          class="absolute"
+        >
+          <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
               :key="rowIndex"
               :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('H:mm')"
               :name="record.row[displayField.title]"
               :position="getRecordPosition(record)"
+              class="!h-full"
               color="blue"
               size="small"
               @click="emit('expand-record', record)"

@@ -2,7 +2,6 @@ import rfdc from 'rfdc'
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { UsersSortType } from '~/lib'
 import { useGlobal } from '#imports'
-import { isValidObjectType } from '~/helpers/parsers/parserHelpers'
 
 /**
  * Hook for managing user sorts and sort configurations.
@@ -43,16 +42,17 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
       const storedConfig = localStorage.getItem(userSortConfigKey)
 
       const sortConfig = storedConfig ? JSON.parse(storedConfig) : ({} as Record<string, UsersSortType>)
-      if (isValidObjectType(sortConfig, {} as Record<string, UsersSortType>)) {
-        sorts.value = sortConfig
 
+      if (sortConfig && isValidSortConfig(sortConfig)) {
+        sorts.value = sortConfig
         // Load user-specific sort configurations or default configurations
         sorts.value = user.value?.id ? sortConfig[user.value.id] || {} : sortConfig[defaultUserId] || {}
       } else {
+        // remove sortConfig from localStorage if it's invalid
+        localStorage.removeItem(userSortConfigKey)
         sorts.value = {}
       }
-    } catch (error) {
-      console.error('Error while retrieving sort configuration from local storage:', error)
+    } catch {
       // Set sorts to an empty obj in case of an error
       sorts.value = {}
     }
@@ -148,6 +148,27 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
     }
 
     return sortedData
+  }
+
+  /**
+   * Checks if the provided sort configuration has the expected structure.
+   * @param sortConfig - The sort configuration to validate.
+   * @param expectedStructure - The expected structure for the sort configuration.
+   *   Defaults to { field: 'email', direction: 'asc' }.
+   * @returns `true` if the sort configuration is valid, otherwise `false`.
+   */
+  function isValidSortConfig(
+    sortConfig: Record<string, any>,
+    expectedStructure: UsersSortType = { field: 'email', direction: 'asc' },
+  ): boolean {
+    // Check if the sortConfig has the expected keys
+    for (const key in sortConfig) {
+      const isValidConfig = Object.keys(sortConfig[key]).every((key) =>
+        Object.prototype.hasOwnProperty.call(expectedStructure, key),
+      )
+      if (!isValidConfig) return false
+    }
+    return true
   }
 
   return { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData }

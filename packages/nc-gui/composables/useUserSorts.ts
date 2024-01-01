@@ -5,7 +5,9 @@ import { useGlobal } from '#imports'
 
 /**
  * Hook for managing user sorts and sort configurations.
- * @returns An object containing reactive values and functions related to user sorts.
+ *
+ * @param {string} roleType - The type of role for which user sorts are managed ('Workspace', 'Org', or 'Project').
+ * @returns {object} An object containing reactive values and functions related to user sorts.
  */
 export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
   const clone = rfdc()
@@ -107,10 +109,10 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
 
     const superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
     const superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
-    // console.log('super', superUser)
+
     let sortedData = data.sort((a, b) => {
       switch (sortsConfig.field) {
-        case 'roles':
+        case 'roles': {
           const roleA = a?.roles?.split(',')[0]
           const roleB = b?.roles?.split(',')[0]
 
@@ -119,23 +121,24 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
           } else {
             return userRoleOrder.indexOf(roleB) - userRoleOrder.indexOf(roleA)
           }
-
-        case 'email':
+        }
+        case 'email': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
+        }
       }
 
       return 0
     })
 
     if (superUser && superUser.length) {
-      if (sortsConfig.direction === 'desc') {
-        sortedData = [...sortedData, superUser[0]]
-      } else {
+      if (sortsConfig.direction === 'asc') {
         sortedData = [superUser[0], ...sortedData]
+      } else {
+        sortedData = [...sortedData, superUser[0]]
       }
     }
 

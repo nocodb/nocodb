@@ -189,7 +189,8 @@
     "shift": "Shift",
     "enter": "Enter",
     "seconds": "Seconds",
-    "paste": "Paste"
+    "paste": "Paste",
+    "resetSort": "Reset Sort"
   },
   "objects": {
     "workspace": "Workspace",
@@ -1212,7 +1213,6 @@
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
       "editingSystemKeyNotSupported": "Editing system key not supported"
-
     },
     "error": {
       "nameRequired": "Name Required",

@@ -36,17 +36,25 @@ const sideBarListRef = ref<VNodeRef | null>(null)
 const options = computed(() => {
   switch (activeCalendarView.value) {
     case 'day' as const:
-      return [
-        { label: 'in this day', value: 'day' },
-        { label: 'without dates', value: 'withoutDates' },
-        { label: 'in selected hours', value: 'selectedHours' },
-        { label: 'all records', value: 'allRecords' },
-      ].filter((o) => o.value !== 'selectedHours' && calDataType.value === UITypes.Date)
+      if (calDataType.value === UITypes.Date) {
+        return [
+          { label: 'in this day', value: 'day' },
+          { label: 'without dates', value: 'withoutDates' },
+          { label: 'all records', value: 'allRecords' },
+        ]
+      } else {
+        return [
+          { label: 'in this day', value: 'day' },
+          { label: 'without dates', value: 'withoutDates' },
+          { label: 'all records', value: 'allRecords' },
+          { label: 'in selected hours', value: 'selectedHours' },
+          { label: 'in selected date', value: 'selectedDate' },
+        ]
+      }
     case 'week' as const:
       return [
         { label: 'in this week', value: 'week' },
         { label: 'without dates', value: 'withoutDates' },
-        { label: 'in selected hours', value: 'selectedHours' },
         { label: 'all records', value: 'allRecords' },
       ]
     case 'month' as const:

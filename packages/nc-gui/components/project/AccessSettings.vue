@@ -88,10 +88,6 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
-const updateCollaboratorLocalState = ()=>{
-  
-}
-
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   try {
     if (
@@ -179,14 +175,14 @@ const filteredCollaborators = computed(() =>
               <span>
                 {{ $t('objects.users') }}
               </span>
-              <LazyAccountUserMenu :direction="sortDirection['email']" field="email" :handle-user-sort="saveOrUpdate" />
+              <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
             </div>
             <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
             <div class="text-gray-700 user-access-grid flex items-center space-x-2">
               <span>
                 {{ $t('general.access') }}
               </span>
-              <LazyAccountUserMenu :direction="sortDirection['roles']" field="roles" :handle-user-sort="saveOrUpdate" />
+              <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { OrgUserRoles } from 'nocodb-sdk'
 import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import rfdc from 'rfdc'
 import type { User } from '#imports'
 import {
   extractSdkResponseErrorMsg,
@@ -12,7 +13,6 @@ import {
   useNuxtApp,
   useUserSorts,
 } from '#imports'
-import rfdc from 'rfdc'
 
 const { api, isLoading } = useApi()
 
@@ -95,7 +95,7 @@ const updateRole = async (userId: string, roles: string) => {
 
     users.value = clone(users.value).map((user) => {
       if (user.id === userId) {
-        user['roles'] = roles
+        user.roles = roles
       }
       return user
     })
@@ -210,13 +210,13 @@ const openDeleteModal = (user: UserType) => {
             <span>
               {{ $t('labels.email') }}
             </span>
-            <LazyAccountUserMenu :direction="sortDirection['email']" field="email" :handle-user-sort="saveOrUpdate" />
+            <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start flex items-center space-x-2" data-rec="true">
             <span>
               {{ $t('objects.role') }}
             </span>
-            <LazyAccountUserMenu :direction="sortDirection['roles']" field="roles" :handle-user-sort="saveOrUpdate" />
+            <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4" data-rec="true">
             {{ $t('labels.action') }}

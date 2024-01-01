@@ -8,14 +8,16 @@ import {
   parseStringDateTime,
   timeAgo,
 } from 'nocodb-sdk'
-import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import { isEeUI, storeToRefs } from '#imports'
+import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
+
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -24,6 +26,7 @@ interface Collaborators {
   email: string
   main_roles: OrgUserRoles
   roles: ProjectRoles
+  base_roles: Roles
   workspace_roles: WorkspaceUserRoles
   created_at: string
 }
@@ -34,6 +37,14 @@ const userSearchText = ref('')
 const isLoading = ref(false)
 const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
+
+const filteredCollaborators = computed(() =>
+  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
+)
+
+const sortedCollaborators = computed(() => {
+  return handleGetSortedData(filteredCollaborators.value, sorts.value)
+})
 
 const loadCollaborators = async () => {
   try {
@@ -64,28 +75,32 @@ const loadCollaborators = async () => {
 }
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
+  const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
+
   try {
     if (
       !roles ||
       (roles === ProjectRoles.NO_ACCESS && !isEeUI) ||
-      (collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles] === roles && isEeUI)
+      (currentCollaborator.workspace_roles &&
+        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
+        isEeUI)
     ) {
       await removeProjectUser(activeProjectId.value!, collab)
       if (
-        collab.workspace_roles &&
-        WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles] === roles &&
+        currentCollaborator.workspace_roles &&
+        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
         isEeUI
       ) {
-        collab.roles = WorkspaceRolesToProjectRoles[collab.workspace_roles as WorkspaceUserRoles]
+        currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
       } else {
-        collab.roles = ProjectRoles.NO_ACCESS
+        currentCollaborator.roles = ProjectRoles.NO_ACCESS
       }
-    } else if (collab.base_roles) {
-      collab.roles = roles
+    } else if (currentCollaborator.base_roles) {
+      currentCollaborator.roles = roles
       await updateProjectUser(activeProjectId.value!, collab)
     } else {
-      collab.roles = roles
-      collab.base_roles = roles
+      currentCollaborator.roles = roles
+      currentCollaborator.base_roles = roles
       await createProjectUser(activeProjectId.value!, collab)
     }
   } catch (e: any) {
@@ -106,16 +121,13 @@ onMounted(async () => {
     } else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
     }
+    loadSorts()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
   }
 })
-
-const filteredCollaborators = computed(() =>
-  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
-)
 </script>
 
 <template>
@@ -145,14 +157,25 @@ const filteredCollaborators = computed(() =>
       <div v-else class="nc-collaborators-list mt-6 h-full">
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
           <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
-            <div class="text-gray-700 users-email-grid">{{ $t('objects.users') }}</div>
-            <div class="text-gray-700 user-access-grid">{{ $t('general.access') }}</div>
+            <div class="text-gray-700 users-email-grid flex items-center space-x-2">
+              <span>
+                {{ $t('objects.users') }}
+              </span>
+              <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
+            </div>
+
+            <div class="text-gray-700 user-access-grid flex items-center space-x-2">
+              <span>
+                {{ $t('general.access') }}
+              </span>
+              <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
+            </div>
             <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
           </div>
 
           <div class="flex flex-col nc-scrollbar-md">
             <div
-              v-for="(collab, i) of filteredCollaborators"
+              v-for="(collab, i) of sortedCollaborators"
               :key="i"
               class="user-row flex flex-row border-b-1 py-1 min-h-14 items-center"
             >

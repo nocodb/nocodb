@@ -403,6 +403,7 @@ export function useData(args: {
       if (row.rowMeta) row.rowMeta.saving = false
     }
 
+    // reload data since row update may change the other columns data( formula, QrCode, Barcode, Rollup, Checkbox, User, Auto Updated Datetime, etc...)
     await callbacks?.loadData?.()
     await callbacks?.globalCallback?.()
   }

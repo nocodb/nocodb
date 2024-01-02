@@ -822,7 +822,10 @@ export class ImportService {
     }
 
     // create referenced columns
-    for (const col of sortedReferencedColumnSet) {
+    // sort the column sets to create the system columns first
+    for (const col of sortedReferencedColumnSet.sort(
+      (a, b) => (+b.system || 0) - (+a.system || 0),
+    )) {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;

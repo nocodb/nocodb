@@ -53,6 +53,26 @@ const BodyJsonSchema = {
   },
 };
 
+async function execAndGetRows(
+  kn: Knex,
+  config: any,
+  query: string,
+) {
+  if (config.client === 'pg' || config.client === 'snowflake') {
+    return (await kn.raw(query))?.rows;
+  } else if (/^(\(|)select/i.test(query) && config.client !== 'mssql') {
+    return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
+  } else if (/^(\(|)insert/i.test(query) && (config.client === 'mysql' || config.client === 'mysql2')) {
+      const res = await kn.raw(query);
+      if (res && res[0] && res[0].insertId) {
+        return res[0].insertId;
+      }
+      return res;
+  } else {
+    return await kn.raw(query);
+  }
+}
+
 async function queryHandler(req, res) {
   const { query: queries, config, raw = false } = req.body as any;
 
@@ -144,11 +164,7 @@ async function queryHandler(req, res) {
             responses.push(await trx.raw(q));
           } else {
             responses.push(
-              config.client === 'pg' || config.client === 'snowflake'
-                ? (await trx.raw(q))?.rows
-                : q.slice(0, 6) === 'select' && config.client !== 'mssql'
-                  ? await trx.from(trx.raw(q).wrap('(', ') __nc_alias'))
-                  : await trx.raw(q),
+              await execAndGetRows(trx, config, q),
             );
           }
         }
@@ -165,16 +181,7 @@ async function queryHandler(req, res) {
       if (raw) {
         result = await connectionPools[connectionKey].raw(query);
       } else {
-        result =
-          config.client === 'pg' || config.client === 'snowflake'
-            ? (await connectionPools[connectionKey].raw(query))?.rows
-            : query.slice(0, 6) === 'select' && config.client !== 'mssql'
-              ? await connectionPools[connectionKey].from(
-                connectionPools[connectionKey]
-                  .raw(query)
-                  .wrap('(', ') __nc_alias'),
-              )
-              : await connectionPools[connectionKey].raw(query);
+        result = await execAndGetRows(connectionPools[connectionKey], config, query);
       }
     }
 

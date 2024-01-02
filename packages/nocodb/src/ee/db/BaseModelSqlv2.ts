@@ -75,11 +75,20 @@ async function execAndGetRows(
   kn?: Knex | CustomKnex,
 ) {
   kn = kn || baseModel.dbDriver;
-  return baseModel.isPg || baseModel.isSnowflake
-    ? (await kn.raw(query))?.rows
-    : /^(\(|)select/.test(query) && !baseModel.isMssql
-    ? await kn.from(kn.raw(query).wrap('(', ') __nc_alias'))
-    : await kn.raw(query);
+
+  if (baseModel.isPg || baseModel.isSnowflake) {
+    return (await kn.raw(query))?.rows;
+  } else if (/^(\(|)select/i.test(query) && !baseModel.isMssql) {
+    return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
+  } else if (/^(\(|)insert/i.test(query) && baseModel.isMySQL) {
+    const res = await kn.raw(query);
+    if (res && res[0] && res[0].insertId) {
+      return res[0].insertId;
+    }
+    return res;
+  } else {
+    return await kn.raw(query);
+  }
 }
 
 /**
@@ -980,7 +989,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let responses;
 
       if ((this.dbDriver as any).isExternal) {
-        await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
         try {
@@ -1005,6 +1015,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw && !skip_hooks) {
+        // we will wrap returning primary key values with primary key column name
+        if (this.isMySQL) {
+          responses = responses.map((r) => ({
+            [this.model.primaryKey.column_name]: r,
+          }));
+        }
+
         if (isSingleRecordInsertion) {
           const insertData = await this.readByPk(responses[0]);
           await this.afterInsert(insertData, this.dbDriver, cookie);

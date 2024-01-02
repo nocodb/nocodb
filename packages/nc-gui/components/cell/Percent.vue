@@ -143,7 +143,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @selectstart.capture.stop
       @mousedown.stop
     />
-    <span v-else-if="vModel === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
     <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">
       <a-progress
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"

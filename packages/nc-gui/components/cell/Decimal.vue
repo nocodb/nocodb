@@ -112,7 +112,7 @@ watch(isExpandedFormOpen, () => {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
   <span v-else class="text-sm">{{ displayValue }}</span>
 </template>
 

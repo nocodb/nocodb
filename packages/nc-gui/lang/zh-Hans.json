@@ -189,7 +189,7 @@
     "shift": "Shift 键",
     "enter": "回车键",
     "seconds": "秒",
-    "paste": "Paste"
+    "paste": ""
   },
   "objects": {
     "workspace": "工作区",
@@ -587,7 +587,7 @@
     "links": "链接",
     "onUpdate": "更新时",
     "onDelete": "删除时",
-    "account": "帐户",
+    "account": "账户",
     "language": "语言",
     "primaryColor": "主色调",
     "accentColor": "强调色",

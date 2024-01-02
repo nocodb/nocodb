@@ -57,16 +57,6 @@ const sortUserBy = async (direction?: UsersSortType['direction']) => {
             {{ $t('general.sortDesc') }}
           </div>
         </NcMenuItem>
-
-        <a-divider class="!my-0" />
-
-        <NcMenuItem @click="sortUserBy()">
-          <div class="nc-column-delete nc-user-menu-item text-gray-700">
-            <component :is="iconMap.close" />
-            <!-- Reset -->
-            {{ $t('general.resetSort') }}
-          </div>
-        </NcMenuItem>
       </NcMenu>
     </template>
   </a-dropdown>

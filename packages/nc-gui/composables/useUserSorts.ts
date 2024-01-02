@@ -12,7 +12,7 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
 
   const { user } = useGlobal()
 
-  const sorts = ref<UsersSortType[]>([])
+  const sorts = ref<UsersSortType>({})
 
   // Key for storing user sort configurations in local storage
   const userSortConfigKey = 'userSortConfig'
@@ -25,10 +25,10 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
    * @type {ComputedRef<Record<string, UsersSortType['direction']>>}
    */
   const sortDirection: ComputedRef<Record<string, UsersSortType['direction']>> = computed(() => {
-    return sorts.value.reduce((acc, curr) => {
-      acc = { ...acc, [curr.field]: curr.direction }
-      return acc
-    }, {} as Record<string, UsersSortType['direction']>)
+    if (sorts.value.field) {
+      return { [sorts.value.field]: sorts.value.direction } as Record<string, UsersSortType['direction']>
+    }
+    return {} as Record<string, UsersSortType['direction']>
   })
 
   /**
@@ -43,11 +43,11 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
       sorts.value = sortConfig
 
       // Load user-specific sort configurations or default configurations
-      sorts.value = user.value?.id ? sortConfig[user.value.id] || [] : sortConfig[defaultUserId] || []
+      sorts.value = user.value?.id ? sortConfig[user.value.id] || {} : sortConfig[defaultUserId] || {}
     } catch (error) {
       console.error('Error while retrieving sort configuration from local storage:', error)
-      // Set sorts to an empty array in case of an error
-      sorts.value = []
+      // Set sorts to an empty obj in case of an error
+      sorts.value = {}
     }
   }
 
@@ -57,29 +57,10 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
    */
   function saveOrUpdate(newSortConfig: UsersSortType): void {
     try {
-      const fieldIndex = sorts.value.findIndex((sort) => sort.field === newSortConfig.field)
-      if (newSortConfig.direction) {
-        if (fieldIndex !== -1) {
-          // Update the direction if the field exists
-          sorts.value = [
-            ...clone(sorts.value)
-              .map((sort) => {
-                if (sort.field === newSortConfig.field) {
-                  sort.direction = newSortConfig.direction
-                }
-                return sort
-              })
-              .filter((sort) => sort.field === newSortConfig.field), // For now it is only single level of sorting so remove another sort field
-          ]
-        } else {
-          // Add a new sort configuration
-          sorts.value = [newSortConfig]
-        }
+      if (newSortConfig.field && newSortConfig.direction) {
+        sorts.value = { ...newSortConfig }
       } else {
-        if (fieldIndex !== -1) {
-          // Remove the sort configuration if the field exists and direction is not present
-          sorts.value = [...clone(sorts.value).filter((sort) => sort.field !== newSortConfig.field)]
-        }
+        sorts.value = {}
       }
 
       // Update local storage with the new sort configurations
@@ -88,7 +69,7 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
 
       if (user.value?.id) {
         // Save or delete user-specific sort configurations
-        if (sorts.value.length) {
+        if (sorts.value.field) {
           sortConfig[user.value.id] = sorts.value
         } else {
           delete sortConfig[user.value.id]
@@ -108,11 +89,11 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
    * Sorts and returns a deep copy of an array of objects based on the provided sort configurations.
    *
    * @param data - The array of objects to be sorted.
-   * @param sortsConfig - The array of sort configurations.
+   * @param sortsConfig - The object of sort configurations.
    * @returns A new array containing sorted objects.
    * @template T - The type of objects in the input array.
    */
-  function handleGetSortsData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType[] = sorts.value): T[] {
+  function handleGetSortsData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType = sorts.value): T[] {
     let userRoleOrder: string[] = []
     if (roleType === 'Workspace') {
       userRoleOrder = Object.values(WorkspaceUserRoles)
@@ -121,50 +102,43 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
     } else if (roleType === 'Project') {
       userRoleOrder = Object.values(ProjectRoles)
     }
+
     data = clone(data)
-    // let superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
-    // let superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
+
+    let superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
+    let superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
     // console.log('super', superUser)
-    const sortedData = data.sort((a, b) => {
-      let sortCondition = 0
+    let sortedData = data.sort((a, b) => {
+      switch (sortsConfig.field) {
+        case 'roles': {
+          const roleA = a?.roles?.split(',')[0]
+          const roleB = b?.roles?.split(',')[0]
 
-      for (const { field, direction } of sortsConfig) {
-        if (!a[field]) continue
-
-        if (field === 'roles') {
-          for (const role of userRoleOrder) {
-            const indexA = a?.roles?.split(',')?.indexOf(role) ?? -1
-            const indexB = b?.roles?.split(',')?.indexOf(role) ?? -1
-
-            // if (indexA === -1) {
-            //   sortCondition = sortCondition || direction === 'asc' ? 1 : -1 // Role A is missing, so it should come last
-            //   break
-            // }
-
-            // if (indexB === -1) {
-            //   sortCondition = sortCondition || direction === 'asc' ? -1 : 1 // Role B is missing, so it should come last
-            //   break
-            // }
-
-            if (direction === 'asc') {
-              sortCondition = sortCondition || indexA - indexB
-              break
-            } else if (direction === 'desc') {
-              sortCondition = sortCondition || indexB - indexA
-              break
-            }
+          if (sortsConfig.direction === 'asc') {
+            return userRoleOrder.indexOf(roleA) - userRoleOrder.indexOf(roleB)
+          } else if (sortsConfig.direction === 'desc') {
+            return userRoleOrder.indexOf(roleB) - userRoleOrder.indexOf(roleA)
           }
-        } else {
-          if (direction === 'asc') {
-            sortCondition = sortCondition || a[field]?.localeCompare(b[field])
-          } else if (direction === 'desc') {
-            sortCondition = sortCondition || b[field]?.localeCompare(a[field])
+        }
+        case 'email': {
+          if (sortsConfig.direction === 'asc') {
+            return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
+          } else if (sortsConfig.direction === 'desc') {
+            return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
         }
       }
 
-      return sortCondition
+      return 0
     })
+
+    if (superUser && superUser.length) {
+      if (sortsConfig.direction === 'desc') {
+        sortedData = [...sortedData, superUser[0]]
+      } else {
+        sortedData = [superUser[0], ...sortedData]
+      }
+    }
 
     return sortedData
   }

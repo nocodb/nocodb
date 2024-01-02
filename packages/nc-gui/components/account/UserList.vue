@@ -12,6 +12,7 @@ import {
   useNuxtApp,
   useUserSorts,
 } from '#imports'
+import rfdc from 'rfdc'
 
 const { api, isLoading } = useApi()
 
@@ -33,6 +34,7 @@ const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = us
 const users = ref<UserType[]>([])
 
 const sortedUsers = computed(() => {
+  console.log('users', users.value)
   return handleGetSortsData(users.value, sorts.value) as UserType[]
 })
 
@@ -53,6 +55,8 @@ const pagination = reactive({
   pageSize: 10,
   position: ['bottomCenter'],
 })
+
+const clone = rfdc()
 
 const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
@@ -89,10 +93,11 @@ const updateRole = async (userId: string, roles: string) => {
     } as OrgUserReqType)
     message.success(t('msg.success.roleUpdated'))
 
-    users.value.forEach((user) => {
+    users.value = clone(users.value).map((user) => {
       if (user.id === userId) {
-        user.roles = roles
+        user['roles'] = roles
       }
+      return user
     })
 
     $e('a:org-user:role-updated', { role: roles })

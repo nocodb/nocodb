@@ -40,8 +40,7 @@ const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const sortedCollaborators = computed(() => {
-  console.log('collaborator', sorts.value, collaborators.value)
-  return handleGetSortsData([...collaborators.value], sorts.value)
+  return handleGetSortsData(collaborators.value, sorts.value)
 })
 
 const loadCollaborators = async () => {
@@ -70,6 +69,28 @@ const loadCollaborators = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+const loadListData = async ($state: any) => {
+  const prevUsersCount = collaborators.value?.length || 0
+  if (collaborators.value?.length === totalCollaborators.value) {
+    $state.complete()
+    return
+  }
+  $state.loading()
+  // const oldPagesCount = currentPage.value || 0
+
+  await loadCollaborators()
+
+  if (prevUsersCount === collaborators.value?.length) {
+    $state.complete()
+    return
+  }
+  $state.loaded()
+}
+
+const updateCollaboratorLocalState = ()=>{
+  
 }
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
@@ -159,16 +180,15 @@ onMounted(async () => {
               <span>
                 {{ $t('objects.users') }}
               </span>
-              <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
+              <LazyAccountUserMenu :direction="sortDirection['email']" field="email" :handle-user-sort="saveOrUpdate" />
             </div>
-
+            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
             <div class="text-gray-700 user-access-grid flex items-center space-x-2">
               <span>
                 {{ $t('general.access') }}
               </span>
-              <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
+              <LazyAccountUserMenu :direction="sortDirection['roles']" field="roles" :handle-user-sort="saveOrUpdate" />
             </div>
-            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
           </div>
 
           <div class="flex flex-col nc-scrollbar-md">

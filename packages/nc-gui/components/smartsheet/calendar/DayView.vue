@@ -17,6 +17,8 @@ const emit = defineEmits(['expand-record', 'new-record'])
 const meta = inject(MetaInj, ref())
 const fields = inject(FieldsInj, ref([]))
 
+const container = ref()
+
 const data = toRefs(props).data
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
@@ -198,6 +200,46 @@ const getRecordStyle = (record: Row) => {
     left: columnIndex === 0 ? `calc(${left}% + 69px)` : `${left}%`,
   }
 }
+
+const dragStart = (event: DragEvent, record: Row) => {
+  const eventRect = event.target.getBoundingClientRect()
+  const initialClickOffsetY = event.clientY - eventRect.top
+
+  event.dataTransfer?.setData(
+    'text/plain',
+    JSON.stringify({
+      record,
+      initialClickOffsetY,
+    }),
+  )
+}
+
+const dropEvent = (event: DragEvent) => {
+  event.preventDefault()
+  const data = event.dataTransfer?.getData('text/plain')
+  if (data) {
+    const { record, initialClickOffsetY } = JSON.parse(data)
+
+    console.log('droppedRecord', record)
+
+    const { top, height } = container.value.getBoundingClientRect()
+
+    const percent = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
+
+    const minutes = percent * 1440
+
+    const newStartTime = dayjs(selectedDate.value).startOf('day').add(minutes, 'minutes')
+    const newEndTime = dayjs(newStartTime).add(
+      dayjs(record.row[calendarRange.value[0].fk_to_col.title]).diff(
+        dayjs(record.row[calendarRange.value[0].fk_from_col.title]),
+        'minutes',
+      ),
+      'minutes',
+    )
+
+    // TODO: Update record with new start and end time
+  }
+}
 </script>
 
 <template>
@@ -244,7 +286,7 @@ const getRecordStyle = (record: Row) => {
           />
         </LazySmartsheetRow>
       </div>
-      <div class="relative">
+      <div ref="container" class="relative" @drop="dropEvent($event, record)">
         <div
           v-for="hour in hours"
           :key="hour"
@@ -282,6 +324,8 @@ const getRecordStyle = (record: Row) => {
           :style="getRecordStyle(record)"
           class="absolute"
           draggable="true"
+          @dragstart="dragStart($event, record)"
+          @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard

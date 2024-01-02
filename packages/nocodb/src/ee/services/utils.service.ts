@@ -2,14 +2,11 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { Configuration, OpenAIApi } from 'openai';
 import JSON5 from 'json5';
-import { identify } from 'sql-query-identifier';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Source } from '~/models';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -443,10 +440,10 @@ export class UtilsService extends UtilsServiceCE {
     }
   }
 
-  async runSelectQuery(param: { sourceId: string; query: string }) {
+  async runSelectQuery(_param: { sourceId: string; query: string }) {
     // req.body.sourceId
     // req.body.query
-
+    /*
     const source = await Source.get(param.sourceId);
     if (!source) return NcError.internalServerError('Source not found');
 
@@ -484,6 +481,7 @@ export class UtilsService extends UtilsServiceCE {
     } catch (e) {
       return NcError.internalServerError(e.message);
     }
+    */
   }
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {

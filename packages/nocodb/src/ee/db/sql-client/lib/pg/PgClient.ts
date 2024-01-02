@@ -9,12 +9,20 @@ const log = new Debug('PGClient');
 
 async function runExternal(query: string, config: any) {
   const { dbMux, sourceId, ...rest } = config;
-  const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
-    query,
-    config: rest,
-    raw: true,
-  });
-  return data;
+
+  try {
+    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
+      query,
+      config: rest,
+      raw: true,
+    });
+    return data;
+  } catch (e) {
+    if (e.response?.data?.error) {
+      throw e.response.data.error;
+    }
+    throw e;
+  }
 }
 
 class PGClient extends PGClientCE {

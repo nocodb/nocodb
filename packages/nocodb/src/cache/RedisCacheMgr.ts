@@ -6,7 +6,7 @@ import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 const log = debug('nc:cache');
 
 export default class RedisCacheMgr extends CacheMgr {
-  client: any;
+  client: Redis;
   prefix: string;
 
   constructor(config: any) {
@@ -300,7 +300,7 @@ export default class RedisCacheMgr extends CacheMgr {
 
   async destroy(): Promise<boolean> {
     log('RedisCacheMgr::destroy: destroy redis');
-    return this.client.flushdb();
+    return this.client.flushdb().then((r) => r === 'OK');
   }
 
   async export(): Promise<any> {

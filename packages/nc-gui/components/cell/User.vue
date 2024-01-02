@@ -326,7 +326,7 @@ const filterOption = (input: string, option: any) => {
           :class="`nc-select-option-${column.title}-${op.email}`"
           @click.stop
         >
-          <a-tag class="rounded-tag" color="'#ccc'">
+          <a-tag class="rounded-tag !pl-0" color="'#ccc'">
             <span
               :style="{
                 'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -334,9 +334,13 @@ const filterOption = (input: string, option: any) => {
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                 'font-size': '13px',
               }"
+              class="flex items-center gap-2"
               :class="{ 'text-sm': isKanban }"
             >
-              {{ op.display_name?.length ? op.display_name : op.email }}
+              <GeneralUserIcon size="medium" :email="op.email" />
+              <span>
+                {{ op.display_name?.length ? op.display_name : op.email }}
+              </span>
             </span>
           </a-tag>
         </a-select-option>

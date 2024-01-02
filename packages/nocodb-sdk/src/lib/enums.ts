@@ -243,8 +243,12 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
-  // placeholder for no access
-  null,
+];
+
+export const OrderedOrgRoles = [
+  OrgUserRoles.SUPER_ADMIN,
+  OrgUserRoles.CREATOR,
+  OrgUserRoles.VIEWER,
 ];
 
 export const OrderedProjectRoles = [

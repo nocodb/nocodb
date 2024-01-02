@@ -10,6 +10,7 @@ import {
 } from 'nocodb-sdk'
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
+import type { User } from '#imports'
 
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
@@ -85,7 +86,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
         isEeUI)
     ) {
-      await removeProjectUser(activeProjectId.value!, collab)
+      await removeProjectUser(activeProjectId.value!, currentCollaborator as unknown as User)
       if (
         currentCollaborator.workspace_roles &&
         WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
@@ -97,11 +98,11 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       }
     } else if (currentCollaborator.base_roles) {
       currentCollaborator.roles = roles
-      await updateProjectUser(activeProjectId.value!, collab)
+      await updateProjectUser(activeProjectId.value!, currentCollaborator as unknown as User)
     } else {
       currentCollaborator.roles = roles
       currentCollaborator.base_roles = roles
-      await createProjectUser(activeProjectId.value!, collab)
+      await createProjectUser(activeProjectId.value!, currentCollaborator as unknown as User)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

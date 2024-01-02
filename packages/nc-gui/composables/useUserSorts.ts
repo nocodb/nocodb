@@ -1,5 +1,5 @@
 import rfdc from 'rfdc'
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
 import type { UsersSortType } from '~/lib'
 import { useGlobal } from '#imports'
 
@@ -105,11 +105,11 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
   function handleGetSortedData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType = sorts.value): T[] {
     let userRoleOrder: string[] = []
     if (roleType === 'Workspace') {
-      userRoleOrder = Object.values(WorkspaceUserRoles)
+      userRoleOrder = Object.values(OrderedWorkspaceRoles)
     } else if (roleType === 'Org') {
-      userRoleOrder = Object.values(OrgUserRoles)
+      userRoleOrder = Object.values(OrderedOrgRoles)
     } else if (roleType === 'Project') {
-      userRoleOrder = Object.values(ProjectRoles)
+      userRoleOrder = Object.values(OrderedProjectRoles)
     }
 
     data = clone(data)

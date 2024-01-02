@@ -18,7 +18,7 @@ interface Props {
   isPk?: boolean
 }
 
-const { modelValue, isPk = false } = defineProps<Props>()
+const { modelValue, isPk = false } = withDefaults(defineProps<Props>(), { isPk: false })
 
 const emit = defineEmits(['update:modelValue'])
 

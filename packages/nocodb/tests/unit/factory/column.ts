@@ -27,7 +27,8 @@ const defaultColumns = function (context) {
       title: 'CreatedAt',
       dtxp: '',
       dtxs: '',
-      uidt: 'DateTime',
+      uidt: 'CreatedTime',
+      system:true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
     {
@@ -40,7 +41,8 @@ const defaultColumns = function (context) {
       title: 'UpdatedAt',
       dtxp: '',
       dtxs: '',
-      uidt: 'DateTime',
+      uidt: 'LastModifiedTime',
+      system:true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
   ];

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
+  isCreatedTimeOrUpdatedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -382,9 +383,8 @@ export class TablesService {
     // add CreatedBy and LastModifiedBy system columns if missing in request payload
     {
       for (const uidt of [UITypes.CreatedTime, UITypes.LastModifiedTime]) {
-        if (
-          !tableCreatePayLoad.columns.find((c) => c.uidt === uidt && c.system)
-        ) {
+        const col = tableCreatePayLoad.columns.find((c) => c.uidt === uidt);
+        if (!col || !col.system) {
           tableCreatePayLoad.columns.push({
             ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
             system: true,
@@ -472,7 +472,10 @@ export class TablesService {
     const uniqueColumnNameCount = {};
 
     for (const column of param.table.columns) {
-      if (!isVirtualCol(column)) {
+      if (
+        !isVirtualCol(column) ||
+        (isCreatedTimeOrUpdatedTimeCol(column) && (column as any).system)
+      ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
         // - 5 is a buffer for suffix
@@ -503,11 +506,16 @@ export class TablesService {
     }
 
     tableCreatePayLoad.columns = await Promise.all(
-      param.table.columns?.map(async (c) => ({
-        ...(await getColumnPropsFromUIDT(c as any, source)),
-        cn: c.column_name,
-        column_name: c.column_name,
-      })),
+      param.table.columns
+        // exclude alias columns from column list
+        ?.filter((c) => {
+          return !isCreatedTimeOrUpdatedTimeCol(c) || (c as any).system;
+        })
+        .map(async (c) => ({
+          ...(await getColumnPropsFromUIDT(c as any, source)),
+          cn: c.column_name,
+          column_name: c.column_name,
+        })),
     );
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,

@@ -8,7 +8,8 @@ import {
   parseStringDateTime,
   timeAgo,
 } from 'nocodb-sdk'
-import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { WorkspaceUserRoles } from 'nocodb-sdk'
+import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const basesStore = useBases()
@@ -17,7 +18,7 @@ const { activeProjectId } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles } = useRoles()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -38,12 +39,9 @@ const isLoading = ref(false)
 const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
-const filteredCollaborators = computed(() =>
-  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
-)
-
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(filteredCollaborators.value, sorts.value)
+  console.log('collaborator', sorts.value, collaborators.value)
+  return handleGetSortsData([...collaborators.value], sorts.value)
 })
 
 const loadCollaborators = async () => {

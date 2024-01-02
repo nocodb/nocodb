@@ -823,9 +823,7 @@ export class ImportService {
 
     // create referenced columns
     // sort the column sets to create the system columns first
-    for (const col of sortedReferencedColumnSet.sort(
-      (a, b) => (+b.system || 0) - (+a.system || 0),
-    )) {
+    for (const col of sortedReferencedColumnSet) {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
@@ -901,6 +899,7 @@ export class ImportService {
         col.uidt === UITypes.CreatedTime ||
         col.uidt === UITypes.LastModifiedTime
       ) {
+        if(col.system) continue;
         const freshModelData = await this.columnsService.columnAdd({
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({

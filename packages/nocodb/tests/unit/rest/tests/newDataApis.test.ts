@@ -82,9 +82,15 @@
  */
 
 import 'mocha';
-import {UITypes, ViewTypes, WorkspaceUserRoles} from 'nocodb-sdk';
+import {
+  isCreatedTimeOrUpdatedTimeCol,
+  UITypes,
+  ViewTypes,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
+import validator from 'validator';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
@@ -102,6 +108,7 @@ import { defaultUserArgs } from '../../factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
+import isCreditCard = validator.isCreditCard;
 
 const debugMode = false;
 
@@ -667,7 +674,12 @@ function textBased() {
 
     // verify sorted order
     // Would contain all 'Afghanistan' as we have 31 records for it
-    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    expect(
+      verifyColumnsInRsp(
+        rsp.body.list[0],
+        columns.filter((c) => !isCreatedTimeOrUpdatedTimeCol(c) || !c.system),
+      ),
+    ).to.equal(true);
     const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
     expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
 
@@ -683,7 +695,11 @@ function textBased() {
         viewId: gridView.id,
       },
     });
-    const displayColumns = columns.filter((c) => c.title !== 'SingleLineText');
+    const displayColumns = columns.filter(
+      (c) =>
+        c.title !== 'SingleLineText' &&
+        (!isCreatedTimeOrUpdatedTimeCol(c) || !c.system),
+    );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
   });
 
@@ -2799,7 +2815,7 @@ function userFieldBased() {
 
     // invite users to workspace
     if (process.env.EE === 'true') {
-      let rsp = await request(context.app)
+      const rsp = await request(context.app)
         .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
         .set('xc-auth', context.token)
         .send({ email, roles: WorkspaceUserRoles.VIEWER });

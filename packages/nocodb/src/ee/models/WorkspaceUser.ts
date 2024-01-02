@@ -83,7 +83,7 @@ export default class WorkspaceUser {
       // clear base user list caches
       const bases = await Base.listByWorkspace(
         workspaceUser.fk_workspace_id,
-        ncMeta,
+        ncMetaTrans,
       );
       for (const base of bases) {
         await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);

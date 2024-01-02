@@ -1,4 +1,4 @@
-import { isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import { isCreatedTimeOrUpdatedTimeCol, isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk'
 import type {
   Column,
   LinkToAnotherRecordColumn,
@@ -149,8 +149,7 @@ const getAst = async ({
     if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
-        col.column_name === 'created_at' ||
-        col.column_name === 'updated_at' ||
+        (isCreatedTimeOrUpdatedTimeCol(col) && col.system) ||
         col.pk;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =

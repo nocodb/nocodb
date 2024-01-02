@@ -872,7 +872,7 @@ const toggleModal = (val: boolean) => {
               </div>
             </div>
 
-            <div v-if="!goToDashboard && progress[progress.length - 1].status !== JobStatus.FAILED" class="flex items-center">
+            <div v-if="!goToDashboard && progress[progress.length - 1]?.status !== JobStatus.FAILED" class="flex items-center">
               <!--            Importing -->
               <component :is="iconMap.loading" class="text-green-500 animate-spin" />
               <span class="text-green-500 ml-2">Setting up...</span>

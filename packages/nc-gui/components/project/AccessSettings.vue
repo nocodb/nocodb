@@ -189,6 +189,7 @@ onMounted(async () => {
               </span>
               <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
             </div>
+            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
           </div>
 
           <div class="flex flex-col nc-scrollbar-md">

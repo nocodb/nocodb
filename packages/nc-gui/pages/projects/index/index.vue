@@ -6,9 +6,7 @@ interface Props {
   bases?: BaseType[]
 }
 
-const { bases } = withDefaults(defineProps<Props>(), {
-  bases: () => [],
-})
+const { bases = [] } = defineProps<Props>()
 
 const emit = defineEmits(['delete-base'])
 

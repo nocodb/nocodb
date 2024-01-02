@@ -28,12 +28,12 @@ const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = useUserSorts('Org')
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Org')
 
 const users = ref<UserType[]>([])
 
 const sortedUsers = computed(() => {
-  return handleGetSortsData(users.value, sorts.value) as UserType[]
+  return handleGetSortedData(users.value, sorts.value) as UserType[]
 })
 
 const currentPage = ref(1)
@@ -93,7 +93,6 @@ const updateRole = async (userId: string, roles: string) => {
       if (user.id === userId) {
         user.roles = roles
       }
-      return user
     })
 
     $e('a:org-user:role-updated', { role: roles })

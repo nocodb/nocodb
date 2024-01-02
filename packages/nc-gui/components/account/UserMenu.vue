@@ -10,7 +10,7 @@ const { field, direction, handleUserSort } = defineProps<{
 
 const isOpen = ref(false)
 
-const sortUserBy = async (direction?: UsersSortType['direction']) => {
+const sortUserBy = (direction?: UsersSortType['direction']) => {
   handleUserSort({
     field,
     direction,

@@ -28,12 +28,12 @@ const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Org')
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortsData } = useUserSorts()
 
 const users = ref<UserType[]>([])
 
 const sortedUsers = computed(() => {
-  return handleGetSortedData(users.value, sorts.value) as UserType[]
+  return handleGetSortsData(users.value, sorts.value) as UserType[]
 })
 
 const currentPage = ref(1)
@@ -205,13 +205,13 @@ const openDeleteModal = (user: UserType) => {
             <span>
               {{ $t('labels.email') }}
             </span>
-            <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
+            <LazyAccountUserMenu :direction="sortDirection['email']" field="email" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start flex items-center space-x-2" data-rec="true">
             <span>
               {{ $t('objects.role') }}
             </span>
-            <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
+            <LazyAccountUserMenu :direction="sortDirection['roles']" field="roles" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="flex py-3.5 text-gray-500 font-medium text-3.5 w-28 justify-end mr-4" data-rec="true">
             {{ $t('labels.action') }}

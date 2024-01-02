@@ -10,9 +10,9 @@ const { field, direction, handleUserSort } = defineProps<{
 
 const isOpen = ref(false)
 
-const sortUserBy = (direction?: UsersSortType['direction']) => {
+const sortUserBy = async (direction?: UsersSortType['direction']) => {
   handleUserSort({
-    field,
+    field: field,
     direction,
   })
   isOpen.value = false
@@ -55,6 +55,16 @@ const sortUserBy = (direction?: UsersSortType['direction']) => {
             <component :is="iconMap.sortDesc" class="text-gray-700 !w-4.25 !h-4.25 ml-0.5 mr-0.25" />
             <!-- Sort Descending -->
             {{ $t('general.sortDesc') }}
+          </div>
+        </NcMenuItem>
+
+        <a-divider class="!my-0" />
+
+        <NcMenuItem @click="sortUserBy()">
+          <div class="nc-column-delete nc-user-menu-item text-gray-700">
+            <component :is="iconMap.close" />
+            <!-- Reset -->
+            {{ $t('general.resetSort') }}
           </div>
         </NcMenuItem>
       </NcMenu>

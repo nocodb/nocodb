@@ -178,7 +178,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles'
+  field: string
   direction?: 'asc' | 'desc'
 }
 

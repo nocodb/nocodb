@@ -189,7 +189,8 @@
     "shift": "Shift",
     "enter": "Enter",
     "seconds": "Seconds",
-    "paste": "Paste"
+    "paste": "Paste",
+    "resetSort": "Reset Sort"
   },
   "objects": {
     "workspace": "Workspace",

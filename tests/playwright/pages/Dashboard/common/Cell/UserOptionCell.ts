@@ -47,7 +47,10 @@ export class UserOptionCellPageObject extends BasePage {
       await selectOption.click();
     }
 
-    if (multiSelect) await this.get({ index, columnHeader }).click();
+    if (multiSelect) {
+      // Press `Escape` to close the dropdown
+      await this.rootPage.keyboard.press('Escape');
+    }
 
     await this.rootPage
       .getByTestId(`select-option-${columnHeader}-${index}`)

@@ -54,12 +54,19 @@ async function runExternal(
 
   const { dbMux, sourceId, ...rest } = config;
 
-  const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
-    query,
-    config: rest,
-    ...extraOptions,
-  });
-  return data;
+  try {
+    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
+      query,
+      config: rest,
+      ...extraOptions,
+    });
+    return data;
+  } catch (e) {
+    if (e.response?.data?.error) {
+      throw e.response.data.error;
+    }
+    throw e;
+  }
 }
 
 async function execAndGetRows(

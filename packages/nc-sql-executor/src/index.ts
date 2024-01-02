@@ -158,7 +158,7 @@ async function queryHandler(req, res) {
         await trx.rollback();
         console.error(e);
         return res.status(500).send({
-          error: e.message,
+          error: e,
         });
       }
     } else {
@@ -198,7 +198,7 @@ async function queryHandler(req, res) {
     console.error(e);
     console.error('\n');
     return res.status(500).send({
-      error: e.message,
+      error: e,
     });
   }
 

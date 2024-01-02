@@ -17,6 +17,7 @@ import { Altered } from '~/services/columns.service';
 
 const logger = new Logger('ncXcdbCreatedAndUpdatedTimeUpgrader');
 
+/* Enable if planning to remove trigger
 async function deletePgTrigger({
   column,
   ncMeta,
@@ -36,6 +37,7 @@ async function deletePgTrigger({
   ]);
   await ncMeta.knex.raw(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
 }
+*/
 
 async function upgradeModels({
   ncMeta,
@@ -71,19 +73,14 @@ async function upgradeModels({
             ncMeta,
           );
 
+          /*   Enable if planning to remove trigger
           if (source.type === 'pg') {
             // delete pg trigger if exists
             await deletePgTrigger({ column, ncMeta, model });
-          }
+          }*/
         }
         if (column.uidt === 'updated_at') {
           isLastModifiedTimeExists = true;
-          Object.assign(column, {
-            uidt: UITypes.LastModifiedTime,
-            system: true,
-            cdf: '',
-            au: false,
-          });
           await Column.update(
             column.id,
             {

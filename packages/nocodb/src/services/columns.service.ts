@@ -2031,6 +2031,15 @@ export class ColumnsService {
     const reuse = param.reuse || {};
 
     const column = await Column.get({ colId: param.columnId }, ncMeta);
+
+    if (column.system) {
+      NcError.badRequest(
+        `The column '${
+          column.title || column.column_name
+        }' is a system column and cannot be deleted.`,
+      );
+    }
+
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(
         {
@@ -2216,11 +2225,6 @@ export class ColumnsService {
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
         {
-          if (column.system) {
-            NcError.badRequest(
-              `The column '${column.column_name}' is a system column and cannot be deleted.`,
-            );
-          }
           await Column.delete(param.columnId, ncMeta);
         }
         break;

@@ -8,7 +8,7 @@ import {
   parseStringDateTime,
   timeAgo,
 } from 'nocodb-sdk'
-import type { WorkspaceUserRoles } from 'nocodb-sdk'
+import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 

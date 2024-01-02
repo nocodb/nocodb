@@ -9,7 +9,6 @@ import {
   timeAgo,
 } from 'nocodb-sdk'
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import InfiniteLoading from 'v3-infinite-loading'
 import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const basesStore = useBases()
@@ -73,24 +72,6 @@ const loadCollaborators = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const loadListData = async ($state: any) => {
-  const prevUsersCount = collaborators.value?.length || 0
-  if (collaborators.value?.length === totalCollaborators.value) {
-    $state.complete()
-    return
-  }
-  $state.loading()
-  // const oldPagesCount = currentPage.value || 0
-
-  await loadCollaborators()
-
-  if (prevUsersCount === collaborators.value?.length) {
-    $state.complete()
-    return
-  }
-  $state.loaded()
 }
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {

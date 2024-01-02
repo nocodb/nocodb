@@ -114,7 +114,7 @@ export function useUserSorts() {
       let sortCondition = 0
 
       for (const { field, direction } of sortsConfig) {
-        if (a[field]) continue
+        if (!a[field]) continue
 
         if (direction === 'asc') {
           sortCondition = sortCondition || a[field]?.localeCompare(b[field])

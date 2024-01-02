@@ -21,9 +21,9 @@ withDefaults(defineProps<Props>(), {
 <template>
   <div
     :class="{
-      'min-h-12': size === 'medium',
-      'min-h-16': size === 'large',
-      'min-h-10': size === 'small',
+      'h-8': size === 'small',
+      'h-10': size === 'medium',
+      'h-12': size === 'large',
       'rounded-l-lg ml-3': position === 'leftRounded',
       'rounded-r-lg mr-3': position === 'rightRounded',
       'rounded-lg mx-3': position === 'rounded',
@@ -35,10 +35,10 @@ withDefaults(defineProps<Props>(), {
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
     }"
-    class="gap-2 border-gray-200 border-1"
+    class="cursor-pointer relative"
   >
-    <div class="flex items-center relative px-2 cursor-pointer py-2">
-      <span
+    <div class="h-full absolute py-2">
+      <div
         v-if="position === 'leftRounded' || position === 'rounded'"
         :class="{
           'bg-maroon-500': color === 'maroon',
@@ -48,14 +48,13 @@ withDefaults(defineProps<Props>(), {
           'bg-pink-500': color === 'pink',
           'bg-purple-500': color === 'purple',
         }"
-        class="block h-5 w-1 rounded mr-2"
-      ></span>
-      <div class="flex flex-row items-baseline gap-2">
-        <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
-
-        <span class="text-sm font-bold text-gray-800">{{ name }}</span>
-        <span v-if="showDate" class="text-xs text-gray-600">{{ date }}</span>
-      </div>
+        class="block h-full ml-1 w-1 rounded mr-2"
+      ></div>
+    </div>
+    <div class="ml-3 mt-2 absolute">
+      <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
+      <span class="text-sm font-bold text-gray-800">{{ name }}</span>
+      <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
   </div>

@@ -68,60 +68,6 @@ const getRecordPosition = (record: Row) => {
   }
 }
 
-const timeSlots = reactive({})
-const getRecordStyles = (record) => {
-  if (!calendarRange.value || !calendarRange.value[0]) return ''
-
-  const startColTitle = calendarRange.value[0].fk_from_col.title
-  const endColTitle = calendarRange.value[0].fk_to_col.title
-
-  const scheduleStart = dayjs(selectedDate.value).startOf('day').toDate()
-  const scheduleEnd = dayjs(selectedDate.value).endOf('day').toDate()
-
-  let fromDate = record.row[startColTitle] ? new Date(record.row[startColTitle]) : null
-  let endDate = record.row[endColTitle] ? new Date(record.row[endColTitle]) : null
-
-  if (!fromDate && !endDate) return null
-
-  if (!fromDate) {
-    fromDate = new Date(endDate.getTime() - 60 * 60000)
-  } else if (!endDate) {
-    endDate = new Date(fromDate.getTime() + 60 * 60000)
-  }
-
-  const scaleMinutes = (scheduleEnd - scheduleStart) / 60000
-  const startMinutes = Math.max(0, (fromDate - scheduleStart) / 60000)
-  const endMinutes = Math.min(scaleMinutes, (endDate - scheduleStart) / 60000)
-
-  if (endMinutes < startMinutes) return null
-
-  const height = ((endMinutes - startMinutes) / scaleMinutes) * 100
-  const timeslot = `${fromDate.getHours()}:${Math.floor(fromDate.getMinutes() / 15) * 15}`
-
-  // Calculate the column index based on timeSlots
-  let columnIndex = -1
-  if (timeSlots[timeslot]) {
-    columnIndex = timeSlots[timeslot].findIndex((colEndTime) => startMinutes >= colEndTime)
-    if (columnIndex === -1 && timeSlots[timeslot].length < 10) {
-      columnIndex = timeSlots[timeslot].length
-    } else if (columnIndex === -1) {
-      columnIndex = 9 // Last column if there are already 10 columns
-    }
-  }
-
-  // Calculate the width and left based on the column index
-  const numColumns = columnIndex !== -1 ? Math.min(timeSlots[timeslot].length, 10) : 1
-  const width = 100 / numColumns
-  const left = columnIndex !== -1 ? width * columnIndex : 0
-
-  return {
-    top: `${(startMinutes / scaleMinutes) * 100}%`,
-    height: `${height}%`,
-    left: `calc(${left}% + 40px)`,
-    width: `${width}%`,
-  }
-}
-
 const getSpanningRecords = computed(() => {
   if (!calendarRange.value || !calendarRange.value[0]) return []
   const startCol = calendarRange.value[0].fk_from_col
@@ -167,6 +113,91 @@ const hours = computed<dayjs.Dayjs>(() => {
   }
   return hours
 })
+
+const isOverlap = (record, record1) => {
+  const startCol = calendarRange.value[0].fk_from_col.title
+  const endCol = calendarRange.value[0].fk_to_col.title
+
+  const startDate = dayjs(record.row[startCol])
+  const endDate = dayjs(record.row[endCol])
+  const startDate1 = dayjs(record1.row[startCol])
+  const endDate1 = dayjs(record1.row[endCol])
+
+  return startDate.isBefore(endDate1) && endDate.isAfter(startDate1)
+}
+
+const overlappingGroups = computed(() => {
+  const recordGroups = []
+  renderData.value
+    ?.filter((record) => !getSpanningRecords.value.includes(record))
+    .forEach((record) => {
+      let placed = false
+      for (const group of recordGroups) {
+        if (group.some((rec) => isOverlap(rec, record))) {
+          group.push(record)
+          placed = true
+          break
+        }
+      }
+      if (!placed) {
+        recordGroups.push([record]) // Create a new group with the record
+      }
+    })
+  return recordGroups
+})
+
+const getColumnIndexFromGroup = (record: Row) => {
+  for (const group of overlappingGroups.value) {
+    if (group.includes(record)) {
+      return group.indexOf(record)
+    }
+  }
+}
+
+const getTotalColumns = (record: Row) => {
+  for (const group of overlappingGroups.value) {
+    if (group.includes(record)) {
+      return group.length
+    }
+  }
+  return 1
+}
+
+const getRecordStyle = (record: Row) => {
+  if (!calendarRange.value || !calendarRange.value[0]) return {}
+  const startCol = calendarRange.value[0].fk_from_col.title
+  const endCol = calendarRange.value[0].fk_to_col.title
+  const scheduleStart = dayjs(selectedDate.value).startOf('day')
+  const scheduleEnd = dayjs(selectedDate.value).endOf('day')
+
+  let startDate = dayjs(record.row[startCol])
+  let endDate = dayjs(record.row[endCol])
+
+  if (!startDate) {
+    startDate = endDate.subtract(1, 'hour')
+  } else if (!endDate) {
+    endDate = startDate.add(1, 'hour')
+  }
+
+  const scaleMin = (scheduleEnd - scheduleStart) / 60000
+  const startMinutes = Math.max((startDate - scheduleStart) / 60000, 0)
+  const endMinutes = Math.min((endDate - scheduleStart) / 60000, scaleMin)
+
+  const height = ((endMinutes - startMinutes) / scaleMin) * 100
+  const top = (startMinutes / scaleMin) * 100
+
+  const columnIndex = getColumnIndexFromGroup(record)
+  const totalColumns = getTotalColumns(record)
+
+  const width = 100 / totalColumns
+  const left = width * columnIndex
+  return {
+    top: `${top}%`,
+    height: `${height}%`,
+    width: columnIndex === 0 ? `calc(${width}% - 69px)` : `${width}%`,
+    left: columnIndex === 0 ? `calc(${left}% + 69px)` : `${left}%`,
+  }
+}
 </script>
 
 <template>
@@ -246,10 +277,11 @@ const hours = computed<dayjs.Dayjs>(() => {
           :class="{
             'ml-3': getRecordPosition(record) === 'leftRounded',
             'mr-3': getRecordPosition(record) === 'rightRounded',
-            'mx-3': getRecordPosition(record) === 'rounded',
+            '': getRecordPosition(record) === 'rounded',
           }"
-          :style="getRecordStyles(record)"
+          :style="getRecordStyle(record)"
           class="absolute"
+          draggable="true"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard

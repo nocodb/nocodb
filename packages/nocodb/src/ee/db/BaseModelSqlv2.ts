@@ -368,7 +368,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         .update(updateObj)
         .where(await this._wherePk(id));
 
-      await this.execAndParse(query);
+      await this.execAndParse(query, null, { raw: true });
 
       // const newData = await this.readByPk(id, false, {}, { ignoreView: true, getHiddenColumn: true });
 

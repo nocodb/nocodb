@@ -1,7 +1,7 @@
 import rfdc from 'rfdc'
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { UsersSortType } from '~/lib'
 import { useGlobal } from '#imports'
-import { extractRolesObj, ProjectRoles, OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 /**
  * Hook for managing user sorts and sort configurations.
@@ -105,28 +105,27 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project') {
 
     data = clone(data)
 
-    let superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
-    let superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
+    const superUserIndex = data.findIndex((user) => user?.roles?.includes('super'))
+    const superUser = superUserIndex !== -1 ? data.splice(superUserIndex, 1) : null
     // console.log('super', superUser)
     let sortedData = data.sort((a, b) => {
       switch (sortsConfig.field) {
-        case 'roles': {
+        case 'roles':
           const roleA = a?.roles?.split(',')[0]
           const roleB = b?.roles?.split(',')[0]
 
           if (sortsConfig.direction === 'asc') {
             return userRoleOrder.indexOf(roleA) - userRoleOrder.indexOf(roleB)
-          } else if (sortsConfig.direction === 'desc') {
+          } else {
             return userRoleOrder.indexOf(roleB) - userRoleOrder.indexOf(roleA)
           }
-        }
-        case 'email': {
+
+        case 'email':
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
-          } else if (sortsConfig.direction === 'desc') {
+          } else {
             return b[sortsConfig.field]?.localeCompare(a[sortsConfig.field])
           }
-        }
       }
 
       return 0

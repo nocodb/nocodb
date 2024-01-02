@@ -39,8 +39,12 @@ const isLoading = ref(false)
 const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
+const filteredCollaborators = computed(() =>
+  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
+)
+
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(collaborators.value, sorts.value)
+  return handleGetSortedData(filteredCollaborators.value, sorts.value)
 })
 
 const loadCollaborators = async () => {
@@ -178,7 +182,7 @@ onMounted(async () => {
               </span>
               <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
             </div>
-            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
+
             <div class="text-gray-700 user-access-grid flex items-center space-x-2">
               <span>
                 {{ $t('general.access') }}

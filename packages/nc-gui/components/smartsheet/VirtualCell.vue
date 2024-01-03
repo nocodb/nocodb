@@ -23,6 +23,7 @@ import {
   isRollup,
   provide,
   toRef,
+  isPrimary,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -99,6 +100,7 @@ onUnmounted(() => {
     class="nc-virtual-cell w-full flex items-center"
     :class="{
       'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm,
+      'text-brand-500': isPrimary(column) && !isForm,
     }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"

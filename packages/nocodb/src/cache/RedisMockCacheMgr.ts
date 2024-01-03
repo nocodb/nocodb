@@ -1,11 +1,12 @@
 import debug from 'debug';
 import Redis from 'ioredis-mock';
 import CacheMgr from './CacheMgr';
+import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 const log = debug('nc:cache');
 
 export default class RedisMockCacheMgr extends CacheMgr {
-  client: any;
+  client: IORedis;
   prefix: string;
 
   constructor() {
@@ -300,7 +301,7 @@ export default class RedisMockCacheMgr extends CacheMgr {
 
   async destroy(): Promise<boolean> {
     log('RedisMockCacheMgr::destroy: destroy redis');
-    return this.client.flushdb();
+    return this.client.flushdb().then((r) => r === 'OK');
   }
 
   async export(): Promise<any> {

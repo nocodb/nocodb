@@ -278,7 +278,7 @@ const reloadHook = createEventHook()
 reloadHook.on(() => {
   reloadParentRowHook?.trigger(false)
   if (isNew.value) return
-  _loadRow()
+  _loadRow(null, true)
 })
 provide(ReloadRowDataHookInj, reloadHook)
 

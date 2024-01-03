@@ -228,7 +228,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareNocoData(insertObj);
+      await this.prepareNocoData(insertObj, true);
 
       await this.model.getColumns();
       let response;
@@ -906,7 +906,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
 
-          await this.prepareNocoData(insertObj);
+          await this.prepareNocoData(insertObj, true);
 
           insertDatas.push(insertObj);
         }

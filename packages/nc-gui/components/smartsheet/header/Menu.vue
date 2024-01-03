@@ -285,6 +285,13 @@ const isDeleteAllowed = computed(() => {
   }
   return true
 })
+const isDuplicateAllowed = computed(() => {
+  if (!column?.value) return false
+  if (column.value.system) {
+    return false
+  }
+  return true
+})
 </script>
 
 <template>
@@ -354,7 +361,7 @@ const isDeleteAllowed = computed(() => {
 
         <a-divider v-if="!column?.pk" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pk" @click="openDuplicateDlg">
+        <NcMenuItem v-if="!column?.pk" @click="openDuplicateDlg" :disabled="!isDuplicateAllowed">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="text-gray-700" />
             <!-- Duplicate -->

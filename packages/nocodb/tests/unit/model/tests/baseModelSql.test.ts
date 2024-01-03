@@ -98,8 +98,8 @@ function baseModelSqlTests() {
 
     bulkData.forEach((inputData: any, index) => {
       if (isPg(context)) {
-        inputData.CreatedAt = insertedRows[index].CreatedAt
-        inputData.UpdatedAt = insertedRows[index].UpdatedAt
+        inputData.CreatedAt = insertedRows[index].CreatedAt;
+        inputData.UpdatedAt = insertedRows[index].UpdatedAt;
       }
       expect(insertedRows[index]).to.include(inputData);
     });
@@ -172,7 +172,10 @@ function baseModelSqlTests() {
     const insertedRows: any[] = await baseModelSql.list();
 
     await baseModelSql.bulkUpdate(
-      insertedRows.map((row) => ({ ...row, Title: `new-${row['Title']}` })),
+      insertedRows.map(({ CreatedAt: _, UpdatedAt: __, ...row }) => ({
+        ...row,
+        Title: `new-${row['Title']}`,
+      })),
       { cookie: request },
     );
 

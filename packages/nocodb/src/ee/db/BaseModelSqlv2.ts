@@ -277,8 +277,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (response?.length) {
           id = response[0];
         } else {
-          const res = await this.execAndParse(query);
-          id = res?.id ?? res[0]?.insertId;
+          const res = await this.execAndParse(query, null, {
+            raw: true,
+          });
+          id = res.id ?? res[0]?.insertId ?? res;
         }
 
         if (ai) {

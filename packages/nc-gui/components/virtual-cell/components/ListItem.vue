@@ -103,7 +103,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 
       <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
         <div class="flex justify-between xs:gap-x-2">
-          <span class="font-semibold text-gray-800 nc-display-value xs:(truncate)">
+          <span class="font-semibold text-brand-500 nc-display-value xs:(truncate)">
             {{ row[relatedTableDisplayValueProp] }}
           </span>
           <div

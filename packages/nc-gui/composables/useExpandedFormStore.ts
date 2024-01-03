@@ -1,4 +1,4 @@
-import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
@@ -295,8 +295,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     changedColumns.value = new Set()
   }
 
-  const loadRow = async (rowId?: string) => {
-    const record = await $api.dbTableRow.read(
+  const loadRow = async (rowId?: string, onlyVirtual = false) => {
+    let record = await $api.dbTableRow.read(
       NOCO,
       // todo: base_id missing on view type
       (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
@@ -306,6 +306,19 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         getHiddenColumn: true,
       },
     )
+
+    // update only virtual columns value if `onlyVirtual` is true
+    if (onlyVirtual) {
+      record = {
+        ...row.value.row,
+        ...meta.value.columns.reduce((partialRecord, col) => {
+          if (isVirtualCol(col) && col.title in record) {
+            partialRecord[col.title] = record[col.title]
+          }
+          return partialRecord
+        }, {} as Record<string, any>),
+      }
+    }
 
     Object.assign(row.value, {
       row: record,

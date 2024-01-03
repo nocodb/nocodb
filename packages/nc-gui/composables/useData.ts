@@ -403,6 +403,7 @@ export function useData(args: {
       if (row.rowMeta) row.rowMeta.saving = false
     }
 
+    await callbacks?.loadData?.()
     await callbacks?.globalCallback?.()
   }
 

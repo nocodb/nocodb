@@ -11,7 +11,6 @@ import {
   renderValue,
   replaceUrlsWithLink,
   useBase,
-  useGlobal,
 } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
@@ -22,8 +21,6 @@ const cellValue = inject(CellValueInj)
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const { isPg } = useBase()
-
-const { showNull } = useGlobal()
 
 const result = computed(() =>
   isPg(column.value.source_id) ? renderValue(handleTZ(cellValue?.value)) : renderValue(cellValue?.value),

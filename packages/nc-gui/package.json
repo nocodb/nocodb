@@ -125,7 +125,7 @@
     "@iconify-json/tabler": "^1.1.103",
     "@iconify-json/vscode-icons": "^1.1.32",
     "@intlify/unplugin-vue-i18n": "^0.12.3",
-    "@nuxt/image-edge": "1.1.0-28396365.97249ca",
+    "@nuxt/image-edge": "1.1.0-28404773.c60aac2",
     "@types/d3-scale": "^4.0.8",
     "@types/dagre": "^0.7.52",
     "@types/file-saver": "^2.0.7",

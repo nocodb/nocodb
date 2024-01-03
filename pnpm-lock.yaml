@@ -290,8 +290,8 @@ importers:
         specifier: ^0.12.3
         version: 0.12.3(vue-i18n@9.2.2)
       '@nuxt/image-edge':
-        specifier: 1.1.0-28396365.97249ca
-        version: 1.1.0-28396365.97249ca
+        specifier: 1.1.0-28404773.c60aac2
+        version: 1.1.0-28404773.c60aac2
       '@types/d3-scale':
         specifier: ^4.0.8
         version: 4.0.8
@@ -5739,8 +5739,8 @@ packages:
       - xml2js
     dev: true
 
-  /@nuxt/image-edge@1.1.0-28396365.97249ca:
-    resolution: {integrity: sha512-xxtyUB9l15k54nH1NoONHmy+dEhW8SsH6ueWOakCM0R2L9c2wrg1sFcjDKSqxSwrDu3ZqX803r6DfHP+leEcBA==}
+  /@nuxt/image-edge@1.1.0-28404773.c60aac2:
+    resolution: {integrity: sha512-QFJ/yK5RAsLporPSk0E+i/RITOgJOPM0OmL6lFZi3xB66Cb5XU30mAvC78uN0zX7UbouIQLX+S1fAxlqwrgpRw==}
     engines: {node: ^14.16.0 || >=16.11.0}
     dependencies:
       '@nuxt/kit': 3.9.0
@@ -15876,7 +15876,7 @@ packages:
       '@types/glob': 7.2.0
       array-union: 2.1.0
       dir-glob: 3.0.1
-      fast-glob: 3.3.1
+      fast-glob: 3.3.2
       glob: 7.2.3
       ignore: 5.3.0
       merge2: 1.4.1

@@ -178,7 +178,6 @@ const getRecordStyle = (record: Row) => {
   const endCol = calendarRange.value[0].fk_to_col.title
   const scheduleStart = dayjs(selectedDate.value).startOf('day')
   const scheduleEnd = dayjs(selectedDate.value).endOf('day')
-
   let startDate = dayjs(record.row[startCol])
   let endDate = dayjs(record.row[endCol])
 
@@ -233,8 +232,6 @@ const dropEvent = (event: DragEvent) => {
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {
     const { record, initialClickOffsetY } = JSON.parse(data)
-
-    console.log('droppedRecord', record)
 
     const { top, height } = container.value.getBoundingClientRect()
 

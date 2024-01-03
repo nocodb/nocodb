@@ -164,10 +164,12 @@ async function ncAxiosPost({
   url = `/api/v2/tables/${table.id}/records`,
   body = {},
   status = 200,
-}: { url?: string; body?: any; status?: number } = {}) {
+  query = {},
+}: { url?: string; body?: any; status?: number; query?: any } = {}) {
   const response = await request(context.app)
     .post(url)
     .set('xc-auth', context.token)
+    .query(query)
     .send(body);
   expect(response.status).to.equal(status);
   return response;
@@ -1612,8 +1614,15 @@ function dateBased() {
     // read record with Id 801
     rsp = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/801`,
+      query: {
+        fields: 'Id,Date,DateTime',
+      },
     });
-    expect(rsp.body).to.deep.equal({ Id: 801, ...records[0] });
+    expect(rsp.body).to.deep.equal({
+      Id: 801,
+      Date: records[0].Date,
+      DateTime: records[0].DateTime,
+    });
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1652,6 +1661,7 @@ function dateBased() {
       query: {
         limit: 4,
         offset: 800,
+        fields: 'Id,Date,DateTime',
       },
     });
     expect(rsp.body.list).to.deep.equal(updatedRecords);

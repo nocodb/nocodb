@@ -119,6 +119,18 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                       c.id !== formState.value.id && // ignore current column
                       // compare against column_name and title
                       ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
+                        (value || '').toLowerCase() === (c.title || '').toLowerCase()) &&
+                      c.system,
+                  )
+                ) {
+                  return reject(new Error(t('msg.error.duplicateSystemColumnName')))
+                }
+                if (
+                  (tableExplorerColumns?.value || meta.value?.columns)?.some(
+                    (c) =>
+                      c.id !== formState.value.id && // ignore current column
+                      // compare against column_name and title
+                      ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
                         (value || '').toLowerCase() === (c.title || '').toLowerCase()),
                   )
                 ) {

@@ -15,6 +15,7 @@ interface Option {
 
 const props = defineProps<{
   value: any
+  fromTableExplorer?: boolean
 }>()
 
 const emit = defineEmits(['update:value'])
@@ -308,7 +309,7 @@ const loadListData = async ($state: any) => {
       ref="optionsWrapperDomRef"
       class="nc-col-option-select-option overflow-x-auto scrollbar-thin-dull"
       :style="{
-        maxHeight: 'calc(min(30vh, 250px))',
+        maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
       }"
     >
       <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">

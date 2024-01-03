@@ -48,7 +48,7 @@ withDefaults(defineProps<Props>(), {
           'bg-pink-500': color === 'pink',
           'bg-purple-500': color === 'purple',
         }"
-        class="block h-full ml-1 w-1 rounded mr-2"
+        class="block h-full min-h-5 ml-1 w-1 rounded mr-2"
       ></div>
     </div>
     <div class="ml-3 mt-2 absolute">

@@ -1,30 +1,9 @@
-<script setup lang="ts">
-const { pageDate, selectedDate } = useCalendarViewStoreOrThrow()
+<script lang="ts" setup>
+const emit = defineEmits(['new-record', 'expand-record'])
 
-const events = ref([
-  {
-    Id: 1,
-    Title: 'Event 01',
-    from_date_time: '2023-12-15',
-    to_date_time: '2023-12-20',
-  },
-  {
-    Id: 2,
-    Title: 'Event 02',
-    from_date_time: '2023-12-20',
-    to_date_time: '2023-12-25',
-  },
-])
+const { pageDate, selectedDate, formattedData, displayField, calendarRange } = useCalendarViewStoreOrThrow()
 
-interface EventData {
-  id: string
-  from_col_id: string
-  to_col_id: string | null
-}
-
-const isMondayFirst = ref(false)
-
-const fields = inject(FieldsInj, ref([]))
+const isMondayFirst = ref(true)
 
 const days = computed(() => {
   if (isMondayFirst.value) {
@@ -51,12 +30,19 @@ const dates = computed(() => {
   return datesArray
 })
 
-const getGridPosition = (event) => {
+const getGridPosition = (record: Row) => {
+  if (!calendarRange.value || !calendarRange[0])
+    return {
+      colStart: 1,
+      colEnd: 1,
+      rowStart: 1,
+      rowEnd: 1,
+    }
   const firstDayOfMonth = new Date(pageDate.value.getFullYear(), pageDate.value.getMonth(), 1).getDay()
 
-  const startDate = new Date(event.from_date_time)
+  const startDate = new Date(record.row[calendarRange[0].fk_from_col.title])
   const startDayIndex = startDate.getDate() - 1 + firstDayOfMonth
-  const endDate = new Date(event.to_date_time)
+  const endDate = new Date(record.row[calendarRange[0].fk_to_col.title])
   const endDayIndex = endDate.getDate() - 1 + firstDayOfMonth
 
   const startRow = Math.floor(startDayIndex / 7) + 1
@@ -110,25 +96,25 @@ const handleScroll = (event) => {
 </script>
 
 <template>
-  <div class="h-full" @="handleScroll">
+  <div class="h-full" @scroll="handleScroll">
     <div class="grid grid-cols-7">
       <div
-        v-for="day in days"
-        :key="day"
+        v-for="(day, index) in days"
+        :key="index"
         class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-800"
       >
         {{ day }}
       </div>
     </div>
-    <div class="grid relative grid-cols-7 h-full">
+    <div v-if="dates" class="grid relative grid-cols-7 h-full">
       <div
         v-for="date in dates"
-        :key="date"
+        :key="date.toISOString()"
         :class="{
-          '!border-x-2 !border-y-2 border-brand-500': isDateSelected(date),
+          'border-brand-500': isDateSelected(date),
           '!bg-gray-50 !text-gray-400': !isDayInPagedMonth(date),
         }"
-        class="text-right !h-[100%] group grid-cell py-1 text-sm border-b-1 border-r-1 bg-white last:border-r-0 border-gray-200 font-semibold text-gray-800"
+        class="text-right !h-[100%] group grid-cell py-1 text-sm border-1 bg-white last:border-r-0 border-gray-200 font-semibold text-gray-800"
         @click="selectDate(date)"
       >
         <div class="h-full">
@@ -141,13 +127,14 @@ const handleScroll = (event) => {
               class="group-hover:hidden"
             ></span>
             <NcButton
-              type="secondary"
-              size="small"
               :class="{
                 '!block': isDateSelected(date),
                 '!hidden': !isDateSelected(date),
               }"
               class="!group-hover:block"
+              size="small"
+              type="secondary"
+              @click="emit('new-record')"
             >
               <component :is="iconMap.plus" class="h-4 w-4" />
             </NcButton>
@@ -155,21 +142,28 @@ const handleScroll = (event) => {
           </div>
         </div>
       </div>
-      <div
-        v-for="event in events"
-        :key="event.Id"
+      <LazySmartsheetRow
+        v-for="(record, recordId) in formattedData"
+        :key="recordId"
         :class="[
-          `!col-start-[${getGridPosition(event, pageDate).colStart}]`,
-          `!col-span-[${getGridPosition(event, pageDate).colEnd - getGridPosition(event, pageDate).colStart}]`,
-          `!row-start-[${getGridPosition(event, pageDate).rowStart}]`,
-          `!row-span-[${getGridPosition(event, pageDate).rowEnd - getGridPosition(event, pageDate).rowStart}]`,
+          `!col-start-[${getGridPosition(record)}]`,
+          `!col-span-[${getGridPosition(record).colEnd - getGridPosition(record).colStart}]`,
+          `!row-start-[${getGridPosition(record).rowStart}]`,
+          `!row-span-[${getGridPosition(record).rowEnd - getGridPosition(record).rowStart}]`,
         ]"
+        :row="record"
         class="event-display absolute w-full mt-16 px-2"
       >
-        <LazySmartsheetCalendarRecordCard :name="event.Title" :date="event.from_date_time" color="blue" />
-      </div>
+        <LazySmartsheetCalendarRecordCard
+          v-if="calendarRange && calendarRange[0]"
+          :date="record.row[calendarRange[0].fk_from_col.title]"
+          :name="record.row[displayField.title]"
+          color="blue"
+          @click="emit('expand-record', record)"
+        />
+      </LazySmartsheetRow>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style lang="scss" scoped></style>

@@ -344,6 +344,7 @@ if (props.fromTableExplorer) {
           <SmartsheetColumnSelectOptions
             v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
             v-model:value="formState"
+            :from-table-explorer="props.fromTableExplorer || false"
           />
         </template>
       </div>

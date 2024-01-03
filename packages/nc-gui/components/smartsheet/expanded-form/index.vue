@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isCreatedTimeOrUpdatedTimeCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
 
@@ -458,7 +458,14 @@ const onIsExpandedUpdate = (v: boolean) => {
 }
 
 const isReadOnlyVirtualCell = (column: ColumnType) => {
-  return isRollup(column) || isFormula(column) || isBarcode(column) || isLookup(column) || isQrCode(column)
+  return (
+    isRollup(column) ||
+    isFormula(column) ||
+    isBarcode(column) ||
+    isLookup(column) ||
+    isQrCode(column) ||
+    isCreatedTimeOrUpdatedTimeCol(column)
+  )
 }
 
 // Small hack. We need to scroll to the bottom of the form after its mounted and back to top.

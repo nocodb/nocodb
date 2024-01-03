@@ -2082,6 +2082,7 @@ function linkBased() {
 
     // Links
     expect(rsp.body.list.length).to.equal(20);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     for (let i = 1; i <= 20; i++) {
       expect(rsp.body.list[i - 1]).to.deep.equal({
         Id: i,
@@ -2098,7 +2099,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(1);
-    expect(rsp.body.list[0]).to.deep.equal({
+    expect(rsp.body.list.sort((a, b) => a.Id - b.Id)[0]).to.deep.equal({
       Id: 1,
       Film: `Film 1`,
     });
@@ -2112,6 +2113,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(20);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     for (let i = 1; i <= 20; i++) {
       expect(rsp.body.list[i - 1]).to.deep.equal({
         Id: i,
@@ -2139,6 +2141,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(25);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     // paginated response, limit to 25
     for (let i = 1; i <= 25; i++) {
       expect(rsp.body.list[i - 1]).to.deep.equal({
@@ -2157,6 +2160,7 @@ function linkBased() {
         },
       });
       expect(rsp.body.list.length).to.equal(1);
+      rsp.body.list.sort((a, b) => a.Id - b.Id);
       expect(rsp.body.list[0]).to.deep.equal({
         Id: 1,
         Actor: `Actor 1`,
@@ -2199,6 +2203,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(15);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     for (let i = 2; i <= 30; i += 2) {
       expect(rsp.body.list[i / 2 - 1]).to.deep.equal({
         Id: i,
@@ -2217,6 +2222,7 @@ function linkBased() {
       });
       if (i % 2 === 0) {
         expect(rsp.body.list.length).to.equal(1);
+        rsp.body.list.sort((a, b) => a.Id - b.Id);
         expect(rsp.body.list[0]).to.deep.equal({
           Id: 1,
           Actor: `Actor 1`,

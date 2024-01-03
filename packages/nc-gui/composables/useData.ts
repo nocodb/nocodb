@@ -1,5 +1,5 @@
-import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   NOCO,
@@ -376,33 +376,25 @@ export function useData(args: {
     }
 
     for (const row of rows) {
-      if (!undo) {
-        /** update row data(to sync formula and other related columns)
-         * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
-         */
-        Object.assign(
-          row.row,
-          metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-            if (
-              col.uidt === UITypes.Formula ||
-              col.uidt === UITypes.QrCode ||
-              col.uidt === UITypes.Barcode ||
-              col.uidt === UITypes.Rollup ||
-              col.uidt === UITypes.Checkbox ||
-              col.uidt === UITypes.User ||
-              col.au ||
-              col.cdf?.includes(' on update ')
-            )
-              acc[col.title!] = row.row[col.title!]
-            return acc
-          }, {} as Record<string, any>),
-        )
-        Object.assign(row.oldRow, row.row)
-      }
-
       if (row.rowMeta) row.rowMeta.saving = false
     }
 
+    // reload data since row update may change the other columns data( Formula, QrCode, Barcode, Rollup, Checkbox, User, Auto Updated Datetime, etc...)
+    if (
+      metaValue!.columns!.some((col) =>
+        [
+          UITypes.QrCode,
+          UITypes.LastModifiedTime,
+          UITypes.Barcode,
+          UITypes.Formula,
+          UITypes.Lookup,
+          UITypes.Rollup,
+          UITypes.LinkToAnotherRecord,
+        ].includes(col.uidt),
+      )
+    ) {
+      await callbacks?.loadData?.()
+    }
     await callbacks?.globalCallback?.()
   }
 

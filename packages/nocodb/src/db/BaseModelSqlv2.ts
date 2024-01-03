@@ -2364,8 +2364,10 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          const res = await this.execAndParse(query);
-          id = res?.id ?? res[0]?.insertId;
+          const res = await this.execAndParse(query, null, {
+            raw: true,
+          });
+          id = res?.id ?? res[0]?.insertId ?? res;
         }
 
         if (ai) {
@@ -2727,11 +2729,8 @@ class BaseModelSqlv2 {
         } else {
           rowId = await this.execAndParse(query, null, {
             raw: true,
-            first: true,
           });
-          if (this.isMySQL) {
-            rowId = rowId?.insertId;
-          }
+          rowId = rowId.id ?? rowId[0]?.insertId ?? rowId;
         }
 
         if (ai) {

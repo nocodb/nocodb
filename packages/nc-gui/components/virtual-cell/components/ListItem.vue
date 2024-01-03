@@ -22,7 +22,7 @@ const props = defineProps<{
   fields: any[]
   attachment: any
   relatedTableDisplayValueProp: string
-  relatedTableDisplayValueTypeAndFormatProp: { type: string; format: string }
+  displayValueTypeAndFormatProp: { type: string; format: string }
   isLoading: boolean
   isLinked: boolean
 }>()
@@ -73,13 +73,13 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 const displayValue = computed(() => {
   if (
     row.value[props.relatedTableDisplayValueProp] &&
-    props.relatedTableDisplayValueTypeAndFormatProp.type &&
-    props.relatedTableDisplayValueTypeAndFormatProp.format
+    props.displayValueTypeAndFormatProp.type &&
+    props.displayValueTypeAndFormatProp.format
   ) {
     return parseStringDateTime(
       row.value[props.relatedTableDisplayValueProp],
-      props.relatedTableDisplayValueTypeAndFormatProp.format,
-      !(props.relatedTableDisplayValueTypeAndFormatProp.format === UITypes.Time),
+      props.displayValueTypeAndFormatProp.format,
+      !(props.displayValueTypeAndFormatProp.format === UITypes.Time),
     )
   }
   return row.value[props.relatedTableDisplayValueProp]

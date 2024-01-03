@@ -110,6 +110,14 @@ export class GroupPageObject extends BasePage {
     await this.get({ indexMap }).locator('.nc-grid-add-new-row').click();
 
     const rowCount = index + 1;
+
+    const isRowSaving = this.get({ indexMap }).getByTestId(`row-save-spinner-${rowCount}`);
+    // if required field is present then isRowSaving will be hidden (not present in DOM)
+    await isRowSaving?.waitFor({ state: 'hidden' });
+
+    // fallback
+    await this.rootPage.waitForTimeout(400);
+
     await expect(this.get({ indexMap }).locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ indexMap, index, columnHeader, value: rowValue });

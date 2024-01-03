@@ -364,6 +364,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             active_view: view,
           },
         })
+        if (activeCalendarView.value === 'week') {
+          selectedTime.value = null
+        }
       } catch (e) {
         message.error('Error changing calendar view')
         console.log(e)

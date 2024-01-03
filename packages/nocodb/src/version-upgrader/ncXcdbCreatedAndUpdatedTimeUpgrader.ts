@@ -82,7 +82,7 @@ async function upgradeModels({
             await deletePgTrigger({ column, ncMeta, model });
           }*/
         }
-        if (column.uidt === 'updated_at') {
+        if (column.column_name === 'updated_at') {
           isLastModifiedTimeExists = true;
           await Column.update(
             column.id,

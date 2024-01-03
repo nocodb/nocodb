@@ -44,6 +44,7 @@ const {
   loadChildrenList,
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
+  relatedTableDisplayValueTypeAndFormatProp,
   link,
   relatedTableMeta,
   meta,
@@ -315,6 +316,7 @@ const onCreatedRecord = (record: any) => {
             :fields="fields"
             :attachment="attachmentCol"
             :related-table-display-value-prop="relatedTableDisplayValueProp"
+            :related-table-display-value-type-and-format-prop="relatedTableDisplayValueTypeAndFormatProp"
             :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
             :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
             @expand="

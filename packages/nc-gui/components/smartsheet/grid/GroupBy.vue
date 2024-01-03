@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import dayjs from 'dayjs'
-import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
@@ -154,18 +153,21 @@ const parseKey = (group: Group) => {
   }
 
   // show the groupBy dateTime field title format as like cell format
-  if (key && group.column?.uidt === UITypes.DateTime && dayjs(key).isValid()) {
-    const dateFormat = parseProp(group.column?.meta)?.date_format ?? dateFormats[0]
-    const timeFormat = parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
+  if (key && group.column?.uidt === UITypes.DateTime) {
+    const dateTime = parseStringDateTime(
+      key,
+      `${parseProp(group.column?.meta)?.date_format ?? dateFormats[0]} ${
+        parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
+      }`,
+    )
 
-    const dateTimeFormat = `${dateFormat} ${timeFormat}`
-
-    return [dayjs(key).utc().local().format(dateTimeFormat)]
+    return [dateTime]
   }
 
   // show the groupBy time field title format as like cell format
-  if (key && group.column?.uidt === UITypes.Time && dayjs(key).isValid()) {
-    return [dayjs(key).format(timeFormats[0])]
+  if (key && group.column?.uidt === UITypes.Time) {
+    const time = parseStringDateTime(key, timeFormats[0], false)
+    return [time]
   }
 
   if (key && group.column?.uidt === UITypes.User) {

@@ -741,10 +741,15 @@ function textBased() {
     });
 
     // fetch records from view
-    const rsp = await ncAxiosGet({ query: { viewId: gridView.id } });
+    const rsp = await ncAxiosGet({
+      query: { viewId: gridView.id },
+    });
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     const displayColumns = columns.filter(
-      (c) => c.title !== 'MultiLineText' && c.title !== 'Email',
+      (c) =>
+        c.title !== 'MultiLineText' &&
+        c.title !== 'Email' &&
+        !isCreatedTimeOrUpdatedTimeCol(c),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
     return gridView;
@@ -761,7 +766,10 @@ function textBased() {
       },
     });
     const displayColumns = columns.filter(
-      (c) => c.title !== 'MultiLineText' && c.title !== 'Email',
+      (c) =>
+        c.title !== 'MultiLineText' &&
+        c.title !== 'Email' &&
+        !isCreatedTimeOrUpdatedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -780,7 +788,10 @@ function textBased() {
       },
     });
     const displayColumns = columns.filter(
-      (c) => c.title !== 'MultiLineText' && c.title !== 'Email',
+      (c) =>
+        c.title !== 'MultiLineText' &&
+        c.title !== 'Email' &&
+        !isCreatedTimeOrUpdatedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(7);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -1007,6 +1018,9 @@ function textBased() {
   it('Update: partial', async function () {
     const recordBeforeUpdate = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/1`,
+      query: {
+        fields: 'Id,SingleLineText,MultiLineText',
+      },
     });
 
     const rsp = await ncAxiosPatch({
@@ -1022,6 +1036,9 @@ function textBased() {
 
     const recordAfterUpdate = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/1`,
+      query: {
+        fields: 'Id,SingleLineText,MultiLineText',
+      },
     });
     expect(recordAfterUpdate.body).to.deep.equal({
       ...recordBeforeUpdate.body,
@@ -1251,6 +1268,7 @@ function numberBased() {
     let rsp = await ncAxiosGet({
       query: {
         limit: 10,
+        fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
       },
     });
     const pageInfo = {
@@ -1284,6 +1302,9 @@ function numberBased() {
     // read record with Id 401
     rsp = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/401`,
+      query: {
+        fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
+      },
     });
     expect(rsp.body).to.deep.equal({ ...records[0], Id: 401 });
 
@@ -1329,6 +1350,7 @@ function numberBased() {
       query: {
         limit: 4,
         offset: 400,
+        fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
       },
     });
 
@@ -1442,6 +1464,7 @@ function selectBased() {
     let rsp = await ncAxiosGet({
       query: {
         limit: 10,
+        fields: 'Id,SingleSelect,MultiSelect',
       },
     });
     const pageInfo = {
@@ -1475,6 +1498,9 @@ function selectBased() {
     // read record with Id 401
     rsp = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/401`,
+      query: {
+        fields: 'Id,SingleSelect,MultiSelect',
+      },
     });
     expect(rsp.body).to.deep.equal({ Id: 401, ...records[0] });
 
@@ -1515,6 +1541,7 @@ function selectBased() {
       query: {
         limit: 4,
         offset: 400,
+        fields: 'Id,SingleSelect,MultiSelect',
       },
     });
     expect(rsp.body.list).to.deep.equal(updatedRecords);

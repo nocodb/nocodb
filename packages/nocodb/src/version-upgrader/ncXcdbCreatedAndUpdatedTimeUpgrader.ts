@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
-import { Column, Model } from '~/models';
+import { Column, Model, Source } from '~/models';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
@@ -56,6 +56,8 @@ async function upgradeModels({
 
   await Promise.all(
     models.map(async (model: any) => {
+      if (model.mm) return;
+
       const columns = await model.getColumns(ncMeta);
       const oldColumns = columns.map((c) => ({ ...c, cn: c.column_name }));
       let isCreatedTimeExists = false;
@@ -67,6 +69,7 @@ async function upgradeModels({
           await Column.update(
             column.id,
             {
+              ...column,
               uidt: UITypes.CreatedTime,
               system: true,
             },
@@ -135,20 +138,23 @@ async function upgradeModels({
           ...model,
           tn: model.table_name,
           originalColumns: oldColumns,
-          columns: [
-            ...columns.map((c) => ({ ...c, cn: c.column_name })),
-            ...newColumns,
-          ],
+          columns: [...columns, ...newColumns].map((c) => ({
+            ...c,
+            cn: c.column_name,
+          })),
         };
         const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
         for (const newColumn of newColumns) {
-          await Column.insert({
-            ...newColumn,
-            system: 1,
-            fk_model_id: model.id,
-          });
+          await Column.insert(
+            {
+              ...newColumn,
+              system: 1,
+              fk_model_id: model.id,
+            },
+            ncMeta,
+          );
         }
       }
 
@@ -181,6 +187,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const source of sources) {
     logger.log(`Upgrading source ${source.name}`);
     // update the meta props
-    await upgradeModels({ ncMeta, source });
+    await upgradeModels({ ncMeta, source: new Source(source) });
   }
 }

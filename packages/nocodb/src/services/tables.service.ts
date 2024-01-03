@@ -31,6 +31,10 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
+import {
+  getUniqueColumnAliasName,
+  getUniqueColumnName,
+} from '~/helpers/getUniqueName';
 
 @Injectable()
 export class TablesService {
@@ -383,12 +387,48 @@ export class TablesService {
     // add CreatedBy and LastModifiedBy system columns if missing in request payload
     {
       for (const uidt of [UITypes.CreatedTime, UITypes.LastModifiedTime]) {
-        const col = tableCreatePayLoad.columns.find((c) => c.uidt === uidt);
+        const col = tableCreatePayLoad.columns.find(
+          (c) => c.uidt === uidt,
+        ) as ColumnType;
+
+        const colName = getUniqueColumnName(
+          tableCreatePayLoad.columns as any[],
+          uidt === UITypes.CreatedTime ? 'created_at' : 'updated_at',
+        );
+        const colAlias = getUniqueColumnAliasName(
+          tableCreatePayLoad.columns as any[],
+          uidt === UITypes.CreatedTime ? 'CreatedAt' : 'UpdatedAt',
+        );
         if (!col || !col.system) {
           tableCreatePayLoad.columns.push({
             ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
+            column_name: colName,
+            cn: colName,
+            title: colAlias,
             system: true,
           });
+        } else {
+          // temporary fix for updating if user passed system columns with duplicate names
+          if (
+            tableCreatePayLoad.columns.some(
+              (c: ColumnType) =>
+                c.uidt !== uidt && c.column_name === col.column_name,
+            )
+          ) {
+            Object.assign(col, {
+              column_name: colName,
+              cn: colName,
+            });
+          }
+          if (
+            tableCreatePayLoad.columns.some(
+              (c: ColumnType) => c.uidt !== uidt && c.title === col.title,
+            )
+          ) {
+            Object.assign(col, {
+              title: colAlias,
+            });
+          }
         }
       }
     }

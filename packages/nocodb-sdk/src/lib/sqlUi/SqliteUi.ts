@@ -87,7 +87,6 @@ export class SqliteUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: '',
         clen: 45,
         np: null,
         ns: null,

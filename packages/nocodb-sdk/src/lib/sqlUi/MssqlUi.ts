@@ -100,7 +100,6 @@ export class MssqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: '',
         clen: 45,
         np: null,
         ns: null,

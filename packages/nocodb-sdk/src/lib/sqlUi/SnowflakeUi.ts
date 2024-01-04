@@ -99,7 +99,6 @@ export class SnowflakeUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: '',
         clen: 45,
         np: null,
         ns: null,

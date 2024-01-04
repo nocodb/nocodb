@@ -104,7 +104,7 @@ export class MysqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: '',
+        cdf: null,
         clen: 45,
         np: null,
         ns: null,

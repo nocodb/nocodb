@@ -3075,22 +3075,22 @@ class BaseModelSqlv2 {
         }
       }
 
-      let response;
+      let responses;
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
         // sqlite and mysql doesn't support returning, so insert one by one and return ids
-        response = [];
+        responses = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
 
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
           const id = (await query)[0];
-          response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
+          responses.push(aiPkCol ? { [aiPkCol.title]: id } : id);
         }
       } else {
-        response =
+        responses =
           !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
@@ -3111,7 +3111,7 @@ class BaseModelSqlv2 {
 
       // insert nested link data for single record insertion
       if (isSingleRecordInsertion) {
-        const rowId = response[0][this.model.primaryKey?.title];
+        const rowId = responses[0][this.model.primaryKey?.title];
         await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
       }
 
@@ -3119,14 +3119,14 @@ class BaseModelSqlv2 {
 
       if (!raw && !skip_hooks) {
         if (isSingleRecordInsertion) {
-          const insertData = await this.readByPk(response[0]);
+          const insertData = await this.readByPk(responses[0]);
           await this.afterInsert(insertData, this.dbDriver, cookie);
         } else {
           await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
         }
       }
 
-      return response;
+      return responses;
     } catch (e) {
       await trx?.rollback();
       // await this.errorInsertb(e, data, null);

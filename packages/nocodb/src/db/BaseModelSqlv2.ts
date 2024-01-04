@@ -2126,55 +2126,55 @@ class BaseModelSqlv2 {
       switch (column.uidt) {
         case UITypes.CreateTime:
         case UITypes.LastModifiedTime:
-        case UITypes.DateTime: {
-          const columnName = getColumnName(column) ;
-          if (this.isMySQL) {
-            // MySQL stores timestamp in UTC but display in timezone
-            // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
-            // If it's SYSTEM, then the timezone is read from the configuration file
-            // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
-            // for example, let's say the global timezone is +08:00 in DB
-            // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
-            // our existing logic is based on UTC, during the query, we need to take the UTC value
-            // hence, we use CONVERT_TZ to convert back to UTC value
-            res[sanitize(column.id || column.column_name)] = this.dbDriver.raw(
-              `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-              [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-            );
-            break;
-          } else if (this.isPg) {
-            // if there is no timezone info,
-            // convert to database timezone,
-            // then convert to UTC
-            if (
-              column.dt !== 'timestamp with time zone' &&
-              column.dt !== 'timestamptz'
-            ) {
-              res[sanitize(column.id || column.column_name)] = this.dbDriver
-                .raw(
-                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-                )
-                .wrap('(', ')');
+        case UITypes.DateTime:
+          {
+            const columnName = getColumnName(column);
+            if (this.isMySQL) {
+              // MySQL stores timestamp in UTC but display in timezone
+              // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+              // If it's SYSTEM, then the timezone is read from the configuration file
+              // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+              // for example, let's say the global timezone is +08:00 in DB
+              // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+              // our existing logic is based on UTC, during the query, we need to take the UTC value
+              // hence, we use CONVERT_TZ to convert back to UTC value
+              res[sanitize(column.id || columnName)] = this.dbDriver.raw(
+                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                [`${sanitize(alias || this.tnPath)}.${columnName}`],
+              );
               break;
-            }
-          } else if (this.isMssql) {
-            // if there is no timezone info,
-            // convert to database timezone,
-            // then convert to UTC
-            if (column.dt !== 'datetimeoffset') {
-              res[sanitize(column.id || column.column_name)] =
-                this.dbDriver.raw(
+            } else if (this.isPg) {
+              // if there is no timezone info,
+              // convert to database timezone,
+              // then convert to UTC
+              if (
+                column.dt !== 'timestamp with time zone' &&
+                column.dt !== 'timestamptz'
+              ) {
+                res[sanitize(column.id || columnName)] = this.dbDriver
+                  .raw(
+                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    [`${sanitize(alias || this.tnPath)}.${columnName}`],
+                  )
+                  .wrap('(', ')');
+                break;
+              }
+            } else if (this.isMssql) {
+              // if there is no timezone info,
+              // convert to database timezone,
+              // then convert to UTC
+              if (column.dt !== 'datetimeoffset') {
+                res[sanitize(column.id || columnName)] = this.dbDriver.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
+                  [`${sanitize(alias || this.tnPath)}.${columnName}`],
                 );
-              break;
+                break;
+              }
             }
+            res[sanitize(column.id || columnName)] = sanitize(
+              `${alias || this.tnPath}.${columnName}`,
+            );
           }
-          res[sanitize(column.id || column.column_name)] = sanitize(
-            `${alias || this.tnPath}.${column.column_name}`,
-          );
-        }
           break;
         case UITypes.LinkToAnotherRecord:
         case UITypes.Lookup:

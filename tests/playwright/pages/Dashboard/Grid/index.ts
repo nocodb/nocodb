@@ -124,7 +124,7 @@ export class GridPage extends BasePage {
     await this.get().locator('.nc-grid-add-new-cell').click();
 
     // wait for insert row response
-    await this.rootPage.waitForTimeout(400);
+    await this.rootPage.waitForTimeout(1000);
 
     const rowCount = index + 1;
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);

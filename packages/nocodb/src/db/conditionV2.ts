@@ -684,9 +684,11 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  if ((filter as any).groupby)
-                    qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
-                  else qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  //  todo: enbale back if group by date required custom implementation
+                  // if ((filter as any).groupby)
+                  //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
+                  // else
+                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
                   qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }

@@ -94,9 +94,10 @@ export class SqliteUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreateTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
@@ -117,9 +118,10 @@ export class SqliteUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }
@@ -628,11 +630,11 @@ export class SqliteUi {
         break;
       case 'CreateTime':
         colProp.dt = 'datetime';
-        colProp.cdf =  'CURRENT_TIMESTAMP';
+        colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';
-        colProp.cdf =  'CURRENT_TIMESTAMP';
+        colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
       case 'AutoNumber':
         colProp.dt = 'integer';

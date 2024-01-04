@@ -170,9 +170,10 @@ export class PgUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreateTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
@@ -194,9 +195,10 @@ export class PgUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }

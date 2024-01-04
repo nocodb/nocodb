@@ -113,6 +113,7 @@ async function upgradeModels({
               },
               source,
             )),
+            cdf: null,
             system: true,
             altered: Altered.NEW_COLUMN,
           });
@@ -125,10 +126,10 @@ async function upgradeModels({
                 uidt: UITypes.LastModifiedTime,
                 column_name: getUniqueColumnName(columns, 'updated_at'),
                 title: getUniqueColumnAliasName(columns, 'Updated At'),
-                cdf: null,
               },
               source,
             )),
+            cdf: null,
             system: true,
             altered: Altered.NEW_COLUMN,
           });

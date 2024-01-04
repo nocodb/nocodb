@@ -163,7 +163,7 @@ export class PgUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'now()',
+        cdf: '',
         clen: 45,
         np: null,
         ns: null,
@@ -1687,7 +1687,6 @@ export class PgUi {
         break;
       case 'CreatedTime':
         colProp.dt = 'timestamp';
-        colProp.cdf = 'now()';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'timestamp';

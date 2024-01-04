@@ -1701,7 +1701,9 @@ export class ColumnsService {
 
           if (!existingColumn) {
             columnName =
-              colBody.uidt === UITypes.CreatedTime ? 'created_at' : 'updated_at';
+              colBody.uidt === UITypes.CreatedTime
+                ? 'created_at'
+                : 'updated_at';
             // const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
             //   NcConnectionMgrv2.getSqlClient(source),
             // );

@@ -1,5 +1,3 @@
-
-
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useRoles } from '#imports'

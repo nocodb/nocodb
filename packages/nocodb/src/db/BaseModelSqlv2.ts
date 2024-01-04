@@ -5644,8 +5644,9 @@ class BaseModelSqlv2 {
     knex?: XKnex;
   }) {
     const columnName = await model.getColumns().then((columns) => {
-      return columns.find((c) => c.uidt === UITypes.LastModifiedTime)
-        ?.column_name;
+      return columns.find(
+        (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+      )?.column_name;
     });
 
     if (!columnName) return;

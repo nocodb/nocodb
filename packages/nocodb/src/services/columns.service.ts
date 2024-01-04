@@ -2212,6 +2212,11 @@ export class ColumnsService {
       case UITypes.CreateTime:
       case UITypes.LastModifiedTime:
         {
+          if (column.system) {
+            NcError.badRequest(
+              `The column '${column.column_name}' is a system column and cannot be deleted.`,
+            );
+          }
           await Column.delete(param.columnId, ncMeta);
         }
         break;

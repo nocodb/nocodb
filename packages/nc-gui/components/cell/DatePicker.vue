@@ -243,7 +243,7 @@ const clickHandler = () => {
     :picker="picker"
     :tabindex="0"
     :bordered="false"
-    class="!w-full !py-1 !border-none"
+    class="!w-full !py-1 !border-none !text-current"
     :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
     :format="dateFormat"
     :placeholder="placeholder"
@@ -260,7 +260,7 @@ const clickHandler = () => {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input[disabled]) {
+:deep(.ant-picker-input > input) {
   @apply !text-current;
 }
 </style>

@@ -51,6 +51,8 @@ export class UserOptionColumnPageObject extends BasePage {
     const selector = this.column.get().locator('.nc-user-select >> .ant-select-selector');
     await selector.click();
 
+    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
+
     if (multiSelect) {
       const optionsToSelect = Array.isArray(option) ? option : [option];
 
@@ -60,10 +62,11 @@ export class UserOptionColumnPageObject extends BasePage {
 
       // Press `Escape` to close the dropdown
       await this.rootPage.keyboard.press('Escape');
-      await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
     } else if (!Array.isArray(option)) {
       await this.selectOption({ option });
     }
+
+    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
 
     await this.column.save({ isUpdated: true });
   }
@@ -90,6 +93,8 @@ export class UserOptionColumnPageObject extends BasePage {
     await this.column.openEdit({ title: columnTitle });
 
     await this.column.get().locator('.nc-cell-user > .nc-user-select').click();
+
+    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
 
     expect(await this.rootPage.getByTestId(`select-option-${columnTitle}-undefined`).count()).toEqual(totalCount);
     await this.column.get().locator('.nc-cell-user').click();

@@ -108,7 +108,7 @@ watch(
       @mousedown.stop
     />
 
-    <span v-else-if="vModel === null && showNull" class="nc-null uppercase"> $t('general.null')</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase"> {{ $t('general.null') }}</span>
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"

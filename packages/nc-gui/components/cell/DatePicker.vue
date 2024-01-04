@@ -104,7 +104,7 @@ const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return t('general.null')
+    return t('general.null').toUpperCase()
   } else if (isDateInvalid.value) {
     return t('msg.invalidDate')
   } else {

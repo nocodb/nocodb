@@ -1691,6 +1691,7 @@ export class PgUi {
         break;
       case 'LastModifiedTime':
         colProp.cdf = 'now()';
+        colProp.au = true;
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

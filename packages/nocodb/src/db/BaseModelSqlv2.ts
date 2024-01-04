@@ -101,6 +101,17 @@ function checkColumnRequired(
   return !fields || fields.includes(column.title);
 }
 
+export function getColumnName(column: Column<any>) {
+  switch (column.uidt) {
+    case UITypes.CreateTime:
+      return 'created_at';
+    case UITypes.LastModifiedTime:
+      return 'updated_at';
+    default:
+      return column.column_name;
+  }
+}
+
 /**
  * Base class for models
  *
@@ -2113,7 +2124,10 @@ class BaseModelSqlv2 {
       if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
       switch (column.uidt) {
-        case UITypes.DateTime:
+        case UITypes.CreateTime:
+        case UITypes.LastModifiedTime:
+        case UITypes.DateTime: {
+          const columnName = getColumnName(column) ;
           if (this.isMySQL) {
             // MySQL stores timestamp in UTC but display in timezone
             // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
@@ -2160,6 +2174,7 @@ class BaseModelSqlv2 {
           res[sanitize(column.id || column.column_name)] = sanitize(
             `${alias || this.tnPath}.${column.column_name}`,
           );
+        }
           break;
         case UITypes.LinkToAnotherRecord:
         case UITypes.Lookup:

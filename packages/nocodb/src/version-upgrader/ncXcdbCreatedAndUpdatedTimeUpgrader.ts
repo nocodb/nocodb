@@ -87,6 +87,7 @@ async function upgradeModels({
           await Column.update(
             column.id,
             {
+              ...column,
               uidt: UITypes.LastModifiedTime,
               system: true,
               cdf: '',

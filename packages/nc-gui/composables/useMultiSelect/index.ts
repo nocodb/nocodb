@@ -1,6 +1,6 @@
+import type { Ref } from 'vue'
 import { computed } from 'vue'
 import dayjs from 'dayjs'
-import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UserFieldRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
@@ -136,7 +136,7 @@ export function useMultiSelect(
       })
     }
 
-    if (columnObj.uidt === UITypes.DateTime) {
+    if ([UITypes.DateTime, UITypes.CreateTime, UITypes.LastModifiedTime].includes(columnObj.uidt)) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')

@@ -108,11 +108,11 @@ async function upgradeModels({
             ...(await getColumnPropsFromUIDT(
               {
                 uidt: UITypes.CreatedTime,
+                column_name: getUniqueColumnName(columns, 'created_at'),
+                title: getUniqueColumnAliasName(columns, 'Created At'),
               },
               source,
             )),
-            column_name: getUniqueColumnName(columns, 'created_at'),
-            title: getUniqueColumnAliasName(columns, 'Created At'),
             system: true,
             altered: Altered.NEW_COLUMN,
           });
@@ -123,12 +123,12 @@ async function upgradeModels({
             ...(await getColumnPropsFromUIDT(
               {
                 uidt: UITypes.LastModifiedTime,
+                column_name: getUniqueColumnName(columns, 'updated_at'),
+                title: getUniqueColumnAliasName(columns, 'Updated At'),
                 cdf: null,
               },
               source,
             )),
-            column_name: getUniqueColumnName(columns, 'updated_at'),
-            title: getUniqueColumnAliasName(columns, 'Updated At'),
             system: true,
             altered: Altered.NEW_COLUMN,
           });

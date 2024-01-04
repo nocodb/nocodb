@@ -768,6 +768,8 @@ export class ImportService {
             a.uidt === UITypes.QrCode ||
             a.uidt === UITypes.CreatedTime ||
             a.uidt === UITypes.LastModifiedTime ||
+            a.uidt === UITypes.CreatedBy ||
+            a.uidt === UITypes.LastModifiedBy ||
             a.uidt === UITypes.Barcode,
         ),
       );
@@ -897,7 +899,9 @@ export class ImportService {
         }
       } else if (
         col.uidt === UITypes.CreatedTime ||
-        col.uidt === UITypes.LastModifiedTime
+        col.uidt === UITypes.LastModifiedTime ||
+        col.uidt === UITypes.CreatedBy ||
+        col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
         const freshModelData = await this.columnsService.columnAdd({

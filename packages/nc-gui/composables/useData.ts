@@ -244,6 +244,7 @@ export function useData(args: {
                 col.uidt === UITypes.Checkbox ||
                 col.uidt === UITypes.User ||
                 col.uidt === UITypes.LastModifiedTime ||
+                col.uidt === UITypes.LastModifiedBy ||
                 col.uidt === UITypes.Lookup ||
                 col.au ||
                 (col.cdf && / on update /i.test(col.cdf)))
@@ -393,6 +394,7 @@ export function useData(args: {
           UITypes.Lookup,
           UITypes.Rollup,
           UITypes.LinkToAnotherRecord,
+          UITypes.LastModifiedBy,
         ].includes(col.uidt),
       )
     ) {

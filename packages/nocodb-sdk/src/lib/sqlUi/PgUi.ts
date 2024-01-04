@@ -197,6 +197,52 @@ export class PgUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: 'created_by',
+        title: 'CreatedBy',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.CreatedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'updated_by',
+        title: 'UpdatedBy',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 
@@ -1568,7 +1614,7 @@ export class PgUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes; }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -1709,7 +1755,7 @@ export class PgUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt?: UITypes }, idType: IDType) {
+  static getDataTypeListForUiType(col: { uidt?: UITypes; }, idType: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
@@ -1940,6 +1986,11 @@ export class PgUi {
           'timestamptz',
           'timestamp with time zone',
         ];
+
+      case 'User':
+      case 'CreatedBy':
+      case 'LastModifiedBy':
+        return ['character varying'];
 
       case 'AutoNumber':
         return [

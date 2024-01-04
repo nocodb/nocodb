@@ -665,10 +665,18 @@ export async function extractColumn({
             [rootAlias, sanitize(columnName), column.id],
           ),
         );
-        break;
       }
+      break;
     }
-    // eslint-disable-next-line no-fallthrough
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy: {
+      const columnName = await getColumnName(column, columns);
+
+      qb.select(
+        knex.raw(`??.?? as ??`, [rootAlias, sanitize(columnName), column.id]),
+      );
+      break;
+    }
     default:
       {
         if (column.dt === 'bytea') {

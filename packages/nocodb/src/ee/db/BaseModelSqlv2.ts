@@ -1,6 +1,7 @@
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
   UITypes,
@@ -229,7 +230,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareNocoData(insertObj, true);
+      await this.prepareNocoData(insertObj, true, cookie);
 
       await this.model.getColumns();
       let response;
@@ -362,7 +363,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      await this.prepareNocoData(updateObj);
+      await this.prepareNocoData(updateObj, false, cookie);
 
       const source = await Source.get(this.model.source_id);
       const prevData = (await canUseOptimisedQuery({
@@ -421,8 +422,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  async prepareNocoData(data, isInsertData = false) {
-    return super.prepareNocoData(data, isInsertData);
+  async prepareNocoData(data, isInsertData = false, cookie?: { user?: any }) {
+    return super.prepareNocoData(data, isInsertData, cookie);
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
@@ -789,7 +790,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (col.title in d && isCreatedOrLastModifiedTimeCol(col)) {
+            if (
+              col.title in d &&
+              (isCreatedOrLastModifiedTimeCol(col) ||
+                isCreatedOrLastModifiedByCol(col))
+            ) {
               NcError.badRequest(
                 `Column "${col.title}" is auto generated and cannot be updated`,
               );
@@ -913,7 +918,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
 
-          await this.prepareNocoData(insertObj, true);
+          await this.prepareNocoData(insertObj, true, cookie);
 
           insertDatas.push(insertObj);
         }
@@ -1096,7 +1101,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           continue;
         }
         if (!raw) {
-          await this.prepareNocoData(d);
+          await this.prepareNocoData(d, false, cookie);
 
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {

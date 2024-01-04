@@ -17344,7 +17344,9 @@
               "Year",
               "QrCode",
               "Links",
-              "User"
+              "User",
+              "CreatedBy",
+              "LastModifiedBy"
             ],
             "type": "string"
           },
@@ -20565,7 +20567,9 @@
               "Year",
               "QrCode",
               "Links",
-              "User"
+              "User",
+              "CreatedBy",
+              "LastModifiedBy"
             ],
             "type": "string",
             "description": "UI Data Type"

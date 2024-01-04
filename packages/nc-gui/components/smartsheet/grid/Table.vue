@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isCreatedOrLastModifiedTimeCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 
 import usePaginationShortcuts from './usePaginationShortcuts'
@@ -1010,7 +1010,8 @@ const showFillHandle = computed(
     !(
       isLookup(fields.value[activeCell.col]) ||
       isRollup(fields.value[activeCell.col]) ||
-      isFormula(fields.value[activeCell.col])
+      isFormula(fields.value[activeCell.col]) ||
+      isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col])
     ),
 )
 
@@ -1570,7 +1571,10 @@ onKeyStroke('ArrowDown', onDown)
                         'align-top': rowHeight && rowHeight !== 1,
                         'filling': isCellInFillRange(rowIndex, colIndex),
                         'readonly':
-                          (isLookup(columnObj) || isRollup(columnObj) || isFormula(columnObj)) &&
+                          (isLookup(columnObj) ||
+                            isRollup(columnObj) ||
+                            isFormula(columnObj) ||
+                            isCreatedOrLastModifiedTimeCol(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,

@@ -34,7 +34,7 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
-const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.Barcode, UITypes.SpecificDBType, UITypes.CreateTime, UITypes.LastModifiedTime]
+const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.Barcode, UITypes.SpecificDBType, UITypes.CreatedTime, UITypes.LastModifiedTime]
 
 const { isMobileMode, user } = useGlobal()
 

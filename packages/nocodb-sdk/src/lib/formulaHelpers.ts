@@ -1528,7 +1528,7 @@ async function extractColumnIdentifierType({
     // date
     case UITypes.Date:
     case UITypes.DateTime:
-    case UITypes.CreateTime:
+    case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
       res.dataType = FormulaDataTypes.DATE;
       break;

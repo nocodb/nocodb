@@ -100,7 +100,7 @@ const uiTypeOptions = ref<Option[]>(
     .filter(
       (uiType) =>
         !isVirtualCol(UITypes[uiType]) &&
-        ![UITypes.ForeignKey, UITypes.ID, UITypes.CreateTime, UITypes.LastModifiedTime, UITypes.Barcode, UITypes.Button].includes(
+        ![UITypes.ForeignKey, UITypes.ID, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Barcode, UITypes.Button].includes(
           UITypes[uiType],
         ),
     )

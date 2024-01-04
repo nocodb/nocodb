@@ -273,7 +273,7 @@
     "Count": "Count",
     "Lookup": "Lookup",
     "DateTime": "Date Time",
-    "CreateTime": "Create Time",
+    "CreatedTime": "Create Time",
     "LastModifiedTime": "Last Modified Time",
     "AutoNumber": "Auto Number",
     "Barcode": "Barcode",

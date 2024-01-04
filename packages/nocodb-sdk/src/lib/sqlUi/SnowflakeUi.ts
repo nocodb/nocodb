@@ -106,7 +106,7 @@ export class SnowflakeUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.CreateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
         system: true,
@@ -778,7 +778,7 @@ export class SnowflakeUi {
       case 'DateTime':
         colProp.dt = 'TIMESTAMP';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'TIMESTAMP';
         colProp.cdf = 'current_timestamp()';
         break;
@@ -956,7 +956,7 @@ export class SnowflakeUi {
         return ['DATE', 'TIMESTAMP'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return ['TIMESTAMP'];
 

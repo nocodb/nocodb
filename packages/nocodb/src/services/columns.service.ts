@@ -296,7 +296,7 @@ export class ColumnsService {
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
       );
     } else if (
-      [UITypes.CreateTime, UITypes.LastModifiedTime].includes(colBody.uidt)
+      [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(colBody.uidt)
     ) {
       // allow updating of title only
       await Column.update(param.columnId, {
@@ -1685,7 +1685,7 @@ export class ColumnsService {
         });
 
         break;
-      case UITypes.CreateTime:
+      case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
         {
           let columnName: string;
@@ -1696,12 +1696,12 @@ export class ColumnsService {
             (c) => c.uidt === colBody.uidt && c.system,
             // ||
             // c.column_name ===
-            //   (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
+            //   (c.uidt === UITypes.CreatedTime ? 'created_at' : 'updated_at'),
           );
 
           if (!existingColumn) {
             columnName =
-              colBody.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at';
+              colBody.uidt === UITypes.CreatedTime ? 'created_at' : 'updated_at';
             // const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
             //   NcConnectionMgrv2.getSqlClient(source),
             // );
@@ -1751,7 +1751,7 @@ export class ColumnsService {
 
             const title = getUniqueColumnAliasName(
               table.columns,
-              UITypes.CreateTime ? 'CreatedAt' : 'UpdatedAt',
+              UITypes.CreatedTime ? 'CreatedAt' : 'UpdatedAt',
             );
 
             await Column.insert({
@@ -2209,7 +2209,7 @@ export class ColumnsService {
       }
 
       // on delete create time or last modified time, keep the column in table and delete the column from meta
-      case UITypes.CreateTime:
+      case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
         {
           if (column.system) {

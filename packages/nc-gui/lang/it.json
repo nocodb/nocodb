@@ -273,7 +273,7 @@
     "Count": "Contatore",
     "Lookup": "Consultazione",
     "DateTime": "Data e ora",
-    "CreateTime": "Data di creazione",
+    "CreatedTime": "Data di creazione",
     "LastModifiedTime": "Data di ultima modifica",
     "AutoNumber": "Numerazione automatica",
     "Barcode": "Codice a barre",

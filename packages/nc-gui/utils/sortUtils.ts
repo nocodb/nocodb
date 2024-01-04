@@ -15,7 +15,7 @@ export const getSortDirectionOptions = (uidt: UITypes | string) => {
     case UITypes.PhoneNumber:
     case UITypes.Date:
     case UITypes.DateTime:
-    case UITypes.CreateTime:
+    case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
       return [
         { text: '1 → 9', value: 'asc' },

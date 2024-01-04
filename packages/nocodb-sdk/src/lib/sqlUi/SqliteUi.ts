@@ -94,7 +94,7 @@ export class SqliteUi {
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.CreateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
         system: true,
@@ -492,7 +492,7 @@ export class SqliteUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -628,7 +628,7 @@ export class SqliteUi {
       case 'DateTime':
         colProp.dt = 'datetime';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'datetime';
         colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
@@ -841,7 +841,7 @@ export class SqliteUi {
         return ['date', 'varchar'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return ['datetime', 'timestamp'];
 

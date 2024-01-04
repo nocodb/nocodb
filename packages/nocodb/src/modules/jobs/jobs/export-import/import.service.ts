@@ -766,7 +766,7 @@ export class ImportService {
             a.uidt === UITypes.Rollup ||
             a.uidt === UITypes.Formula ||
             a.uidt === UITypes.QrCode ||
-            a.uidt === UITypes.CreateTime ||
+            a.uidt === UITypes.CreatedTime ||
             a.uidt === UITypes.LastModifiedTime ||
             a.uidt === UITypes.Barcode,
         ),
@@ -895,7 +895,7 @@ export class ImportService {
           }
         }
       } else if (
-        col.uidt === UITypes.CreateTime ||
+        col.uidt === UITypes.CreatedTime ||
         col.uidt === UITypes.LastModifiedTime
       ) {
         const freshModelData = await this.columnsService.columnAdd({

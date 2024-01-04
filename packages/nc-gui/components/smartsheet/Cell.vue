@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isSystemColumn } from 'nocodb-sdk'
+import { isCreatedTimeOrUpdatedTimeCol, isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -228,6 +228,7 @@ onUnmounted(() => {
           :disable-option-creation="!!isEditColumnMenu"
           :row-index="props.rowIndex"
         />
+        <LazyCellReadOnlyDateTimePicker v-else-if="isCreatedTimeOrUpdatedTimeCol(column)" :model-value="vModel" />
         <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
         <LazyCellDateTimePicker

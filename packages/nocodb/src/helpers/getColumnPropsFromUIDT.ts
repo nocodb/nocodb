@@ -23,12 +23,6 @@ export default async function getColumnPropsFromUIDT(
     ...colProp,
   };
 
-  if (newColumn.uidt === UITypes.CreateTime) {
-    newColumn.column_name = 'created_at';
-  } else if (newColumn.uidt === UITypes.LastModifiedTime) {
-    newColumn.column_name = 'updated_at';
-  }
-
   newColumn.dtxp = sqlUi.getDefaultLengthForDatatype(newColumn.dt);
   newColumn.dtxs = sqlUi.getDefaultScaleForDatatype(newColumn.dt);
 
@@ -43,5 +37,13 @@ export default async function getColumnPropsFromUIDT(
 
   newColumn.altered = column.altered || 2;
 
-  return { ...newColumn, ...column };
+  const finalColumnMeta = { ...newColumn, ...column };
+
+  if (finalColumnMeta.uidt === UITypes.CreateTime) {
+    finalColumnMeta.column_name = 'created_at';
+  } else if (finalColumnMeta.uidt === UITypes.LastModifiedTime) {
+    finalColumnMeta.column_name = 'updated_at';
+  }
+
+  return finalColumnMeta;
 }

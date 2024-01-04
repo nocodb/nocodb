@@ -5598,6 +5598,7 @@ class BaseModelSqlv2 {
   }: {
     rowIds: any | any[];
     model?: Model;
+    knex?: XKnex;
   }) {
     const columnName = 'updated_at';
 

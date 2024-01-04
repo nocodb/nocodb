@@ -1688,34 +1688,36 @@ export class ColumnsService {
       case UITypes.CreateTime:
       case UITypes.LastModifiedTime:
         {
+          const columns = await table.getColumns();
           // check if column already exists, then just create a new column in meta
           // else create a new column in meta and db
-          const existingColumn = await table.getColumns().then((col) => {
-            return col.find(
-              (c) => c.uidt === colBody.uidt && c.system,
-              // ||
-              // c.column_name ===
-              //   (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
-            );
-          });
+          const existingColumn = columns.find(
+            (c) => c.uidt === colBody.uidt && c.system,
+            // ||
+            // c.column_name ===
+            //   (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
+          );
 
           if (!existingColumn) {
-            const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-              NcConnectionMgrv2.getSqlClient(source),
-            );
-            const dbColumns = (
-              await sqlClient.columnList({
-                tn: table.table_name,
-                schema: source.getConfig()?.schema,
-              })
-            )?.data?.list;
+            let columnName =
+              colBody.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at';
+            // const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+            //   NcConnectionMgrv2.getSqlClient(source),
+            // );
+            // const dbColumns = (
+            //   await sqlClient.columnList({
+            //     tn: table.table_name,
+            //     schema: source.getConfig()?.schema,
+            //   })
+            // )?.data?.list;
 
             // todo:  check type as well
-            const dbColumn = dbColumns.find(
-              (c) =>
-                c.column_name ===
-                (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
-            );
+            const dbColumn = columns.find((c) => c.column_name === columnName);
+
+            if (dbColumn) {
+              columnName = getUniqueColumnName(columns, columnName);
+            }
+
             if (!dbColumn) {
               // create column in db
 
@@ -1752,11 +1754,11 @@ export class ColumnsService {
               system: 1,
               fk_model_id: table.id,
             });
-            await Column.insert({
-              ...colBody,
-              fk_model_id: table.id,
-            });
           }
+          await Column.insert({
+            ...colBody,
+            fk_model_id: table.id,
+          });
         }
         break;
       default:
@@ -2775,6 +2777,7 @@ export class ColumnsService {
       await Column.update(column.id, colBody);
     }
   }
+
   async columnsHash(tableId: string) {
     const table = await Model.getWithInfo({
       id: tableId,

@@ -1,4 +1,13 @@
-import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import {
+  UITypes,
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  type PaginatedType,
+  type RequestParams,
+  type TableType,
+  dateFormats,
+  timeFormats,
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -20,6 +29,7 @@ import {
   useRouter,
   useSharedView,
   watch,
+  parseProp,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -121,9 +131,36 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
     })
 
+    const relatedTableDisplayValueTypeAndFormatProp = computed(() => {
+      let dateOrDateTimeFieldTypeAndFormat = {
+        type: '',
+        format: '',
+      }
+      let currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+
+      if (currentColumn) {
+        if (currentColumn?.uidt === UITypes.DateTime) {
+          dateOrDateTimeFieldTypeAndFormat = {
+            type: currentColumn?.uidt,
+            format: `${parseProp(currentColumn?.meta)?.date_format ?? dateFormats[0]} ${
+              parseProp(currentColumn?.meta)?.time_format ?? timeFormats[0]
+            }`,
+          }
+        }
+        if (currentColumn?.uidt === UITypes.Time) {
+          dateOrDateTimeFieldTypeAndFormat = {
+            type: currentColumn?.uidt,
+            format: `${timeFormats[0]}`,
+          }
+        }
+      }
+      return dateOrDateTimeFieldTypeAndFormat
+    })
+
     const relatedTablePrimaryKeyProps = computed(() => {
       return relatedTableMeta.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
     })
+
     const displayValueProp = computed(() => {
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
@@ -470,6 +507,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       relatedTableMeta,
       loadRelatedTableMeta,
       relatedTableDisplayValueProp,
+      relatedTableDisplayValueTypeAndFormatProp,
       childrenExcludedList,
       childrenList,
       childrenListCount,

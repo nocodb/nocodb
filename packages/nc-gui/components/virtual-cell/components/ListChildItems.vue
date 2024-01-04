@@ -49,6 +49,7 @@ const {
   loadChildrenList,
   childrenListPagination,
   relatedTableDisplayValueProp,
+  relatedTableDisplayValueTypeAndFormatProp,
   unlink,
   isChildrenListLoading,
   isChildrenListLinked,
@@ -260,6 +261,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
               data-testid="nc-child-list-item"
               :attachment="attachmentCol"
               :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :related-table-display-value-type-and-format-prop="relatedTableDisplayValueTypeAndFormatProp"
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
               @expand="onClick(refRow)"

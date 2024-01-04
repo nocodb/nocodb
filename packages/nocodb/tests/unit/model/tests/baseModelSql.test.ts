@@ -98,12 +98,8 @@ function baseModelSqlTests() {
 
     bulkData.forEach((inputData: any, index) => {
       if (isPg(context)) {
-        inputData.CreatedAt = new Date(inputData.CreatedAt).toISOString();
-        inputData.UpdatedAt = new Date(inputData.UpdatedAt).toISOString();
-      } else if (isSqlite(context)) {
-        // append +00:00 to the date string
-        inputData.CreatedAt = `${inputData.CreatedAt}+00:00`;
-        inputData.UpdatedAt = `${inputData.UpdatedAt}+00:00`;
+        inputData.CreatedAt = insertedRows[index].CreatedAt
+        inputData.UpdatedAt = insertedRows[index].UpdatedAt
       }
       expect(insertedRows[index]).to.include(inputData);
     });

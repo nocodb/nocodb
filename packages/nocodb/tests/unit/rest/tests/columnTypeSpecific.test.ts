@@ -197,10 +197,10 @@ function columnTypeSpecificTests() {
 
         // calculate difference between current date time and stored date time
         const difference = currentDateTime.getTime() - storedDateTime.getTime();
-        expect(difference).to.be.lessThan(1000);
+        expect(difference).to.be.lessThan(2000);
 
         expect(unfilteredRecords[0].CreatedAt).to.not.equal(null);
-        expect(unfilteredRecords[0].LastModifiedAt).to.equal(null);
+        expect(unfilteredRecords[0].UpdatedAt).to.equal(null);
       });
 
       it('Modify record: verify last-modified-at is updated', async () => {

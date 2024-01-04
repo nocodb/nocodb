@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { computed } from 'vue'
 import {
   ActiveViewInj,
   ColumnInj,
@@ -276,6 +277,14 @@ const onInsertAfter = () => {
   isOpen.value = false
   addColumn()
 }
+
+const isDeleteAllowed = computed(() => {
+  if (!column?.value) return false
+  if (column.value.uidt && [UITypes.CreateTime, UITypes.LastModifiedTime].includes(column.value.uidt) && column.value.system) {
+    return false
+  }
+  return true
+})
 </script>
 
 <template>
@@ -368,7 +377,7 @@ const onInsertAfter = () => {
         </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pv" class="!hover:bg-red-50" @click="handleDelete">
+        <NcMenuItem v-if="!column?.pv && isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
           <div class="nc-column-delete nc-header-menu-item text-red-600">
             <component :is="iconMap.delete" />
             <!-- Delete -->

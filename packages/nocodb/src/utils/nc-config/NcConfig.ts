@@ -44,6 +44,7 @@ export class NcConfig {
   env: string;
   workingEnv: string;
   baseType: string;
+  private logger = new Logger(NcConfig.name);
 
   private constructor() {}
 
@@ -162,7 +163,7 @@ export class NcConfig {
           database: this.meta.db?.connection?.filename,
         });
       } else {
-        throw new Error('Configuration missing meta db connection');
+        throw new Error('Meta database configuration missing SQLite file name');
       }
       await metaSqlClient.knex.destroy();
     } else {
@@ -173,7 +174,7 @@ export class NcConfig {
         );
         await metaSqlClient.knex.destroy();
       } else {
-        throw new Error('Configuration missing meta db connection');
+        throw new Error('Meta database configuration missing database name');
       }
     }
   }

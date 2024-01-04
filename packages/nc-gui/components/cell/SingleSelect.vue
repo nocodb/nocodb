@@ -322,7 +322,8 @@ const onFocus = () => {
       :disabled="readOnly || !editAllowed"
       :show-search="!isMobileMode && isOpen && active"
       :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined)"
-      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && active ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-200px ${isOpen && active ? 'active' : ''}`"
+      :dropdown-match-select-width="true"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
@@ -399,7 +400,12 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !px-0;
+  @apply !pl-0 !pr-4;
+}
+
+:deep(.ant-select-selector .ant-select-selection-item) {
+  @apply flex items-center;
+  text-overflow: clip;
 }
 
 :deep(.ant-select-selection-search-input) {

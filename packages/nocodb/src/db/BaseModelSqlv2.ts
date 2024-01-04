@@ -3829,12 +3829,18 @@ class BaseModelSqlv2 {
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}
 
-  async validate(columns) {
+  async validate(data: Record<string, any>): Promise<boolean> {
     await this.model.getColumns();
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
-      await this.validateOptions(column, columns);
+
+      if (column.title in data && isCreatedTimeOrUpdatedTimeCol(column)) {
+        NcError.badRequest(
+          `Column "${column.title}" is auto generated and cannot be updated`,
+        );
+      }
+      await this.validateOptions(column, data);
 
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
@@ -3852,7 +3858,7 @@ class BaseModelSqlv2 {
               ? customValidators[func[j]]
               : Validator[func[j]]
             : func[j];
-        const columnValue = columns?.[cn] || columns?.[columnTitle];
+        const columnValue = data?.[cn] || data?.[columnTitle];
         const arg =
           typeof func[j] === 'string' ? columnValue + '' : columnValue;
         if (

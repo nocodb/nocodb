@@ -3198,6 +3198,13 @@ class BaseModelSqlv2 {
     try {
       if (raw) await this.model.getColumns();
 
+      // validate update data
+      if (!raw) {
+        for (const d of datas) {
+          await this.validate(d);
+        }
+      }
+
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -3211,7 +3218,6 @@ class BaseModelSqlv2 {
       const updatePkValues = [];
       const toBeUpdated = [];
       for (const d of updateDatas) {
-        if (!raw) await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided

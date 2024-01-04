@@ -18,6 +18,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type { XKnex } from '~/db/CustomKnex';
@@ -35,15 +36,6 @@ import type {
   SelectOption,
   User,
 } from '~/models';
-import type { SortType } from 'nocodb-sdk';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import conditionV2 from '~/db/conditionV2';
-import sortV2 from '~/db/sortV2';
-import { customValidators } from '~/db/util/customValidators';
-import { extractLimitAndOffset } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
-import getAst from '~/helpers/getAst';
 import {
   Audit,
   BaseUser,
@@ -55,6 +47,14 @@ import {
   Source,
   View,
 } from '~/models';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import conditionV2 from '~/db/conditionV2';
+import sortV2 from '~/db/sortV2';
+import { customValidators } from '~/db/util/customValidators';
+import { extractLimitAndOffset } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -2358,7 +2358,7 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareNocoData(insertObj);
+      await this.prepareNocoData(insertObj, true);
 
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -2709,7 +2709,6 @@ class BaseModelSqlv2 {
         this.clientMeta,
         this.dbDriver,
       );
-
       let rowId = null;
 
       const nestedCols = (await this.model.getColumns()).filter((c) =>
@@ -2724,6 +2723,8 @@ class BaseModelSqlv2 {
       await this.validate(insertObj);
 
       await this.beforeInsert(insertObj, this.dbDriver, cookie);
+
+      await this.prepareNocoData(insertObj, true);
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
@@ -3068,7 +3069,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.prepareNocoData(insertObj);
+          await this.prepareNocoData(insertObj, true);
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
@@ -5632,13 +5633,28 @@ class BaseModelSqlv2 {
     await this.execAndParse(qb, null, { raw: true });
   }
 
-  async prepareNocoData(data) {
+  async prepareNocoData(data, isInsertData = false) {
     if (
       this.model.columns.some((c) =>
-        [UITypes.Attachment, UITypes.User].includes(c.uidt),
+        [
+          UITypes.Attachment,
+          UITypes.User,
+          UITypes.CreateTime,
+          UITypes.LastModifiedTime,
+        ].includes(c.uidt),
       )
     ) {
       for (const column of this.model.columns) {
+        if (
+          isInsertData &&
+          column.uidt === UITypes.CreateTime &&
+          column.system
+        ) {
+          data[column.column_name] = Noco.ncMeta.now();
+        }
+        if (column.uidt === UITypes.LastModifiedTime && column.system) {
+          data[column.column_name] = Noco.ncMeta.now();
+        }
         if (column.uidt === UITypes.Attachment) {
           if (data[column.column_name]) {
             if (Array.isArray(data[column.column_name])) {

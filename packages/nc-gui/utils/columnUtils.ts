@@ -140,11 +140,11 @@ const uiTypes = [
   },
   {
     name: UITypes.CreatedTime,
-    icon: iconMap.clock,
+    icon: iconMap.datetime,
   },
   {
     name: UITypes.LastModifiedTime,
-    icon: iconMap.clock,
+    icon: iconMap.datetime,
   },
 ]
 

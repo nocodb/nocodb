@@ -567,7 +567,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !px-0;
+  @apply !pl-0;
 }
 
 :deep(.ant-select-selection-search-input) {

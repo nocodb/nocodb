@@ -49,6 +49,7 @@ const {
   loadChildrenList,
   childrenListPagination,
   relatedTableDisplayValueProp,
+  displayValueTypeAndFormatProp,
   unlink,
   isChildrenListLoading,
   isChildrenListLinked,
@@ -57,7 +58,7 @@ const {
   row,
   link,
   meta,
-  displayValueProp,
+  headerDisplayValue
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -195,7 +196,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       :table-title="meta?.title"
       :header="$t('activity.linkedRecords')"
       :related-table-title="relatedTableMeta?.title"
-      :display-value="row.row[displayValueProp]"
+      :display-value="headerDisplayValue"
     />
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div
@@ -260,6 +261,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
               data-testid="nc-child-list-item"
               :attachment="attachmentCol"
               :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
               @expand="onClick(refRow)"

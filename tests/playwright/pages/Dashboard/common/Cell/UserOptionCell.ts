@@ -41,11 +41,11 @@ export class UserOptionCellPageObject extends BasePage {
 
     if (index === -1) {
       const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-undefined`).getByText(option);
-      await selectOption.waitFor({ state: 'visible' });
+      await selectOption.scrollIntoViewIfNeeded();
       await selectOption.click();
     } else {
       const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option);
-      await selectOption.waitFor({ state: 'visible' });
+      await selectOption.scrollIntoViewIfNeeded();
       await selectOption.click();
     }
 

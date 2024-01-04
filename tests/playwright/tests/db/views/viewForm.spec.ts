@@ -478,6 +478,7 @@ test.describe('Form view', () => {
       columnHeader: 'SingleSelect',
       option: 'jan',
       multiSelect: false,
+      ignoreDblClick: true,
     });
 
     // Click on multi select options

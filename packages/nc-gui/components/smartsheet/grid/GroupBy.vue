@@ -154,20 +154,19 @@ const parseKey = (group: Group) => {
 
   // show the groupBy dateTime field title format as like cell format
   if (key && group.column?.uidt === UITypes.DateTime) {
-    const dateTime = parseStringDateTime(
-      key,
-      `${parseProp(group.column?.meta)?.date_format ?? dateFormats[0]} ${
-        parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
-      }`,
-    )
-
-    return [dateTime]
+    return [
+      parseStringDateTime(
+        key,
+        `${parseProp(group.column?.meta)?.date_format ?? dateFormats[0]} ${
+          parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
+        }`,
+      ),
+    ]
   }
 
   // show the groupBy time field title format as like cell format
   if (key && group.column?.uidt === UITypes.Time) {
-    const time = parseStringDateTime(key, timeFormats[0], false)
-    return [time]
+    return [parseStringDateTime(key, timeFormats[0], false)]
   }
 
   if (key && group.column?.uidt === UITypes.User) {

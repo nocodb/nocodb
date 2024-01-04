@@ -1701,8 +1701,8 @@ export class ColumnsService {
                 (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
             );
 
-            if(!dbColumn){
-               // create column in db
+            if (!dbColumn) {
+              // create column in db
             }
 
             await Column.insert({
@@ -2148,6 +2148,13 @@ export class ColumnsService {
         }
         /* falls through to default */
       }
+
+      // on delete create time or last modified time, keep the column in table and delete the column from meta
+      case UITypes.CreateTime:
+      case UITypes.LastModifiedTime: {
+        await Column.delete(param.columnId, ncMeta);
+      }
+      break;
       default: {
         const tableUpdateBody = {
           ...table,

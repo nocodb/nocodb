@@ -242,8 +242,10 @@ export function useData(args: {
               col.uidt === UITypes.Rollup ||
               col.uidt === UITypes.Checkbox ||
               col.uidt === UITypes.User ||
+              col.uidt === UITypes.LastModifiedTime ||
+              col.uidt === UITypes.Lookup ||
               col.au ||
-              col.cdf?.includes(' on update ')
+              (col.cdf && / on update /i.test(col.cdf))
             )
               acc[col.title!] = updatedRowData[col.title!]
             return acc

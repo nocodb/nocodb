@@ -1,19 +1,27 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
+import { ReadonlyInj, IsGroupByLabelInj } from '#imports'
 
 defineProps<{
   column: ColumnType
   modelValue: any
 }>()
 
-provide(ReadonlyInj, true)
+provide(ReadonlyInj, ref(true))
+provide(IsGroupByLabelInj, ref(true))
 </script>
 
 <template>
   <div class="pointer-events-none">
     <LazySmartsheetRow :row="{ row: { [column.title]: modelValue }, rowMeta: {} }">
-      <LazySmartsheetVirtualCell v-if="isVirtualCol(column)" :model-value="modelValue" class="!text-gray-600" :column="column" />
+      <LazySmartsheetVirtualCell
+        v-if="isVirtualCol(column)"
+        :model-value="modelValue"
+        class="!text-gray-600"
+        :column="column"
+        :read-only="true"
+      />
 
       <LazySmartsheetCell
         v-else

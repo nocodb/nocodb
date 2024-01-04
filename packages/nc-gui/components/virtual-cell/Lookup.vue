@@ -25,6 +25,8 @@ const meta = inject(MetaInj, ref())
 
 const cellValue = inject(CellValueInj, ref())
 
+const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
+
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
 const providedHeightRef = ref(1) as any
@@ -100,7 +102,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   <div
     class="h-full w-full nc-lookup-cell"
     tabindex="-1"
-    :style="{ height: rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
+    :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
     <div

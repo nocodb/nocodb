@@ -1674,6 +1674,44 @@ export class ColumnsService {
         });
 
         break;
+      case UITypes.CreateTime:
+      case UITypes.LastModifiedTime:
+        {
+          // check if column already exists, then just create a new column in meta
+          // else create a new column in meta and db
+          const existingColumn = await table.getColumns().then((col) => {
+            return col.find((c) => c.uidt === colBody.uidt);
+          });
+
+          if (!existingColumn) {
+            const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+              NcConnectionMgrv2.getSqlClient(source),
+            );
+            const dbColumns = (
+              await sqlClient.columnList({
+                tn: table.table_name,
+                schema: source.getConfig()?.schema,
+              })
+            )?.data?.list;
+
+            // todo:  check type as well
+            const dbColumn = dbColumns.find(
+              (c) =>
+                c.column_name ===
+                (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
+            );
+
+            if(!dbColumn){
+               // create column in db
+            }
+
+            await Column.insert({
+              ...colBody,
+              fk_model_id: table.id,
+            });
+          }
+        }
+        break;
       default:
         {
           colBody = await getColumnPropsFromUIDT(colBody, source);

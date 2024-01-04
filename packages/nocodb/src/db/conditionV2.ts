@@ -550,7 +550,14 @@ const parseConditionV2 = async (
             ? 'YYYY-MM-DD HH:mm:ss'
             : 'YYYY-MM-DD HH:mm:ssZ';
 
-        if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+        if (
+          [
+            UITypes.Date,
+            UITypes.DateTime,
+            UITypes.CreateTime,
+            UITypes.LastModifiedTime,
+          ].includes(column.uidt)
+        ) {
           let now = dayjs(new Date());
           const dateFormatFromMeta = column?.meta?.date_format;
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
@@ -661,7 +668,13 @@ const parseConditionV2 = async (
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
               }
             } else {
-              if (column.uidt === UITypes.DateTime) {
+              if (
+                [
+                  UITypes.DateTime,
+                  UITypes.CreateTime,
+                  UITypes.LastModifiedTime,
+                ].includes(column.uidt)
+              ) {
                 if (qb.client.config.client === 'pg') {
                   qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
@@ -945,9 +958,13 @@ const parseConditionV2 = async (
               qb = qb.whereNull(customWhereClause || field);
               if (
                 !isNumericCol(column.uidt) &&
-                ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(
-                  column.uidt,
-                )
+                ![
+                  UITypes.Date,
+                  UITypes.CreateTime,
+                  UITypes.LastModifiedTime,
+                  UITypes.DateTime,
+                  UITypes.Time,
+                ].includes(column.uidt)
               ) {
                 qb = qb.orWhere(field, '');
               }
@@ -963,9 +980,13 @@ const parseConditionV2 = async (
               qb = qb.whereNotNull(customWhereClause || field);
               if (
                 !isNumericCol(column.uidt) &&
-                ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(
-                  column.uidt,
-                )
+                ![
+                  UITypes.Date,
+                  UITypes.DateTime,
+                  UITypes.CreateTime,
+                  UITypes.LastModifiedTime,
+                  UITypes.Time,
+                ].includes(column.uidt)
               ) {
                 qb = qb.whereNot(field, '');
               }

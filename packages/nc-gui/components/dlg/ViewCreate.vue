@@ -426,7 +426,7 @@ onMounted(async () => {
         <template v-if="form.type === ViewTypes.CALENDAR">
           <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full items-center gap-2">
             <span>
-              {{ $t('labels.organizeBy') }}
+              {{ $t('labels.organiseBy') }}
             </span>
             <NcSelect
               v-model:value="range.fk_from_column_id"

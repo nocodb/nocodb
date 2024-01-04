@@ -8,7 +8,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -103,7 +103,7 @@ function checkColumnRequired(
 }
 
 export async function getColumnName(column: Column<any>, columns?: Column[]) {
-  if (!isCreatedTimeOrUpdatedTimeCol(column)) return column.column_name;
+  if (!isCreatedOrLastModifiedTimeCol(column)) return column.column_name;
   columns = columns || (await Column.list({ fk_model_id: column.fk_model_id }));
 
   switch (column.uidt) {
@@ -2962,7 +2962,7 @@ class BaseModelSqlv2 {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (col.title in d && isCreatedTimeOrUpdatedTimeCol(col)) {
+            if (col.title in d && isCreatedOrLastModifiedTimeCol(col)) {
               NcError.badRequest(
                 `Column "${col.title}" is auto generated and cannot be updated`,
               );
@@ -3847,7 +3847,7 @@ class BaseModelSqlv2 {
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
 
-      if (column.title in data && isCreatedTimeOrUpdatedTimeCol(column)) {
+      if (column.title in data && isCreatedOrLastModifiedTimeCol(column)) {
         NcError.badRequest(
           `Column "${column.title}" is auto generated and cannot be updated`,
         );

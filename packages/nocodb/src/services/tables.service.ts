@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -514,7 +514,7 @@ export class TablesService {
     for (const column of param.table.columns) {
       if (
         !isVirtualCol(column) ||
-        (isCreatedTimeOrUpdatedTimeCol(column) && (column as any).system)
+        (isCreatedOrLastModifiedTimeCol(column) && (column as any).system)
       ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
@@ -549,7 +549,7 @@ export class TablesService {
       param.table.columns
         // exclude alias columns from column list
         ?.filter((c) => {
-          return !isCreatedTimeOrUpdatedTimeCol(c) || (c as any).system;
+          return !isCreatedOrLastModifiedTimeCol(c) || (c as any).system;
         })
         .map(async (c) => ({
           ...(await getColumnPropsFromUIDT(c as any, source)),

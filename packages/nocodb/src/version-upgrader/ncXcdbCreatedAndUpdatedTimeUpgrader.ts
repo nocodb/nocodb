@@ -109,7 +109,7 @@ async function upgradeModels({
               {
                 uidt: UITypes.CreatedTime,
                 column_name: getUniqueColumnName(columns, 'created_at'),
-                title: getUniqueColumnAliasName(columns, 'Created At'),
+                title: getUniqueColumnAliasName(columns, 'CreatedAt'),
               },
               source,
             )),
@@ -125,7 +125,7 @@ async function upgradeModels({
               {
                 uidt: UITypes.LastModifiedTime,
                 column_name: getUniqueColumnName(columns, 'updated_at'),
-                title: getUniqueColumnAliasName(columns, 'Updated At'),
+                title: getUniqueColumnAliasName(columns, 'UpdatedAt'),
               },
               source,
             )),

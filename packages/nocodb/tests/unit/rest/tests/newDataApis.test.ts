@@ -83,7 +83,7 @@
 
 import 'mocha';
 import {
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
@@ -679,7 +679,7 @@ function textBased() {
     expect(
       verifyColumnsInRsp(
         rsp.body.list[0],
-        columns.filter((c) => !isCreatedTimeOrUpdatedTimeCol(c) || !c.system),
+        columns.filter((c) => !isCreatedOrLastModifiedTimeCol(c) || !c.system),
       ),
     ).to.equal(true);
     const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
@@ -700,7 +700,7 @@ function textBased() {
     const displayColumns = columns.filter(
       (c) =>
         c.title !== 'SingleLineText' &&
-        (!isCreatedTimeOrUpdatedTimeCol(c) || !c.system),
+        (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
   });
@@ -749,7 +749,7 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedTimeOrUpdatedTimeCol(c),
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
     return gridView;
@@ -769,7 +769,7 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedTimeOrUpdatedTimeCol(c),
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -791,7 +791,7 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedTimeOrUpdatedTimeCol(c),
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(7);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);

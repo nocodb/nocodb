@@ -279,18 +279,10 @@ const onInsertAfter = () => {
 }
 
 const isDeleteAllowed = computed(() => {
-  if (!column?.value) return false
-  if (column.value.uidt && [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.value.uidt) && column.value.system) {
-    return false
-  }
-  return true
+  return column?.value && !column.value.system
 })
 const isDuplicateAllowed = computed(() => {
-  if (!column?.value) return false
-  if (column.value.system) {
-    return false
-  }
-  return true
+  return column?.value && !column.value.system
 })
 </script>
 

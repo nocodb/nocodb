@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
@@ -172,7 +172,7 @@ export class ColumnsService {
 
     if (
       !isVirtualCol(param.column) &&
-      !isCreatedTimeOrUpdatedTimeCol(param.column) &&
+      !isCreatedOrLastModifiedTimeCol(param.column) &&
       !(await Column.checkTitleAvailable({
         column_name: param.column.column_name,
         fk_model_id: column.fk_model_id,
@@ -197,7 +197,7 @@ export class ColumnsService {
       parsed_tree?: any;
     };
     if (
-      isCreatedTimeOrUpdatedTimeCol(column) ||
+      isCreatedOrLastModifiedTimeCol(column) ||
       [
         UITypes.Lookup,
         UITypes.Rollup,
@@ -1694,9 +1694,6 @@ export class ColumnsService {
           // else create a new column in meta and db
           const existingColumn = columns.find(
             (c) => c.uidt === colBody.uidt && c.system,
-            // ||
-            // c.column_name ===
-            //   (c.uidt === UITypes.CreatedTime ? 'created_at' : 'updated_at'),
           );
 
           if (!existingColumn) {
@@ -1704,15 +1701,6 @@ export class ColumnsService {
               colBody.uidt === UITypes.CreatedTime
                 ? 'created_at'
                 : 'updated_at';
-            // const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-            //   NcConnectionMgrv2.getSqlClient(source),
-            // );
-            // const dbColumns = (
-            //   await sqlClient.columnList({
-            //     tn: table.table_name,
-            //     schema: source.getConfig()?.schema,
-            //   })
-            // )?.data?.list;
 
             // todo:  check type as well
             const dbColumn = columns.find((c) => c.column_name === columnName);

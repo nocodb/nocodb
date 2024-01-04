@@ -13,7 +13,7 @@ export {
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';

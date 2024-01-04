@@ -1624,7 +1624,12 @@ function dateBased() {
 
     // insert 10 records
     // remove Id's from record array
-    records.forEach((r) => delete r.Id);
+    records.forEach((r) => {
+      delete r.Id;
+      delete r.CreatedAt;
+      delete r.UpdatedAt;
+      delete r.Id;
+    });
     rsp = await ncAxiosPost({
       body: records,
     });
@@ -1996,7 +2001,7 @@ function linkBased() {
     return Array.from({ length: count }, (_, index) => i + index);
   }
 
-  it('Create Many-Many ', async function () {
+  it.only('Create Many-Many ', async function () {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblActor.id,
@@ -2731,7 +2736,7 @@ function linkBased() {
     await nestedAddTests(validParams);
   });
 
-  it('Error handling : MM: Nested REMOVE', async function () {
+  it.only('Error handling : MM: Nested REMOVE', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {

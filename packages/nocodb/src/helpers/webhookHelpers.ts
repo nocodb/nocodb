@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { Logger } from '@nestjs/common';
+import dayjs from 'dayjs';
+import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
@@ -24,7 +26,15 @@ export function parseBody(template: string, data: any): string {
   });
 }
 
-export async function validateCondition(filters: Filter[], data: any) {
+export async function validateCondition(
+  filters: Filter[],
+  data: any,
+  {
+    client,
+  }: {
+    client: string;
+  },
+) {
   if (!filters.length) {
     return true;
   }
@@ -33,7 +43,8 @@ export async function validateCondition(filters: Filter[], data: any) {
   for (const _filter of filters) {
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
-    const field = await filter.getColumn().then((c) => c.title);
+    const column = await filter.getColumn();
+    const field = column.title;
     let val = data[field];
     switch (typeof filter.value) {
       case 'boolean':
@@ -52,12 +63,17 @@ export async function validateCondition(filters: Filter[], data: any) {
         break;
       case 'like':
         res =
-          data[field]?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) > -1;
+          data[field]
+            ?.toString?.()
+            ?.toLowerCase()
+            ?.indexOf(filter.value?.toLowerCase()) > -1;
         break;
       case 'nlike':
         res =
-          data[field]?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) ===
-          -1;
+          data[field]
+            ?.toString?.()
+            ?.toLowerCase()
+            ?.indexOf(filter.value?.toLowerCase()) === -1;
         break;
       case 'empty':
       case 'blank':
@@ -120,6 +136,93 @@ export async function validateCondition(filters: Filter[], data: any) {
       case 'ge':
         res = +data[field] >= +filter.value;
         break;
+    }
+
+    if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+      const dateFormat =
+        client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
+
+      let now = dayjs(new Date());
+      const dateFormatFromMeta = column?.meta?.date_format;
+      const dataVal = val;
+      let filterVal = filter.value;
+      if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+        // reset to 1st
+        now = dayjs(now).date(1);
+        if (val) val = dayjs(val).date(1);
+      }
+      // handle sub operation
+      switch (filter.comparison_sub_op) {
+        case 'today':
+          filterVal = now;
+          break;
+        case 'tomorrow':
+          filterVal = now.add(1, 'day');
+          break;
+        case 'yesterday':
+          filterVal = now.add(-1, 'day');
+          break;
+        case 'oneWeekAgo':
+          filterVal = now.add(-1, 'week');
+          break;
+        case 'oneWeekFromNow':
+          filterVal = now.add(1, 'week');
+          break;
+        case 'oneMonthAgo':
+          filterVal = now.add(-1, 'month');
+          break;
+        case 'oneMonthFromNow':
+          filterVal = now.add(1, 'month');
+          break;
+        case 'daysAgo':
+          if (!filterVal) return;
+          filterVal = now.add(-filterVal, 'day');
+          break;
+        case 'daysFromNow':
+          if (!filterVal) return;
+          filterVal = now.add(filterVal, 'day');
+          break;
+        case 'exactDate':
+          if (!filterVal) return;
+          break;
+        // sub-ops for `isWithin` comparison
+        case 'pastWeek':
+          filterVal = now.add(-1, 'week');
+          break;
+        case 'pastMonth':
+          filterVal = now.add(-1, 'month');
+          break;
+        case 'pastYear':
+          filterVal = now.add(-1, 'year');
+          break;
+        case 'nextWeek':
+          filterVal = now.add(1, 'week');
+          break;
+        case 'nextMonth':
+          filterVal = now.add(1, 'month');
+          break;
+        case 'nextYear':
+          filterVal = now.add(1, 'year');
+          break;
+        case 'pastNumberOfDays':
+          if (!filterVal) return;
+          filterVal = now.add(-filterVal, 'day');
+          break;
+        case 'nextNumberOfDays':
+          if (!filterVal) return;
+          filterVal = now.add(filterVal, 'day');
+          break;
+      }
+
+      if (dayjs.isDayjs(filterVal)) {
+        // turn `filterVal` in dayjs object format to string
+        filterVal = filterVal.format(dateFormat).toString();
+        // keep YYYY-MM-DD only for date
+        filterVal =
+          column.uidt === UITypes.Date ? filterVal.substring(0, 10) : filterVal;
+      }
+
+      return dataVal === filterVal;
     }
 
     switch (filter.logical_op) {

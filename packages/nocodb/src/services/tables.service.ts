@@ -385,9 +385,10 @@ export class TablesService {
         if (
           !tableCreatePayLoad.columns.find((c) => c.uidt === uidt && c.system)
         ) {
-          tableCreatePayLoad.columns.push(
-            await getColumnPropsFromUIDT({ uidt } as any, source),
-          );
+          tableCreatePayLoad.columns.push({
+            ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
+            system: true,
+          });
         }
       }
     }

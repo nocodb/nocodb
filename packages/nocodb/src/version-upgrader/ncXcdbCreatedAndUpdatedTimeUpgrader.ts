@@ -17,6 +17,26 @@ import { Altered } from '~/services/columns.service';
 
 const logger = new Logger('ncXcdbCreatedAndUpdatedTimeUpgrader');
 
+async function deletePgTrigger({
+  column,
+  ncMeta,
+  model,
+}: {
+  ncMeta: MetaService;
+  column: Column;
+  model: Model;
+}) {
+  // delete pg trigger
+  const triggerFnName = `xc_au_${model.table_name}_${column.column_name}`;
+  const triggerName = `xc_trigger_${model.table_name}_${column.column_name}`;
+
+  await ncMeta.knex.raw(`DROP TRIGGER IF EXISTS ?? ON ??;`, [
+    triggerName,
+    model.table_name,
+  ]);
+  await ncMeta.knex.raw(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
+}
+
 async function upgradeModels({
   ncMeta,
   source,
@@ -35,6 +55,7 @@ async function upgradeModels({
   await Promise.all(
     models.map(async (model: any) => {
       const columns = await model.getColumns(ncMeta);
+      const oldColumns = columns.map((c) => ({ ...c, cn: c.column_name }));
       let isCreatedTimeExists = false;
       let isLastModifiedTimeExists = false;
       for (const column of columns) {
@@ -49,14 +70,27 @@ async function upgradeModels({
             },
             ncMeta,
           );
+
+          if (source.type === 'pg') {
+            // delete pg trigger if exists
+            await deletePgTrigger({ column, ncMeta, model });
+          }
         }
         if (column.uidt === 'updated_at') {
           isLastModifiedTimeExists = true;
+          Object.assign(column, {
+            uidt: UITypes.LastModifiedTime,
+            system: true,
+            cdf: '',
+            au: false,
+          });
           await Column.update(
             column.id,
             {
               uidt: UITypes.LastModifiedTime,
               system: true,
+              cdf: '',
+              au: false,
             },
             ncMeta,
           );
@@ -103,10 +137,7 @@ async function upgradeModels({
         const tableUpdateBody = {
           ...model,
           tn: model.table_name,
-          originalColumns: model.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-          })),
+          originalColumns: oldColumns,
           columns: [
             ...columns.map((c) => ({ ...c, cn: c.column_name })),
             ...newColumns,

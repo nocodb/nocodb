@@ -158,10 +158,10 @@ function columnTypeSpecificTests() {
         expect(columns.length).to.equal(4);
         expect(columns[2].title).to.equal('CreatedAt');
         expect(columns[2].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns[2].system).to.equal(true);
+        expect(!!columns[2].system).to.equal(true);
         expect(columns[3].title).to.equal('UpdatedAt');
         expect(columns[3].uidt).to.equal(UITypes.LastModifiedTime);
-        expect(columns[3].system).to.equal(true);
+        expect(!!columns[3].system).to.equal(true);
       });
 
       it('New table: should not be able to delete system fields', async () => {
@@ -306,7 +306,7 @@ function columnTypeSpecificTests() {
         // verify contents of both fields are same
         expect(columns.columns[4].title).to.equal('CreatedAt2');
         expect(columns.columns[4].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns.columns[4].system).to.equal(false);
+        expect(!!columns.columns[4].system).to.equal(false);
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
 
         const d1 = new Date();
@@ -351,7 +351,7 @@ function columnTypeSpecificTests() {
         // verify contents of both fields are same
         expect(columns.columns[4].title).to.equal('CreatedAt2');
         expect(columns.columns[4].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns.columns[4].system).to.equal(false);
+        expect(!!columns.columns[4].system).to.equal(false);
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
       });
     });

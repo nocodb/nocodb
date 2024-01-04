@@ -117,7 +117,7 @@ onUnmounted(() => {
       <LazyVirtualCellLookup v-else-if="isLookup(column)" />
       <LazyCellReadOnlyDateTimePicker
         v-else-if="isCreatedTimeOrUpdatedTimeCol(column)"
-        :model-value="row && row.row && row.row[column.title]"
+        :model-value="modelValue"
       />
     </template>
   </div>

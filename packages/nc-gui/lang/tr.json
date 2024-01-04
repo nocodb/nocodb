@@ -273,7 +273,7 @@
     "Count": "Say",
     "Lookup": "Referans",
     "DateTime": "Tarih saat",
-    "CreateTime": "Oluşturma zamanı",
+    "CreatedTime": "Oluşturma zamanı",
     "LastModifiedTime": "Son değiştirilme",
     "AutoNumber": "Otomatik Sayı",
     "Barcode": "Barkod",

@@ -156,47 +156,46 @@ export class PgUi {
         title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'now()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
         title: 'UpdatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        au: true,
-        cdf: 'now()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }
@@ -1159,7 +1158,7 @@ export class PgUi {
   static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
   }
-/*
+  /*
 
   static extractFunctionName(query) {
     const reg =
@@ -1549,7 +1548,7 @@ export class PgUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -1685,7 +1684,7 @@ export class PgUi {
       case 'DateTime':
         colProp.dt = 'timestamp';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'timestamp';
         break;
       case 'LastModifiedTime':
@@ -1933,7 +1932,7 @@ export class PgUi {
         ];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return [
           'timestamp',

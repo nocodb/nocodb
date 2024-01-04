@@ -52,6 +52,10 @@ export default async (
             $ref: `#/components/schemas/Attachment`,
           };
           break;
+        case UITypes.LastModifiedTime:
+        case UITypes.CreatedTime:
+          field.type = 'string';
+          break;
         default:
           field.virtual = false;
           SwaggerTypes.setSwaggerType(c, field, dbType);

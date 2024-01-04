@@ -62,6 +62,9 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       return { icon: iconMap.rollup, color: 'text-grey' }
     case UITypes.Count:
       return { icon: CountIcon, color: 'text-grey' }
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
+      return { icon: iconMap.datetime, color: 'text-grey' }
   }
 
   return { icon: iconMap.generic, color: 'text-grey' }

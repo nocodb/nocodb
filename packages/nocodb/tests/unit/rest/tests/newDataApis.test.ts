@@ -82,9 +82,15 @@
  */
 
 import 'mocha';
-import {UITypes, ViewTypes, WorkspaceUserRoles} from 'nocodb-sdk';
+import {
+  isCreatedOrLastModifiedTimeCol,
+  UITypes,
+  ViewTypes,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
+import validator from 'validator';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
@@ -102,6 +108,7 @@ import { defaultUserArgs } from '../../factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
+import isCreditCard = validator.isCreditCard;
 
 const debugMode = false;
 
@@ -157,10 +164,12 @@ async function ncAxiosPost({
   url = `/api/v2/tables/${table.id}/records`,
   body = {},
   status = 200,
-}: { url?: string; body?: any; status?: number } = {}) {
+  query = {},
+}: { url?: string; body?: any; status?: number; query?: any } = {}) {
   const response = await request(context.app)
     .post(url)
     .set('xc-auth', context.token)
+    .query(query)
     .send(body);
   expect(response.status).to.equal(status);
   return response;
@@ -667,7 +676,12 @@ function textBased() {
 
     // verify sorted order
     // Would contain all 'Afghanistan' as we have 31 records for it
-    expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+    expect(
+      verifyColumnsInRsp(
+        rsp.body.list[0],
+        columns.filter((c) => !isCreatedOrLastModifiedTimeCol(c) || !c.system),
+      ),
+    ).to.equal(true);
     const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
     expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
 
@@ -683,7 +697,11 @@ function textBased() {
         viewId: gridView.id,
       },
     });
-    const displayColumns = columns.filter((c) => c.title !== 'SingleLineText');
+    const displayColumns = columns.filter(
+      (c) =>
+        c.title !== 'SingleLineText' &&
+        (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
+    );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
   });
 
@@ -723,10 +741,15 @@ function textBased() {
     });
 
     // fetch records from view
-    const rsp = await ncAxiosGet({ query: { viewId: gridView.id } });
+    const rsp = await ncAxiosGet({
+      query: { viewId: gridView.id },
+    });
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     const displayColumns = columns.filter(
-      (c) => c.title !== 'MultiLineText' && c.title !== 'Email',
+      (c) =>
+        c.title !== 'MultiLineText' &&
+        c.title !== 'Email' &&
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
     return gridView;
@@ -743,7 +766,10 @@ function textBased() {
       },
     });
     const displayColumns = columns.filter(
-      (c) => c.title !== 'MultiLineText' && c.title !== 'Email',
+      (c) =>
+        c.title !== 'MultiLineText' &&
+        c.title !== 'Email' &&
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -762,7 +788,10 @@ function textBased() {
       },
     });
     const displayColumns = columns.filter(
-      (c) => c.title !== 'MultiLineText' && c.title !== 'Email',
+      (c) =>
+        c.title !== 'MultiLineText' &&
+        c.title !== 'Email' &&
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(7);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -989,6 +1018,9 @@ function textBased() {
   it('Update: partial', async function () {
     const recordBeforeUpdate = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/1`,
+      query: {
+        fields: 'Id,SingleLineText,MultiLineText',
+      },
     });
 
     const rsp = await ncAxiosPatch({
@@ -1004,6 +1036,9 @@ function textBased() {
 
     const recordAfterUpdate = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/1`,
+      query: {
+        fields: 'Id,SingleLineText,MultiLineText',
+      },
     });
     expect(recordAfterUpdate.body).to.deep.equal({
       ...recordBeforeUpdate.body,
@@ -1233,6 +1268,7 @@ function numberBased() {
     let rsp = await ncAxiosGet({
       query: {
         limit: 10,
+        fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
       },
     });
     const pageInfo = {
@@ -1266,6 +1302,9 @@ function numberBased() {
     // read record with Id 401
     rsp = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/401`,
+      query: {
+        fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
+      },
     });
     expect(rsp.body).to.deep.equal({ ...records[0], Id: 401 });
 
@@ -1311,6 +1350,7 @@ function numberBased() {
       query: {
         limit: 4,
         offset: 400,
+        fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
       },
     });
 
@@ -1424,6 +1464,7 @@ function selectBased() {
     let rsp = await ncAxiosGet({
       query: {
         limit: 10,
+        fields: 'Id,SingleSelect,MultiSelect',
       },
     });
     const pageInfo = {
@@ -1457,6 +1498,9 @@ function selectBased() {
     // read record with Id 401
     rsp = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/401`,
+      query: {
+        fields: 'Id,SingleSelect,MultiSelect',
+      },
     });
     expect(rsp.body).to.deep.equal({ Id: 401, ...records[0] });
 
@@ -1497,6 +1541,7 @@ function selectBased() {
       query: {
         limit: 4,
         offset: 400,
+        fields: 'Id,SingleSelect,MultiSelect',
       },
     });
     expect(rsp.body.list).to.deep.equal(updatedRecords);
@@ -1579,7 +1624,12 @@ function dateBased() {
 
     // insert 10 records
     // remove Id's from record array
-    records.forEach((r) => delete r.Id);
+    records.forEach((r) => {
+      delete r.Id;
+      delete r.CreatedAt;
+      delete r.UpdatedAt;
+      delete r.Id;
+    });
     rsp = await ncAxiosPost({
       body: records,
     });
@@ -1596,8 +1646,15 @@ function dateBased() {
     // read record with Id 801
     rsp = await ncAxiosGet({
       url: `/api/v2/tables/${table.id}/records/801`,
+      query: {
+        fields: 'Id,Date,DateTime',
+      },
     });
-    expect(rsp.body).to.deep.equal({ Id: 801, ...records[0] });
+    expect(rsp.body).to.deep.equal({
+      Id: 801,
+      Date: records[0].Date,
+      DateTime: records[0].DateTime,
+    });
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1636,6 +1693,7 @@ function dateBased() {
       query: {
         limit: 4,
         offset: 800,
+        fields: 'Id,Date,DateTime',
       },
     });
     expect(rsp.body.list).to.deep.equal(updatedRecords);
@@ -2024,6 +2082,7 @@ function linkBased() {
 
     // Links
     expect(rsp.body.list.length).to.equal(20);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     for (let i = 1; i <= 20; i++) {
       expect(rsp.body.list[i - 1]).to.deep.equal({
         Id: i,
@@ -2040,7 +2099,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(1);
-    expect(rsp.body.list[0]).to.deep.equal({
+    expect(rsp.body.list.sort((a, b) => a.Id - b.Id)[0]).to.deep.equal({
       Id: 1,
       Film: `Film 1`,
     });
@@ -2054,6 +2113,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(20);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     for (let i = 1; i <= 20; i++) {
       expect(rsp.body.list[i - 1]).to.deep.equal({
         Id: i,
@@ -2081,6 +2141,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(25);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     // paginated response, limit to 25
     for (let i = 1; i <= 25; i++) {
       expect(rsp.body.list[i - 1]).to.deep.equal({
@@ -2099,6 +2160,7 @@ function linkBased() {
         },
       });
       expect(rsp.body.list.length).to.equal(1);
+      rsp.body.list.sort((a, b) => a.Id - b.Id);
       expect(rsp.body.list[0]).to.deep.equal({
         Id: 1,
         Actor: `Actor 1`,
@@ -2141,6 +2203,7 @@ function linkBased() {
       },
     });
     expect(rsp.body.list.length).to.equal(15);
+    rsp.body.list.sort((a, b) => a.Id - b.Id);
     for (let i = 2; i <= 30; i += 2) {
       expect(rsp.body.list[i / 2 - 1]).to.deep.equal({
         Id: i,
@@ -2159,6 +2222,7 @@ function linkBased() {
       });
       if (i % 2 === 0) {
         expect(rsp.body.list.length).to.equal(1);
+        rsp.body.list.sort((a, b) => a.Id - b.Id);
         expect(rsp.body.list[0]).to.deep.equal({
           Id: 1,
           Actor: `Actor 1`,
@@ -2799,7 +2863,7 @@ function userFieldBased() {
 
     // invite users to workspace
     if (process.env.EE === 'true') {
-      let rsp = await request(context.app)
+      const rsp = await request(context.app)
         .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
         .set('xc-auth', context.token)
         .send({ email, roles: WorkspaceUserRoles.VIEWER });

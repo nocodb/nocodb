@@ -273,7 +273,7 @@
     "Count": "นับ",
     "Lookup": "การค้นหา",
     "DateTime": "วันเวลา",
-    "CreateTime": "สร้างเวลา",
+    "CreatedTime": "สร้างเวลา",
     "LastModifiedTime": "เวลาที่แก้ไขล่าสุด",
     "AutoNumber": "หมายเลขอัตโนมัติ",
     "Barcode": "บาร์โค้ด",

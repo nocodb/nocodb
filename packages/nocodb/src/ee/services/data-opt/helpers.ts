@@ -19,6 +19,7 @@ import {
   _wherePk,
   extractFilterFromXwhere,
   extractSortsObject,
+  getColumnName,
   getListArgs,
 } from '~/db/BaseModelSqlv2';
 import conditionV2 from '~/db/conditionV2';
@@ -107,6 +108,7 @@ export async function extractColumns({
         ast: ast?.[column.title],
         throwErrorIfInvalidParams,
         validateFormula,
+        columns,
       }),
     );
   }
@@ -127,6 +129,7 @@ export async function extractColumn({
   ast,
   throwErrorIfInvalidParams,
   validateFormula,
+  columns,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -140,6 +143,7 @@ export async function extractColumn({
   ast: Record<string, any>;
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
+  columns?: Column[];
 }) {
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -643,7 +647,11 @@ export async function extractColumn({
         );
       }
       break;
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
     case UITypes.DateTime: {
+      const columnName = await getColumnName(column, columns);
+
       // if there is no timezone info,
       // convert to database timezone,
       // then convert to UTC
@@ -654,7 +662,7 @@ export async function extractColumn({
         qb.select(
           knex.raw(
             `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
-            [rootAlias, sanitize(column.column_name), column.id],
+            [rootAlias, sanitize(columnName), column.id],
           ),
         );
         break;

@@ -197,18 +197,22 @@ export const RoleColors = {
 
 export const RoleDescriptions = {
   [WorkspaceUserRoles.OWNER]: 'Full access to workspace',
-  [WorkspaceUserRoles.CREATOR]: 'Can create bases, sync tables, views, setup web-hooks and more',
+  [WorkspaceUserRoles.CREATOR]:
+    'Can create bases, sync tables, views, setup web-hooks and more',
   [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace bases',
-  [WorkspaceUserRoles.COMMENTER]: 'Can view and comment data in workspace bases',
+  [WorkspaceUserRoles.COMMENTER]:
+    'Can view and comment data in workspace bases',
   [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace bases',
   [ProjectRoles.OWNER]: 'Full access to base',
-  [ProjectRoles.CREATOR]: 'Can create tables, views, setup webhook, invite collaborators and more',
+  [ProjectRoles.CREATOR]:
+    'Can create tables, views, setup webhook, invite collaborators and more',
   [ProjectRoles.EDITOR]: 'Can view, add & modify records, add comments on them',
   [ProjectRoles.COMMENTER]: 'Can view records and add comment on them',
   [ProjectRoles.VIEWER]: 'Can only view records',
   [ProjectRoles.NO_ACCESS]: 'Cannot access this base',
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
-  [OrgUserRoles.CREATOR]: 'Can create bases, sync tables, views, setup web-hooks and more',
+  [OrgUserRoles.CREATOR]:
+    'Can create bases, sync tables, views, setup web-hooks and more',
   [OrgUserRoles.VIEWER]: 'Can only view bases',
 };
 

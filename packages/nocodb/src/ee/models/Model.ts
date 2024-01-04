@@ -15,13 +15,14 @@ export default class Model extends ModelCE implements TableType {
       viewId?: string;
       dbDriver: XKnex;
       model?: Model;
+      extractDefaultView?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(args.id, ncMeta));
     const source = await Source.get(model.source_id);
 
-    if (!args?.viewId) {
+    if (!args?.viewId && args.extractDefaultView) {
       const view = await View.getDefaultView(model.id, ncMeta);
       args.viewId = view.id;
     }

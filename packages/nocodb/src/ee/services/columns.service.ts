@@ -65,3 +65,5 @@ export class ColumnsService extends ColumnsServiceCE {
     return super.columnAdd(param);
   }
 }
+
+export { Altered } from 'src/services/columns.service';

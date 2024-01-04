@@ -20,13 +20,23 @@ const createTable = async (context, base, args = {}) => {
   return table;
 };
 
-const getTable = async ({
-  base,
-  name,
-}: {
-  base: Base;
-  name: string;
-}) => {
+const getTableByAPI = async (context, base) => {
+  const response = await request(context.app)
+    .get(`/api/v1/db/meta/projects/${base.id}/tables`)
+    .set('xc-auth', context.token);
+
+  return response.body;
+};
+
+const getColumnsByAPI = async (context, base, table) => {
+  const response = await request(context.app)
+    .get(`/api/v2/meta/tables/${table.id}`)
+    .set('xc-auth', context.token);
+
+  return response.body;
+};
+
+const getTable = async ({ base, name }: { base: Base; name: string }) => {
   const sources = await base.getSources();
   return await Model.getByIdOrName({
     base_id: base.id,
@@ -57,4 +67,11 @@ const updateTable = async (
   return response.body;
 };
 
-export { createTable, getTable, getAllTables, updateTable };
+export {
+  createTable,
+  getTable,
+  getAllTables,
+  updateTable,
+  getTableByAPI,
+  getColumnsByAPI,
+};

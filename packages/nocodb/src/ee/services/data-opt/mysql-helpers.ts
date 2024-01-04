@@ -20,6 +20,7 @@ import {
   _wherePk,
   extractFilterFromXwhere,
   extractSortsObject,
+  getColumnName,
   getListArgs,
 } from '~/db/BaseModelSqlv2';
 import conditionV2 from '~/db/conditionV2';
@@ -112,6 +113,7 @@ export async function extractColumns({
         ast: ast?.[column.title],
         throwErrorIfInvalidParams,
         validateFormula,
+        columns,
       }),
     );
   }
@@ -132,6 +134,7 @@ export async function extractColumn({
   ast,
   throwErrorIfInvalidParams,
   validateFormula,
+  columns,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -145,6 +148,7 @@ export async function extractColumn({
   ast: Record<string, any>;
   throwErrorIfInvalidParams: boolean;
   validateFormula: boolean;
+  columns?: Column[];
 }) {
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -652,8 +656,11 @@ export async function extractColumn({
         );
       }
       break;
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
     case UITypes.DateTime:
       {
+        const columnName = await getColumnName(column, columns);
         // MySQL stores timestamp in UTC but display in timezone
         // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
         // If it's SYSTEM, then the timezone is read from the configuration file
@@ -664,7 +671,7 @@ export async function extractColumn({
         // hence, we use CONVERT_TZ to convert back to UTC value
         qb.select(
           knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
-            `${sanitize(rootAlias)}.${column.column_name}`,
+            `${sanitize(rootAlias)}.${columnName}`,
             column.id,
           ]),
         );

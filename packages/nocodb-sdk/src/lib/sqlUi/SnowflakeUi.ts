@@ -92,47 +92,46 @@ export class SnowflakeUi {
         title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'current_timestamp()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
         title: 'UpdatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        au: true,
-        cdf: 'current_timestamp()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }
@@ -776,7 +775,7 @@ export class SnowflakeUi {
       case 'DateTime':
         colProp.dt = 'TIMESTAMP';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'TIMESTAMP';
         break;
       case 'LastModifiedTime':
@@ -952,7 +951,7 @@ export class SnowflakeUi {
         return ['DATE', 'TIMESTAMP'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return ['TIMESTAMP'];
 

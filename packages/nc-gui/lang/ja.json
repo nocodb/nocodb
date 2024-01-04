@@ -273,7 +273,7 @@
     "Count": "カウント",
     "Lookup": "ルックアップ",
     "DateTime": "DateTime型",
-    "CreateTime": "作成時刻",
+    "CreatedTime": "作成時刻",
     "LastModifiedTime": "最終更新日時",
     "AutoNumber": "自動採番",
     "Barcode": "バーコード",

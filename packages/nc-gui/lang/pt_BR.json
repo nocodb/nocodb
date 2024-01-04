@@ -273,7 +273,7 @@
     "Count": "Quantidade",
     "Lookup": "Procurar",
     "DateTime": "Data e hora",
-    "CreateTime": "Hora da criação",
+    "CreatedTime": "Hora da criação",
     "LastModifiedTime": "Hora da última alteração",
     "AutoNumber": "Número automático",
     "Barcode": "Código de barras",

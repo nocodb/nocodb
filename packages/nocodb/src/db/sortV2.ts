@@ -8,6 +8,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Base, BaseUser, Sort } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import { getRefColumnIfAlias } from '~/helpers';
 
 export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,
@@ -29,7 +30,7 @@ export default async function sortV2(
     } else {
       sort = new Sort(_sort);
     }
-    const column = await sort.getColumn();
+    const column = await getRefColumnIfAlias(await sort.getColumn());
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.unprocessableEntity(`Invalid field: ${sort.fk_column_id}`);

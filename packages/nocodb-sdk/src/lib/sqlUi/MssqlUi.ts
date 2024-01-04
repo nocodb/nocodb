@@ -93,30 +93,30 @@ export class MssqlUi {
         title: 'CreatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'GETDATE()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
         title: 'UpdatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -124,16 +124,16 @@ export class MssqlUi {
         un: false,
         ai: false,
         au: true,
-        cdf: 'GETDATE()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }
@@ -591,7 +591,7 @@ export class MssqlUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -733,7 +733,7 @@ export class MssqlUi {
       case 'DateTime':
         colProp.dt = 'datetimeoffset';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'datetime';
         break;
       case 'LastModifiedTime':
@@ -885,7 +885,7 @@ export class MssqlUi {
         return ['date'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return [
           'datetimeoffset',

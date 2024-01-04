@@ -766,6 +766,8 @@ export class ImportService {
             a.uidt === UITypes.Rollup ||
             a.uidt === UITypes.Formula ||
             a.uidt === UITypes.QrCode ||
+            a.uidt === UITypes.CreatedTime ||
+            a.uidt === UITypes.LastModifiedTime ||
             a.uidt === UITypes.Barcode,
         ),
       );
@@ -820,6 +822,7 @@ export class ImportService {
     }
 
     // create referenced columns
+    // sort the column sets to create the system columns first
     for (const col of sortedReferencedColumnSet) {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
@@ -881,6 +884,27 @@ export class ImportService {
             ...{
               formula_raw: colOptions.formula_raw,
             },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (
+        col.uidt === UITypes.CreatedTime ||
+        col.uidt === UITypes.LastModifiedTime
+      ) {
+        if (col.system) continue;
+        const freshModelData = await this.columnsService.columnAdd({
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            system: false,
           }) as any,
           req: param.req,
           user: param.user,

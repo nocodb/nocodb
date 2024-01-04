@@ -1,6 +1,7 @@
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
@@ -10,6 +11,7 @@ import {
   extractCondition,
   extractFilterFromXwhere,
   extractSortsObject,
+  getColumnName,
   getListArgs,
   haveFormulaColumn,
   populatePk,
@@ -227,7 +229,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareNocoData(insertObj);
+      await this.prepareNocoData(insertObj, true);
 
       await this.model.getColumns();
       let response;
@@ -419,8 +421,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  async prepareNocoData(data) {
-    return super.prepareNocoData(data);
+  async prepareNocoData(data, isInsertData = false) {
+    return super.prepareNocoData(data, isInsertData);
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
@@ -787,6 +789,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
+            if (col.title in d && isCreatedOrLastModifiedTimeCol(col)) {
+              NcError.badRequest(
+                `Column "${col.title}" is auto generated and cannot be updated`,
+              );
+            }
+
             // populate pk columns
             if (col.pk) {
               if (col.meta?.ag && !d[col.title]) {
@@ -905,7 +913,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
 
-          await this.prepareNocoData(insertObj);
+          await this.prepareNocoData(insertObj, true);
 
           insertDatas.push(insertObj);
         }
@@ -1057,6 +1065,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       if (raw) await this.model.getColumns();
 
+      // validate update data
+      if (!raw) {
+        for (const d of datas) {
+          await this.validate(d);
+        }
+      }
+
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -1070,7 +1085,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const updatePkValues = [];
       const toBeUpdated = [];
       for (const d of updateDatas) {
-        if (!raw) await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -1448,4 +1462,5 @@ export {
   extractSortsObject,
   getListArgs,
   haveFormulaColumn,
+  getColumnName,
 };

@@ -29,7 +29,7 @@ enum UITypes {
   Rollup = 'Rollup',
   Count = 'Count',
   DateTime = 'DateTime',
-  CreateTime = 'CreateTime',
+  CreatedTime = 'CreatedTime',
   LastModifiedTime = 'LastModifiedTime',
   AutoNumber = 'AutoNumber',
   Geometry = 'Geometry',
@@ -83,8 +83,21 @@ export function isVirtualCol(
     UITypes.Rollup,
     UITypes.Lookup,
     UITypes.Links,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+}
+export function isCreatedOrLastModifiedTimeCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
 }
 
 export function isLinksOrLTAR(

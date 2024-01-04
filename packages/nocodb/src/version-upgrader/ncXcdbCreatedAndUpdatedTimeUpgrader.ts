@@ -4,10 +4,13 @@ import type { NcUpgraderCtx } from './NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model } from '~/models';
-import { getUniqueColumnAliasName, getUniqueColumnName } from '~/helpers/getUniqueName'
-import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT'
-import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2'
-import { Altered } from '~/services/columns.service'
+import {
+  getUniqueColumnAliasName,
+  getUniqueColumnName,
+} from '~/helpers/getUniqueName';
+import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
+import { Altered } from '~/services/columns.service';
 
 // An upgrader for upgrading created_at and updated_at columns
 // to system column and convert to new uidt CreatedTime and LastModifiedTime
@@ -60,78 +63,65 @@ async function upgradeModels({
         }
       }
 
-      if(!isCreatedTimeExists || !isLastModifiedTimeExists) {
+      if (!isCreatedTimeExists || !isLastModifiedTimeExists) {
         // create created_at and updated_at columns
 
-       /* if (!existingColumn) {
-          columnName =
-            colBody.uidt === UITypes.CreatedTime
-              ? 'created_at'
-              : 'updated_at';
-          // const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
-          //   NcConnectionMgrv2.getSqlClient(source),
-          // );
-          // const dbColumns = (
-          //   await sqlClient.columnList({
-          //     tn: table.table_name,
-          //     schema: source.getConfig()?.schema,
-          //   })
-          // )?.data?.list;
+        const newColumns = [];
 
-          // todo:  check type as well
-          const dbColumn = columns.find((c) => c.column_name === columnName);
-
-          if (dbColumn) {
-            columnName = getUniqueColumnName(columns, columnName);
-          }
-
-          {
-            colBody = await getColumnPropsFromUIDT(colBody, source);
-
-            // remove default value for SQLite since it doesn't support default value as function when adding column
-            // only support default value as constant value
-            if (source.type === 'sqlite3') {
-              colBody.cdf = null;
-            }
-
-            // create column in db
-            const tableUpdateBody = {
-              ...table,
-              tn: table.table_name,
-              originalColumns: table.columns.map((c) => ({
-                ...c,
-                cn: c.column_name,
-              })),
-              columns: [
-                ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
-                {
-                  ...colBody,
-                  cn: columnName,
-                  altered: Altered.NEW_COLUMN,
-                },
-              ],
-            };
-            const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-              ProjectMgrv2.getSqlMgr({ id: source.base_id }),
-            );
-            await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-          }
-
-          const title = getUniqueColumnAliasName(
-            table.columns,
-            UITypes.CreatedTime ? 'CreatedAt' : 'UpdatedAt',
-          );
-
-          await Column.insert({
-            ...colBody,
-            title,
-            system: 1,
-            fk_model_id: table.id,
-            column_name: columnName,
+        if (!isCreatedTimeExists) {
+          newColumns.push({
+            ...(await getColumnPropsFromUIDT(
+              {
+                uidt: UITypes.CreatedTime,
+                column_name: getUniqueColumnName(columns, 'created_at'),
+                title: getUniqueColumnAliasName(columns, 'Created At'),
+              },
+              source,
+            )),
+            system: true,
+            altered: Altered.NEW_COLUMN,
           });
-        }*/
+        }
 
+        if (!isLastModifiedTimeExists) {
+          newColumns.push({
+            ...(await getColumnPropsFromUIDT(
+              {
+                uidt: UITypes.LastModifiedTime,
+                column_name: getUniqueColumnName(columns, 'updated_at'),
+                title: getUniqueColumnAliasName(columns, 'Updated At'),
+                cdf: null,
+              },
+              source,
+            )),
+            system: true,
+            altered: Altered.NEW_COLUMN,
+          });
+        }
 
+        // update column in db
+        const tableUpdateBody = {
+          ...model,
+          tn: model.table_name,
+          originalColumns: model.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+          })),
+          columns: [
+            ...columns.map((c) => ({ ...c, cn: c.column_name })),
+            ...newColumns,
+          ],
+        };
+        const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+        for (const newColumn of newColumns) {
+          await Column.insert({
+            ...newColumn,
+            system: 1,
+            fk_model_id: model.id,
+          });
+        }
       }
 
       logger.log(`Upgraded model ${model.name} from source ${source.name}`);
@@ -143,10 +133,20 @@ async function upgradeModels({
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // get all xcdb sources
   const sources = await ncMeta.metaList2(null, null, MetaTable.BASES, {
-    condition: {
-      is_meta: 1,
+    xcCondition: {
+      _or: [
+        {
+          is_meta: {
+            eq: 1,
+          },
+        },
+        {
+          is_local: {
+            eq: 1,
+          },
+        },
+      ],
     },
-    orderBy: {},
   });
 
   // iterate and upgrade each base

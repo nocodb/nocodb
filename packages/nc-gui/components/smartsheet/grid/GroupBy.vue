@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
 import dayjs from 'dayjs'
-import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import {dateFormats, timeFormats, UITypes} from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
-import { GROUP_BY_VARS, computed, ref } from '#imports'
-import type { Group, Row } from '#imports'
+import type {Group, Row} from '#imports'
+import {computed, GROUP_BY_VARS, ref} from '#imports'
 
 const props = defineProps<{
   group: Group
@@ -181,7 +181,7 @@ const parseKey = (group: Group) => {
 }
 
 const shouldRenderCell = (column) =>
-  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links, UITypes.User].includes(column?.uidt)
+  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links, UITypes.User, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column?.uidt)
 </script>
 
 <template>

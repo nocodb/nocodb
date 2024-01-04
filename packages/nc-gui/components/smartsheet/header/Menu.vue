@@ -361,7 +361,7 @@ const isDuplicateAllowed = computed(() => {
 
         <a-divider v-if="!column?.pk" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pk" @click="openDuplicateDlg" :disabled="!isDuplicateAllowed">
+        <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="text-gray-700" />
             <!-- Duplicate -->

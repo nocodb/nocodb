@@ -1,4 +1,3 @@
-
 export function mergeSwaggerSchema(swaggerCE, swaggerEE) {
   return {
     ...swaggerCE,

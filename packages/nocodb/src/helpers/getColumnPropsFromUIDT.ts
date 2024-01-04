@@ -23,6 +23,12 @@ export default async function getColumnPropsFromUIDT(
     ...colProp,
   };
 
+  if (newColumn.uidt === UITypes.CreateTime) {
+    newColumn.column_name = 'created_at';
+  } else if (newColumn.uidt === UITypes.LastModifiedTime) {
+    newColumn.column_name = 'updated_at';
+  }
+
   newColumn.dtxp = sqlUi.getDefaultLengthForDatatype(newColumn.dt);
   newColumn.dtxs = sqlUi.getDefaultScaleForDatatype(newColumn.dt);
 

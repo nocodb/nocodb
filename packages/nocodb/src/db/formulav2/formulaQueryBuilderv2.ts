@@ -20,6 +20,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 import { Base, BaseUser } from '~/models';
+import { getRefColumnIfAlias } from '~/helpers';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -637,49 +638,55 @@ async function _formulaQueryBuilder(
             };
         };
         break;
+      case UITypes.CreateTime:
+      case UITypes.LastModifiedTime:
       case UITypes.DateTime:
-        if (knex.clientType().startsWith('mysql')) {
-          aliasToColumn[col.id] = async (): Promise<any> => {
-            return {
-              // convert from DB timezone to UTC
-              builder: knex.raw(
-                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                [col.column_name],
-              ),
-            };
-          };
-        } else if (
-          knex.clientType() === 'pg' &&
-          col.dt !== 'timestamp with time zone' &&
-          col.dt !== 'timestamptz'
-        ) {
-          aliasToColumn[col.id] = async (): Promise<any> => {
-            return {
-              // convert from DB timezone to UTC
-              builder: knex
-                .raw(
-                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+        {
+          const col = await getRefColumnIfAlias(col);
+
+          if (knex.clientType().startsWith('mysql')) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                // convert from DB timezone to UTC
+                builder: knex.raw(
+                  `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
                   [col.column_name],
-                )
-                .wrap('(', ')'),
+                ),
+              };
             };
-          };
-        } else if (
-          knex.clientType() === 'mssql' &&
-          col.dt !== 'datetimeoffset'
-        ) {
-          // convert from DB timezone to UTC
-          aliasToColumn[col.id] = async (): Promise<any> => {
-            return {
-              builder: knex.raw(
-                `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                [col.column_name],
-              ),
+          } else if (
+            knex.clientType() === 'pg' &&
+            col.dt !== 'timestamp with time zone' &&
+            col.dt !== 'timestamptz'
+          ) {
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                // convert from DB timezone to UTC
+                builder: knex
+                  .raw(
+                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    [col.column_name],
+                  )
+                  .wrap('(', ')'),
+              };
             };
-          };
-        } else {
-          aliasToColumn[col.id] = () =>
-            Promise.resolve({ builder: col.column_name });
+          } else if (
+            knex.clientType() === 'mssql' &&
+            col.dt !== 'datetimeoffset'
+          ) {
+            // convert from DB timezone to UTC
+            aliasToColumn[col.id] = async (): Promise<any> => {
+              return {
+                builder: knex.raw(
+                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
+                  [col.column_name],
+                ),
+              };
+            };
+          } else {
+            aliasToColumn[col.id] = () =>
+              Promise.resolve({ builder: col.column_name });
+          }
         }
         break;
       case UITypes.User:

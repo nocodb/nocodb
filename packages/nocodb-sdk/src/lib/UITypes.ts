@@ -95,10 +95,9 @@ export function isCreatedTimeOrUpdatedTimeCol(
     | ColumnReqType
     | ColumnType
 ) {
-  return [
-    UITypes.CreatedTime,
-    UITypes.LastModifiedTime,
-  ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+  return [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
 }
 
 export function isLinksOrLTAR(

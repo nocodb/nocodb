@@ -459,12 +459,7 @@ const onIsExpandedUpdate = (v: boolean) => {
 
 const isReadOnlyVirtualCell = (column: ColumnType) => {
   return (
-    isRollup(column) ||
-    isFormula(column) ||
-    isBarcode(column) ||
-    isLookup(column) ||
-    isQrCode(column) ||
-    isSystemColumn(column)
+    isRollup(column) || isFormula(column) || isBarcode(column) || isLookup(column) || isQrCode(column) || isSystemColumn(column)
   )
 }
 
@@ -932,7 +927,7 @@ export default {
   @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
 }
 
-:deep(.nc-system-field input){
+:deep(.nc-system-field input) {
   @apply bg-transparent;
 }
 </style>

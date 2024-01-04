@@ -899,7 +899,7 @@ export class ImportService {
         col.uidt === UITypes.CreatedTime ||
         col.uidt === UITypes.LastModifiedTime
       ) {
-        if(col.system) continue;
+        if (col.system) continue;
         const freshModelData = await this.columnsService.columnAdd({
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({

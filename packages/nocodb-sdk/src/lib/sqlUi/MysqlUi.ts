@@ -1072,10 +1072,12 @@ export class MysqlUi {
         colProp.dt = 'datetime';
         break;
       case 'CreateTime':
-        colProp.dt = 'datetime';
+        colProp.dt = 'timestamp';
+        colProp.cdf = 'CURRENT_TIMESTAMP'
         break;
       case 'LastModifiedTime':
-        colProp.dt = 'datetime';
+        colProp.dt = 'timestamp';
+        colProp.cdf = 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

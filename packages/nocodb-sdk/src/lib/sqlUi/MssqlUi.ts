@@ -735,9 +735,11 @@ export class MssqlUi {
         break;
       case 'CreateTime':
         colProp.dt = 'datetime';
+        colProp.cdf = 'GETDATE()';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';
+        colProp.cdf = 'GETDATE()';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

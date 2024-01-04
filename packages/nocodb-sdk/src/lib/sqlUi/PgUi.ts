@@ -1159,7 +1159,7 @@ export class PgUi {
   static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
   }
-/*
+  /*
 
   static extractFunctionName(query) {
     const reg =
@@ -1687,9 +1687,10 @@ export class PgUi {
         break;
       case 'CreateTime':
         colProp.dt = 'timestamp';
+        colProp.cdf = 'now()';
         break;
       case 'LastModifiedTime':
-        colProp.dt = 'timestamp';
+        colProp.cdf = 'now()';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

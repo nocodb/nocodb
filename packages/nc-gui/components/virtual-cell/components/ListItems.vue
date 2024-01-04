@@ -37,18 +37,19 @@ const {
   childrenExcludedList,
   isChildrenExcludedListLinked,
   isChildrenExcludedListLoading,
-  displayValueProp,
   isChildrenExcludedLoading,
   childrenListCount,
   loadChildrenExcludedList,
   loadChildrenList,
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
+  displayValueTypeAndFormatProp,
   link,
   relatedTableMeta,
   meta,
   unlink,
   row,
+  headerDisplayValue
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -235,7 +236,7 @@ const onCreatedRecord = (record: any) => {
       :relation="relation"
       :table-title="meta?.title"
       :related-table-title="relatedTableMeta?.title"
-      :display-value="row.row[displayValueProp]"
+      :display-value="headerDisplayValue"
       :header="$t('activity.addNewLink')"
     />
     <div class="flex mt-2 mb-2 items-center gap-2">
@@ -315,6 +316,7 @@ const onCreatedRecord = (record: any) => {
             :fields="fields"
             :attachment="attachmentCol"
             :related-table-display-value-prop="relatedTableDisplayValueProp"
+            :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
             :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
             :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
             @expand="

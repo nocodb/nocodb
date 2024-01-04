@@ -295,7 +295,7 @@ watch(
                 <LazySmartsheetVirtualCell
                   v-if="isVirtualCol(displayField)"
                   v-model="record.row[displayField.title]"
-                  class="!text-gray-600"
+                  class="!text-brand-500"
                   :column="displayField"
                   :row="record"
                 />
@@ -303,7 +303,7 @@ watch(
                 <LazySmartsheetCell
                   v-else
                   v-model="record.row[displayField.title]"
-                  class="!text-gray-600"
+                  class="!text-brand-500"
                   :column="displayField"
                   :edit-enabled="false"
                   :read-only="true"

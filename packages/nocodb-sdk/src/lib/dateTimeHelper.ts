@@ -79,14 +79,17 @@ export function parseStringDate(v: string, dateFormat: string) {
 
 export function parseStringDateTime(
   v: string,
-  dateTimeFormat: string = `${dateFormats[0]} ${timeFormats[0]}`
+  dateTimeFormat: string = `${dateFormats[0]} ${timeFormats[0]}`,
+  toLocal: boolean = true
 ) {
-  const dayjsObj = dayjs(v).local();
+  const dayjsObj = toLocal ? dayjs(v).local() : dayjs(v);
 
   if (dayjsObj.isValid()) {
     v = dayjsObj.format(dateTimeFormat);
   } else {
-    v = dayjs(v, dateTimeFormat).local().format(dateTimeFormat);
+    v = toLocal
+      ? dayjs(v, dateTimeFormat).local().format(dateTimeFormat)
+      : dayjs(v, dateTimeFormat).format(dateTimeFormat);
   }
 
   return v;

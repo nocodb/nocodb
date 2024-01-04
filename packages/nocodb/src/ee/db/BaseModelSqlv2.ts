@@ -1,7 +1,7 @@
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
@@ -789,7 +789,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (col.title in d && isCreatedTimeOrUpdatedTimeCol(col)) {
+            if (col.title in d && isCreatedOrLastModifiedTimeCol(col)) {
               NcError.badRequest(
                 `Column "${col.title}" is auto generated and cannot be updated`,
               );

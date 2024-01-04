@@ -1,5 +1,5 @@
 import {
-  isCreatedTimeOrUpdatedTimeCol,
+  isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
   RelationTypes,
   UITypes,
@@ -155,13 +155,13 @@ const getAst = async ({
     if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
-        (isCreatedTimeOrUpdatedTimeCol(col) && col.system) ||
+        (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
         col.pk;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&
         (!isSystemColumn(col) ||
-          (!view && isCreatedTimeOrUpdatedTimeCol(col)) ||
+          (!view && isCreatedOrLastModifiedTimeCol(col)) ||
           view.show_system_fields ||
           col.pv) &&
         (!fields?.length || fields.includes(col.title)) &&

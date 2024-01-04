@@ -88,7 +88,7 @@ export function isVirtualCol(
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
-export function isCreatedTimeOrUpdatedTimeCol(
+export function isCreatedOrLastModifiedTimeCol(
   col:
     | UITypes
     | { readonly uidt: UITypes | string }

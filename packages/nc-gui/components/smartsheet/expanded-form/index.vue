@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isCreatedTimeOrUpdatedTimeCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
 
@@ -464,7 +464,7 @@ const isReadOnlyVirtualCell = (column: ColumnType) => {
     isBarcode(column) ||
     isLookup(column) ||
     isQrCode(column) ||
-    isCreatedTimeOrUpdatedTimeCol(column)
+    isSystemColumn(column)
   )
 }
 
@@ -693,7 +693,7 @@ export default {
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                     class="bg-white w-80 xs:w-full px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     :class="{
-                      '!bg-gray-50 !px-0 !select-text': isReadOnlyVirtualCell(col),
+                      '!bg-gray-50 !px-0 !select-text nc-system-field': isReadOnlyVirtualCell(col),
                     }"
                   >
                     <LazySmartsheetVirtualCell
@@ -930,5 +930,9 @@ export default {
 
 .nc-data-cell:focus-within {
   @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
+}
+
+:deep(.nc-system-field input){
+  @apply bg-transparent;
 }
 </style>

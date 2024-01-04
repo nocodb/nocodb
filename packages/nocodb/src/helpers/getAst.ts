@@ -1,4 +1,10 @@
-import { isCreatedTimeOrUpdatedTimeCol, isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk'
+import {
+  isCreatedTimeOrUpdatedTimeCol,
+  isSystemColumn,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
@@ -154,7 +160,10 @@ const getAst = async ({
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&
-        (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
+        (!isSystemColumn(col) ||
+          (!view && isCreatedTimeOrUpdatedTimeCol(col)) ||
+          view.show_system_fields ||
+          col.pv) &&
         (!fields?.length || fields.includes(col.title)) &&
         value;
     } else if (fields?.length) {

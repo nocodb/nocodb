@@ -99,7 +99,7 @@ export class SnowflakeUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'current_timestamp()',
+        cdf: '',
         clen: 45,
         np: null,
         ns: null,
@@ -778,7 +778,6 @@ export class SnowflakeUi {
         break;
       case 'CreatedTime':
         colProp.dt = 'TIMESTAMP';
-        colProp.cdf = 'current_timestamp()';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'TIMESTAMP';

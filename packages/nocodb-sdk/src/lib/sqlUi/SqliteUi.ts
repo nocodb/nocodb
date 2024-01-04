@@ -87,7 +87,7 @@ export class SqliteUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
+        cdf: '',
         clen: 45,
         np: null,
         ns: null,
@@ -629,7 +629,6 @@ export class SqliteUi {
         break;
       case 'CreatedTime':
         colProp.dt = 'datetime';
-        colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';

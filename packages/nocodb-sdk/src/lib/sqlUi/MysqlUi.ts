@@ -104,7 +104,7 @@ export class MysqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
+        cdf: '',
         clen: 45,
         np: null,
         ns: null,
@@ -1074,11 +1074,9 @@ export class MysqlUi {
         break;
       case 'CreatedTime':
         colProp.dt = 'timestamp';
-        colProp.cdf = 'CURRENT_TIMESTAMP';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'timestamp';
-        colProp.cdf = 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

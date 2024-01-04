@@ -100,7 +100,7 @@ export class MssqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'GETDATE()',
+        cdf: '',
         clen: 45,
         np: null,
         ns: null,
@@ -736,7 +736,6 @@ export class MssqlUi {
         break;
       case 'CreatedTime':
         colProp.dt = 'datetime';
-        colProp.cdf = 'GETDATE()';
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';

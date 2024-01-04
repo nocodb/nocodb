@@ -93,7 +93,7 @@ export class MssqlUi {
         title: 'CreatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -117,7 +117,7 @@ export class MssqlUi {
         title: 'UpdatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -125,7 +125,6 @@ export class MssqlUi {
         un: false,
         ai: false,
         au: true,
-        cdf: 'GETDATE()',
         clen: 45,
         np: null,
         ns: null,
@@ -741,7 +740,6 @@ export class MssqlUi {
         break;
       case 'LastModifiedTime':
         colProp.dt = 'datetime';
-        colProp.cdf = 'GETDATE()';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

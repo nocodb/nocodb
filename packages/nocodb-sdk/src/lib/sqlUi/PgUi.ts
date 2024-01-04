@@ -156,7 +156,7 @@ export class PgUi {
         title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -180,15 +180,13 @@ export class PgUi {
         title: 'UpdatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        au: true,
-        cdf: 'now()',
         clen: 45,
         np: null,
         ns: null,
@@ -1693,8 +1691,6 @@ export class PgUi {
         break;
       case 'LastModifiedTime':
         colProp.dt = 'timestamp';
-        colProp.cdf = 'now()';
-        colProp.au = true;
         break;
       case 'AutoNumber':
         colProp.dt = 'int';

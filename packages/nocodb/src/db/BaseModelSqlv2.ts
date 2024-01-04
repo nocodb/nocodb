@@ -3846,7 +3846,7 @@ class BaseModelSqlv2 {
   }
 
   // method for validating otpions if column is single/multi select
-  private async avalidateOptions(
+  private async validateOptions(
     column: Column<any>,
     insertOrUpdateObject: Record<string, any>,
   ) {

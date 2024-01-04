@@ -948,6 +948,7 @@ export default class Column<T = any> implements ColumnType {
     colId: string,
     column: Partial<Column> & Partial<Pick<ColumnReqType, 'column_order'>>,
     ncMeta = Noco.ncMeta,
+    skipFormulaInvalidate = false,
   ) {
     const oldCol = await Column.get({ colId }, ncMeta);
 
@@ -1165,28 +1166,29 @@ export default class Column<T = any> implements ColumnType {
     await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${oldCol.fk_model_id}:*`);
 
     const updatedColumn = await Column.get({ colId });
-
-    // invalidate formula parsed-tree in which current column is used
-    // whenever a new request comes for that formula, it will be populated again
-    getFormulasReferredTheColumn({
-      column: updatedColumn,
-      columns: await Column.list({ fk_model_id: column.fk_model_id }, ncMeta),
-    })
-      .then(async (formulas) => {
-        for (const formula of formulas) {
-          await FormulaColumn.update(
-            formula.id,
-            {
-              parsed_tree: null,
-            },
-            ncMeta,
-          );
-        }
+    if (!skipFormulaInvalidate) {
+      // invalidate formula parsed-tree in which current column is used
+      // whenever a new request comes for that formula, it will be populated again
+      getFormulasReferredTheColumn({
+        column: updatedColumn,
+        columns: await Column.list({ fk_model_id: column.fk_model_id }, ncMeta),
       })
-      // ignore the error and continue, if formula is no longer valid it will be captured in the next run
-      .catch((err) => {
-        logger.error(err);
-      });
+        .then(async (formulas) => {
+          for (const formula of formulas) {
+            await FormulaColumn.update(
+              formula.id,
+              {
+                parsed_tree: null,
+              },
+              ncMeta,
+            );
+          }
+        })
+        // ignore the error and continue, if formula is no longer valid it will be captured in the next run
+        .catch((err) => {
+          logger.error(err);
+        });
+    }
   }
 
   static async updateAlias(

@@ -46,7 +46,7 @@ async function upgradeModels({
   source,
 }: {
   ncMeta: MetaService;
-  source: any;
+  source: Source;
 }) {
   const models = await Model.list(
     {
@@ -68,6 +68,8 @@ async function upgradeModels({
       let isLastModifiedTimeExists = false;
       for (const column of columns) {
         if (column.uidt !== UITypes.DateTime) continue;
+
+        // if column is created_at or updated_at, update the uidt in meta
         if (column.column_name === 'created_at') {
           isCreatedTimeExists = true;
           await Column.update(
@@ -78,6 +80,7 @@ async function upgradeModels({
               system: true,
             },
             ncMeta,
+            true,
           );
 
           /*   Enable if planning to remove trigger
@@ -98,6 +101,7 @@ async function upgradeModels({
               au: false,
             },
             ncMeta,
+            true,
           );
         }
       }
@@ -110,25 +114,24 @@ async function upgradeModels({
           ncMeta.knex,
         );
 
-        const dbColumns = (
-          await sqlClient.columnList({
-            tn: model.table_name,
-            schema: source.getConfig()?.schema,
-          })
-        )?.data?.list;
-        //
-        //
-        //         // create created_at and updated_at columns
+        const dbColumns =
+          (
+            await sqlClient.columnList({
+              tn: model.table_name,
+              schema: source.getConfig()?.schema,
+            })
+          )?.data?.list?.map((c) => ({ ...c, column_name: c.cn })) || [];
+
+        // create created_at and updated_at columns
         const newColumns = [];
         const existingDbColumns = [];
-        //,
+
         if (!isCreatedTimeExists) {
-          //
-          //           // check column exist and add to meta if found
+          // check column exist and add to meta if found
           const columnName = getUniqueColumnName(columns, 'created_at');
-          //
           const dbColumn = dbColumns.find((c) => c.cn === columnName);
 
+          // if column already exist, just update the meta
           if (
             dbColumn &&
             getColumnUiType(source, dbColumn) === UITypes.DateTime
@@ -136,7 +139,7 @@ async function upgradeModels({
             existingDbColumns.push({
               ...dbColumn,
               uidt: UITypes.CreatedTime,
-              column_name: getUniqueColumnName(columns, 'created_at'),
+              column_name: columnName,
               title: getUniqueColumnAliasName(columns, 'CreatedAt'),
               system: true,
             });
@@ -145,7 +148,10 @@ async function upgradeModels({
               ...(await getColumnPropsFromUIDT(
                 {
                   uidt: UITypes.CreatedTime,
-                  column_name: getUniqueColumnName(columns, 'created_at'),
+                  column_name: getUniqueColumnName(
+                    [...columns, ...dbColumns],
+                    'created_at',
+                  ),
                   title: getUniqueColumnAliasName(columns, 'CreatedAt'),
                 },
                 source,
@@ -159,9 +165,9 @@ async function upgradeModels({
 
         if (!isLastModifiedTimeExists) {
           const columnName = getUniqueColumnName(columns, 'created_at');
-          //
           const dbColumn = dbColumns.find((c) => c.cn === columnName);
 
+          // if column already exist, just update the meta
           if (
             dbColumn &&
             getColumnUiType(source, dbColumn) === UITypes.DateTime
@@ -169,7 +175,7 @@ async function upgradeModels({
             existingDbColumns.push({
               uidt: UITypes.LastModifiedTime,
               ...dbColumn,
-              column_name: getUniqueColumnName(columns, 'updated_at'),
+              column_name: columnName,
               title: getUniqueColumnAliasName(columns, 'UpdatedAt'),
               system: true,
             });
@@ -178,7 +184,10 @@ async function upgradeModels({
               ...(await getColumnPropsFromUIDT(
                 {
                   uidt: UITypes.LastModifiedTime,
-                  column_name: getUniqueColumnName(columns, 'updated_at'),
+                  column_name: getUniqueColumnName(
+                    [...columns, ...dbColumns],
+                    'updated_at',
+                  ),
                   title: getUniqueColumnAliasName(columns, 'UpdatedAt'),
                 },
                 source,
@@ -190,7 +199,11 @@ async function upgradeModels({
           }
         }
 
+        // alter table and add new columns if any
         if (newColumns.length) {
+          logger.log(
+            `Altering table ${model.title} from source ${source.alias} for new columns`,
+          );
           // update column in db
           const tableUpdateBody = {
             ...model,
@@ -246,10 +259,15 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     const source = new Source(_source);
 
     // skip deleted project bases
-    if (await source.getProject(ncMeta).then((p) => !p || p.deleted)) continue;
+    if (await source.getProject(ncMeta).then((p) => !p || p.deleted)) {
+      logger.log(`Skipped deleted base source ${source.alias}`);
+      continue;
+    }
 
     logger.log(`Upgrading source ${source.alias}`);
     // update the meta props
     await upgradeModels({ ncMeta, source });
+
+    logger.log(`Upgraded source ${source.alias}`);
   }
 }

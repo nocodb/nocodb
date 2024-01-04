@@ -2001,7 +2001,7 @@ function linkBased() {
     return Array.from({ length: count }, (_, index) => i + index);
   }
 
-  it.only('Create Many-Many ', async function () {
+  it('Create Many-Many ', async function () {
     await ncAxiosLinkAdd({
       urlParams: {
         tableId: tblActor.id,
@@ -2736,7 +2736,7 @@ function linkBased() {
     await nestedAddTests(validParams);
   });
 
-  it.only('Error handling : MM: Nested REMOVE', async function () {
+  it('Error handling : MM: Nested REMOVE', async function () {
     // Prepare data
     await ncAxiosLinkAdd({
       urlParams: {

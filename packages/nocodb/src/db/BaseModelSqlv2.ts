@@ -2962,6 +2962,12 @@ class BaseModelSqlv2 {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
+            if (col.title in d && isCreatedTimeOrUpdatedTimeCol(col)) {
+              NcError.badRequest(
+                `Column "${col.title}" is auto generated and cannot be updated`,
+              );
+            }
+
             // populate pk columns
             if (col.pk) {
               if (col.meta?.ag && !d[col.title]) {

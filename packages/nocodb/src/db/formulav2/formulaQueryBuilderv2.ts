@@ -644,8 +644,12 @@ async function _formulaQueryBuilder(
         {
           const refCol = await getRefColumnIfAlias(col);
 
+          if (refCol.id in aliasToColumn) {
+            aliasToColumn[col.id] = aliasToColumn[refCol.id];
+            break;
+          }
           if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[refCol.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex.raw(
@@ -659,7 +663,7 @@ async function _formulaQueryBuilder(
             refCol.dt !== 'timestamp with time zone' &&
             refCol.dt !== 'timestamptz'
           ) {
-            aliasToColumn[refCol.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex
@@ -675,7 +679,7 @@ async function _formulaQueryBuilder(
             refCol.dt !== 'datetimeoffset'
           ) {
             // convert from DB timezone to UTC
-            aliasToColumn[refCol.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
@@ -684,9 +688,10 @@ async function _formulaQueryBuilder(
               };
             };
           } else {
-            aliasToColumn[refCol.id] = () =>
+            aliasToColumn[col.id] = () =>
               Promise.resolve({ builder: refCol.column_name });
           }
+          aliasToColumn[refCol.id] = aliasToColumn[col.id];
         }
         break;
       case UITypes.User:

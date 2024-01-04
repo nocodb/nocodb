@@ -1,4 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UserType,
+} from 'nocodb-sdk';
 import {
   AppEvents,
   isLinksOrLTAR,
@@ -11,7 +18,7 @@ import {
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
+import type {Base, LinkToAnotherRecordColumn} from '~/models';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -56,6 +63,7 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {isCreatedTimeOrUpdatedTimeCol} from "nocodb-sdk/build/main/lib/UITypes";
 
 // todo: move
 export enum Altered {
@@ -171,6 +179,7 @@ export class ColumnsService {
 
     if (
       !isVirtualCol(param.column) &&
+      !isCreatedTimeOrUpdatedTimeCol(param.column) &&
       !(await Column.checkTitleAvailable({
         column_name: param.column.column_name,
         fk_model_id: column.fk_model_id,
@@ -195,6 +204,7 @@ export class ColumnsService {
       parsed_tree?: any;
     };
     if (
+      isCreatedTimeOrUpdatedTimeCol(column) ||
       [
         UITypes.Lookup,
         UITypes.Rollup,
@@ -295,9 +305,10 @@ export class ColumnsService {
     } else if (
       [UITypes.CreateTime, UITypes.LastModifiedTime].includes(colBody.uidt)
     ) {
-      // todo: correct this
-      const existingColumn = await table.getColumns().then((col) => {
-        return col.find((c) => c.uidt === colBody.uidt);
+      // allow updating of title only
+      await Column.update(param.columnId, {
+        ...column,
+        title: colBody.title,
       });
 
       if (!existingColumn) {

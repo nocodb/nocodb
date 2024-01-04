@@ -293,6 +293,41 @@ export class ColumnsService {
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
       );
     } else if (
+      [UITypes.CreateTime, UITypes.LastModifiedTime].includes(colBody.uidt)
+    ) {
+      // todo: correct this
+      const existingColumn = await table.getColumns().then((col) => {
+        return col.find((c) => c.uidt === colBody.uidt);
+      });
+
+      if (!existingColumn) {
+        const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
+          NcConnectionMgrv2.getSqlClient(source),
+        );
+        const dbColumns = (
+          await sqlClient.columnList({
+            tn: table.table_name,
+            schema: source.getConfig()?.schema,
+          })
+        )?.data?.list;
+
+        // todo:  check type as well
+        const dbColumn = dbColumns.find(
+          (c) =>
+            c.column_name ===
+            (c.uidt === UITypes.CreateTime ? 'created_at' : 'updated_at'),
+        );
+
+        if (!dbColumn) {
+          // create column in db
+        }
+
+        await Column.insert({
+          ...colBody,
+          fk_model_id: table.id,
+        });
+      }
+    } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
       colBody = await getColumnPropsFromUIDT(colBody, source);
@@ -2151,10 +2186,11 @@ export class ColumnsService {
 
       // on delete create time or last modified time, keep the column in table and delete the column from meta
       case UITypes.CreateTime:
-      case UITypes.LastModifiedTime: {
-        await Column.delete(param.columnId, ncMeta);
-      }
-      break;
+      case UITypes.LastModifiedTime:
+        {
+          await Column.delete(param.columnId, ncMeta);
+        }
+        break;
       default: {
         const tableUpdateBody = {
           ...table,

@@ -312,6 +312,8 @@ export default async function generateLookupSelectQuery({
           }
           break;
         case UITypes.DateTime:
+        case UITypes.LastModifiedTime:
+        case UITypes.CreatedTime:
           {
             await baseModelSqlv2.selectObject({
               qb: selectQb,

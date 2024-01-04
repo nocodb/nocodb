@@ -8,6 +8,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isCreatedTimeOrUpdatedTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -102,7 +103,9 @@ function checkColumnRequired(
 }
 
 export async function getColumnName(column: Column<any>, columns?: Column[]) {
+  if (!isCreatedTimeOrUpdatedTimeCol(column)) return column.column_name;
   columns = columns || (await Column.list({ fk_model_id: column.fk_model_id }));
+
   switch (column.uidt) {
     case UITypes.CreatedTime: {
       const createdTimeSystemCol = columns.find(
@@ -664,10 +667,13 @@ class BaseModelSqlv2 {
             }
             break;
           default:
-            selectors.push(
-              this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
-            );
-            groupBySelectors.push(sanitize(column.id));
+            {
+              const columnName = await getColumnName(column, cols);
+              selectors.push(
+                this.dbDriver.raw('?? as ??', [columnName, column.id]),
+              );
+              groupBySelectors.push(sanitize(column.id));
+            }
             break;
         }
       }),
@@ -872,10 +878,13 @@ class BaseModelSqlv2 {
               }
               break;
             default:
-              selectors.push(
-                this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
-              );
-              groupBySelectors.push(sanitize(column.id));
+              {
+                const columnName = await getColumnName(column, cols);
+                selectors.push(
+                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
+                );
+                groupBySelectors.push(sanitize(column.id));
+              }
               break;
           }
         }),

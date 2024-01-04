@@ -13,6 +13,7 @@ import type Column from '~/models/Column';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
+import { getColumnName } from '~/db/BaseModelSqlv2';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -544,6 +545,9 @@ const parseConditionV2 = async (
       );
       const _val = customWhereClause ? customWhereClause : filter.value;
 
+      // get column name for CreateTime, LastModifiedTime
+      column.column_name = await getColumnName(column);
+
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
 
@@ -678,7 +682,7 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
                 } else {
                   qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 }

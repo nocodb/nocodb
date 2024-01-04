@@ -21,6 +21,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
+import {getRefColumnIfAlias} from "~/helpers";
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -128,7 +129,8 @@ const parseConditionV2 = async (
       (filter.comparison_op as any) === 'gb_eq' ||
       (filter.comparison_op as any) === 'gb_null'
     ) {
-      const column = await filter.getColumn();
+      const column = await getRefColumnIfAlias(await filter.getColumn());
+
       if (
         column.uidt === UITypes.Lookup ||
         column.uidt === UITypes.LinkToAnotherRecord
@@ -157,7 +159,7 @@ const parseConditionV2 = async (
       }
     }
 
-    const column = await filter.getColumn();
+    const column = await getRefColumnIfAlias(await filter.getColumn());
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.unprocessableEntity(`Invalid field: ${filter.fk_column_id}`);

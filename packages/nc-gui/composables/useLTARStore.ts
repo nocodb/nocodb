@@ -1,13 +1,13 @@
 import {
-  UITypes,
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
   type RequestParams,
   type TableType,
+  UITypes,
   dateFormats,
-  timeFormats,
   parseStringDateTime,
+  timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -19,6 +19,7 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   message,
+  parseProp,
   reactive,
   ref,
   storeToRefs,
@@ -30,7 +31,6 @@ import {
   useRouter,
   useSharedView,
   watch,
-  parseProp,
 } from '#imports'
 import type { Row } from '#imports'
 
@@ -145,7 +145,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         type: '',
         format: '',
       }
-      let currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+      const currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
 
       if (currentColumn) {
         if (currentColumn?.uidt === UITypes.DateTime) {
@@ -545,7 +545,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       isChildrenExcludedLoading,
       deleteRelatedRow,
       getRelatedTableRowId,
-      headerDisplayValue
+      headerDisplayValue,
     }
   },
   'ltar-store',

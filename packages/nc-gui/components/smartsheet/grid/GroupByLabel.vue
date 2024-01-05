@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
-import { ReadonlyInj, IsGroupByLabelInj } from '#imports'
+import { IsGroupByLabelInj, ReadonlyInj } from '#imports'
 
 defineProps<{
   column: ColumnType

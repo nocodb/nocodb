@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "Нельзя использовать следующие символы",
       "columnNameRequired": "Требуется название столбца",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "Длина имени колонки превышает максимальную {value} символов",
       "projectNameExceeds50Characters": "Название проекта превышает 50 символов",

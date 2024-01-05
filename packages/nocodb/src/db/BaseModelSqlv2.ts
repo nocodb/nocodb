@@ -3346,6 +3346,9 @@ class BaseModelSqlv2 {
         this.dbDriver,
       );
       if (!args.skipValidationAndHooks) await this.validate(updateData);
+
+      await this.prepareNocoData(updateData, false, cookie);
+
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass

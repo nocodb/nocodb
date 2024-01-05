@@ -2,6 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
+import type { Base } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Source } from '~/models';
 import {
@@ -44,9 +45,11 @@ async function deletePgTrigger({
 async function upgradeModels({
   ncMeta,
   source,
+  base,
 }: {
   ncMeta: MetaService;
   source: Source;
+  base: Base;
 }) {
   const models = await Model.list(
     {
@@ -60,7 +63,7 @@ async function upgradeModels({
     models.map(async (model: any) => {
       if (model.mm) return;
 
-      logger.log(`Upgrading model ${model.title} from source ${source.alias}`);
+      logger.log(`Upgrading model ${model.title} from base ${base.title}`);
 
       const columns = await model.getColumns(ncMeta);
       const oldColumns = columns.map((c) => ({ ...c, cn: c.column_name }));
@@ -202,7 +205,7 @@ async function upgradeModels({
         // alter table and add new columns if any
         if (newColumns.length) {
           logger.log(
-            `Altering table ${model.title} from source ${source.alias} for new columns`,
+            `Altering table ${model.title} from base ${base.title} for new columns`,
           );
           // update column in db
           const tableUpdateBody = {
@@ -229,7 +232,7 @@ async function upgradeModels({
         }
       }
 
-      logger.log(`Upgraded model ${model.title} from source ${source.alias}`);
+      logger.log(`Upgraded model ${model.title} from base ${base.title}`);
     }),
   );
 }
@@ -258,16 +261,18 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const _source of sources) {
     const source = new Source(_source);
 
-    // skip deleted project bases
-    if (await source.getProject(ncMeta).then((p) => !p || p.deleted)) {
-      logger.log(`Skipped deleted base source ${source.alias}`);
+    const base = await source.getProject(ncMeta);
+
+    // skip deleted base bases
+    if (!base || base.deleted) {
+      logger.log(`Skipped deleted base source ${source.alias || source.id}`);
       continue;
     }
 
-    logger.log(`Upgrading source ${source.alias}`);
+    logger.log(`Upgrading base ${base.title}`);
     // update the meta props
-    await upgradeModels({ ncMeta, source });
+    await upgradeModels({ ncMeta, source, base });
 
-    logger.log(`Upgraded source ${source.alias}`);
+    logger.log(`Upgraded base ${base.title}`);
   }
 }

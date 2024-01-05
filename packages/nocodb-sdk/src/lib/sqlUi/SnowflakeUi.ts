@@ -135,7 +135,7 @@ export class SnowflakeUi {
       },
       {
         column_name: 'created_by',
-        title: 'CreatedBy',
+        title: 'nc_created_by',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -158,7 +158,7 @@ export class SnowflakeUi {
       },
       {
         column_name: 'updated_by',
-        title: 'UpdatedBy',
+        title: 'nc_updated_by',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',

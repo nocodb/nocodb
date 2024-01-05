@@ -268,8 +268,10 @@ const duplicateField = async (field: TableExplorerColumn) => {
 const onFieldUpdate = (state: TableExplorerColumn) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
+
   const diffs = diff(col, state)
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
+
+  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || isUpdated) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
@@ -298,9 +300,6 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
         op: 'update',
         column: state,
       })
-    }
-    if (activeField.value) {
-      activeField.value = state
     }
   }
 }
@@ -720,6 +719,16 @@ const onFieldOptionUpdate = () => {
     isFieldIdCopied.value = false
   }, 200)
 }
+
+watch(
+  fields,
+  () => {
+    if (activeField.value) {
+      activeField.value = fields.value.find((field) => field.id === activeField.value.id) || activeField.value
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <template>

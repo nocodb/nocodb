@@ -276,20 +276,20 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
   switch (col?.uidt) {
     case UITypes.QrCode:
-      if (Object.keys(diffs).length === 1 && col.colOptions?.fk_qr_value_column_id === state?.fk_qr_value_column_id) {
+      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_qr_value_column_id === state?.fk_qr_value_column_id) {
         isUpdated = false
       }
       break
     case UITypes.Barcode:
-      if (Object.keys(diffs).length === 1 && col.colOptions?.fk_barcode_value_column_id === state?.fk_barcode_value_column_id) {
+      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_barcode_value_column_id === state?.fk_barcode_value_column_id) {
         isUpdated = false
       }
       break
     case UITypes.Lookup:
       if (
         Object.keys(diffs).length === 2 &&
-        col.colOptions?.fk_lookup_column_id === state?.fk_lookup_column_id &&
-        col.colOptions?.fk_relation_column_id === state?.fk_relation_column_id
+        col?.colOptions?.fk_lookup_column_id === state?.fk_lookup_column_id &&
+        col?.colOptions?.fk_relation_column_id === state?.fk_relation_column_id
       ) {
         isUpdated = false
       }
@@ -298,10 +298,9 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
     case UITypes.MultiSelect:
       if (
         Object.keys(diffs).length === 1 &&
-        (diffs.colOptions as SelectOptionsType).options &&
-        ((diffs.colOptions as SelectOptionsType).options.length == 0 ||
-          ((diffs.colOptions as SelectOptionsType).options[0]?.index !== undefined &&
-            Object.keys((diffs.colOptions as SelectOptionsType).options[0] || {}).length == 1))
+        diffs?.colOptions?.options &&
+        (diffs?.colOptions?.options?.length === 0 ||
+          (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
       ) {
         isUpdated = false
       }

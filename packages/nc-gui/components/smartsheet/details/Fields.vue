@@ -271,7 +271,45 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
   const diffs = diff(col, state)
 
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || isUpdated) {
+  // hack to prevent update status `Updated Field` when clicking on field
+  let isUpdated = true
+
+  switch (col?.uidt) {
+    case UITypes.QrCode:
+      if (Object.keys(diffs).length === 1 && col.colOptions?.fk_qr_value_column_id === state?.fk_qr_value_column_id) {
+        isUpdated = false
+      }
+      break
+    case UITypes.Barcode:
+      if (Object.keys(diffs).length === 1 && col.colOptions?.fk_barcode_value_column_id === state?.fk_barcode_value_column_id) {
+        isUpdated = false
+      }
+      break
+    case UITypes.Lookup:
+      if (
+        Object.keys(diffs).length === 2 &&
+        col.colOptions?.fk_lookup_column_id === state?.fk_lookup_column_id &&
+        col.colOptions?.fk_relation_column_id === state?.fk_relation_column_id
+      ) {
+        isUpdated = false
+      }
+      break
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+      if (
+        Object.keys(diffs).length === 1 &&
+        (diffs.colOptions as SelectOptionsType).options &&
+        ((diffs.colOptions as SelectOptionsType).options.length == 0 ||
+          ((diffs.colOptions as SelectOptionsType).options[0]?.index !== undefined &&
+            Object.keys((diffs.colOptions as SelectOptionsType).options[0] || {}).length == 1))
+      ) {
+        isUpdated = false
+      }
+
+      break
+  }
+
+  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || !isUpdated) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
@@ -514,10 +552,6 @@ const saveChanges = async () => {
           view_id: view.value?.id as string,
         }
       }
-    }
-
-    for (const f of fields.value) {
-      console.log(f.title, getFieldOrder(f))
     }
 
     for (const op of ops.value) {

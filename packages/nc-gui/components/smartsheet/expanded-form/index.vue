@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  ViewTypes,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import MdiChevronDown from '~icons/mdi/chevron-down'
 
@@ -459,7 +466,14 @@ const onIsExpandedUpdate = (v: boolean) => {
 
 const isReadOnlyVirtualCell = (column: ColumnType) => {
   return (
-    isRollup(column) || isFormula(column) || isBarcode(column) || isLookup(column) || isQrCode(column) || isSystemColumn(column)
+    isRollup(column) ||
+    isFormula(column) ||
+    isBarcode(column) ||
+    isLookup(column) ||
+    isQrCode(column) ||
+    isSystemColumn(column) ||
+    isCreatedOrLastModifiedTimeCol(column) ||
+    isCreatedOrLastModifiedByCol(column)
   )
 }
 

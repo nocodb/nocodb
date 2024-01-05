@@ -110,7 +110,7 @@ function columnTypeSpecificTests() {
   let columns: any[];
   let unfilteredRecords: any[] = [];
 
-  describe('CreatedAt, LastModifiedAt Field', () => {
+  describe('System fields', () => {
     beforeEach(async function () {
       context = await init();
       base = await createProject(context);
@@ -154,44 +154,45 @@ function columnTypeSpecificTests() {
 
     describe('Basic verification', async () => {
       it('New table: verify system fields are added by default', async () => {
-        // Id, Date, CreatedAt, LastModifiedAt
-        expect(columns.length).to.equal(4);
+        // Id, Date, CreatedAt, LastModifiedAt, Createdby, LastModifiedBy
+        expect(columns.length).to.equal(6);
+
         expect(columns[2].title).to.equal('CreatedAt');
         expect(columns[2].uidt).to.equal(UITypes.CreatedTime);
         expect(columns[2].system).to.equal(true);
         expect(columns[3].title).to.equal('UpdatedAt');
         expect(columns[3].uidt).to.equal(UITypes.LastModifiedTime);
         expect(columns[3].system).to.equal(true);
+
+        expect(columns[4].title).to.equal('CreatedBy');
+        expect(columns[4].uidt).to.equal(UITypes.CreatedBy);
+        expect(columns[4].system).to.equal(true);
+        expect(columns[5].title).to.equal('UpdatedBy');
+        expect(columns[5].uidt).to.equal(UITypes.LastModifiedBy);
+        expect(columns[5].system).to.equal(true);
       });
 
       it('New table: should not be able to delete system fields', async () => {
-        await request(context.app)
-          .delete(`/api/v2/meta/columns/${columns[2].id}`)
-          .set('xc-auth', context.token)
-          .send({})
-          .expect(400);
+        for (let i = 2; i < 6; i++) {
+          await request(context.app)
+            .delete(`/api/v2/meta/columns/${columns[i].id}`)
+            .set('xc-auth', context.token)
+            .send({})
+            .expect(400);
 
-        await request(context.app)
-          .delete(`/api/v2/meta/columns/${columns[3].id}`)
-          .set('xc-auth', context.token)
-          .send({})
-          .expect(400);
-
-        // try to delete system fields (using v1 api)
-        await request(context.app)
-          .delete(`/api/v1/db/meta/columns/${columns[2].id}`)
-          .set('xc-auth', context.token)
-          .send({})
-          .expect(400);
-        await request(context.app)
-          .delete(`/api/v1/db/meta/columns/${columns[3].id}`)
-          .set('xc-auth', context.token)
-          .send({})
-          .expect(400);
+          // try to delete system fields (using v1 api)
+          await request(context.app)
+            .delete(`/api/v1/db/meta/columns/${columns[i].id}`)
+            .set('xc-auth', context.token)
+            .send({})
+            .expect(400);
+        }
       });
 
-      it('New record: verify created-at is filled with current dateTime, last-modified-at is null', async () => {
-        // get current date time
+      it('New record: verify system fields', async () => {
+        // created-at is filled with current dateTime, last-modified-at is null
+        // created-by is filled with current user, last-modified-by is null
+
         const currentDateTime = new Date();
         const storedDateTime = new Date(unfilteredRecords[0].CreatedAt);
 
@@ -201,9 +202,16 @@ function columnTypeSpecificTests() {
 
         expect(unfilteredRecords[0].CreatedAt).to.not.equal(null);
         expect(unfilteredRecords[0].UpdatedAt).to.equal(null);
+
+        expect(unfilteredRecords[0].CreatedBy).to.not.equal(null);
+        expect(unfilteredRecords[0].CreatedBy[0].email).to.equal(
+          'test@example.com',
+        );
+        expect(unfilteredRecords[0].CreatedBy[0].display_name).to.equal(null);
+        expect(unfilteredRecords[0].UpdatedBy).to.equal(null);
       });
 
-      it('Modify record: verify last-modified-at is updated', async () => {
+      it('Modify record: verify last-modified-at & modified-by is updated', async () => {
         // get current date time
         const currentDateTime = new Date();
         const d1 = new Date();
@@ -269,13 +277,20 @@ function columnTypeSpecificTests() {
         // calculate difference between current date time and stored date time
         difference = storedDateTime2.getTime() - storedDateTime1.getTime();
         expect(difference).to.be.greaterThan(1500);
+
+        // verify modified by
+        expect(updatedRecord[0].UpdatedBy).to.not.equal(null);
+        expect(updatedRecord[0].UpdatedBy[0].email).to.equal(
+          'test@example.com',
+        );
+        expect(updatedRecord[0].UpdatedBy[0].display_name).to.equal(null);
       });
 
       it('Modify record: verify that system fields are RO', async () => {
         const d1 = new Date();
         d1.setDate(d1.getDate() - 200);
 
-        // update record
+        // update record with date system fields
         await request(context.app)
           .patch(`/api/v2/tables/${table.id}/records`)
           .set('xc-auth', context.token)
@@ -287,9 +302,22 @@ function columnTypeSpecificTests() {
             },
           ])
           .expect(400);
+
+        // update record with user system fields
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              CreatedBy: 'test@example.com',
+              UpdatedBy: 'test@example.com',
+            },
+          ])
+          .expect(400);
       });
 
-      it('Add field: verify contents of both fields are same & new field is RO', async () => {
+      it('Add field: CreatedAt, verify contents of both fields are same & new field is RO', async () => {
         // add another CreatedTime field
         await createColumn(context, table, {
           title: 'CreatedAt2',
@@ -304,9 +332,9 @@ function columnTypeSpecificTests() {
         const records = await listRow({ base, table });
 
         // verify contents of both fields are same
-        expect(columns.columns[4].title).to.equal('CreatedAt2');
-        expect(columns.columns[4].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns.columns[4].system).to.equal(false);
+        expect(columns.columns[6].title).to.equal('CreatedAt2');
+        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedTime);
+        expect(columns.columns[6].system).to.equal(false);
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
 
         const d1 = new Date();
@@ -325,7 +353,63 @@ function columnTypeSpecificTests() {
           .expect(400);
       });
 
-      it('Delete & add field: verify contents of both fields are same', async () => {
+      it('Add field: CreatedBy, ModifiedBy verify contents of both fields are same & new field is RO', async () => {
+        // add another CreatedBy field
+        await createColumn(context, table, {
+          title: 'CreatedBy2',
+          uidt: UITypes.CreatedBy,
+          column_name: 'CreatedBy2',
+        });
+
+        // add another ModifiedBy field
+        await createColumn(context, table, {
+          title: 'ModifiedBy2',
+          uidt: UITypes.LastModifiedBy,
+          column_name: 'ModifiedBy2',
+        });
+
+        // get all columns
+        const columns = await getColumnsByAPI(context, base, table);
+
+        // get all records
+        const records = await listRow({ base, table });
+
+        // verify contents of both fields are same
+        expect(columns.columns[6].title).to.equal('CreatedBy2');
+        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedBy);
+        expect(columns.columns[6].system).to.equal(false);
+        expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy2);
+
+        expect(columns.columns[7].title).to.equal('ModifiedBy2');
+        expect(columns.columns[7].uidt).to.equal(UITypes.LastModifiedBy);
+        expect(columns.columns[7].system).to.equal(false);
+        expect(records[0].UpdatedBy).to.deep.equal(records[0].ModifiedBy2);
+
+        // update record should fail
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              CreatedBy2: 'user@example.com',
+            },
+          ])
+          .expect(400);
+
+        await request(context.app)
+          .patch(`/api/v2/tables/${table.id}/records`)
+          .set('xc-auth', context.token)
+          .send([
+            {
+              Id: unfilteredRecords[0].Id,
+              ModifiedBy2: 'user@example.com',
+            },
+          ])
+          .expect(400);
+      });
+
+      it('Delete & add field: (CreatedAt) verify contents of both fields are same', async () => {
         // add another CreatedTime field
         await createColumn(context, table, {
           title: 'CreatedAt2',
@@ -335,7 +419,7 @@ function columnTypeSpecificTests() {
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
         // delete the field
-        await deleteColumn(context, { table, column: columns.columns[4] });
+        await deleteColumn(context, { table, column: columns.columns[6] });
         // create column again
         await createColumn(context, table, {
           title: 'CreatedAt2',
@@ -349,10 +433,40 @@ function columnTypeSpecificTests() {
         const records = await listRow({ base, table });
 
         // verify contents of both fields are same
-        expect(columns.columns[4].title).to.equal('CreatedAt2');
-        expect(columns.columns[4].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns.columns[4].system).to.equal(false);
+        expect(columns.columns[6].title).to.equal('CreatedAt2');
+        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedTime);
+        expect(columns.columns[6].system).to.equal(false);
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
+      });
+
+      it('Delete & add field: (CreatedBy) verify contents of both fields are same', async () => {
+        // add another CreatedBy field
+        await createColumn(context, table, {
+          title: 'CreatedBy2',
+          uidt: UITypes.CreatedBy,
+          column_name: 'CreatedBy2',
+        });
+        // get all columns
+        let columns = await getColumnsByAPI(context, base, table);
+        // delete the field
+        await deleteColumn(context, { table, column: columns.columns[6] });
+        // create column again
+        await createColumn(context, table, {
+          title: 'CreatedBy2',
+          uidt: UITypes.CreatedBy,
+          column_name: 'CreatedBy2',
+        });
+        // get all columns
+        columns = await getColumnsByAPI(context, base, table);
+
+        // get all records
+        const records = await listRow({ base, table });
+
+        // verify contents of both fields are same
+        expect(columns.columns[6].title).to.equal('CreatedBy2');
+        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedBy);
+        expect(columns.columns[6].system).to.equal(false);
+        expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy2);
       });
     });
   });

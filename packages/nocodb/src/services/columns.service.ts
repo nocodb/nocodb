@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
@@ -171,6 +172,7 @@ export class ColumnsService {
 
     if (
       !isVirtualCol(param.column) &&
+      !isCreatedOrLastModifiedTimeCol(param.column) &&
       !(await Column.checkTitleAvailable({
         column_name: param.column.column_name,
         fk_model_id: column.fk_model_id,
@@ -195,6 +197,7 @@ export class ColumnsService {
       parsed_tree?: any;
     };
     if (
+      isCreatedOrLastModifiedTimeCol(column) ||
       [
         UITypes.Lookup,
         UITypes.Rollup,
@@ -292,6 +295,14 @@ export class ColumnsService {
       NcError.notImplemented(
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
       );
+    } else if (
+      [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(colBody.uidt)
+    ) {
+      // allow updating of title only
+      await Column.update(param.columnId, {
+        ...column,
+        title: colBody.title,
+      });
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
@@ -1674,6 +1685,84 @@ export class ColumnsService {
         });
 
         break;
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
+        {
+          let columnName: string;
+          const columns = await table.getColumns();
+          // check if column already exists, then just create a new column in meta
+          // else create a new column in meta and db
+          const existingColumn = columns.find(
+            (c) => c.uidt === colBody.uidt && c.system,
+          );
+
+          if (!existingColumn) {
+            columnName =
+              colBody.uidt === UITypes.CreatedTime
+                ? 'created_at'
+                : 'updated_at';
+
+            // todo:  check type as well
+            const dbColumn = columns.find((c) => c.column_name === columnName);
+
+            if (dbColumn) {
+              columnName = getUniqueColumnName(columns, columnName);
+            }
+
+            {
+              colBody = await getColumnPropsFromUIDT(colBody, source);
+
+              // remove default value for SQLite since it doesn't support default value as function when adding column
+              // only support default value as constant value
+              if (source.type === 'sqlite3') {
+                colBody.cdf = null;
+              }
+
+              // create column in db
+              const tableUpdateBody = {
+                ...table,
+                tn: table.table_name,
+                originalColumns: table.columns.map((c) => ({
+                  ...c,
+                  cn: c.column_name,
+                })),
+                columns: [
+                  ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+                  {
+                    ...colBody,
+                    cn: columnName,
+                    altered: Altered.NEW_COLUMN,
+                  },
+                ],
+              };
+              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+                ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+              );
+              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+            }
+
+            const title = getUniqueColumnAliasName(
+              table.columns,
+              UITypes.CreatedTime ? 'CreatedAt' : 'UpdatedAt',
+            );
+
+            await Column.insert({
+              ...colBody,
+              title,
+              system: 1,
+              fk_model_id: table.id,
+              column_name: columnName,
+            });
+          } else {
+            columnName = existingColumn.column_name;
+          }
+          await Column.insert({
+            ...colBody,
+            fk_model_id: table.id,
+            column_name: null,
+          });
+        }
+        break;
       default:
         {
           colBody = await getColumnPropsFromUIDT(colBody, source);
@@ -1930,6 +2019,15 @@ export class ColumnsService {
     const reuse = param.reuse || {};
 
     const column = await Column.get({ colId: param.columnId }, ncMeta);
+
+    if (column.system) {
+      NcError.badRequest(
+        `The column '${
+          column.title || column.column_name
+        }' is a system column and cannot be deleted.`,
+      );
+    }
+
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(
         {
@@ -2110,6 +2208,14 @@ export class ColumnsService {
         }
         /* falls through to default */
       }
+
+      // on delete create time or last modified time, keep the column in table and delete the column from meta
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
+        {
+          await Column.delete(param.columnId, ncMeta);
+        }
+        break;
       default: {
         const tableUpdateBody = {
           ...table,
@@ -2682,6 +2788,7 @@ export class ColumnsService {
       await Column.update(column.id, colBody);
     }
   }
+
   async columnsHash(tableId: string) {
     const table = await Model.getWithInfo({
       id: tableId,

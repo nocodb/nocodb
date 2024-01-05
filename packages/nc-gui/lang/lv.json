@@ -273,7 +273,7 @@
     "Count": "Skaits",
     "Lookup": "Uzmeklēšana",
     "DateTime": "Datums un laiks",
-    "CreateTime": "Izveidošanas laiks",
+    "CreatedTime": "Izveidošanas laiks",
     "LastModifiedTime": "Modificēšanas laiks",
     "AutoNumber": "Automātiska numerācija",
     "Barcode": "Svītru kods",

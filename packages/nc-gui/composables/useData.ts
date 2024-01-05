@@ -236,14 +236,17 @@ export function useData(args: {
           toUpdate.row,
           metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
             if (
-              col.uidt === UITypes.Formula ||
-              col.uidt === UITypes.QrCode ||
-              col.uidt === UITypes.Barcode ||
-              col.uidt === UITypes.Rollup ||
-              col.uidt === UITypes.Checkbox ||
-              col.uidt === UITypes.User ||
-              col.au ||
-              col.cdf?.includes(' on update ')
+              col.title in updatedRowData &&
+              (col.uidt === UITypes.Formula ||
+                col.uidt === UITypes.QrCode ||
+                col.uidt === UITypes.Barcode ||
+                col.uidt === UITypes.Rollup ||
+                col.uidt === UITypes.Checkbox ||
+                col.uidt === UITypes.User ||
+                col.uidt === UITypes.LastModifiedTime ||
+                col.uidt === UITypes.Lookup ||
+                col.au ||
+                (col.cdf && / on update /i.test(col.cdf)))
             )
               acc[col.title!] = updatedRowData[col.title!]
             return acc

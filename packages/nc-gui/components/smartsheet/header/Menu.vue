@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { computed } from 'vue'
 import {
   ActiveViewInj,
   ColumnInj,
@@ -276,6 +277,13 @@ const onInsertAfter = () => {
   isOpen.value = false
   addColumn()
 }
+
+const isDeleteAllowed = computed(() => {
+  return column?.value && !column.value.system
+})
+const isDuplicateAllowed = computed(() => {
+  return column?.value && !column.value.system
+})
 </script>
 
 <template>
@@ -345,7 +353,7 @@ const onInsertAfter = () => {
 
         <a-divider v-if="!column?.pk" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pk" @click="openDuplicateDlg">
+        <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="text-gray-700" />
             <!-- Duplicate -->
@@ -368,7 +376,7 @@ const onInsertAfter = () => {
         </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pv" class="!hover:bg-red-50" @click="handleDelete">
+        <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
           <div class="nc-column-delete nc-header-menu-item text-red-600">
             <component :is="iconMap.delete" />
             <!-- Delete -->

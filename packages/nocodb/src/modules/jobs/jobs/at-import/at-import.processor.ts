@@ -364,7 +364,7 @@ export class AtImportProcessor {
 
       // types email & url are marked as text
       // types currency & percent, duration are marked as number
-      // types createTime & modifiedTime are marked as formula
+      // types CreatedTime & modifiedTime are marked as formula
 
       switch (col.type) {
         case 'text':
@@ -1437,7 +1437,7 @@ export class AtImportProcessor {
             break;
 
           case UITypes.DateTime:
-          case UITypes.CreateTime:
+          case UITypes.CreatedTime:
           case UITypes.LastModifiedTime:
             rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm');
             break;

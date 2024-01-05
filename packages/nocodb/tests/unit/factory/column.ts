@@ -27,7 +27,8 @@ const defaultColumns = function (context) {
       title: 'CreatedAt',
       dtxp: '',
       dtxs: '',
-      uidt: 'DateTime',
+      uidt: 'CreatedTime',
+      system:true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
     {
@@ -40,7 +41,8 @@ const defaultColumns = function (context) {
       title: 'UpdatedAt',
       dtxp: '',
       dtxs: '',
-      uidt: 'DateTime',
+      uidt: 'LastModifiedTime',
+      system:true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
   ];
@@ -422,6 +424,17 @@ const updateColumn = async (
   return updatedColumn;
 };
 
+const deleteColumn = async (
+  context,
+  { table, column }: { column: Column; table: Model },
+) => {
+  const res = await request(context.app)
+    .delete(`/api/v2/meta/columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .send({})
+    .expect(200);
+};
+
 export {
   customColumns,
   defaultColumns,
@@ -433,4 +446,5 @@ export {
   createLtarColumn,
   updateViewColumn,
   updateColumn,
+  deleteColumn,
 };

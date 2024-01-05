@@ -273,7 +273,7 @@
     "Count": "Кількість",
     "Lookup": "Пошук",
     "DateTime": "Дата і час",
-    "CreateTime": "Час створення",
+    "CreatedTime": "Час створення",
     "LastModifiedTime": "Час останньої зміни",
     "AutoNumber": "Автоматичне прирощування",
     "Barcode": "Штрих-код",

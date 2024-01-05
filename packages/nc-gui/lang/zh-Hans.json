@@ -273,7 +273,7 @@
     "Count": "计数",
     "Lookup": "查找",
     "DateTime": "日期时间",
-    "CreateTime": "创建时间",
+    "CreatedTime": "创建时间",
     "LastModifiedTime": "最后修改时间",
     "AutoNumber": "自动编号",
     "Barcode": "条形码",

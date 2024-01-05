@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
+import type { Filter } from '#imports'
 import {
   ActiveViewInj,
   AllFiltersInj,
@@ -17,7 +18,6 @@ import {
   useViewFilters,
   watch,
 } from '#imports'
-import type { Filter } from '#imports'
 
 interface Props {
   nestedLevel?: number
@@ -143,7 +143,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // hence remove the previous value
     filter.value = null
     filter.comparison_sub_op = null
-  } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
+  } else if (isDateType(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
@@ -241,7 +241,7 @@ const selectFilterField = (filter: Filter, index: number) => {
     isComparisonOpAllowed(filter, compOp),
   )?.value as FilterType['comparison_op']
 
-  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
+  if (isDateType(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
     } else {
@@ -335,6 +335,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   if (parentId.value) delete allFilters.value[parentId.value]
 })
+
+function isDateType(uidt: UITypes) {
+  return [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(uidt)
+}
 </script>
 
 <template>
@@ -477,7 +481,7 @@ onBeforeUnmount(() => {
 
             <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
             <NcSelect
-              v-else-if="[UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)"
+              v-else-if="isDateType(getColumn(filter)?.uidt)"
               v-model:value="filter.comparison_sub_op"
               v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
@@ -527,7 +531,7 @@ onBeforeUnmount(() => {
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
-            <div v-else-if="![UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt)" class="flex-grow"></div>
+            <div v-else-if="!isDateType(getColumn(filter)?.uidt)" class="flex-grow"></div>
 
             <NcButton
               v-if="!filter.readOnly"

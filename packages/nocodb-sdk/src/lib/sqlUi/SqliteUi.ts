@@ -80,46 +80,46 @@ export class SqliteUi {
         title: 'CreatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
         title: 'UpdatedAt',
         dt: 'datetime',
         dtx: 'specificType',
-        ct: 'varchar',
+        ct: 'datetime',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.LastModifiedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
     ];
   }
@@ -490,7 +490,7 @@ export class SqliteUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -626,7 +626,7 @@ export class SqliteUi {
       case 'DateTime':
         colProp.dt = 'datetime';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'datetime';
         break;
       case 'LastModifiedTime':
@@ -837,7 +837,7 @@ export class SqliteUi {
         return ['date', 'varchar'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return ['datetime', 'timestamp'];
 

@@ -253,6 +253,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
+  if (readOnly.value) return
   open.value = (active.value || editable.value) && !open.value
 }
 

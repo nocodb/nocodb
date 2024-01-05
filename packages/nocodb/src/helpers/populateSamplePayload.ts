@@ -270,7 +270,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
         return new Date();
       }
       break;
-    case UITypes.CreateTime:
+    case UITypes.CreatedTime:
       {
         return new Date();
       }

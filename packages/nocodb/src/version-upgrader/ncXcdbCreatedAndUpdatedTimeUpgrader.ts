@@ -18,7 +18,13 @@ import getColumnUiType from '~/helpers/getColumnUiType';
 // An upgrader for upgrading created_at and updated_at columns
 // to system column and convert to new uidt CreatedTime and LastModifiedTime
 
-const logger = new Logger('ncXcdbCreatedAndUpdatedTimeUpgrader');
+const logger = {
+  log: (message: string) => {
+    console.log(
+      `[ncXcdbCreatedAndUpdatedTimeUpgrader ${Date.now()}] ` + message,
+    );
+  },
+};
 
 /* Enable if planning to remove trigger
 async function deletePgTrigger({
@@ -258,8 +264,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   });
 
   // iterate and upgrade each base
-  for (const _source of sources) {
-    const source = new Source(_source);
+  for (let i = 0; i < sources.length; i++) {
+    const source = new Source(sources[i]);
 
     const base = await source.getProject(ncMeta);
 
@@ -269,10 +275,10 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       continue;
     }
 
-    logger.log(`Upgrading base ${base.title}`);
+    logger.log(`Upgrading base ${base.title} (${i + 1}/${sources.length})`);
     // update the meta props
     await upgradeModels({ ncMeta, source, base });
 
-    logger.log(`Upgraded base ${base.title}`);
+    logger.log(`Upgraded base ${base.title} (${i + 1}/${sources.length})`);
   }
 }

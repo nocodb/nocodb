@@ -1,5 +1,4 @@
 import 'mocha';
-import { title } from 'process';
 import request from 'supertest';
 import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
@@ -10,12 +9,7 @@ import {
   createQrCodeColumn,
   deleteColumn,
 } from '../../factory/column';
-import {
-  createTable,
-  getColumnsByAPI,
-  getTable,
-  getTableByAPI,
-} from '../../factory/table';
+import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
@@ -36,6 +30,39 @@ function columnTypeSpecificTests() {
 
   const qrValueReferenceColumnTitle = 'Qr Value Column';
   const qrCodeReferenceColumnTitle = 'Qr Code Column';
+
+  const defaultTableColumns = [
+    {
+      title: 'Id',
+      uidt: UITypes.ID,
+      system: false,
+    },
+    {
+      title: 'DateField',
+      uidt: UITypes.Date,
+      system: false,
+    },
+    {
+      title: 'CreatedAt',
+      uidt: UITypes.CreatedTime,
+      system: true,
+    },
+    {
+      title: 'UpdatedAt',
+      uidt: UITypes.LastModifiedTime,
+      system: true,
+    },
+    {
+      title: 'CreatedBy',
+      uidt: UITypes.CreatedBy,
+      system: true,
+    },
+    {
+      title: 'UpdatedBy',
+      uidt: UITypes.LastModifiedBy,
+      system: true,
+    },
+  ];
 
   describe('Qr Code Column', () => {
     beforeEach(async function () {
@@ -89,7 +116,7 @@ function columnTypeSpecificTests() {
         ),
       ).to.eq(true);
 
-      const response = await request(context.app)
+      const _response = await request(context.app)
         .delete(`/api/v1/db/meta/columns/${qrValueReferenceColumn.id}`)
         .set('xc-auth', context.token)
         .send({});
@@ -133,7 +160,7 @@ function columnTypeSpecificTests() {
 
       columns = await table.getColumns();
 
-      const rowAttributes = [];
+      const rowAttributes: any = [];
       for (let i = 0; i < 100; i++) {
         const row = {
           DateField: rowMixedValue(columns[1], i),
@@ -154,26 +181,19 @@ function columnTypeSpecificTests() {
 
     describe('Basic verification', async () => {
       it('New table: verify system fields are added by default', async () => {
-        // Id, Date, CreatedAt, LastModifiedAt, Createdby, LastModifiedBy
-        expect(columns.length).to.equal(6);
-
-        expect(columns[2].title).to.equal('CreatedAt');
-        expect(columns[2].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns[2].system).to.equal(true);
-        expect(columns[3].title).to.equal('UpdatedAt');
-        expect(columns[3].uidt).to.equal(UITypes.LastModifiedTime);
-        expect(columns[3].system).to.equal(true);
-
-        expect(columns[4].title).to.equal('CreatedBy');
-        expect(columns[4].uidt).to.equal(UITypes.CreatedBy);
-        expect(columns[4].system).to.equal(true);
-        expect(columns[5].title).to.equal('UpdatedBy');
-        expect(columns[5].uidt).to.equal(UITypes.LastModifiedBy);
-        expect(columns[5].system).to.equal(true);
+        // Id, Date, CreatedAt, LastModifiedAt
+        expect(columns.length).to.equal(defaultTableColumns.length);
+        for (let i = 0; i < defaultTableColumns.length; i++) {
+          expect(columns[i].title).to.equal(defaultTableColumns[i].title);
+          expect(columns[i].uidt).to.equal(defaultTableColumns[i].uidt);
+          expect(columns[i].system).to.equal(defaultTableColumns[i].system);
+        }
       });
 
       it('New table: should not be able to delete system fields', async () => {
-        for (let i = 2; i < 6; i++) {
+        // try to delete system fields
+        for (let i = 0; i < defaultTableColumns.length; i++) {
+          if (!defaultTableColumns[i].system) return;
           await request(context.app)
             .delete(`/api/v2/meta/columns/${columns[i].id}`)
             .set('xc-auth', context.token)
@@ -332,9 +352,16 @@ function columnTypeSpecificTests() {
         const records = await listRow({ base, table });
 
         // verify contents of both fields are same
-        expect(columns.columns[6].title).to.equal('CreatedAt2');
-        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns.columns[6].system).to.equal(false);
+        expect(columns.columns[defaultTableColumns.length].title).to.equal(
+          'CreatedAt2',
+        );
+        expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
+          UITypes.CreatedTime,
+        );
+        expect(columns.columns[defaultTableColumns.length].system).to.equal(
+          false,
+        );
+
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
 
         const d1 = new Date();
@@ -375,14 +402,26 @@ function columnTypeSpecificTests() {
         const records = await listRow({ base, table });
 
         // verify contents of both fields are same
-        expect(columns.columns[6].title).to.equal('CreatedBy2');
-        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedBy);
-        expect(columns.columns[6].system).to.equal(false);
+        expect(columns.columns[defaultTableColumns.length].title).to.equal(
+          'CreatedBy2',
+        );
+        expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
+          UITypes.CreatedBy,
+        );
+        expect(columns.columns[defaultTableColumns.length].system).to.equal(
+          false,
+        );
         expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy2);
 
-        expect(columns.columns[7].title).to.equal('ModifiedBy2');
-        expect(columns.columns[7].uidt).to.equal(UITypes.LastModifiedBy);
-        expect(columns.columns[7].system).to.equal(false);
+        expect(columns.columns[defaultTableColumns.length + 1].title).to.equal(
+          'ModifiedBy2',
+        );
+        expect(columns.columns[defaultTableColumns.length + 1].uidt).to.equal(
+          UITypes.LastModifiedBy,
+        );
+        expect(columns.columns[defaultTableColumns.length + 1].system).to.equal(
+          false,
+        );
         expect(records[0].UpdatedBy).to.deep.equal(records[0].ModifiedBy2);
 
         // update record should fail
@@ -419,7 +458,10 @@ function columnTypeSpecificTests() {
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
         // delete the field
-        await deleteColumn(context, { table, column: columns.columns[6] });
+        await deleteColumn(context, {
+          table,
+          column: columns.columns[defaultTableColumns.length],
+        });
         // create column again
         await createColumn(context, table, {
           title: 'CreatedAt2',
@@ -433,9 +475,16 @@ function columnTypeSpecificTests() {
         const records = await listRow({ base, table });
 
         // verify contents of both fields are same
-        expect(columns.columns[6].title).to.equal('CreatedAt2');
-        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedTime);
-        expect(columns.columns[6].system).to.equal(false);
+        expect(columns.columns[defaultTableColumns.length].title).to.equal(
+          'CreatedAt2',
+        );
+        expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
+          UITypes.CreatedTime,
+        );
+        expect(columns.columns[defaultTableColumns.length].system).to.equal(
+          false,
+        );
+
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
       });
 
@@ -463,9 +512,15 @@ function columnTypeSpecificTests() {
         const records = await listRow({ base, table });
 
         // verify contents of both fields are same
-        expect(columns.columns[6].title).to.equal('CreatedBy2');
-        expect(columns.columns[6].uidt).to.equal(UITypes.CreatedBy);
-        expect(columns.columns[6].system).to.equal(false);
+        expect(columns.columns[defaultTableColumns.length].title).to.equal(
+          'CreatedBy2',
+        );
+        expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
+          UITypes.CreatedBy,
+        );
+        expect(columns.columns[defaultTableColumns.length].system).to.equal(
+          false,
+        );
         expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy2);
       });
     });

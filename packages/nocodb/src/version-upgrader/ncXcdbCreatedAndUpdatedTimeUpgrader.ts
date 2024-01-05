@@ -11,6 +11,8 @@ import {
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { Altered } from '~/services/columns.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import getColumnUiType from '~/helpers/getColumnUiType';
 
 // An upgrader for upgrading created_at and updated_at columns
 // to system column and convert to new uidt CreatedTime and LastModifiedTime
@@ -58,6 +60,8 @@ async function upgradeModels({
     models.map(async (model: any) => {
       if (model.mm) return;
 
+      logger.log(`Upgrading model ${model.title} from source ${source.alias}`);
+
       const columns = await model.getColumns(ncMeta);
       const oldColumns = columns.map((c) => ({ ...c, cn: c.column_name }));
       let isCreatedTimeExists = false;
@@ -99,56 +103,108 @@ async function upgradeModels({
       }
 
       if (!isCreatedTimeExists || !isLastModifiedTimeExists) {
-        // create created_at and updated_at columns
+        // get existing columns from database
 
+        const sqlClient = await NcConnectionMgrv2.getSqlClient(
+          source,
+          ncMeta.knex,
+        );
+
+        const dbColumns = (
+          await sqlClient.columnList({
+            tn: model.table_name,
+            schema: source.getConfig()?.schema,
+          })
+        )?.data?.list;
+        //
+        //
+        //         // create created_at and updated_at columns
         const newColumns = [];
-
+        const existingDbColumns = [];
+        //,
         if (!isCreatedTimeExists) {
-          newColumns.push({
-            ...(await getColumnPropsFromUIDT(
-              {
-                uidt: UITypes.CreatedTime,
-                column_name: getUniqueColumnName(columns, 'created_at'),
-                title: getUniqueColumnAliasName(columns, 'CreatedAt'),
-              },
-              source,
-            )),
-            cdf: null,
-            system: true,
-            altered: Altered.NEW_COLUMN,
-          });
+          //
+          //           // check column exist and add to meta if found
+          const columnName = getUniqueColumnName(columns, 'created_at');
+          //
+          const dbColumn = dbColumns.find((c) => c.cn === columnName);
+
+          if (
+            dbColumn &&
+            getColumnUiType(source, dbColumn) === UITypes.DateTime
+          ) {
+            existingDbColumns.push({
+              ...dbColumn,
+              uidt: UITypes.CreatedTime,
+              column_name: getUniqueColumnName(columns, 'created_at'),
+              title: getUniqueColumnAliasName(columns, 'CreatedAt'),
+              system: true,
+            });
+          } else {
+            newColumns.push({
+              ...(await getColumnPropsFromUIDT(
+                {
+                  uidt: UITypes.CreatedTime,
+                  column_name: getUniqueColumnName(columns, 'created_at'),
+                  title: getUniqueColumnAliasName(columns, 'CreatedAt'),
+                },
+                source,
+              )),
+              cdf: null,
+              system: true,
+              altered: Altered.NEW_COLUMN,
+            });
+          }
         }
 
         if (!isLastModifiedTimeExists) {
-          newColumns.push({
-            ...(await getColumnPropsFromUIDT(
-              {
-                uidt: UITypes.LastModifiedTime,
-                column_name: getUniqueColumnName(columns, 'updated_at'),
-                title: getUniqueColumnAliasName(columns, 'UpdatedAt'),
-              },
-              source,
-            )),
-            cdf: null,
-            system: true,
-            altered: Altered.NEW_COLUMN,
-          });
+          const columnName = getUniqueColumnName(columns, 'created_at');
+          //
+          const dbColumn = dbColumns.find((c) => c.cn === columnName);
+
+          if (
+            dbColumn &&
+            getColumnUiType(source, dbColumn) === UITypes.DateTime
+          ) {
+            existingDbColumns.push({
+              uidt: UITypes.LastModifiedTime,
+              ...dbColumn,
+              column_name: getUniqueColumnName(columns, 'updated_at'),
+              title: getUniqueColumnAliasName(columns, 'UpdatedAt'),
+              system: true,
+            });
+          } else {
+            newColumns.push({
+              ...(await getColumnPropsFromUIDT(
+                {
+                  uidt: UITypes.LastModifiedTime,
+                  column_name: getUniqueColumnName(columns, 'updated_at'),
+                  title: getUniqueColumnAliasName(columns, 'UpdatedAt'),
+                },
+                source,
+              )),
+              cdf: null,
+              system: true,
+              altered: Altered.NEW_COLUMN,
+            });
+          }
         }
 
-        // update column in db
-        const tableUpdateBody = {
-          ...model,
-          tn: model.table_name,
-          originalColumns: oldColumns,
-          columns: [...columns, ...newColumns].map((c) => ({
-            ...c,
-            cn: c.column_name,
-          })),
-        };
-        const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        for (const newColumn of newColumns) {
+        if (newColumns.length) {
+          // update column in db
+          const tableUpdateBody = {
+            ...model,
+            tn: model.table_name,
+            originalColumns: oldColumns,
+            columns: [...columns, ...newColumns].map((c) => ({
+              ...c,
+              cn: c.column_name,
+            })),
+          };
+          const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
+          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+        }
+        for (const newColumn of [...existingDbColumns, ...newColumns]) {
           await Column.insert(
             {
               ...newColumn,
@@ -160,7 +216,7 @@ async function upgradeModels({
         }
       }
 
-      logger.log(`Upgraded model ${model.name} from source ${source.name}`);
+      logger.log(`Upgraded model ${model.title} from source ${source.alias}`);
     }),
   );
 }
@@ -186,9 +242,14 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   });
 
   // iterate and upgrade each base
-  for (const source of sources) {
-    logger.log(`Upgrading source ${source.name}`);
+  for (const _source of sources) {
+    const source = new Source(_source);
+
+    // skip deleted project bases
+    if (await source.getProject(ncMeta).then((p) => !p || p.deleted)) continue;
+
+    logger.log(`Upgrading source ${source.alias}`);
     // update the meta props
-    await upgradeModels({ ncMeta, source: new Source(source) });
+    await upgradeModels({ ncMeta, source });
   }
 }

@@ -189,7 +189,7 @@
     "shift": "Shift 键",
     "enter": "回车键",
     "seconds": "秒",
-    "paste": "Paste"
+    "paste": ""
   },
   "objects": {
     "workspace": "工作区",
@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "不允许使用以下字符",
       "columnNameRequired": "列名是必填项",
       "duplicateColumnName": "字段名称重复",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "需要 UI 数据类型",
       "columnNameExceedsCharacters": "列名的长度超过了 {value} 字符的限制",
       "projectNameExceeds50Characters": "项目名称超过 50 个字符",

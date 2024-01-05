@@ -44,7 +44,6 @@ export class NcConfig {
   env: string;
   workingEnv: string;
   baseType: string;
-  private logger = new Logger(NcConfig.name);
 
   private constructor() {}
 

@@ -19,6 +19,7 @@ import {
   isPercent,
   isRating,
   isReadonlyDateTime,
+  isReadonlyUser,
   isSingleSelect,
   isTextArea,
   isTime,
@@ -87,6 +88,7 @@ const checkTypeFunctions = {
   isTextArea,
   isLinks: (col: ColumnType) => col.uidt === UITypes.Links,
   isUser,
+  isReadonlyUser,
 }
 
 type FilterType = keyof typeof checkTypeFunctions
@@ -155,6 +157,7 @@ const componentMap: Partial<Record<FilterType, any>> = computed(() => {
     isFloat: Float,
     isLinks: Integer,
     isUser: User,
+    isReadonlyUser: User,
   }
 })
 
@@ -180,6 +183,12 @@ const componentProps = computed(() => {
     }
     case 'isUser': {
       return { forceMulti: true }
+    }
+    case 'isReadonlyUser': {
+      if (['anyof', 'nanyof'].includes(props.filter.comparison_op!)) {
+        return { forceMulti: true }
+      }
+      return {}
     }
     default: {
       return {}

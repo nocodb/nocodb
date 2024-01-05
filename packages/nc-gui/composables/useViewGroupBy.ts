@@ -90,7 +90,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
     }
 
-    if (col.uidt === UITypes.User || col.uidt === UITypes.CreatedBy || col.uidt === UITypes.LastModifiedBy) {
+    if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)) {
       if (!value) {
         return GROUP_BY_VARS.NULL
       }
@@ -161,11 +161,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
         acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
       } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
-      } else if (
-        curr.column_uidt === UITypes.User ||
-        curr.column_uidt === UITypes.CreatedBy ||
-        curr.column_uidt === UITypes.LastModifiedBy
-      ) {
+      } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
         try {
           const value = JSON.parse(curr.key)
           acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${value.map((v: any) => v.id).join(',')})`

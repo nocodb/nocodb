@@ -169,7 +169,7 @@ const parseKey = (group: Group) => {
     return [parseStringDateTime(key, timeFormats[0], false)]
   }
 
-  if (key && group.column?.uidt === UITypes.User) {
+  if (key && [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(group.column?.uidt as UITypes)) {
     try {
       const parsedKey = JSON.parse(key)
       return [parsedKey]

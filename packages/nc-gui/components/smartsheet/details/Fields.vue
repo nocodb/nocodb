@@ -631,8 +631,14 @@ onKeyDown('ArrowUp', () => {
 onKeyDown('Delete', () => {
   if (isLocked.value) return
 
-  if (document.activeElement?.tagName === 'INPUT') return
-  if (document.activeElement?.tagName === 'TEXTAREA') return
+  if (
+    document.activeElement?.tagName === 'INPUT' ||
+    document.activeElement?.tagName === 'TEXTAREA' ||
+    // A rich text editor is a div with the contenteditable attribute set to true.
+    document.activeElement?.getAttribute('contenteditable')
+  ) {
+    return
+  }
 
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
@@ -643,8 +649,14 @@ onKeyDown('Delete', () => {
 onKeyDown('Backspace', () => {
   if (isLocked.value) return
 
-  if (document.activeElement?.tagName === 'INPUT') return
-  if (document.activeElement?.tagName === 'TEXTAREA') return
+  if (
+    document.activeElement?.tagName === 'INPUT' ||
+    document.activeElement?.tagName === 'TEXTAREA' ||
+    // A rich text editor is a div with the contenteditable attribute set to true.
+    document.activeElement?.getAttribute('contenteditable')
+  ) {
+    return
+  }
 
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {

@@ -56,7 +56,7 @@
     "links": "链接",
     "remove": "移除",
     "import": "导入",
-    "logout": "退出登录",
+    "logout": "退出",
     "empty": "空",
     "changeIcon": "更换图标",
     "save": "保存",
@@ -189,7 +189,7 @@
     "shift": "Shift 键",
     "enter": "回车键",
     "seconds": "秒",
-    "paste": "Paste"
+    "paste": ""
   },
   "objects": {
     "workspace": "工作区",
@@ -587,7 +587,7 @@
     "links": "链接",
     "onUpdate": "更新时",
     "onDelete": "删除时",
-    "account": "帐户",
+    "account": "账户",
     "language": "语言",
     "primaryColor": "主色调",
     "accentColor": "强调色",
@@ -642,7 +642,7 @@
     "changeWsName": "更改工作区名称",
     "pressEnter": "按回车键",
     "newFormLoaded": "新表格将在",
-    "webhook": "Webhook"
+    "webhook": "网络钩子"
   },
   "activity": {
     "openInANewTab": "在新标签页中打开",
@@ -1022,7 +1022,7 @@
     "acceptOnlyValid": "仅接受",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
     "selectFieldToSort": "选择要排序的字段",
-    "selectFieldToGroup": "Select Field to Group",
+    "selectFieldToGroup": "选择要分组的字段",
     "thereAreNoRecordsInTable": "表中没有记录",
     "createWebhookMsg1": "开始使用Web Hooks！",
     "createWebhookMsg2": "创建Web Hooks来实现自动化",
@@ -1211,7 +1211,7 @@
       "goToNext": "转到下一个",
       "thankYou": "谢谢你！",
       "submittedFormData": "您已成功提交表单数据。",
-      "editingSystemKeyNotSupported": "Editing system key not supported"
+      "editingSystemKeyNotSupported": "不支持编辑系统密钥"
     },
     "error": {
       "nameRequired": "您必须指定一个名字",
@@ -1288,7 +1288,7 @@
       "fieldRequired": "{value} 不能为空。",
       "projectNotAccessible": "无权访问此项目",
       "copyToClipboardError": "未能复制到剪贴板",
-      "pasteFromClipboardError": "Failed to paste from clipboard"
+      "pasteFromClipboardError": "从剪贴板粘贴失败"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

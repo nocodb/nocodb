@@ -190,7 +190,7 @@ export function useViewFilters(
     }
   }
 
-  const loadFilters = async (hookId?: string) => {
+  const loadFilters = async (hookId?: string, isWebhook = false) => {
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -199,11 +199,11 @@ export function useViewFilters(
     }
 
     try {
-      if (hookId) {
+      if (isWebhook || hookId) {
         if (parentId) {
           filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
-        } else {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)).list as Filter[]
+        } else if (hookId) {
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as Filter[]
         }
       } else {
         if (parentId) {

@@ -27,7 +27,7 @@ import {
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: UserFieldRecordType[] | string | null
+  modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
   rowIndex?: number
   location?: 'cell' | 'filter'
   forceMulti?: boolean
@@ -113,17 +113,18 @@ const vModel = computed({
         return acc
       }, [] as { label: string; value: string }[])
     } else {
-      selected =
-        modelValue?.reduce((acc, item) => {
-          const label = item?.display_name || item?.email
-          if (label) {
-            acc.push({
-              label,
-              value: item.id,
-            })
-          }
-          return acc
-        }, [] as { label: string; value: string }[]) || []
+      selected = modelValue
+        ? (Array.isArray(modelValue) ? modelValue : [modelValue]).reduce((acc, item) => {
+            const label = item?.display_name || item?.email
+            if (label) {
+              acc.push({
+                label,
+                value: item.id,
+              })
+            }
+            return acc
+          }, [] as { label: string; value: string }[])
+        : []
     }
 
     return selected

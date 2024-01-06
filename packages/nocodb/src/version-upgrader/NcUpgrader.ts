@@ -16,8 +16,7 @@ import ncHookUpgrader from './ncHookUpgrader';
 import ncProjectConfigUpgrader from './ncProjectConfigUpgrader';
 import ncXcdbLTARUpgrader from './ncXcdbLTARUpgrader';
 import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
-import ncXcdbCreatedAndUpdatedTimeUpgrader from './ncXcdbCreatedAndUpdatedTimeUpgrader';
-import ncXcdbCreatedAndUpdatedByUpgrader from './ncXcdbCreatedAndUpdatedByUpgrader';
+import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
 
@@ -146,8 +145,7 @@ export default class NcUpgrader {
       { name: '0107004', handler: ncProjectConfigUpgrader },
       { name: '0108002', handler: ncXcdbLTARUpgrader },
       { name: '0111002', handler: ncXcdbLTARIndexUpgrader },
-      { name: '0111004', handler: ncXcdbCreatedAndUpdatedTimeUpgrader },
-      { name: '0111005', handler: ncXcdbCreatedAndUpdatedByUpgrader },
+      { name: '0111005', handler: ncXcdbCreatedAndUpdatedSystemFieldsUpgrader },
     ];
   }
 }

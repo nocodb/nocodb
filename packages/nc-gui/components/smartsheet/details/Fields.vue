@@ -318,7 +318,7 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
       return
     }
 
-    if (field && !moveField) {
+    if (field || (field && moveField)) {
       field.column = state
     } else {
       ops.value.push({
@@ -403,6 +403,19 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
     return
   }
 
+  const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
+  if (mop) {
+    mop.index = _event.moved.newIndex
+    mop.order = order
+  } else {
+    moveOps.value.push({
+      op: 'move',
+      column: fields.value[_event.moved.oldIndex],
+      index: _event.moved.newIndex,
+      order,
+    })
+  }
+
   if (op) {
     onFieldUpdate({
       ...op.column,
@@ -418,19 +431,6 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
         order,
         view_id: view.value?.id as string,
       },
-    })
-  }
-
-  const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
-  if (mop) {
-    mop.index = _event.moved.newIndex
-    mop.order = order
-  } else {
-    moveOps.value.push({
-      op: 'move',
-      column: fields.value[_event.moved.oldIndex],
-      index: _event.moved.newIndex,
-      order,
     })
   }
 }
@@ -580,6 +580,13 @@ const saveChanges = async () => {
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
       if (op && op.op === 'add') {
+        op.column.column_order = {
+          order: mop.order,
+          view_id: view.value?.id as string,
+        }
+      }
+      
+      if (op && op.op === 'update') {
         op.column.column_order = {
           order: mop.order,
           view_id: view.value?.id as string,

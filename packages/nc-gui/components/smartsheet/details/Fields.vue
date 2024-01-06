@@ -100,6 +100,7 @@ const fields = computed<TableExplorerColumn[]>({
     const x = ((meta.value?.columns as ColumnType[]) ?? [])
       .filter((field) => !field.fk_column_id && !isSystemColumn(field))
       .concat(newFields.value)
+      .map((field) => updateDefaultColumnValues(field))
       .sort((a, b) => {
         return getFieldOrder(a) - getFieldOrder(b)
       })
@@ -278,52 +279,21 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
   // hack to prevent update status `Updated Field` when clicking on field first time
   let isUpdated = true
 
-  switch (col?.uidt) {
-    case UITypes.QrCode:
-      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_qr_value_column_id === diffs?.fk_qr_value_column_id) {
-        isUpdated = false
-      }
-      break
-    case UITypes.Barcode:
-      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_barcode_value_column_id === diffs?.fk_barcode_value_column_id) {
-        isUpdated = false
-      }
-      break
-    case UITypes.Lookup:
-      if (
-        Object.keys(diffs).length === 2 &&
-        col?.colOptions?.fk_lookup_column_id === diffs?.fk_lookup_column_id &&
-        col?.colOptions?.fk_relation_column_id === diffs?.fk_relation_column_id
-      ) {
-        isUpdated = false
-      }
-      break
-    case UITypes.SingleSelect:
-    case UITypes.MultiSelect:
-      if (
-        Object.keys(diffs).length === 1 &&
-        diffs?.colOptions?.options &&
-        (diffs?.colOptions?.options?.length === 0 ||
-          (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
-      ) {
-        isUpdated = false
-      }
-      break
-    case UITypes.Formula:
-      if (Object.keys(diffs).length === 1 && col?.colOptions?.formula_raw === diffs?.formula_raw) {
-        isUpdated = false
-      }
-      break
-    case UITypes.Rollup:
-      if (
-        Object.keys(diffs).length === 3 &&
-        col?.colOptions?.fk_relation_column_id === diffs?.fk_relation_column_id &&
-        col?.colOptions?.fk_rollup_column_id === diffs?.fk_rollup_column_id &&
-        col?.colOptions?.rollup_function === diffs?.rollup_function
-      ) {
-        isUpdated = false
-      }
-      break
+  if (
+    [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt) &&
+    Object.keys(diffs).length === 1 &&
+    diffs?.colOptions?.options &&
+    (diffs?.colOptions?.options?.length === 0 ||
+      (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
+  ) {
+    isUpdated = false
+  }
+
+  if (!isUpdated) {
+    let field = fields.value.find((field) => compareCols(field, state))
+    if (field) {
+      field = state
+    }
   }
 
   if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || !isUpdated) {
@@ -495,6 +465,52 @@ const isColumnValid = (column: TableExplorerColumn) => {
   return true
 }
 
+const updateDefaultColumnValues = (column: TableExplorerColumn) => {
+  if (column.uidt === UITypes.QrCode && column.colOptions?.fk_qr_value_column_id) {
+    if (!column?.fk_qr_value_column_id) {
+      column.fk_qr_value_column_id = column.colOptions.fk_qr_value_column_id
+    }
+  }
+
+  if (column.uidt === UITypes.Barcode && column.colOptions?.fk_barcode_value_column_id) {
+    if (!column?.fk_barcode_value_column_id) {
+      column.fk_barcode_value_column_id = column.colOptions.fk_barcode_value_column_id
+    }
+  }
+
+  if (column.uidt === UITypes.Lookup && column?.colOptions?.fk_lookup_column_id && column?.colOptions?.fk_relation_column_id) {
+    if (!column?.fk_lookup_column_id) {
+      column.fk_lookup_column_id = column.colOptions.fk_lookup_column_id
+    }
+    if (!column?.fk_relation_column_id) {
+      column.fk_relation_column_id = column.colOptions.fk_relation_column_id
+    }
+  }
+
+  if (
+    column.uidt === UITypes.Rollup &&
+    column?.colOptions?.fk_relation_column_id &&
+    column?.colOptions?.fk_rollup_column_id &&
+    column?.colOptions?.rollup_function
+  ) {
+    if (!column?.fk_relation_column_id) {
+      column.fk_relation_column_id = column.colOptions.fk_relation_column_id
+    }
+    if (!column?.fk_rollup_column_id) {
+      column.fk_rollup_column_id = column.colOptions.fk_rollup_column_id
+    }
+    if (!column?.rollup_function) {
+      column.rollup_function = column.colOptions.rollup_function
+    }
+  }
+
+  if (column.uidt === UITypes.Formula && column.colOptions?.formula_raw && !column?.formula_raw) {
+    column.formula_raw = column.colOptions?.formula_raw
+  }
+
+  return column
+}
+
 const recoverField = (state: TableExplorerColumn) => {
   const field = ops.value.find((op) => compareCols(op.column, state))
   if (field) {
@@ -598,7 +614,10 @@ const saveChanges = async () => {
     await loadViewColumns()
 
     if (res) {
-      ops.value = (res.failedOps as op[]) || []
+      ops.value =
+        res.failedOps && res.failedOps?.length
+          ? (res.failedOps as (op & { error: unknown })[]).map(({ error, ...rest }) => rest)
+          : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
           const op = res.failedOps.find((fop) => {

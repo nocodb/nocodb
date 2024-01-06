@@ -45,7 +45,7 @@ async function upgradeModels({
           {
             uidt: UITypes.CreatedBy,
             column_name: getUniqueColumnName(columns, 'created_by'),
-            title: getUniqueColumnAliasName(columns, 'CreatedBy'),
+            title: getUniqueColumnAliasName(columns, 'nc_created_by'),
           },
           source,
         )),
@@ -59,7 +59,7 @@ async function upgradeModels({
           {
             uidt: UITypes.LastModifiedBy,
             column_name: getUniqueColumnName(columns, 'updated_by'),
-            title: getUniqueColumnAliasName(columns, 'UpdatedBy'),
+            title: getUniqueColumnAliasName(columns, 'nc_updated_by'),
           },
           source,
         )),

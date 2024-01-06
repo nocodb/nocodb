@@ -143,13 +143,19 @@ const headerText = computed(() => {
     <div class="flex flex-col w-full">
       <div class="flex justify-between p-3 items-center border-b-1 border-gray-200">
         <div class="flex justify-start gap-3 items-center">
-          <NcButton size="small" type="secondary" @click="paginateCalendarView('prev')">
-            <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-          </NcButton>
+          <NcTooltip>
+            <template #title> Previous </template>
+            <NcButton size="small" type="secondary" @click="paginateCalendarView('prev')">
+              <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
+            </NcButton>
+          </NcTooltip>
+
           <NcDropdown :auto-close="false">
             <NcButton size="small" type="secondary">
-              <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
-              <component :is="iconMap.downArrow" class="h-4 w-4" />
+              <div class="flex gap-2 items-center">
+                <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
+                <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
+              </div>
             </NcButton>
 
             <template #overlay>
@@ -181,9 +187,12 @@ const headerText = computed(() => {
               </div>
             </template>
           </NcDropdown>
-          <NcButton size="small" type="secondary" @click="paginateCalendarView('next')">
-            <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-          </NcButton>
+          <NcTooltip>
+            <template #title> Next </template>
+            <NcButton size="small" type="secondary" @click="paginateCalendarView('next')">
+              <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+            </NcButton>
+          </NcTooltip>
           <NcButton
             v-if="!isMobileMode"
             size="small"
@@ -202,9 +211,12 @@ const headerText = computed(() => {
             Go to Today
           </NcButton>
         </div>
-        <NcButton v-if="!isMobileMode" size="small" type="secondary" @click="showSideMenu = !showSideMenu">
-          <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-700 transition-all" />
-        </NcButton>
+        <NcTooltip>
+          <template #title> Toggle Sidebar </template>
+          <NcButton v-if="!isMobileMode" size="small" type="secondary" @click="showSideMenu = !showSideMenu">
+            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-700 transition-all" />
+          </NcButton>
+        </NcTooltip>
       </div>
       <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />
       <template v-if="!isCalendarDataLoading">

@@ -458,7 +458,8 @@ export class ExportService {
               case UITypes.LastModifiedBy:
                 if (v) {
                   const userIds = [];
-                  for (const user of v as { id: string }[]) {
+                  const userRecord = Array.isArray(v) ? v : [v];
+                  for (const user of userRecord) {
                     userIds.push(user.id);
                   }
                   row[colId] = userIds.join(',');

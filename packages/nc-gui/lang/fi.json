@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "Seuraavat merkit eivät ole sallittuja",
       "columnNameRequired": "Sarakkeen nimi vaaditaan",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Hankkeen nimi ylittää 50 merkkiä",

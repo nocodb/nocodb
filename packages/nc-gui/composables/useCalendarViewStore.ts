@@ -211,9 +211,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const filterJSON = computed(() => {
-      if (!meta.value?.columns || !calendarRange.value || !calendarRange.value[0]) return []
-      const fromCol = calendarRange.value[0].fk_from_col
-      const toCol = calendarRange.value[0].fk_to_col
+      const combinedFilters = {
+        is_group: true,
+        logical_op: 'and',
+        children: [],
+      }
 
       let fromDate
       let toDate
@@ -231,99 +233,117 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
         toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
       }
-      if (fromCol && toCol) {
-        return [
-          {
-            is_group: true,
-            logical_op: 'and',
-            children: [
-              {
-                is_group: true,
-                logical_op: 'or',
-                children: [
-                  {
-                    fk_column_id: fromCol.id,
-                    comparison_op: 'btw',
-                    comparison_sub_op: 'exactDate',
-                    value: `${fromDate},${toDate}`,
-                  },
-                  {
-                    fk_column_id: toCol.id,
-                    comparison_op: 'btw',
-                    comparison_sub_op: 'exactDate',
-                    value: `${fromDate},${toDate}`,
-                  },
-                ],
-              },
-              {
-                is_group: true,
-                logical_op: 'or',
-                children: [
-                  {
-                    fk_column_id: fromCol.id,
-                    comparison_op: 'lte',
-                    comparison_sub_op: 'exactDate',
-                    value: fromDate,
-                  },
-                  {
-                    fk_column_id: toCol.id,
-                    comparison_op: 'gte',
-                    comparison_sub_op: 'exactDate',
-                    value: toDate,
-                  },
-                ],
-              },
-              {
-                is_group: true,
-                logical_op: 'or',
-                children: [
-                  {
-                    fk_column_id: fromCol.id,
-                    comparison_op: 'gte',
-                    comparison_sub_op: 'exactDate',
-                    value: fromDate,
-                  },
-                  {
-                    fk_column_id: toCol.id,
-                    comparison_op: 'lte',
-                    comparison_sub_op: 'exactDate',
-                    value: toDate,
-                  },
-                ],
-              },
-            ],
-          },
-          {
+
+      calendarRange.value.forEach((range) => {
+        const fromCol = range.fk_from_col
+        const toCol = range.fk_to_col
+        let rangeFilter = []
+
+        if (fromCol && toCol) {
+          rangeFilter = [
+            {
+              is_group: true,
+              logical_op: 'and',
+              children: [
+                {
+                  is_group: true,
+                  logical_op: 'or',
+                  children: [
+                    {
+                      fk_column_id: fromCol.id,
+                      comparison_op: 'btw',
+                      comparison_sub_op: 'exactDate',
+                      value: `${fromDate},${toDate}`,
+                    },
+                    {
+                      fk_column_id: toCol.id,
+                      comparison_op: 'btw',
+                      comparison_sub_op: 'exactDate',
+                      value: `${fromDate},${toDate}`,
+                    },
+                  ],
+                },
+                {
+                  is_group: true,
+                  logical_op: 'or',
+                  children: [
+                    {
+                      fk_column_id: fromCol.id,
+                      comparison_op: 'lte',
+                      comparison_sub_op: 'exactDate',
+                      value: fromDate,
+                    },
+                    {
+                      fk_column_id: toCol.id,
+                      comparison_op: 'gte',
+                      comparison_sub_op: 'exactDate',
+                      value: toDate,
+                    },
+                  ],
+                },
+                {
+                  is_group: true,
+                  logical_op: 'or',
+                  children: [
+                    {
+                      fk_column_id: fromCol.id,
+                      comparison_op: 'gte',
+                      comparison_sub_op: 'exactDate',
+                      value: fromDate,
+                    },
+                    {
+                      fk_column_id: toCol.id,
+                      comparison_op: 'lte',
+                      comparison_sub_op: 'exactDate',
+                      value: toDate,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              is_group: true,
+              logical_op: 'or',
+              children: [
+                {
+                  fk_column_id: fromCol.id,
+                  comparison_op: 'eq',
+                  logical_op: 'or',
+                  comparison_sub_op: 'exactDate',
+                  value: fromDate,
+                },
+                {
+                  fk_column_id: toCol.id,
+                  comparison_op: 'eq',
+                  logical_op: 'or',
+                  comparison_sub_op: 'exactDate',
+                  value: toDate,
+                },
+              ],
+            },
+          ]
+        } else if (fromCol) {
+          rangeFilter = [
+            {
+              fk_column_id: fromCol.id,
+              comparison_op: 'btw',
+              comparison_sub_op: 'exactDate',
+              value: `${fromDate},${toDate}`,
+            },
+          ]
+        }
+        if (rangeFilter.length > 0) {
+          combinedFilters.children.push({
             is_group: true,
             logical_op: 'or',
-            children: [
-              {
-                fk_column_id: fromCol.id,
-                comparison_op: 'eq',
-                logical_op: 'or',
-                comparison_sub_op: 'exactDate',
-                value: fromDate,
-              },
-              {
-                fk_column_id: toCol.id,
-                comparison_op: 'eq',
-                logical_op: 'or',
-                comparison_sub_op: 'exactDate',
-                value: toDate,
-              },
-            ],
-          },
-        ]
-      } else if (fromCol) {
-        return [
-          {
-            fk_column_id: fromCol.id,
-            comparison_op: 'btw',
-            comparison_sub_op: 'exactDate',
-            value: `${fromDate},${toDate}`,
-          },
-        ]
-      } else return []
+            children: rangeFilter,
+          })
+        }
+      })
+
+      console.log('combinedFilters', combinedFilters)
+
+      return combinedFilters.children.length > 0 ? [combinedFilters] : []
     })
 
     // Set of Dates that have data

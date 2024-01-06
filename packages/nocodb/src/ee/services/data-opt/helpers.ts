@@ -665,6 +665,14 @@ export async function extractColumn({
             [rootAlias, sanitize(columnName), column.id],
           ),
         );
+      } else {
+        qb.select(
+          knex.raw(`??.?? as ??`, [
+            rootAlias,
+            sanitize(column.column_name),
+            column.id,
+          ]),
+        );
       }
       break;
     }

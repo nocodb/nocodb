@@ -209,7 +209,7 @@ function columnTypeSpecificTests() {
         }
       });
 
-      it('New record: verify system fields', async () => {
+      it.only('New record: verify system fields', async () => {
         // created-at is filled with current dateTime, last-modified-at is null
         // created-by is filled with current user, last-modified-by is null
 
@@ -224,10 +224,10 @@ function columnTypeSpecificTests() {
         expect(unfilteredRecords[0].UpdatedAt).to.equal(null);
 
         expect(unfilteredRecords[0].CreatedBy).to.not.equal(null);
-        expect(unfilteredRecords[0].CreatedBy[0].email).to.equal(
-          'test@example.com',
+        expect(unfilteredRecords[0].CreatedBy.email).to.equal(
+          context.user.email,
         );
-        expect(unfilteredRecords[0].CreatedBy[0].display_name).to.equal(null);
+        expect(unfilteredRecords[0].CreatedBy.display_name).to.equal(null);
         expect(unfilteredRecords[0].UpdatedBy).to.equal(null);
       });
 

@@ -105,6 +105,8 @@ const uiTypeOptions = ref<Option[]>(
           UITypes.ID,
           UITypes.CreatedTime,
           UITypes.LastModifiedTime,
+          UITypes.CreatedBy,
+          UITypes.LastModifiedBy,
           UITypes.Barcode,
           UITypes.Button,
         ].includes(UITypes[uiType]),

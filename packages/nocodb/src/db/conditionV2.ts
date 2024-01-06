@@ -453,9 +453,14 @@ const parseConditionV2 = async (
         builder,
       );
     } else if (
-      column.uidt === UITypes.User &&
+      [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+        column.uidt,
+      ) &&
       ['like', 'nlike'].includes(filter.comparison_op)
     ) {
+      // get column name for CreatedBy, LastModifiedBy
+      column.column_name = await getColumnName(column);
+
       const baseUsers = await BaseUser.getUsersList({
         base_id: column.base_id,
       });

@@ -768,6 +768,8 @@ export class ImportService {
             a.uidt === UITypes.QrCode ||
             a.uidt === UITypes.CreatedTime ||
             a.uidt === UITypes.LastModifiedTime ||
+            a.uidt === UITypes.CreatedBy ||
+            a.uidt === UITypes.LastModifiedBy ||
             a.uidt === UITypes.Barcode,
         ),
       );
@@ -897,13 +899,18 @@ export class ImportService {
         }
       } else if (
         col.uidt === UITypes.CreatedTime ||
-        col.uidt === UITypes.LastModifiedTime
+        col.uidt === UITypes.LastModifiedTime ||
+        col.uidt === UITypes.CreatedBy ||
+        col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
         const freshModelData = await this.columnsService.columnAdd({
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
+            // provide column_name to avoid ajv error
+            // it will be ignored by the service
+            column_name: 'system',
             system: false,
           }) as any,
           req: param.req,

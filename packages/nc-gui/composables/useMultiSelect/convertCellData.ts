@@ -195,7 +195,9 @@ export default function convertCellData(
 
       return validVals.join(',')
     }
-    case UITypes.User: {
+    case UITypes.User:
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy: {
       let parsedVal
       try {
         try {

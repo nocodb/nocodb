@@ -678,6 +678,16 @@ export async function extractColumn({
       }
       break;
 
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy: {
+      const columnName = await getColumnName(column, columns);
+
+      qb.select(
+        knex.raw(`??.?? as ??`, [rootAlias, sanitize(columnName), column.id]),
+      );
+      break;
+    }
+
     default:
       {
         if (column.dt === 'bytea') {

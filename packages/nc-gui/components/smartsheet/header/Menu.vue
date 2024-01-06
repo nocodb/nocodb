@@ -129,6 +129,7 @@ const duplicateVirtualColumn = async () => {
     id: undefined,
     colOptions: undefined,
     order: undefined,
+    system: false,
   }
 
   try {
@@ -166,7 +167,17 @@ const duplicateVirtualColumn = async () => {
 
 const openDuplicateDlg = async () => {
   if (!column?.value) return
-  if (column.value.uidt && [UITypes.Lookup, UITypes.Rollup].includes(column.value.uidt as UITypes)) {
+  if (
+    column.value.uidt &&
+    [
+      UITypes.Lookup,
+      UITypes.Rollup,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedBy,
+    ].includes(column.value.uidt as UITypes)
+  ) {
     duplicateVirtualColumn()
   } else {
     const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list

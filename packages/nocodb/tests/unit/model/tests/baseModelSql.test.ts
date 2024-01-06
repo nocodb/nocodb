@@ -42,7 +42,7 @@ function baseModelSqlTests() {
   it('Insert record', async () => {
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
     const columns = await table.getColumns();
 
@@ -54,11 +54,15 @@ function baseModelSqlTests() {
     );
     const insertedRow = (await baseModelSql.list())[0];
 
-    inputData.CreatedAt = response.CreatedAt;
-    inputData.UpdatedAt = response.UpdatedAt;
+    inputData.CreatedBy = {
+      id: context.user.id,
+      email: context.user.email,
+      display_name: context.user.display_name,
+    };
+    inputData.UpdatedBy = null;
 
-    expect(insertedRow).to.include(inputData);
-    expect(insertedRow).to.include(response);
+    expect(insertedRow).to.deep.include(inputData);
+    expect(insertedRow).to.deep.include(response);
 
     const rowInsertedAudit = (await Audit.baseAuditList(base.id, {})).find(
       (audit) => audit.op_sub_type === 'INSERT',
@@ -80,7 +84,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
     const bulkData = Array(10)
       .fill(0)
@@ -125,7 +129,7 @@ function baseModelSqlTests() {
   it('Update record', async () => {
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
 
     const columns = await table.getColumns();
@@ -162,7 +166,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
     const bulkData = Array(10)
       .fill(0)
@@ -172,10 +176,18 @@ function baseModelSqlTests() {
     const insertedRows: any[] = await baseModelSql.list();
 
     await baseModelSql.bulkUpdate(
-      insertedRows.map(({ CreatedAt: _, UpdatedAt: __, ...row }) => ({
-        ...row,
-        Title: `new-${row['Title']}`,
-      })),
+      insertedRows.map(
+        ({
+          CreatedAt: _,
+          UpdatedAt: __,
+          CreatedBy: ___,
+          UpdatedBy: ____,
+          ...row
+        }) => ({
+          ...row,
+          Title: `new-${row['Title']}`,
+        }),
+      ),
       { cookie: request },
     );
 
@@ -206,7 +218,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
     const bulkData = Array(10)
       .fill(0)
@@ -256,7 +268,7 @@ function baseModelSqlTests() {
   it('Delete record', async () => {
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
       params: { id: 1 },
     };
 
@@ -294,7 +306,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
     const bulkData = Array(10)
       .fill(0)
@@ -337,7 +349,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
     const bulkData = Array(10)
       .fill(0)
@@ -403,7 +415,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
 
     await baseModelSql.nestedInsert(
@@ -462,7 +474,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
 
     await baseModelSql.insert(
@@ -530,7 +542,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: { email: 'test@example.com' },
+      user: context.user,
     };
 
     await baseModelSql.insert(

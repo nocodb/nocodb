@@ -1418,6 +1418,9 @@ async function extractColumnIdentifierType({
     case UITypes.PhoneNumber:
     case UITypes.Email:
     case UITypes.URL:
+    case UITypes.User:
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy:
       res.dataType = FormulaDataTypes.STRING;
       break;
     // numeric

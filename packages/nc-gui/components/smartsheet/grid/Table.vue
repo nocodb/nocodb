@@ -2,7 +2,15 @@
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import { type ColumnReqType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isCreatedOrLastModifiedTimeCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  UITypes,
+  ViewTypes,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 
 import usePaginationShortcuts from './usePaginationShortcuts'
@@ -1011,7 +1019,8 @@ const showFillHandle = computed(
       isLookup(fields.value[activeCell.col]) ||
       isRollup(fields.value[activeCell.col]) ||
       isFormula(fields.value[activeCell.col]) ||
-      isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col])
+      isCreatedOrLastModifiedTimeCol(fields.value[activeCell.col]) ||
+      isCreatedOrLastModifiedByCol(fields.value[activeCell.col])
     ),
 )
 
@@ -1574,7 +1583,8 @@ onKeyStroke('ArrowDown', onDown)
                           (isLookup(columnObj) ||
                             isRollup(columnObj) ||
                             isFormula(columnObj) ||
-                            isCreatedOrLastModifiedTimeCol(columnObj)) &&
+                            isCreatedOrLastModifiedTimeCol(columnObj) ||
+                            isCreatedOrLastModifiedByCol(columnObj)) &&
                           hasEditPermission &&
                           isCellSelected(rowIndex, colIndex),
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,

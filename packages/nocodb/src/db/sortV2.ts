@@ -139,7 +139,9 @@ export default async function sortV2(
         }
         break;
       }
-      case UITypes.User: {
+      case UITypes.User:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy: {
         const base = await Base.get(model.base_id);
         const baseUsers = await BaseUser.getUsersList({
           base_id: base.id,

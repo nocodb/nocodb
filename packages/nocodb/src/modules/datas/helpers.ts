@@ -171,7 +171,9 @@ export async function serializeCellValue({
         )
         .join(', ');
     }
-    case UITypes.User: {
+    case UITypes.User:
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy: {
       let data = value;
       try {
         if (typeof value === 'string') {
@@ -179,7 +181,9 @@ export async function serializeCellValue({
         }
       } catch {}
 
-      return (data || []).map((user) => `${user.email}`).join(', ');
+      return (data ? (Array.isArray(data) ? data : [data]) : [])
+        .map((user) => `${user.email}`)
+        .join(', ');
     }
     case UITypes.Lookup:
       {

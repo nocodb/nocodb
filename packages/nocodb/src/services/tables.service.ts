@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
@@ -384,21 +385,49 @@ export class TablesService {
       source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-    // add CreatedBy and LastModifiedBy system columns if missing in request payload
+    // add CreatedTime and LastModifiedTime system columns if missing in request payload
     {
-      for (const uidt of [UITypes.CreatedTime, UITypes.LastModifiedTime]) {
+      for (const uidt of [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ]) {
         const col = tableCreatePayLoad.columns.find(
           (c) => c.uidt === uidt,
         ) as ColumnType;
 
+        let columnName, columnTitle;
+
+        switch (uidt) {
+          case UITypes.CreatedTime:
+            columnName = 'created_at';
+            columnTitle = 'CreatedAt';
+            break;
+          case UITypes.LastModifiedTime:
+            columnName = 'updated_at';
+            columnTitle = 'UpdatedAt';
+            break;
+          case UITypes.CreatedBy:
+            columnName = 'created_by';
+            columnTitle = 'nc_created_by';
+            break;
+          case UITypes.LastModifiedBy:
+            columnName = 'updated_by';
+            columnTitle = 'nc_updated_by';
+            break;
+        }
+
         const colName = getUniqueColumnName(
           tableCreatePayLoad.columns as any[],
-          uidt === UITypes.CreatedTime ? 'created_at' : 'updated_at',
+          columnName,
         );
+
         const colAlias = getUniqueColumnAliasName(
           tableCreatePayLoad.columns as any[],
-          uidt === UITypes.CreatedTime ? 'CreatedAt' : 'UpdatedAt',
+          columnTitle,
         );
+
         if (!col || !col.system) {
           tableCreatePayLoad.columns.push({
             ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
@@ -514,7 +543,8 @@ export class TablesService {
     for (const column of param.table.columns) {
       if (
         !isVirtualCol(column) ||
-        (isCreatedOrLastModifiedTimeCol(column) && (column as any).system)
+        (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
+        (isCreatedOrLastModifiedByCol(column) && (column as any).system)
       ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
@@ -549,7 +579,11 @@ export class TablesService {
       param.table.columns
         // exclude alias columns from column list
         ?.filter((c) => {
-          return !isCreatedOrLastModifiedTimeCol(c) || (c as any).system;
+          return (
+            !isCreatedOrLastModifiedTimeCol(c) ||
+            !isCreatedOrLastModifiedByCol(c) ||
+            (c as any).system
+          );
         })
         .map(async (c) => ({
           ...(await getColumnPropsFromUIDT(c as any, source)),

@@ -171,6 +171,8 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                       UITypes.MultiSelect,
                       UITypes.SingleSelect,
                       UITypes.User,
+                      UITypes.CreatedBy,
+                      UITypes.LastModifiedBy,
                     ].includes(lookupColumn.uidt),
                     'min-h-0 min-w-0': isAttachment(lookupColumn),
                   }"

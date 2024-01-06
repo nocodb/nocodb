@@ -46,6 +46,16 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
           },
         );
         console.log(admin_response.data);
+      } else {
+        admin_response = await axios.post(
+          `http://localhost:${
+            process.env.PORT || 8080
+          }/api/v1/auth/user/signin`,
+          {
+            email: 'user@nocodb.com',
+            password: 'Password123.',
+          },
+        );
       }
 
       for (let i = 0; i < 4; i++) {

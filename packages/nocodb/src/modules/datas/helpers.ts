@@ -181,7 +181,9 @@ export async function serializeCellValue({
         }
       } catch {}
 
-      return (data || []).map((user) => `${user.email}`).join(', ');
+      return (data ? (Array.isArray(data) ? data : [data]) : [])
+        .map((user) => `${user.email}`)
+        .join(', ');
     }
     case UITypes.Lookup:
       {

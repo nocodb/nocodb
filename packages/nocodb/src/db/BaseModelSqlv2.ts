@@ -4758,7 +4758,7 @@ class BaseModelSqlv2 {
   }
 
   protected _convertUserFormat(
-    userColumns: Record<string, any>[],
+    userColumns: Column[],
     baseUsers: Partial<User>[],
     d: Record<string, any>,
   ) {
@@ -4782,6 +4782,11 @@ class BaseModelSqlv2 {
                 display_name: display_name?.length ? display_name : null,
               };
             });
+          }
+
+          // CreatedBy and LastModifiedBy are always singular
+          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt)) {
+            d[col.id] = d[col.id]?.[0] ?? null;
           }
         }
       }

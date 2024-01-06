@@ -39,7 +39,7 @@ export default async function (forceReset = false, roles = 'editor') {
   // }
   await cleanupMeta();
 
-  const { token } = await createUser({ app: server }, { roles });
+  const { token, user } = await createUser({ app: server }, { roles });
 
   const extra: any = {};
 
@@ -61,6 +61,7 @@ export default async function (forceReset = false, roles = 'editor') {
   return {
     app: server,
     token,
+    user,
     dbConfig: TestDbMngr.dbConfig,
     sakilaDbConfig: TestDbMngr.getSakilaDbConfig(),
     ...extra,

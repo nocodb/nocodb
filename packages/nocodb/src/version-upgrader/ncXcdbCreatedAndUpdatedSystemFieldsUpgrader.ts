@@ -359,7 +359,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       if (!base || base.deleted) {
         logger.log(
           `Skipped deleted base source '${source.alias || source.id}' - ${
-            base.id
+            base?.id
           }`,
         );
         return Promise.resolve();

@@ -4719,7 +4719,7 @@ class BaseModelSqlv2 {
         await this.model.getColumns();
       }
 
-      const userColumns = [];
+      let userColumns = [];
 
       const columns = childTable ? childTable.columns : this.model.columns;
 
@@ -4743,6 +4743,19 @@ class BaseModelSqlv2 {
         }
       }
 
+      // filter user columns that are not present in data
+      if (userColumns.length) {
+        if (Array.isArray(data)) {
+          const row = data[0];
+          if (row) {
+            userColumns = userColumns.filter((col) => col.id in row);
+          }
+        } else {
+          userColumns = userColumns.filter((col) => col.id in data);
+        }
+      }
+
+      // process user columns that are present in data
       if (userColumns.length) {
         const baseUsers = await BaseUser.getUsersList({
           base_id: childTable ? childTable.base_id : this.model.base_id,
@@ -4767,29 +4780,26 @@ class BaseModelSqlv2 {
   ) {
     try {
       if (d) {
-        for (const col of userColumns) {
-          if (d[col.id] && d[col.id].length) {
-            d[col.id] = d[col.id].split(',');
-          } else {
-            d[col.id] = null;
-          }
+        const availableUserColumns = userColumns.filter(
+          (col) => d[col.id] && d[col.id].length,
+        );
+        for (const col of availableUserColumns) {
+          d[col.id] = d[col.id].split(',');
 
-          if (d[col.id]?.length) {
-            d[col.id] = d[col.id].map((fid) => {
-              const { id, email, display_name } = baseUsers.find(
-                (u) => u.id === fid,
-              );
-              return {
-                id,
-                email,
-                display_name: display_name?.length ? display_name : null,
-              };
-            });
-          }
+          d[col.id] = d[col.id].map((fid) => {
+            const { id, email, display_name } = baseUsers.find(
+              (u) => u.id === fid,
+            );
+            return {
+              id,
+              email,
+              display_name: display_name?.length ? display_name : null,
+            };
+          });
 
           // CreatedBy and LastModifiedBy are always singular
           if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt)) {
-            d[col.id] = d[col.id]?.[0] ?? null;
+            d[col.id] = d[col.id][0];
           }
         }
       }

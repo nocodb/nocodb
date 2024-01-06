@@ -458,6 +458,9 @@ const parseConditionV2 = async (
       ) &&
       ['like', 'nlike'].includes(filter.comparison_op)
     ) {
+      // get column name for CreatedBy, LastModifiedBy
+      column.column_name = await getColumnName(column);
+
       const baseUsers = await BaseUser.getUsersList({
         base_id: column.base_id,
       });

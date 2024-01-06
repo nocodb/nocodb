@@ -164,8 +164,12 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
         try {
           const value = JSON.parse(curr.key)
-          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${value.map((v: any) => v.id).join(',')})`
-        } catch (e) {}
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${(Array.isArray(value) ? value : [value])
+            .map((v: any) => v.id)
+            .join(',')})`
+        } catch (e) {
+          console.error(e)
+        }
       } else {
         acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
       }

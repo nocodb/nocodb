@@ -908,6 +908,9 @@ export class ImportService {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
             ...flatCol,
+            // provide column_name to avoid ajv error
+            // it will be ignored by the service
+            column_name: 'system',
             system: false,
           }) as any,
           req: param.req,

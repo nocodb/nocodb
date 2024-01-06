@@ -67,7 +67,7 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       return { icon: iconMap.datetime, color: 'text-grey' }
     case UITypes.CreatedBy:
     case UITypes.LastModifiedBy:
-      return { icon: iconMap.phUserGear, color: 'text-grey' }
+      return { icon: iconMap.phUser, color: 'text-grey' }
   }
 
   return { icon: iconMap.generic, color: 'text-grey' }

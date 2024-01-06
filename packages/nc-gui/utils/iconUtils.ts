@@ -76,7 +76,6 @@ import FileImageIcon from '~icons/nc-icons/file-image'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'
-import PhUserGear from '~icons/ph/user-gear'
 
 // Roles
 import SuperAdmin from '~icons/nc-icons/super-admin'
@@ -328,7 +327,6 @@ export const iconMap = {
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
   phUser: PhUser,
   phUsers: PhUsers,
-  phUserGear: PhUserGear,
   users: NcUsers,
   cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
   download: MsDownloadRounded,

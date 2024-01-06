@@ -683,7 +683,7 @@
     }
   },
   "activity": {
-    "setEndDate": "Set End Date",
+    "addEndDate": "Add end date",
     "withEndDate": "with end date",
     "calendar": "Calendar",
     "viewSettings": "View settings",

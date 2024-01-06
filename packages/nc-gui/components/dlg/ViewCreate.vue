@@ -37,7 +37,7 @@ interface Form {
   // for calendar view only
   calendarRange: Array<{
     fk_from_column_id: string
-    fk_to_column_id: string | null // for ee only
+    fk_to_column_id: string | undefined // for ee only
   }>
 }
 
@@ -371,7 +371,7 @@ onMounted(async () => {
         </div>
         <a
           v-if="!form.copy_from_id"
-          class="text-sm !no-underline !hover:text-brand-500 text-brand-500"
+          class="text-sm !text-gray-600 !hover:text-gray-600"
           href="https://docs.nocodb.com/views/view-types/calendar/"
           target="_blank"
         >
@@ -428,19 +428,24 @@ onMounted(async () => {
             <span>
               {{ $t('labels.organiseBy') }}
             </span>
-            <NcSelect
-              v-model:value="range.fk_from_column_id"
-              :disabled="isMetaLoading"
-              :loading="isMetaLoading"
-              :options="viewSelectFieldOptions"
-            />
+            <NcSelect v-model:value="range.fk_from_column_id" :disabled="isMetaLoading" :loading="isMetaLoading">
+              <a-select-option v-for="(option, id) in viewSelectFieldOptions" :key="id" :value="option.value">
+                <div class="flex items-center">
+                  <SmartsheetHeaderIcon :column="option" />
+                  <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
+                    <template #title>{{ option.label }}</template>
+                    {{ option.label }}
+                  </NcTooltip>
+                </div>
+              </a-select-option>
+            </NcSelect>
             <div
               v-if="range.fk_to_column_id === null && isEeUI"
-              class="cursor-pointer flex items-center gap-1 mb-1"
-              @click="range.fk_to_column_id = ''"
+              class="cursor-pointer flex items-center text-gray-800 gap-1"
+              @click="range.fk_to_column_id = undefined"
             >
               <component :is="iconMap.plus" class="h-4 w-4" />
-              {{ $t('activity.setEndDate') }}
+              {{ $t('activity.addEndDate') }}
             </div>
             <template v-else-if="isEeUI">
               <span>
@@ -451,11 +456,20 @@ onMounted(async () => {
                   v-model:value="range.fk_to_column_id"
                   :disabled="isMetaLoading"
                   :loading="isMetaLoading"
-                  :options="viewSelectFieldOptions"
                   :placeholder="$t('placeholder.notSelected')"
                   class="!rounded-r-none nc-to-select"
-                />
-                <NcButton class="!rounded-l-none" size="small" type="secondary" @click="range.fk_to_column_id = null">
+                >
+                  <a-select-option v-for="(option, id) in viewSelectFieldOptions" :key="id" :value="option.value">
+                    <div class="flex items-center">
+                      <SmartsheetHeaderIcon :column="option" />
+                      <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
+                        <template #title>{{ option.label }}</template>
+                        {{ option.label }}
+                      </NcTooltip>
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="range.fk_to_column_id = null">
                   <component :is="iconMap.delete" class="h-4 w-4" />
                 </NcButton>
               </div>
@@ -497,5 +511,9 @@ onMounted(async () => {
   &:before {
     @apply !content-[''];
   }
+}
+
+.nc-to-select .ant-select-selector {
+  @apply !rounded-r-none;
 }
 </style>

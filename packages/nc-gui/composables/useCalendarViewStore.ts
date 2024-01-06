@@ -46,8 +46,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       start: Date | null
       end: Date | null
     }>({
-      start: dayjs(selectedDate.value).startOf('week').toDate(), // This will be the previous Sunday
-      end: dayjs(selectedDate.value).startOf('week').add(6, 'day').toDate(), // This will be the following Saturday
+      start: dayjs(selectedDate.value).startOf('week').toDate(), // This will be the previous Monday
+      end: dayjs(selectedDate.value).startOf('week').add(6, 'day').toDate(), // This will be the following Sunday
     })
 
     const defaultPageSize = 25
@@ -99,110 +99,214 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return calendarRange.value[0].fk_from_col.uidt
     })
 
-    const sideBarxWhere = computed(() => {
-      if (!calendarRange.value || !calendarRange.value[0] || !calendarRange.value[0]) return ''
-      const fromCol = calendarRange.value[0].fk_from_col
-      if (!fromCol) return ''
+    const sideBarFilter = computed(() => {
+      let combinedFilters = []
 
-      let whereClause = ''
-      if (activeCalendarView.value === 'day') {
+      if (sideBarFilterOption.value === 'allRecords') {
+        combinedFilters = []
+      } else if (sideBarFilterOption.value === 'withoutDates') {
+        calendarRange.value.forEach((range) => {
+          const fromCol = range.fk_from_col
+          const toCol = range.fk_to_col
+          if (!fromCol) return
+          const filters = []
+
+          if (fromCol) {
+            filters.push({
+              fk_column_id: fromCol.id,
+              comparison_op: 'is',
+              value: 'blank',
+            })
+          }
+
+          if (toCol) {
+            filters.push({
+              fk_column_id: toCol.id,
+              comparison_op: 'is',
+              value: 'blank',
+            })
+          }
+          // Combine the filters for this range with the overall filter array
+          combinedFilters = combinedFilters.concat(filters)
+        })
+      } else if (
+        sideBarFilterOption.value === 'week' ||
+        sideBarFilterOption.value === 'month' ||
+        sideBarFilterOption.value === 'day' ||
+        sideBarFilterOption.value === 'year' ||
+        sideBarFilterOption.value === 'selectedDate'
+      ) {
+        let fromDate
+        let toDate
+
         switch (sideBarFilterOption.value) {
           case 'day':
-            whereClause = `(${fromCol.title},eq,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+            toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
             break
-          case 'withoutDates':
-            whereClause = `(${fromCol.title},is,blank)`
-            break
-          case 'allRecords':
-            whereClause = ''
-            break
-        }
-      } else if (activeCalendarView.value === 'week') {
-        switch (sideBarFilterOption.value) {
           case 'week':
-            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')})~and(${
-              fromCol.title
-            },lte,exactDate,${dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')})`
+            fromDate = dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')
+            toDate = dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')
             break
-          case 'withoutDates':
-            whereClause = `(${fromCol.title},is,blank)`
-            break
-          case 'allRecords':
-            whereClause = ''
-            break
-          case 'selectedDate':
-            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})~and(${
-              fromCol.title
-            },lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
-            break
-        }
-      } else if (activeCalendarView.value === 'month') {
-        switch (sideBarFilterOption.value) {
           case 'month':
-            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value)
-              .startOf('month')
-              .format('YYYY-MM-DD')})~and(${fromCol.title},lte,exactDate,${dayjs(selectedDate.value)
-              .endOf('month')
-              .format('YYYY-MM-DD')})`
+            fromDate = dayjs(selectedDate.value).startOf('month').format('YYYY-MM-DD')
+            toDate = dayjs(selectedDate.value).endOf('month').format('YYYY-MM-DD')
             break
-          case 'withoutDates':
-            whereClause = `(${fromCol.title},is,blank)`
-            break
-          case 'allRecords':
-            whereClause = ''
-            break
-          case 'selectedDate':
-            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})~and(${
-              fromCol.title
-            },lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
-            break
-        }
-      } else if (activeCalendarView.value === 'year') {
-        switch (sideBarFilterOption.value) {
           case 'year':
-            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value)
-              .startOf('year')
-              .format('YYYY-MM-DD')})~and(${fromCol.title},lte,exactDate,${dayjs(selectedDate.value)
-              .endOf('year')
-              .format('YYYY-MM-DD')})`
-            break
-          case 'withoutDates':
-            whereClause = `(${fromCol},is,blank)`
-            break
-          case 'allRecords':
-            whereClause = ''
+            fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
+            toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
             break
           case 'selectedDate':
-            whereClause = `(${fromCol.title},gte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})~and(${
-              fromCol.title
-            },lte,exactDate,${dayjs(selectedDate.value).format('YYYY-MM-DD')})`
+            fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+            toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
             break
         }
+
+        calendarRange.value.forEach((range) => {
+          const fromCol = range.fk_from_col
+          const toCol = range.fk_to_col
+          let rangeFilter = []
+
+          if (fromCol && toCol) {
+            rangeFilter = [
+              {
+                is_group: true,
+                logical_op: 'and',
+                children: [
+                  {
+                    is_group: true,
+                    logical_op: 'or',
+                    children: [
+                      {
+                        fk_column_id: fromCol.id,
+                        comparison_op: 'btw',
+                        comparison_sub_op: 'exactDate',
+                        value: `${fromDate},${toDate}`,
+                      },
+                      {
+                        fk_column_id: toCol.id,
+                        comparison_op: 'btw',
+                        comparison_sub_op: 'exactDate',
+                        value: `${fromDate},${toDate}`,
+                      },
+                    ],
+                  },
+                  {
+                    is_group: true,
+                    logical_op: 'or',
+                    children: [
+                      {
+                        fk_column_id: fromCol.id,
+                        comparison_op: 'lte',
+                        comparison_sub_op: 'exactDate',
+                        value: fromDate,
+                      },
+                      {
+                        fk_column_id: toCol.id,
+                        comparison_op: 'gte',
+                        comparison_sub_op: 'exactDate',
+                        value: toDate,
+                      },
+                    ],
+                  },
+                  {
+                    is_group: true,
+                    logical_op: 'or',
+                    children: [
+                      {
+                        fk_column_id: fromCol.id,
+                        comparison_op: 'gte',
+                        comparison_sub_op: 'exactDate',
+                        value: fromDate,
+                      },
+                      {
+                        fk_column_id: toCol.id,
+                        comparison_op: 'lte',
+                        comparison_sub_op: 'exactDate',
+                        value: toDate,
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                is_group: true,
+                logical_op: 'or',
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'eq',
+                    logical_op: 'or',
+                    comparison_sub_op: 'exactDate',
+                    value: fromDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'eq',
+                    logical_op: 'or',
+                    comparison_sub_op: 'exactDate',
+                    value: toDate,
+                  },
+                ],
+              },
+            ]
+          } else if (fromCol) {
+            rangeFilter = [
+              {
+                fk_column_id: fromCol.id,
+                comparison_op: 'btw',
+                comparison_sub_op: 'exactDate',
+                value: `${fromDate},${toDate}`,
+              },
+            ]
+          }
+          if (rangeFilter.length > 0) {
+            combinedFilters.push({
+              is_group: true,
+              logical_op: 'or',
+              children: rangeFilter,
+            })
+          }
+        })
       }
 
       if (displayField.value && searchQuery.value) {
-        if (whereClause.length > 0) {
-          whereClause += '~and'
+        if (combinedFilters.length > 0) {
+          combinedFilters.push({
+            is_group: true,
+            logical_op: 'and',
+            children: [
+              ...combinedFilters,
+              {
+                fk_column_id: displayField.value.id,
+                comparison_op: 'like',
+                value: searchQuery.value,
+              },
+            ],
+          })
         }
-        whereClause += `(${displayField.value.title},like,${searchQuery.value})`
       }
-      return whereClause
+
+      return combinedFilters
     })
 
     async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+      if (isSidebarLoading.value) return
 
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...{},
             ...{},
-            where: sideBarxWhere.value,
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: JSON.stringify([...sideBarFilter.value]) }
+              : { filterArrJson: JSON.stringify([nestedFilters.value, ...sideBarFilter.value]) }),
           })
         : await fetchSharedViewData({
             ...params,
             sortsArr: sorts.value,
-            filtersArr: nestedFilters.value,
+            filtersArr: [nestedFilters.value, ...sideBarFilter],
             offset: params.offset,
             where: sideBarxWhere.value,
           })
@@ -348,7 +452,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     // Set of Dates that have data
     const activeDates = computed(() => {
-      if (!formattedData.value || !calendarRange.value || !calendarRange.value[0]) return []
+      if (!formattedData.value || !calendarRange.value) return []
       const dates = new Set<Date>()
 
       formattedData.value.forEach((row) => {
@@ -359,8 +463,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
         if (start && end) {
           const startDate = dayjs(start)
-          const endDate = dayjs(end)
+          let endDate = dayjs(end)
           let currentDate = startDate
+          // We have to check whether the start is after the end date, if so, loop through the end date
+          if (startDate.isAfter(endDate)) {
+            endDate = startDate
+            currentDate = endDate
+          }
           while (currentDate.isSameOrBefore(endDate)) {
             dates.add(currentDate.toDate())
             currentDate = currentDate.add(1, 'day')
@@ -395,7 +504,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     async function loadCalendarMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      // TODO: Fetch Calendar Meta
       const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
       calendarMetaData.value = res
       activeCalendarView.value = typeof res.meta === 'string' ? JSON.parse(res.meta)?.active_view : res.meta?.active_view
@@ -414,7 +522,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
             where: where?.value ?? '',
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: [nestedFilters.value, ...filterJSON] })
       formattedData.value = formatData(res!.list)
       isCalendarDataLoading.value = false
     }
@@ -466,13 +574,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const loadSidebarData = async () => {
+      console.log('loadSidebarData', sideBarFilter.value)
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
       isSidebarLoading.value = true
       const res = await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
         ...queryParams.value,
         ...{},
-        where: sideBarxWhere?.value,
-        ignoreViewFilters: true,
+        ...{},
+        ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
       })
 
       formattedSideBarData.value = formatData(res!.list)

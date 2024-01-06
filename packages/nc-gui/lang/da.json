@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "Følgende tegn er ikke tilladt",
       "columnNameRequired": "Kolonnens navn er påkrævet",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "Længden af kolonnenavnet overstiger maks. {value} tegn",
       "projectNameExceeds50Characters": "Projektnavnet overstiger 50 tegn",

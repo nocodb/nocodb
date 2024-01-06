@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "以下字元不允許",
       "columnNameRequired": "欄位名稱必填",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "專案名稱超過 50 個字元",

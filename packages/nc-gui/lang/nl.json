@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "De volgende tekens zijn niet toegestaan",
       "columnNameRequired": "Kolomnaam is verplicht",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projectnaam meer dan 50 tekens",

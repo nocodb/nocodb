@@ -43,6 +43,8 @@ const hiddenColTypes = [
   UITypes.SpecificDBType,
   UITypes.CreatedTime,
   UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
 ]
 
 const { isMobileMode, user } = useGlobal()

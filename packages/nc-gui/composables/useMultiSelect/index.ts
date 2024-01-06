@@ -112,7 +112,7 @@ export function useMultiSelect(
       textToCopy = !!textToCopy
     }
 
-    if (columnObj.uidt === UITypes.User) {
+    if (columnObj.uidt === UITypes.User || columnObj.uidt === UITypes.CreatedBy || columnObj.uidt === UITypes.LastModifiedBy) {
       if (textToCopy && Array.isArray(textToCopy)) {
         textToCopy = textToCopy
           .map((user: UserFieldRecordType) => {

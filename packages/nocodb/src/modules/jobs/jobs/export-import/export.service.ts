@@ -454,6 +454,8 @@ export class ExportService {
                 }
                 break;
               case UITypes.User:
+              case UITypes.CreatedBy:
+              case UITypes.LastModifiedBy:
                 if (v) {
                   const userIds = [];
                   for (const user of v as { id: string }[]) {

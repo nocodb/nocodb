@@ -453,7 +453,9 @@ const parseConditionV2 = async (
         builder,
       );
     } else if (
-      column.uidt === UITypes.User &&
+      [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+        column.uidt,
+      ) &&
       ['like', 'nlike'].includes(filter.comparison_op)
     ) {
       const baseUsers = await BaseUser.getUsersList({

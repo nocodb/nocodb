@@ -8,6 +8,7 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
@@ -103,7 +104,11 @@ function checkColumnRequired(
 }
 
 export async function getColumnName(column: Column<any>, columns?: Column[]) {
-  if (!isCreatedOrLastModifiedTimeCol(column)) return column.column_name;
+  if (
+    !isCreatedOrLastModifiedTimeCol(column) &&
+    !isCreatedOrLastModifiedByCol(column)
+  )
+    return column.column_name;
   columns = columns || (await Column.list({ fk_model_id: column.fk_model_id }));
 
   switch (column.uidt) {
@@ -121,6 +126,20 @@ export async function getColumnName(column: Column<any>, columns?: Column[]) {
       if (lastModifiedTimeSystemCol)
         return lastModifiedTimeSystemCol.column_name;
       return column.column_name || 'updated_at';
+    }
+    case UITypes.CreatedBy: {
+      const createdBySystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.CreatedBy,
+      );
+      if (createdBySystemCol) return createdBySystemCol.column_name;
+      return column.column_name || 'created_by';
+    }
+    case UITypes.LastModifiedBy: {
+      const lastModifiedBySystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.LastModifiedBy,
+      );
+      if (lastModifiedBySystemCol) return lastModifiedBySystemCol.column_name;
+      return column.column_name || 'updated_by';
     }
     default:
       return column.column_name;
@@ -739,7 +758,16 @@ class BaseModelSqlv2 {
 
       const column = groupByColumns[sort.fk_column_id];
 
-      if (column.uidt === UITypes.User) {
+      if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          column.uidt as UITypes,
+        )
+      ) {
+        const columnName = await getColumnName(
+          column,
+          await this.model.getColumns(),
+        );
+
         const baseUsers = await BaseUser.getUsersList({
           base_id: column.base_id,
         });
@@ -751,7 +779,7 @@ class BaseModelSqlv2 {
             user.display_name || user.email,
           ]);
           return qb.toQuery();
-        }, this.dbDriver.raw(`??`, [column.column_name]).toQuery());
+        }, this.dbDriver.raw(`??`, [columnName]).toQuery());
 
         qb.orderBy(
           sanitize(this.dbDriver.raw(finalStatement)),
@@ -2314,6 +2342,18 @@ class BaseModelSqlv2 {
             ).builder.as(sanitize(column.id)),
           );
           break;
+        case UITypes.CreatedBy:
+        case UITypes.LastModifiedBy: {
+          const columnName = await getColumnName(
+            column,
+            await this.model.getColumns(),
+          );
+
+          res[sanitize(column.id || columnName)] = sanitize(
+            `${alias || this.tnPath}.${columnName}`,
+          );
+          break;
+        }
         default:
           if (this.isPg) {
             if (column.dt === 'bytea') {
@@ -2368,7 +2408,7 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareNocoData(insertObj, true);
+      await this.prepareNocoData(insertObj, true, cookie);
 
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -2613,7 +2653,7 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      await this.prepareNocoData(updateObj);
+      await this.prepareNocoData(updateObj, false, cookie);
 
       const prevData = await this.readByPk(
         id,
@@ -2734,7 +2774,7 @@ class BaseModelSqlv2 {
 
       await this.beforeInsert(insertObj, this.dbDriver, cookie);
 
-      await this.prepareNocoData(insertObj, true);
+      await this.prepareNocoData(insertObj, true, cookie);
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
@@ -2962,7 +3002,11 @@ class BaseModelSqlv2 {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (col.title in d && isCreatedOrLastModifiedTimeCol(col)) {
+            if (
+              col.title in d &&
+              (isCreatedOrLastModifiedTimeCol(col) ||
+                isCreatedOrLastModifiedByCol(col))
+            ) {
               NcError.badRequest(
                 `Column "${col.title}" is auto generated and cannot be updated`,
               );
@@ -3085,7 +3129,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.prepareNocoData(insertObj, true);
+          await this.prepareNocoData(insertObj, true, cookie);
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
@@ -3229,7 +3273,7 @@ class BaseModelSqlv2 {
           continue;
         }
         if (!raw) {
-          await this.prepareNocoData(d);
+          await this.prepareNocoData(d, false, cookie);
 
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {
@@ -3847,7 +3891,11 @@ class BaseModelSqlv2 {
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
 
-      if (column.title in data && isCreatedOrLastModifiedTimeCol(column)) {
+      if (
+        column.title in data &&
+        (isCreatedOrLastModifiedTimeCol(column) ||
+          isCreatedOrLastModifiedByCol(column))
+      ) {
         NcError.badRequest(
           `Column "${column.title}" is auto generated and cannot be updated`,
         );
@@ -4018,13 +4066,15 @@ class BaseModelSqlv2 {
             );
           }
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [childId],
+            cookie,
           });
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: childTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -4046,9 +4096,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -4070,9 +4121,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [childId],
+            cookie,
           });
         }
         break;
@@ -4168,13 +4220,15 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [childId],
+            cookie,
           });
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: childTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -4194,9 +4248,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -4216,9 +4271,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [childId],
+            cookie,
           });
         }
         break;
@@ -4666,11 +4722,19 @@ class BaseModelSqlv2 {
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedUidt(col)) === UITypes.User) {
+          if (
+            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              (await this.getNestedUidt(col)) as UITypes,
+            )
+          ) {
             userColumns.push(col);
           }
         } else {
-          if (col.uidt === UITypes.User) {
+          if (
+            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              col.uidt,
+            )
+          ) {
             userColumns.push(col);
           }
         }
@@ -5130,13 +5194,15 @@ class BaseModelSqlv2 {
             raw: true,
           });
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: childIds,
+            cookie,
           });
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: childTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -5213,9 +5279,10 @@ class BaseModelSqlv2 {
           }
           await this.execAndParse(updateQb, null, { raw: true });
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -5260,9 +5327,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -5406,13 +5474,15 @@ class BaseModelSqlv2 {
           );
           await this.execAndParse(delQb, null, { raw: true });
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: childIds,
+            cookie,
           });
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: childTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -5495,9 +5565,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
+            cookie,
           });
         }
         break;
@@ -5545,9 +5616,10 @@ class BaseModelSqlv2 {
             { raw: true },
           );
 
-          await this.updateLastModifiedTime({
+          await this.updateLastModified({
             model: parentTable,
             rowIds: [childIds[0]],
+            cookie,
           });
         }
         break;
@@ -5634,26 +5706,40 @@ class BaseModelSqlv2 {
     }
   }
 
-  async updateLastModifiedTime({
+  async updateLastModified({
     rowIds,
+    cookie,
     model = this.model,
     knex = this.dbDriver,
   }: {
     rowIds: any | any[];
+    cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
   }) {
-    const columnName = await model.getColumns().then((columns) => {
-      return columns.find(
-        (c) => c.uidt === UITypes.LastModifiedTime && c.system,
-      )?.column_name;
-    });
+    const columns = await model.getColumns();
 
-    if (!columnName) return;
+    const updateObject = {};
 
-    const qb = knex(model.table_name).update({
-      [columnName]: Noco.ncMeta.now(),
-    });
+    const lastModifiedTimeColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    );
+
+    const lastModifiedByColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    );
+
+    if (lastModifiedTimeColumn) {
+      updateObject[lastModifiedTimeColumn.column_name] = Noco.ncMeta.now();
+    }
+
+    if (lastModifiedByColumn) {
+      updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (Object.keys(updateObject).length === 0) return;
+
+    const qb = knex(model.table_name).update(updateObject);
 
     for (const rowId of Array.isArray(rowIds) ? rowIds : [rowIds]) {
       qb.orWhere(await this._wherePk(rowId));
@@ -5662,7 +5748,7 @@ class BaseModelSqlv2 {
     await this.execAndParse(qb, null, { raw: true });
   }
 
-  async prepareNocoData(data, isInsertData = false) {
+  async prepareNocoData(data, isInsertData = false, cookie?: { user?: any }) {
     if (
       this.model.columns.some((c) =>
         [
@@ -5670,19 +5756,25 @@ class BaseModelSqlv2 {
           UITypes.User,
           UITypes.CreatedTime,
           UITypes.LastModifiedTime,
+          UITypes.CreatedBy,
+          UITypes.LastModifiedBy,
         ].includes(c.uidt),
       )
     ) {
       for (const column of this.model.columns) {
-        if (
-          isInsertData &&
-          column.uidt === UITypes.CreatedTime &&
-          column.system
-        ) {
-          data[column.column_name] = Noco.ncMeta.now();
-        }
-        if (column.uidt === UITypes.LastModifiedTime && column.system) {
-          data[column.column_name] = isInsertData ? null : Noco.ncMeta.now();
+        if (column.system) {
+          if (isInsertData) {
+            if (column.uidt === UITypes.CreatedTime) {
+              data[column.column_name] = Noco.ncMeta.now();
+            } else if (column.uidt === UITypes.CreatedBy) {
+              data[column.column_name] = cookie?.user?.id;
+            }
+          }
+          if (column.uidt === UITypes.LastModifiedTime) {
+            data[column.column_name] = isInsertData ? null : Noco.ncMeta.now();
+          } else if (column.uidt === UITypes.LastModifiedBy) {
+            data[column.column_name] = isInsertData ? null : cookie?.user?.id;
+          }
         }
         if (column.uidt === UITypes.Attachment) {
           if (data[column.column_name]) {
@@ -5699,7 +5791,11 @@ class BaseModelSqlv2 {
               }
             }
           }
-        } else if (column.uidt === UITypes.User) {
+        } else if (
+          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+            column.uidt,
+          )
+        ) {
           if (data[column.column_name]) {
             const userIds = [];
 

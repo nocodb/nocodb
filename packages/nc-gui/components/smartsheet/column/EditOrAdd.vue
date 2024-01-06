@@ -86,6 +86,8 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.Links,
   UITypes.CreatedTime,
   UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
 ]
 
 // To close column type dropdown on escape and

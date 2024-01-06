@@ -171,7 +171,9 @@ export async function serializeCellValue({
         )
         .join(', ');
     }
-    case UITypes.User: {
+    case UITypes.User:
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy: {
       let data = value;
       try {
         if (typeof value === 'string') {

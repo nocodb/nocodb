@@ -192,6 +192,8 @@ const shouldRenderCell = (column) =>
     UITypes.DateTime,
     UITypes.CreatedTime,
     UITypes.LastModifiedTime,
+    UITypes.CreatedBy,
+    UITypes.LastModifiedBy,
   ].includes(column?.uidt)
 </script>
 

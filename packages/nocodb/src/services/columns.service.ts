@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
@@ -173,6 +174,7 @@ export class ColumnsService {
     if (
       !isVirtualCol(param.column) &&
       !isCreatedOrLastModifiedTimeCol(param.column) &&
+      !isCreatedOrLastModifiedByCol(param.column) &&
       !(await Column.checkTitleAvailable({
         column_name: param.column.column_name,
         fk_model_id: column.fk_model_id,
@@ -198,6 +200,7 @@ export class ColumnsService {
     };
     if (
       isCreatedOrLastModifiedTimeCol(column) ||
+      isCreatedOrLastModifiedByCol(column) ||
       [
         UITypes.Lookup,
         UITypes.Rollup,
@@ -296,7 +299,12 @@ export class ColumnsService {
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
       );
     } else if (
-      [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(colBody.uidt)
+      [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ].includes(colBody.uidt)
     ) {
       // allow updating of title only
       await Column.update(param.columnId, {
@@ -1687,6 +1695,8 @@ export class ColumnsService {
         break;
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy:
         {
           let columnName: string;
           const columns = await table.getColumns();
@@ -1697,10 +1707,26 @@ export class ColumnsService {
           );
 
           if (!existingColumn) {
-            columnName =
-              colBody.uidt === UITypes.CreatedTime
-                ? 'created_at'
-                : 'updated_at';
+            let columnTitle;
+
+            switch (colBody.uidt) {
+              case UITypes.CreatedTime:
+                columnName = 'created_at';
+                columnTitle = 'CreatedAt';
+                break;
+              case UITypes.LastModifiedTime:
+                columnName = 'updated_at';
+                columnTitle = 'UpdatedAt';
+                break;
+              case UITypes.CreatedBy:
+                columnName = 'created_by';
+                columnTitle = 'CreatedBy';
+                break;
+              case UITypes.LastModifiedBy:
+                columnName = 'updated_by';
+                columnTitle = 'UpdatedBy';
+                break;
+            }
 
             // todo:  check type as well
             const dbColumn = columns.find((c) => c.column_name === columnName);
@@ -1741,10 +1767,7 @@ export class ColumnsService {
               await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
             }
 
-            const title = getUniqueColumnAliasName(
-              table.columns,
-              UITypes.CreatedTime ? 'CreatedAt' : 'UpdatedAt',
-            );
+            const title = getUniqueColumnAliasName(table.columns, columnTitle);
 
             await Column.insert({
               ...colBody,
@@ -2209,9 +2232,11 @@ export class ColumnsService {
         /* falls through to default */
       }
 
-      // on delete create time or last modified time, keep the column in table and delete the column from meta
+      // on deleting created/last modified columns, keep the column in table and delete the column from meta
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy:
         {
           await Column.delete(param.columnId, ncMeta);
         }

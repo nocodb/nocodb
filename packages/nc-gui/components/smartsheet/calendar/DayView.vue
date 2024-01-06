@@ -179,21 +179,8 @@ const getRecordStyle = (record: Row) => {
   const endCol = calendarRange.value[0].fk_to_col.title
   const scheduleStart = dayjs(selectedDate.value).startOf('day')
   const scheduleEnd = dayjs(selectedDate.value).endOf('day')
-  let startDate = dayjs(record.row[startCol])
-  let endDate = dayjs(record.row[endCol])
-
-  if (endDate.isAfter(startDate)) {
-    const diff = endDate.diff(startDate)
-    endDate = startDate
-    startDate = endDate.subtract(diff)
-  }
-
-  if (startDate.isBefore(scheduleStart)) {
-    startDate = scheduleStart
-  }
-  if (endDate.isAfter(scheduleEnd)) {
-    endDate = scheduleEnd
-  }
+  const startDate = dayjs(record.row[startCol])
+  const endDate = dayjs(record.row[endCol])
 
   const scaleMin = (scheduleEnd - scheduleStart) / 60000
   const startMinutes = Math.max((startDate - scheduleStart) / 60000, 0)

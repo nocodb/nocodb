@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 import { UITypes } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 import { computed, ref } from '#imports'
 
 const props = defineProps<{
@@ -162,7 +163,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         <template v-else-if="formattedSideBarData.length > 0">
           <LazySmartsheetRow v-for="(record, rowIndex) in formattedSideBarData" :key="rowIndex" :row="record">
             <LazySmartsheetCalendarSideRecordCard
-              :date="record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']"
+              :date="dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('YYYY-MM-DD HH:mm')"
               :name="record.row[displayField.title]"
               color="blue"
               @click="emit('expand-record', record)"

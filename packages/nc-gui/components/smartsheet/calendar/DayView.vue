@@ -116,7 +116,8 @@ const hours = computed<dayjs.Dayjs>(() => {
         .millisecond(0)
         .year(selectedDate.value.getFullYear())
         .month(selectedDate.value.getMonth())
-        .date(selectedDate.value.getDate()),
+        .date(selectedDate.value.getDate())
+        .toDate(),
     )
   }
   return hours
@@ -294,8 +295,8 @@ const dropEvent = (event: DragEvent) => {
     >
       <div ref="container" class="relative" @drop="dropEvent($event)">
         <div
-          v-for="hour in hours"
-          :key="hour"
+          v-for="(hour, index) in hours"
+          :key="index"
           :class="{
             '!border-brand-500': dayjs(hour).isSame(selectedTime) && !props.isEmbed,
           }"
@@ -307,7 +308,7 @@ const dropEvent = (event: DragEvent) => {
           "
         >
           <div
-            v-if="isEmbed && dayjs(hour).isSame(dayjs(selectedDateRange.start), 'day')"
+            v-if="(isEmbed && dayjs(hour).isSame(dayjs(selectedDateRange.start), 'day')) || !isEmbed"
             class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20"
           >
             {{ dayjs(hour).format('H A') }}

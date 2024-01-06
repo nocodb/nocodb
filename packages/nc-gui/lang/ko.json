@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "다음 문자는 허용되지 않습니다.",
       "columnNameRequired": "컬럼 이름이 필요합니다.",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "열 이름의 길이가 최대 {value}자를 초과합니다.",
       "projectNameExceeds50Characters": "프로젝트 이름의 길이가 최대 50자를 초과합니다.",

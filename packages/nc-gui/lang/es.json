@@ -1274,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "Los siguientes caracteres no están permitidos",
       "columnNameRequired": "El nombre de la columna es obligatorio",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "El nombre del proyecto supera los 50 caracteres",

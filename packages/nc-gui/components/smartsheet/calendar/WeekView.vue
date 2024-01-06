@@ -37,7 +37,7 @@ const getData = (date: Date) => {
       </div>
     </div>
     <div class="flex overflow-auto nc-scrollbar-md h-[calc(100vh-12rem)]">
-      <div v-for="date in weekDates" :key="date.toISOString()" class="flex flex-col items-center w-1/7">
+      <!--      <div v-for="date in weekDates" :key="date.toISOString()" class="flex flex-col items-center w-1/7">
         <LazySmartsheetCalendarDayView
           :data="getData(date)"
           :is-embed="true"
@@ -48,7 +48,7 @@ const getData = (date: Date) => {
             }
           "
         />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

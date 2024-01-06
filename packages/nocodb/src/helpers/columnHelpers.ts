@@ -295,9 +295,14 @@ export const getRefColumnIfAlias = async (
   columns?: Column[],
 ) => {
   if (
-    !([UITypes.CreatedTime, UITypes.LastModifiedTime] as UITypes[]).includes(
-      column.uidt,
-    )
+    !(
+      [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ] as UITypes[]
+    ).includes(column.uidt)
   )
     return column;
 

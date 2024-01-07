@@ -5,6 +5,8 @@ import Debug from '~/db/util/Debug';
 
 const log = new Debug('MysqlClient');
 
+const isKnexWrapped = Symbol('isKnexWrapped');
+
 async function runExternal(query: string, config: any) {
   const { dbMux, sourceId, ...rest } = config;
   try {
@@ -26,31 +28,34 @@ class MysqlClient extends MysqlClientCE {
   constructor(connectionConfig) {
     super(connectionConfig);
 
-    const knexRaw = this.sqlClient.raw;
+    if (!this.sqlClient[isKnexWrapped]) {
+      const knexRaw = this.sqlClient.raw;
 
-    const self = this;
+      this.sqlClient[isKnexWrapped] = true;
+      const self = this;
 
-    Object.defineProperties(this.sqlClient, {
-      raw: {
-        enumerable: true,
-        value: function (...args) {
-          const builder = knexRaw.apply(this, args);
+      Object.defineProperties(this.sqlClient, {
+        raw: {
+          enumerable: true,
+          value: function (...args) {
+            const builder = knexRaw.apply(this, args);
 
-          const originalThen = builder.then;
+            const originalThen = builder.then;
 
-          builder.then = function (onFulfilled, onRejected) {
-            if (self.sqlClient && self.sqlClient.isExternal) {
-              return runExternal(builder.toQuery(), self.sqlClient.extDb)
-                .then(onFulfilled)
-                .catch(onRejected);
-            }
-            return originalThen.call(builder, onFulfilled, onRejected);
-          };
+            builder.then = function (onFulfilled, onRejected) {
+              if (self.sqlClient && self.sqlClient.isExternal) {
+                return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                  .then(onFulfilled)
+                  .catch(onRejected);
+              }
+              return originalThen.call(builder, onFulfilled, onRejected);
+            };
 
-          return builder;
+            return builder;
+          },
         },
-      },
-    });
+      });
+    }
   }
 
   /**

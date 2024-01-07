@@ -29,9 +29,9 @@ class MysqlClient extends MysqlClientCE {
     super(connectionConfig);
 
     if (!this.sqlClient[isKnexWrapped]) {
-      const knexRaw = this.sqlClient.raw;
-
       this.sqlClient[isKnexWrapped] = true;
+
+      const knexRaw = this.sqlClient.raw;
       const self = this;
 
       Object.defineProperties(this.sqlClient, {

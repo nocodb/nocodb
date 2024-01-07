@@ -32,9 +32,9 @@ class PGClient extends PGClientCE {
     super(connectionConfig);
 
     if (!this.sqlClient[isKnexWrapped]) {
+      this.sqlClient[isKnexWrapped] = true;
 
       const knexRaw = this.sqlClient.raw;
-      this.sqlClient[isKnexWrapped] = true;
       const self = this;
 
       Object.defineProperties(this.sqlClient, {

@@ -6,8 +6,8 @@ import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
+import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
 
 Handlebars.registerHelper('json', function (context) {
@@ -39,106 +39,22 @@ export async function validateCondition(
     return true;
   }
 
-  let isValid = true;
+  let isValid = null;
   for (const _filter of filters) {
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
     const column = await filter.getColumn();
     const field = column.title;
     let val = data[field];
-    switch (typeof filter.value) {
-      case 'boolean':
-        val = !!data[field];
-        break;
-      case 'number':
-        val = +data[field];
-        break;
-    }
-    switch (filter.comparison_op) {
-      case 'eq':
-        res = val == filter.value;
-        break;
-      case 'neq':
-        res = val != filter.value;
-        break;
-      case 'like':
-        res =
-          data[field]
-            ?.toString?.()
-            ?.toLowerCase()
-            ?.indexOf(filter.value?.toLowerCase()) > -1;
-        break;
-      case 'nlike':
-        res =
-          data[field]
-            ?.toString?.()
-            ?.toLowerCase()
-            ?.indexOf(filter.value?.toLowerCase()) === -1;
-        break;
-      case 'empty':
-      case 'blank':
-        res =
-          data[field] === '' ||
-          data[field] === null ||
-          data[field] === undefined;
-        break;
-      case 'notempty':
-      case 'notblank':
-        res = !(
-          data[field] === '' ||
-          data[field] === null ||
-          data[field] === undefined
-        );
-        break;
-      case 'checked':
-        res = !!data[field];
-        break;
-      case 'notchecked':
-        res = !data[field];
-        break;
-      case 'null':
-        res = res = data[field] === null;
-        break;
-      case 'notnull':
-        res = data[field] !== null;
-        break;
-      case 'allof':
-        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every(
-          (item) => (data[field]?.split(',') ?? []).includes(item),
-        );
-        break;
-      case 'anyof':
-        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some(
-          (item) => (data[field]?.split(',') ?? []).includes(item),
-        );
-        break;
-      case 'nallof':
-        res = !(
-          filter.value?.split(',').map((item) => item.trim()) ?? []
-        ).every((item) => (data[field]?.split(',') ?? []).includes(item));
-        break;
-      case 'nanyof':
-        res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some(
-          (item) => (data[field]?.split(',') ?? []).includes(item),
-        );
-        break;
-      case 'lt':
-        res = +data[field] < +filter.value;
-        break;
-      case 'lte':
-      case 'le':
-        res = +data[field] <= +filter.value;
-        break;
-      case 'gt':
-        res = +data[field] > +filter.value;
-        break;
-      case 'gte':
-      case 'ge':
-        res = +data[field] >= +filter.value;
-        break;
-    }
 
-    if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+    if (
+      [
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(column.uidt)
+    ) {
       const dateFormat =
         client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
 
@@ -151,6 +67,8 @@ export async function validateCondition(
         now = dayjs(now).date(1);
         if (val) val = dayjs(val).date(1);
       }
+      if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day');
+
       // handle sub operation
       switch (filter.comparison_sub_op) {
         case 'today':
@@ -215,30 +133,137 @@ export async function validateCondition(
       }
 
       if (dayjs.isDayjs(filterVal)) {
-        // turn `filterVal` in dayjs object format to string
-        filterVal = filterVal.format(dateFormat).toString();
-        // keep YYYY-MM-DD only for date
-        filterVal =
-          column.uidt === UITypes.Date ? filterVal.substring(0, 10) : filterVal;
+        res = filterVal.isSame(dataVal, 'day');
       }
 
-      return dataVal === filterVal;
+      switch (filter.comparison_op) {
+        case 'isWithin': {
+          let now = dayjs(new Date()).format(dateFormat).toString();
+          now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
+          switch (filter.comparison_sub_op) {
+            case 'pastWeek':
+            case 'pastMonth':
+            case 'pastYear':
+            case 'pastNumberOfDays':
+              res = dayjs(dataVal).isBetween(filterVal, now, 'day');
+              break;
+            case 'nextWeek':
+            case 'nextMonth':
+            case 'nextYear':
+            case 'nextNumberOfDays':
+              res = dayjs(dataVal).isBetween(now, filterVal, 'day');
+              break;
+          }
+        }
+      }
+    } else {
+      switch (typeof filter.value) {
+        case 'boolean':
+          val = !!data[field];
+          break;
+        case 'number':
+          val = +data[field];
+          break;
+      }
+
+      switch (filter.comparison_op) {
+        case 'eq':
+          res = val == filter.value;
+          break;
+        case 'neq':
+          res = val != filter.value;
+          break;
+        case 'like':
+          res =
+            data[field]
+              ?.toString?.()
+              ?.toLowerCase()
+              ?.indexOf(filter.value?.toLowerCase()) > -1;
+          break;
+        case 'nlike':
+          res =
+            data[field]
+              ?.toString?.()
+              ?.toLowerCase()
+              ?.indexOf(filter.value?.toLowerCase()) === -1;
+          break;
+        case 'empty':
+        case 'blank':
+          res =
+            data[field] === '' ||
+            data[field] === null ||
+            data[field] === undefined;
+          break;
+        case 'notempty':
+        case 'notblank':
+          res = !(
+            data[field] === '' ||
+            data[field] === null ||
+            data[field] === undefined
+          );
+          break;
+        case 'checked':
+          res = !!data[field];
+          break;
+        case 'notchecked':
+          res = !data[field];
+          break;
+        case 'null':
+          res = res = data[field] === null;
+          break;
+        case 'notnull':
+          res = data[field] !== null;
+          break;
+        case 'allof':
+          res = (
+            filter.value?.split(',').map((item) => item.trim()) ?? []
+          ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+          break;
+        case 'anyof':
+          res = (
+            filter.value?.split(',').map((item) => item.trim()) ?? []
+          ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+          break;
+        case 'nallof':
+          res = !(
+            filter.value?.split(',').map((item) => item.trim()) ?? []
+          ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+          break;
+        case 'nanyof':
+          res = !(
+            filter.value?.split(',').map((item) => item.trim()) ?? []
+          ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+          break;
+        case 'lt':
+          res = +data[field] < +filter.value;
+          break;
+        case 'lte':
+        case 'le':
+          res = +data[field] <= +filter.value;
+          break;
+        case 'gt':
+          res = +data[field] > +filter.value;
+          break;
+        case 'gte':
+        case 'ge':
+          res = +data[field] >= +filter.value;
+          break;
+      }
     }
 
     switch (filter.logical_op) {
       case 'or':
-        isValid = isValid || res;
+        isValid = isValid || !!res;
         break;
       case 'not':
         isValid = isValid && !res;
         break;
       case 'and':
       default:
-        isValid = isValid && res;
+        isValid = (isValid ?? true) && res;
         break;
     }
   }
-
   return isValid;
 }
 

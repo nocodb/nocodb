@@ -5,6 +5,8 @@ import Debug from '~/db/util/Debug';
 
 const log = new Debug('MysqlClient');
 
+const isKnexWrapped = Symbol('isKnexWrapped');
+
 async function runExternal(query: string, config: any) {
   const { dbMux, sourceId, ...rest } = config;
   try {
@@ -22,7 +24,6 @@ async function runExternal(query: string, config: any) {
   }
 }
 
-const isKnexWrapped = Symbol('isKnexWrapped');
 class MysqlClient extends MysqlClientCE {
   constructor(connectionConfig) {
     super(connectionConfig);

@@ -8,8 +8,12 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   let env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-  if (process.env.PLAYWRIGHT) {
+  if (process.env.CI || process.env.PLAYWRIGHT) {
     env = 'playwright'
+  }
+
+  if (env !== 'production' && !process.env.NC_ENABLE_DEV_SENTRY) {
+    return
   }
 
   Sentry.init({

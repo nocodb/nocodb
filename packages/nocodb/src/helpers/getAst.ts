@@ -13,7 +13,13 @@ import type {
   Model,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { CalendarView, GalleryView, KanbanView, View } from '~/models';
+import {
+  CalendarRange,
+  CalendarView,
+  GalleryView,
+  KanbanView,
+  View,
+} from '~/models';
 
 const getAst = async ({
   query,

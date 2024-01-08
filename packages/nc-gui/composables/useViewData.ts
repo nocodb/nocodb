@@ -211,7 +211,8 @@ export function useViewData(
       if (error.code === 'ERR_CANCELED') {
         return
       }
-      throw error
+      console.error(error)
+      return message.error(await extractSdkResponseErrorMsg(error))
     }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -238,10 +239,13 @@ export function useViewData(
 
   async function changePage(page: number) {
     paginationData.value.page = page
-    await loadData({
-      offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
-      where: where?.value,
-    } as any)
+    await loadData(
+      {
+        offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
+        where: where?.value,
+      } as any,
+      true,
+    )
   }
 
   const {

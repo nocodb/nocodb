@@ -146,6 +146,11 @@ export class AtImportProcessor {
       this.debugLog(log);
     };
 
+    const logWarning = (log) => {
+      this.jobsLogService.sendLog(job, { message: `WARNING: ${log}` });
+      this.debugLog(log);
+    };
+
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
       this.debugLog(log);
@@ -291,7 +296,7 @@ export class AtImportProcessor {
       rating: UITypes.Rating,
       formula: UITypes.Formula,
       rollup: UITypes.Rollup,
-      count: UITypes.Count,
+      count: UITypes.Rollup,
       lookup: UITypes.Lookup,
       autoNumber: UITypes.AutoNumber,
       barcode: UITypes.SingleLineText,
@@ -1091,7 +1096,7 @@ export class AtImportProcessor {
         ARRAYCOMPACT: '',
         ARRAYJOIN: '',
         ARRAYUNIQUE: '',
-        AVERAGE: 'average',
+        AVERAGE: 'avg',
         CONCATENATE: '',
         COUNT: 'count',
         COUNTA: '',
@@ -1197,35 +1202,41 @@ export class AtImportProcessor {
 
             logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
             const _perfStart = recordPerfStart();
-            const ncTbl: any = await this.columnsService.columnAdd({
-              tableId: srcTableId,
-              column: {
-                uidt: UITypes.Rollup,
-                title: ncName.title,
-                column_name: ncName.column_name,
-                fk_relation_column_id: ncRelationColumnId,
-                fk_rollup_column_id: ncRollupColumnId,
-                rollup_function: ncRollupFn,
-              },
-              req: {
-                user: syncDB.user.email,
-                clientIp: '',
-              },
-              user: syncDB.user,
-            });
-            recordPerfStats(_perfStart, 'dbTableColumn.create');
+            try {
+              const ncTbl: any = await this.columnsService.columnAdd({
+                tableId: srcTableId,
+                column: {
+                  uidt: UITypes.Rollup,
+                  title: ncName.title,
+                  column_name: ncName.column_name,
+                  fk_relation_column_id: ncRelationColumnId,
+                  fk_rollup_column_id: ncRollupColumnId,
+                  rollup_function: ncRollupFn,
+                },
+                req: {
+                  user: syncDB.user.email,
+                  clientIp: '',
+                },
+                user: syncDB.user,
+              });
+              recordPerfStats(_perfStart, 'dbTableColumn.create');
 
-            updateNcTblSchema(ncTbl);
+              updateNcTblSchema(ncTbl);
 
-            const ncId = ncTbl.columns.find(
-              (x) => x.title === aTblColumns[i].name,
-            )?.id;
-            await sMap.addToMappingTbl(
-              aTblColumns[i].id,
-              ncId,
-              aTblColumns[i].name,
-              ncTbl.id,
-            );
+              const ncId = ncTbl.columns.find(
+                (x) => x.title === aTblColumns[i].name,
+              )?.id;
+              await sMap.addToMappingTbl(
+                aTblColumns[i].id,
+                ncId,
+                aTblColumns[i].name,
+                ncTbl.id,
+              );
+            } catch (e) {
+              logWarning(
+                `Skipped creating rollup column ${aTblColumns[i].name} :: ${e.message}`,
+              );
+            }
           }
         }
       }
@@ -1803,9 +1814,14 @@ export class AtImportProcessor {
               },
               req: { user: syncDB.user, clientIp: '' },
             })
-            .catch((e) =>
-              e.message ? logBasic(`NOTICE: ${e.message}`) : console.log(e),
-            ),
+            .catch((e) => {
+              if (e.message) {
+                // TODO enable after fixing user invite role issue
+                // logWarning(e.message);
+              } else {
+                console.log(e);
+              }
+            }),
         );
         recordPerfStats(_perfStart, 'auth.baseUserAdd');
       }
@@ -2097,12 +2113,16 @@ export class AtImportProcessor {
         // insert filters
         for (let i = 0; i < ncFilters.length; i++) {
           const _perfStart = recordPerfStart();
-          await this.filtersService.filterCreate({
-            viewId: viewId,
-            filter: ncFilters[i],
-            user: syncDB.user,
-            req: {},
-          });
+          try {
+            await this.filtersService.filterCreate({
+              viewId: viewId,
+              filter: ncFilters[i],
+              user: syncDB.user,
+              req: {},
+            });
+          } catch (e) {
+            logWarning(`Skipped creating filter for ${viewId} :: ${e.message}`);
+          }
           recordPerfStats(_perfStart, 'dbTableFilter.create');
 
           rtc.filter++;

@@ -117,10 +117,6 @@ const fields = computed<TableExplorerColumn[]>({
   },
 })
 
-const _fields = computed(() => {
-  return fields.value
-})
-
 // Current Selected Field
 const activeField = ref()
 
@@ -465,7 +461,7 @@ const isColumnValid = (column: TableExplorerColumn) => {
   return true
 }
 
-const updateDefaultColumnValues = (column: TableExplorerColumn) => {
+function updateDefaultColumnValues(column: TableExplorerColumn) {
   if (column.uidt === UITypes.QrCode && column.colOptions?.fk_qr_value_column_id) {
     if (!column?.fk_qr_value_column_id) {
       column.fk_qr_value_column_id = column.colOptions.fk_qr_value_column_id
@@ -585,7 +581,7 @@ const saveChanges = async () => {
           view_id: view.value?.id as string,
         }
       }
-      
+
       if (op && op.op === 'update') {
         op.column.column_order = {
           order: mop.order,
@@ -623,7 +619,7 @@ const saveChanges = async () => {
     if (res) {
       ops.value =
         res.failedOps && res.failedOps?.length
-          ? (res.failedOps as (op & { error: unknown })[]).map(({ error, ...rest }) => rest)
+          ? (res.failedOps as (op & { error: unknown })[]).map(({ error: _, ...rest }) => rest)
           : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
@@ -872,7 +868,7 @@ watch(
         </div>
         <div class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200">
           <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
-            <Draggable v-model="_fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
+            <Draggable :model-value="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"

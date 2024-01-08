@@ -865,15 +865,6 @@ export class AtImportProcessor {
                 );
               }
 
-              // check if already a column exists with this name?
-              const duplicate = childTblSchema.columns.find(
-                (x) => x.title === aTblLinkColumns[i].name,
-              );
-              const suffix = duplicate ? '_2' : '';
-              if (duplicate)
-                if (enableErrorLogs)
-                  console.log(`## Duplicate ${aTblLinkColumns[i].name}`);
-
               // rename
               // note that: current rename API requires us to send all parameters,
               // not just title being renamed
@@ -900,12 +891,12 @@ export class AtImportProcessor {
               updateNcTblSchema(ncTbl);
 
               const ncId = ncTbl.columns.find(
-                (x) => x.title === aTblLinkColumns[i].name + suffix,
+                (x) => x.title === ncName.title,
               )?.id;
               await sMap.addToMappingTbl(
                 aTblLinkColumns[i].id,
                 ncId,
-                aTblLinkColumns[i].name + suffix,
+                ncName.title,
                 ncTbl.id,
               );
             }

@@ -21,7 +21,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { sqlUis } = storeToRefs(baseStore)
 
-    const sqlUi = ref(
+    const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 

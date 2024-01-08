@@ -2498,6 +2498,7 @@ export class AtImportProcessor {
         await this.tablesService.tableDelete({
           tableId: table.id,
           user: syncDB.user,
+          forceDeleteRelations: true,
         });
       }
       if (e.message) {

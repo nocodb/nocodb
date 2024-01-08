@@ -53,6 +53,7 @@ import {
   KanbanView,
   Model,
   Source,
+  View,
 } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -197,7 +198,8 @@ export class ColumnsService {
       formula?: string;
       formula_raw?: string;
       parsed_tree?: any;
-    };
+    } & Partial<Pick<ColumnReqType, 'column_order'>>;
+
     if (
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column) ||
@@ -277,7 +279,29 @@ export class ColumnsService {
               meta: colBody.meta,
             });
           }
+
+          // handle reorder column for Links and LinkToAnotherRecord
+          if (
+            [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
+              column.uidt,
+            ) &&
+            colBody?.column_order &&
+            colBody.column_order?.order &&
+            colBody.column_order?.view_id
+          ) {
+            const viewColumn = (
+              await View.getColumns(colBody.column_order.view_id)
+            ).find((col) => col.fk_column_id === column.id);
+            await View.updateColumn(
+              colBody.column_order.view_id,
+              viewColumn.id,
+              {
+                order: colBody.column_order.order,
+              },
+            );
+          }
         }
+
         await this.updateRollupOrLookup(colBody, column);
       } else {
         NcError.notImplemented(

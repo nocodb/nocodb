@@ -100,6 +100,7 @@ const fields = computed<TableExplorerColumn[]>({
     const x = ((meta.value?.columns as ColumnType[]) ?? [])
       .filter((field) => !field.fk_column_id && !isSystemColumn(field))
       .concat(newFields.value)
+      .map((field) => updateDefaultColumnValues(field))
       .sort((a, b) => {
         return getFieldOrder(a) - getFieldOrder(b)
       })
@@ -268,8 +269,30 @@ const duplicateField = async (field: TableExplorerColumn) => {
 const onFieldUpdate = (state: TableExplorerColumn) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
+
   const diffs = diff(col, state)
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
+
+  // hack to prevent update status `Updated Field` when clicking on field first time
+  let isUpdated = true
+
+  if (
+    [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt) &&
+    Object.keys(diffs).length === 1 &&
+    diffs?.colOptions?.options &&
+    (diffs?.colOptions?.options?.length === 0 ||
+      (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
+  ) {
+    isUpdated = false
+  }
+
+  if (!isUpdated) {
+    let field = fields.value.find((field) => compareCols(field, state))
+    if (field) {
+      field = state
+    }
+  }
+
+  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || !isUpdated) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
@@ -291,7 +314,7 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
       return
     }
 
-    if (field && !moveField) {
+    if (field || (field && moveField)) {
       field.column = state
     } else {
       ops.value.push({
@@ -376,6 +399,19 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
     return
   }
 
+  const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
+  if (mop) {
+    mop.index = _event.moved.newIndex
+    mop.order = order
+  } else {
+    moveOps.value.push({
+      op: 'move',
+      column: fields.value[_event.moved.oldIndex],
+      index: _event.moved.newIndex,
+      order,
+    })
+  }
+
   if (op) {
     onFieldUpdate({
       ...op.column,
@@ -391,19 +427,6 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
         order,
         view_id: view.value?.id as string,
       },
-    })
-  }
-
-  const mop = moveOps.value.find((op) => compareCols(op.column, fields.value[_event.moved.oldIndex]))
-  if (mop) {
-    mop.index = _event.moved.newIndex
-    mop.order = order
-  } else {
-    moveOps.value.push({
-      op: 'move',
-      column: fields.value[_event.moved.oldIndex],
-      index: _event.moved.newIndex,
-      order,
     })
   }
 }
@@ -436,6 +459,52 @@ const isColumnValid = (column: TableExplorerColumn) => {
     }
   }
   return true
+}
+
+function updateDefaultColumnValues(column: TableExplorerColumn) {
+  if (column.uidt === UITypes.QrCode && column.colOptions?.fk_qr_value_column_id) {
+    if (!column?.fk_qr_value_column_id) {
+      column.fk_qr_value_column_id = column.colOptions.fk_qr_value_column_id
+    }
+  }
+
+  if (column.uidt === UITypes.Barcode && column.colOptions?.fk_barcode_value_column_id) {
+    if (!column?.fk_barcode_value_column_id) {
+      column.fk_barcode_value_column_id = column.colOptions.fk_barcode_value_column_id
+    }
+  }
+
+  if (column.uidt === UITypes.Lookup && column?.colOptions?.fk_lookup_column_id && column?.colOptions?.fk_relation_column_id) {
+    if (!column?.fk_lookup_column_id) {
+      column.fk_lookup_column_id = column.colOptions.fk_lookup_column_id
+    }
+    if (!column?.fk_relation_column_id) {
+      column.fk_relation_column_id = column.colOptions.fk_relation_column_id
+    }
+  }
+
+  if (
+    column.uidt === UITypes.Rollup &&
+    column?.colOptions?.fk_relation_column_id &&
+    column?.colOptions?.fk_rollup_column_id &&
+    column?.colOptions?.rollup_function
+  ) {
+    if (!column?.fk_relation_column_id) {
+      column.fk_relation_column_id = column.colOptions.fk_relation_column_id
+    }
+    if (!column?.fk_rollup_column_id) {
+      column.fk_rollup_column_id = column.colOptions.fk_rollup_column_id
+    }
+    if (!column?.rollup_function) {
+      column.rollup_function = column.colOptions.rollup_function
+    }
+  }
+
+  if (column.uidt === UITypes.Formula && column.colOptions?.formula_raw && !column?.formula_raw) {
+    column.formula_raw = column.colOptions?.formula_raw
+  }
+
+  return column
 }
 
 const recoverField = (state: TableExplorerColumn) => {
@@ -512,10 +581,13 @@ const saveChanges = async () => {
           view_id: view.value?.id as string,
         }
       }
-    }
 
-    for (const f of fields.value) {
-      console.log(f.title, getFieldOrder(f))
+      if (op && op.op === 'update') {
+        op.column.column_order = {
+          order: mop.order,
+          view_id: view.value?.id as string,
+        }
+      }
     }
 
     for (const op of ops.value) {
@@ -545,7 +617,10 @@ const saveChanges = async () => {
     await loadViewColumns()
 
     if (res) {
-      ops.value = (res.failedOps as op[]) || []
+      ops.value =
+        res.failedOps && res.failedOps?.length
+          ? (res.failedOps as (op & { error: unknown })[]).map(({ error: _, ...rest }) => rest)
+          : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
           const op = res.failedOps.find((fop) => {
@@ -631,8 +706,14 @@ onKeyDown('ArrowUp', () => {
 onKeyDown('Delete', () => {
   if (isLocked.value) return
 
-  if (document.activeElement?.tagName === 'INPUT') return
-  if (document.activeElement?.tagName === 'TEXTAREA') return
+  if (
+    document.activeElement?.tagName === 'INPUT' ||
+    document.activeElement?.tagName === 'TEXTAREA' ||
+    // A rich text editor is a div with the contenteditable attribute set to true.
+    document.activeElement?.getAttribute('contenteditable')
+  ) {
+    return
+  }
 
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
@@ -643,8 +724,14 @@ onKeyDown('Delete', () => {
 onKeyDown('Backspace', () => {
   if (isLocked.value) return
 
-  if (document.activeElement?.tagName === 'INPUT') return
-  if (document.activeElement?.tagName === 'TEXTAREA') return
+  if (
+    document.activeElement?.tagName === 'INPUT' ||
+    document.activeElement?.tagName === 'TEXTAREA' ||
+    // A rich text editor is a div with the contenteditable attribute set to true.
+    document.activeElement?.getAttribute('contenteditable')
+  ) {
+    return
+  }
 
   const isDeletedField = fieldStatus(activeField.value) === 'delete'
   if (!isDeletedField && activeField.value) {
@@ -705,6 +792,16 @@ const onFieldOptionUpdate = () => {
     isFieldIdCopied.value = false
   }, 200)
 }
+
+watch(
+  fields,
+  () => {
+    if (activeField.value) {
+      activeField.value = fields.value.find((field) => field.id === activeField.value.id) || activeField.value
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <template>
@@ -771,7 +868,7 @@ const onFieldOptionUpdate = () => {
         </div>
         <div class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200">
           <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
-            <Draggable v-model="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
+            <Draggable :model-value="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
@@ -1080,7 +1177,7 @@ const onFieldOptionUpdate = () => {
               </template>
             </Draggable>
           </div>
-          <Transition v-if="!changingField" name="slide-fade">
+          <Transition name="slide-fade">
             <div v-if="!changingField" class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"

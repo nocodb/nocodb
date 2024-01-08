@@ -49,7 +49,7 @@ const {
   meta,
   unlink,
   row,
-  headerDisplayValue
+  headerDisplayValue,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()

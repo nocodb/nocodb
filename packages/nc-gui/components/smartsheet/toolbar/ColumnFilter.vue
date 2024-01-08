@@ -188,7 +188,7 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
-    if (!nested.value && n !== o && (hookId?.value || !webHook.value)) loadFilters(hookId?.value)
+    if (!nested.value && n !== o && (hookId?.value || !webHook.value)) loadFilters(hookId?.value, webHook.value)
   },
 )
 
@@ -325,7 +325,7 @@ const showFilterInput = (filter: Filter) => {
 }
 
 onMounted(() => {
-  loadFilters(hookId?.value)
+  loadFilters(hookId?.value, webHook.value)
 })
 
 onMounted(async () => {

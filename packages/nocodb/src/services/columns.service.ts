@@ -197,7 +197,7 @@ export class ColumnsService {
       formula_raw?: string;
       parsed_tree?: any;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
-    
+
     if (
       isCreatedOrLastModifiedTimeCol(column) ||
       [
@@ -277,6 +277,7 @@ export class ColumnsService {
             });
           }
 
+          // handle reorder column for Links and LinkToAnotherRecord
           if (
             [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
               column.uidt,

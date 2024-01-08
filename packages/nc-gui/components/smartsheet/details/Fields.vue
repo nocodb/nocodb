@@ -275,7 +275,7 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
   const diffs = diff(col, state)
 
-  // hack to prevent update status `Updated Field` when clicking on field
+  // hack to prevent update status `Updated Field` when clicking on field first time
   let isUpdated = true
 
   switch (col?.uidt) {
@@ -308,7 +308,6 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
       ) {
         isUpdated = false
       }
-
       break
   }
 

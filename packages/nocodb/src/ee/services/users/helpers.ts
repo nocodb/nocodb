@@ -31,7 +31,9 @@ export function setTokenCookie(res: Response, token): void {
   const cookieOptions = {
     httpOnly: true,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    domain: process.env.NC_BASE_HOST_NAME || undefined,
+    domain: process.env.NC_BASE_HOST_NAME
+      ? `.${process.env.NC_BASE_HOST_NAME}`
+      : undefined,
   };
   res.cookie('refresh_token', token, cookieOptions);
 }

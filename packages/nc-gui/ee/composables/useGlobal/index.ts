@@ -66,6 +66,8 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
     (nextPayload) => {
       if (nextPayload) {
         state.user.value = {
+          // keep existing props if user id same as before
+          ...(state.user.value?.id === nextPayload.id ? state.user.value || {} : {}),
           id: nextPayload.id,
           email: nextPayload.email,
           firstname: nextPayload.firstname,

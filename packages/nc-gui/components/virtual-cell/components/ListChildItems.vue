@@ -55,10 +55,9 @@ const {
   isChildrenListLinked,
   isChildrenLoading,
   relatedTableMeta,
-  row,
   link,
   meta,
-  headerDisplayValue
+  headerDisplayValue,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()

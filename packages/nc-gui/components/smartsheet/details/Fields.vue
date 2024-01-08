@@ -116,6 +116,10 @@ const fields = computed<TableExplorerColumn[]>({
   },
 })
 
+const _fields = computed(() => {
+  return fields.value
+})
+
 // Current Selected Field
 const activeField = ref()
 
@@ -828,7 +832,7 @@ watch(
         </div>
         <div class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200">
           <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
-            <Draggable v-model="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
+            <Draggable v-model="_fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"

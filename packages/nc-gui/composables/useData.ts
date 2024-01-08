@@ -652,7 +652,7 @@ export function useData(args: {
         formattedData.value = formattedData.value.filter((_, index) => rowIndexes.includes(index))
       }
     } catch (e: any) {
-      return message.error(`${t('msg.error.bulkDeleteRowsFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
 
     addUndo({
@@ -771,7 +771,7 @@ export function useData(args: {
         formattedData.value = formattedData.value.filter((_, index) => rowIndexes.includes(index))
       }
     } catch (e: any) {
-      return message.error(`${t('msg.error.bulkDeleteRowsFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
 
     addUndo({

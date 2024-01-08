@@ -280,20 +280,20 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
   switch (col?.uidt) {
     case UITypes.QrCode:
-      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_qr_value_column_id === state?.fk_qr_value_column_id) {
+      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_qr_value_column_id === diffs?.fk_qr_value_column_id) {
         isUpdated = false
       }
       break
     case UITypes.Barcode:
-      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_barcode_value_column_id === state?.fk_barcode_value_column_id) {
+      if (Object.keys(diffs).length === 1 && col?.colOptions?.fk_barcode_value_column_id === diffs?.fk_barcode_value_column_id) {
         isUpdated = false
       }
       break
     case UITypes.Lookup:
       if (
         Object.keys(diffs).length === 2 &&
-        col?.colOptions?.fk_lookup_column_id === state?.fk_lookup_column_id &&
-        col?.colOptions?.fk_relation_column_id === state?.fk_relation_column_id
+        col?.colOptions?.fk_lookup_column_id === diffs?.fk_lookup_column_id &&
+        col?.colOptions?.fk_relation_column_id === diffs?.fk_relation_column_id
       ) {
         isUpdated = false
       }
@@ -305,6 +305,21 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
         diffs?.colOptions?.options &&
         (diffs?.colOptions?.options?.length === 0 ||
           (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
+      ) {
+        isUpdated = false
+      }
+      break
+    case UITypes.Formula:
+      if (Object.keys(diffs).length === 1 && col?.colOptions?.formula_raw === diffs?.formula_raw) {
+        isUpdated = false
+      }
+      break
+    case UITypes.Rollup:
+      if (
+        Object.keys(diffs).length === 3 &&
+        col?.colOptions?.fk_relation_column_id === diffs?.fk_relation_column_id &&
+        col?.colOptions?.fk_rollup_column_id === diffs?.fk_rollup_column_id &&
+        col?.colOptions?.rollup_function === diffs?.rollup_function
       ) {
         isUpdated = false
       }

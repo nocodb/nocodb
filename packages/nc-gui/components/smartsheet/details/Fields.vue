@@ -299,6 +299,9 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
         column: state,
       })
     }
+    if (activeField.value) {
+      activeField.value = state
+    }
   }
 }
 
@@ -1092,7 +1095,7 @@ const onFieldOptionUpdate = () => {
               </template>
             </Draggable>
           </div>
-          <Transition v-if="!changingField" name="slide-fade">
+          <Transition name="slide-fade">
             <div v-if="!changingField" class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"

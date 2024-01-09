@@ -258,7 +258,7 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose, true)
 
 const selectedOpt = computed(() => {
-  return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.trim())
+  return options.value.find((o) => o.value === vModel.value || o.value === vModel.value?.toString()?.trim())
 })
 
 const onFocus = () => {

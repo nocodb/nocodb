@@ -184,6 +184,7 @@ const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !co
 
 const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   col.uidt === UITypes.LinkToAnotherRecord &&
+  col.colOptions &&
   (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&
   isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
 

@@ -53,4 +53,8 @@ export class DetailsPage extends BasePage {
   async clickRelationsTab() {
     await this.tab_relations.click();
   }
+
+  async clickFieldsTab() {
+    await this.tab_fields.click();
+  }
 }

@@ -79,7 +79,7 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
 
-  return metas.value[selectedTable.id]?.columns.filter(
+  return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && (!isSystemColumn(c) || c.pk),
   )
 })

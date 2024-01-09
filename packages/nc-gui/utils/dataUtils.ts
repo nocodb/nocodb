@@ -24,8 +24,10 @@ export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
 
 export const extractPk = (columns: ColumnType[]) => {
   if (!columns && !Array.isArray(columns)) return null
-  const pkData = columns?.find((c) => c.pk)
-  return pkData ? pkData?.title || pkData?.column_name : null
+  return columns
+    .filter((c) => c.pk)
+    .map((c) => c.title)
+    .join('___')
 }
 
 export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {

@@ -4,6 +4,7 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   NOCO,
   computed,
+  extractPk,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   findIndexByPk,

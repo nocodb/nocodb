@@ -56,7 +56,7 @@ const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
     return []
   }
-  return metas.value[selectedTable.id]?.columns.filter(
+  return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) =>
       vModel.value.fk_lookup_column_id === c.id || (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
   )

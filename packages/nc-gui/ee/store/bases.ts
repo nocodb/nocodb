@@ -95,24 +95,31 @@ export const useBases = defineStore('basesStore', () => {
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
     // if shared source then get the shared base and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.baseId) {
-      const { base_id } = await $api.public.sharedBaseGet(route.value.params.baseId as string)
-      const base: BaseType = await $api.base.read(base_id)
+      try {
+        const { base_id } = await $api.public.sharedBaseGet(route.value.params.baseId as string)
+        const base: BaseType = await $api.base.read(base_id)
 
-      if (!base) return
+        if (!base) return
 
-      bases.value = [base].reduce((acc, base) => {
-        acc.set(base.id!, base)
-        return acc
-      }, new Map())
+        bases.value = [base].reduce((acc, base) => {
+          acc.set(base.id!, base)
+          return acc
+        }, new Map())
 
-      bases.value.set(base.id!, {
-        ...(bases.value.get(base.id!) || {}),
-        ...base,
-        isExpanded: true,
-        isLoading: false,
-      })
+        bases.value.set(base.id!, {
+          ...(bases.value.get(base.id!) || {}),
+          ...base,
+          isExpanded: true,
+          isLoading: false,
+        })
 
-      return
+        return
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          return router.push('/error/404')
+        }
+        throw e
+      }
     }
 
     const activeWorkspace = workspaceStore.activeWorkspace

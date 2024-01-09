@@ -163,7 +163,12 @@ export class TablesService {
     return Model.updateOrder(param.tableId, param.order);
   }
 
-  async tableDelete(param: { tableId: string; user: User; req?: any }) {
+  async tableDelete(param: {
+    tableId: string;
+    user: User;
+    forceDeleteRelations?: boolean;
+    req?: any;
+  }) {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
@@ -172,7 +177,9 @@ export class TablesService {
 
     const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
 
-    if (relationColumns?.length && !source.isMeta()) {
+    const deleteRelations = source.isMeta() || param.forceDeleteRelations;
+
+    if (relationColumns?.length && !deleteRelations) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c

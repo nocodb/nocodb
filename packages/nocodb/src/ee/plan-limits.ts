@@ -16,7 +16,7 @@ const PlanLimits = {
     [PlanLimitTypes.TABLE_ROW_LIMIT]: 300 * 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 10,
     [PlanLimitTypes.VIEW_LIMIT]: 150,
-    [PlanLimitTypes.FILTER_LIMIT]: 15,
+    [PlanLimitTypes.FILTER_LIMIT]: 30,
     [PlanLimitTypes.SORT_LIMIT]: 10,
   },
   [WorkspacePlan.TEAM]: {
@@ -29,7 +29,7 @@ const PlanLimits = {
     [PlanLimitTypes.TABLE_ROW_LIMIT]: 300 * 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 10,
     [PlanLimitTypes.VIEW_LIMIT]: 150,
-    [PlanLimitTypes.FILTER_LIMIT]: 15,
+    [PlanLimitTypes.FILTER_LIMIT]: 30,
     [PlanLimitTypes.SORT_LIMIT]: 10,
   },
   [WorkspacePlan.BUSINESS]: {
@@ -42,7 +42,7 @@ const PlanLimits = {
     [PlanLimitTypes.TABLE_ROW_LIMIT]: 150 * 1000,
     [PlanLimitTypes.WEBHOOK_LIMIT]: 10,
     [PlanLimitTypes.VIEW_LIMIT]: 150,
-    [PlanLimitTypes.FILTER_LIMIT]: 15,
+    [PlanLimitTypes.FILTER_LIMIT]: 30,
     [PlanLimitTypes.SORT_LIMIT]: 10,
   },
 };

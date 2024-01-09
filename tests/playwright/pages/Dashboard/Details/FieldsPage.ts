@@ -239,6 +239,6 @@ export class FieldsPage extends BasePage {
   }
 
   async getField({ title }: { title: string }) {
-    return this.fieldListWrapper.locator('> div').locator(`text=${title}`);
+    return this.fieldListWrapper.getByTestId('nc-field-title').locator(`text=${title}`);
   }
 }

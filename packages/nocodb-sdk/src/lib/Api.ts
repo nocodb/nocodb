@@ -433,7 +433,7 @@ export interface ColumnType {
     | 'Checkbox'
     | 'Collaborator'
     | 'Count'
-    | 'CreateTime'
+    | 'CreatedTime'
     | 'Currency'
     | 'Date'
     | 'DateTime'
@@ -464,7 +464,9 @@ export interface ColumnType {
     | 'Year'
     | 'QrCode'
     | 'Links'
-    | 'User';
+    | 'User'
+    | 'CreatedBy'
+    | 'LastModifiedBy';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1751,7 +1753,7 @@ export interface NormalColumnRequestType {
     | 'Checkbox'
     | 'Collaborator'
     | 'Count'
-    | 'CreateTime'
+    | 'CreatedTime'
     | 'Currency'
     | 'Date'
     | 'DateTime'
@@ -1782,7 +1784,9 @@ export interface NormalColumnRequestType {
     | 'Year'
     | 'QrCode'
     | 'Links'
-    | 'User';
+    | 'User'
+    | 'CreatedBy'
+    | 'LastModifiedBy';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */

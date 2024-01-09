@@ -50,12 +50,24 @@ async function initialize(shareId, appId?: string) {
         };
       });
 
+    const headers = hreq.match(/(?<=var headers =)(.*)(?=;)/g);
+    const link = hreq.match(/(?<=fetch\(")(\\.*)(?=")/g);
+
+    if (!headers || !link) {
+      throw {
+        message:
+          'Please ensure www.airtable.com/<SharedBaseID> is available for public access. Refer https://bit.ly/3x0OdXI for details',
+      };
+    }
+
     info.headers = JSON.parse(
       hreq.match(/(?<=var headers =)(.*)(?=;)/g)[0].trim(),
     );
+
     info.link = unicodeToChar(
       hreq.match(/(?<=fetch\(")(\\.*)(?=")/g)[0].trim(),
     );
+
     info.baseInfo = decodeURIComponent(info.link)
       .match(/{(.*)}/g)[0]
       .split('&')

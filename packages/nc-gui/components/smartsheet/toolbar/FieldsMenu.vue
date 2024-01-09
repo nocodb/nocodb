@@ -387,7 +387,7 @@ useMenuCloseOnEsc(open)
                       <template #default>{{ field.title }}</template>
                     </NcTooltip>
 
-                    <NcSwitch v-e="['a:fields:show-hide']" :checked="field.show" :disabled="field.isViewEssentialField" />
+                    <NcSwitch :checked="field.show" :disabled="field.isViewEssentialField" @change="$t('a:fields:show-hide')" />
                   </div>
 
                   <div class="flex-1" />
@@ -411,7 +411,7 @@ useMenuCloseOnEsc(open)
                     <template #default>{{ filteredFieldList[0].title }}</template>
                   </NcTooltip>
 
-                  <NcSwitch v-e="['a:fields:show-hide']" :checked="true" :disabled="true" />
+                  <NcSwitch :checked="true" :disabled="true" />
                 </div>
               </template>
             </Draggable>

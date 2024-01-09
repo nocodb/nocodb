@@ -116,13 +116,13 @@ const onWorkspaceCreateClick = () => {
   >
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
-      v-e="['c:workspace:menu']"
       class="h-full min-w-0 rounded-lg"
       :trigger="['click']"
       placement="bottom"
       overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
     >
       <div
+        v-e="['c:workspace:menu']"
         data-testid="nc-workspace-menu"
         class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
       >
@@ -215,8 +215,8 @@ const onWorkspaceCreateClick = () => {
               </NcMenuItem>
             </div>
             <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
-            <NcMenuItem v-if="!isMobileMode" v-e="['c:workspace:create']" @click="onWorkspaceCreateClick">
-              <div class="nc-workspace-menu-item group">
+            <NcMenuItem v-if="!isMobileMode" @click="onWorkspaceCreateClick">
+              <div v-e="['c:workspace:create']" class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 
                 <div class="">Create New Workspace</div>

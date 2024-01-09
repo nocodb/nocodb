@@ -639,7 +639,7 @@ export async function extractColumn({
     case UITypes.Attachment:
       {
         qb.select(
-          knex.raw(`??.??::json as ??`, [
+          knex.raw(`to_json(??.??) as ??`, [
             rootAlias,
             sanitize(column.column_name),
             column.id,

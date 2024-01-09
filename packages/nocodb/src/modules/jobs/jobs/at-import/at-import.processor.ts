@@ -435,19 +435,14 @@ export class AtImportProcessor {
             if ((value as any).name === '') {
               (value as any).name = 'nc_empty';
             }
-            // enumerate duplicates (we don't allow them)
-            // TODO fix record mapping (this causes every record to map first option,
-            //  we can't handle them using data api as they don't provide option id
-            //  within data we might instead get the correct mapping from schema file )
-            let dupNo = 1;
-            const defaultName = (value as any).name;
-            while (
+            // skip duplicates (we don't allow them)
+            if (
               options.find(
                 (el) =>
                   el.title.toLowerCase() === (value as any).name.toLowerCase(),
               )
             ) {
-              (value as any).name = `${defaultName}_${dupNo++}`;
+              continue;
             }
             options.push({
               order: order++,

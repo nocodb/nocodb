@@ -43,7 +43,8 @@ async function initialize(shareId, appId?: string) {
         }
         return response.data;
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log(e);
         throw {
           message:
             'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -128,7 +129,8 @@ async function read() {
       .then((response) => {
         return response.data;
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log(e);
         throw {
           message:
             'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -189,7 +191,8 @@ async function readView(viewId) {
       .then((response) => {
         return response.data;
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log(e);
         throw {
           message:
             'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -238,7 +241,8 @@ async function readTemplate(templateId) {
     .then((response) => {
       return response.data;
     })
-    .catch(() => {
+    .catch((e) => {
+      console.log(e);
       throw {
         message:
           'Error Fetching :: Ensure www.airtable.com/templates/featured/<TemplateID> is accessible.',

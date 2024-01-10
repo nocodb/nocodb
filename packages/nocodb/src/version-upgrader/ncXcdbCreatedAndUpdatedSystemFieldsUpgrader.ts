@@ -2,6 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import type { NcUpgraderCtx } from './NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { Base } from '~/models';
+import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Source } from '~/models';
 import {
@@ -369,11 +370,15 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             eq: 1,
           },
         },
-        {
-          is_local: {
-            eq: 1,
-          },
-        },
+        ...(Noco.isEE()
+          ? [
+              {
+                is_local: {
+                  eq: 1,
+                },
+              },
+            ]
+          : []),
       ],
     },
   });

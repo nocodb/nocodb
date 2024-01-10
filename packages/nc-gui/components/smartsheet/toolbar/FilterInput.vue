@@ -70,7 +70,7 @@ provide(EditModeInj, readonly(editEnabled))
 
 provide(ReadonlyInj, ref(false))
 
-const checkTypeFunctions = {
+const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: string) => boolean> = {
   isSingleSelect,
   isMultiSelect,
   isDate,
@@ -106,7 +106,7 @@ const checkType = (filterType: FilterType) => {
     return false
   }
 
-  return checkTypeFunction(column.value, abstractType)
+  return checkTypeFunction(column.value, abstractType.value)
 }
 
 const filterInput = computed({
@@ -224,7 +224,7 @@ provide(IsFormInj, ref(true))
   />
   <div
     v-else
-    class="bg-white border-1 flex flex-grow min-h-4 h-full items-center nc-filter-input-wrapper !rounded-lg"
+    class="bg-white border-1 flex flex-grow min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
     :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
     @mouseup.stop
   >
@@ -234,7 +234,7 @@ provide(IsFormInj, ref(true))
       :disabled="filter.readOnly"
       placeholder="Enter a value"
       :column="column"
-      class="flex"
+      class="flex !rounded-lg"
       v-bind="componentProps"
       location="filter"
       @focus="isInputBoxOnFocus = true"

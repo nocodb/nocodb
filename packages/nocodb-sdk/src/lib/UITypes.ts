@@ -40,6 +40,8 @@ enum UITypes {
   Button = 'Button',
   Links = 'Links',
   User = 'User',
+  CreatedBy = 'CreatedBy',
+  LastModifiedBy = 'LastModifiedBy',
 }
 
 export const numericUITypes = [
@@ -85,6 +87,8 @@ export function isVirtualCol(
     UITypes.Links,
     UITypes.CreatedTime,
     UITypes.LastModifiedTime,
+    UITypes.CreatedBy,
+    UITypes.LastModifiedBy,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
@@ -96,6 +100,18 @@ export function isCreatedOrLastModifiedTimeCol(
     | ColumnType
 ) {
   return [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
+export function isCreatedOrLastModifiedByCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)
   );
 }

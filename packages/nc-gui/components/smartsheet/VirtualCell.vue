@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
+import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellValueInj,
@@ -118,6 +118,7 @@ onUnmounted(() => {
       <LazyVirtualCellCount v-else-if="isCount(column)" />
       <LazyVirtualCellLookup v-else-if="isLookup(column)" />
       <LazyCellReadOnlyDateTimePicker v-else-if="isCreatedOrLastModifiedTimeCol(column)" :model-value="modelValue" />
+      <LazyCellReadOnlyUser v-else-if="isCreatedOrLastModifiedByCol(column)" :model-value="modelValue" />
     </template>
   </div>
 </template>

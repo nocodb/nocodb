@@ -136,7 +136,7 @@ const uiTypes = [
   },
   {
     name: UITypes.User,
-    icon: iconMap.account,
+    icon: iconMap.phUser,
   },
   {
     name: UITypes.CreatedTime,
@@ -145,6 +145,14 @@ const uiTypes = [
   {
     name: UITypes.LastModifiedTime,
     icon: iconMap.datetime,
+  },
+  {
+    name: UITypes.CreatedBy,
+    icon: iconMap.phUser,
+  },
+  {
+    name: UITypes.LastModifiedBy,
+    icon: iconMap.phUser,
   },
 ]
 

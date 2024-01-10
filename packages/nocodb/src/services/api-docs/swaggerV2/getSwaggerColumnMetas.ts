@@ -49,6 +49,10 @@ export default async (
         case UITypes.CreatedTime:
           field.type = 'string';
           break;
+        case UITypes.LastModifiedBy:
+        case UITypes.CreatedBy:
+          field.type = 'object';
+          break;
         default:
           field.virtual = false;
           SwaggerTypes.setSwaggerType(c, field, dbType);

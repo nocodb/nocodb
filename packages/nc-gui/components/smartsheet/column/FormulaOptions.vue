@@ -5,6 +5,7 @@ import jsep from 'jsep'
 import {
   FormulaError,
   UITypes,
+  isCreatedOrLastModifiedByCol,
   jsepCurlyHook,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
@@ -51,7 +52,18 @@ const { predictFunction: _predictFunction } = useNocoEe()
 const meta = inject(MetaInj, ref())
 
 const supportedColumns = computed(
-  () => meta?.value?.columns?.filter((col) => !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) || [],
+  () =>
+    meta?.value?.columns?.filter((col) => {
+      if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
+        return false
+      }
+
+      if (isCreatedOrLastModifiedByCol(col) && col.system) {
+        return false
+      }
+
+      return true
+    }) || [],
 )
 const { getMeta } = useMetas()
 

@@ -1,4 +1,4 @@
-import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { ViewTypes, isCreatedOrLastModifiedByCol, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
@@ -70,7 +70,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }, {})
 
         fields.value = meta.value?.columns
-          ?.map((column: ColumnType) => {
+          ?.filter((column: ColumnType) => {
+            // filter created by and last modified by system columns
+            if (isCreatedOrLastModifiedByCol(column) && column.system) return false
+            return true
+          })
+          .map((column: ColumnType) => {
             const currentColumnField = fieldById[column.id!] || {}
 
             return {

@@ -695,6 +695,8 @@ async function _formulaQueryBuilder(
         }
         break;
       case UITypes.User:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy:
         {
           const base = await Base.get(model.base_id);
           const baseUsers = await BaseUser.getUsersList({

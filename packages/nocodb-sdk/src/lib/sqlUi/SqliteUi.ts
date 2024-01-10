@@ -121,6 +121,52 @@ export class SqliteUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: 'created_by',
+        title: 'nc_created_by',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.CreatedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'updated_by',
+        title: 'nc_updated_by',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 
@@ -510,7 +556,7 @@ export class SqliteUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes; }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -651,7 +697,7 @@ export class SqliteUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeListForUiType(col: { uidt: UITypes; }, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {

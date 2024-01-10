@@ -83,6 +83,7 @@
 
 import 'mocha';
 import {
+  isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   UITypes,
   ViewTypes,
@@ -679,7 +680,12 @@ function textBased() {
     expect(
       verifyColumnsInRsp(
         rsp.body.list[0],
-        columns.filter((c) => !isCreatedOrLastModifiedTimeCol(c) || !c.system),
+        columns.filter(
+          (c) =>
+            (!isCreatedOrLastModifiedTimeCol(c) &&
+              !isCreatedOrLastModifiedByCol(c)) ||
+            !c.system,
+        ),
       ),
     ).to.equal(true);
     const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
@@ -700,7 +706,9 @@ function textBased() {
     const displayColumns = columns.filter(
       (c) =>
         c.title !== 'SingleLineText' &&
-        (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
+        ((!isCreatedOrLastModifiedTimeCol(c) &&
+          !isCreatedOrLastModifiedByCol(c)) ||
+          !c.system),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
   });
@@ -749,7 +757,8 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedOrLastModifiedTimeCol(c),
+        !isCreatedOrLastModifiedTimeCol(c) &&
+        !isCreatedOrLastModifiedByCol(c),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
     return gridView;
@@ -769,7 +778,8 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedOrLastModifiedTimeCol(c),
+        !isCreatedOrLastModifiedTimeCol(c) &&
+        !isCreatedOrLastModifiedByCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -791,7 +801,8 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedOrLastModifiedTimeCol(c),
+        !isCreatedOrLastModifiedTimeCol(c) &&
+        !isCreatedOrLastModifiedByCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(7);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -1628,7 +1639,8 @@ function dateBased() {
       delete r.Id;
       delete r.CreatedAt;
       delete r.UpdatedAt;
-      delete r.Id;
+      delete r.CreatedBy;
+      delete r.UpdatedBy;
     });
     rsp = await ncAxiosPost({
       body: records,

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isCreatedOrLastModifiedByCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
@@ -39,6 +39,12 @@ const options = computed<ColumnType[]>(
             /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
             return false
           }
+
+          if (isCreatedOrLastModifiedByCol(c)) {
+            /** ignore created by and last modified by system field */
+            return false
+          }
+
           return showSystemFields.value
         } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
           return false

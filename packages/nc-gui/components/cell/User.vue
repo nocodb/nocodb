@@ -82,18 +82,6 @@ const { isUIAllowed } = useRoles()
 const options = computed<UserFieldRecordType[]>(() => {
   const collaborators: UserFieldRecordType[] = []
 
-  // todo: it's a temporary fix to display users in shared view based on the modelValue. Usually it should be rendered based on the baseUsers but at the moment baseUsers not avail in shared view
-  if (!baseUsers.value?.length && readOnly.value && modelValue) {
-    collaborators.push(
-      ...(((Array.isArray(modelValue) ? modelValue : [modelValue]) as any[]).map((user) => ({
-        id: user.id,
-        email: user.email,
-        display_name: user.display_name,
-      })) as any),
-    )
-    return collaborators
-  }
-
   collaborators.push(
     ...(baseUsers.value?.map((user: any) => ({
       id: user.id,

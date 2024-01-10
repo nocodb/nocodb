@@ -57,28 +57,22 @@ async function upgradeModels({
   ncMeta,
   source,
   base,
+  models,
 }: {
   ncMeta: MetaService;
   source: Source;
   base: Base;
+  models: Model[];
 }) {
-  const models = await Model.list(
-    {
-      base_id: source.base_id,
-      source_id: source.id,
-    },
-    ncMeta,
-  );
+  // get existing columns from database
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(source, ncMeta.knex);
+  const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
 
   await Promise.all(
-    models.map(async (model: any) => {
+    models.map(async (model) => {
       if (model.mm) return;
       try {
-        logger.log(
-          `Upgrading model '${model.title}'(${model.id}) from base '${base.title}'(${base.id}})`,
-        );
-
-        const columns = await model.getColumns(ncMeta);
+        const columns = model.columns;
         const oldColumns = columns.map((c) => ({ ...c, cn: c.column_name }));
         let isCreatedTimeExists = false;
         let isLastModifiedTimeExists = false;
@@ -125,46 +119,51 @@ async function upgradeModels({
           // if column is created_at or updated_at, update the uidt in meta
           if (column.column_name === 'created_at') {
             isCreatedTimeExists = true;
-            await Column.update(
-              column.id,
-              {
-                ...column,
-                uidt: UITypes.CreatedTime,
-                system: true,
-              },
-              ncMeta,
-              true,
-            );
+            if (column.uidt !== UITypes.CreatedTime || !column.system) {
+              await Column.update(
+                column.id,
+                {
+                  ...column,
+                  uidt: UITypes.CreatedTime,
+                  system: true,
+                },
+                ncMeta,
+                true,
+              );
+            }
 
             /*   Enable if planning to remove trigger
-            if (source.type === 'pg') {
-              // delete pg trigger if exists
-              await deletePgTrigger({ column, ncMeta, model });
-            }
-            */
+          if (source.type === 'pg') {
+            // delete pg trigger if exists
+            await deletePgTrigger({ column, ncMeta, model });
+          }
+          */
           }
           if (column.column_name === 'updated_at') {
             isLastModifiedTimeExists = true;
-            await Column.update(
-              column.id,
-              {
-                ...column,
-                uidt: UITypes.LastModifiedTime,
-                system: true,
-                cdf: '',
-                au: false,
-              },
-              ncMeta,
-              true,
-            );
+            if (column.uidt !== UITypes.LastModifiedTime || !column.system) {
+              await Column.update(
+                column.id,
+                {
+                  ...column,
+                  uidt: UITypes.LastModifiedTime,
+                  system: true,
+                },
+                ncMeta,
+                true,
+              );
+            }
           }
         }
 
-        // get existing columns from database
-        const sqlClient = await NcConnectionMgrv2.getSqlClient(
-          source,
-          ncMeta.knex,
-        );
+        if (
+          isCreatedTimeExists &&
+          isLastModifiedTimeExists &&
+          isCreatedByExists &&
+          isLastModifiedByExists
+        ) {
+          return;
+        }
 
         const dbColumns =
           (
@@ -327,9 +326,6 @@ async function upgradeModels({
 
         // alter table and add new columns if any
         if (newColumns.length) {
-          logger.log(
-            `Altering table '${model.title}'(${model.id}) from base '${base.title}'(${base.id}}) for new columns`,
-          );
           // update column in db
           const tableUpdateBody = {
             ...model,
@@ -340,23 +336,18 @@ async function upgradeModels({
               cn: c.column_name,
             })),
           };
-          const sqlMgr = ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta);
           await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
         }
         for (const newColumn of [...existingDbColumns, ...newColumns]) {
           await Column.insert(
             {
               ...newColumn,
-              system: 1,
+              system: true,
               fk_model_id: model.id,
             },
             ncMeta,
           );
         }
-
-        logger.log(
-          `Upgraded model '${model.title}'(${model.id}) from base '${base.title}'(${base.id}})`,
-        );
       } catch (e) {
         logger.error(
           `Upgrading model '${model.title}'(${model.id}) from base '${base.title}'(${base.id}}) failed`,
@@ -407,13 +398,25 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
       // update the meta props
       return requestQueue.enqueue(async () => {
+        const models = await Model.list(
+          {
+            base_id: source.base_id,
+            source_id: source.id,
+          },
+          ncMeta,
+        );
+
+        for (const model of models) {
+          await model.getColumns(ncMeta);
+        }
+
         logger.log(
           `Upgrading base ${base.title}(${base.id},${source.id}) (${i + 1}/${
             sources.length
           })`,
         );
 
-        await upgradeModels({ ncMeta, source, base }).then(() => {
+        await upgradeModels({ ncMeta, source, models, base }).then(() => {
           logger.log(
             `Upgraded base '${base.title}'(${base.id},${source.id}) (${i + 1}/${
               sources.length

@@ -70,7 +70,7 @@ provide(EditModeInj, readonly(editEnabled))
 
 provide(ReadonlyInj, ref(false))
 
-const checkTypeFunctions = {
+const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: string) => boolean> = {
   isSingleSelect,
   isMultiSelect,
   isDate,
@@ -106,7 +106,7 @@ const checkType = (filterType: FilterType) => {
     return false
   }
 
-  return checkTypeFunction(column.value, abstractType)
+  return checkTypeFunction(column.value, abstractType.value)
 }
 
 const filterInput = computed({

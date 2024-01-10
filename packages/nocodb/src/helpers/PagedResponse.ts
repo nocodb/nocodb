@@ -1,5 +1,6 @@
 import { extractLimitAndOffset } from '.';
 import type { PaginatedType } from 'nocodb-sdk';
+import {NcError} from "~/helpers/catchError";
 
 export class PagedResponseImpl<T> {
   constructor(
@@ -28,18 +29,19 @@ export class PagedResponseImpl<T> {
       this.pageInfo.isFirstPage =
         this.pageInfo.isFirstPage ?? this.pageInfo.page === 1;
       this.pageInfo.isLastPage =
-        this.pageInfo.page ===
+        this.pageInfo.page >=
         (Math.ceil(this.pageInfo.totalRows / this.pageInfo.pageSize) || 1);
+
+      if (this.pageInfo.page % 1 !== 0) {
+        this.pageInfo.offset = offset;
+        delete this.pageInfo.page;
+      }
     }
 
     if (additionalProps) Object.assign(this, additionalProps);
 
     if (offset && offset >= +count) {
-      this.errors = [
-        {
-          message: 'Offset is beyond the total number of records',
-        },
-      ];
+      NcError.badRequest('Offset is beyond the total number of records');
     }
   }
 

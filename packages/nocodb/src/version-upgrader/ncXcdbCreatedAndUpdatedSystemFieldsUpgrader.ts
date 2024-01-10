@@ -260,41 +260,69 @@ async function upgradeModels({
         }
 
         if (!isCreatedByExists) {
-          newColumns.push({
-            ...(await getColumnPropsFromUIDT(
-              {
-                uidt: UITypes.CreatedBy,
-                column_name: getUniqueColumnName(
-                  [...columns, ...dbColumns],
-                  'created_by',
-                ),
-                title: getUniqueColumnAliasName(columns, 'nc_created_by'),
-              },
-              source,
-            )),
-            cdf: null,
-            system: true,
-            altered: Altered.NEW_COLUMN,
-          });
+          const columnName = getUniqueColumnName(columns, 'created_by');
+          const dbColumn = dbColumns.find((c) => c.cn === columnName);
+
+          // if column already exist in db but not in meta, just update the meta (partial upgraded case)
+          if (dbColumn) {
+            existingDbColumns.push({
+              uidt: UITypes.CreatedBy,
+              ...dbColumn,
+              column_name: columnName,
+              title: getUniqueColumnAliasName(columns, 'nc_created_by'),
+              system: true,
+            });
+          } else {
+            newColumns.push({
+              ...(await getColumnPropsFromUIDT(
+                {
+                  uidt: UITypes.CreatedBy,
+                  column_name: getUniqueColumnName(
+                    [...columns, ...dbColumns],
+                    'created_by',
+                  ),
+                  title: getUniqueColumnAliasName(columns, 'nc_created_by'),
+                },
+                source,
+              )),
+              cdf: null,
+              system: true,
+              altered: Altered.NEW_COLUMN,
+            });
+          }
         }
 
         if (!isLastModifiedByExists) {
-          newColumns.push({
-            ...(await getColumnPropsFromUIDT(
-              {
-                uidt: UITypes.LastModifiedBy,
-                column_name: getUniqueColumnName(
-                  [...columns, ...dbColumns],
-                  'updated_by',
-                ),
-                title: getUniqueColumnAliasName(columns, 'nc_updated_by'),
-              },
-              source,
-            )),
-            cdf: null,
-            system: true,
-            altered: Altered.NEW_COLUMN,
-          });
+          const columnName = getUniqueColumnName(columns, 'updated_by');
+          const dbColumn = dbColumns.find((c) => c.cn === columnName);
+
+          // if column already exist in db but not in meta, just update the meta (partial upgraded case)
+          if (dbColumn) {
+            existingDbColumns.push({
+              uidt: UITypes.LastModifiedBy,
+              ...dbColumn,
+              column_name: columnName,
+              title: getUniqueColumnAliasName(columns, 'nc_updated_by'),
+              system: true,
+            });
+          } else {
+            newColumns.push({
+              ...(await getColumnPropsFromUIDT(
+                {
+                  uidt: UITypes.LastModifiedBy,
+                  column_name: getUniqueColumnName(
+                    [...columns, ...dbColumns],
+                    'updated_by',
+                  ),
+                  title: getUniqueColumnAliasName(columns, 'nc_updated_by'),
+                },
+                source,
+              )),
+              cdf: null,
+              system: true,
+              altered: Altered.NEW_COLUMN,
+            });
+          }
         }
 
         // alter table and add new columns if any

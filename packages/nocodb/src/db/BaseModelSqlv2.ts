@@ -5757,7 +5757,7 @@ class BaseModelSqlv2 {
 
     if (Object.keys(updateObject).length === 0) return;
 
-    const qb = knex(model.table_name).update(updateObject);
+    const qb = knex(this.getTnPath(model.table_name)).update(updateObject);
 
     for (const rowId of Array.isArray(rowIds) ? rowIds : [rowIds]) {
       qb.orWhere(await this._wherePk(rowId));

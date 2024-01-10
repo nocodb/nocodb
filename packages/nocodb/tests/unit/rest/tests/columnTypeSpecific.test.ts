@@ -52,16 +52,6 @@ function columnTypeSpecificTests() {
       uidt: UITypes.LastModifiedTime,
       system: true,
     },
-    {
-      title: 'CreatedBy',
-      uidt: UITypes.CreatedBy,
-      system: true,
-    },
-    {
-      title: 'UpdatedBy',
-      uidt: UITypes.LastModifiedBy,
-      system: true,
-    },
   ];
 
   describe('Qr Code Column', () => {
@@ -222,13 +212,6 @@ function columnTypeSpecificTests() {
 
         expect(unfilteredRecords[0].CreatedAt).to.not.equal(null);
         expect(unfilteredRecords[0].UpdatedAt).to.equal(null);
-
-        expect(unfilteredRecords[0].CreatedBy).to.not.equal(null);
-        expect(unfilteredRecords[0].CreatedBy.email).to.equal(
-          context.user.email,
-        );
-        expect(unfilteredRecords[0].CreatedBy.display_name).to.equal(null);
-        expect(unfilteredRecords[0].UpdatedBy).to.equal(null);
       });
 
       it('Modify record: verify last-modified-at & modified-by is updated', async () => {
@@ -380,19 +363,19 @@ function columnTypeSpecificTests() {
           .expect(400);
       });
 
-      it('Add field: CreatedBy, ModifiedBy verify contents of both fields are same & new field is RO', async () => {
+      it('Add field: CreatedBy, LastModifiedBy verify contents of both fields are proper & new field is RO', async () => {
         // add another CreatedBy field
         await createColumn(context, table, {
-          title: 'CreatedBy2',
+          title: 'CreatedBy',
           uidt: UITypes.CreatedBy,
-          column_name: 'CreatedBy2',
+          column_name: 'CreatedBy',
         });
 
         // add another ModifiedBy field
         await createColumn(context, table, {
-          title: 'ModifiedBy2',
+          title: 'LastModifiedBy',
           uidt: UITypes.LastModifiedBy,
-          column_name: 'ModifiedBy2',
+          column_name: 'LastModifiedBy',
         });
 
         // get all columns
@@ -403,7 +386,7 @@ function columnTypeSpecificTests() {
 
         // verify contents of both fields are same
         expect(columns.columns[defaultTableColumns.length].title).to.equal(
-          'CreatedBy2',
+          'CreatedBy',
         );
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedBy,
@@ -411,10 +394,14 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].system).to.equal(
           false,
         );
-        expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy2);
+        expect(records[0].CreatedBy).to.deep.equal({
+          id: context.user.id,
+          email: context.user.email,
+          display_name: context.user.display_name,
+        });
 
         expect(columns.columns[defaultTableColumns.length + 1].title).to.equal(
-          'ModifiedBy2',
+          'LastModifiedBy',
         );
         expect(columns.columns[defaultTableColumns.length + 1].uidt).to.equal(
           UITypes.LastModifiedBy,
@@ -422,7 +409,7 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length + 1].system).to.equal(
           false,
         );
-        expect(records[0].UpdatedBy).to.deep.equal(records[0].ModifiedBy2);
+        expect(records[0].UpdatedBy).to.deep.equal(null);
 
         // update record should fail
         await request(context.app)
@@ -431,7 +418,7 @@ function columnTypeSpecificTests() {
           .send([
             {
               Id: unfilteredRecords[0].Id,
-              CreatedBy2: 'user@example.com',
+              CreatedBy: 'user@example.com',
             },
           ])
           .expect(400);
@@ -442,7 +429,7 @@ function columnTypeSpecificTests() {
           .send([
             {
               Id: unfilteredRecords[0].Id,
-              ModifiedBy2: 'user@example.com',
+              LastModifiedBy: 'user@example.com',
             },
           ])
           .expect(400);
@@ -491,9 +478,9 @@ function columnTypeSpecificTests() {
       it('Delete & add field: (CreatedBy) verify contents of both fields are same', async () => {
         // add another CreatedBy field
         await createColumn(context, table, {
-          title: 'CreatedBy2',
+          title: 'CreatedBy',
           uidt: UITypes.CreatedBy,
-          column_name: 'CreatedBy2',
+          column_name: 'CreatedBy',
         });
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
@@ -501,9 +488,9 @@ function columnTypeSpecificTests() {
         await deleteColumn(context, { table, column: columns.columns[6] });
         // create column again
         await createColumn(context, table, {
-          title: 'CreatedBy2',
+          title: 'CreatedBy',
           uidt: UITypes.CreatedBy,
-          column_name: 'CreatedBy2',
+          column_name: 'CreatedBy',
         });
         // get all columns
         columns = await getColumnsByAPI(context, base, table);
@@ -513,7 +500,7 @@ function columnTypeSpecificTests() {
 
         // verify contents of both fields are same
         expect(columns.columns[defaultTableColumns.length].title).to.equal(
-          'CreatedBy2',
+          'CreatedBy',
         );
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedBy,
@@ -521,7 +508,7 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].system).to.equal(
           false,
         );
-        expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy2);
+        expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy);
       });
     });
   });

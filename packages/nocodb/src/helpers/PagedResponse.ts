@@ -28,8 +28,13 @@ export class PagedResponseImpl<T> {
       this.pageInfo.isFirstPage =
         this.pageInfo.isFirstPage ?? this.pageInfo.page === 1;
       this.pageInfo.isLastPage =
-        this.pageInfo.page ===
+        this.pageInfo.page >=
         (Math.ceil(this.pageInfo.totalRows / this.pageInfo.pageSize) || 1);
+
+      if (this.pageInfo.page % 1 !== 0) {
+        this.pageInfo.offset = offset;
+        delete this.pageInfo.page;
+      }
     }
 
     if (additionalProps) Object.assign(this, additionalProps);

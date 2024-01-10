@@ -20645,6 +20645,11 @@
             "example": 1,
             "type": "number"
           },
+          "offset": {
+            "description": "The current offset and it will be present only when the page is not included",
+            "example": 1,
+            "type": "number"
+          },
           "pageSize": {
             "description": "The number of pages",
             "example": 10,

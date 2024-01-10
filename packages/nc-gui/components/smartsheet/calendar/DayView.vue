@@ -214,19 +214,19 @@ const dropEvent = (event: DragEvent) => {
 </script>
 
 <template>
-  <template v-if="((renderData && renderData.length) || isEmbed) && displayField && calendarRange[0].fk_from_col">
+  <template v-if="((renderData && renderData.length) || isEmbed) && displayField">
     <div
       v-if="calDataType === UITypes.Date"
       :class="{
-        'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
-        'border-r-1 h-full border-gray-200 hover:bg-gray-50 ': props.isEmbed,
-        'bg-gray-50': props.isEmbed && dayjs(selectedDate).isSame(props.renderDate, 'day'),
+        'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !isEmbed,
+        'border-r-1 h-full border-gray-200 hover:bg-gray-50 ': isEmbed,
+        'bg-gray-50': isEmbed && dayjs(selectedDate).isSame(renderDate, 'day'),
       }"
       class="flex flex-col pt-3 !gap-2 h-full w-full"
       @click="
         () => {
-          if (props.renderDate) {
-            selectedDate = props.renderDate
+          if (renderDate) {
+            selectedDate = renderDate
           }
         }
       "
@@ -247,8 +247,8 @@ const dropEvent = (event: DragEvent) => {
     <div
       v-else-if="calDataType === UITypes.DateTime"
       :class="{
-        'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
-        'border-r-1 h-full border-gray-200 ': props.isEmbed,
+        'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !isEmbed,
+        'border-r-1 h-full border-gray-200 ': isEmbed,
       }"
       class="flex flex-col w-full"
     >
@@ -257,7 +257,7 @@ const dropEvent = (event: DragEvent) => {
           v-for="(hour, index) in hours"
           :key="index"
           :class="{
-            '!border-brand-500': dayjs(hour).isSame(selectedTime) && !props.isEmbed,
+            '!border-brand-500': dayjs(hour).isSame(selectedTime) && !isEmbed,
           }"
           class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
           @click="
@@ -303,7 +303,7 @@ const dropEvent = (event: DragEvent) => {
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
               :key="rowIndex"
-              :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('H:mm')"
+              :date="dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('H:mm')"
               :name="record.row[displayField.title]"
               :position="getRecordPosition(record)"
               class="!h-full"

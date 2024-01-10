@@ -4801,11 +4801,6 @@ class BaseModelSqlv2 {
           if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt)) {
             d[col.id] = d[col.id][0];
           }
-
-          // CreatedBy and LastModifiedBy are always singular
-          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt)) {
-            d[col.id] = d[col.id]?.[0] ?? null;
-          }
         }
       }
     } catch {}

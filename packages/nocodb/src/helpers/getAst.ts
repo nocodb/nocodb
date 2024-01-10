@@ -159,6 +159,7 @@ const getAst = async ({
       isRequested =
         !isSystemColumn(col) ||
         (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
+        (isCreatedOrLastModifiedByCol(col) && col.system) ||
         col.pk;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =

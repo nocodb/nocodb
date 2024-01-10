@@ -1744,11 +1744,11 @@ export class ColumnsService {
                 break;
               case UITypes.CreatedBy:
                 columnName = 'created_by';
-                columnTitle = 'nc_created_by';
+                columnTitle = 'CreatedBy';
                 break;
               case UITypes.LastModifiedBy:
                 columnName = 'updated_by';
-                columnTitle = 'nc_updated_by';
+                columnTitle = 'UpdatedBy';
                 break;
             }
 

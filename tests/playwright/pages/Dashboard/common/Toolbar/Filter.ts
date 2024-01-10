@@ -299,7 +299,12 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.SingleSelect:
-          await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
+          // for single select field, the drop select arrow is visible only for some operations
+          if ((await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').count()) > 0) {
+            await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
+          } else {
+            await this.get().locator('.nc-filter-value-select').click({ force: true });
+          }
           // check if value was an array
           // eslint-disable-next-line no-case-declarations
           const val = value.split(',');

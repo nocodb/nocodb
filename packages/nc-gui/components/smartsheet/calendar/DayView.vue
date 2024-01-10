@@ -34,10 +34,60 @@ const renderData = computed(() => {
   }
   return formattedData.value
 })
+
+const recordsAcrossAllRange = computed<Row[]>(() => {
+  if (!calendarRange.value) return []
+  const recordsByRange = []
+
+  calendarRange.value.forEach((range) => {
+    if (range.fk_from_col && range.fk_to_col) {
+      const startCol = range.fk_from_col.title
+      const endCol = range.fk_to_col.title
+      for (const record of renderData.value) {
+        const startDate = dayjs(record.row[startCol])
+        const endDate = dayjs(record.row[endCol])
+        if (
+          startDate.isSame(selectedDate.value, 'day') ||
+          endDate.isSame(selectedDate.value, 'day') ||
+          (startDate.isBefore(selectedDate.value, 'day') && endDate.isAfter(selectedDate.value, 'day')) ||
+          (startDate.isSame(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day')) ||
+          (startDate.isAfter(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day')) ||
+          (startDate.isAfter(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day'))
+        ) {
+          recordsByRange.push({
+            ...record,
+            rowMeta: {
+              ...record.rowMeta,
+              range,
+            },
+          })
+        }
+      }
+    } else if (range.fk_from_col) {
+      const startCol = range.fk_from_col.title
+      for (const record of renderData.value) {
+        const startDate = dayjs(record.row[startCol])
+        if (startDate.isSame(selectedDate.value, 'day')) {
+          recordsByRange.push({
+            ...record,
+            rowMeta: {
+              ...record.rowMeta,
+              range,
+            },
+          })
+        }
+      }
+    }
+  })
+  return recordsByRange
+})
+
 const getRecordPosition = (record: Row) => {
-  if (!calendarRange.value || !calendarRange.value[0]) return ''
-  const startCol = calendarRange.value[0].fk_from_col
-  const endCol = calendarRange.value[0].fk_to_col
+  if (!calendarRange.value) return ''
+  if (!record.rowMeta.range) return ''
+  const range = record.rowMeta.range
+  const startCol = range.fk_from_col
+  const endCol = range.fk_to_col
   if (!endCol && startCol) {
     const startDate = dayjs(record.row[startCol.title])
     if (props.isEmbed) {
@@ -76,35 +126,6 @@ const getRecordPosition = (record: Row) => {
   }
 }
 
-const getSpanningRecords = computed(() => {
-  if (!calendarRange.value || !calendarRange.value[0]) return []
-  const startCol = calendarRange.value[0].fk_from_col
-  const endCol = calendarRange.value[0].fk_to_col
-  const recordsSpanning = []
-  // StartDate is Same as selectedDate and EndDate is Same as selectedDate -> Same Day No Spanning
-  // StartDate is Same as selectedDate and EndDate is After selectedDate -> Spanning Right
-  // StartDate is Before selectedDate and EndDate is Same as selectedDate -> Spanning Left
-  // StartDate is Before selectedDate and EndDate is After selectedDate -> Spanning Both
-  // StartDate is same as selectedDate and EndDate is Before selectedDate -> Spanning Left
-  // StartDate is after selectedDate and EndDate is same as selectedDate -> Spanning Right
-  // StartDate is after selectedDate and EndDate is before selectedDate -> Spanning Both
-  for (const record of renderData.value) {
-    if (endCol && startCol) {
-      const startDate = dayjs(record.row[startCol.title])
-      const endDate = dayjs(record.row[endCol.title])
-      if (
-        (startDate.isSame(selectedDate.value, 'day') && endDate.isAfter(selectedDate.value, 'day')) ||
-        (startDate.isBefore(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day')) ||
-        (startDate.isSame(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day')) ||
-        (startDate.isAfter(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day'))
-      ) {
-        recordsSpanning.push(record)
-      }
-    }
-  }
-  return recordsSpanning
-})
-
 const hours = computed<dayjs.Dayjs>(() => {
   const hours = []
   for (let i = 0; i < 24; i++) {
@@ -123,60 +144,11 @@ const hours = computed<dayjs.Dayjs>(() => {
   return hours
 })
 
-const isOverlap = (record, record1) => {
-  if (!calendarRange.value || !calendarRange.value[0]) return false
-  const startCol = calendarRange.value[0].fk_from_col.title
-  const endCol = calendarRange.value[0].fk_to_col.title
-
-  const startDate = dayjs(record.row[startCol])
-  const endDate = dayjs(record.row[endCol])
-  const startDate1 = dayjs(record1.row[startCol])
-  const endDate1 = dayjs(record1.row[endCol])
-
-  return startDate.isBefore(endDate1) && endDate.isAfter(startDate1)
-}
-
-const overlappingGroups = computed(() => {
-  const recordGroups = []
-  renderData.value
-    ?.filter((record) => !getSpanningRecords.value.includes(record))
-    .forEach((record) => {
-      let placed = false
-      for (const group of recordGroups) {
-        if (group.some((rec) => isOverlap(rec, record))) {
-          group.push(record)
-          placed = true
-          break
-        }
-      }
-      if (!placed) {
-        recordGroups.push([record]) // Create a new group with the record
-      }
-    })
-  return recordGroups
-})
-
-const getColumnIndexFromGroup = (record: Row) => {
-  for (const group of overlappingGroups.value) {
-    if (group.includes(record)) {
-      return group.indexOf(record)
-    }
-  }
-}
-
-const getTotalColumns = (record: Row) => {
-  for (const group of overlappingGroups.value) {
-    if (group.includes(record)) {
-      return group.length
-    }
-  }
-  return 1
-}
-
 const getRecordStyle = (record: Row) => {
-  if (!calendarRange.value || !calendarRange.value[0]) return {}
-  const startCol = calendarRange.value[0].fk_from_col.title
-  const endCol = calendarRange.value[0].fk_to_col.title
+  if (!calendarRange.value || !record.rowMeta.range) return {}
+  const range = record.rowMeta.range
+  const startCol = range.fk_from_col.title
+  const endCol = range.fk_to_col.title
   const scheduleStart = dayjs(selectedDate.value).startOf('day')
   const scheduleEnd = dayjs(selectedDate.value).endOf('day')
   const startDate = dayjs(record.row[startCol])
@@ -259,10 +231,10 @@ const dropEvent = (event: DragEvent) => {
         }
       "
     >
-      <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
+      <LazySmartsheetRow v-for="(record, rowIndex) in recordsAcrossAllRange" :key="rowIndex" :row="record">
         <LazySmartsheetCalendarRecordCard
           :key="rowIndex"
-          :date="record.row[calendarRange[0].fk_from_col.title]"
+          :date="record.row[record.rowMeta.range.fk_from_col.title]"
           :name="record.row[displayField.title]"
           :position="getRecordPosition(record)"
           color="blue"
@@ -315,7 +287,7 @@ const dropEvent = (event: DragEvent) => {
           </NcButton>
         </div>
         <div
-          v-for="(record, rowIndex) in renderData.filter((rec) => !getSpanningRecords.includes(rec))"
+          v-for="(record, rowIndex) in renderData"
           :key="rowIndex"
           :class="{
             'ml-3': getRecordPosition(record) === 'leftRounded',

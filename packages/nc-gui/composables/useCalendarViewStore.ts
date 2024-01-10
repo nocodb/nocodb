@@ -91,16 +91,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       where: where?.value ?? '',
     }))
 
-    const calendarRange = computed(() => {
-      if (!meta.value || !meta.value.columns || !calendarMetaData.value || !calendarMetaData.value.calendar_range) return []
-      return calendarMetaData.value.calendar_range.map((range) => {
-        // Get the column data for the calendar range
-        return {
-          fk_from_col: meta.value!.columns!.find((col) => col.id === range.fk_from_column_id),
-          fk_to_col: meta.value!.columns!.find((col) => col.id === range.fk_to_column_id) ?? null,
-        }
-      })
-    })
+    const calendarRange = ref()
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
@@ -483,8 +474,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       })
 
-      console.log('combinedFilters', combinedFilters)
-
       return combinedFilters.children.length > 0 ? [combinedFilters] : []
     })
 
@@ -547,6 +536,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
       activeCalendarView.value = calMeta?.active_view
       if (!activeCalendarView.value) activeCalendarView.value = 'month'
+      calendarRange.value = res?.calendar_range.map((range: any) => {
+        return {
+          fk_from_col: meta.value?.columns.find((col) => col.id === range.fk_from_column_id),
+          fk_to_col: range.fk_to_column_id ? meta.value?.columns.find((col) => col.id === range.fk_to_column_id) : null,
+        }
+      })
       displayField.value = meta.value.columns.find((col) => col.pv)
     }
 
@@ -613,7 +608,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const loadSidebarData = async () => {
-      console.log('loadSidebarData', sideBarFilter.value)
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
       isSidebarLoading.value = true
       const res = await api.dbTableRow.list('noco', base.value.id!, meta.value!.id!, {

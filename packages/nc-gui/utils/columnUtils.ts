@@ -148,11 +148,11 @@ const uiTypes = [
   },
   {
     name: UITypes.CreatedBy,
-    icon: iconMap.phUserGear,
+    icon: iconMap.phUser,
   },
   {
     name: UITypes.LastModifiedBy,
-    icon: iconMap.phUserGear,
+    icon: iconMap.phUser,
   },
 ]
 

@@ -380,7 +380,7 @@ export class TablesService {
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
-      columns: (Omit<ColumnType, 'column_name' | 'title'> & { cn?: string })[];
+      columns: (ColumnType & { cn?: string })[];
     } = {
       ...param.table,
     };
@@ -603,18 +603,20 @@ export class TablesService {
       tn: tableCreatePayLoad.table_name,
     });
 
-    const columns: Array<
+    let columns: Array<
       Omit<Column, 'column_name' | 'title'> & {
         cn: string;
         system?: boolean;
       }
-    > = (
-      await sqlMgr.sqlOpPlus(source, 'columnList', {
-        tn: tableCreatePayLoad.table_name,
-        schema: source.getConfig()?.schema,
-      })
-    )?.data?.list;
-
+    >;
+    if (!source.isMeta()) {
+      columns = (
+        await sqlMgr.sqlOpPlus(source, 'columnList', {
+          tn: tableCreatePayLoad.table_name,
+          schema: source.getConfig()?.schema,
+        })
+      )?.data?.list;
+    }
     const tables = await Model.list({
       base_id: base.id,
       source_id: source.id,
@@ -625,21 +627,15 @@ export class TablesService {
     // todo: type correction
     const result = await Model.insert(base.id, source.id, {
       ...tableCreatePayLoad,
-      columns: columns.map((c, i) => {
-        const colMetaFromReq = param.table?.columns?.find(
-          (c1) => c.cn === c1.column_name,
-        );
+      columns: tableCreatePayLoad.columns.map((c, i) => {
+        const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
         return {
-          ...colMetaFromReq,
-          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(source, c),
           ...c,
-          dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
-            colMetaFromReq.uidt as any,
-          )
-            ? colMetaFromReq.dtxp
-            : c.dtxp,
-          title: colMetaFromReq?.title || getColumnNameAlias(c.cn, source),
-          column_name: c.cn,
+          uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
+          ...(colMetaFromDb || {}),
+          dtxp: colMetaFromDb?.dtxp ?? c.dtxp,
+          title: c.title || getColumnNameAlias(c.cn, source),
+          column_name: colMetaFromDb?.cn || c.cn || c.column_name,
           order: i + 1,
         } as NormalColumnRequestType;
       }),

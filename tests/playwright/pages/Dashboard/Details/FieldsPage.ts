@@ -198,14 +198,7 @@ export class FieldsPage extends BasePage {
 
     await this.saveChanges();
 
-    const fieldsText = [];
-    const locator = this.fieldListWrapper.locator('>div');
-    const count = await locator.count();
-    for (let i = 0; i < count; i++) {
-      await locator.nth(i).scrollIntoViewIfNeeded();
-      const text = await locator.nth(i).getByTestId('nc-field-title').textContent();
-      fieldsText.push(text);
-    }
+    const fieldsText = await this.getAllFieldText();
 
     if (insertAboveColumnTitle) {
       // verify field inserted above the target field
@@ -275,6 +268,42 @@ export class FieldsPage extends BasePage {
 
     await fieldActionDropdown.waitFor({ state: 'visible' });
     await fieldActionDropdown.getByTestId(`nc-field-item-action-${action}`).click();
+
+    if (action === 'copy-id') {
+      await field.getByTestId('nc-field-item-action-button').click();
+    }
+
     await fieldActionDropdown.waitFor({ state: 'hidden' });
+  }
+
+  async getAllFieldText() {
+    const fieldsText = [];
+    const locator = this.fieldListWrapper.locator('>div');
+    const count = await locator.count();
+    for (let i = 0; i < count; i++) {
+      await locator.nth(i).scrollIntoViewIfNeeded();
+      const text = await locator.nth(i).getByTestId('nc-field-title').textContent();
+      fieldsText.push(text);
+    }
+    return fieldsText;
+  }
+
+  async getFieldId({ title, isDisplayValueField = false }: { title: string; isDisplayValueField?: boolean }) {
+    const field = this.getField({ title });
+    await field.scrollIntoViewIfNeeded();
+
+    await field.hover();
+    await field.getByTestId('nc-field-item-action-button').waitFor({ state: 'visible' });
+    await field.getByTestId('nc-field-item-action-button').click();
+
+    const fieldActionDropdown = isDisplayValueField
+      ? this.rootPage.locator('.nc-field-item-action-dropdown-display-column')
+      : this.rootPage.locator('.nc-field-item-action-dropdown');
+
+    await fieldActionDropdown.waitFor({ state: 'visible' });
+    const fieldId = await fieldActionDropdown.getByTestId('nc-field-item-id').textContent();
+    await field.getByTestId('nc-field-item-action-button').click();
+    await fieldActionDropdown.waitFor({ state: 'hidden' });
+    return fieldId;
   }
 }

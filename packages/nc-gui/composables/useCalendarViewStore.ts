@@ -91,7 +91,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       where: where?.value ?? '',
     }))
 
-    const calendarRange = ref()
+    const calendarRange = ref<
+      Array<{
+        fk_from_col: ColumnType | null
+        fk_to_col: ColumnType | null
+      }>
+    >([])
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
@@ -536,10 +541,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
       activeCalendarView.value = calMeta?.active_view
       if (!activeCalendarView.value) activeCalendarView.value = 'month'
-      calendarRange.value = res?.calendar_range.map((range: any) => {
+      calendarRange.value = res?.calendar_range!.map((range: any) => {
         return {
-          fk_from_col: meta.value?.columns.find((col) => col.id === range.fk_from_column_id),
-          fk_to_col: range.fk_to_column_id ? meta.value?.columns.find((col) => col.id === range.fk_to_column_id) : null,
+          fk_from_col: meta.value?.columns!.find((col) => col.id === range.fk_from_column_id),
+          fk_to_col: range.fk_to_column_id ? meta.value?.columns!.find((col) => col.id === range.fk_to_column_id) : null,
         }
       })
       displayField.value = meta.value.columns.find((col) => col.pv)

@@ -547,6 +547,8 @@ export class TablesService {
 
     const uniqueColumnNameCount = {};
 
+    mapDefaultDisplayValue(param.table.columns);
+
     for (const column of param.table.columns) {
       if (
         !isVirtualCol(column) ||
@@ -621,8 +623,6 @@ export class TablesService {
       base_id: base.id,
       source_id: source.id,
     });
-
-    mapDefaultDisplayValue(tableCreatePayLoad.columns);
 
     // todo: type correction
     const result = await Model.insert(base.id, source.id, {

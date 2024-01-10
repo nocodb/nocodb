@@ -25,14 +25,27 @@ const data = toRefs(props).data
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const { pageDate, selectedTime, selectedDate, calDataType, formattedData, calendarRange, selectedDateRange } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedTime,
+  selectedDate: _selectedDate,
+  calDataType,
+  formattedData,
+  calendarRange,
+  selectedDateRange,
+} = useCalendarViewStoreOrThrow()
 
 const renderData = computed(() => {
   if (data.value) {
     return data.value
   }
   return formattedData.value
+})
+
+const selectedDate = computed(() => {
+  if (props.isEmbed) {
+    return props.renderDate ?? renderData
+  }
+  return _selectedDate.value
 })
 
 const recordsAcrossAllRange = computed<Row[]>(() => {

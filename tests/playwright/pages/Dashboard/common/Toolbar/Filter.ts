@@ -288,14 +288,8 @@ export class ToolbarFilterPage extends BasePage {
             .click();
           break;
         case UITypes.MultiSelect:
-          await this.get()
-            .locator('.nc-filter-value-select')
-            .click({
-              position: {
-                x: 1,
-                y: 1,
-              },
-            });
+          await this.get().locator('.nc-filter-value-select').waitFor();
+          await this.get().locator('.nc-filter-value-select').click();
           // eslint-disable-next-line no-case-declarations
           const v = value.split(',');
           for (let i = 0; i < v.length; i++) {
@@ -306,14 +300,8 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.SingleSelect:
-          await this.get()
-            .locator('.nc-filter-value-select')
-            .click({
-              position: {
-                x: 1,
-                y: 1,
-              },
-            });
+          await this.get().locator('.nc-filter-value-select').waitFor();
+          await this.get().locator('.nc-filter-value-select').click();
           // check if value was an array
           // eslint-disable-next-line no-case-declarations
           const val = value.split(',');
@@ -333,14 +321,8 @@ export class ToolbarFilterPage extends BasePage {
           break;
         case UITypes.User:
           if (!['is blank', 'is not blank'].includes(operation)) {
-            await this.get()
-              .locator('.nc-filter-value-select')
-              .click({
-                position: {
-                  x: 1,
-                  y: 1,
-                },
-              });
+            await this.get().locator('.nc-filter-value-select').waitFor();
+            await this.get().locator('.nc-filter-value-select').click();
 
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {

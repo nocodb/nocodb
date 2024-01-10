@@ -3,6 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { FieldsPage } from '../../../pages/Dashboard/Details/FieldsPage';
 import { getTextExcludeIconText } from '../../utils/general';
+import { UITypes } from 'nocodb-sdk';
 
 test.describe('Multi Field Editor', () => {
   let dashboard: DashboardPage, fields: FieldsPage;
@@ -45,20 +46,11 @@ test.describe('Multi Field Editor', () => {
     await openMultiFieldOfATable();
   };
 
-  const searchAndVerifyFields = async ({
-    searchQuery,
-    expectedFields,
-  }: {
-    searchQuery: string;
-    expectedFields: string[];
-  }) => {
+  const searchAndVerifyFields = async ({ searchQuery, fieldList }: { searchQuery: string; fieldList: string[] }) => {
     await fields.searchFieldInput.fill(searchQuery);
 
     const allFields = await fields.getAllFieldText();
-
-    for (let i = 0; i < allFields.length; i++) {
-      expect(allFields[i]).toBe(expectedFields[i]);
-    }
+    expect(allFields).toEqual(fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())));
   };
 
   test('Add New field, update and reset ', async () => {
@@ -130,13 +122,61 @@ test.describe('Multi Field Editor', () => {
     let searchQuery = 'text';
     await searchAndVerifyFields({
       searchQuery,
-      expectedFields: fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())),
+      fieldList,
     });
 
     searchQuery = 'Rich text';
     await searchAndVerifyFields({
       searchQuery,
-      expectedFields: fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())),
+      fieldList,
     });
+  });
+
+  test('Field Reorder and verify', async () => {
+    // default order: ['Title', 'Single Line Text', 'Long Text', 'Number', 'Percent','Links']
+    const fieldList = [
+      {
+        title: 'Single Line Text',
+        type: UITypes.SingleLineText,
+      },
+      {
+        title: 'Long Text',
+        type: UITypes.LongText,
+      },
+      {
+        title: 'Number',
+        type: UITypes.Number,
+      },
+      {
+        title: 'Percent',
+        type: UITypes.Percent,
+      },
+      {
+        title: 'Links',
+        type: UITypes.Links,
+        relationType: 'Has Many',
+        childTable: 'Multifield',
+      },
+    ];
+
+    for (const field of fieldList) {
+      await fields.createOrUpdate({ ...field, saveChanges: false });
+    }
+    await fields.saveChanges();
+    // updated order : ['Title', 'Long Text','Single Line Text', 'Number', 'Percent','Links']
+    await fields.getField({ title: fieldList[0].title }).dragTo(fields.getField({ title: fieldList[1].title }));
+    await expect(fields.getField({ title: fieldList[0].title })).toContainText('Updated field');
+
+    // updated order : ['Title', 'Long Text','Single Line Text', 'Number','Links', 'Percent']
+    await fields.getField({ title: fieldList[4].title }).dragTo(fields.getField({ title: fieldList[3].title }));
+    await expect(fields.getField({ title: fieldList[4].title })).toContainText('Updated field');
+
+    await fields.saveChanges();
+    const fieldsText = await fields.getAllFieldText();
+    const expectedFieldText = ['Title', 'Long Text', 'Single Line Text', 'Number', 'Links', 'Percent'];
+
+    expect(fieldsText).toEqual(expectedFieldText);
+
+    await verifyGridColumnHeaders({ fields: expectedFieldText });
   });
 });

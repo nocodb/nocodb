@@ -2009,29 +2009,27 @@ export class ColumnsService {
           );
           await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-          const columns: Array<
-            Omit<Column, 'column_name' | 'title'> & {
-              cn: string;
-              system?: boolean;
-            }
-          > = (
-            await sqlClient.columnList({
-              tn: table.table_name,
-              schema: source.getConfig()?.schema,
-            })
-          )?.data?.list;
+          if (!source.isMeta()) {
+            const columns: Array<
+              Omit<Column, 'column_name' | 'title'> & {
+                cn: string;
+                system?: boolean;
+              }
+            > = (
+              await sqlClient.columnList({
+                tn: table.table_name,
+                schema: source.getConfig()?.schema,
+              })
+            )?.data?.list;
 
-          const insertedColumnMeta =
-            columns.find((c) => c.cn === colBody.column_name) || ({} as any);
+            const insertedColumnMeta =
+              columns.find((c) => c.cn === colBody.column_name) || ({} as any);
+
+            Object.assign(colBody, insertedColumnMeta);
+          }
 
           await Column.insert({
             ...colBody,
-            ...insertedColumnMeta,
-            dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
-              colBody.uidt as any,
-            )
-              ? colBody.dtxp
-              : insertedColumnMeta.dtxp,
             fk_model_id: table.id,
           });
         }

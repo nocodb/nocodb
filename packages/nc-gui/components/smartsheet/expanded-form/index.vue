@@ -469,12 +469,14 @@ const isReadOnlyVirtualCell = (column: ColumnType) => {
 watch([expandedFormScrollWrapper, isLoading], () => {
   if (isMobileMode.value) return
 
-  if (expandedFormScrollWrapper.value && !isLoading.value) {
-    const height = expandedFormScrollWrapper.value.scrollHeight
-    expandedFormScrollWrapper.value.scrollTop = height
+  const expandedFormScrollWrapperEl = expandedFormScrollWrapper.value
+
+  if (expandedFormScrollWrapperEl && !isLoading.value) {
+    const height = expandedFormScrollWrapperEl.scrollHeight
+    expandedFormScrollWrapperEl.scrollTop = height
 
     setTimeout(() => {
-      expandedFormScrollWrapper.value.scrollTop = 0
+      expandedFormScrollWrapperEl.scrollTop = 0
     }, 125)
   }
 })

@@ -50,10 +50,12 @@ test.describe('Multi Field Editor', () => {
     await fields.searchFieldInput.fill(searchQuery);
 
     const allFields = await fields.getAllFieldText();
-    expect(allFields).toEqual(fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())));
+    expect(allFields).toEqual(
+      searchQuery ? fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())) : fieldList
+    );
   };
 
-  test('Add New field, update and reset ', async () => {
+  test('Add New field, update & Restore, reset ', async () => {
     // Add New Field
     await fields.createOrUpdate({ title: 'Name', saveChanges: false });
     await expect(fields.getField({ title: 'Name' })).toContainText('New field');
@@ -64,6 +66,11 @@ test.describe('Multi Field Editor', () => {
     await fields.createOrUpdate({ title: 'Updated Name', saveChanges: false, isUpdateMode: true });
     await expect(fields.getField({ title: 'Updated Name' })).toContainText('Updated field');
     await fields.saveChanges();
+
+    // Update and restore field changes
+    await fields.getField({ title: 'Updated Name' }).click();
+    await fields.createOrUpdate({ title: 'Updated Name to restore', saveChanges: false, isUpdateMode: true });
+    await fields.clickRestoreField({ title: 'Updated Name to restore' });
 
     // verify grid column header
     const fieldsText = await fields.getAllFieldText();
@@ -143,7 +150,14 @@ test.describe('Multi Field Editor', () => {
     searchQuery = 'Rich text';
     await searchAndVerifyFields({
       searchQuery,
-      fieldList,
+      fieldList: ['Title', ...fieldList],
+    });
+
+    // clear search and verify
+    await fields.clearSearch();
+    await searchAndVerifyFields({
+      searchQuery: '',
+      fieldList: ['Title', ...fieldList],
     });
   });
 

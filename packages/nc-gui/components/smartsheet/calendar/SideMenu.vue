@@ -163,7 +163,11 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         <template v-else-if="formattedSideBarData.length > 0">
           <LazySmartsheetRow v-for="(record, rowIndex) in formattedSideBarData" :key="rowIndex" :row="record">
             <LazySmartsheetCalendarSideRecordCard
-              :date="dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('YYYY-MM-DD HH:mm')"
+              :date="
+                calDataType === UITypes.DateTime
+                  ? dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('DD-MM-YYYY HH:mm')
+                  : dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('DD-MM-YYYY')
+              "
               :name="record.row[displayField.title]"
               color="blue"
               @click="emit('expand-record', record)"

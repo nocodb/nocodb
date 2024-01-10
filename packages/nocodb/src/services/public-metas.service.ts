@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  ErrorMessages,
+  isCreatedOrLastModifiedByCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -69,7 +74,11 @@ export class PublicMetasService {
 
     view.relatedMetas = relatedMetas;
 
-    if (view.model.columns.some((c) => c.uidt === UITypes.User)) {
+    if (
+      view.model.columns.some(
+        (c) => c.uidt === UITypes.User || isCreatedOrLastModifiedByCol(c),
+      )
+    ) {
       const baseUsers = await BaseUser.getUsersList({
         base_id: view.model.base_id,
       });

@@ -1,26 +1,21 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
-import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { FieldsPage } from '../../../pages/Dashboard/Details/FieldsPage';
 import { getTextExcludeIconText } from '../../utils/general';
 
 test.describe('Multi Field Editor', () => {
-  let dashboard: DashboardPage, grid: GridPage, fields: FieldsPage;
+  let dashboard: DashboardPage, fields: FieldsPage;
   let context: any;
   const defaultFieldName = 'Multi Field Editor';
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.base);
-    grid = dashboard.grid;
     fields = dashboard.details.fields;
 
     await dashboard.treeView.createTable({ title: 'Multifield', baseTitle: context.base.title });
     await openMultiFieldOfATable();
-
-    // Add New Field
-    await fields.createOrUpdate({ title: defaultFieldName });
   });
 
   test.afterEach(async () => {
@@ -50,16 +45,47 @@ test.describe('Multi Field Editor', () => {
     await openMultiFieldOfATable();
   };
 
-  test('Add New field and update', async () => {
+  const searchAndVerifyFields = async ({
+    searchQuery,
+    expectedFields,
+  }: {
+    searchQuery: string;
+    expectedFields: string[];
+  }) => {
+    await fields.searchFieldInput.fill(searchQuery);
+
+    const allFields = await fields.getAllFieldText();
+
+    for (let i = 0; i < allFields.length; i++) {
+      expect(allFields[i]).toBe(expectedFields[i]);
+    }
+  };
+
+  test('Add New field, update and reset ', async () => {
     // Add New Field
     await fields.createOrUpdate({ title: 'Name' });
 
     // Update Field title
     await fields.getField({ title: 'Name' }).click();
     await fields.createOrUpdate({ title: 'Updated Name', isUpdateMode: true });
+
+    // verify grid column header
+    const fieldsText = await fields.getAllFieldText();
+    await verifyGridColumnHeaders({ fields: fieldsText });
+
+    // add new fields then reset changes and verify
+    await fields.createOrUpdate({ title: 'field to reset', saveChanges: false });
+    await fields.createOrUpdate({ title: 'Random', saveChanges: false });
+    await fields.resetFieldChangesButton.click();
+
+    // verify with old fields
+    await verifyGridColumnHeaders({ fields: fieldsText });
   });
 
-  test.only('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Hide', async () => {
+  test('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Hide', async () => {
+    // Add New Field
+    await fields.createOrUpdate({ title: defaultFieldName });
+
     // copy-id and verify
     const fieldId = await fields.getFieldId({ title: defaultFieldName });
     await fields.selectFieldAction({ title: defaultFieldName, action: 'copy-id' });
@@ -91,5 +117,26 @@ test.describe('Multi Field Editor', () => {
     await fields.saveChanges();
 
     await verifyGridColumnHeaders({ fields: fieldsText.filter(field => field !== defaultFieldName) });
+  });
+
+  test('Search field and verify', async () => {
+    const fieldList = ['Single Line Text', 'Long text', 'Rich text', 'Number', 'Percentage'];
+
+    for (const field of fieldList) {
+      await fields.createOrUpdate({ title: field, saveChanges: false });
+    }
+    await fields.saveChanges();
+
+    let searchQuery = 'text';
+    await searchAndVerifyFields({
+      searchQuery,
+      expectedFields: fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())),
+    });
+
+    searchQuery = 'Rich text';
+    await searchAndVerifyFields({
+      searchQuery,
+      expectedFields: fieldList.filter(field => field.toLowerCase().includes(searchQuery.toLowerCase())),
+    });
   });
 });

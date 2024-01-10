@@ -48,6 +48,7 @@ export class FieldsPage extends BasePage {
     title,
     type = 'SingleLineText',
     isUpdateMode = false,
+    saveChanges = true,
     formula = '',
     qrCodeValueColumnTitle = '',
     barcodeValueColumnTitle = '',
@@ -65,6 +66,7 @@ export class FieldsPage extends BasePage {
     title: string;
     type?: string;
     isUpdateMode?: boolean;
+    saveChanges?: boolean;
     formula?: string;
     qrCodeValueColumnTitle?: string;
     barcodeValueColumnTitle?: string;
@@ -196,19 +198,21 @@ export class FieldsPage extends BasePage {
         break;
     }
 
-    await this.saveChanges();
+    if (saveChanges) {
+      await this.saveChanges();
 
-    const fieldsText = await this.getAllFieldText();
+      const fieldsText = await this.getAllFieldText();
 
-    if (insertAboveColumnTitle) {
-      // verify field inserted above the target field
-      expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertAboveColumnTitle)) - 1]).toBe(title);
-    } else if (insertBelowColumnTitle) {
-      // verify field inserted below the target field
-      expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertBelowColumnTitle)) + 1]).toBe(title);
-    } else {
-      // verify field inserted at the end
-      expect(fieldsText[fieldsText.length - 1]).toBe(title);
+      if (insertAboveColumnTitle) {
+        // verify field inserted above the target field
+        expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertAboveColumnTitle)) - 1]).toBe(title);
+      } else if (insertBelowColumnTitle) {
+        // verify field inserted below the target field
+        expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertBelowColumnTitle)) + 1]).toBe(title);
+      } else {
+        // verify field inserted at the end
+        expect(fieldsText[fieldsText.length - 1]).toBe(title);
+      }
     }
   }
 

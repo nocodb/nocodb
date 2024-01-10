@@ -1,5 +1,13 @@
 import type { ComputedRef, Ref } from 'vue'
-import { type Api, type CalendarType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
+import {
+  type Api,
+  type CalendarType,
+  type ColumnType,
+  type PaginatedType,
+  type TableType,
+  UITypes,
+  type ViewType,
+} from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { addDays, addMonths, addYears } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState } from '#imports'
@@ -149,24 +157,49 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         switch (sideBarFilterOption.value) {
           case 'day':
-            fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
-            toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+            if (calDataType.value === UITypes.Date) {
+              fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+              toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+            } else if (calDataType.value === UITypes.DateTime) {
+              fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+            }
             break
           case 'week':
-            fromDate = dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')
-            toDate = dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')
+            if (calDataType.value === UITypes.Date) {
+              fromDate = dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')
+              toDate = dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')
+            } else if (calDataType.value === UITypes.DateTime) {
+              fromDate = dayjs(selectedDateRange.value.start).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              toDate = dayjs(selectedDateRange.value.end).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+            }
             break
           case 'month':
-            fromDate = dayjs(selectedDate.value).startOf('month').format('YYYY-MM-DD')
-            toDate = dayjs(selectedDate.value).endOf('month').format('YYYY-MM-DD')
+            if (calDataType.value === UITypes.Date) {
+              fromDate = dayjs(selectedDate.value).startOf('month').format('YYYY-MM-DD')
+              toDate = dayjs(selectedDate.value).endOf('month').format('YYYY-MM-DD')
+            } else if (calDataType.value === UITypes.DateTime) {
+              fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+            }
             break
           case 'year':
-            fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
-            toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
+            if (calDataType.value === UITypes.Date) {
+              fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
+              toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
+            } else if (calDataType.value === UITypes.DateTime) {
+              fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+            }
             break
           case 'selectedDate':
-            fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
-            toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+            if (calDataType.value === UITypes.Date) {
+              fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+              toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+            } else if (calDataType.value === UITypes.DateTime) {
+              fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+              toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+            }
             break
         }
 
@@ -339,17 +372,37 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       let toDate: string | null = null
 
       if (activeCalendarView.value === 'week') {
-        fromDate = dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')
-        toDate = dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')
+        if (calDataType.value === UITypes.Date) {
+          fromDate = dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')
+          toDate = dayjs(selectedDateRange.value.end).format('YYYY-MM-DD')
+        } else if (calDataType.value === UITypes.DateTime) {
+          fromDate = dayjs(selectedDateRange.value.start).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+          toDate = dayjs(selectedDateRange.value.end).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+        }
       } else if (activeCalendarView.value === 'day') {
-        fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
-        toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+        if (calDataType.value === UITypes.Date) {
+          fromDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+          toDate = dayjs(selectedDate.value).format('YYYY-MM-DD')
+        } else if (calDataType.value === UITypes.DateTime) {
+          fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+          toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+        }
       } else if (activeCalendarView.value === 'month') {
-        fromDate = dayjs(selectedDate.value).startOf('month').format('YYYY-MM-DD')
-        toDate = dayjs(selectedDate.value).endOf('month').format('YYYY-MM-DD')
+        if (calDataType.value === UITypes.Date) {
+          fromDate = dayjs(selectedDate.value).startOf('month').format('YYYY-MM-DD')
+          toDate = dayjs(selectedDate.value).endOf('month').format('YYYY-MM-DD')
+        } else if (calDataType.value === UITypes.DateTime) {
+          fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+          toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+        }
       } else if (activeCalendarView.value === 'year') {
-        fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
-        toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
+        if (calDataType.value === UITypes.Date) {
+          fromDate = dayjs(selectedDate.value).startOf('year').format('YYYY-MM-DD')
+          toDate = dayjs(selectedDate.value).endOf('year').format('YYYY-MM-DD')
+        } else if (calDataType.value === UITypes.DateTime) {
+          fromDate = dayjs(selectedDate.value).startOf('day').format('YYYY-MM-DD HH:mm:ss')
+          toDate = dayjs(selectedDate.value).endOf('day').format('YYYY-MM-DD HH:mm:ss')
+        }
       }
 
       calendarRange.value.forEach((range) => {

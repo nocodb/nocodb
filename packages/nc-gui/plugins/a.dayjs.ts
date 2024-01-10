@@ -8,6 +8,7 @@ import timezone from 'dayjs/plugin/timezone.js'
 import updateLocale from 'dayjs/plugin/updateLocale'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import isBetween from 'dayjs/plugin/isBetween'
 import { defineNuxtPlugin } from '#imports'
 
 export default defineNuxtPlugin(() => {
@@ -20,6 +21,7 @@ export default defineNuxtPlugin(() => {
   extend(updateLocale)
   extend(isSameOrBefore)
   extend(isSameOrAfter)
+  extend(isBetween)
   dayjs.updateLocale('en', {
     weekStart: 1,
   })

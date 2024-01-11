@@ -117,7 +117,7 @@ const allFieldList = [
   },
 ];
 
-test.describe.only('Multi Field Editor', () => {
+test.describe('Multi Field Editor', () => {
   let dashboard: DashboardPage, fields: FieldsPage;
   let context: any;
   const defaultFieldName = 'Multi Field Editor';

@@ -8,6 +8,8 @@ import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -18,6 +20,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type { XKnex } from '~/db/CustomKnex';
@@ -35,15 +38,6 @@ import type {
   SelectOption,
   User,
 } from '~/models';
-import type { SortType } from 'nocodb-sdk';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import conditionV2 from '~/db/conditionV2';
-import sortV2 from '~/db/sortV2';
-import { customValidators } from '~/db/util/customValidators';
-import { extractLimitAndOffset } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
-import getAst from '~/helpers/getAst';
 import {
   Audit,
   BaseUser,
@@ -55,6 +49,14 @@ import {
   Source,
   View,
 } from '~/models';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import conditionV2 from '~/db/conditionV2';
+import sortV2 from '~/db/sortV2';
+import { customValidators } from '~/db/util/customValidators';
+import { extractLimitAndOffset } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
@@ -99,6 +101,49 @@ function checkColumnRequired(
   // check fields defined and if not, then select all
   // if defined check if it is in the fields
   return !fields || fields.includes(column.title);
+}
+
+export async function getColumnName(column: Column<any>, columns?: Column[]) {
+  if (
+    !isCreatedOrLastModifiedTimeCol(column) &&
+    !isCreatedOrLastModifiedByCol(column)
+  )
+    return column.column_name;
+  columns = columns || (await Column.list({ fk_model_id: column.fk_model_id }));
+
+  switch (column.uidt) {
+    case UITypes.CreatedTime: {
+      const createdTimeSystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.CreatedTime,
+      );
+      if (createdTimeSystemCol) return createdTimeSystemCol.column_name;
+      return column.column_name || 'created_at';
+    }
+    case UITypes.LastModifiedTime: {
+      const lastModifiedTimeSystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.LastModifiedTime,
+      );
+      if (lastModifiedTimeSystemCol)
+        return lastModifiedTimeSystemCol.column_name;
+      return column.column_name || 'updated_at';
+    }
+    case UITypes.CreatedBy: {
+      const createdBySystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.CreatedBy,
+      );
+      if (createdBySystemCol) return createdBySystemCol.column_name;
+      return column.column_name || 'created_by';
+    }
+    case UITypes.LastModifiedBy: {
+      const lastModifiedBySystemCol = columns.find(
+        (col) => col.system && col.uidt === UITypes.LastModifiedBy,
+      );
+      if (lastModifiedBySystemCol) return lastModifiedBySystemCol.column_name;
+      return column.column_name || 'updated_by';
+    }
+    default:
+      return column.column_name;
+  }
 }
 
 /**
@@ -641,10 +686,13 @@ class BaseModelSqlv2 {
             }
             break;
           default:
-            selectors.push(
-              this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
-            );
-            groupBySelectors.push(sanitize(column.id));
+            {
+              const columnName = await getColumnName(column, cols);
+              selectors.push(
+                this.dbDriver.raw('?? as ??', [columnName, column.id]),
+              );
+              groupBySelectors.push(sanitize(column.id));
+            }
             break;
         }
       }),
@@ -710,7 +758,16 @@ class BaseModelSqlv2 {
 
       const column = groupByColumns[sort.fk_column_id];
 
-      if (column.uidt === UITypes.User) {
+      if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          column.uidt as UITypes,
+        )
+      ) {
+        const columnName = await getColumnName(
+          column,
+          await this.model.getColumns(),
+        );
+
         const baseUsers = await BaseUser.getUsersList({
           base_id: column.base_id,
         });
@@ -722,7 +779,7 @@ class BaseModelSqlv2 {
             user.display_name || user.email,
           ]);
           return qb.toQuery();
-        }, this.dbDriver.raw(`??`, [column.column_name]).toQuery());
+        }, this.dbDriver.raw(`??`, [columnName]).toQuery());
 
         qb.orderBy(
           sanitize(this.dbDriver.raw(finalStatement)),
@@ -849,10 +906,13 @@ class BaseModelSqlv2 {
               }
               break;
             default:
-              selectors.push(
-                this.dbDriver.raw('?? as ??', [column.column_name, column.id]),
-              );
-              groupBySelectors.push(sanitize(column.id));
+              {
+                const columnName = await getColumnName(column, cols);
+                selectors.push(
+                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
+                );
+                groupBySelectors.push(sanitize(column.id));
+              }
               break;
           }
         }),
@@ -2113,53 +2173,60 @@ class BaseModelSqlv2 {
       if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
       switch (column.uidt) {
+        case UITypes.CreatedTime:
+        case UITypes.LastModifiedTime:
         case UITypes.DateTime:
-          if (this.isMySQL) {
-            // MySQL stores timestamp in UTC but display in timezone
-            // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
-            // If it's SYSTEM, then the timezone is read from the configuration file
-            // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
-            // for example, let's say the global timezone is +08:00 in DB
-            // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
-            // our existing logic is based on UTC, during the query, we need to take the UTC value
-            // hence, we use CONVERT_TZ to convert back to UTC value
-            res[sanitize(column.id || column.column_name)] = this.dbDriver.raw(
-              `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-              [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
+          {
+            const columnName = await getColumnName(
+              column,
+              await this.model.getColumns(),
             );
-            break;
-          } else if (this.isPg) {
-            // if there is no timezone info,
-            // convert to database timezone,
-            // then convert to UTC
-            if (
-              column.dt !== 'timestamp with time zone' &&
-              column.dt !== 'timestamptz'
-            ) {
-              res[sanitize(column.id || column.column_name)] = this.dbDriver
-                .raw(
-                  `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
-                )
-                .wrap('(', ')');
+            if (this.isMySQL) {
+              // MySQL stores timestamp in UTC but display in timezone
+              // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
+              // If it's SYSTEM, then the timezone is read from the configuration file
+              // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
+              // for example, let's say the global timezone is +08:00 in DB
+              // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
+              // our existing logic is based on UTC, during the query, we need to take the UTC value
+              // hence, we use CONVERT_TZ to convert back to UTC value
+              res[sanitize(column.id || columnName)] = this.dbDriver.raw(
+                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                [`${sanitize(alias || this.tnPath)}.${columnName}`],
+              );
               break;
-            }
-          } else if (this.isMssql) {
-            // if there is no timezone info,
-            // convert to database timezone,
-            // then convert to UTC
-            if (column.dt !== 'datetimeoffset') {
-              res[sanitize(column.id || column.column_name)] =
-                this.dbDriver.raw(
+            } else if (this.isPg) {
+              // if there is no timezone info,
+              // convert to database timezone,
+              // then convert to UTC
+              if (
+                column.dt !== 'timestamp with time zone' &&
+                column.dt !== 'timestamptz'
+              ) {
+                res[sanitize(column.id || columnName)] = this.dbDriver
+                  .raw(
+                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    [`${sanitize(alias || this.tnPath)}.${columnName}`],
+                  )
+                  .wrap('(', ')');
+                break;
+              }
+            } else if (this.isMssql) {
+              // if there is no timezone info,
+              // convert to database timezone,
+              // then convert to UTC
+              if (column.dt !== 'datetimeoffset') {
+                res[sanitize(column.id || columnName)] = this.dbDriver.raw(
                   `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [`${sanitize(alias || this.tnPath)}.${column.column_name}`],
+                  [`${sanitize(alias || this.tnPath)}.${columnName}`],
                 );
-              break;
+                break;
+              }
             }
+            res[sanitize(column.id || columnName)] = sanitize(
+              `${alias || this.tnPath}.${columnName}`,
+            );
           }
-          res[sanitize(column.id || column.column_name)] = sanitize(
-            `${alias || this.tnPath}.${column.column_name}`,
-          );
           break;
         case UITypes.LinkToAnotherRecord:
         case UITypes.Lookup:
@@ -2275,6 +2342,18 @@ class BaseModelSqlv2 {
             ).builder.as(sanitize(column.id)),
           );
           break;
+        case UITypes.CreatedBy:
+        case UITypes.LastModifiedBy: {
+          const columnName = await getColumnName(
+            column,
+            await this.model.getColumns(),
+          );
+
+          res[sanitize(column.id || columnName)] = sanitize(
+            `${alias || this.tnPath}.${columnName}`,
+          );
+          break;
+        }
         default:
           if (this.isPg) {
             if (column.dt === 'bytea') {
@@ -2329,7 +2408,7 @@ class BaseModelSqlv2 {
         await this.beforeInsert(insertObj, trx, cookie);
       }
 
-      await this.prepareNocoData(insertObj);
+      await this.prepareNocoData(insertObj, true, cookie);
 
       let response;
       // const driver = trx ? trx : this.dbDriver;
@@ -2364,8 +2443,10 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          const res = await this.execAndParse(query);
-          id = res?.id ?? res[0]?.insertId;
+          const res = await this.execAndParse(query, null, {
+            raw: true,
+          });
+          id = res?.id ?? res[0]?.insertId ?? res;
         }
 
         if (ai) {
@@ -2572,7 +2653,7 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      await this.prepareNocoData(updateObj);
+      await this.prepareNocoData(updateObj, false, cookie);
 
       const prevData = await this.readByPk(
         id,
@@ -2678,7 +2759,6 @@ class BaseModelSqlv2 {
         this.clientMeta,
         this.dbDriver,
       );
-
       let rowId = null;
 
       const nestedCols = (await this.model.getColumns()).filter((c) =>
@@ -2693,6 +2773,8 @@ class BaseModelSqlv2 {
       await this.validate(insertObj);
 
       await this.beforeInsert(insertObj, this.dbDriver, cookie);
+
+      await this.prepareNocoData(insertObj, true, cookie);
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
@@ -2727,11 +2809,8 @@ class BaseModelSqlv2 {
         } else {
           rowId = await this.execAndParse(query, null, {
             raw: true,
-            first: true,
           });
-          if (this.isMySQL) {
-            rowId = rowId?.insertId;
-          }
+          rowId = rowId.id ?? rowId[0]?.insertId ?? rowId;
         }
 
         if (ai) {
@@ -2923,6 +3002,16 @@ class BaseModelSqlv2 {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
+            if (
+              col.title in d &&
+              (isCreatedOrLastModifiedTimeCol(col) ||
+                isCreatedOrLastModifiedByCol(col))
+            ) {
+              NcError.badRequest(
+                `Column "${col.title}" is auto generated and cannot be updated`,
+              );
+            }
+
             // populate pk columns
             if (col.pk) {
               if (col.meta?.ag && !d[col.title]) {
@@ -3040,7 +3129,7 @@ class BaseModelSqlv2 {
             }
           }
 
-          await this.prepareNocoData(insertObj);
+          await this.prepareNocoData(insertObj, true, cookie);
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
@@ -3076,22 +3165,22 @@ class BaseModelSqlv2 {
         }
       }
 
-      let response;
+      let responses;
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
         // sqlite and mysql doesn't support returning, so insert one by one and return ids
-        response = [];
+        responses = [];
 
         const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
 
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
           const id = (await query)[0];
-          response.push(aiPkCol ? { [aiPkCol.title]: id } : id);
+          responses.push(aiPkCol ? { [aiPkCol.title]: id } : id);
         }
       } else {
-        response =
+        responses =
           !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
@@ -3112,7 +3201,7 @@ class BaseModelSqlv2 {
 
       // insert nested link data for single record insertion
       if (isSingleRecordInsertion) {
-        const rowId = response[0][this.model.primaryKey?.title];
+        const rowId = responses[0][this.model.primaryKey?.title];
         await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
       }
 
@@ -3120,14 +3209,14 @@ class BaseModelSqlv2 {
 
       if (!raw && !skip_hooks) {
         if (isSingleRecordInsertion) {
-          const insertData = await this.readByPk(response[0]);
+          const insertData = await this.readByPk(responses[0]);
           await this.afterInsert(insertData, this.dbDriver, cookie);
         } else {
           await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
         }
       }
 
-      return response;
+      return responses;
     } catch (e) {
       await trx?.rollback();
       // await this.errorInsertb(e, data, null);
@@ -3153,6 +3242,13 @@ class BaseModelSqlv2 {
     try {
       if (raw) await this.model.getColumns();
 
+      // validate update data
+      if (!raw) {
+        for (const d of datas) {
+          await this.validate(d);
+        }
+      }
+
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -3166,7 +3262,6 @@ class BaseModelSqlv2 {
       const updatePkValues = [];
       const toBeUpdated = [];
       for (const d of updateDatas) {
-        if (!raw) await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -3178,7 +3273,7 @@ class BaseModelSqlv2 {
           continue;
         }
         if (!raw) {
-          await this.prepareNocoData(d);
+          await this.prepareNocoData(d, false, cookie);
 
           const oldRecord = await this.readByPk(pkValues);
           if (!oldRecord) {
@@ -3251,6 +3346,9 @@ class BaseModelSqlv2 {
         this.dbDriver,
       );
       if (!args.skipValidationAndHooks) await this.validate(updateData);
+
+      await this.prepareNocoData(updateData, false, cookie);
+
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
@@ -3790,12 +3888,22 @@ class BaseModelSqlv2 {
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}
 
-  async validate(columns) {
+  async validate(data: Record<string, any>): Promise<boolean> {
     await this.model.getColumns();
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
-      await this.validateOptions(column, columns);
+
+      if (
+        column.title in data &&
+        (isCreatedOrLastModifiedTimeCol(column) ||
+          isCreatedOrLastModifiedByCol(column))
+      ) {
+        NcError.badRequest(
+          `Column "${column.title}" is auto generated and cannot be updated`,
+        );
+      }
+      await this.validateOptions(column, data);
 
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
@@ -3813,7 +3921,7 @@ class BaseModelSqlv2 {
               ? customValidators[func[j]]
               : Validator[func[j]]
             : func[j];
-        const columnValue = columns?.[cn] || columns?.[columnTitle];
+        const columnValue = data?.[cn] || data?.[columnTitle];
         const arg =
           typeof func[j] === 'string' ? columnValue + '' : columnValue;
         if (
@@ -3960,6 +4068,17 @@ class BaseModelSqlv2 {
               { raw: true },
             );
           }
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [childId],
+            cookie,
+          });
+          await this.updateLastModified({
+            model: childTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -3979,6 +4098,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -3998,6 +4123,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [childId],
+            cookie,
+          });
         }
         break;
     }
@@ -4091,6 +4222,17 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [childId],
+            cookie,
+          });
+          await this.updateLastModified({
+            model: childTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -4108,6 +4250,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -4125,6 +4273,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [childId],
+            cookie,
+          });
         }
         break;
     }
@@ -4565,22 +4719,43 @@ class BaseModelSqlv2 {
         await this.model.getColumns();
       }
 
-      const userColumns = [];
+      let userColumns = [];
 
       const columns = childTable ? childTable.columns : this.model.columns;
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedUidt(col)) === UITypes.User) {
+          if (
+            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              (await this.getNestedUidt(col)) as UITypes,
+            )
+          ) {
             userColumns.push(col);
           }
         } else {
-          if (col.uidt === UITypes.User) {
+          if (
+            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              col.uidt,
+            )
+          ) {
             userColumns.push(col);
           }
         }
       }
 
+      // filter user columns that are not present in data
+      if (userColumns.length) {
+        if (Array.isArray(data)) {
+          const row = data[0];
+          if (row) {
+            userColumns = userColumns.filter((col) => col.id in row);
+          }
+        } else {
+          userColumns = userColumns.filter((col) => col.id in data);
+        }
+      }
+
+      // process user columns that are present in data
       if (userColumns.length) {
         const baseUsers = await BaseUser.getUsersList({
           base_id: childTable ? childTable.base_id : this.model.base_id,
@@ -4599,30 +4774,32 @@ class BaseModelSqlv2 {
   }
 
   protected _convertUserFormat(
-    userColumns: Record<string, any>[],
+    userColumns: Column[],
     baseUsers: Partial<User>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        for (const col of userColumns) {
-          if (d[col.id] && d[col.id].length) {
-            d[col.id] = d[col.id].split(',');
-          } else {
-            d[col.id] = null;
-          }
+        const availableUserColumns = userColumns.filter(
+          (col) => d[col.id] && d[col.id].length,
+        );
+        for (const col of availableUserColumns) {
+          d[col.id] = d[col.id].split(',');
 
-          if (d[col.id]?.length) {
-            d[col.id] = d[col.id].map((fid) => {
-              const { id, email, display_name } = baseUsers.find(
-                (u) => u.id === fid,
-              );
-              return {
-                id,
-                email,
-                display_name: display_name?.length ? display_name : null,
-              };
-            });
+          d[col.id] = d[col.id].map((fid) => {
+            const { id, email, display_name } = baseUsers.find(
+              (u) => u.id === fid,
+            );
+            return {
+              id,
+              email,
+              display_name: display_name?.length ? display_name : null,
+            };
+          });
+
+          // CreatedBy and LastModifiedBy are always singular
+          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt)) {
+            d[col.id] = d[col.id][0];
           }
         }
       }
@@ -5034,6 +5211,17 @@ class BaseModelSqlv2 {
           await this.execAndParse(this.dbDriver(vTn).insert(insertData), null, {
             raw: true,
           });
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: childIds,
+            cookie,
+          });
+          await this.updateLastModified({
+            model: childTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -5108,6 +5296,12 @@ class BaseModelSqlv2 {
             );
           }
           await this.execAndParse(updateQb, null, { raw: true });
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -5150,6 +5344,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
     }
@@ -5291,6 +5491,17 @@ class BaseModelSqlv2 {
               : childIds,
           );
           await this.execAndParse(delQb, null, { raw: true });
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: childIds,
+            cookie,
+          });
+          await this.updateLastModified({
+            model: childTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -5371,6 +5582,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [rowId],
+            cookie,
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -5416,6 +5633,12 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
+
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [childIds[0]],
+            cookie,
+          });
         }
         break;
     }
@@ -5501,13 +5724,76 @@ class BaseModelSqlv2 {
     }
   }
 
-  async prepareNocoData(data) {
+  async updateLastModified({
+    rowIds,
+    cookie,
+    model = this.model,
+    knex = this.dbDriver,
+  }: {
+    rowIds: any | any[];
+    cookie?: { user?: any };
+    model?: Model;
+    knex?: XKnex;
+  }) {
+    const columns = await model.getColumns();
+
+    const updateObject = {};
+
+    const lastModifiedTimeColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    );
+
+    const lastModifiedByColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    );
+
+    if (lastModifiedTimeColumn) {
+      updateObject[lastModifiedTimeColumn.column_name] = Noco.ncMeta.now();
+    }
+
+    if (lastModifiedByColumn) {
+      updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (Object.keys(updateObject).length === 0) return;
+
+    const qb = knex(this.getTnPath(model.table_name)).update(updateObject);
+
+    for (const rowId of Array.isArray(rowIds) ? rowIds : [rowIds]) {
+      qb.orWhere(await this._wherePk(rowId));
+    }
+
+    await this.execAndParse(qb, null, { raw: true });
+  }
+
+  async prepareNocoData(data, isInsertData = false, cookie?: { user?: any }) {
     if (
       this.model.columns.some((c) =>
-        [UITypes.Attachment, UITypes.User].includes(c.uidt),
+        [
+          UITypes.Attachment,
+          UITypes.User,
+          UITypes.CreatedTime,
+          UITypes.LastModifiedTime,
+          UITypes.CreatedBy,
+          UITypes.LastModifiedBy,
+        ].includes(c.uidt),
       )
     ) {
       for (const column of this.model.columns) {
+        if (column.system) {
+          if (isInsertData) {
+            if (column.uidt === UITypes.CreatedTime) {
+              data[column.column_name] = Noco.ncMeta.now();
+            } else if (column.uidt === UITypes.CreatedBy) {
+              data[column.column_name] = cookie?.user?.id;
+            }
+          }
+          if (column.uidt === UITypes.LastModifiedTime) {
+            data[column.column_name] = isInsertData ? null : Noco.ncMeta.now();
+          } else if (column.uidt === UITypes.LastModifiedBy) {
+            data[column.column_name] = isInsertData ? null : cookie?.user?.id;
+          }
+        }
         if (column.uidt === UITypes.Attachment) {
           if (data[column.column_name]) {
             if (Array.isArray(data[column.column_name])) {
@@ -5523,7 +5809,11 @@ class BaseModelSqlv2 {
               }
             }
           }
-        } else if (column.uidt === UITypes.User) {
+        } else if (
+          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+            column.uidt,
+          )
+        ) {
           if (data[column.column_name]) {
             const userIds = [];
 

@@ -775,7 +775,7 @@ export class OracleUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -915,7 +915,7 @@ export class OracleUi {
       case 'DateTime':
         colProp.dt = 'timestamp';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'timestamp';
         break;
       case 'LastModifiedTime':

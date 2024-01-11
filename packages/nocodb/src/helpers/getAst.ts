@@ -1,4 +1,11 @@
-import { isSystemColumn, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isSystemColumn,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
@@ -146,16 +153,20 @@ const getAst = async ({
     }
     let isRequested;
 
-    if (getHiddenColumn) {
+    if (isCreatedOrLastModifiedByCol(col) && col.system) {
+      isRequested = false;
+    } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
-        col.column_name === 'created_at' ||
-        col.column_name === 'updated_at' ||
+        (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
         col.pk;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&
-        (!isSystemColumn(col) || view.show_system_fields || col.pv) &&
+        (!isSystemColumn(col) ||
+          (!view && isCreatedOrLastModifiedTimeCol(col)) ||
+          view.show_system_fields ||
+          col.pv) &&
         (!fields?.length || fields.includes(col.title)) &&
         value;
     } else if (fields?.length) {

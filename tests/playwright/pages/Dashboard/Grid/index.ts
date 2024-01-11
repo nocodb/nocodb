@@ -123,10 +123,15 @@ export class GridPage extends BasePage {
 
     await this.get().locator('.nc-grid-add-new-cell').click();
 
-    // wait for insert row response
+    const rowCount = index + 1;
+
+    const isRowSaving = this.rootPage.getByTestId(`row-save-spinner-${rowCount}`);
+    // if required field is present then isRowSaving will be hidden (not present in DOM)
+    await isRowSaving?.waitFor({ state: 'hidden' });
+
+    // fallback
     await this.rootPage.waitForTimeout(400);
 
-    const rowCount = index + 1;
     await expect(this.get().locator('.nc-grid-row')).toHaveCount(rowCount);
 
     await this._fillRow({ index, columnHeader, value: rowValue });

@@ -27,7 +27,7 @@ import {
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: UserFieldRecordType[] | string | null
+  modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
   rowIndex?: number
   location?: 'cell' | 'filter'
   forceMulti?: boolean
@@ -113,17 +113,18 @@ const vModel = computed({
         return acc
       }, [] as { label: string; value: string }[])
     } else {
-      selected =
-        modelValue?.reduce((acc, item) => {
-          const label = item?.display_name || item?.email
-          if (label) {
-            acc.push({
-              label,
-              value: item.id,
-            })
-          }
-          return acc
-        }, [] as { label: string; value: string }[]) || []
+      selected = modelValue
+        ? (Array.isArray(modelValue) ? modelValue : [modelValue]).reduce((acc, item) => {
+            const label = item?.display_name || item?.email
+            if (label) {
+              acc.push({
+                label,
+                value: item.id,
+              })
+            }
+            return acc
+          }, [] as { label: string; value: string }[])
+        : []
     }
 
     return selected
@@ -280,7 +281,7 @@ const filterOption = (input: string, option: any) => {
       }"
     >
       <template v-for="selectedOpt of vModel" :key="selectedOpt.value">
-        <a-tag class="rounded-tag" color="'#ccc'">
+        <a-tag class="rounded-tag max-w-full" color="'#ccc'">
           <span
             :style="{
               'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -290,7 +291,21 @@ const filterOption = (input: string, option: any) => {
             }"
             :class="{ 'text-sm': isKanban }"
           >
-            {{ selectedOpt.label }}
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ selectedOpt.label }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                {{ selectedOpt.label }}
+              </span>
+            </NcTooltip>
           </span>
         </a-tag>
       </template>
@@ -310,7 +325,7 @@ const filterOption = (input: string, option: any) => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-user-select-cell ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
       @search="search"
       @keydown.stop
@@ -326,7 +341,7 @@ const filterOption = (input: string, option: any) => {
           :class="`nc-select-option-${column.title}-${op.email}`"
           @click.stop
         >
-          <a-tag class="rounded-tag" color="'#ccc'">
+          <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
             <span
               :style="{
                 'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -334,9 +349,25 @@ const filterOption = (input: string, option: any) => {
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                 'font-size': '13px',
               }"
+              class="flex items-center gap-2"
               :class="{ 'text-sm': isKanban }"
             >
-              {{ op.display_name?.length ? op.display_name : op.email }}
+              <GeneralUserIcon size="medium" :email="op.email" />
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ op.display_name?.length ? op.display_name : op.email }}
+                </template>
+                <span
+                  class="text-ellipsis overflow-hidden"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ op.display_name?.length ? op.display_name : op.email }}
+                </span>
+              </NcTooltip>
             </span>
           </a-tag>
         </a-select-option>
@@ -433,7 +464,7 @@ const filterOption = (input: string, option: any) => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !px-0;
+  @apply !pl-0;
 }
 
 :deep(.ant-select-selection-search-input) {

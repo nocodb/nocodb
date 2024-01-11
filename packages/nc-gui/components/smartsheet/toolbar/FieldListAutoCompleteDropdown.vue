@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isCreatedOrLastModifiedByCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { MetaInj, computed, inject, ref, resolveComponent, useViewColumnsOrThrow } from '#imports'
 
 const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
@@ -26,12 +26,25 @@ const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
 const options = computed<SelectProps['options']>(() =>
   (
-    customColumns.value ||
+    customColumns.value?.filter((c: ColumnType) => {
+      if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        if (isCreatedOrLastModifiedByCol(c)) {
+          /** ignore created by and last modified by system field */
+          return false
+        }
+      }
+      return true
+    }) ||
     meta.value?.columns?.filter((c: ColumnType) => {
       if (c.uidt === UITypes.Links) {
         return true
       }
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        if (isCreatedOrLastModifiedByCol(c)) {
+          /** ignore created by and last modified by system field */
+          return false
+        }
+
         return (
           /** if the field is used in filter, then show it anyway */
           localValue.value === c.id ||

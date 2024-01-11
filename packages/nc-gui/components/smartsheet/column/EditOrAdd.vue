@@ -79,7 +79,16 @@ const mounted = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
-const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup, UITypes.Links]
+const onlyNameUpdateOnEditColumns = [
+  UITypes.LinkToAnotherRecord,
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Links,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+]
 
 // To close column type dropdown on escape and
 // close modal only when the type popup is close
@@ -344,6 +353,7 @@ if (props.fromTableExplorer) {
           <SmartsheetColumnSelectOptions
             v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
             v-model:value="formState"
+            :from-table-explorer="props.fromTableExplorer || false"
           />
         </template>
       </div>

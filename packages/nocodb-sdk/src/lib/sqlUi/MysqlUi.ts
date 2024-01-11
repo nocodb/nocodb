@@ -97,28 +97,52 @@ export class MysqlUi {
         title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP',
+        cdf: null,
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
         title: 'UpdatedAt',
         dt: 'timestamp',
+        dtx: 'specificType',
+        ct: 'timestamp',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedTime,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'created_by',
+        title: 'nc_created_by',
+        dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
         nrqd: true,
@@ -127,16 +151,39 @@ export class MysqlUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
         clen: 45,
         np: null,
         ns: null,
-        dtxp: '',
+        dtxp: '45',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedBy,
         uip: '',
         uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'updated_by',
+        title: 'nc_updated_by',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '45',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
       },
     ];
   }
@@ -1071,11 +1118,11 @@ export class MysqlUi {
       case 'DateTime':
         colProp.dt = 'datetime';
         break;
-      case 'CreateTime':
-        colProp.dt = 'datetime';
+      case 'CreatedTime':
+        colProp.dt = 'timestamp';
         break;
       case 'LastModifiedTime':
-        colProp.dt = 'datetime';
+        colProp.dt = 'timestamp';
         break;
       case 'AutoNumber':
         colProp.dt = 'int';
@@ -1261,7 +1308,7 @@ export class MysqlUi {
         return ['date', 'datetime', 'timestamp', 'varchar'];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return ['datetime', 'timestamp', 'varchar'];
 

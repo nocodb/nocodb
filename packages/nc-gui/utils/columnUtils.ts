@@ -136,7 +136,23 @@ const uiTypes = [
   },
   {
     name: UITypes.User,
-    icon: iconMap.account,
+    icon: iconMap.phUser,
+  },
+  {
+    name: UITypes.CreatedTime,
+    icon: iconMap.datetime,
+  },
+  {
+    name: UITypes.LastModifiedTime,
+    icon: iconMap.datetime,
+  },
+  {
+    name: UITypes.CreatedBy,
+    icon: iconMap.phUser,
+  },
+  {
+    name: UITypes.LastModifiedBy,
+    icon: iconMap.phUser,
   },
 ]
 
@@ -145,7 +161,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
     [
       ...uiTypes,
       {
-        name: UITypes.CreateTime,
+        name: UITypes.CreatedTime,
         icon: iconMap.calendar,
       },
       {
@@ -168,6 +184,7 @@ const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !co
 
 const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   col.uidt === UITypes.LinkToAnotherRecord &&
+  col.colOptions &&
   (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&
   isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
 

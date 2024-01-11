@@ -111,7 +111,7 @@ const focus: VNodeRef = (el) =>
       @mousedown.stop
     />
 
-    <span v-else-if="modelValue === null && showNull" class="nc-null capitalize">{{ $t('general.null') }}</span>
+    <span v-else-if="modelValue === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
     <span v-else> {{ localState }}</span>
 

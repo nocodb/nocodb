@@ -13,6 +13,7 @@ import type Column from '~/models/Column';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
+import { getColumnName } from '~/db/BaseModelSqlv2';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -21,6 +22,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
+import { getRefColumnIfAlias } from '~/helpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -128,7 +130,10 @@ const parseConditionV2 = async (
       (filter.comparison_op as any) === 'gb_eq' ||
       (filter.comparison_op as any) === 'gb_null'
     ) {
-      const column = await filter.getColumn();
+      (filter as any).groupby = true;
+
+      const column = await getRefColumnIfAlias(await filter.getColumn());
+
       if (
         column.uidt === UITypes.Lookup ||
         column.uidt === UITypes.LinkToAnotherRecord
@@ -157,7 +162,7 @@ const parseConditionV2 = async (
       }
     }
 
-    const column = await filter.getColumn();
+    const column = await getRefColumnIfAlias(await filter.getColumn());
     if (!column) {
       if (throwErrorIfInvalid) {
         NcError.unprocessableEntity(`Invalid field: ${filter.fk_column_id}`);
@@ -448,9 +453,14 @@ const parseConditionV2 = async (
         builder,
       );
     } else if (
-      column.uidt === UITypes.User &&
+      [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+        column.uidt,
+      ) &&
       ['like', 'nlike'].includes(filter.comparison_op)
     ) {
+      // get column name for CreatedBy, LastModifiedBy
+      column.column_name = await getColumnName(column);
+
       const baseUsers = await BaseUser.getUsersList({
         base_id: column.base_id,
       });
@@ -542,6 +552,9 @@ const parseConditionV2 = async (
       );
       const _val = customWhereClause ? customWhereClause : filter.value;
 
+      // get column name for CreateTime, LastModifiedTime
+      column.column_name = await getColumnName(column);
+
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
 
@@ -550,7 +563,14 @@ const parseConditionV2 = async (
             ? 'YYYY-MM-DD HH:mm:ss'
             : 'YYYY-MM-DD HH:mm:ssZ';
 
-        if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+        if (
+          [
+            UITypes.Date,
+            UITypes.DateTime,
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+          ].includes(column.uidt)
+        ) {
           let now = dayjs(new Date());
           const dateFormatFromMeta = column?.meta?.date_format;
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
@@ -661,8 +681,18 @@ const parseConditionV2 = async (
                 qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
               }
             } else {
-              if (column.uidt === UITypes.DateTime) {
+              if (
+                [
+                  UITypes.DateTime,
+                  UITypes.CreatedTime,
+                  UITypes.LastModifiedTime,
+                ].includes(column.uidt)
+              ) {
                 if (qb.client.config.client === 'pg') {
+                  //  todo: enbale back if group by date required custom implementation
+                  // if ((filter as any).groupby)
+                  //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
+                  // else
                   qb = qb.where(knex.raw('??::date = ?', [field, val]));
                 } else {
                   qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
@@ -945,9 +975,13 @@ const parseConditionV2 = async (
               qb = qb.whereNull(customWhereClause || field);
               if (
                 !isNumericCol(column.uidt) &&
-                ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(
-                  column.uidt,
-                )
+                ![
+                  UITypes.Date,
+                  UITypes.CreatedTime,
+                  UITypes.LastModifiedTime,
+                  UITypes.DateTime,
+                  UITypes.Time,
+                ].includes(column.uidt)
               ) {
                 qb = qb.orWhere(field, '');
               }
@@ -963,9 +997,13 @@ const parseConditionV2 = async (
               qb = qb.whereNotNull(customWhereClause || field);
               if (
                 !isNumericCol(column.uidt) &&
-                ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(
-                  column.uidt,
-                )
+                ![
+                  UITypes.Date,
+                  UITypes.DateTime,
+                  UITypes.CreatedTime,
+                  UITypes.LastModifiedTime,
+                  UITypes.Time,
+                ].includes(column.uidt)
               ) {
                 qb = qb.whereNot(field, '');
               }

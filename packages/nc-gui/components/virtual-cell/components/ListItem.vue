@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
 import {
   type ComputedRef,
   IsExpandedFormOpenInj,
@@ -22,6 +22,7 @@ const props = defineProps<{
   fields: any[]
   attachment: any
   relatedTableDisplayValueProp: string
+  displayValueTypeAndFormatProp: { type: string; format: string }
   isLoading: boolean
   isLinked: boolean
 }>()
@@ -68,6 +69,21 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     return []
   }
 })
+
+const displayValue = computed(() => {
+  if (
+    row.value[props.relatedTableDisplayValueProp] &&
+    props.displayValueTypeAndFormatProp.type &&
+    props.displayValueTypeAndFormatProp.format
+  ) {
+    return parseStringDateTime(
+      row.value[props.relatedTableDisplayValueProp],
+      props.displayValueTypeAndFormatProp.format,
+      !(props.displayValueTypeAndFormatProp.format === UITypes.Time),
+    )
+  }
+  return row.value[props.relatedTableDisplayValueProp]
+})
 </script>
 
 <template>
@@ -103,8 +119,8 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 
       <div class="flex flex-col m-[.75rem] gap-1 flex-grow justify-center overflow-hidden">
         <div class="flex justify-between xs:gap-x-2">
-          <span class="font-semibold text-gray-800 nc-display-value xs:(truncate)">
-            {{ row[relatedTableDisplayValueProp] }}
+          <span class="font-semibold text-brand-500 nc-display-value xs:(truncate)">
+            {{ displayValue }}
           </span>
           <div
             v-if="isLinked && !isLoading"

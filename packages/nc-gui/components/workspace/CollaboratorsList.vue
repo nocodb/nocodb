@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { OrderedWorkspaceRoles, WorkspaceUserRoles, parseStringDateTime, timeAgo } from 'nocodb-sdk'
-import { storeToRefs, useWorkspace } from '#imports'
+import { storeToRefs, useUserSorts, useWorkspace } from '#imports'
 
 const { workspaceRoles, loadRoles } = useRoles()
 
@@ -9,6 +9,9 @@ const workspaceStore = useWorkspace()
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
 const { collaborators } = storeToRefs(workspaceStore)
+
+const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Workspace')
+
 const userSearchText = ref('')
 
 const filterCollaborators = computed(() => {
@@ -19,11 +22,20 @@ const filterCollaborators = computed(() => {
   return collaborators.value.filter((collab) => collab.email!.includes(userSearchText.value))
 })
 
+const sortedCollaborators = computed(() => {
+  return handleGetSortedData(filterCollaborators.value, sorts.value)
+})
+
 const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
-  collab.roles = roles
   try {
-    await _updateCollaborator(collab.id, collab.roles)
+    await _updateCollaborator(collab.id, roles)
     message.success('Successfully updated user role')
+
+    collaborators.value?.forEach((collaborator) => {
+      if (collaborator.id === collab.id) {
+        collaborator.roles = roles
+      }
+    })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -39,6 +51,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 
 onMounted(async () => {
   await loadRoles()
+  loadSorts()
 })
 </script>
 
@@ -59,15 +72,25 @@ onMounted(async () => {
     <div v-else class="nc-collaborators-list mt-6 h-full">
       <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
         <div class="flex flex-row bg-gray-50 min-h-12 items-center">
-          <div class="text-gray-700 users-email-grid w-3/8 ml-10 mr-3">{{ $t('objects.users') }}</div>
-          <div class="text-gray-700 user-access-grid w-2/8 mr-3">{{ $t('general.access') }}</div>
+          <div class="text-gray-700 users-email-grid w-3/8 ml-10 mr-3 flex items-center space-x-2">
+            <span>
+              {{ $t('objects.users') }}
+            </span>
+            <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
+          </div>
+          <div class="text-gray-700 user-access-grid w-2/8 mr-3 flex items-center space-x-2">
+            <span>
+              {{ $t('general.access') }}
+            </span>
+            <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
+          </div>
           <div class="text-gray-700 date-joined-grid w-2/8 mr-3">{{ $t('title.dateJoined') }}</div>
           <div class="text-gray-700 user-access-grid w-1/8">Actions</div>
         </div>
 
         <div class="flex flex-col nc-scrollbar-md">
           <div
-            v-for="(collab, i) of filterCollaborators"
+            v-for="(collab, i) of sortedCollaborators"
             :key="i"
             class="flex flex-row border-b-1 py-1 min-h-14 items-center justify-around last"
           >

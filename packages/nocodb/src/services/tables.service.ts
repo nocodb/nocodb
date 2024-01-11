@@ -1,24 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
+  AppEvents,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
   UITypes,
 } from 'nocodb-sdk';
-import { AppEvents } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
-import type { MetaService } from '~/meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type {
   ColumnType,
   NormalColumnRequestType,
   TableReqType,
   UserType,
 } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcRequest } from '~/interface/config';
+import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -26,10 +29,13 @@ import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
-import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
+import {
+  getUniqueColumnAliasName,
+  getUniqueColumnName,
+} from '~/helpers/getUniqueName';
 
 @Injectable()
 export class TablesService {
@@ -157,7 +163,12 @@ export class TablesService {
     return Model.updateOrder(param.tableId, param.order);
   }
 
-  async tableDelete(param: { tableId: string; user: User; req?: any }) {
+  async tableDelete(param: {
+    tableId: string;
+    user: User;
+    forceDeleteRelations?: boolean;
+    req?: any;
+  }) {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
@@ -166,7 +177,9 @@ export class TablesService {
 
     const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
 
-    if (relationColumns?.length && !source.isMeta()) {
+    const deleteRelations = source.isMeta() || param.forceDeleteRelations;
+
+    if (relationColumns?.length && !deleteRelations) {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c
@@ -379,6 +392,83 @@ export class TablesService {
       source = base.sources.find((b) => b.id === param.sourceId);
     }
 
+    // add CreatedTime and LastModifiedTime system columns if missing in request payload
+    {
+      for (const uidt of [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ]) {
+        const col = tableCreatePayLoad.columns.find(
+          (c) => c.uidt === uidt,
+        ) as ColumnType;
+
+        let columnName, columnTitle;
+
+        switch (uidt) {
+          case UITypes.CreatedTime:
+            columnName = 'created_at';
+            columnTitle = 'CreatedAt';
+            break;
+          case UITypes.LastModifiedTime:
+            columnName = 'updated_at';
+            columnTitle = 'UpdatedAt';
+            break;
+          case UITypes.CreatedBy:
+            columnName = 'created_by';
+            columnTitle = 'nc_created_by';
+            break;
+          case UITypes.LastModifiedBy:
+            columnName = 'updated_by';
+            columnTitle = 'nc_updated_by';
+            break;
+        }
+
+        const colName = getUniqueColumnName(
+          tableCreatePayLoad.columns as any[],
+          columnName,
+        );
+
+        const colAlias = getUniqueColumnAliasName(
+          tableCreatePayLoad.columns as any[],
+          columnTitle,
+        );
+
+        if (!col || !col.system) {
+          tableCreatePayLoad.columns.push({
+            ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
+            column_name: colName,
+            cn: colName,
+            title: colAlias,
+            system: true,
+          });
+        } else {
+          // temporary fix for updating if user passed system columns with duplicate names
+          if (
+            tableCreatePayLoad.columns.some(
+              (c: ColumnType) =>
+                c.uidt !== uidt && c.column_name === col.column_name,
+            )
+          ) {
+            Object.assign(col, {
+              column_name: colName,
+              cn: colName,
+            });
+          }
+          if (
+            tableCreatePayLoad.columns.some(
+              (c: ColumnType) => c.uidt !== uidt && c.title === col.title,
+            )
+          ) {
+            Object.assign(col, {
+              title: colAlias,
+            });
+          }
+        }
+      }
+    }
+
     if (
       !tableCreatePayLoad.table_name ||
       (base.prefix && base.prefix === tableCreatePayLoad.table_name)
@@ -458,7 +548,11 @@ export class TablesService {
     const uniqueColumnNameCount = {};
 
     for (const column of param.table.columns) {
-      if (!isVirtualCol(column)) {
+      if (
+        !isVirtualCol(column) ||
+        (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
+        (isCreatedOrLastModifiedByCol(column) && (column as any).system)
+      ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
         // - 5 is a buffer for suffix
@@ -489,11 +583,20 @@ export class TablesService {
     }
 
     tableCreatePayLoad.columns = await Promise.all(
-      param.table.columns?.map(async (c) => ({
-        ...(await getColumnPropsFromUIDT(c as any, source)),
-        cn: c.column_name,
-        column_name: c.column_name,
-      })),
+      param.table.columns
+        // exclude alias columns from column list
+        ?.filter((c) => {
+          return (
+            !isCreatedOrLastModifiedTimeCol(c) ||
+            !isCreatedOrLastModifiedByCol(c) ||
+            (c as any).system
+          );
+        })
+        .map(async (c) => ({
+          ...(await getColumnPropsFromUIDT(c as any, source)),
+          cn: c.column_name,
+          column_name: c.column_name,
+        })),
     );
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,

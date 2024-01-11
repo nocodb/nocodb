@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
   substituteColumnAliasWithIdInFormula,
@@ -51,6 +53,7 @@ import {
   KanbanView,
   Model,
   Source,
+  View,
 } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -171,6 +174,8 @@ export class ColumnsService {
 
     if (
       !isVirtualCol(param.column) &&
+      !isCreatedOrLastModifiedTimeCol(param.column) &&
+      !isCreatedOrLastModifiedByCol(param.column) &&
       !(await Column.checkTitleAvailable({
         column_name: param.column.column_name,
         fk_model_id: column.fk_model_id,
@@ -193,8 +198,11 @@ export class ColumnsService {
       formula?: string;
       formula_raw?: string;
       parsed_tree?: any;
-    };
+    } & Partial<Pick<ColumnReqType, 'column_order'>>;
+
     if (
+      isCreatedOrLastModifiedTimeCol(column) ||
+      isCreatedOrLastModifiedByCol(column) ||
       [
         UITypes.Lookup,
         UITypes.Rollup,
@@ -271,7 +279,29 @@ export class ColumnsService {
               meta: colBody.meta,
             });
           }
+
+          // handle reorder column for Links and LinkToAnotherRecord
+          if (
+            [UITypes.Links, UITypes.LinkToAnotherRecord].includes(
+              column.uidt,
+            ) &&
+            colBody?.column_order &&
+            colBody.column_order?.order &&
+            colBody.column_order?.view_id
+          ) {
+            const viewColumn = (
+              await View.getColumns(colBody.column_order.view_id)
+            ).find((col) => col.fk_column_id === column.id);
+            await View.updateColumn(
+              colBody.column_order.view_id,
+              viewColumn.id,
+              {
+                order: colBody.column_order.order,
+              },
+            );
+          }
         }
+
         await this.updateRollupOrLookup(colBody, column);
       } else {
         NcError.notImplemented(
@@ -292,6 +322,19 @@ export class ColumnsService {
       NcError.notImplemented(
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
       );
+    } else if (
+      [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ].includes(colBody.uidt)
+    ) {
+      // allow updating of title only
+      await Column.update(param.columnId, {
+        ...column,
+        title: colBody.title,
+      });
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
@@ -1674,6 +1717,99 @@ export class ColumnsService {
         });
 
         break;
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy:
+        {
+          let columnName: string;
+          const columns = await table.getColumns();
+          // check if column already exists, then just create a new column in meta
+          // else create a new column in meta and db
+          const existingColumn = columns.find(
+            (c) => c.uidt === colBody.uidt && c.system,
+          );
+
+          if (!existingColumn) {
+            let columnTitle;
+
+            switch (colBody.uidt) {
+              case UITypes.CreatedTime:
+                columnName = 'created_at';
+                columnTitle = 'CreatedAt';
+                break;
+              case UITypes.LastModifiedTime:
+                columnName = 'updated_at';
+                columnTitle = 'UpdatedAt';
+                break;
+              case UITypes.CreatedBy:
+                columnName = 'created_by';
+                columnTitle = 'nc_created_by';
+                break;
+              case UITypes.LastModifiedBy:
+                columnName = 'updated_by';
+                columnTitle = 'nc_updated_by';
+                break;
+            }
+
+            // todo:  check type as well
+            const dbColumn = columns.find((c) => c.column_name === columnName);
+
+            if (dbColumn) {
+              columnName = getUniqueColumnName(columns, columnName);
+            }
+
+            {
+              colBody = await getColumnPropsFromUIDT(colBody, source);
+
+              // remove default value for SQLite since it doesn't support default value as function when adding column
+              // only support default value as constant value
+              if (source.type === 'sqlite3') {
+                colBody.cdf = null;
+              }
+
+              // create column in db
+              const tableUpdateBody = {
+                ...table,
+                tn: table.table_name,
+                originalColumns: table.columns.map((c) => ({
+                  ...c,
+                  cn: c.column_name,
+                })),
+                columns: [
+                  ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+                  {
+                    ...colBody,
+                    cn: columnName,
+                    altered: Altered.NEW_COLUMN,
+                  },
+                ],
+              };
+              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+                ProjectMgrv2.getSqlMgr({ id: source.base_id }),
+              );
+              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+            }
+
+            const title = getUniqueColumnAliasName(table.columns, columnTitle);
+
+            await Column.insert({
+              ...colBody,
+              title,
+              system: 1,
+              fk_model_id: table.id,
+              column_name: columnName,
+            });
+          } else {
+            columnName = existingColumn.column_name;
+          }
+          await Column.insert({
+            ...colBody,
+            fk_model_id: table.id,
+            column_name: null,
+          });
+        }
+        break;
       default:
         {
           colBody = await getColumnPropsFromUIDT(colBody, source);
@@ -1930,6 +2066,15 @@ export class ColumnsService {
     const reuse = param.reuse || {};
 
     const column = await Column.get({ colId: param.columnId }, ncMeta);
+
+    if (column.system) {
+      NcError.badRequest(
+        `The column '${
+          column.title || column.column_name
+        }' is a system column and cannot be deleted.`,
+      );
+    }
+
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(
         {
@@ -2110,6 +2255,16 @@ export class ColumnsService {
         }
         /* falls through to default */
       }
+
+      // on deleting created/last modified columns, keep the column in table and delete the column from meta
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy:
+        {
+          await Column.delete(param.columnId, ncMeta);
+        }
+        break;
       default: {
         const tableUpdateBody = {
           ...table,
@@ -2682,6 +2837,7 @@ export class ColumnsService {
       await Column.update(column.id, colBody);
     }
   }
+
   async columnsHash(tableId: string) {
     const table = await Model.getWithInfo({
       id: tableId,

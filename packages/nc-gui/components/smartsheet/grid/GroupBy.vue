@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import dayjs from 'dayjs'
-import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
 import GroupByLabel from './GroupByLabel.vue'
-import { GROUP_BY_VARS, computed, ref } from '#imports'
 import type { Group, Row } from '#imports'
+import { GROUP_BY_VARS, computed, ref } from '#imports'
 
 const props = defineProps<{
   group: Group
@@ -154,21 +153,23 @@ const parseKey = (group: Group) => {
   }
 
   // show the groupBy dateTime field title format as like cell format
-  if (key && group.column?.uidt === UITypes.DateTime && dayjs(key).isValid()) {
-    const dateFormat = parseProp(group.column?.meta)?.date_format ?? dateFormats[0]
-    const timeFormat = parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
-
-    const dateTimeFormat = `${dateFormat} ${timeFormat}`
-
-    return [dayjs(key).utc().local().format(dateTimeFormat)]
+  if (key && group.column?.uidt === UITypes.DateTime) {
+    return [
+      parseStringDateTime(
+        key,
+        `${parseProp(group.column?.meta)?.date_format ?? dateFormats[0]} ${
+          parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
+        }`,
+      ),
+    ]
   }
 
   // show the groupBy time field title format as like cell format
-  if (key && group.column?.uidt === UITypes.Time && dayjs(key).isValid()) {
-    return [dayjs(key).format(timeFormats[0])]
+  if (key && group.column?.uidt === UITypes.Time) {
+    return [parseStringDateTime(key, timeFormats[0], false)]
   }
 
-  if (key && group.column?.uidt === UITypes.User) {
+  if (key && [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(group.column?.uidt as UITypes)) {
     try {
       const parsedKey = JSON.parse(key)
       return [parsedKey]
@@ -181,7 +182,19 @@ const parseKey = (group: Group) => {
 }
 
 const shouldRenderCell = (column) =>
-  [UITypes.Lookup, UITypes.Attachment, UITypes.Barcode, UITypes.QrCode, UITypes.Links, UITypes.User].includes(column?.uidt)
+  [
+    UITypes.Lookup,
+    UITypes.Attachment,
+    UITypes.Barcode,
+    UITypes.QrCode,
+    UITypes.Links,
+    UITypes.User,
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+    UITypes.CreatedBy,
+    UITypes.LastModifiedBy,
+  ].includes(column?.uidt)
 </script>
 
 <template>

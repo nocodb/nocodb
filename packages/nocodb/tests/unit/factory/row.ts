@@ -1,4 +1,8 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  UITypes,
+} from 'nocodb-sdk';
 import request from 'supertest';
 import Model from '../../../src/models/Model';
 import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
@@ -257,7 +261,9 @@ const generateDefaultRowAttributes = ({
     if (
       column.uidt === UITypes.LinkToAnotherRecord ||
       column.uidt === UITypes.ForeignKey ||
-      column.uidt === UITypes.ID
+      column.uidt === UITypes.ID ||
+      isCreatedOrLastModifiedTimeCol(column) ||
+      isCreatedOrLastModifiedByCol(column)
     ) {
       return acc;
     }

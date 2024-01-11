@@ -288,14 +288,7 @@ export class ToolbarFilterPage extends BasePage {
             .click();
           break;
         case UITypes.MultiSelect:
-          await this.get()
-            .locator('.nc-filter-value-select')
-            .click({
-              position: {
-                x: 1,
-                y: 1,
-              },
-            });
+          await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
           // eslint-disable-next-line no-case-declarations
           const v = value.split(',');
           for (let i = 0; i < v.length; i++) {
@@ -306,14 +299,12 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         case UITypes.SingleSelect:
-          await this.get()
-            .locator('.nc-filter-value-select')
-            .click({
-              position: {
-                x: 1,
-                y: 1,
-              },
-            });
+          // for single select field, the drop select arrow is visible only for some operations
+          if ((await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').count()) > 0) {
+            await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
+          } else {
+            await this.get().locator('.nc-filter-value-select').click({ force: true });
+          }
           // check if value was an array
           // eslint-disable-next-line no-case-declarations
           const val = value.split(',');
@@ -333,14 +324,7 @@ export class ToolbarFilterPage extends BasePage {
           break;
         case UITypes.User:
           if (!['is blank', 'is not blank'].includes(operation)) {
-            await this.get()
-              .locator('.nc-filter-value-select')
-              .click({
-                position: {
-                  x: 1,
-                  y: 1,
-                },
-              });
+            await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
 
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {

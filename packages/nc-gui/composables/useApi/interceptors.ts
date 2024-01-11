@@ -84,10 +84,14 @@ export function addAxiosInterceptors(api: Api<any>) {
             // ignore since it could have already been handled and redirected to sign in
           })
       } else {
-        // if
         refreshTokenPromise = new Promise<string>((resolve, reject) => {
           refreshTokenPromiseRes = resolve
           refreshTokenPromiseRej = reject
+        })
+
+        // set a catch on the promise to avoid unhandled promise rejection
+        refreshTokenPromise.catch(() => {
+          // ignore
         })
       }
 

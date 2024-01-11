@@ -1,9 +1,9 @@
 import {
   Api,
+  BaseType,
   ColumnType,
   FilterType,
   HookType,
-  BaseType,
   SortType,
 } from './Api';
 

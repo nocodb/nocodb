@@ -83,7 +83,7 @@ const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return t('general.null')
+    return t('general.null').toUpperCase()
   } else if (isYearInvalid.value) {
     return t('msg.invalidTime')
   } else {
@@ -119,7 +119,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :tabindex="0"
     picker="year"
     :bordered="false"
-    class="!w-full !py-1 !border-none"
+    class="!w-full !py-1 !border-none !text-current"
     :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
     :placeholder="placeholder"
     :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
@@ -136,7 +136,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input[disabled]) {
+:deep(.ant-picker-input > input) {
   @apply !text-current;
 }
 </style>

@@ -1,7 +1,6 @@
 import { customAlphabet } from 'nanoid';
 import { getAvailableRollupForUiType, UITypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import type { RollupColumn } from '~/models';
 import type {
   BoolType,
   ColumnReqType,
@@ -11,13 +10,14 @@ import type {
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
+import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type Model from '~/models/Model';
+import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
-import { GridViewColumn } from '~/models';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -286,4 +286,29 @@ export const sanitizeColumnName = (name: string) => {
   if (/^_+$/.test(columnName)) return 'field';
 
   return columnName;
+};
+
+// if column is an alias column then return the original column
+// for example CreatedTime is an alias column for CreatedTime system column
+export const getRefColumnIfAlias = async (
+  column: Column,
+  columns?: Column[],
+) => {
+  if (
+    !(
+      [
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ] as UITypes[]
+    ).includes(column.uidt)
+  )
+    return column;
+
+  return (
+    (columns || (await Column.list({ fk_model_id: column.fk_model_id }))).find(
+      (c) => c.system && c.uidt === column.uidt,
+    ) || column
+  );
 };

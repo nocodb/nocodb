@@ -175,9 +175,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       if (!table.id) return acc
 
       const columns =
-        metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col)),
-        ) || []
+        metasWithIdAsKey.value[table.id].columns?.filter((col) => {
+          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes) && col.system) return false
+          return config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col))
+        }) || []
 
       const pkAndFkColumns = columns
         .filter(() => config.value.showPkAndFk)

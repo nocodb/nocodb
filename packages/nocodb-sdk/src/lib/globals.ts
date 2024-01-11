@@ -1,4 +1,4 @@
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from "./enums";
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
 
 export enum ViewTypes {
   FORM = 1,

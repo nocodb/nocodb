@@ -177,6 +177,11 @@ interface SidebarTableNode extends TableType {
   isViewsLoading?: boolean
 }
 
+interface UsersSortType {
+  field?: 'email' | 'roles'
+  direction?: 'asc' | 'desc'
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -202,4 +207,5 @@ export type {
   ViewPageType,
   NcButtonSize,
   SidebarTableNode,
+  UsersSortType,
 }

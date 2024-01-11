@@ -12096,7 +12096,7 @@
               "Checkbox",
               "Collaborator",
               "Count",
-              "CreateTime",
+              "CreatedTime",
               "Currency",
               "Date",
               "DateTime",
@@ -12127,7 +12127,9 @@
               "Year",
               "QrCode",
               "Links",
-              "User"
+              "User",
+              "CreatedBy",
+              "LastModifiedBy"
             ],
             "type": "string"
           },
@@ -15314,7 +15316,7 @@
               "Checkbox",
               "Collaborator",
               "Count",
-              "CreateTime",
+              "CreatedTime",
               "Currency",
               "Date",
               "DateTime",
@@ -15345,7 +15347,9 @@
               "Year",
               "QrCode",
               "Links",
-              "User"
+              "User",
+              "CreatedBy",
+              "LastModifiedBy"
             ],
             "type": "string",
             "description": "UI Data Type"

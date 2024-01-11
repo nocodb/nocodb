@@ -1,4 +1,14 @@
-import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  type PaginatedType,
+  type RequestParams,
+  type TableType,
+  UITypes,
+  dateFormats,
+  parseStringDateTime,
+  timeFormats,
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -9,6 +19,7 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   message,
+  parseProp,
   reactive,
   ref,
   storeToRefs,
@@ -124,8 +135,50 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const relatedTablePrimaryKeyProps = computed(() => {
       return relatedTableMeta.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
     })
+
     const displayValueProp = computed(() => {
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+    })
+
+    const displayValueTypeAndFormatProp = computed(() => {
+      let displayValueTypeAndFormat = {
+        type: '',
+        format: '',
+      }
+      const currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+
+      if (currentColumn) {
+        if (currentColumn?.uidt === UITypes.DateTime) {
+          displayValueTypeAndFormat = {
+            type: currentColumn?.uidt,
+            format: `${parseProp(currentColumn?.meta)?.date_format ?? dateFormats[0]} ${
+              parseProp(currentColumn?.meta)?.time_format ?? timeFormats[0]
+            }`,
+          }
+        }
+        if (currentColumn?.uidt === UITypes.Time) {
+          displayValueTypeAndFormat = {
+            type: currentColumn?.uidt,
+            format: `${timeFormats[0]}`,
+          }
+        }
+      }
+      return displayValueTypeAndFormat
+    })
+
+    const headerDisplayValue = computed(() => {
+      if (
+        row.value.row[displayValueProp.value] &&
+        displayValueTypeAndFormatProp.value.type &&
+        displayValueTypeAndFormatProp.value.format
+      ) {
+        return parseStringDateTime(
+          row.value.row[displayValueProp.value],
+          displayValueTypeAndFormatProp.value.format,
+          !(displayValueTypeAndFormatProp.value.format === UITypes.Time),
+        )
+      }
+      return row.value.row[displayValueProp.value]
     })
 
     const loadChildrenExcludedList = async (activeState?: any) => {
@@ -470,6 +523,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       relatedTableMeta,
       loadRelatedTableMeta,
       relatedTableDisplayValueProp,
+      displayValueTypeAndFormatProp,
       childrenExcludedList,
       childrenList,
       childrenListCount,
@@ -491,6 +545,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       isChildrenExcludedLoading,
       deleteRelatedRow,
       getRelatedTableRowId,
+      headerDisplayValue,
     }
   },
   'ltar-store',

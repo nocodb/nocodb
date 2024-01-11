@@ -273,7 +273,7 @@
     "Count": "Count",
     "Lookup": "Lookup",
     "DateTime": "Date Time",
-    "CreateTime": "Create Time",
+    "CreatedTime": "Create Time",
     "LastModifiedTime": "Last Modified Time",
     "AutoNumber": "Auto Number",
     "Barcode": "Barcode",
@@ -1212,7 +1212,6 @@
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
       "editingSystemKeyNotSupported": "Editing system key not supported"
-
     },
     "error": {
       "nameRequired": "Name Required",
@@ -1275,6 +1274,7 @@
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Field name is required",
       "duplicateColumnName": "Duplicate field name",
+      "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of field name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Base name exceeds 50 characters",

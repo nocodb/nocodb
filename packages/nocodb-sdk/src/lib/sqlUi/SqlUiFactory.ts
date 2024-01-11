@@ -1,4 +1,4 @@
-import { BoolType } from '../Api'
+import { BoolType } from '../Api';
 import UITypes from '../UITypes';
 
 import { MssqlUi } from './MssqlUi';

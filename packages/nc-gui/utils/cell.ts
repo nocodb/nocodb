@@ -15,6 +15,10 @@ export const isYear = (column: ColumnType, abstractType: any) => abstractType ==
 export const isTime = (column: ColumnType, abstractType: any) => abstractType === 'time' || column.uidt === UITypes.Time
 export const isDateTime = (column: ColumnType, abstractType: any) =>
   abstractType === 'datetime' || column.uidt === UITypes.DateTime
+export const isReadonlyDateTime = (column: ColumnType, _abstractType: any) =>
+  column.uidt === UITypes.CreatedTime || column.uidt === UITypes.LastModifiedTime
+export const isReadonlyUser = (column: ColumnType, _abstractType: any) =>
+  column.uidt === UITypes.CreatedBy || column.uidt === UITypes.LastModifiedBy
 export const isJSON = (column: ColumnType) => column.uidt === UITypes.JSON
 export const isEnum = (column: ColumnType) => column.uidt === UITypes.SingleSelect
 export const isSingleSelect = (column: ColumnType) => column.uidt === UITypes.SingleSelect

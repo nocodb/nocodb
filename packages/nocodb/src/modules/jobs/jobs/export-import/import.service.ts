@@ -766,6 +766,10 @@ export class ImportService {
             a.uidt === UITypes.Rollup ||
             a.uidt === UITypes.Formula ||
             a.uidt === UITypes.QrCode ||
+            a.uidt === UITypes.CreatedTime ||
+            a.uidt === UITypes.LastModifiedTime ||
+            a.uidt === UITypes.CreatedBy ||
+            a.uidt === UITypes.LastModifiedBy ||
             a.uidt === UITypes.Barcode,
         ),
       );
@@ -820,6 +824,7 @@ export class ImportService {
     }
 
     // create referenced columns
+    // sort the column sets to create the system columns first
     for (const col of sortedReferencedColumnSet) {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
@@ -881,6 +886,32 @@ export class ImportService {
             ...{
               formula_raw: colOptions.formula_raw,
             },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (
+        col.uidt === UITypes.CreatedTime ||
+        col.uidt === UITypes.LastModifiedTime ||
+        col.uidt === UITypes.CreatedBy ||
+        col.uidt === UITypes.LastModifiedBy
+      ) {
+        if (col.system) continue;
+        const freshModelData = await this.columnsService.columnAdd({
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            // provide column_name to avoid ajv error
+            // it will be ignored by the service
+            column_name: 'system',
+            system: false,
           }) as any,
           req: param.req,
           user: param.user,

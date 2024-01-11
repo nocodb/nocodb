@@ -157,7 +157,7 @@ const placeholder = computed(() => {
   if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
-    return t('general.null')
+    return t('general.null').toUpperCase()
   } else if (isDateInvalid.value) {
     return t('msg.invalidDate')
   } else {
@@ -253,6 +253,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
+  if (readOnly.value) return
   open.value = (active.value || editable.value) && !open.value
 }
 
@@ -296,7 +297,7 @@ const isColDisabled = computed(() => {
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="!w-full !py-1 !border-none"
+    class="!w-full !py-1 !border-none !text-current"
     :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
     :format="dateTimeFormat"
     :placeholder="placeholder"
@@ -313,7 +314,7 @@ const isColDisabled = computed(() => {
 </template>
 
 <style scoped>
-:deep(.ant-picker-input > input[disabled]) {
+:deep(.ant-picker-input > input) {
   @apply !text-current;
 }
 </style>

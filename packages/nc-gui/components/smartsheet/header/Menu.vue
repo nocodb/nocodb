@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { computed } from 'vue'
 import {
   ActiveViewInj,
   ColumnInj,
@@ -128,6 +129,7 @@ const duplicateVirtualColumn = async () => {
     id: undefined,
     colOptions: undefined,
     order: undefined,
+    system: false,
   }
 
   try {
@@ -165,7 +167,17 @@ const duplicateVirtualColumn = async () => {
 
 const openDuplicateDlg = async () => {
   if (!column?.value) return
-  if (column.value.uidt && [UITypes.Lookup, UITypes.Rollup].includes(column.value.uidt as UITypes)) {
+  if (
+    column.value.uidt &&
+    [
+      UITypes.Lookup,
+      UITypes.Rollup,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedBy,
+    ].includes(column.value.uidt as UITypes)
+  ) {
     duplicateVirtualColumn()
   } else {
     const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
@@ -276,6 +288,13 @@ const onInsertAfter = () => {
   isOpen.value = false
   addColumn()
 }
+
+const isDeleteAllowed = computed(() => {
+  return column?.value && !column.value.system
+})
+const isDuplicateAllowed = computed(() => {
+  return column?.value && !column.value.system
+})
 </script>
 
 <template>
@@ -345,7 +364,7 @@ const onInsertAfter = () => {
 
         <a-divider v-if="!column?.pk" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pk" @click="openDuplicateDlg">
+        <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="text-gray-700" />
             <!-- Duplicate -->
@@ -368,7 +387,7 @@ const onInsertAfter = () => {
         </NcMenuItem>
         <a-divider v-if="!column?.pv" class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pv" class="!hover:bg-red-50" @click="handleDelete">
+        <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
           <div class="nc-column-delete nc-header-menu-item text-red-600">
             <component :is="iconMap.delete" />
             <!-- Delete -->

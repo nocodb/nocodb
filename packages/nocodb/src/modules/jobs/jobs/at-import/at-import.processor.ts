@@ -146,6 +146,11 @@ export class AtImportProcessor {
       this.debugLog(log);
     };
 
+    const logWarning = (log) => {
+      this.jobsLogService.sendLog(job, { message: `WARNING: ${log}` });
+      this.debugLog(log);
+    };
+
     const logDetailed = (log) => {
       if (debugMode) this.jobsLogService.sendLog(job, { message: log });
       this.debugLog(log);
@@ -291,7 +296,7 @@ export class AtImportProcessor {
       rating: UITypes.Rating,
       formula: UITypes.Formula,
       rollup: UITypes.Rollup,
-      count: UITypes.Count,
+      count: UITypes.Rollup,
       lookup: UITypes.Lookup,
       autoNumber: UITypes.AutoNumber,
       barcode: UITypes.SingleLineText,
@@ -364,7 +369,7 @@ export class AtImportProcessor {
 
       // types email & url are marked as text
       // types currency & percent, duration are marked as number
-      // types createTime & modifiedTime are marked as formula
+      // types CreatedTime & modifiedTime are marked as formula
 
       switch (col.type) {
         case 'text':
@@ -430,19 +435,14 @@ export class AtImportProcessor {
             if ((value as any).name === '') {
               (value as any).name = 'nc_empty';
             }
-            // enumerate duplicates (we don't allow them)
-            // TODO fix record mapping (this causes every record to map first option,
-            //  we can't handle them using data api as they don't provide option id
-            //  within data we might instead get the correct mapping from schema file )
-            let dupNo = 1;
-            const defaultName = (value as any).name;
-            while (
+            // skip duplicates (we don't allow them)
+            if (
               options.find(
                 (el) =>
                   el.title.toLowerCase() === (value as any).name.toLowerCase(),
               )
             ) {
-              (value as any).name = `${defaultName}_${dupNo++}`;
+              continue;
             }
             options.push({
               order: order++,
@@ -865,15 +865,6 @@ export class AtImportProcessor {
                 );
               }
 
-              // check if already a column exists with this name?
-              const duplicate = childTblSchema.columns.find(
-                (x) => x.title === aTblLinkColumns[i].name,
-              );
-              const suffix = duplicate ? '_2' : '';
-              if (duplicate)
-                if (enableErrorLogs)
-                  console.log(`## Duplicate ${aTblLinkColumns[i].name}`);
-
               // rename
               // note that: current rename API requires us to send all parameters,
               // not just title being renamed
@@ -900,12 +891,12 @@ export class AtImportProcessor {
               updateNcTblSchema(ncTbl);
 
               const ncId = ncTbl.columns.find(
-                (x) => x.title === aTblLinkColumns[i].name + suffix,
+                (x) => x.title === ncName.title,
               )?.id;
               await sMap.addToMappingTbl(
                 aTblLinkColumns[i].id,
                 ncId,
-                aTblLinkColumns[i].name + suffix,
+                ncName.title,
                 ncTbl.id,
               );
             }
@@ -1100,7 +1091,7 @@ export class AtImportProcessor {
         ARRAYCOMPACT: '',
         ARRAYJOIN: '',
         ARRAYUNIQUE: '',
-        AVERAGE: 'average',
+        AVERAGE: 'avg',
         CONCATENATE: '',
         COUNT: 'count',
         COUNTA: '',
@@ -1206,35 +1197,41 @@ export class AtImportProcessor {
 
             logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
             const _perfStart = recordPerfStart();
-            const ncTbl: any = await this.columnsService.columnAdd({
-              tableId: srcTableId,
-              column: {
-                uidt: UITypes.Rollup,
-                title: ncName.title,
-                column_name: ncName.column_name,
-                fk_relation_column_id: ncRelationColumnId,
-                fk_rollup_column_id: ncRollupColumnId,
-                rollup_function: ncRollupFn,
-              },
-              req: {
-                user: syncDB.user.email,
-                clientIp: '',
-              },
-              user: syncDB.user,
-            });
-            recordPerfStats(_perfStart, 'dbTableColumn.create');
+            try {
+              const ncTbl: any = await this.columnsService.columnAdd({
+                tableId: srcTableId,
+                column: {
+                  uidt: UITypes.Rollup,
+                  title: ncName.title,
+                  column_name: ncName.column_name,
+                  fk_relation_column_id: ncRelationColumnId,
+                  fk_rollup_column_id: ncRollupColumnId,
+                  rollup_function: ncRollupFn,
+                },
+                req: {
+                  user: syncDB.user.email,
+                  clientIp: '',
+                },
+                user: syncDB.user,
+              });
+              recordPerfStats(_perfStart, 'dbTableColumn.create');
 
-            updateNcTblSchema(ncTbl);
+              updateNcTblSchema(ncTbl);
 
-            const ncId = ncTbl.columns.find(
-              (x) => x.title === aTblColumns[i].name,
-            )?.id;
-            await sMap.addToMappingTbl(
-              aTblColumns[i].id,
-              ncId,
-              aTblColumns[i].name,
-              ncTbl.id,
-            );
+              const ncId = ncTbl.columns.find(
+                (x) => x.title === aTblColumns[i].name,
+              )?.id;
+              await sMap.addToMappingTbl(
+                aTblColumns[i].id,
+                ncId,
+                aTblColumns[i].name,
+                ncTbl.id,
+              );
+            } catch (e) {
+              logWarning(
+                `Skipped creating rollup column ${aTblColumns[i].name} :: ${e.message}`,
+              );
+            }
           }
         }
       }
@@ -1437,7 +1434,7 @@ export class AtImportProcessor {
             break;
 
           case UITypes.DateTime:
-          case UITypes.CreateTime:
+          case UITypes.CreatedTime:
           case UITypes.LastModifiedTime:
             rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm');
             break;
@@ -1812,9 +1809,14 @@ export class AtImportProcessor {
               },
               req: { user: syncDB.user, clientIp: '' },
             })
-            .catch((e) =>
-              e.message ? logBasic(`NOTICE: ${e.message}`) : console.log(e),
-            ),
+            .catch((e) => {
+              if (e.message) {
+                // TODO enable after fixing user invite role issue
+                // logWarning(e.message);
+              } else {
+                console.log(e);
+              }
+            }),
         );
         recordPerfStats(_perfStart, 'auth.baseUserAdd');
       }
@@ -2106,12 +2108,16 @@ export class AtImportProcessor {
         // insert filters
         for (let i = 0; i < ncFilters.length; i++) {
           const _perfStart = recordPerfStart();
-          await this.filtersService.filterCreate({
-            viewId: viewId,
-            filter: ncFilters[i],
-            user: syncDB.user,
-            req: {},
-          });
+          try {
+            await this.filtersService.filterCreate({
+              viewId: viewId,
+              filter: ncFilters[i],
+              user: syncDB.user,
+              req: {},
+            });
+          } catch (e) {
+            logWarning(`Skipped creating filter for ${viewId} :: ${e.message}`);
+          }
           recordPerfStats(_perfStart, 'dbTableFilter.create');
 
           rtc.filter++;
@@ -2498,6 +2504,7 @@ export class AtImportProcessor {
         await this.tablesService.tableDelete({
           tableId: table.id,
           user: syncDB.user,
+          forceDeleteRelations: true,
         });
       }
       if (e.message) {

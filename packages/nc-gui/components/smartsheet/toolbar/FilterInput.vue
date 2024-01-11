@@ -18,6 +18,8 @@ import {
   isMultiSelect,
   isPercent,
   isRating,
+  isReadonlyDateTime,
+  isReadonlyUser,
   isSingleSelect,
   isTextArea,
   isTime,
@@ -68,7 +70,7 @@ provide(EditModeInj, readonly(editEnabled))
 
 provide(ReadonlyInj, ref(false))
 
-const checkTypeFunctions = {
+const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: string) => boolean> = {
   isSingleSelect,
   isMultiSelect,
   isDate,
@@ -80,11 +82,13 @@ const checkTypeFunctions = {
   isPercent,
   isCurrency,
   isDecimal,
+  isReadonlyDateTime,
   isInt,
   isFloat,
   isTextArea,
   isLinks: (col: ColumnType) => col.uidt === UITypes.Links,
   isUser,
+  isReadonlyUser,
 }
 
 type FilterType = keyof typeof checkTypeFunctions
@@ -102,7 +106,7 @@ const checkType = (filterType: FilterType) => {
     return false
   }
 
-  return checkTypeFunction(column.value, abstractType)
+  return checkTypeFunction(column.value, abstractType.value)
 }
 
 const filterInput = computed({
@@ -142,6 +146,7 @@ const componentMap: Partial<Record<FilterType, any>> = computed(() => {
     isDate: renderDateFilterInput(props.filter.comparison_sub_op!),
     isYear: YearPicker,
     isDateTime: renderDateFilterInput(props.filter.comparison_sub_op!),
+    isReadonlyDateTime: renderDateFilterInput(props.filter.comparison_sub_op!),
     isTime: TimePicker,
     isRating: Rating,
     isDuration: Duration,
@@ -152,6 +157,7 @@ const componentMap: Partial<Record<FilterType, any>> = computed(() => {
     isFloat: Float,
     isLinks: Integer,
     isUser: User,
+    isReadonlyUser: User,
   }
 })
 
@@ -177,6 +183,12 @@ const componentProps = computed(() => {
     }
     case 'isUser': {
       return { forceMulti: true }
+    }
+    case 'isReadonlyUser': {
+      if (['anyof', 'nanyof'].includes(props.filter.comparison_op!)) {
+        return { forceMulti: true }
+      }
+      return {}
     }
     default: {
       return {}
@@ -212,7 +224,7 @@ provide(IsFormInj, ref(true))
   />
   <div
     v-else
-    class="bg-white border-1 flex flex-grow min-h-4 h-full items-center nc-filter-input-wrapper !rounded-lg"
+    class="bg-white border-1 flex flex-grow min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
     :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
     @mouseup.stop
   >
@@ -222,7 +234,7 @@ provide(IsFormInj, ref(true))
       :disabled="filter.readOnly"
       placeholder="Enter a value"
       :column="column"
-      class="flex"
+      class="flex !rounded-lg"
       v-bind="componentProps"
       location="filter"
       @focus="isInputBoxOnFocus = true"

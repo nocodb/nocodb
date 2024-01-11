@@ -6,7 +6,7 @@ import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 const log = debug('nc:cache');
 
 export default class RedisCacheMgr extends CacheMgr {
-  client: any;
+  client: Redis;
   prefix: string;
 
   constructor(config: any) {
@@ -14,7 +14,10 @@ export default class RedisCacheMgr extends CacheMgr {
     this.client = new Redis(config);
 
     // avoid flushing db in worker container
-    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+    if (
+      process.env.NC_WORKER_CONTAINER !== 'true' &&
+      process.env.NC_CLOUD !== 'true'
+    ) {
       // flush the existing db with selected key (Default: 0)
       this.client.flushdb();
     }
@@ -300,7 +303,7 @@ export default class RedisCacheMgr extends CacheMgr {
 
   async destroy(): Promise<boolean> {
     log('RedisCacheMgr::destroy: destroy redis');
-    return this.client.flushdb();
+    return this.client.flushdb().then((r) => r === 'OK');
   }
 
   async export(): Promise<any> {

@@ -37,22 +37,24 @@ export class UserOptionCellPageObject extends BasePage {
 
     await selectCell.click();
 
+    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
+
     if (index === -1) {
       const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-undefined`).getByText(option);
-      await selectOption.waitFor({ state: 'visible' });
+      await selectOption.scrollIntoViewIfNeeded();
       await selectOption.click();
     } else {
       const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option);
-      await selectOption.waitFor({ state: 'visible' });
+      await selectOption.scrollIntoViewIfNeeded();
       await selectOption.click();
     }
 
-    if (multiSelect) await this.get({ index, columnHeader }).click();
+    if (multiSelect) {
+      // Press `Escape` to close the dropdown
+      await this.rootPage.keyboard.press('Escape');
+    }
 
-    await this.rootPage
-      .getByTestId(`select-option-${columnHeader}-${index}`)
-      .getByText(option)
-      .waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
   }
 
   async clear({ index, columnHeader, multiSelect }: { index: number; columnHeader: string; multiSelect?: boolean }) {

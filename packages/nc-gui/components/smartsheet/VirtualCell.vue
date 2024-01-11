@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   CellValueInj,
@@ -19,6 +20,7 @@ import {
   isLink,
   isLookup,
   isMm,
+  isPrimary,
   isQrCode,
   isRollup,
   provide,
@@ -99,6 +101,7 @@ onUnmounted(() => {
     class="nc-virtual-cell w-full flex items-center"
     :class="{
       'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm,
+      'text-brand-500': isPrimary(column) && !isForm,
     }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
@@ -114,6 +117,8 @@ onUnmounted(() => {
       <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
       <LazyVirtualCellCount v-else-if="isCount(column)" />
       <LazyVirtualCellLookup v-else-if="isLookup(column)" />
+      <LazyCellReadOnlyDateTimePicker v-else-if="isCreatedOrLastModifiedTimeCol(column)" :model-value="modelValue" />
+      <LazyCellReadOnlyUser v-else-if="isCreatedOrLastModifiedByCol(column)" :model-value="modelValue" />
     </template>
   </div>
 </template>

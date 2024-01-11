@@ -1514,6 +1514,9 @@ async function extractColumnIdentifierType({
     case UITypes.PhoneNumber:
     case UITypes.Email:
     case UITypes.URL:
+    case UITypes.User:
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy:
       res.dataType = FormulaDataTypes.STRING;
       break;
     // numeric
@@ -1528,7 +1531,7 @@ async function extractColumnIdentifierType({
     // date
     case UITypes.Date:
     case UITypes.DateTime:
-    case UITypes.CreateTime:
+    case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
       res.dataType = FormulaDataTypes.DATE;
       break;

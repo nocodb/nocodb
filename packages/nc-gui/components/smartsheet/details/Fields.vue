@@ -1034,7 +1034,7 @@ watch(
                               >
                                 <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
                                   <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
-                                  <div class="flex flex-row text-gray-600 text-xs">
+                                  <div class="flex flex-row text-gray-600 text-xs" data-testid="nc-field-item-id">
                                     {{ field.id }}
                                   </div>
                                 </div>

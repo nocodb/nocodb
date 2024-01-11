@@ -35,7 +35,7 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { metas } = useMetas()
+const { metas, getMeta } = useMetas()
 
 const { t } = useI18n()
 
@@ -70,14 +70,16 @@ const refTables = computed(() => {
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 
-const columns = computed(() => {
-  const selectedTable = refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+const selectedTable = computed(() => {
+  return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+})
 
-  if (!selectedTable?.id) {
+const columns = computed<ColumnType[]>(() => {
+  if (!selectedTable.value?.id) {
     return []
   }
 
-  return metas.value[selectedTable.id].columns.filter(
+  return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && (!isSystemColumn(c) || c.pk),
   )
 })
@@ -90,7 +92,10 @@ onMounted(() => {
   }
 })
 
-const onRelationColChange = () => {
+const onRelationColChange = async () => {
+  if (selectedTable.value) {
+    await getMeta(selectedTable.value.id)
+  }
   vModel.value.fk_rollup_column_id = columns.value?.[0]?.id
   onDataTypeChange()
 }

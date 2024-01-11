@@ -30,9 +30,7 @@
     "@nestjs/common": "^10.2.10",
     "@nestjs/core": "^10.2.10",
     "express": "^4.17.3",
-    "nocodb": "0.202.10"
-  },
-  "devDependencies": {
-    "node-pre-gyp": "^0.17.0"
+    "nocodb": "0.202.10",
+    "sqlite3": "5.1.6"
   }
 }

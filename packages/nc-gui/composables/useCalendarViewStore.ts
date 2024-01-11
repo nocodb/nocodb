@@ -320,10 +320,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       if (isSidebarLoading.value) return
-
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
             ...params,
+            offset: params.offset,
             ...{},
             ...{},
             ...(isUIAllowed('filterSync')

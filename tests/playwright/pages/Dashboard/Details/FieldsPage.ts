@@ -3,6 +3,7 @@
 import BasePage from '../../Base';
 import { expect, Locator } from '@playwright/test';
 import { DetailsPage } from './index';
+import { UITypes } from 'nocodb-sdk';
 
 export class FieldsPage extends BasePage {
   readonly detailsPage: DetailsPage;
@@ -46,7 +47,7 @@ export class FieldsPage extends BasePage {
 
   async createOrUpdate({
     title,
-    type = 'SingleLineText',
+    type = UITypes.SingleLineText,
     isUpdateMode = false,
     saveChanges = true,
     formula = '',
@@ -64,7 +65,7 @@ export class FieldsPage extends BasePage {
     insertBelowColumnTitle,
   }: {
     title: string;
-    type?: string;
+    type?: UITypes;
     isUpdateMode?: boolean;
     saveChanges?: boolean;
     formula?: string;

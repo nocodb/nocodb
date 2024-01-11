@@ -45,6 +45,10 @@ export class FieldsPage extends BasePage {
     await this.addNewFieldButton.click();
   }
 
+  async clickRestoreField({ title }: { title: string }) {
+    await this.getField({ title }).getByTestId('nc-field-restore-changes').click();
+  }
+
   async createOrUpdate({
     title,
     type = UITypes.SingleLineText,

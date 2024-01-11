@@ -97,7 +97,7 @@ const calendarData = computed(() => {
       const toCol = range.fk_to_col
 
       for (const record of formattedData.value) {
-        const startDate = dayjs(record.row[fromCol.title])
+        let startDate = dayjs(record.row[fromCol.title])
         const endDate = dayjs(record.row[toCol.title])
         if (
           (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isSameOrBefore(selectedDateRange.value.end)) ||
@@ -109,11 +109,14 @@ const calendarData = computed(() => {
           (startDate.isBefore(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) ||
           (startDate.isAfter(selectedDateRange.value.end) && endDate.isBefore(selectedDateRange.value.start))
         ) {
-          const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-          const spanDays = endDate.diff(selectedDateRange.value.start, 'day')
-          const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
+          if (startDate.isBefore(selectedDateRange.value.start)) {
+            startDate = dayjs(selectedDateRange.value.start)
+          }
 
-          for (let i = 0; i < spanDays; i++) {
+          const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
+          const spanDays = Math.max(endDate.diff(selectedDateRange.value.start, 'day'), 1)
+          const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
+          for (let i = 0; i <= spanDays; i++) {
             recordsInDay[startDaysDiff + i]++
           }
 

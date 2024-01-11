@@ -46,6 +46,7 @@ const {
   loadCalendarData,
   isCalendarDataLoading,
   selectedDate,
+  activeDates,
   pageDate,
   selectedDateRange,
   activeCalendarView,

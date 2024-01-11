@@ -55,14 +55,19 @@ test.describe('Multi Field Editor', () => {
 
   test('Add New field, update and reset ', async () => {
     // Add New Field
-    await fields.createOrUpdate({ title: 'Name' });
+    await fields.createOrUpdate({ title: 'Name', saveChanges: false });
+    await expect(fields.getField({ title: 'Name' })).toContainText('New field');
+    await fields.saveChanges();
 
     // Update Field title
     await fields.getField({ title: 'Name' }).click();
-    await fields.createOrUpdate({ title: 'Updated Name', isUpdateMode: true });
+    await fields.createOrUpdate({ title: 'Updated Name', saveChanges: false, isUpdateMode: true });
+    await expect(fields.getField({ title: 'Updated Name' })).toContainText('Updated field');
+    await fields.saveChanges();
 
     // verify grid column header
     const fieldsText = await fields.getAllFieldText();
+    expect(fieldsText).toEqual(['Title', 'Updated Name']);
     await verifyGridColumnHeaders({ fields: fieldsText });
 
     // add new fields then reset changes and verify
@@ -74,7 +79,7 @@ test.describe('Multi Field Editor', () => {
     await verifyGridColumnHeaders({ fields: fieldsText });
   });
 
-  test('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Hide', async () => {
+  test('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Delete, Hide', async () => {
     // Add New Field
     await fields.createOrUpdate({ title: defaultFieldName });
 
@@ -95,11 +100,21 @@ test.describe('Multi Field Editor', () => {
     await fields.createOrUpdate({ title: 'Below Inserted Field', insertBelowColumnTitle: defaultFieldName });
 
     // delete and verify
+    // By field action menu
     await fields.selectFieldAction({ title: `${defaultFieldName}_copy`, action: 'delete' });
+    await expect(fields.getField({ title: `${defaultFieldName}_copy` })).toContainText('Deleted field');
+
+    // By keyboard delete button
+    await fields.getField({ title: 'Above Inserted Field' }).click();
+    await dashboard.rootPage.keyboard.press((await dashboard.isMacOs()) ? 'Meta+Delete' : 'Delete');
+    await expect(fields.getField({ title: 'Above Inserted Field' })).toContainText('Deleted field');
+
     await fields.saveChanges();
 
     fieldsText = await fields.getAllFieldText();
-    expect(fieldsText.findIndex(field => field === `${defaultFieldName}_copy`)).toBe(-1);
+    expect(
+      fieldsText.every(field => !['Above Inserted Field', `${defaultFieldName}_copy`].includes(field))
+    ).toBeTruthy();
 
     // verify grid column header
     await verifyGridColumnHeaders({ fields: fieldsText });

@@ -203,10 +203,7 @@ export default class Column<T = any> implements ColumnType {
       ncMeta,
     );
 
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${column.fk_model_id}:default:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, []);
 
     if (column.view_id) {
       const viewColId = await View.getViewColumnId(
@@ -947,7 +944,7 @@ export default class Column<T = any> implements ColumnType {
 
     // on column delete, delete any optimised single query cache
     {
-      await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${col.fk_model_id}:*`);
+      await View.clearSingleQueryCache(col.fk_model_id);
     }
   }
 
@@ -1170,7 +1167,7 @@ export default class Column<T = any> implements ColumnType {
     await this.insertColOption(column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache
-    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${oldCol.fk_model_id}:*`);
+    await View.clearSingleQueryCache(oldCol.fk_model_id);
 
     const updatedColumn = await Column.get({ colId });
     if (!skipFormulaInvalidate) {
@@ -1224,7 +1221,8 @@ export default class Column<T = any> implements ColumnType {
     );
 
     const column = await Column.get({ colId }, ncMeta);
-    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${column.fk_model_id}:*`);
+
+    await View.clearSingleQueryCache(column.fk_model_id, []);
   }
 
   public getValidators(): any {

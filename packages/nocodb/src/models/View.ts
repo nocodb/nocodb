@@ -815,10 +815,7 @@ export default class View implements ViewType {
     const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
 
     // on view column update, delete corresponding single query cache
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${view.fk_model_id}:${view.id}:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
     return res;
   }
@@ -860,10 +857,7 @@ export default class View implements ViewType {
       );
 
       // on view column update, delete any optimised single query cache
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${view.fk_model_id}:${view.id}:*`,
-      );
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
       return { ...existingCol, ...colData };
     } else {
@@ -1094,10 +1088,7 @@ export default class View implements ViewType {
     }
 
     // on update, delete any optimised single query cache
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${view.fk_model_id}:${view.id}:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
     return view;
   }
@@ -1137,10 +1128,7 @@ export default class View implements ViewType {
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
 
     // on update, delete any optimised single query cache
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${view.fk_model_id}:${view.id}:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
     await Model.getNonDefaultViewsCountAndReset(
       { modelId: view.fk_model_id },
@@ -1513,5 +1501,43 @@ export default class View implements ViewType {
       },
     );
     await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
+  }
+
+  public static clearSingleQueryCache(
+    modelId: string,
+    views?: { id?: string }[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    // get all views of the model
+    let viewsList =
+      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
+
+    if (!views && !viewsList?.length) {
+      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
+        condition: {
+          fk_model_id: modelId,
+        },
+      });
+    }
+
+    // clear cache for each view
+    await Promise.all([
+      ...viewsList.map(async (view) => {
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        );
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+        );
+      }),
+      (async () => {
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+        );
+        await NocoCache.del(
+          `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+        );
+      })(),
+    ]);
   }
 }

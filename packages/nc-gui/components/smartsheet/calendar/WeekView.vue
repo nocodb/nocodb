@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 
 const emits = defineEmits(['expand-record'])
 
-const { selectedDateRange, formattedData, calendarRange, selectedDate, displayField } = useCalendarViewStoreOrThrow()
+const { selectedDateRange, formattedData, calendarRange, selectedDate, displayField, calDataType } = useCalendarViewStoreOrThrow()
 
 const container = ref(null)
 
@@ -76,47 +76,29 @@ const getRecordPosition = (record: Row) => {
   }
 }
 
-const calculateRecordStyle = (record: Row, id: number) => {
-  const range = record.rowMeta.range
-  if (!range) return {}
-
-  const startCol = range.fk_from_col
-  const endCol = range.fk_to_col
-  const perDayWidth = containerWidth.value / 7
-
-  const startDate = dayjs(record.row[startCol.title])
-  const startDay = dayjs(selectedDateRange.value.start)
-  const daysDiff = startDate.diff(startDay, 'day')
-
-  let widthStyle
-
-  if (endCol) {
-    const endDate = dayjs(record.row[endCol.title])
-    const endDaysDiff = endDate.diff(startDay, 'day')
-    const spanDays = endDaysDiff - daysDiff + 1
-    widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
-  } else {
-    widthStyle = `calc(${perDayWidth}px)`
-  }
-
-  return {
-    left: `${daysDiff * perDayWidth}px`,
-    top: `${id * 50}px`,
-    width: widthStyle,
-  }
-}
-
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
+  const recordsInDay = {
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+  }
+
   const recordsInRange: Array<Row> = []
+  const perDayWidth = containerWidth.value / 7
+
   calendarRange.value.forEach((range) => {
     if (range.fk_from_col && range.fk_to_col) {
       const fromCol = range.fk_from_col
       const toCol = range.fk_to_col
 
       for (const record of formattedData.value) {
-        const startDate = dayjs(record.row[fromCol])
-        const endDate = dayjs(record.row[toCol])
+        const startDate = dayjs(record.row[fromCol.title])
+        const endDate = dayjs(record.row[toCol.title])
         if (
           (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isSameOrBefore(selectedDateRange.value.end)) ||
           (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isSameOrBefore(selectedDateRange.value.end)) ||
@@ -127,11 +109,24 @@ const calendarData = computed(() => {
           (startDate.isBefore(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) ||
           (startDate.isAfter(selectedDateRange.value.end) && endDate.isBefore(selectedDateRange.value.start))
         ) {
+          const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
+          const spanDays = endDate.diff(selectedDateRange.value.start, 'day')
+          const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
+
+          for (let i = 0; i < spanDays; i++) {
+            recordsInDay[startDaysDiff + i]++
+          }
+
           recordsInRange.push({
             ...record,
             rowMeta: {
               ...record.rowMeta,
               range,
+              style: {
+                width: widthStyle,
+                left: `${startDaysDiff * perDayWidth}px`,
+                top: `${(recordsInDay[startDaysDiff] - 1) * 50}px`,
+              },
             },
           })
         }
@@ -141,11 +136,19 @@ const calendarData = computed(() => {
       for (const record of formattedData.value) {
         const startDate = dayjs(record.row[fromCol.title])
         if (startDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')) {
+          const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
+          recordsInDay[startDaysDiff]++
+
           recordsInRange.push({
             ...record,
             rowMeta: {
               ...record.rowMeta,
               range,
+              style: {
+                width: `calc(${perDayWidth}px)`,
+                left: `${startDate.diff(selectedDateRange.value.start, 'day') * perDayWidth}px`,
+                top: `${(recordsInDay[startDaysDiff] - 1) * 50}px`,
+              },
             },
           })
         }
@@ -175,7 +178,7 @@ const calendarData = computed(() => {
         :class="{
           '!border-2 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
         }"
-        class="flex flex-col border-r-1 last:border-r-0 items-center w-1/7"
+        class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         @click="selectedDate = date"
       ></div>
     </div>
@@ -188,16 +191,20 @@ const calendarData = computed(() => {
           'mr-3': getRecordPosition(record) === 'rightRounded',
           '': getRecordPosition(record) === 'rounded',
         }"
-        :style="calculateRecordStyle(record, id)"
+        :style="record.rowMeta.style"
         class="absolute"
         draggable="true"
         @dragover.prevent
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :date="record.row[record.rowMeta.range.fk_from_col.title]"
+            :date="
+              calDataType === UITypes.DateTime
+                ? dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('DD-MM-YYYY HH:MM')
+                : dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('DD-MM-YYYY')
+            "
+            :name="record.row[displayField.title]"
             :position="getRecordPosition(record)"
-            :title="record.row[displayField.title]"
             color="blue"
             @click="emits('expand-record', record)"
           />

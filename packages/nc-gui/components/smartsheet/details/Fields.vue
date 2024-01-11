@@ -805,7 +805,7 @@ watch(
 </script>
 
 <template>
-  <div class="w-full p-4">
+  <div class="nc-fields-wrapper w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div v-if="isViewColumnsLoading" class="flex flex-row justify-between mt-2">
         <a-skeleton-input class="!h-8 !w-68 !rounded !overflow-hidden" active size="small" />
@@ -817,7 +817,12 @@ watch(
       </div>
       <template v-else>
         <div class="flex w-full justify-between py-2">
-          <a-input v-model:value="searchQuery" class="!h-8 !px-1 !rounded-lg !w-72" placeholder="Search field">
+          <a-input
+            data-testid="nc-field-search-input"
+            v-model:value="searchQuery"
+            class="!h-8 !px-1 !rounded-lg !w-72"
+            placeholder="Search field"
+          >
             <template #prefix>
               <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
             </template>
@@ -833,7 +838,14 @@ watch(
           <div class="flex gap-2">
             <NcTooltip :disabled="isLocked">
               <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
-              <NcButton type="secondary" size="small" class="mr-1" :disabled="loading || isLocked" @click="addField()">
+              <NcButton
+                data-testid="nc-field-add-new"
+                type="secondary"
+                size="small"
+                class="mr-1"
+                :disabled="loading || isLocked"
+                @click="addField()"
+              >
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="plus" class="w-3" />
                   New Field
@@ -841,6 +853,7 @@ watch(
               </NcButton>
             </NcTooltip>
             <NcButton
+              data-testid="nc-field-reset"
               type="secondary"
               size="small"
               :disabled="(!loading && ops.length < 1 && moveOps.length < 1 && visibilityOps.length < 1) || isLocked"
@@ -852,6 +865,7 @@ watch(
               <template #title> {{ `${renderCmdOrCtrlKey()} + S` }} </template>
 
               <NcButton
+                data-testid="nc-field-save-changes"
                 type="primary"
                 size="small"
                 :loading="loading"
@@ -868,13 +882,20 @@ watch(
         </div>
         <div class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200">
           <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
-            <Draggable :model-value="fields" :disabled="isLocked" item-key="id" @change="onMove($event)">
+            <Draggable
+              :model-value="fields"
+              :disabled="isLocked"
+              item-key="id"
+              @change="onMove($event)"
+              data-testid="nc-field-list-wrapper"
+            >
               <template #item="{ element: field }">
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
                   class="flex px-2 hover:bg-gray-100 first:rounded-t-lg border-b-1 last:rounded-b-none border-gray-200 pl-5 group"
                   :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                   @click="changeField(field, $event)"
+                  :data-testid="`nc-field-item-${field.title}`"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                     <component
@@ -983,6 +1004,7 @@ watch(
                           '!hover:(text-brand-700 bg-brand-100) !group-hover:(text-brand-500)': compareCols(field, activeField),
                           '!hover:(text-gray-700 bg-gray-200) !group-hover:(text-gray-500)': !compareCols(field, activeField),
                         }"
+                        data-testid="nc-table-explorer-dropdown-button"
                       >
                         <GeneralIcon icon="threeDotVertical" class="no-action text-inherit" />
                       </NcButton>

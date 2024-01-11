@@ -916,6 +916,7 @@ watch(
                           toggleVisibility(event.target.checked, viewFieldsMap[field.id])
                         }
                       "
+                      data-testid="nc-field-checkbox"
                     />
                     <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
                     <SmartsheetHeaderVirtualCellIcon
@@ -940,13 +941,13 @@ watch(
                       show-on-truncate-only
                     >
                       <template #title> {{ fieldState(field)?.title || field.title }} </template>
-                      <span>
+                      <span data-testid="nc-field-title">
                         {{ fieldState(field)?.title || field.title }}
                       </span>
                     </NcTooltip>
                   </div>
                   <div class="flex items-center justify-end gap-1">
-                    <div class="flex items-center">
+                    <div class="nc-field-status-wrapper flex items-center">
                       <NcBadge v-if="fieldStatus(field) === 'delete'" color="red" :border="false" class="bg-red-50 text-red-700">
                         Deleted field
                       </NcBadge>

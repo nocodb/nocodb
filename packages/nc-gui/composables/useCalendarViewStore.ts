@@ -268,6 +268,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                     comparison_sub_op: 'exactDate',
                     value: toDate,
                   },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'eq',
+                    logical_op: 'or',
+                    comparison_sub_op: 'exactDate',
+                    value: fromDate,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'eq',
+                    logical_op: 'or',
+                    comparison_sub_op: 'exactDate',
+                    value: toDate,
+                  },
                 ],
               },
             ]
@@ -452,6 +466,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 },
                 {
                   fk_column_id: toCol.id,
+                  comparison_op: 'eq',
+                  logical_op: 'or',
+                  comparison_sub_op: 'exactDate',
+                  value: toDate,
+                },
+                {
+                  fk_column_id: toCol.id,
+                  comparison_op: 'eq',
+                  logical_op: 'or',
+                  comparison_sub_op: 'exactDate',
+                  value: fromDate,
+                },
+                {
+                  fk_column_id: fromCol.id,
                   comparison_op: 'eq',
                   logical_op: 'or',
                   comparison_sub_op: 'exactDate',

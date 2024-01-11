@@ -916,7 +916,7 @@ watch(
                           toggleVisibility(event.target.checked, viewFieldsMap[field.id])
                         }
                       "
-                      data-testid="nc-field-checkbox"
+                      data-testid="nc-field-visibility-checkbox"
                     />
                     <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
                     <SmartsheetHeaderVirtualCellIcon
@@ -948,7 +948,13 @@ watch(
                   </div>
                   <div class="flex items-center justify-end gap-1">
                     <div class="nc-field-status-wrapper flex items-center">
-                      <NcBadge v-if="fieldStatus(field) === 'delete'" color="red" :border="false" class="bg-red-50 text-red-700">
+                      <NcBadge
+                        v-if="fieldStatus(field) === 'delete'"
+                        color="red"
+                        :border="false"
+                        class="bg-red-50 text-red-700"
+                        data-testid="nc-field-status-deleted-field"
+                      >
                         Deleted field
                       </NcBadge>
                       <NcBadge
@@ -956,6 +962,7 @@ watch(
                         color="orange"
                         :border="false"
                         class="bg-green-50 text-green-700"
+                        data-testid="nc-field-status-new-field"
                       >
                         New field
                       </NcBadge>
@@ -965,6 +972,7 @@ watch(
                         color="orange"
                         :border="false"
                         class="bg-orange-50 text-orange-700"
+                        data-testid="nc-field-status-updated-field"
                       >
                         Updated field
                       </NcBadge>
@@ -973,6 +981,7 @@ watch(
                         color="yellow"
                         :border="false"
                         class="ml-1 bg-yellow-50 text-yellow-700"
+                        data-testid="nc-field-status-incomplete-configuration"
                       >
                         Incomplete configuration
                       </NcBadge>
@@ -984,6 +993,7 @@ watch(
                       class="no-action mr-2"
                       :disabled="loading"
                       @click="recoverField(field)"
+                      data-testid="nc-field-restore-changes"
                     >
                       <div class="flex items-center text-xs gap-1">
                         <GeneralIcon icon="reload" />
@@ -993,7 +1003,7 @@ watch(
                     <NcDropdown
                       v-else
                       :trigger="['click']"
-                      overlay-class-name="nc-dropdown-table-explorer"
+                      overlay-class-name="nc-field-item-action-dropdown nc-dropdown-table-explorer"
                       @update:visible="onFieldOptionUpdate"
                       @click.stop
                     >
@@ -1005,7 +1015,7 @@ watch(
                           '!hover:(text-brand-700 bg-brand-100) !group-hover:(text-brand-500)': compareCols(field, activeField),
                           '!hover:(text-gray-700 bg-gray-200) !group-hover:(text-gray-500)': !compareCols(field, activeField),
                         }"
-                        data-testid="nc-table-explorer-dropdown-button"
+                        data-testid="nc-field-item-action-button"
                       >
                         <GeneralIcon icon="threeDotVertical" class="no-action text-inherit" />
                       </NcButton>
@@ -1019,6 +1029,7 @@ watch(
                               <div
                                 class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
                                 @click="onClickCopyFieldUrl(field)"
+                                data-testid="nc-field-item-action-copy-id"
                               >
                                 <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
                                   <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
@@ -1036,19 +1047,37 @@ watch(
                           </template>
 
                           <template v-if="!isLocked">
-                            <NcMenuItem key="table-explorer-duplicate" @click="duplicateField(field)">
+                            <NcMenuItem
+                              key="table-explorer-duplicate"
+                              @click="duplicateField(field)"
+                              data-testid="nc-field-item-action-duplicate"
+                            >
                               <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>Duplicate</span>
                             </NcMenuItem>
-                            <NcMenuItem v-if="!field.pv" key="table-explorer-insert-above" @click="addField(field, true)">
+                            <NcMenuItem
+                              v-if="!field.pv"
+                              key="table-explorer-insert-above"
+                              @click="addField(field, true)"
+                              data-testid="nc-field-item-action-insert-above"
+                            >
                               <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>Insert above</span>
                             </NcMenuItem>
-                            <NcMenuItem key="table-explorer-insert-below" @click="addField(field)">
+                            <NcMenuItem
+                              key="table-explorer-insert-below"
+                              @click="addField(field)"
+                              data-testid="nc-field-item-action-insert-below"
+                            >
                               <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>Insert below</span>
                             </NcMenuItem>
 
                             <a-menu-divider class="my-1.5" />
 
-                            <NcMenuItem key="table-explorer-delete" class="!hover:bg-red-50" @click="onFieldDelete(field)">
+                            <NcMenuItem
+                              key="table-explorer-delete"
+                              class="!hover:bg-red-50"
+                              @click="onFieldDelete(field)"
+                              data-testid="nc-field-item-action-delete"
+                            >
                               <div class="text-red-500">
                                 <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
                                 Delete
@@ -1086,7 +1115,7 @@ watch(
                         'opacity-0 !cursor-default': isLocked,
                       }"
                     />
-                    <NcCheckbox :disabled="true" :checked="true" />
+                    <NcCheckbox :disabled="true" :checked="true" data-testid="nc-field-visibility-checkbox" />
                     <SmartsheetHeaderCellIcon
                       v-if="displayColumn"
                       :column-meta="fieldState(displayColumn) || displayColumn"
@@ -1102,7 +1131,7 @@ watch(
                       show-on-truncate-only
                     >
                       <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
-                      <span>
+                      <span data-testid="nc-field-title">
                         {{ fieldState(displayColumn)?.title || displayColumn.title }}
                       </span>
                     </NcTooltip>
@@ -1114,6 +1143,7 @@ watch(
                         color="red"
                         :border="false"
                         class="bg-red-50 text-red-700"
+                        data-testid="nc-field-status-deleted-field"
                       >
                         Deleted field
                       </NcBadge>
@@ -1123,6 +1153,7 @@ watch(
                         color="orange"
                         :border="false"
                         class="bg-orange-50 text-orange-700"
+                        data-testid="nc-field-status-updated-field"
                       >
                         Updated field
                       </NcBadge>
@@ -1134,6 +1165,7 @@ watch(
                       class="no-action mr-2"
                       :disabled="loading"
                       @click="recoverField(displayColumn)"
+                      data-testid="nc-field-restore-changes"
                     >
                       <div class="flex items-center text-xs gap-1">
                         <GeneralIcon icon="reload" />
@@ -1143,7 +1175,7 @@ watch(
                     <NcDropdown
                       v-else
                       :trigger="['click']"
-                      overlay-class-name="nc-dropdown-table-explorer-display-column"
+                      overlay-class-name="nc-field-item-action-dropdown-display-column nc-dropdown-table-explorer-display-column"
                       @update:visible="onFieldOptionUpdate"
                       @click.stop
                     >
@@ -1161,6 +1193,7 @@ watch(
                             activeField,
                           ),
                         }"
+                        data-testid="nc-field-item-action-button"
                       >
                         <GeneralIcon icon="threeDotVertical" class="no-action text-inherit" />
                       </NcButton>
@@ -1173,6 +1206,7 @@ watch(
                             <div
                               class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
                               @click="onClickCopyFieldUrl(displayColumn)"
+                              data-testid="nc-field-item-action-copy-id"
                             >
                               <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
                                 <div class="text-gray-600">{{ $t('labels.idColon') }}</div>

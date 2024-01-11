@@ -63,8 +63,8 @@ export class FieldsPage extends BasePage {
     relationType = '',
     rollupType = '',
     format = '',
-    dateFormat = '',
-    timeFormat = '',
+    dateFormat = 'YYYY-MM-DD',
+    timeFormat = 'HH:mm',
     insertAboveColumnTitle,
     insertBelowColumnTitle,
   }: {

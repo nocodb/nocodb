@@ -1817,6 +1817,11 @@ export interface PaginatedType {
    */
   page?: number;
   /**
+   * The current offset and it will be present only when the page is not included
+   * @example 1
+   */
+  offset?: number;
+  /**
    * The number of pages
    * @example 10
    */

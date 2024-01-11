@@ -5,6 +5,118 @@ import { FieldsPage } from '../../../pages/Dashboard/Details/FieldsPage';
 import { getTextExcludeIconText } from '../../utils/general';
 import { UITypes } from 'nocodb-sdk';
 
+const allFieldList = [
+  {
+    title: 'Single Line Text',
+    type: UITypes.SingleLineText,
+  },
+  {
+    title: 'Long Text',
+    type: UITypes.LongText,
+  },
+  {
+    title: 'Number',
+    type: UITypes.Number,
+  },
+  {
+    title: 'Decimal',
+    type: UITypes.Decimal,
+  },
+  {
+    title: 'Attachment',
+    type: UITypes.Attachment,
+  },
+  {
+    title: 'Checkbox',
+    type: UITypes.Checkbox,
+  },
+  {
+    title: 'MultiSelect',
+    type: UITypes.MultiSelect,
+  },
+  {
+    title: 'SingleSelect',
+    type: UITypes.SingleSelect,
+  },
+  {
+    title: 'Date',
+    type: UITypes.Date,
+  },
+  {
+    title: 'DateTime',
+    type: UITypes.DateTime,
+  },
+  {
+    title: 'Year',
+    type: UITypes.Year,
+  },
+  {
+    title: 'Time',
+    type: UITypes.Time,
+  },
+  {
+    title: 'PhoneNumber',
+    type: UITypes.PhoneNumber,
+  },
+  {
+    title: 'Email',
+    type: UITypes.Email,
+  },
+  {
+    title: 'URL',
+    type: UITypes.URL,
+  },
+  {
+    title: 'Currency',
+    type: UITypes.Currency,
+  },
+  {
+    title: 'Percent',
+    type: UITypes.Percent,
+  },
+  {
+    title: 'Duration',
+    type: UITypes.Duration,
+  },
+  {
+    title: 'Rating',
+    type: UITypes.Rating,
+  },
+  {
+    title: 'Formula',
+    type: UITypes.Formula,
+    formula: 'LEN({Title})',
+  },
+  {
+    title: 'QrCode',
+    type: UITypes.QrCode,
+    qrCodeValueColumnTitle: 'Title',
+  },
+  {
+    title: 'Barcode',
+    type: UITypes.Barcode,
+    barcodeValueColumnTitle: 'Title',
+  },
+  {
+    title: 'Geometry',
+    type: UITypes.Geometry,
+  },
+  {
+    title: 'JSON',
+    type: UITypes.JSON,
+  },
+  {
+    title: 'User',
+    type: UITypes.User,
+  },
+  {
+    title: 'Links',
+    type: UITypes.Links,
+    relationType: 'Has Many',
+    childTable: 'Multifield',
+  },
+];
+
 test.describe('Multi Field Editor', () => {
   let dashboard: DashboardPage, fields: FieldsPage;
   let context: any;
@@ -84,6 +196,26 @@ test.describe('Multi Field Editor', () => {
 
     // verify with old fields
     await verifyGridColumnHeaders({ fields: fieldsText });
+  });
+
+  test('Add all fields and check status on clicking each field', async () => {
+    // Add all fields, verify status and save
+    for (const field of allFieldList) {
+      await fields.createOrUpdate({ ...field, saveChanges: false });
+      await expect(fields.getField({ title: field.title })).toContainText('New field');
+      await fields.saveChanges();
+    }
+    let fieldsText = await fields.getAllFieldText();
+
+    // verify all newly added field and its order
+    expect(fieldsText).toEqual(['Title', ...allFieldList.map(field => field.title)]);
+
+    // click on each field and check status
+    fieldsText = await fields.getAllFieldText();
+    for (const title of fieldsText) {
+      await fields.getField({ title }).click();
+      await expect(fields.getField({ title })).not.toContainText(['New field', 'Updated field']);
+    }
   });
 
   test('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Delete, Hide', async () => {

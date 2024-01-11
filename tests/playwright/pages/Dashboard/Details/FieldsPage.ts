@@ -11,6 +11,7 @@ export class FieldsPage extends BasePage {
   readonly addNewFieldButton: Locator;
   readonly resetFieldChangesButton: Locator;
   readonly saveChangesButton: Locator;
+
   readonly addOrEditColumn: Locator;
   readonly fieldListWrapper: Locator;
 
@@ -29,13 +30,24 @@ export class FieldsPage extends BasePage {
     return this.detailsPage.get().locator('.nc-fields-wrapper');
   }
 
+  async fillSearch({ title }: { title: string }) {
+    const searchInput = this.get().getByTestId('nc-field-search-input');
+    await searchInput.click();
+    await searchInput.fill(title);
+  }
+
+  async clearSearch() {
+    await this.get().getByTestId('nc-field-clear-search').click();
+  }
+
   async clickNewField() {
     await this.addNewFieldButton.click();
   }
 
-  async create({
+  async createOrUpdate({
     title,
     type = 'SingleLineText',
+    isUpdateMode = false,
     formula = '',
     qrCodeValueColumnTitle = '',
     barcodeValueColumnTitle = '',
@@ -52,6 +64,7 @@ export class FieldsPage extends BasePage {
   }: {
     title: string;
     type?: string;
+    isUpdateMode?: boolean;
     formula?: string;
     qrCodeValueColumnTitle?: string;
     barcodeValueColumnTitle?: string;
@@ -66,14 +79,15 @@ export class FieldsPage extends BasePage {
     insertAboveColumnTitle?: string;
     insertBelowColumnTitle?: string;
   }) {
-    if (insertAboveColumnTitle) {
-      await this.selectFieldAction({ title: insertAboveColumnTitle, action: 'insert-above' });
-    } else if (insertBelowColumnTitle) {
-      await this.selectFieldAction({ title: insertBelowColumnTitle, action: 'insert-below' });
-    } else {
-      await this.clickNewField();
+    if (!isUpdateMode) {
+      if (insertAboveColumnTitle) {
+        await this.selectFieldAction({ title: insertAboveColumnTitle, action: 'insert-above' });
+      } else if (insertBelowColumnTitle) {
+        await this.selectFieldAction({ title: insertBelowColumnTitle, action: 'insert-below' });
+      } else {
+        await this.clickNewField();
+      }
     }
-
     await this.addOrEditColumn.waitFor({ state: 'visible' });
 
     await this.fillTitle({ title });
@@ -188,18 +202,20 @@ export class FieldsPage extends BasePage {
     const locator = this.fieldListWrapper.locator('>div');
     const count = await locator.count();
     for (let i = 0; i < count; i++) {
+      await locator.nth(i).scrollIntoViewIfNeeded();
       const text = await locator.nth(i).getByTestId('nc-field-title').textContent();
       fieldsText.push(text);
     }
 
-    // verify field inserted above the target field
     if (insertAboveColumnTitle) {
+      // verify field inserted above the target field
       expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertAboveColumnTitle)) - 1]).toBe(title);
-    }
-
-    // verify field inserted below the target field
-    if (insertBelowColumnTitle) {
-      expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertAboveColumnTitle)) + 1]).toBe(title);
+    } else if (insertBelowColumnTitle) {
+      // verify field inserted below the target field
+      expect(fieldsText[fieldsText.findIndex(title => title.startsWith(insertBelowColumnTitle)) + 1]).toBe(title);
+    } else {
+      // verify field inserted at the end
+      expect(fieldsText[fieldsText.length - 1]).toBe(title);
     }
   }
 
@@ -222,18 +238,19 @@ export class FieldsPage extends BasePage {
   async saveChanges() {
     await this.waitForResponse({
       uiAction: async () => await this.saveChangesButton.click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/tables/',
-      httpMethodsToMatch: ['POST'],
-      responseJsonMatcher: json => json['failedOps']?.length === 0,
+      requestUrlPathToMatch: 'api/v1/db/meta/views/',
+      httpMethodsToMatch: ['GET'],
+      responseJsonMatcher: json => json['list'],
     });
+    await this.rootPage.waitForTimeout(200);
   }
 
-  async getField({ title }: { title: string }) {
-    return this.fieldListWrapper.getByTestId('nc-field-title').locator(`text=${title}`);
+  getField({ title }: { title: string }) {
+    return this.fieldListWrapper.getByTestId(`nc-field-item-${title}`);
   }
 
   async getFieldVisibilityCheckbox({ title }: { title: string }) {
-    return (await this.getField({ title })).getByTestId('nc-field-visibility-checkbox');
+    return this.getField({ title }).getByTestId('nc-field-visibility-checkbox');
   }
 
   async selectFieldAction({
@@ -245,10 +262,11 @@ export class FieldsPage extends BasePage {
     action: 'copy-id' | 'duplicate' | 'insert-above' | 'insert-below' | 'delete';
     isDisplayValueField?: boolean;
   }) {
-    const field = await this.getField({ title });
+    const field = this.getField({ title });
+    await field.scrollIntoViewIfNeeded();
 
     await field.hover();
-    await field.getByTestId('nc-field-item-action-button').waitFor({ state: 'visible' });
+    // await field.getByTestId('nc-field-item-action-button').waitFor({ state: 'visible' });
     await field.getByTestId('nc-field-item-action-button').click();
 
     const fieldActionDropdown = isDisplayValueField

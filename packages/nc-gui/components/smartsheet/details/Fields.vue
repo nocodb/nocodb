@@ -832,6 +832,7 @@ watch(
                 icon="close"
                 class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
                 @click="searchQuery = ''"
+                data-testid="nc-field-clear-search"
               />
             </template>
           </a-input>
@@ -895,7 +896,7 @@ watch(
                   class="flex px-2 hover:bg-gray-100 first:rounded-t-lg border-b-1 last:rounded-b-none border-gray-200 pl-5 group"
                   :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
                   @click="changeField(field, $event)"
-                  :data-testid="`nc-field-item-${field.title}`"
+                  :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                     <component
@@ -1106,6 +1107,7 @@ watch(
                   class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 first:rounded-tl-lg last:border-b-1 pl-5 group"
                   :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
                   @click="changeField(displayColumn, $event)"
+                  :data-testid="`nc-field-item-${fieldState(displayColumn)?.title || displayColumn.title}`"
                 >
                   <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                     <component

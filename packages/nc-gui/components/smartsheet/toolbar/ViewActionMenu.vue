@@ -142,7 +142,12 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <NcMenu class="!min-w-70" data-id="toolbar-actions" :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`">
+  <NcMenu
+    v-if="view"
+    class="!min-w-70"
+    data-id="toolbar-actions"
+    :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
+  >
     <NcTooltip>
       <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
       <div class="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
@@ -314,6 +319,7 @@ const onDelete = async () => {
       />
     </template>
   </NcMenu>
+  <span v-else></span>
 </template>
 
 <style lang="scss" scoped>

@@ -5,10 +5,13 @@ import { useAgent } from 'request-filtering-agent';
 import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
+import isBetween from 'dayjs/plugin/isBetween';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { HookLogType } from 'nocodb-sdk';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
+
+dayjs.extend(isBetween);
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);

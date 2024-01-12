@@ -539,6 +539,11 @@ a {
   @apply bg-primary bg-opacity-20;
 }
 
+/* Hide the element with id nc-selected-item-icon */
+.ant-select-selection-item #nc-selected-item-icon {
+  @apply hidden;
+}
+
 .ant-select-selection-search-input:focus {
   @apply !ring-0;
 }

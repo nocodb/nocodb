@@ -76,16 +76,35 @@ const getRecordPosition = (record: Row) => {
   }
 }
 
+const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
+  let column = 0
+  while (true) {
+    let isColumnSuitable = true
+    for (let i = 0; i < spanDays; i++) {
+      const dayIndex = startDayIndex + i
+      if (recordsInDay[dayIndex][column]) {
+        isColumnSuitable = false
+        break
+      }
+    }
+
+    if (isColumnSuitable) {
+      return column
+    }
+    column++
+  }
+}
+
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
-  const recordsInDay = {
-    0: 0,
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0,
-    5: 0,
-    6: 0,
+  const recordsInDay: any = {
+    0: {},
+    1: {},
+    2: {},
+    3: {},
+    4: {},
+    5: {},
+    6: {},
   }
 
   const recordsInRange: Array<Row> = []
@@ -114,10 +133,26 @@ const calendarData = computed(() => {
           }
 
           const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-          const spanDays = Math.max(endDate.diff(selectedDateRange.value.start, 'day'), 1)
+          const spanDays = Math.max(endDate.diff(startDate, 'day') + 1, 1)
           const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
-          for (let i = 0; i <= spanDays; i++) {
-            recordsInDay[startDaysDiff + i]++
+
+          let suitableColumn = -1
+          for (let i = 0; i < spanDays; i++) {
+            const dayIndex = startDaysDiff + i
+
+            if (!recordsInDay[dayIndex]) {
+              recordsInDay[dayIndex] = {}
+            }
+
+            if (suitableColumn === -1) {
+              suitableColumn = findFirstSuitableColumn(recordsInDay, dayIndex, spanDays)
+            }
+          }
+
+          // Mark the suitable column as occupied for the entire span
+          for (let i = 0; i < spanDays; i++) {
+            const dayIndex = startDaysDiff + i
+            recordsInDay[dayIndex][suitableColumn] = true
           }
 
           recordsInRange.push({
@@ -128,7 +163,7 @@ const calendarData = computed(() => {
               style: {
                 width: widthStyle,
                 left: `${startDaysDiff * perDayWidth}px`,
-                top: `${(recordsInDay[startDaysDiff] - 1) * 50}px`,
+                top: `${suitableColumn * 50}px`,
               },
             },
           })
@@ -158,6 +193,8 @@ const calendarData = computed(() => {
       }
     }
   })
+
+  console.log(recordsInDay)
 
   return recordsInRange
 })

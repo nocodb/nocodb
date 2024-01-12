@@ -203,13 +203,13 @@ const openDeleteModal = (user: UserType) => {
             data-rec="true"
           >
             <span>
-              {{ $t('labels.email') }}
+              {{ $t('objects.users') }}
             </span>
             <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start flex items-center space-x-2" data-rec="true">
             <span>
-              {{ $t('objects.role') }}
+              {{ $t('general.access') }}
             </span>
             <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
           </div>
@@ -235,8 +235,16 @@ const openDeleteModal = (user: UserType) => {
             }"
           >
             <div class="text-3.5 text-start w-2/3 pl-5 flex items-center">
-              <GeneralTruncateText length="29">
-                {{ el.display_name || el.email }}
+              <NcTooltip v-if="el.display_name">
+                <template #title>
+                  {{ el.email }}
+                </template>
+                <GeneralTruncateText length="29">
+                  {{ el.display_name }}
+                </GeneralTruncateText>
+              </NcTooltip>
+              <GeneralTruncateText v-else length="29">
+                {{ el.email }}
               </GeneralTruncateText>
             </div>
             <div class="text-3.5 text-start w-1/3">

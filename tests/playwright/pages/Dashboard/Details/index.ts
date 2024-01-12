@@ -4,12 +4,14 @@ import { TopbarPage } from '../common/Topbar';
 import { Locator } from '@playwright/test';
 import { WebhookPage } from './WebhookPage';
 import { ErdPage } from './ErdPage';
+import { FieldsPage } from './FieldsPage';
 
 export class DetailsPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly topbar: TopbarPage;
   readonly webhook: WebhookPage;
   readonly relations: ErdPage;
+  readonly fields: FieldsPage;
 
   readonly tab_webhooks: Locator;
   readonly tab_apiSnippet: Locator;
@@ -24,6 +26,7 @@ export class DetailsPage extends BasePage {
     this.topbar = dashboard.grid.topbar;
     this.webhook = new WebhookPage(this);
     this.relations = new ErdPage(this);
+    this.fields = new FieldsPage(this);
 
     this.tab_webhooks = this.get().locator(`[data-testid="nc-webhooks-tab"]`);
     this.tab_apiSnippet = this.get().locator(`[data-testid="nc-apis-tab"]`);
@@ -52,5 +55,9 @@ export class DetailsPage extends BasePage {
 
   async clickRelationsTab() {
     await this.tab_relations.click();
+  }
+
+  async clickFieldsTab() {
+    await this.tab_fields.click();
   }
 }

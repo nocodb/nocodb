@@ -217,6 +217,7 @@ export default class User implements UserType {
         `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`,
+        `${MetaTable.USERS}.display_name`,
       )
       .select(
         ncMeta

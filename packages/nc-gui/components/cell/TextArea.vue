@@ -257,7 +257,7 @@ watch(editEnabled, () => {
       <div
         v-if="isVisible"
         ref="inputWrapperRef"
-        class="flex flex-col min-w-200 min-h-70 py-3 expanded-cell-input relative"
+        class="flex flex-col min-w-200 max-w-screen-xl min-h-70 max-h-[864px] py-3 expanded-cell-input relative"
         :class="{
           'cursor-move': isDragging,
         }"
@@ -277,18 +277,18 @@ watch(editEnabled, () => {
             </span>
           </div>
         </div>
-        <a-textarea
-          v-if="!isRichMode"
-          ref="inputRef"
-          v-model:value="vModel"
-          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black !cursor-text"
-          :placeholder="$t('activity.enterText')"
-          :bordered="false"
-          :auto-size="{ minRows: 20, maxRows: 20 }"
-          :disabled="readOnly"
-          @keydown.stop
-          @keydown.escape="isVisible = false"
-        />
+        <div v-if="!isRichMode" class="p-2 pb-0 h-full">
+          <a-textarea
+            ref="inputRef"
+            v-model:value="vModel"
+            class="p-1 !pt-1 !pr-3 !text-black !cursor-text !min-h-[215px] max-h-[800px] !rounded-lg focus:border-brand-500"
+            :placeholder="$t('activity.enterText')"
+            :style="{ resize: 'vertical' }"
+            :disabled="readOnly"
+            @keydown.stop
+            @keydown.escape="isVisible = false"
+          />
+        </div>
 
         <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
       </div>

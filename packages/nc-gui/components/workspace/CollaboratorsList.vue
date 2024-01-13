@@ -20,9 +20,7 @@ const filterCollaborators = computed(() => {
   if (!collaborators.value) return []
 
   return collaborators.value.filter((collab) =>
-    collab.display_name
-      ? collab.display_name.toLowerCase().includes(userSearchText.value.toLowerCase())
-      : collab.email.toLowerCase().includes(userSearchText.value.toLowerCase()),
+    (collab.display_name || collab.email).toLowerCase().includes(userSearchText.value.toLowerCase()),
   )
 })
 

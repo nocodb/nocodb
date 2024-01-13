@@ -42,9 +42,7 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 
 const filteredCollaborators = computed(() =>
   collaborators.value.filter((collab) =>
-    collab.display_name
-      ? collab.display_name.toLowerCase().includes(userSearchText.value.toLowerCase())
-      : collab.email.toLowerCase().includes(userSearchText.value.toLowerCase()),
+    (collab.display_name || collab.email).toLowerCase().includes(userSearchText.value.toLowerCase()),
   ),
 )
 

@@ -307,11 +307,7 @@ useMenuCloseOnEsc(open)
       <a-button v-e="['c:fields']" :disabled="isLocked" class="nc-fields-menu-btn nc-toolbar-btn">
         <div class="flex items-center gap-2">
           <GeneralIcon
-            v-if="
-              activeView?.type === ViewTypes.KANBAN ||
-              activeView?.type === ViewTypes.GALLERY ||
-              activeView?.type === ViewTypes.CALENDAR
-            "
+            v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
             class="h-4 w-4"
             icon="creditCard"
           />

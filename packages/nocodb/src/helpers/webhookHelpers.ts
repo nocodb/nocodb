@@ -6,12 +6,16 @@ import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import isBetween from 'dayjs/plugin/isBetween';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { HookLogType } from 'nocodb-sdk';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
 
 dayjs.extend(isBetween);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
@@ -56,7 +60,8 @@ export async function validateCondition(
         UITypes.DateTime,
         UITypes.CreatedTime,
         UITypes.LastModifiedTime,
-      ].includes(column.uidt)
+      ].includes(column.uidt) &&
+      !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op)
     ) {
       const dateFormat =
         client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
@@ -135,27 +140,55 @@ export async function validateCondition(
           break;
       }
 
-      if (dayjs.isDayjs(filterVal)) {
-        res = filterVal.isSame(dataVal, 'day');
-      }
-
-      switch (filter.comparison_op) {
-        case 'isWithin': {
-          let now = dayjs(new Date()).format(dateFormat).toString();
-          now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
-          switch (filter.comparison_sub_op) {
-            case 'pastWeek':
-            case 'pastMonth':
-            case 'pastYear':
-            case 'pastNumberOfDays':
-              res = dayjs(dataVal).isBetween(filterVal, now, 'day');
-              break;
-            case 'nextWeek':
-            case 'nextMonth':
-            case 'nextYear':
-            case 'nextNumberOfDays':
-              res = dayjs(dataVal).isBetween(now, filterVal, 'day');
-              break;
+      if (dataVal) {
+        switch (filter.comparison_op) {
+          case 'eq':
+            res = dayjs(dataVal).isSame(filterVal, 'day');
+            break;
+          case 'neq':
+            res = !dayjs(dataVal).isSame(filterVal, 'day');
+            break;
+          case 'gt':
+            res = dayjs(dataVal).isAfter(filterVal, 'day');
+            break;
+          case 'lt':
+            res = dayjs(dataVal).isBefore(filterVal, 'day');
+            break;
+          case 'le':
+            res = dayjs(dataVal).isSameOrBefore(filterVal, 'day');
+            break;
+          case 'ge':
+            res = dayjs(dataVal).isSameOrAfter(filterVal, 'day');
+            break;
+          case 'empty':
+          case 'blank':
+            res = dataVal === '' || dataVal === null || dataVal === undefined;
+            break;
+          case 'notempty':
+          case 'notblank':
+            res = !(
+              dataVal === '' ||
+              dataVal === null ||
+              dataVal === undefined
+            );
+            break;
+          case 'isWithin': {
+            let now = dayjs(new Date()).format(dateFormat).toString();
+            now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
+            switch (filter.comparison_sub_op) {
+              case 'pastWeek':
+              case 'pastMonth':
+              case 'pastYear':
+              case 'pastNumberOfDays':
+                res = dayjs(dataVal).isBetween(filterVal, now, 'day');
+                break;
+              case 'nextWeek':
+              case 'nextMonth':
+              case 'nextYear':
+              case 'nextNumberOfDays':
+                res = dayjs(dataVal).isBetween(now, filterVal, 'day');
+                break;
+            }
           }
         }
       }

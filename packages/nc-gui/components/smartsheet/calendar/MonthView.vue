@@ -20,91 +20,42 @@ const isDayInPagedMonth = (date: Date) => {
 }
 
 const dates = computed(() => {
-  const startOfMonth = new Date(pageDate.value.getFullYear(), pageDate.value.getMonth(), 1)
-  const dayOffset = isMondayFirst.value ? 1 : 0
-  const dayOfWeek = (startOfMonth.getDay() - dayOffset + 7) % 7
-  startOfMonth.setDate(startOfMonth.getDate() - dayOfWeek)
-  const datesArray = []
-  while (datesArray.length < 42) {
-    datesArray.push(new Date(startOfMonth))
-    startOfMonth.setDate(startOfMonth.getDate() + 1)
+  const startOfMonth = dayjs(pageDate.value).startOf('month')
+  const endOfMonth = dayjs(pageDate.value).endOf('month')
+
+  const firstDayToDisplay = startOfMonth.startOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
+  const lastDayToDisplay = endOfMonth.endOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
+
+  const daysToDisplay = lastDayToDisplay.diff(firstDayToDisplay, 'day') + 1
+  let numberOfRows = Math.ceil(daysToDisplay / 7)
+  numberOfRows = Math.max(numberOfRows, 5)
+
+  const weeksArray = []
+  let currentDay = firstDayToDisplay
+  for (let week = 0; week < numberOfRows; week++) {
+    const weekArray = []
+    for (let day = 0; day < 7; day++) {
+      weekArray.push(currentDay.toDate())
+      currentDay = currentDay.add(1, 'day')
+    }
+    weeksArray.push(weekArray)
   }
-  return datesArray
+
+  return weeksArray
 })
 
-const getGridPosition = (record: Row) => {
-  if (!calendarRange.value || !calendarRange[0])
-    return {
-      colStart: 1,
-      colEnd: 1,
-      rowStart: 1,
-      rowEnd: 1,
-    }
-  const firstDayOfMonth = new Date(pageDate.value.getFullYear(), pageDate.value.getMonth(), 1).getDay()
-
-  const startDate = new Date(record.row[calendarRange[0].fk_from_col.title])
-  const startDayIndex = startDate.getDate() - 1 + firstDayOfMonth
-  const endDate = new Date(record.row[calendarRange[0].fk_to_col.title])
-  const endDayIndex = endDate.getDate() - 1 + firstDayOfMonth
-
-  const startRow = Math.floor(startDayIndex / 7) + 1
-  let endRow = Math.floor(endDayIndex / 7) + 1
-
-  if (endDate.getMonth() !== pageDate.value.getMonth()) {
-    endRow = Math.ceil((new Date(pageDate.value.getFullYear(), pageDate.value.getMonth() + 1, 0).getDate() + firstDayOfMonth) / 7)
-  }
-
-  const startCol = (startDayIndex % 7) + 1
-  let endCol = (endDayIndex % 7) + 1
-
-  if (endCol === 1) {
-    endRow++
-    endCol = 8
-  }
-
-  return {
-    colStart: startCol,
-    colEnd: endCol,
-    rowStart: startRow,
-    rowEnd: endRow,
-  }
-}
-
 const selectDate = (date: Date) => {
-  if (!date) return
   selectedDate.value = date
-}
-
-const isSameDate = (date1: Date, date2: Date) => {
-  if (!date1 || !date2) return false
-  return (
-    date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate()
-  )
 }
 
 const isDateSelected = (date: Date) => {
   if (!selectedDate.value) return false
-  const propDate = new Date(selectedDate.value)
-  return isSameDate(propDate, date)
+  return dayjs(date).isSame(selectedDate.value, 'day')
 }
-
-const eventsByDate = computed(() => {
-  if (!formattedData.value) return {}
-  const events = {}
-  formattedData.value.forEach((record) => {
-    const date = record.row[calendarRange.value[0].fk_from_col.title]
-    const dateObj = dayjs(date).format('MM/DD/YYYY')
-    if (!events[dateObj]) {
-      events[dateObj] = []
-    }
-    events[dateObj].push(record)
-  })
-  return events
-})
 </script>
 
 <template>
-  <div v-if="calendarRange && calendarRange[0] && calendarRange[0].fk_from_col" class="h-full">
+  <div v-if="calendarRange" class="h-full">
     <div class="grid grid-cols-7">
       <div
         v-for="(day, index) in days"
@@ -114,78 +65,49 @@ const eventsByDate = computed(() => {
         {{ day }}
       </div>
     </div>
-    <div class="grid relative auto-rows-fr grid-cols-7 h-full">
-      <div
-        v-for="(date, id) in dates"
-        :key="id"
-        :class="{
-          'border-brand-500': isDateSelected(date),
-          '!text-gray-400': !isDayInPagedMonth(date),
-        }"
-        class="text-right !h-[100%] group grid-cell py-1 text-sm hover:bg-gray-50 border-1 bg-white last:border-r-0 border-gray-200 font-semibold text-gray-800"
-        @click="selectDate(date)"
-      >
-        <div class="flex justify-between p-1">
-          <span
-            :class="{
-              block: !isDateSelected(date),
-              hidden: isDateSelected(date),
-            }"
-            class="group-hover:hidden"
-          ></span>
-          <NcButton
-            :class="{
-              '!block': isDateSelected(date),
-              '!hidden': !isDateSelected(date),
-            }"
-            class="!group-hover:block"
-            size="small"
-            type="secondary"
-            @click="emit('new-record')"
-          >
-            <component :is="iconMap.plus" class="h-4 w-4" />
-          </NcButton>
-          <span class="px-1 py-2">{{ date.getDate() }}</span>
-        </div>
-        <div class="flex flex-col justify-center gap-1">
-          <LazySmartsheetRow
-            v-for="(record, recordId) in (eventsByDate[dayjs(date).format('MM/DD/YYYY')] ?? []).slice(0, 2)"
-            :key="recordId"
-            :row="record"
-          >
-            <LazySmartsheetCalendarRecordCard
-              v-if="calendarRange && calendarRange[0]"
-              :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('MM/DD/YYYY HH:mm')"
-              :name="record.row[displayField.title]"
-              color="blue"
-              @click="emit('expand-record', record)"
-            />
-          </LazySmartsheetRow>
-          <div v-if="eventsByDate[dayjs(date).format('MM/DD/YYYY')]?.length > 2" class="text-xs text-center text-gray-500">
-            +{{ eventsByDate[dayjs(date).format('MM/DD/YYYY')].length - 2 }} more
+    <div
+      :class="{
+        'grid-rows-5': dates.length === 5,
+        'grid-rows-6': dates.length === 6,
+        'grid-rows-7': dates.length === 7,
+      }"
+      class="grid h-full pb-7.5"
+    >
+      <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow">
+        <div
+          v-for="(day, dateIndex) in week"
+          :key="`${weekIndex}-${dateIndex}`"
+          :class="{
+            'border-brand-500 border-2': isDateSelected(day),
+            '!text-gray-400': !isDayInPagedMonth(day),
+          }"
+          class="text-right group py-1 text-sm h-full border-1 bg-white border-gray-200 font-semibold hover:bg-gray-50 text-gray-800"
+          @click="selectDate(day)"
+        >
+          <div class="flex justify-between p-1">
+            <span
+              :class="{
+                block: !isDateSelected(day),
+                hidden: isDateSelected(day),
+              }"
+              class="group-hover:hidden"
+            ></span>
+            <NcButton
+              :class="{
+                '!block': isDateSelected(day),
+                '!hidden': !isDateSelected(day),
+              }"
+              class="!group-hover:block"
+              size="small"
+              type="secondary"
+              @click="emit('new-record')"
+            >
+              <component :is="iconMap.plus" class="h-4 w-4" />
+            </NcButton>
+            <span class="px-1 py-2">{{ dayjs(day).format('DD') }}</span>
           </div>
         </div>
       </div>
-      <!--      <LazySmartsheetRow
-        v-for="(record, recordId) in formattedData"
-        :key="recordId"
-        :class="[
-          `!col-start-[${getGridPosition(record)}]`,
-          `!col-span-[${getGridPosition(record).colEnd - getGridPosition(record).colStart}]`,
-          `!row-start-[${getGridPosition(record).rowStart}]`,
-          `!row-span-[${getGridPosition(record).rowEnd - getGridPosition(record).rowStart}]`,
-        ]"
-        :row="record"
-        class="event-display absolute w-full mt-16 px-2"
-      >
-        <LazySmartsheetCalendarRecordCard
-          v-if="calendarRange && calendarRange[0]"
-          :date="record.row[calendarRange[0].fk_from_col.title]"
-          :name="record.row[displayField.title]"
-          color="blue"
-          @click="emit('expand-record', record)"
-        />
-      </LazySmartsheetRow> -->
     </div>
   </div>
 </template>

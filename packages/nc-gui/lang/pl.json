@@ -157,6 +157,8 @@
     "groupingField": "Pole grupowania",
     "insertAfter": "Wstaw po",
     "insertBefore": "Wstaw przed",
+    "insertAbove": "Insert above",
+    "insertBelow": "Insert below",
     "hideField": "Ukryj pole",
     "sortAsc": "Sortuj rosnąco",
     "sortDesc": "Sortuj malejąco",
@@ -189,7 +191,8 @@
     "shift": "Zmiana",
     "enter": "Wprowadź",
     "seconds": "Sekundy",
-    "paste": "Paste"
+    "paste": "Paste",
+    "restore": "Restore"
   },
   "objects": {
     "workspace": "Obszar roboczy",
@@ -642,7 +645,16 @@
     "changeWsName": "Zmień nazwę przestrzeni roboczej",
     "pressEnter": "Naciśnij Enter",
     "newFormLoaded": "Nowy formularz zostanie załadowany po",
-    "webhook": "Webhook"
+    "webhook": "Webhook",
+    "multiField": {
+      "newField": "New field",
+      "saveChanges": "Save changes",
+      "updatedField": "Updated field",
+      "deletedField": "Deleted field",
+      "incompleteConfiguration": "Incomplete configuration",
+      "selectField": "Select a field",
+      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+    }
   },
   "activity": {
     "openInANewTab": "Otwórz w nowej karcie",
@@ -1048,7 +1060,12 @@
         "barcodeFieldsCannotBeDirectlyChanged": "Ostrzeżenie: Pola kodu kreskowego nie mogą być bezpośrednio zmieniane."
       },
       "duplicateProject": "Czy na pewno chcesz zduplikować bazę?",
-      "duplicateTable": "Czy na pewno chcesz zduplikować tabelę?"
+      "duplicateTable": "Czy na pewno chcesz zduplikować tabelę?",
+      "multiField": {
+        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
+        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
+        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+      }
     },
     "info": {
       "disabledAsViewLocked": "Wyłączone, ponieważ widok jest zablokowany",
@@ -1211,7 +1228,8 @@
       "goToNext": "Przejdź do następnego",
       "thankYou": "Dziękuję!",
       "submittedFormData": "Pomyślnie przesłałeś dane formularza.",
-      "editingSystemKeyNotSupported": "Editing system key not supported"
+      "editingSystemKeyNotSupported": "Editing system key not supported",
+      "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
       "nameRequired": "Wymagana nazwa",
@@ -1289,7 +1307,9 @@
       "fieldRequired": "{value} nie może być puste.",
       "projectNotAccessible": "Projekt niedostępny",
       "copyToClipboardError": "Nie udało się skopiować do schowka",
-      "pasteFromClipboardError": "Failed to paste from clipboard"
+      "pasteFromClipboardError": "Failed to paste from clipboard",
+      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
+      "somethingWentWrong": "Something went wrong"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

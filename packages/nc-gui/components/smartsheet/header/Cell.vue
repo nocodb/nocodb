@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { UITypesName, type ColumnReqType, type ColumnType, UITypes } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { UITypes, UITypesName } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsExpandedFormOpenInj,
   IsFormInj,
   IsKanbanInj,
   inject,
+  parseProp,
   provide,
   ref,
   toRef,
   useRoles,
-  parseProp,
 } from '#imports'
 
 interface Props {

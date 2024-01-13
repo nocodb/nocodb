@@ -187,8 +187,16 @@ onMounted(async () => {
             >
               <div class="flex gap-3 items-center users-email-grid">
                 <GeneralUserIcon size="base" :email="collab.email" />
-                <span class="truncate">
-                  {{ collab.display_name || collab.email }}
+                <NcTooltip v-if="collab.display_name">
+                  <template #title>
+                    {{ collab.email }}
+                  </template>
+                  <span class="truncate">
+                    {{ collab.display_name }}
+                  </span>
+                </NcTooltip>
+                <span v-else class="truncate">
+                  {{ collab.email }}
                 </span>
               </div>
               <div class="user-access-grid">

@@ -66,7 +66,11 @@ const nestedScope = computed(() => {
   let parent = activeScope.value
   while (parent !== 'root') {
     const parentEl = formattedData.value.find((el) => el.id === parent)
-    rt.push({ id: parent, label: parentEl?.title, icon: parentEl?.icon })
+    rt.push({
+      id: parent,
+      label: parentEl?.title,
+      icon: parentEl?.section === 'Views' && parentEl?.is_default ? 'grid' : parentEl?.icon,
+    })
     parent = parentEl?.parent || 'root'
   }
   return rt.reverse()
@@ -147,7 +151,7 @@ const actionListGroupedBySection = computed(() => {
     if (el.section === 'hidden') return
     if (el.section) {
       if (!rt[el.section]) rt[el.section] = []
-      rt[el.section].push(el)
+      rt[el.section].push({ ...el, icon: el.section === 'Views' && el.is_default ? 'grid' : el.icon })
     } else {
       if (!rt.default) rt.default = []
       rt.default.push(el)
@@ -329,8 +333,8 @@ defineExpose({
                 '!text-pink-500': el.icon === 'gallery',
               }"
             />
-            <div v-else-if="el.icon" class="cmdk-action-icon min-w-4 max-w-4 flex items-center justify-center children:(w-4 h-4)">
-              <GeneralTableIcon :meta="{ meta: { icon: el.icon } }" class="text-gray-500" />
+            <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="el.icon" readonly />
             </div>
             <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
               <template #title>
@@ -389,18 +393,15 @@ defineExpose({
                         '!text-pink-500': act.icon === 'gallery',
                       }"
                     />
-                    <div
-                      v-else-if="act.icon"
-                      class="cmdk-action-icon min-w-4 max-w-4 flex items-center justify-center children:(w-4 h-4)"
-                    >
-                      <GeneralTableIcon :meta="{ meta: { icon: act.icon } }" class="text-gray-500" />
+                    <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                      <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
                     </div>
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
-                        {{ act.title }}
+                        {{ title === 'Views' && act.is_default ? $t('title.defaultView') : act.title }}
                       </template>
                       <span class="truncate capitalize mr-4">
-                        {{ act.title }}
+                        {{ title === 'Views' && act.is_default ? $t('title.defaultView') : act.title }}
                       </span>
                     </a-tooltip>
                     <div

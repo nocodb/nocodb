@@ -15,7 +15,7 @@ const weekDates = computed(() => {
   const startOfWeek = new Date(selectedDateRange.value.start)
   const endOfWeek = new Date(selectedDateRange.value.end)
   const datesArray = []
-  while (startOfWeek.getDate() <= endOfWeek.getDate()) {
+  while (startOfWeek.getTime() <= endOfWeek.getTime()) {
     datesArray.push(new Date(startOfWeek))
     startOfWeek.setDate(startOfWeek.getDate() + 1)
   }

@@ -9,6 +9,7 @@ export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
 export {
   default as UITypes,
+  UITypesName,
   numericUITypes,
   isNumericCol,
   isVirtualCol,

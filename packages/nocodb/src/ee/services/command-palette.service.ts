@@ -151,7 +151,7 @@ export class CommandPaletteService {
             id: `vw-${v.id}`,
             title: `${v.title}`,
             parent: `tbl-${v.fk_model_id}`,
-            icon: v?.table_meta?.icon || viewTypeAlias[v.type] || 'table',
+            icon: v?.meta?.icon || viewTypeAlias[v.type] || 'table',
             projectName: bases.find((el) => el.id === v.base_id)?.title,
             section: 'Views',
             is_default: v?.is_default || 0,

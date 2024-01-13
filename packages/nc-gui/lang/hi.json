@@ -157,6 +157,8 @@
     "groupingField": "Grouping Field",
     "insertAfter": "Insert After",
     "insertBefore": "Insert Before",
+    "insertAbove": "Insert above",
+    "insertBelow": "Insert below",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
     "sortDesc": "Sort Descending",
@@ -189,7 +191,8 @@
     "shift": "Shift",
     "enter": "Enter",
     "seconds": "Seconds",
-    "paste": "Paste"
+    "paste": "Paste",
+    "restore": "Restore"
   },
   "objects": {
     "workspace": "Workspace",
@@ -642,7 +645,16 @@
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",
     "newFormLoaded": "New form will be loaded after",
-    "webhook": "Webhook"
+    "webhook": "Webhook",
+    "multiField": {
+      "newField": "New field",
+      "saveChanges": "Save changes",
+      "updatedField": "Updated field",
+      "deletedField": "Deleted field",
+      "incompleteConfiguration": "Incomplete configuration",
+      "selectField": "Select a field",
+      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+    }
   },
   "activity": {
     "openInANewTab": "Open in a new tab",
@@ -1048,7 +1060,12 @@
         "barcodeFieldsCannotBeDirectlyChanged": "Warning: Barcode fields cannot be directly changed."
       },
       "duplicateProject": "Are you sure you want to duplicate the base?",
-      "duplicateTable": "Are you sure you want to duplicate the table?"
+      "duplicateTable": "Are you sure you want to duplicate the table?",
+      "multiField": {
+        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
+        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
+        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+      }
     },
     "info": {
       "disabledAsViewLocked": "Disabled as View is locked",
@@ -1211,7 +1228,8 @@
       "goToNext": "Go to next",
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
-      "editingSystemKeyNotSupported": "Editing system key not supported"
+      "editingSystemKeyNotSupported": "Editing system key not supported",
+      "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
       "nameRequired": "Name Required",
@@ -1289,7 +1307,9 @@
       "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
-      "pasteFromClipboardError": "Failed to paste from clipboard"
+      "pasteFromClipboardError": "Failed to paste from clipboard",
+      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
+      "somethingWentWrong": "Something went wrong"
     },
     "toast": {
       "exportMetadata": "परियोजना मेटाडेटा सफलतापूर्वक निर्यात की गई",

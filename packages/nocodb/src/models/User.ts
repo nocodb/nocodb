@@ -194,7 +194,7 @@ export default class User implements UserType {
     {
       limit,
       offset,
-      query,
+      query = '',
     }: {
       limit?: number | undefined;
       offset?: number | undefined;
@@ -229,25 +229,17 @@ export default class User implements UserType {
           .as('projectsCount'),
       );
     if (query) {
-      queryBuilder
-        .where(function () {
-          this.where('email', 'like', `%${query.toLowerCase?.()}%`).orWhere(
-            'display_name',
-            'like',
-            `%${query.toLowerCase?.()}%`,
-          );
-        })
-        .where(function () {
+      queryBuilder.where(function () {
+        this.where(function () {
+          this.whereNotNull('display_name')
+            .andWhereNot('display_name', '')
+            .andWhere('display_name', 'like', `%${query.toLowerCase()}%`);
+        }).orWhere(function () {
           this.where(function () {
-            this.whereNotNull('display_name')
-              .andWhereNot('display_name', '')
-              .andWhere('display_name', 'like', `%${query.toLowerCase?.()}%`);
-          }).orWhere(function () {
-            this.whereNull('display_name')
-              .orWhere('display_name', '')
-              .andWhere('email', 'like', `%${query.toLowerCase?.()}%`);
-          });
+            this.whereNull('display_name').orWhere('display_name', '');
+          }).andWhere('email', 'like', `%${query.toLowerCase()}%`);
         });
+      });
     }
 
     return queryBuilder;

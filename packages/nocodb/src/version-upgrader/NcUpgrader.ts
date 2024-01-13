@@ -35,7 +35,7 @@ export default class NcUpgrader {
     let oldVersion;
 
     try {
-      ctx.ncMeta = await ctx.ncMeta.startTransaction();
+      ctx.ncMeta = await ctx.ncMeta // .startTransaction();
 
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;
@@ -99,14 +99,14 @@ export default class NcUpgrader {
           await this.upgrade(ctx);
         }
       }
-      await ctx.ncMeta.commit();
+      // await ctx.ncMeta.commit();
       T.emit('evt', {
         evt_type: 'appMigration:upgraded',
         from: oldVersion,
         to: process.env.NC_VERSION,
       });
     } catch (e) {
-      await ctx.ncMeta.rollback(e);
+      // await ctx.ncMeta.rollback(e);
       T.emit('evt', {
         evt_type: 'appMigration:failed',
         from: oldVersion,

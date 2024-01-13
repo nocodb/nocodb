@@ -15,6 +15,7 @@ interface CmdAction {
   icon?: VNode | string
   keywords?: string[]
   section?: string
+  is_default?: number
 }
 
 const props = defineProps<{
@@ -328,6 +329,9 @@ defineExpose({
                 '!text-pink-500': el.icon === 'gallery',
               }"
             />
+            <div v-else-if="el.icon" class="cmdk-action-icon min-w-4 max-w-4 flex items-center justify-center children:(w-4 h-4)">
+              <GeneralTableIcon :meta="{ meta: { icon: el.icon } }" class="text-gray-500" />
+            </div>
             <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
               <template #title>
                 {{ el.label }}
@@ -385,7 +389,12 @@ defineExpose({
                         '!text-pink-500': act.icon === 'gallery',
                       }"
                     />
-                    <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
+                    <div
+                      v-else-if="act.icon"
+                      class="cmdk-action-icon min-w-4 max-w-4 flex items-center justify-center children:(w-4 h-4)"
+                    >
+                      <GeneralTableIcon :meta="{ meta: { icon: act.icon } }" class="text-gray-500" />
+                    </div>
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ act.title }}

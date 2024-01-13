@@ -154,7 +154,7 @@ export class CommandPaletteService {
             icon: v?.meta?.icon || viewTypeAlias[v.type] || 'table',
             projectName: bases.find((el) => el.id === v.base_id)?.title,
             section: 'Views',
-            is_default: v?.is_default || 0,
+            is_default: v?.is_default,
             handler: {
               type: 'navigate',
               payload: `/${data.workspace_id}/${v.base_id}/${

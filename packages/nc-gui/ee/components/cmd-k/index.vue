@@ -15,7 +15,7 @@ interface CmdAction {
   icon?: VNode | string
   keywords?: string[]
   section?: string
-  is_default?: number
+  is_default?: number | null
 }
 
 const props = defineProps<{

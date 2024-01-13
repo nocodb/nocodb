@@ -229,7 +229,25 @@ export default class User implements UserType {
           .as('projectsCount'),
       );
     if (query) {
-      queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
+      queryBuilder
+        .where(function () {
+          this.where('email', 'like', `%${query.toLowerCase?.()}%`).orWhere(
+            'display_name',
+            'like',
+            `%${query.toLowerCase?.()}%`,
+          );
+        })
+        .where(function () {
+          this.where(function () {
+            this.whereNotNull('display_name')
+              .andWhereNot('display_name', '')
+              .andWhere('display_name', 'like', `%${query.toLowerCase?.()}%`);
+          }).orWhere(function () {
+            this.whereNull('display_name')
+              .orWhere('display_name', '')
+              .andWhere('email', 'like', `%${query.toLowerCase?.()}%`);
+          });
+        });
     }
 
     return queryBuilder;

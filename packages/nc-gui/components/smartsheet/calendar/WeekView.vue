@@ -220,7 +220,7 @@ const calendarData = computed(() => {
         @click="selectedDate = date"
       ></div>
     </div>
-    <div class="absolute mt-9 inset-0">
+    <div class="absolute mt-9 pointer-events-none inset-0">
       <div
         v-for="(record, id) in calendarData"
         :key="id"
@@ -230,7 +230,7 @@ const calendarData = computed(() => {
           '': getRecordPosition(record) === 'rounded',
         }"
         :style="record.rowMeta.style"
-        class="absolute"
+        class="absolute pointer-events-auto"
         draggable="true"
         @dragover.prevent
       >

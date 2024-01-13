@@ -847,12 +847,12 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ) {
     const cacheKey = source_id
-      ? `${CacheScope.MODEL}:${base_id}:${source_id}:${aliasOrId}`
-      : `${CacheScope.MODEL}:${base_id}:${aliasOrId}`;
+      ? `${CacheScope.MODEL_ALIAS}:${base_id}:${source_id}:${aliasOrId}`
+      : `${CacheScope.MODEL_ALIAS}:${base_id}:${aliasOrId}`;
     const modelId =
       base_id &&
       aliasOrId &&
-      (await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT));
+      (await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING));
     if (!modelId) {
       const model = source_id
         ? await ncMeta.metaGet2(

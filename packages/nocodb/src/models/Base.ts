@@ -201,13 +201,14 @@ export default class Base implements BaseType {
     if (o) {
       // delete <scope>:<id>
       await NocoCache.del(`${CacheScope.PROJECT}:${baseId}`);
+      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${baseId}`);
       // delete <scope>:<title>
-      await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.title}`);
       // delete <scope>:<uuid>
-      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
+      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:ref:${o.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:ref:${o.id}`);
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -334,8 +335,8 @@ export default class Base implements BaseType {
     const baseId =
       uuid &&
       (await NocoCache.get(
-        `${CacheScope.PROJECT}:${uuid}`,
-        CacheGetType.TYPE_OBJECT,
+        `${CacheScope.PROJECT_ALIAS}:${uuid}`,
+        CacheGetType.TYPE_STRING,
       ));
     let baseData = null;
     if (!baseId) {
@@ -344,7 +345,10 @@ export default class Base implements BaseType {
       });
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
-        await NocoCache.set(`${CacheScope.PROJECT}:${uuid}`, baseData?.id);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${uuid}`,
+          baseData?.id,
+        );
       }
     } else {
       return this.get(baseId);
@@ -365,8 +369,8 @@ export default class Base implements BaseType {
     const baseId =
       title &&
       (await NocoCache.get(
-        `${CacheScope.PROJECT}:${title}`,
-        CacheGetType.TYPE_OBJECT,
+        `${CacheScope.PROJECT_ALIAS}:${title}`,
+        CacheGetType.TYPE_STRING,
       ));
     let baseData = null;
     if (!baseId) {
@@ -376,7 +380,10 @@ export default class Base implements BaseType {
       });
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
-        await NocoCache.set(`${CacheScope.PROJECT}:${title}`, baseData?.id);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${title}`,
+          baseData?.id,
+        );
       }
     } else {
       return this.get(baseId);
@@ -388,8 +395,8 @@ export default class Base implements BaseType {
     const baseId =
       titleOrId &&
       (await NocoCache.get(
-        `${CacheScope.PROJECT}:ref:${titleOrId}`,
-        CacheGetType.TYPE_OBJECT,
+        `${CacheScope.PROJECT_ALIAS}:ref:${titleOrId}`,
+        CacheGetType.TYPE_STRING,
       ));
     let baseData = null;
     if (!baseId) {
@@ -422,7 +429,7 @@ export default class Base implements BaseType {
         baseData.meta = parseMetaProp(baseData);
 
         await NocoCache.set(
-          `${CacheScope.PROJECT}:ref:${titleOrId}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${titleOrId}`,
           baseData?.id,
         );
       }

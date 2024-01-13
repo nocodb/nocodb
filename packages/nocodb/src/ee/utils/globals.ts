@@ -161,6 +161,9 @@ export enum CacheScope {
   WORKSPACE_UPDATED_MODELS = 'workspace_updated_models',
   DB_MUX = 'sqlExecutor',
   STORE = 'store',
+  PROJECT_ALIAS = 'baseAlias',
+  MODEL_ALIAS = 'modelAlias',
+  VIEW_ALIAS = 'viewAlias',
 }
 
 export enum DbMuxStatus {

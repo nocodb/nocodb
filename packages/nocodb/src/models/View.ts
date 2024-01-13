@@ -158,8 +158,8 @@ export default class View implements ViewType {
     const viewId =
       titleOrId &&
       (await NocoCache.get(
-        `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        CacheGetType.TYPE_OBJECT,
+        `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
+        CacheGetType.TYPE_STRING,
       ));
     if (!viewId) {
       const view = await ncMeta.metaGet2(
@@ -192,7 +192,7 @@ export default class View implements ViewType {
         view.meta = parseMetaProp(view);
         // todo: cache - titleOrId can be viewId so we need a different scope here
         await NocoCache.set(
-          `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
+          `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
           view.id,
         );
       }

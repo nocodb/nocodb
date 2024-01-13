@@ -1,6 +1,6 @@
 import { extractLimitAndOffset } from '.';
 import type { PaginatedType } from 'nocodb-sdk';
-import {NcError} from "~/helpers/catchError";
+import { NcError } from '~/helpers/catchError';
 
 export class PagedResponseImpl<T> {
   constructor(

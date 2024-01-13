@@ -49,14 +49,31 @@ const dates = computed(() => {
   return weeksArray
 })
 
-const recordsToDisplay = computed<Array<Row>>(() => {
+const recordsToDisplay = computed<{
+  records: Array<Row>
+  count: {
+    [key: string]:
+      | {
+          overflow: boolean
+          count: number
+          overflowCount: number
+        }
+      | undefined
+  }
+}>(() => {
   if (!dates.value || !calendarRange.value) return []
 
   const perWidth = gridContainerWidth.value / 7
   const perHeight = gridContainerHeight.value / dates.value.length
   const perRecordHeight = '40'
 
-  const recordsInDay: { [key: string]: number } = {}
+  const recordsInDay: {
+    [key: string]: {
+      overflow: boolean
+      count: number
+      overflowCount: number
+    }
+  } = {}
 
   if (!calendarRange.value) return []
   const recordsToDisplay: Array<Row> = []
@@ -66,7 +83,13 @@ const recordsToDisplay = computed<Array<Row>>(() => {
     formattedData.value.forEach((record: Row) => {
       if (!endCol && startCol) {
         const startDate = dayjs(record.row[startCol.title])
-        recordsInDay[startDate.format('YYYY-MM-DD')] = recordsInDay[startDate.format('YYYY-MM-DD')] + 1 || 1
+
+        const dateKey = startDate.format('YYYY-MM-DD')
+
+        if (!recordsInDay[dateKey]) {
+          recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0 }
+        }
+        recordsInDay[dateKey].count++
 
         const weekIndex = dates.value.findIndex((week) => {
           return (
@@ -85,14 +108,16 @@ const recordsToDisplay = computed<Array<Row>>(() => {
           width: `${perWidth}px`,
         }
 
-        const recordIndex = recordsInDay[startDate.format('YYYY-MM-DD')]
+        const recordIndex = recordsInDay[dateKey].count
 
-        const top = weekIndex * perHeight + 40 + (recordIndex - 1) * perRecordHeight
+        const top = weekIndex * perHeight + 42 + (recordIndex - 1) * perRecordHeight
 
-        const heightRequired = perRecordHeight * recordIndex + 40
+        const heightRequired = perRecordHeight * recordIndex + 42
 
         if (heightRequired > perHeight) {
           style.display = 'none'
+          recordsInDay[dateKey].overflow = true
+          recordsInDay[dateKey].overflowCount++
         } else {
           style.top = `${top}px`
         }
@@ -110,8 +135,10 @@ const recordsToDisplay = computed<Array<Row>>(() => {
       }
     })
   })
-  console.log(recordsInDay)
-  return recordsToDisplay
+  return {
+    records: recordsToDisplay,
+    count: recordsInDay,
+  }
 })
 
 const selectDate = (date: Date) => {
@@ -152,7 +179,7 @@ const isDateSelected = (date: Date) => {
             'border-brand-500 border-2': isDateSelected(day),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
-          class="text-right group py-1 text-sm h-full border-1 bg-white border-gray-200 font-semibold hover:bg-gray-50 text-gray-800"
+          class="text-right relative group py-1 text-sm h-full border-1 bg-white border-gray-200 font-semibold hover:bg-gray-50 text-gray-800"
           @click="selectDate(day)"
         >
           <div class="flex justify-between p-1">
@@ -177,12 +204,21 @@ const isDateSelected = (date: Date) => {
             </NcButton>
             <span class="px-1 py-2">{{ dayjs(day).format('DD') }}</span>
           </div>
+          <div
+            v-if="
+              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
+              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow
+            "
+            class="text-xs absolute bottom-2 text-center inset-x-0 text-gray-500"
+          >
+            + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more
+          </div>
         </div>
       </div>
     </div>
     <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5">
       <div
-        v-for="(record, recordIndex) in recordsToDisplay"
+        v-for="(record, recordIndex) in recordsToDisplay.records"
         :key="recordIndex"
         :style="record.rowMeta.style"
         class="absolute pointer-events-auto"

@@ -157,6 +157,8 @@
     "groupingField": "分组字段",
     "insertAfter": "在右侧插入列",
     "insertBefore": "在左侧插入列",
+    "insertAbove": "Insert above",
+    "insertBelow": "Insert below",
     "hideField": "隐藏字段",
     "sortAsc": "升序",
     "sortDesc": "降序",
@@ -189,7 +191,8 @@
     "shift": "Shift 键",
     "enter": "回车键",
     "seconds": "秒",
-    "paste": "粘贴"
+    "paste": "粘贴",
+    "restore": "Restore"
   },
   "objects": {
     "workspace": "工作区",
@@ -642,7 +645,16 @@
     "changeWsName": "更改工作区名称",
     "pressEnter": "按回车键",
     "newFormLoaded": "新表格将在",
-    "webhook": "网络钩子"
+    "webhook": "网络钩子",
+    "multiField": {
+      "newField": "New field",
+      "saveChanges": "Save changes",
+      "updatedField": "Updated field",
+      "deletedField": "Deleted field",
+      "incompleteConfiguration": "Incomplete configuration",
+      "selectField": "Select a field",
+      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+    }
   },
   "activity": {
     "openInANewTab": "在新标签页中打开",
@@ -1048,7 +1060,12 @@
         "barcodeFieldsCannotBeDirectlyChanged": "警告：条形码字段不能直接更改。"
       },
       "duplicateProject": "你确定要复制项目吗？",
-      "duplicateTable": "您确定要复制表格吗？"
+      "duplicateTable": "您确定要复制表格吗？",
+      "multiField": {
+        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
+        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
+        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+      }
     },
     "info": {
       "disabledAsViewLocked": "已禁用，因为视图已锁定",
@@ -1211,7 +1228,8 @@
       "goToNext": "转到下一个",
       "thankYou": "谢谢你！",
       "submittedFormData": "您已成功提交表单数据。",
-      "editingSystemKeyNotSupported": "不支持编辑系统密钥"
+      "editingSystemKeyNotSupported": "不支持编辑系统密钥",
+      "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
       "nameRequired": "您必须指定一个名字",
@@ -1289,7 +1307,9 @@
       "fieldRequired": "{value} 不能为空。",
       "projectNotAccessible": "无权访问此项目",
       "copyToClipboardError": "未能复制到剪贴板",
-      "pasteFromClipboardError": "从剪贴板粘贴失败"
+      "pasteFromClipboardError": "从剪贴板粘贴失败",
+      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
+      "somethingWentWrong": "Something went wrong"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

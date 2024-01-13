@@ -236,7 +236,7 @@ const openDeleteModal = (user: UserType) => {
           >
             <div class="text-3.5 text-start w-2/3 pl-5 flex items-center">
               <GeneralTruncateText length="29">
-                {{ el.email }}
+                {{ el.display_name || el.email }}
               </GeneralTruncateText>
             </div>
             <div class="text-3.5 text-start w-1/3">

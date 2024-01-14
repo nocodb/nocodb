@@ -47,27 +47,6 @@ export default class QrCodeColumn {
 
   id: string;
 
-  static async update(
-    id: string,
-    qrCode: Partial<QrCodeColumn>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const updateObj = extractProps(qrCode, [
-      'fk_column_id',
-      'fk_qr_value_column_id',
-    ]);
-    // get existing cache
-    const key = `${CacheScope.COL_QRCODE}:${id}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
-    // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.COL_QRCODE, updateObj, id);
-  }
-
   async getValueColumn() {
     return Column.get({
       colId: this.fk_qr_value_column_id,

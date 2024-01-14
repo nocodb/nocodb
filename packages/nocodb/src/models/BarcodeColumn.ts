@@ -27,6 +27,7 @@ export default class BarcodeColumn {
 
     return this.read(barcodeColumn.fk_column_id, ncMeta);
   }
+
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {
     let column =
       columnId &&
@@ -45,28 +46,6 @@ export default class BarcodeColumn {
     }
 
     return column ? new BarcodeColumn(column) : null;
-  }
-
-  static async update(
-    id: string,
-    barcode: Partial<BarcodeColumn>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const updateObj = extractProps(barcode, [
-      'fk_column_id',
-      'fk_barcode_value_column_id',
-      'barcode_format',
-    ]);
-    // get existing cache
-    const key = `${CacheScope.COL_BARCODE}:${id}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
-    // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.COL_BARCODE, updateObj, id);
   }
 
   async getValueColumn() {

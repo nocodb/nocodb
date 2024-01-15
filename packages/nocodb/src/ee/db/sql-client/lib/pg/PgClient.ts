@@ -493,28 +493,13 @@ class PGClient extends PGClientCE {
       f.attnotnull as rqd,
       p.contype as cst,
       p.conname as cstn,
+      ix.indisprimary as primarykey,
+      not ix.indisunique as non_unique_original,
+      not ix.indisunique as non_unique,
       CASE
           WHEN i.oid<>0 THEN true
           ELSE false
       END AS is_index,
-      CASE
-          WHEN p.contype = 'p' THEN true
-          ELSE false
-      END AS primarykey,
-      CASE
-          WHEN p.contype = 'u' THEN 0
-      WHEN p.contype = 'p' THEN 0
-          ELSE 1
-      END AS non_unique_original,
-      CASE
-          WHEN p.contype = 'p' THEN true
-          ELSE false
-      END AS primarykey,
-      CASE
-          WHEN p.contype = 'u' THEN 0
-      WHEN p.contype = 'p' THEN 0
-          ELSE 1
-      END AS non_unique,
       CASE
           WHEN f.atthasdef = 't' THEN pg_get_expr(d.adbin, d.adrelid)
       END AS default  FROM pg_attribute f

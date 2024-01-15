@@ -14,13 +14,13 @@ const props = withDefaults(
 
 const size = computed(() => props.size || 'medium')
 
-const displayName = computed(() => props.name ?? '')
+const displayName = computed(() => props.name?.trim() ?? '')
 
 const email = computed(() => props?.email ?? '')
 
 const backgroundColor = computed(() => {
   // in comments we need to generate user icon from email
-  return displayName.value ? stringToColor(displayName.value.trim()) : email.value ? stringToColor(email.value) : '#FFFFFF'
+  return displayName.value ? stringToColor(displayName.value) : email.value ? stringToColor(email.value) : '#FFFFFF'
 })
 
 const usernameInitials = computed(() => {
@@ -42,7 +42,7 @@ const usernameInitials = computed(() => {
   <div
     class="flex nc-user-avatar font-bold"
     :class="{
-      'min-h-full aspect-square': size === 'auto',
+      'h-full min-h-5 aspect-square': size === 'auto',
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',
       'w-8 h-8 !text-md': size === 'base',

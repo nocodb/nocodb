@@ -163,8 +163,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             toDate = dayjs(selectedDateRange.value.end).endOf('day')
             break
           case 'month':
-            fromDate = dayjs(selectedDate.value).startOf('month')
-            toDate = dayjs(selectedDate.value).endOf('month')
+            fromDate = dayjs(selectedMonth.value).startOf('month')
+            toDate = dayjs(selectedMonth.value).endOf('month')
 
             break
           case 'year':
@@ -201,88 +201,45 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                     logical_op: 'or',
                     children: [
                       {
-                        fk_column_id: fromCol.id,
-                        comparison_op: 'btw',
-                        comparison_sub_op: 'exactDate',
-                        value: `${fromDate},${toDate}`,
+                        is_group: true,
+                        logical_op: 'and',
+                        children: [
+                          {
+                            fk_column_id: fromCol.id,
+                            comparison_op: 'lte',
+                            comparison_sub_op: 'exactDate',
+                            value: toDate,
+                          },
+                          {
+                            fk_column_id: toCol.id,
+                            comparison_op: 'gte',
+                            comparison_sub_op: 'exactDate',
+                            value: fromDate,
+                          },
+                        ],
                       },
                       {
-                        fk_column_id: toCol.id,
-                        comparison_op: 'btw',
-                        comparison_sub_op: 'exactDate',
-                        value: `${fromDate},${toDate}`,
+                        // Exact match check
+                        is_group: true,
+                        logical_op: 'or',
+                        children: [
+                          {
+                            fk_column_id: fromCol.id,
+                            comparison_op: 'eq',
+                            logical_op: 'or',
+                            comparison_sub_op: 'exactDate',
+                            value: fromDate,
+                          },
+                          {
+                            fk_column_id: toCol.id,
+                            comparison_op: 'eq',
+                            logical_op: 'or',
+                            comparison_sub_op: 'exactDate',
+                            value: toDate,
+                          },
+                        ],
                       },
                     ],
-                  },
-                  {
-                    is_group: true,
-                    logical_op: 'or',
-                    children: [
-                      {
-                        fk_column_id: fromCol.id,
-                        comparison_op: 'lte',
-                        comparison_sub_op: 'exactDate',
-                        value: fromDate,
-                      },
-                      {
-                        fk_column_id: toCol.id,
-                        comparison_op: 'gte',
-                        comparison_sub_op: 'exactDate',
-                        value: toDate,
-                      },
-                    ],
-                  },
-                  {
-                    is_group: true,
-                    logical_op: 'or',
-                    children: [
-                      {
-                        fk_column_id: fromCol.id,
-                        comparison_op: 'gte',
-                        comparison_sub_op: 'exactDate',
-                        value: fromDate,
-                      },
-                      {
-                        fk_column_id: toCol.id,
-                        comparison_op: 'lte',
-                        comparison_sub_op: 'exactDate',
-                        value: toDate,
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                is_group: true,
-                logical_op: 'or',
-                children: [
-                  {
-                    fk_column_id: fromCol.id,
-                    comparison_op: 'eq',
-                    logical_op: 'or',
-                    comparison_sub_op: 'exactDate',
-                    value: fromDate,
-                  },
-                  {
-                    fk_column_id: toCol.id,
-                    comparison_op: 'eq',
-                    logical_op: 'or',
-                    comparison_sub_op: 'exactDate',
-                    value: toDate,
-                  },
-                  {
-                    fk_column_id: toCol.id,
-                    comparison_op: 'eq',
-                    logical_op: 'or',
-                    comparison_sub_op: 'exactDate',
-                    value: fromDate,
-                  },
-                  {
-                    fk_column_id: fromCol.id,
-                    comparison_op: 'eq',
-                    logical_op: 'or',
-                    comparison_sub_op: 'exactDate',
-                    value: toDate,
                   },
                 ],
               },
@@ -374,8 +331,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fromDate = dayjs(selectedDate.value).startOf('day')
         toDate = dayjs(selectedDate.value).endOf('day')
       } else if (activeCalendarView.value === 'month') {
-        fromDate = dayjs(selectedDate.value).startOf('month')
-        toDate = dayjs(selectedDate.value).endOf('month')
+        fromDate = dayjs(selectedMonth.value).startOf('month')
+        toDate = dayjs(selectedMonth.value).endOf('month')
       } else if (activeCalendarView.value === 'year') {
         fromDate = dayjs(selectedDate.value).startOf('year')
         toDate = dayjs(selectedDate.value).endOf('year')
@@ -404,88 +361,46 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   logical_op: 'or',
                   children: [
                     {
-                      fk_column_id: fromCol.id,
-                      comparison_op: 'btw',
-                      comparison_sub_op: 'exactDate',
-                      value: `${fromDate},${toDate}`,
+                      // Check for overlap or within range
+                      is_group: true,
+                      logical_op: 'and',
+                      children: [
+                        {
+                          fk_column_id: fromCol.id,
+                          comparison_op: 'lte',
+                          comparison_sub_op: 'exactDate',
+                          value: toDate,
+                        },
+                        {
+                          fk_column_id: toCol.id,
+                          comparison_op: 'gte',
+                          comparison_sub_op: 'exactDate',
+                          value: fromDate,
+                        },
+                      ],
                     },
                     {
-                      fk_column_id: toCol.id,
-                      comparison_op: 'btw',
-                      comparison_sub_op: 'exactDate',
-                      value: `${fromDate},${toDate}`,
+                      // Exact match check
+                      is_group: true,
+                      logical_op: 'or',
+                      children: [
+                        {
+                          fk_column_id: fromCol.id,
+                          comparison_op: 'eq',
+                          logical_op: 'or',
+                          comparison_sub_op: 'exactDate',
+                          value: fromDate,
+                        },
+                        {
+                          fk_column_id: toCol.id,
+                          comparison_op: 'eq',
+                          logical_op: 'or',
+                          comparison_sub_op: 'exactDate',
+                          value: toDate,
+                        },
+                      ],
                     },
                   ],
-                },
-                {
-                  is_group: true,
-                  logical_op: 'or',
-                  children: [
-                    {
-                      fk_column_id: fromCol.id,
-                      comparison_op: 'lte',
-                      comparison_sub_op: 'exactDate',
-                      value: fromDate,
-                    },
-                    {
-                      fk_column_id: toCol.id,
-                      comparison_op: 'gte',
-                      comparison_sub_op: 'exactDate',
-                      value: toDate,
-                    },
-                  ],
-                },
-                {
-                  is_group: true,
-                  logical_op: 'or',
-                  children: [
-                    {
-                      fk_column_id: fromCol.id,
-                      comparison_op: 'gte',
-                      comparison_sub_op: 'exactDate',
-                      value: fromDate,
-                    },
-                    {
-                      fk_column_id: toCol.id,
-                      comparison_op: 'lte',
-                      comparison_sub_op: 'exactDate',
-                      value: toDate,
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              is_group: true,
-              logical_op: 'or',
-              children: [
-                {
-                  fk_column_id: fromCol.id,
-                  comparison_op: 'eq',
-                  logical_op: 'or',
-                  comparison_sub_op: 'exactDate',
-                  value: fromDate,
-                },
-                {
-                  fk_column_id: toCol.id,
-                  comparison_op: 'eq',
-                  logical_op: 'or',
-                  comparison_sub_op: 'exactDate',
-                  value: toDate,
-                },
-                {
-                  fk_column_id: toCol.id,
-                  comparison_op: 'eq',
-                  logical_op: 'or',
-                  comparison_sub_op: 'exactDate',
-                  value: fromDate,
-                },
-                {
-                  fk_column_id: fromCol.id,
-                  comparison_op: 'eq',
-                  logical_op: 'or',
-                  comparison_sub_op: 'exactDate',
-                  value: toDate,
                 },
               ],
             },

@@ -88,7 +88,7 @@ const displayValue = computed(() => {
 
 <template>
   <a-card
-    class="!border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
+    class="nc-list-item !border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
     :class="{
       '!bg-white': isLoading,
       '!border-1': isLinked && !isLoading,
@@ -192,5 +192,15 @@ const displayValue = computed(() => {
 <style lang="scss" scoped>
 :deep(.slick-list) {
   @apply rounded-lg;
+}
+</style>
+
+<style lang="scss">
+.nc-list-item {
+  &:hover {
+    .nc-text-area-expand-btn {
+      @apply !hidden;
+    }
+  }
 }
 </style>

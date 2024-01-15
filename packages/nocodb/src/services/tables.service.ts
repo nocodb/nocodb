@@ -172,6 +172,12 @@ export class TablesService {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
+    if (table.mm) {
+      NcError.badRequest(
+        'Table is a many to many table. Delete the relation instead.',
+      );
+    }
+
     const base = await Base.getWithInfo(table.base_id);
     const source = base.sources.find((b) => b.id === table.source_id);
 

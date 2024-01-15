@@ -892,6 +892,17 @@ async function _formulaQueryBuilder(
         if (pt.left.callee?.name !== pt.right.callee?.name) {
           // if left/right is BLANK, accept both NULL and empty string
           for (const operand of ['left', 'right']) {
+            if (pt[operand].type === FormulaDataTypes.BOOLEAN) {
+              pt[operand] = {
+                type: 'CallExpression',
+                arguments: [pt[operand]],
+                callee: {
+                  type: 'Identifier',
+                  name: 'BOOLEAN',
+                },
+              };
+            }
+
             if (
               pt[operand].type === 'CallExpression' &&
               pt[operand].callee.name === 'BLANK'

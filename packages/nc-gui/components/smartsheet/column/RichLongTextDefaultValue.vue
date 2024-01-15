@@ -18,7 +18,9 @@ const cdfValue = computed({
   <div>
     <div class="!my-3 text-xs">{{ $t('placeholder.defaultValue') }}</div>
     <div class="flex flex-row gap-2">
-      <div class="border-1 relative pt-11 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1">
+      <div
+        class="border-1 relative pt-11 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1 focus-within:border-brand-500"
+      >
         <LazyCellRichText v-model:value="cdfValue" class="border-t-1 border-gray-100 !max-h-80 !min-h-30" show-menu />
       </div>
     </div>

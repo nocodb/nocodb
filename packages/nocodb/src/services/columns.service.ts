@@ -2057,6 +2057,7 @@ export class ColumnsService {
       req?: any;
       columnId: string;
       user: UserType;
+      forceDeleteSystem?: boolean;
       reuse?: ReusableParams;
     },
     ncMeta = this.metaService,
@@ -2065,7 +2066,7 @@ export class ColumnsService {
 
     const column = await Column.get({ colId: param.columnId }, ncMeta);
 
-    if (column.system) {
+    if (column.system && !param.forceDeleteSystem) {
       NcError.badRequest(
         `The column '${
           column.title || column.column_name
@@ -2422,7 +2423,7 @@ export class ColumnsService {
             ...index,
             tn: cTable.table_name,
             columns: [childColumn.column_name],
-            indexName: index.index_name,
+            indexName: index.key_name,
           });
         }
       }

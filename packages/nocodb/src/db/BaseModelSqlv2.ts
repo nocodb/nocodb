@@ -20,6 +20,7 @@ import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from '@nestjs/common';
 import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
@@ -74,6 +75,8 @@ import { getAliasGenerator } from '~/utils';
 dayjs.extend(utc);
 
 dayjs.extend(timezone);
+
+const logger = new Logger('BaseModelSqlv2');
 
 const GROUP_COL = '__nc_group_id';
 
@@ -220,7 +223,7 @@ class BaseModelSqlv2 {
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
-      console.log(e);
+      logger.log(e);
       return this.readByPk(id, true);
     }
 
@@ -295,7 +298,7 @@ class BaseModelSqlv2 {
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
-      console.log(e);
+      logger.log(e);
       return this.findOne(args, true);
     }
 
@@ -430,7 +433,7 @@ class BaseModelSqlv2 {
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
         throw e;
-      console.log(e);
+      logger.log(e);
       return this.list(args, {
         ignoreViewFilterAndSort,
         ignorePagination,
@@ -654,7 +657,7 @@ class BaseModelSqlv2 {
                   sanitize(column.id),
                 ]);
               } catch (e) {
-                console.log(e);
+                logger.log(e);
                 // return dummy select
                 selectQb = this.dbDriver.raw(`'ERR' as ??`, [
                   sanitize(column.id),
@@ -874,7 +877,7 @@ class BaseModelSqlv2 {
                   sanitize(column.id),
                 ]);
               } catch (e) {
-                console.log(e);
+                logger.log(e);
                 // return dummy select
                 selectQb = this.dbDriver.raw(`'ERR' as ??`, [
                   sanitize(column.id),
@@ -1046,8 +1049,7 @@ class BaseModelSqlv2 {
         GROUP_COL,
       );
     } catch (e) {
-      console.log(e);
-      throw e;
+      logger.error(e);
     }
   }
 
@@ -1114,7 +1116,6 @@ class BaseModelSqlv2 {
 
       return children.map(({ count }) => count);
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -1178,7 +1179,6 @@ class BaseModelSqlv2 {
         return c;
       });
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -1219,7 +1219,6 @@ class BaseModelSqlv2 {
       return (await this.execAndParse(query, null, { raw: true, first: true }))
         ?.count;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -2319,7 +2318,7 @@ class BaseModelSqlv2 {
                 ]),
               );
             } catch (e) {
-              console.log(e);
+              logger.log(e);
               // return dummy select
               qb.select(
                 this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.id)]),
@@ -2496,7 +2495,6 @@ class BaseModelSqlv2 {
       await this.afterInsert(response, trx, cookie);
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
-      console.log(e);
       await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
@@ -2579,7 +2577,6 @@ class BaseModelSqlv2 {
       await this.afterDelete(data, trx, cookie);
       return response;
     } catch (e) {
-      console.log(e);
       if (!_trx) await trx.rollback();
       await this.errorDelete(e, id, trx, cookie);
       throw e;
@@ -2681,7 +2678,6 @@ class BaseModelSqlv2 {
       await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       return newData;
     } catch (e) {
-      console.log(e);
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
@@ -2869,7 +2865,6 @@ class BaseModelSqlv2 {
 
       return response;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -3540,7 +3535,6 @@ class BaseModelSqlv2 {
       return res;
     } catch (e) {
       if (transaction) await transaction.rollback();
-      console.log(e);
       throw e;
     }
   }
@@ -4474,7 +4468,6 @@ class BaseModelSqlv2 {
 
       return r;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -5719,7 +5712,6 @@ class BaseModelSqlv2 {
       }
       return parent;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }
@@ -5767,156 +5759,163 @@ class BaseModelSqlv2 {
   }
 
   async prepareNocoData(data, isInsertData = false, cookie?: { user?: any }) {
-    if (
-      this.model.columns.some((c) =>
-        [
+    for (const column of this.model.columns) {
+      if (
+        ![
           UITypes.Attachment,
           UITypes.User,
           UITypes.CreatedTime,
           UITypes.LastModifiedTime,
           UITypes.CreatedBy,
           UITypes.LastModifiedBy,
-        ].includes(c.uidt),
+        ].includes(column.uidt)
       )
-    ) {
-      for (const column of this.model.columns) {
-        if (column.system) {
-          if (isInsertData) {
-            if (column.uidt === UITypes.CreatedTime) {
-              data[column.column_name] = Noco.ncMeta.now();
-            } else if (column.uidt === UITypes.CreatedBy) {
-              data[column.column_name] = cookie?.user?.id;
-            }
-          }
-          if (column.uidt === UITypes.LastModifiedTime) {
-            data[column.column_name] = isInsertData ? null : Noco.ncMeta.now();
-          } else if (column.uidt === UITypes.LastModifiedBy) {
-            data[column.column_name] = isInsertData ? null : cookie?.user?.id;
+        continue;
+
+      if (column.system) {
+        if (isInsertData) {
+          if (column.uidt === UITypes.CreatedTime) {
+            data[column.column_name] = Noco.ncMeta.now();
+          } else if (column.uidt === UITypes.CreatedBy) {
+            data[column.column_name] = cookie?.user?.id;
           }
         }
-        if (column.uidt === UITypes.Attachment) {
-          if (data[column.column_name]) {
-            if (Array.isArray(data[column.column_name])) {
-              for (let attachment of data[column.column_name]) {
-                attachment = extractProps(attachment, [
-                  'url',
-                  'path',
-                  'title',
-                  'mimetype',
-                  'size',
-                  'icon',
-                ]);
-              }
+        if (column.uidt === UITypes.LastModifiedTime) {
+          data[column.column_name] = isInsertData ? null : Noco.ncMeta.now();
+        } else if (column.uidt === UITypes.LastModifiedBy) {
+          data[column.column_name] = isInsertData ? null : cookie?.user?.id;
+        }
+      }
+      if (column.uidt === UITypes.Attachment) {
+        if (data[column.column_name]) {
+          if (Array.isArray(data[column.column_name])) {
+            for (let attachment of data[column.column_name]) {
+              attachment = extractProps(attachment, [
+                'url',
+                'path',
+                'title',
+                'mimetype',
+                'size',
+                'icon',
+              ]);
             }
           }
-        } else if (
-          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-            column.uidt,
-          )
-        ) {
-          if (data[column.column_name]) {
-            const userIds = [];
+        }
+      } else if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          column.uidt,
+        )
+      ) {
+        if (data[column.column_name]) {
+          const userIds = [];
 
-            if (typeof data[column.column_name] === 'string') {
+          if (
+            typeof data[column.column_name] === 'string' &&
+            /^\s*[{[]$/.test(data[column.column_name])
+          ) {
+            try {
+              data[column.column_name] = JSON.parse(data[column.column_name]);
+            } catch (e) {}
+          }
+
+          const baseUsers = await BaseUser.getUsersList({
+            base_id: this.model.base_id,
+            include_ws_deleted: false,
+          });
+
+          if (typeof data[column.column_name] === 'object') {
+            const users: { id?: string; email?: string }[] = Array.isArray(
+              data[column.column_name],
+            )
+              ? data[column.column_name]
+              : [data[column.column_name]];
+            for (const userObj of users) {
+              const user = extractProps(userObj, ['id', 'email']);
               try {
-                data[column.column_name] = JSON.parse(data[column.column_name]);
-              } catch (e) {}
-            }
-
-            const baseUsers = await BaseUser.getUsersList({
-              base_id: this.model.base_id,
-              include_ws_deleted: false,
-            });
-
-            if (typeof data[column.column_name] === 'string') {
-              const users = data[column.column_name]
-                .split(',')
-                .map((u) => u.trim());
-              for (const user of users) {
-                try {
-                  if (user.length === 0) continue;
-                  if (user.includes('@')) {
-                    const u = baseUsers.find((u) => u.email === user);
-                    if (!u) {
-                      NcError.unprocessableEntity(
-                        `User with email '${user}' is not part of this workspace`,
-                      );
-                    }
-                    userIds.push(u.id);
-                  } else {
-                    const u = baseUsers.find((u) => u.id === user);
-                    if (!u) {
-                      NcError.unprocessableEntity(
-                        `User with id '${user}' is not part of this workspace`,
-                      );
-                    }
-                    userIds.push(u.id);
+                if ('id' in user) {
+                  const u = baseUsers.find((u) => u.id === user.id);
+                  if (!u) {
+                    NcError.unprocessableEntity(
+                      `User with id '${user.id}' is not part of this workspace`,
+                    );
                   }
-                } catch (e) {
-                  NcError.unprocessableEntity(e.message);
-                }
-              }
-            } else {
-              const users: { id?: string; email?: string }[] = Array.isArray(
-                data[column.column_name],
-              )
-                ? data[column.column_name]
-                : [data[column.column_name]];
-              for (const userObj of users) {
-                const user = extractProps(userObj, ['id', 'email']);
-                try {
-                  if ('id' in user) {
-                    const u = baseUsers.find((u) => u.id === user.id);
-                    if (!u) {
-                      NcError.unprocessableEntity(
-                        `User with id '${user.id}' is not part of this workspace`,
-                      );
-                    }
-                    userIds.push(u.id);
-                  } else if ('email' in user) {
-                    // skip null input
-                    if (!user.email) continue;
-                    // trim extra spaces
-                    user.email = user.email.trim();
-                    // skip empty input
-                    if (user.email.length === 0) continue;
-                    const u = baseUsers.find((u) => u.email === user.email);
-                    if (!u) {
-                      NcError.unprocessableEntity(
-                        `User with email '${user.email}' is not part of this workspace`,
-                      );
-                    }
-                    userIds.push(u.id);
-                  } else {
-                    NcError.unprocessableEntity('Invalid user object');
+                  userIds.push(u.id);
+                } else if ('email' in user) {
+                  // skip null input
+                  if (!user.email) continue;
+                  // trim extra spaces
+                  user.email = user.email.trim();
+                  // skip empty input
+                  if (user.email.length === 0) continue;
+                  const u = baseUsers.find((u) => u.email === user.email);
+                  if (!u) {
+                    NcError.unprocessableEntity(
+                      `User with email '${user.email}' is not part of this workspace`,
+                    );
                   }
-                } catch (e) {
-                  NcError.unprocessableEntity(e.message);
-                }
-              }
-            }
-
-            if (userIds.length === 0) {
-              data[column.column_name] = null;
-            } else {
-              const userSet = new Set(userIds);
-
-              if (userSet.size !== userIds.length) {
-                NcError.unprocessableEntity(
-                  'Duplicate users not allowed for user field',
-                );
-              }
-
-              if (column.meta?.is_multi) {
-                data[column.column_name] = userIds.join(',');
-              } else {
-                if (userIds.length > 1) {
-                  NcError.unprocessableEntity(
-                    `Multiple users not allowed for '${column.title}'`,
-                  );
+                  userIds.push(u.id);
                 } else {
-                  data[column.column_name] = userIds[0];
+                  NcError.unprocessableEntity('Invalid user object');
                 }
+              } catch (e) {
+                NcError.unprocessableEntity(e.message);
+              }
+            }
+          } else if (typeof data[column.column_name] === 'string') {
+            const users = data[column.column_name]
+              .split(',')
+              .map((u) => u.trim());
+            for (const user of users) {
+              try {
+                if (user.length === 0) continue;
+                if (user.includes('@')) {
+                  const u = baseUsers.find((u) => u.email === user);
+                  if (!u) {
+                    NcError.unprocessableEntity(
+                      `User with email '${user}' is not part of this workspace`,
+                    );
+                  }
+                  userIds.push(u.id);
+                } else {
+                  const u = baseUsers.find((u) => u.id === user);
+                  if (!u) {
+                    NcError.unprocessableEntity(
+                      `User with id '${user}' is not part of this workspace`,
+                    );
+                  }
+                  userIds.push(u.id);
+                }
+              } catch (e) {
+                NcError.unprocessableEntity(e.message);
+              }
+            }
+          } else {
+            logger.error(
+              `${data[column.column_name]} is not a valid user input`,
+            );
+            NcError.unprocessableEntity('Invalid user object');
+          }
+
+          if (userIds.length === 0) {
+            data[column.column_name] = null;
+          } else {
+            const userSet = new Set(userIds);
+
+            if (userSet.size !== userIds.length) {
+              NcError.unprocessableEntity(
+                'Duplicate users not allowed for user field',
+              );
+            }
+
+            if (column.meta?.is_multi) {
+              data[column.column_name] = userIds.join(',');
+            } else {
+              if (userIds.length > 1) {
+                NcError.unprocessableEntity(
+                  `Multiple users not allowed for '${column.title}'`,
+                );
+              } else {
+                data[column.column_name] = userIds[0];
               }
             }
           }

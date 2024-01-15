@@ -94,9 +94,10 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
 // To add new calendar range
 const addCalendarRange = async () => {
   _calendar_ranges.value.push({
-    fk_from_column_id: dateFieldOptions.value[0],
+    fk_from_column_id: dateFieldOptions.value[0].value,
     fk_to_column_id: null,
   })
+  await saveCalendarRanges()
 }
 
 const removeRange = async (id: number) => {

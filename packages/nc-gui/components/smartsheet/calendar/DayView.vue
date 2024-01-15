@@ -228,7 +228,10 @@ const dropEvent = (event: DragEvent) => {
       </div>
     </div>
   </template>
-  <div v-else-if="!recordsAcrossAllRange" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">
+  <div
+    v-else-if="!recordsAcrossAllRange.length"
+    class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
+  >
     No Records in this day
   </div>
 </template>

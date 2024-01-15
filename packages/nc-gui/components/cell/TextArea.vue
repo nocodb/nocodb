@@ -86,7 +86,7 @@ onClickOutside(inputWrapperRef, (e) => {
 })
 
 const onTextClick = () => {
-  if (!props.virtual) return
+  if (!props.virtual || readOnly?.value) return
 
   isVisible.value = true
   editEnabled.value = true
@@ -223,6 +223,7 @@ watch(editEnabled, () => {
         :style="{
           'word-break': 'break-word',
           'white-space': 'pre-line',
+          'max-height': `${25 * (rowHeight || 1)}px`,
         }"
         @click="onTextClick"
       />

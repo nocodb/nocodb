@@ -202,7 +202,7 @@ export class TablesService {
       // delete all relations
       for (const c of relationColumns) {
         // skip if column is hasmany relation to mm table
-        if (c.system) {
+        if (c.system && !table.mm) {
           continue;
         }
 
@@ -216,6 +216,7 @@ export class TablesService {
             req: param.req,
             columnId: c.id,
             user: param.user,
+            forceDeleteSystem: true,
           },
           ncMeta,
         );

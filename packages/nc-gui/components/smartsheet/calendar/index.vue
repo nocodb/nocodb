@@ -57,6 +57,8 @@ const {
 
 const showSideMenu = ref(true)
 
+const calendarRangeDropdown = ref(false)
+
 const router = useRouter()
 const route = useRoute()
 
@@ -152,7 +154,7 @@ const headerText = computed(() => {
             </NcButton>
           </NcTooltip>
 
-          <NcDropdown :auto-close="false">
+          <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
             <NcButton size="small" type="secondary">
               <div class="flex gap-2 items-center">
                 <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
@@ -161,7 +163,7 @@ const headerText = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <div class="min-w-[22.1rem]">
+              <div v-if="calendarRangeDropdown" class="min-w-[22.1rem]" @click.stop>
                 <NcDateWeekSelector
                   v-if="activeCalendarView === ('day' as const)"
                   v-model:active-dates="activeDates"

@@ -225,6 +225,13 @@ async function onSubmit() {
   }
 }
 
+const addCalendarRange = async () => {
+  form.calendarRange.push({
+    fk_from_column_id: viewSelectFieldOptions.value[0],
+    fk_to_column_id: null,
+  })
+}
+
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
@@ -424,7 +431,7 @@ onMounted(async () => {
           />
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
-          <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full items-center gap-2">
+          <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full mb-2 items-center gap-2">
             <span>
               {{ $t('labels.organiseBy') }}
             </span>
@@ -474,7 +481,23 @@ onMounted(async () => {
                 </NcButton>
               </div>
             </template>
+            <NcButton
+              v-if="index !== 0"
+              size="small"
+              type="secondary"
+              @click="
+                () => {
+                  form.calendarRange = form.calendarRange.filter((_, i) => i !== index)
+                }
+              "
+            >
+              <component :is="iconMap.close" />
+            </NcButton>
           </div>
+          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+            <component :is="iconMap.plus" />
+            Add another date field
+          </NcButton>
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">

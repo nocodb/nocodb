@@ -79,14 +79,6 @@ const saveCalendarRanges = async () => {
   }
 }
 
-// To add new calendar range
-const addCalendarRange = async () => {
-  _calendar_ranges.value.push({
-    fk_from_column_id: '',
-    fk_to_column_id: undefined,
-  })
-}
-
 const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
     meta.value?.columns
@@ -98,6 +90,20 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
       })) ?? []
   )
 })
+
+// To add new calendar range
+const addCalendarRange = async () => {
+  _calendar_ranges.value.push({
+    fk_from_column_id: dateFieldOptions.value[0],
+    fk_to_column_id: null,
+  })
+}
+
+const removeRange = async (id: number) => {
+  _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
+
+  await saveCalendarRanges()
+}
 </script>
 
 <template>
@@ -113,8 +119,8 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
       </a-button>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="flex flex-col w-full p-6 w-[35rem]" @click.stop>
-        <div v-for="(range, id) in _calendar_ranges" :key="id" class="flex w-full gap-2 items-center">
+      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[35rem]" @click.stop>
+        <div v-for="(range, id) in _calendar_ranges" :key="id" class="flex w-full gap-2 mb-2 items-center">
           <span>
             {{ $t('labels.organiseBy') }}
           </span>
@@ -184,7 +190,14 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
               </NcButton>
             </div>
           </template>
+          <NcButton v-if="id !== 0" size="small" type="secondary" @click="removeRange(id)">
+            <component :is="iconMap.close" />
+          </NcButton>
         </div>
+        <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+          <component :is="iconMap.plus" />
+          Add another date field
+        </NcButton>
       </div>
     </template>
   </NcDropdown>

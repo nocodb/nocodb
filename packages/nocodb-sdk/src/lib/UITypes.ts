@@ -116,6 +116,14 @@ export function isCreatedOrLastModifiedByCol(
   );
 }
 
+export function isMMSystemCol(
+  col: (ColumnReqType | ColumnType) & { system?: number | boolean }
+) {
+  return (
+    col.system && [UITypes.LinkToAnotherRecord].includes(<UITypes>col.uidt)
+  );
+}
+
 export function isLinksOrLTAR(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
 ) {

@@ -20,7 +20,7 @@ const email = computed(() => props?.email ?? '')
 
 const backgroundColor = computed(() => {
   // in comments we need to generate user icon from email
-  return displayName.value ? stringToColor(displayName.value) : email.value ? stringToColor(email.value) : '#FFFFFF'
+  return displayName.value ? stringToColor(displayName.value.trim()) : email.value ? stringToColor(email.value) : '#FFFFFF'
 })
 
 const usernameInitials = computed(() => {

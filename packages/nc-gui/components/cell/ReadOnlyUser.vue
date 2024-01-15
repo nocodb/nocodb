@@ -15,7 +15,7 @@ provide(ActiveCellInj, ref(true))
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative w-full">
     <LazyCellUser class="z-0" :model-value="modelValue" />
     <div class="w-full h-full z-1 absolute top-0 left-0"></div>
   </div>

@@ -5,7 +5,7 @@ import type { Row } from '#imports'
 
 const emit = defineEmits(['new-record', 'expand-record'])
 
-const { selectedDate, formattedData, displayField, calendarRange, calDataType } = useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, formattedData, displayField, calendarRange, calDataType } = useCalendarViewStoreOrThrow()
 
 const isMondayFirst = ref(true)
 
@@ -22,12 +22,12 @@ const calendarGridContainer = ref()
 const { width: gridContainerWidth, height: gridContainerHeight } = useElementSize(calendarGridContainer)
 
 const isDayInPagedMonth = (date: Date) => {
-  return date.getMonth() === selectedDate.value.getMonth()
+  return date.getMonth() === selectedMonth.value.getMonth()
 }
 
 const dates = computed(() => {
-  const startOfMonth = dayjs(selectedDate.value).startOf('month')
-  const endOfMonth = dayjs(selectedDate.value).endOf('month')
+  const startOfMonth = dayjs(selectedMonth.value).startOf('month')
+  const endOfMonth = dayjs(selectedMonth.value).endOf('month')
 
   const firstDayToDisplay = startOfMonth.startOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
   const lastDayToDisplay = endOfMonth.endOf('week').add(isMondayFirst.value ? 0 : -1, 'day')

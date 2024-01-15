@@ -69,7 +69,7 @@ interface Row {
       fk_from_col: ColumnType
       fk_to_col: ColumnType | null
     }
-    position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none' | 'spanning'
+    position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none' | string
   }
 }
 

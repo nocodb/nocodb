@@ -20,6 +20,7 @@ const {
   pageDate,
   displayField,
   selectedDate,
+  selectedMonth,
   calendarRange,
   selectedDateRange,
   activeDates,
@@ -111,7 +112,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
     <NcMonthYearSelector
       v-else-if="activeCalendarView === ('month' as const)"
       v-model:page-date="pageDate"
-      v-model:selected-date="selectedDate"
+      v-model:selected-date="selectedMonth"
     />
     <NcMonthYearSelector
       v-else-if="activeCalendarView === ('year' as const)"

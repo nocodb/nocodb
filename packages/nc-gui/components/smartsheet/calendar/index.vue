@@ -44,8 +44,10 @@ provide(IsCalendarInj, ref(true))
 const {
   loadCalendarMeta,
   loadCalendarData,
+  loadSidebarData,
   isCalendarDataLoading,
   selectedDate,
+  selectedMonth,
   activeDates,
   pageDate,
   selectedDateRange,
@@ -117,10 +119,9 @@ onMounted(async () => {
 
 reloadViewMetaHook?.on(async () => {
   await loadCalendarMeta()
-  await loadCalendarData()
 })
 reloadViewDataHook?.on(async () => {
-  await loadCalendarData()
+  await Promise.all([loadCalendarData(), loadSidebarData()])
 })
 
 const headerText = computed(() => {
@@ -132,7 +133,7 @@ const headerText = computed(() => {
         'D MMMM YYYY',
       )}`
     case 'month':
-      return dayjs(selectedDate.value).format('MMMM YYYY')
+      return dayjs(selectedMonth.value).format('MMMM YYYY')
     case 'year':
       return dayjs(selectedDate.value).format('YYYY')
   }
@@ -177,7 +178,7 @@ const headerText = computed(() => {
                 <NcMonthYearSelector
                   v-else-if="activeCalendarView === ('month' as const)"
                   v-model:page-date="pageDate"
-                  v-model:selected-date="selectedDate"
+                  v-model:selected-date="selectedMonth"
                 />
                 <NcMonthYearSelector
                   v-else-if="activeCalendarView === ('year' as const)"

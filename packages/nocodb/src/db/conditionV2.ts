@@ -1087,7 +1087,10 @@ async function generateLookupCondition(
 
     if (relationColumnOptions.type === RelationTypes.HAS_MANY) {
       qb = knex(
-        `${baseModelSqlv2.getTnPath(childModel.table_name)} as ${alias}`,
+        knex.raw(`?? as ??`, [
+          baseModelSqlv2.getTnPath(childModel.table_name),
+          alias,
+        ]),
       );
 
       qb.select(`${alias}.${childColumn.column_name}`);
@@ -1115,7 +1118,10 @@ async function generateLookupCondition(
       };
     } else if (relationColumnOptions.type === RelationTypes.BELONGS_TO) {
       qb = knex(
-        `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+        knex.raw(`?? as ??`, [
+          baseModelSqlv2.getTnPath(parentModel.table_name),
+          alias,
+        ]),
       );
       qb.select(`${alias}.${parentColumn.column_name}`);
 
@@ -1151,12 +1157,18 @@ async function generateLookupCondition(
 
       const childAlias = `__nc${aliasCount.count++}`;
 
-      qb = knex(`${baseModelSqlv2.getTnPath(mmModel.table_name)} as ${alias}`)
+      qb = knex(
+        knex.raw(`?? as ??`, [
+          baseModelSqlv2.getTnPath(mmModel.table_name),
+          alias,
+        ]),
+      )
         .select(`${alias}.${mmChildColumn.column_name}`)
         .join(
-          `${baseModelSqlv2.getTnPath(
-            parentModel.table_name,
-          )} as ${childAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            childAlias,
+          ]),
           `${alias}.${mmParentColumn.column_name}`,
           `${childAlias}.${parentColumn.column_name}`,
         );
@@ -1225,9 +1237,10 @@ async function nestedConditionJoin(
         case RelationTypes.HAS_MANY:
           {
             qb.join(
-              `${baseModelSqlv2.getTnPath(
-                childModel.table_name,
-              )} as ${relAlias}`,
+              knex.raw(`?? as ??`, [
+                baseModelSqlv2.getTnPath(childModel.table_name),
+                relAlias,
+              ]),
               `${alias}.${parentColumn.column_name}`,
               `${relAlias}.${childColumn.column_name}`,
             );
@@ -1236,9 +1249,10 @@ async function nestedConditionJoin(
         case RelationTypes.BELONGS_TO:
           {
             qb.join(
-              `${baseModelSqlv2.getTnPath(
-                parentModel.table_name,
-              )} as ${relAlias}`,
+              knex.raw(`?? as ??`, [
+                baseModelSqlv2.getTnPath(parentModel.table_name),
+                relAlias,
+              ]),
               `${alias}.${childColumn.column_name}`,
               `${relAlias}.${parentColumn.column_name}`,
             );
@@ -1253,15 +1267,17 @@ async function nestedConditionJoin(
             const assocAlias = `__nc${aliasCount.count++}`;
 
             qb.join(
-              `${baseModelSqlv2.getTnPath(
-                mmModel.table_name,
-              )} as ${assocAlias}`,
+              knex.raw(`?? as ??`, [
+                baseModelSqlv2.getTnPath(mmModel.table_name),
+                assocAlias,
+              ]),
               `${assocAlias}.${mmChildColumn.column_name}`,
               `${alias}.${childColumn.column_name}`,
             ).join(
-              `${baseModelSqlv2.getTnPath(
-                parentModel.table_name,
-              )} as ${relAlias}`,
+              knex.raw(`?? as ??`, [
+                baseModelSqlv2.getTnPath(parentModel.table_name),
+                relAlias,
+              ]),
               `${relAlias}.${parentColumn.column_name}`,
               `${assocAlias}.${mmParentColumn.column_name}`,
             );

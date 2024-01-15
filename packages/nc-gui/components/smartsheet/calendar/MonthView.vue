@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { UITypes } from 'nocodb-sdk'
 import type { Row } from '#imports'
 
 const emit = defineEmits(['new-record', 'expand-record'])
 
-const { selectedDate, formattedData, displayField, calendarRange } = useCalendarViewStoreOrThrow()
+const { selectedDate, formattedData, displayField, calendarRange, calDataType } = useCalendarViewStoreOrThrow()
 
 const isMondayFirst = ref(true)
 
@@ -65,7 +66,9 @@ const recordsToDisplay = computed<{
 
   const perWidth = gridContainerWidth.value / 7
   const perHeight = gridContainerHeight.value / dates.value.length
-  const perRecordHeight = '40'
+  const perRecordHeight = 40
+
+  const spaceBetweenRecords = 35
 
   const recordsInDay: {
     [key: string]: {
@@ -76,14 +79,31 @@ const recordsToDisplay = computed<{
   } = {}
 
   if (!calendarRange.value) return []
+
   const recordsToDisplay: Array<Row> = []
   calendarRange.value.forEach((range) => {
     const startCol = range.fk_from_col
     const endCol = range.fk_to_col
-    formattedData.value.forEach((record: Row) => {
+
+    const sortedFormattedData = [...formattedData.value].sort((a, b) => {
+      if (startCol && endCol) {
+        const startA = dayjs(a.row[startCol.title])
+        const endA = dayjs(a.row[endCol.title])
+        const startB = dayjs(b.row[startCol.title])
+        const endB = dayjs(b.row[endCol.title])
+
+        return endB.diff(startB) - endA.diff(startA)
+      } else {
+        const startA = dayjs(a.row[startCol.title])
+        const startB = dayjs(b.row[startCol.title])
+
+        return startB.diff(startA)
+      }
+    })
+
+    sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
         const startDate = dayjs(record.row[startCol.title])
-
         const dateKey = startDate.format('YYYY-MM-DD')
 
         if (!recordsInDay[dateKey]) {
@@ -91,28 +111,21 @@ const recordsToDisplay = computed<{
         }
         recordsInDay[dateKey].count++
 
-        const weekIndex = dates.value.findIndex((week) => {
-          return (
-            week.findIndex((day) => {
-              return dayjs(day).isSame(startDate, 'day')
-            }) !== -1
-          )
-        })
+        const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
 
         const dayIndex = dates.value[weekIndex].findIndex((day) => {
           return dayjs(day).isSame(startDate, 'day')
         })
 
-        const style = {
+        const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
         }
 
         const recordIndex = recordsInDay[dateKey].count
 
-        const top = weekIndex * perHeight + 42 + (recordIndex - 1) * perRecordHeight
-
-        const heightRequired = perRecordHeight * recordIndex + 42
+        const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * perRecordHeight
+        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords
 
         if (heightRequired > perHeight) {
           style.display = 'none'
@@ -127,11 +140,96 @@ const recordsToDisplay = computed<{
           rowMeta: {
             ...record.rowMeta,
             style,
+            position: 'rounded',
             range,
           },
         })
       } else if (startCol && endCol) {
-        // TODO: Handle range
+        const startDate = dayjs(record.row[startCol.title])
+        const endDate = dayjs(record.row[endCol.title])
+
+        let currentWeekStart = startDate.startOf('week')
+        while (currentWeekStart.isBefore(endDate)) {
+          const currentWeekEnd = currentWeekStart.endOf('week')
+          const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
+          const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
+
+          let day = recordStart.clone()
+          while (day.isBefore(recordEnd) || day.isSame(recordEnd, 'day')) {
+            const dateKey = day.format('YYYY-MM-DD')
+
+            if (!recordsInDay[dateKey]) {
+              recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0 }
+            }
+            recordsInDay[dateKey].count++
+            day = day.add(1, 'day')
+          }
+
+          const weekIndex = dates.value.findIndex((week) => {
+            return (
+              week.findIndex((day) => {
+                return dayjs(day).isSame(recordStart, 'day')
+              }) !== -1
+            )
+          })
+
+          let maxRecordCount = 0
+
+          for (let i = 0; i < dates.value[weekIndex].length; i++) {
+            const day = dates.value[weekIndex][i]
+            const dateKey = dayjs(day).format('YYYY-MM-DD')
+            if (!recordsInDay[dateKey]) continue
+            const recordIndex = recordsInDay[dateKey].count
+
+            maxRecordCount = Math.max(maxRecordCount, recordIndex)
+          }
+
+          const startDayIndex = dates.value[weekIndex].findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
+          const endDayIndex = dates.value[weekIndex].findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
+
+          const style: Partial<CSSStyleDeclaration> = {
+            left: `${startDayIndex * perWidth}px`,
+            width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
+          }
+          const top = weekIndex * perHeight + spaceBetweenRecords + (maxRecordCount - 1) * perRecordHeight
+          const heightRequired = perRecordHeight * maxRecordCount + spaceBetweenRecords
+
+          let position = 'rounded' as const
+
+          if (startDate.isSame(currentWeekStart, 'week') && endDate.isSame(currentWeekEnd, 'week')) {
+            position = 'rounded' as const
+          } else if (startDate.isSame(currentWeekStart, 'week')) {
+            position = 'leftRounded' as const
+          } else if (endDate.isSame(currentWeekEnd, 'week')) {
+            position = 'rightRounded' as const
+          } else {
+            position = 'none' as const
+          }
+
+          if (heightRequired > perHeight) {
+            style.display = 'none'
+            for (let i = startDayIndex; i <= endDayIndex; i++) {
+              const day = dates.value[weekIndex][i]
+              const dateKey = dayjs(day).format('YYYY-MM-DD')
+              if (!recordsInDay[dateKey]) continue
+              recordsInDay[dateKey].overflow = true
+              recordsInDay[dateKey].overflowCount++
+            }
+          } else {
+            style.top = `${top}px`
+          }
+
+          recordsToDisplay.push({
+            ...record,
+            rowMeta: {
+              ...record.rowMeta,
+              position,
+              style,
+              range,
+            },
+          })
+          currentWeekStart = currentWeekStart.add(1, 'week')
+        }
       }
     })
   })
@@ -209,7 +307,7 @@ const isDateSelected = (date: Date) => {
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow
             "
-            class="text-xs absolute bottom-2 text-center inset-x-0 text-gray-500"
+            class="text-xs absolute bottom-1 text-center inset-x-0 text-gray-500"
           >
             + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more
           </div>
@@ -220,15 +318,20 @@ const isDateSelected = (date: Date) => {
       <div
         v-for="(record, recordIndex) in recordsToDisplay.records"
         :key="recordIndex"
-        :style="record.rowMeta.style"
+        :style="record.rowMeta.style as Partial<CSSStyleValue>"
         class="absolute pointer-events-auto"
         draggable="true"
         @dragover.prevent
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :date="record.row[record.rowMeta.range.fk_from_col.title]"
+            :date="
+              calDataType === UITypes.DateTime
+                ? dayjs(record.row[record.rowMeta.range?.fk_from_col.title]).format('YYYY-MM-DD HH:mm')
+                : dayjs(record.row[record.rowMeta.range?.fk_from_col.title]).format('YYYY-MM-DD')
+            "
             :name="record.row[displayField.title]"
+            :position="record.rowMeta.position"
             @click="emit('expand-record', record)"
           />
         </LazySmartsheetRow>

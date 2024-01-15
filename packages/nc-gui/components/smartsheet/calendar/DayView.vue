@@ -315,7 +315,6 @@ const dropEvent = (event: DragEvent) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
-              :key="rowIndex"
               :date="dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('H:mm')"
               :name="record.row[displayField.title]"
               :position="getRecordPosition(record)"

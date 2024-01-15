@@ -351,7 +351,7 @@ END ${colAlias}`,
   BOOLEAN: async (args: MapFnArgs) => {
     return {
       builder: args.knex.raw(
-        `(${(await args.fn(args.pt.arguments[0])).builder})::boolean ${
+        `(${(await args.fn(args.pt.arguments[0])).builder})::boolean${
           args.colAlias
         }`,
       ),

@@ -1498,7 +1498,11 @@ async function extractColumnIdentifierType({
       res.dataType = FormulaDataTypes.STRING;
       break;
     case UITypes.Checkbox:
-      res.dataType = FormulaDataTypes.NUMERIC;
+      if (col.dt === 'boolean' || col.dt === 'bool') {
+        res.dataType = FormulaDataTypes.BOOLEAN;
+      } else {
+        res.dataType = FormulaDataTypes.NUMERIC;
+      }
       break;
     case UITypes.ID:
     case UITypes.ForeignKey:

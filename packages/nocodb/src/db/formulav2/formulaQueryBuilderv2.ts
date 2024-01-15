@@ -1169,7 +1169,7 @@ export default async function formulaQueryBuilderv2(
       const formula = await column.getColOptions<FormulaColumn>();
       // clean the previous formula error if the formula works this time
       if (formula.error) {
-        await FormulaColumn.update(formula.id, {
+        await FormulaColumn.update(column.id, {
           error: null,
         });
       }
@@ -1179,9 +1179,8 @@ export default async function formulaQueryBuilderv2(
 
     console.error(e);
     if (column) {
-      const formula = await column.getColOptions<FormulaColumn>();
       // add formula error to show in UI
-      await FormulaColumn.update(formula.id, {
+      await FormulaColumn.update(column.id, {
         error: e.message,
       });
       // update cache to reflect the error in UI

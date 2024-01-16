@@ -154,6 +154,53 @@ export function useData(args: {
     }
   }
 
+  async function bulkInsertRows(
+    rows: Row[],
+    ltarState: Record<string, any> = {},
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
+  ) {
+    const rowsToInsert = []
+    try {
+      for (const currentRow of rows) {
+        const { missingRequiredColumns, insertObj } = await populateInsertObject({
+          meta: metaValue!,
+          ltarState,
+          getMeta,
+          row: currentRow.row,
+          undo,
+        })
+        if (missingRequiredColumns.size) continue
+        else rowsToInsert.push({ ...insertObj, ...(ltarState || {}) })
+      }
+
+      const bulkInsertedData = await $api.dbDataTableRow.create(metaValue?.id as string, rowsToInsert, {
+        viewId: viewMetaValue?.id as string,
+      })
+
+      // if (!undo) {
+      //   addUndo({
+      //     redo: {
+      //       fn: async function redo() {},
+      //       args: [],
+      //     },
+      //     undo: {
+      //       fn: async function undo(this: UndoRedoAction) {},
+      //       args: [],
+      //     },
+      //     scope: defineViewScope({ view: viewMeta.value }),
+      //   })
+      // }
+
+      await callbacks?.syncCount?.()
+      return bulkInsertedData
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      await callbacks?.globalCallback?.()
+    }
+  }
+
   // inside this method use metaValue and viewMetaValue to refer meta
   // since sometimes we need to pass old metas
   async function updateRowProperty(
@@ -566,71 +613,108 @@ export function useData(args: {
 
   async function deleteSelectedRows() {
     let row = formattedData.value.length
-    const removedRowsData: { id?: string; row: Row; rowIndex: number }[] = []
-    while (row--) {
-      try {
-        const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
-        if (!rowMeta.selected) {
-          continue
-        }
-        if (!rowMeta.new) {
-          const id = meta?.value?.columns
-            ?.filter((c) => c.pk)
-            .map((c) => rowObj[c.title as string])
-            .join('___')
+    const removedRowsData: { Id: string; row: Row; rowIndex: number }[] = []
+    console.log('formated rows', formattedData.value)
 
-          const successfulDeletion = await deleteRowById(id as string)
-          if (!successfulDeletion) {
-            continue
-          }
-          removedRowsData.push({ id, row: clone(formattedData.value[row]), rowIndex: row })
+    while (row--) {
+      const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
+      if (!rowMeta.selected) {
+        continue
+      }
+      if (!rowMeta.new) {
+        const id = meta?.value?.columns
+          ?.filter((c) => c.pk)
+          .map((c) => rowObj[c.title as string])
+          .join('___')
+
+        if (id) {
+          removedRowsData.push({ Id: id, row: clone(formattedData.value[row]), rowIndex: row })
         }
-        formattedData.value.splice(row, 1)
-      } catch (e: any) {
-        return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
-    addUndo({
-      redo: {
-        fn: async function redo(this: UndoRedoAction, removedRowsData: { id?: string; row: Row; rowIndex: number }[]) {
-          for (const { id, row } of removedRowsData) {
-            await deleteRowById(id as string)
-            const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
-            const rowIndex = findIndexByPk(pk, formattedData.value)
-            if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
-            paginationData.value.totalRows = paginationData.value.totalRows! - 1
+    try {
+      const removedRowIds: { Id: string }[] = await bulkDeleteRows(
+        removedRowsData.map((row) => {
+          return {
+            Id: row.Id,
           }
-          await callbacks?.syncPagination?.()
-        },
-        args: [removedRowsData],
-      },
-      undo: {
-        fn: async function undo(
-          this: UndoRedoAction,
-          removedRowsData: { id?: string; row: Row; rowIndex: number }[],
-          pg: { page: number; pageSize: number },
-        ) {
-          for (const { row, rowIndex } of removedRowsData.slice().reverse()) {
-            const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-            row.row = { ...pkData, ...row.row }
-            await insertRow(row, {}, {}, true)
-            recoverLTARRefs(row.row)
-            if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
-              if (pg.page === paginationData.value.page) {
-                formattedData.value.splice(rowIndex, 0, row)
-              } else {
-                await callbacks?.changePage?.(pg.page)
-              }
-            } else {
-              await callbacks?.loadData?.()
-            }
+        }),
+      )
+      if (Array.isArray(removedRowsData)) {
+        const removedRowsMap: Map<string, string | number> = new Map(removedRowIds.map((row) => [row.Id as string, '']))
+        removedRowsData.filter((row) => {
+          if (removedRowsMap.has(row.Id)) {
+            removedRowsMap.set(row.Id, row.rowIndex)
+            return true
           }
-        },
-        args: [removedRowsData, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
-      },
-      scope: defineViewScope({ view: viewMeta.value }),
-    })
+        })
+        const rowIndex = removedRowsData.map((row) => row.rowIndex)
+        formattedData.value = formattedData.value.filter((_, index) => rowIndex.includes(index))
+      }
+    } catch (e: any) {
+      return message.error(`${t('msg.error.bulkDeleteRowsFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+    }
+
+    // addUndo({
+    //   redo: {
+    //     fn: async function redo(this: UndoRedoAction, removedRowsData: { Id: string; row: Row; rowIndex: number }[]) {
+    //       const removedRowIds = await bulkDeleteRows(
+    //         removedRowsData.map((row) => {
+    //           return {
+    //             Id: row.Id,
+    //           }
+    //         }),
+    //       )
+    //       if (Array.isArray(removedRowIds)) {
+    //         for (const { row } of removedRowsData) {
+    //           const pk: Record<string, string> = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+    //           const rowIndex = findIndexByPk(pk, formattedData.value)
+    //           if (rowIndex !== -1) formattedData.value.splice(rowIndex, 1)
+    //           paginationData.value.totalRows = paginationData.value.totalRows! - 1
+    //         }
+    //       }
+    //       await callbacks?.syncPagination?.()
+    //     },
+    //     args: [removedRowsData],
+    //   },
+    //   undo: {
+    //     fn: async function undo(
+    //       this: UndoRedoAction,
+    //       removedRowsData: { Id: string; row: Row; rowIndex: number }[],
+    //       pg: { page: number; pageSize: number },
+    //     ) {
+    //       const rowsToInsert = removedRowsData.reverse().map((row) => {
+    //         const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+    //         row.row = { ...pkData, ...row.row }
+    //         return row
+    //       })
+
+    //       const insertedRowIds = await bulkInsertRows(
+    //         rowsToInsert.map((row) => row.row),
+    //         {},
+    //         undefined,
+    //         true,
+    //       )
+    //       if (Array.isArray(insertedRowIds)) {
+    //         for (const { row, rowIndex } of rowsToInsert) {
+    //           recoverLTARRefs(row.row)
+    //           if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+    //             if (pg.page === paginationData.value.page) {
+    //               formattedData.value.splice(rowIndex, 0, row)
+    //             } else {
+    //               await callbacks?.changePage?.(pg.page)
+    //             }
+    //           } else {
+    //             await callbacks?.loadData?.()
+    //           }
+    //         }
+    //       }
+    //     },
+    //     args: [removedRowsData, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+    //   },
+    //   scope: defineViewScope({ view: viewMeta.value }),
+    // })
 
     await callbacks?.syncCount?.()
     await callbacks?.syncPagination?.()
@@ -712,6 +796,38 @@ export function useData(args: {
     await callbacks?.syncCount?.()
     await callbacks?.syncPagination?.()
     await callbacks?.globalCallback?.()
+  }
+
+  async function bulkDeleteRows(
+    rows: { Id: string }[],
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
+  ) {
+    try {
+      const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows, {
+        viewId: viewMetaValue?.id as string,
+      })
+      // if (!undo) {
+      //   addUndo({
+      //     redo: {
+      //       fn: async function redo() {},
+      //       args: [],
+      //     },
+      //     undo: {
+      //       fn: async function undo(this: UndoRedoAction) {},
+      //       args: [],
+      //     },
+      //     scope: defineViewScope({ view: viewMeta.value }),
+      //   })
+      // }
+
+      await callbacks?.syncCount?.()
+      return bulkDeletedRowsData
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      await callbacks?.globalCallback?.()
+    }
   }
 
   const removeRowIfNew = (row: Row) => {

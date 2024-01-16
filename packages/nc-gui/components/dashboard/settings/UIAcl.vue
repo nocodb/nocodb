@@ -223,7 +223,7 @@ const toggleSelectAll = (role: Role) => {
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralTableIcon
                     v-if="record?.meta?.icon"
-                    :meta="{ meta: record.table_meta, type: record.ptype }"
+                    :meta="{ meta: record.meta, type: 'view' }"
                     class="text-gray-500 !text-sm children:(!w-5 !h-5)"
                   />
                   <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>

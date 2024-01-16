@@ -80,7 +80,10 @@ export default async function generateLookupSelectQuery({
         await parentModel.getColumns();
 
         selectQb = knex(
-          `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            alias,
+          ]),
         ).where(
           `${alias}.${parentColumn.column_name}`,
           knex.raw(`??`, [
@@ -102,7 +105,10 @@ export default async function generateLookupSelectQuery({
         await parentModel.getColumns();
 
         selectQb = knex(
-          `${baseModelSqlv2.getTnPath(childModel.table_name)} as ${alias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(childModel.table_name),
+            alias,
+          ]),
         ).where(
           `${alias}.${childColumn.column_name}`,
           knex.raw(`??`, [
@@ -124,7 +130,10 @@ export default async function generateLookupSelectQuery({
         await parentModel.getColumns();
 
         selectQb = knex(
-          `${baseModelSqlv2.getTnPath(parentModel.table_name)} as ${alias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            alias,
+          ]),
         );
 
         const mmTableAlias = getAlias();
@@ -193,9 +202,10 @@ export default async function generateLookupSelectQuery({
         await parentModel.getColumns();
 
         selectQb.join(
-          `${baseModelSqlv2.getTnPath(
-            parentModel.table_name,
-          )} as ${nestedAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            nestedAlias,
+          ]),
           `${nestedAlias}.${parentColumn.column_name}`,
           `${prevAlias}.${childColumn.column_name}`,
         );
@@ -209,9 +219,10 @@ export default async function generateLookupSelectQuery({
         await parentModel.getColumns();
 
         selectQb.join(
-          `${baseModelSqlv2.getTnPath(
-            childModel.table_name,
-          )} as ${nestedAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(childModel.table_name),
+            nestedAlias,
+          ]),
           `${nestedAlias}.${childColumn.column_name}`,
           `${prevAlias}.${parentColumn.column_name}`,
         );

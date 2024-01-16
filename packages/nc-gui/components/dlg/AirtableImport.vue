@@ -309,6 +309,23 @@ onMounted(async () => {
   }
   await loadSyncSrc()
 })
+
+function downloadLogs(filename: string) {
+  let text = ''
+  for (const o of document.querySelectorAll('.nc-modal-airtable-import .log-message')) {
+    text += `${o.textContent}\n`
+  }
+  const element = document.createElement('a')
+  element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`)
+  element.setAttribute('download', filename)
+
+  element.style.display = 'none'
+  document.body.appendChild(element)
+
+  element.click()
+
+  document.body.removeChild(element)
+}
 </script>
 
 <template>
@@ -447,17 +464,25 @@ onMounted(async () => {
         <div class="mb-4 prose-xl font-bold">{{ $t('general.logs') }}</div>
 
         <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
+          <a-button
+            v-if="showGoToDashboardButton || goBack"
+            class="!absolute mr-1 mb-1 z-1 right-0 bottom-0 opacity-40 hover:opacity-100"
+            size="small"
+            @click="downloadLogs('at-import-logs.txt')"
+          >
+            <component :is="iconMap.download" class="text-green-500" />
+          </a-button>
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === JobStatus.FAILED" class="flex items-center">
               <component :is="iconMap.closeCircle" class="text-red-500" />
 
-              <span class="text-red-500 ml-2">{{ msg }}</span>
+              <span class="text-red-500 ml-2 log-message">{{ msg }}</span>
             </div>
 
             <div v-else class="flex items-center">
               <MdiCurrencyUsd class="text-green-500" />
 
-              <span class="text-green-500 ml-2">{{ msg }}</span>
+              <span class="text-green-500 ml-2 log-message">{{ msg }}</span>
             </div>
           </div>
 

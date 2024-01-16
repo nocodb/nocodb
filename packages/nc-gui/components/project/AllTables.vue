@@ -143,7 +143,7 @@ const onCreateBaseClick = () => {
       >
         <div class="flex flex-row w-2/5 items-center gap-x-2" data-testid="proj-view-list__item-title">
           <div class="min-w-5 flex items-center justify-center">
-            <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+            <GeneralTableIcon :meta="table" class="text-gray-500" />
           </div>
           {{ table?.title }}
         </div>

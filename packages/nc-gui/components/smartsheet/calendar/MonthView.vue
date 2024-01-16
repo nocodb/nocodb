@@ -367,6 +367,7 @@ const isDateSelected = (date: Date) => {
             "
             :name="record.row[displayField.title]"
             :position="record.rowMeta.position"
+            :record="record"
             @click="emit('expand-record', record)"
           />
         </LazySmartsheetRow>

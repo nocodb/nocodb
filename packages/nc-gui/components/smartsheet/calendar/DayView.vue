@@ -157,10 +157,10 @@ const dropEvent = (event: DragEvent) => {
     >
       <LazySmartsheetRow v-for="(record, rowIndex) in recordsAcrossAllRange" :key="rowIndex" :row="record">
         <LazySmartsheetCalendarRecordCard
-          :key="rowIndex"
           :date="record.row[record.rowMeta.range.fk_from_col.title]"
           :name="record.row[displayField.title]"
           :position="record.rowMeta.position"
+          :record="record"
           color="blue"
           size="small"
           @click="emit('expand-record', record)"
@@ -218,6 +218,7 @@ const dropEvent = (event: DragEvent) => {
               :date="dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('H:mm')"
               :name="record.row[displayField.title]"
               :position="record.rowMeta.position"
+              :record="record"
               class="!h-full"
               color="blue"
               size="small"

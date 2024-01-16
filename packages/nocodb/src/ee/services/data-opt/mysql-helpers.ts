@@ -1,5 +1,5 @@
 // eslint-disable-file no-fallthrough
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -223,7 +223,12 @@ export async function extractColumn({
 
               // if mm table is not present then return
               if (!assocModel) {
-                return;
+                qb.selet(
+                  knex.raw('? as ??', [
+                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+                    sanitize(column.id),
+                  ]),
+                );
               }
 
               const assocQb = knex(
@@ -450,7 +455,12 @@ export async function extractColumn({
 
               // if mm table is not present then return
               if (!assocModel) {
-                return;
+                return qb.selet(
+                  knex.raw('? as ??', [
+                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+                    sanitize(column.id),
+                  ]),
+                );
               }
 
               const assocQb = knex(

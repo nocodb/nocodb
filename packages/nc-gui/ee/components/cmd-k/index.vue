@@ -31,7 +31,7 @@ const emits = defineEmits(['update:open', 'scope'])
 
 const vOpen = useVModel(props, 'open', emits)
 
-// const { $e } = useNuxtApp()
+const { t } = useI18n()
 
 const activeScope = ref('root')
 
@@ -54,8 +54,13 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
   for (const el of props.data) {
     rt.push({
       ...el,
+      title: el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title,
+      icon: el.section === 'Views' && el.is_default ? 'grid' : el.icon,
       parent: el.parent || 'root',
-      weight: commandScore(`${el.section}${el.title}${el.keywords?.join()}`, cmdInput.value),
+      weight: commandScore(
+        `${el.section}${el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title}${el.keywords?.join()}`,
+        cmdInput.value,
+      ),
     })
   }
   return rt
@@ -69,7 +74,7 @@ const nestedScope = computed(() => {
     rt.push({
       id: parent,
       label: parentEl?.title,
-      icon: parentEl?.section === 'Views' && parentEl?.is_default ? 'grid' : parentEl?.icon,
+      icon: parentEl?.icon,
     })
     parent = parentEl?.parent || 'root'
   }
@@ -151,7 +156,7 @@ const actionListGroupedBySection = computed(() => {
     if (el.section === 'hidden') return
     if (el.section) {
       if (!rt[el.section]) rt[el.section] = []
-      rt[el.section].push({ ...el, icon: el.section === 'Views' && el.is_default ? 'grid' : el.icon })
+      rt[el.section].push(el)
     } else {
       if (!rt.default) rt.default = []
       rt.default.push(el)
@@ -398,10 +403,10 @@ defineExpose({
                     </div>
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
-                        {{ title === 'Views' && act.is_default ? $t('title.defaultView') : act.title }}
+                        {{ act.title }}
                       </template>
                       <span class="truncate capitalize mr-4">
-                        {{ title === 'Views' && act.is_default ? $t('title.defaultView') : act.title }}
+                        {{ act.title }}
                       </span>
                     </a-tooltip>
                     <div

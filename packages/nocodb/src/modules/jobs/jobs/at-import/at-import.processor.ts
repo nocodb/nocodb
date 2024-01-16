@@ -442,6 +442,11 @@ export class AtImportProcessor {
                   el.title.toLowerCase() === (value as any).name.toLowerCase(),
               )
             ) {
+              logWarning(
+                `Duplicate select option found: ${col.name} :: ${
+                  (value as any).name
+                }`,
+              );
               continue;
             }
             options.push({

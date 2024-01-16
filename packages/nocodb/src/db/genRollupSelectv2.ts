@@ -33,9 +33,10 @@ export default async function ({
     case RelationTypes.HAS_MANY:
       return {
         builder: knex(
-          `${baseModelSqlv2.getTnPath(
-            childModel?.table_name,
-          )} as ${refTableAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(childModel?.table_name),
+            refTableAlias,
+          ]),
         )
           [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
@@ -57,9 +58,10 @@ export default async function ({
 
       return {
         builder: knex(
-          `${baseModelSqlv2.getTnPath(
-            parentModel?.table_name,
-          )} as ${refTableAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(parentModel?.table_name),
+            refTableAlias,
+          ]),
         )
           [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),

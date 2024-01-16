@@ -791,7 +791,9 @@ export function useData(args: {
     addUndo({
       redo: {
         fn: async function redo(this: UndoRedoAction, removedRowsData: Record<string, any>[], compositePrimaryKey: string) {
-          const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => ({ [compositePrimaryKey]: row[compositePrimaryKey] as string })))
+          const removedRowIds = await bulkDeleteRows(
+            removedRowsData.map((row) => ({ [compositePrimaryKey]: row[compositePrimaryKey] as string })),
+          )
 
           if (Array.isArray(removedRowIds)) {
             for (const { row } of removedRowsData) {

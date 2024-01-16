@@ -289,7 +289,7 @@ export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector) {}
 
   async intercept(
-    context: ExecutionContexit,
+    context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
     const permissionName = this.reflector.get<string>(

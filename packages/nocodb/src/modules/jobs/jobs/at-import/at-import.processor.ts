@@ -221,6 +221,7 @@ export class AtImportProcessor {
       rtc.migrationSkipLog.log.push(
         `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`,
       );
+      logWarning(`Skipped ${tbl} :: ${col} (${type}) :: ${reason}`);
     };
 
     // mapping table
@@ -545,7 +546,7 @@ export class AtImportProcessor {
               tblSchema[i].name,
               ncName.title,
               col.type,
-              'column type not supported',
+              'column type not supported yet',
             );
             continue;
           }
@@ -1144,7 +1145,7 @@ export class AtImportProcessor {
                 srcTableSchema.title,
                 aTblColumns[i].name,
                 aTblColumns[i].type,
-                `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported`,
+                `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported yet`,
               );
               continue;
             }
@@ -1206,7 +1207,7 @@ export class AtImportProcessor {
                 srcTableSchema.title,
                 aTblColumns[i].name,
                 aTblColumns[i].type,
-                'rollup referring to a column type not supported currently',
+                'rollup referring to a column type not supported yet',
               );
               continue;
             }
@@ -2054,7 +2055,7 @@ export class AtImportProcessor {
             await sMap.getNcNameFromAtId(viewId),
             colSchema.title,
             colSchema.uidt,
-            `filter config skipped; filter over date datatype not supported`,
+            `filter config skipped; filter over date datatype not supported yet`,
           );
           continue;
         }
@@ -2193,7 +2194,7 @@ export class AtImportProcessor {
             await sMap.getNcNameFromAtId(viewId),
             colSchema.title,
             colSchema.uidt,
-            `group config skipped; group over ${datatype}  not supported`,
+            `group config skipped; group over ${datatype}  not supported yet`,
           );
           continue;
         }
@@ -2350,8 +2351,8 @@ export class AtImportProcessor {
     ///////////////////////////////////////////////////////////////////////////////
     try {
       logBasic('SDK initialized');
+
       logDetailed('Base initialization started');
-      // delete base if already exists
 
       logDetailed('Base initialized');
 

@@ -289,7 +289,7 @@ export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector) {}
 
   async intercept(
-    context: ExecutionContext,
+    context: ExecutionContexit,
     next: CallHandler,
   ): Promise<Observable<any>> {
     const permissionName = this.reflector.get<string>(
@@ -309,13 +309,13 @@ export class AclMiddleware implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const _res = context.switchToHttp().getResponse();
 
+    if (!req.user?.isAuthorized) {
+      NcError.unauthorized('Invalid token');
+    }
+
     const userScopeRole = getUserRoleForScope(req.user, scope);
 
     if (!userScopeRole) {
-      if (!req.user?.isAuthorized) {
-        NcError.unauthorized('Invalid token');
-      }
-
       NcError.forbidden('Unauthorized access');
     }
 

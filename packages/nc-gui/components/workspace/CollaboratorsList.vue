@@ -19,7 +19,9 @@ const filterCollaborators = computed(() => {
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter((collab) => collab.email!.includes(userSearchText.value))
+  return collaborators.value.filter((collab) =>
+    (collab.display_name || collab.email).toLowerCase().includes(userSearchText.value.toLowerCase()),
+  )
 })
 
 const sortedCollaborators = computed(() => {
@@ -96,7 +98,15 @@ onMounted(async () => {
           >
             <div class="flex gap-3 items-center users-email-grid w-3/8 ml-10">
               <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
-              <span class="truncate">
+              <NcTooltip v-if="collab.display_name">
+                <template #title>
+                  {{ collab.email }}
+                </template>
+                <span class="truncate">
+                  {{ collab.display_name }}
+                </span>
+              </NcTooltip>
+              <span v-else class="truncate">
                 {{ collab.email }}
               </span>
             </div>

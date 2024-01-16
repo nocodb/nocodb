@@ -60,5 +60,5 @@ const focus: VNodeRef = (el) =>
 
   <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" :style="{ 'word-break': 'break-word' }" />
 </template>

@@ -32,6 +32,7 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     // );
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       const workerCount = await this.jobsRedisService.workerCount();
+      this.logger.log(`Initializing worker: ${workerCount}`);
       // setup periodic logs only on first worker
       if (workerCount === 1) {
         this.logger.log('Setting up worker alerts');

@@ -621,7 +621,8 @@ export function useData(args: {
 
   async function deleteSelectedRows() {
     let row = formattedData.value.length
-    let removedRowsData: { Id: string; row: Row; rowIndex: number }[] = []
+    let removedRowsData: Record<string, any>[] = []
+    let pk = ''
 
     while (row--) {
       const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
@@ -629,33 +630,44 @@ export function useData(args: {
         continue
       }
       if (!rowMeta.new) {
-        const id = extractPkFromRow(rowObj, meta?.value?.columns as ColumnType[])
+        const primaryKey = extractPk(meta?.value?.columns as ColumnType[])
+        const pkValue = extractPkFromRow(rowObj, meta?.value?.columns as ColumnType[])
 
-        if (id) {
-          removedRowsData.push({ Id: id, row: clone(formattedData.value[row]), rowIndex: row })
+        if (primaryKey && pkValue) {
+          if (!pk) pk = primaryKey
+
+          removedRowsData.push({ [pk]: pkValue as string, row: clone(formattedData.value[row]) as Row, rowIndex: row as number })
         }
       }
     }
 
+    if (!removedRowsData.length) return
+
     try {
-      const removedRowIds: { Id: string }[] = await bulkDeleteRows(removedRowsData.map((row) => ({ Id: row.Id })))
+      const removedRowIds: Record<string, any>[] = await bulkDeleteRows(
+        removedRowsData.map((row) => ({ [pk]: row[pk] as string })),
+      )
 
       if (Array.isArray(removedRowIds)) {
-        const removedRowIdsSet = new Set(removedRowIds.map((row) => row.Id))
+        const removedRowsDataSet = new Set(removedRowIds.map((row) => row[pk]))
 
-        removedRowsData = removedRowsData.filter((row) => removedRowIdsSet.has(row.Id))
+        removedRowsData = removedRowsData.filter((row) => removedRowsDataSet.has(row[pk] as string))
 
         const rowIndexesSet = new Set(removedRowsData.map((row) => row.rowIndex))
         formattedData.value = formattedData.value.filter((_, index) => rowIndexesSet.has(index))
+      } else {
+        removedRowsData = []
       }
     } catch (e: any) {
       return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
 
+    if (!removedRowsData.length) return
+
     addUndo({
       redo: {
-        fn: async function redo(this: UndoRedoAction, removedRowsData: { Id: string; row: Row; rowIndex: number }[]) {
-          const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => ({ Id: row.Id })))
+        fn: async function redo(this: UndoRedoAction, removedRowsData: Record<string, any>[], pk: string) {
+          const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => ({ [pk]: row[pk] as string })))
 
           if (Array.isArray(removedRowIds)) {
             for (const { row } of removedRowsData) {
@@ -668,12 +680,12 @@ export function useData(args: {
 
           await callbacks?.syncPagination?.()
         },
-        args: [removedRowsData],
+        args: [removedRowsData, pk],
       },
       undo: {
         fn: async function undo(
           this: UndoRedoAction,
-          removedRowsData: { Id: string; row: Row; rowIndex: number }[],
+          removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
           const rowsToInsert = removedRowsData
@@ -724,17 +736,25 @@ export function useData(args: {
     // plus one because we want to include the end row
     let row = start + 1
 
-    let removedRowsData: { Id: string; row: Row; rowIndex: number }[] = []
+    let removedRowsData: Record<string, any>[] = []
+    let pk = ''
 
     while (row--) {
       try {
         const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
 
         if (!rowMeta.new) {
-          const id = extractPkFromRow(rowObj, meta?.value?.columns as ColumnType[])
+          const primaryKey = extractPk(meta?.value?.columns as ColumnType[])
+          const pkValue = extractPkFromRow(rowObj, meta?.value?.columns as ColumnType[])
 
-          if (id) {
-            removedRowsData.push({ Id: id, row: clone(formattedData.value[row]), rowIndex: row })
+          if (primaryKey && pkValue) {
+            if (!pk) pk = primaryKey
+
+            removedRowsData.push({
+              [pk]: pkValue as string,
+              row: clone(formattedData.value[row]) as Row,
+              rowIndex: row as number,
+            })
           }
         }
       } catch (e: any) {
@@ -744,25 +764,33 @@ export function useData(args: {
       if (row === end) break
     }
 
+    if (!removedRowsData.length) return
+
     try {
-      const removedRowIds: { Id: string }[] = await bulkDeleteRows(removedRowsData.map((row) => ({ Id: row.Id })))
+      const removedRowIds: Record<string, any>[] = await bulkDeleteRows(
+        removedRowsData.map((row) => ({ [pk]: row[pk] as string })),
+      )
 
       if (Array.isArray(removedRowIds)) {
-        const removedRowIdsSet = new Set(removedRowIds.map((row) => row.Id))
+        const removedRowsDataSet = new Set(removedRowIds.map((row) => row[pk]))
 
-        removedRowsData = removedRowsData.filter((row) => removedRowIdsSet.has(row.Id))
+        removedRowsData = removedRowsData.filter((row) => removedRowsDataSet.has(row[pk] as string))
 
         const rowIndexesSet = new Set(removedRowsData.map((row) => row.rowIndex))
         formattedData.value = formattedData.value.filter((_, index) => rowIndexesSet.has(index))
+      } else {
+        removedRowsData = []
       }
     } catch (e: any) {
       return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
 
+    if (!removedRowsData.length) return
+
     addUndo({
       redo: {
-        fn: async function redo(this: UndoRedoAction, removedRowsData: { Id: string; row: Row; rowIndex: number }[]) {
-          const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => ({ Id: row.Id })))
+        fn: async function redo(this: UndoRedoAction, removedRowsData: Record<string, any>[], pk: string) {
+          const removedRowIds = await bulkDeleteRows(removedRowsData.map((row) => ({ [pk]: row[pk] as string })))
 
           if (Array.isArray(removedRowIds)) {
             for (const { row } of removedRowsData) {
@@ -775,12 +803,12 @@ export function useData(args: {
 
           await callbacks?.syncPagination?.()
         },
-        args: [removedRowsData],
+        args: [removedRowsData, pk],
       },
       undo: {
         fn: async function undo(
           this: UndoRedoAction,
-          removedRowsData: { Id: string; row: Row; rowIndex: number }[],
+          removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
           const rowsToInsert = removedRowsData
@@ -824,7 +852,7 @@ export function useData(args: {
   }
 
   async function bulkDeleteRows(
-    rows: { Id: string }[],
+    rows: Record<string, string>[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     isPaginationLoading.value = true

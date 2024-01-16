@@ -154,9 +154,11 @@ export async function validateCondition(
           case 'lt':
             res = dayjs(dataVal).isBefore(filterVal, 'day');
             break;
+          case 'lte':
           case 'le':
             res = dayjs(dataVal).isSameOrBefore(filterVal, 'day');
             break;
+          case 'gte':
           case 'ge':
             res = dayjs(dataVal).isSameOrAfter(filterVal, 'day');
             break;

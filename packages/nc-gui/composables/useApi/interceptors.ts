@@ -99,6 +99,7 @@ export function addAxiosInterceptors(api: Api<any>) {
       return api.instance
         .post('/auth/token/refresh', null, {
           withCredentials: true,
+          baseURL: location.pathname,
         })
         .then((token) => {
           // New request with new token

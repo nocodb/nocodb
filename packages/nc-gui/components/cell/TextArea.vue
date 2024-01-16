@@ -210,10 +210,10 @@ watch(inputWrapperRef, () => {
     >
       <div
         v-if="isRichMode"
-        class="w-full cursor-pointer"
+        class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :style="{
-          maxHeight: isExpandedFormOpen ? `${height}px !important` : `${25 * (rowHeight || 1)}px !important`,
-          minHeight: isExpandedFormOpen ? `${height}px !important` : `${25 * (rowHeight || 1)}px !important`,
+          maxHeight: isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          minHeight: isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
@@ -235,6 +235,7 @@ watch(inputWrapperRef, () => {
           minHeight: `${height}px`,
         }"
         :placeholder="isEditColumn ? $t('labels.optional') : ''"
+        :disabled="readOnly"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
@@ -315,7 +316,7 @@ watch(inputWrapperRef, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50"
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'vertical' }"
             :disabled="readOnly"

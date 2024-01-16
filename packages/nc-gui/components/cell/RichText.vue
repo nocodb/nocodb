@@ -8,6 +8,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
+import { RowHeightInj, IsExpandedFormOpenInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
@@ -20,6 +21,8 @@ const props = defineProps<{
 const emits = defineEmits(['update:value'])
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const turndownService = new TurndownService({})
 
@@ -169,6 +172,7 @@ watch(editorDom, () => {
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,
+      'readonly': props.readonly,
     }"
     tabindex="0"
   >
@@ -180,11 +184,13 @@ watch(editorDom, () => {
     <EditorContent
       ref="editorDom"
       :editor="editor"
-      class="flex flex-col nc-textarea-rich-editor w-full overflow-hidden"
+      class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
         'ml-1 mt-2.5 flex-grow': props.fullMode,
         'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
         'flex-grow': isExpandedFormOpen,
+        [`!overflow-hidden children:line-clamp-${rowHeight}`]:
+          !props.fullMode && props.readonly && rowHeight && !isExpandedFormOpen,
       }"
     />
   </div>
@@ -207,15 +213,30 @@ watch(editorDom, () => {
     @apply !border-transparent max-h-full;
     min-height: 8rem;
   }
+  &.readonly {
+    .nc-textarea-rich-editor {
+      .ProseMirror {
+        resize: none;
+        white-space: pre-line;
+      }
+    }
+  }
 }
 
 .nc-rich-text-full {
   @apply px-1.75;
   .ProseMirror {
-    @apply !p-2;
-
+    @apply !p-2 h-[215px];
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin !important;
     max-height: min(794px, calc(100vh - 170px));
     min-height: 215px;
+  }
+  &.readonly {
+    .ProseMirror {
+      @apply bg-gray-50;
+    }
   }
 }
 
@@ -331,14 +352,6 @@ watch(editorDom, () => {
 
   pre {
     height: fit-content;
-  }
-}
-
-.nc-rich-text-full {
-  .ProseMirror {
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin !important;
   }
 }
 </style>

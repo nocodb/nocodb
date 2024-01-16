@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, getSystemColumnsTitles, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
+import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   NOCO,
@@ -167,7 +167,7 @@ export function useData(args: {
     isPaginationLoading.value = true
     try {
       for (const currentRow of rows) {
-        let { missingRequiredColumns, insertObj } = await populateInsertObject({
+        const { missingRequiredColumns, insertObj } = await populateInsertObject({
           meta: metaValue!,
           ltarState: {},
           getMeta,

@@ -5,7 +5,7 @@ const DbNotFoundMsg = 'Database config not found'
 
 let refreshTokenPromise: Promise<string> | null = null
 
-export function addAxiosInterceptors(api: Api<any>) {
+export function addAxiosInterceptors(api: Api<any>, baseURL?: string) {
   const state = useGlobal()
   const router = useRouter()
   const route = router.currentRoute
@@ -99,7 +99,7 @@ export function addAxiosInterceptors(api: Api<any>) {
       return api.instance
         .post('/auth/token/refresh', null, {
           withCredentials: true,
-          baseURL: location.pathname,
+          baseURL: baseURL ?? './',
         })
         .then((token) => {
           // New request with new token

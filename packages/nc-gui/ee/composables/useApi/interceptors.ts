@@ -6,12 +6,12 @@ import {} from '~/ee/store/workspace'
 const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')
 
-export function addAxiosInterceptors(api: Api<any>) {
+export function addAxiosInterceptors(api: Api<any>, baseURL?: string) {
   const { setTiming } = useApiTiming()
   const { getBaseUrl } = useGlobal()
   const router = useRouter()
 
-  addAxiosInterceptorsCE(api)
+  addAxiosInterceptorsCE(api, baseURL)
 
   api.instance.interceptors.request.use((config) => {
     if (!config.url?.endsWith('/jobs/listen') && !config.url?.endsWith('/jobs/status')) {

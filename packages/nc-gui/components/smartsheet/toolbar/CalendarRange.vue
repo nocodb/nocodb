@@ -130,7 +130,15 @@ const removeRange = async (id: number) => {
             :placeholder="$t('placeholder.notSelected')"
             @change="saveCalendarRanges"
           >
-            <a-select-option v-for="(option, opId) in dateFieldOptions" :key="opId" :value="option.value">
+            <a-select-option
+              v-for="(option, opId) in [...dateFieldOptions].filter((r) => {
+                if (id === 0) return true
+                const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
+                return firstRange?.uidt === r.uidt
+              })"
+              :key="opId"
+              :value="option.value"
+            >
               <div class="flex items-center">
                 <SmartsheetHeaderIcon :column="option" />
                 <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
@@ -166,7 +174,14 @@ const removeRange = async (id: number) => {
                 class="!rounded-r-none nc-to-select"
                 @change="saveCalendarRanges"
               >
-                <a-select-option v-for="(option, opId) in dateFieldOptions" :key="opId" :value="option.value">
+                <a-select-option
+                  v-for="(option, opId) in [...dateFieldOptions].filter((f) => {
+                    const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
+                    return firstRange?.uidt === f.uidt
+                  })"
+                  :key="opId"
+                  :value="option.value"
+                >
                   <div class="flex items-center">
                     <SmartsheetHeaderIcon :column="option" />
                     <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>

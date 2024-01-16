@@ -25,10 +25,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
       throw new Error('Token Expired. Please login again.');
     }
-
-    return User.getWithRoles(user.id, {
+    const userWithRoles = await User.getWithRoles(user.id, {
       user,
       baseId: req.ncBaseId,
     });
+
+    return userWithRoles && { ...userWithRoles, isAuthorized: true };
   }
 }

@@ -8,7 +8,7 @@ import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { HookLogType } from 'nocodb-sdk';
-import { Filter, HookLog } from '~/models';
+import { Filter, HookLog, Source } from '~/models';
 
 Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
@@ -144,8 +144,8 @@ export async function validateCondition(
 
       let now = dayjs(new Date());
       const dateFormatFromMeta = column?.meta?.date_format;
-      const dataVal = val;
-      let filterVal = filter.value;
+      const dataVal: any = val;
+      let filterVal: any = filter.value;
       if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
         // reset to 1st
         now = dayjs(now).date(1);
@@ -389,6 +389,7 @@ export async function invokeWebhook(
 ) {
   let hookLog: HookLogType;
   const startTime = process.hrtime();
+  const source = await Source.get(model.source_id);
   let notification;
   try {
     notification =
@@ -428,6 +429,7 @@ export async function invokeWebhook(
             await validateCondition(
               testFilters || (await hook.getFilters()),
               data,
+              { client: source?.type },
             )
           ) {
             filteredData.push(data);
@@ -443,7 +445,7 @@ export async function invokeWebhook(
         if (
           prevData &&
           filters.length &&
-          (await validateCondition(filters, prevData))
+          (await validateCondition(filters, prevData, { client: source?.type }))
         ) {
           return;
         }
@@ -451,6 +453,7 @@ export async function invokeWebhook(
           !(await validateCondition(
             testFilters || (await hook.getFilters()),
             newData,
+            { client: source?.type },
           ))
         ) {
           return;

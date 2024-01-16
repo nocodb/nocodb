@@ -280,6 +280,7 @@ watch(inputWrapperRef, () => {
       </NcTooltip>
     </div>
     <a-modal
+      v-if="isVisible"
       v-model:visible="isVisible"
       :closable="false"
       :footer="null"
@@ -288,10 +289,8 @@ watch(inputWrapperRef, () => {
       :mask-closable="false"
       :mask-style="{ zIndex: 1051 }"
       :z-index="1052"
-      :destroy-on-close="true"
     >
       <div
-        v-if="isVisible"
         ref="inputWrapperRef"
         class="flex flex-col py-3 w-full expanded-cell-input relative"
         :class="{
@@ -320,13 +319,13 @@ watch(inputWrapperRef, () => {
             v-model:value="vModel"
             class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50"
             :placeholder="$t('activity.enterText')"
-            :style="{ resize: 'vertical' }"
+            :style="{ resize: 'both' }"
             :disabled="readOnly"
             @keydown.escape="isVisible = false"
           />
         </div>
 
-        <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :readonly="readOnly" />
+        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :readonly="readOnly" />
       </div>
     </a-modal>
   </div>
@@ -337,9 +336,11 @@ textarea:focus {
   box-shadow: none;
 }
 .nc-text-area-expanded {
-  @apply h-[min(795px,100vh_-_170px)];
+  @apply h-[min(795px,100vh_-_170px)] w-[min(1256px,100vw_-_124px)];
 
   max-height: min(795px, 100vh - 170px);
+  min-width: 256px;
+  max-width: min(1256px, 100vw - 124px);
   scrollbar-width: thin !important;
   &::-webkit-scrollbar-thumb {
     @apply rounded-lg;
@@ -358,14 +359,13 @@ textarea:focus {
     @apply !w-full h-full !top-0 !mx-auto !my-0;
 
     .ant-modal-content {
-      @apply absolute w-full min-h-70 !p-0 left-[50%] top-[50%];
+      @apply absolute w-[fit-content] min-h-70 min-w-70 !p-0 left-[50%] top-[50%];
 
       /* Use 'transform' to center the div correctly */
       transform: translate(-50%, -50%);
 
-      min-width: min(800px, calc(100vw - 100px));
-      max-width: min(1280px, calc(100vw - 100px));
-      max-height: min(864px, calc(100vh - 100px));
+      max-width: min(1280px, 100vw - 100px);
+      max-height: min(864px, 100vh - 100px);
     }
   }
 }

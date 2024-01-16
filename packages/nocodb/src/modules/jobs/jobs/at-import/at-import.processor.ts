@@ -522,7 +522,7 @@ export class AtImportProcessor {
           const col = tblSchema[i].columns[j];
 
           // skip link, lookup, rollup fields in this iteration
-          if (['foreignKey', 'lookup', 'rollup'].includes(col.type)) {
+          if (['foreignKey', 'lookup', 'rollup', 'count'].includes(col.type)) {
             continue;
           }
 
@@ -1100,7 +1100,7 @@ export class AtImportProcessor {
         CONCATENATE: '',
         COUNT: 'count',
         COUNTA: '',
-        COUNTALL: '',
+        COUNTALL: 'count',
         MAX: 'max',
         MIN: 'min',
         OR: '',
@@ -1114,7 +1114,7 @@ export class AtImportProcessor {
       // Rollup
       for (let idx = 0; idx < aTblSchema.length; idx++) {
         const aTblColumns = aTblSchema[idx].columns.filter(
-          (x) => x.type === 'rollup',
+          (x) => x.type === 'rollup' || x.type === 'count',
         );
 
         // parent table ID
@@ -1132,9 +1132,12 @@ export class AtImportProcessor {
 
             // fetch associated rollup function
             // skip column creation if supported rollup function does not exist
-            const ncRollupFn = getRollupNcFunction(
-              aTblColumns[i].typeOptions.formulaTextParsed,
-            );
+            const ncRollupFn =
+              aTblColumns[i].type === 'count'
+                ? 'count'
+                : getRollupNcFunction(
+                    aTblColumns[i].typeOptions.formulaTextParsed,
+                  );
 
             if (ncRollupFn === '' || ncRollupFn === undefined) {
               updateMigrationSkipLog(
@@ -1166,9 +1169,22 @@ export class AtImportProcessor {
             const ncRelationColumnId = await sMap.getNcIdFromAtId(
               aTblColumns[i].typeOptions.relationColumnId,
             );
-            const ncRollupColumnId = await sMap.getNcIdFromAtId(
+            let ncRollupColumnId = await sMap.getNcIdFromAtId(
               aTblColumns[i].typeOptions.foreignTableRollupColumnId,
             );
+
+            if (!ncRollupColumnId && aTblColumns[i].type === 'count') {
+              const ncRelationColumn = await nc_getColumnSchema(
+                aTblColumns[i].typeOptions.relationColumnId,
+              );
+              const ncRelatedModelId =
+                ncRelationColumn?.colOptions?.fk_related_model_id;
+              if (ncRelatedModelId) {
+                ncRollupColumnId = ncSchema.tablesById[
+                  ncRelatedModelId
+                ].columns.find((x) => x.pk)?.id;
+              }
+            }
 
             if (!ncRollupColumnId) {
               aTblColumns[i]['srcTableId'] = srcTableId;
@@ -1884,7 +1900,7 @@ export class AtImportProcessor {
           (x) => x.type === 'lookup',
         );
         const aTblRollup = aTblSchema[idx].columns.filter(
-          (x) => x.type === 'rollup',
+          (x) => x.type === 'rollup' || x.type === 'count',
         );
 
         let invalidColumnId = 0;

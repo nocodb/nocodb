@@ -158,12 +158,13 @@ export class ExportService {
         // pg default value fix
         if (source.type === 'pg') {
           if (column.cdf) {
+            const cdf = column.cdf.toString();
             // check if column.cdf has unmatched single quotes
-            const matches = column.cdf.match(/'/g);
+            const matches = cdf.match(/'/g);
             if (matches && matches.length % 2 !== 0) {
               // if so remove after last single quote
-              const lastQuoteIndex = column.cdf.lastIndexOf("'");
-              column.cdf = column.cdf.substring(0, lastQuoteIndex);
+              const lastQuoteIndex = cdf.lastIndexOf("'");
+              column.cdf = cdf.substring(0, lastQuoteIndex);
             }
           }
         }

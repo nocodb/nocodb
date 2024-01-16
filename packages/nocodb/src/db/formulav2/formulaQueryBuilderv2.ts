@@ -905,6 +905,23 @@ async function _formulaQueryBuilder(
 
       // if operator is == or !=, then handle comparison with BLANK which should accept NULL and empty string
       if (pt.operator === '==' || pt.operator === '!=') {
+        for (const operand of ['left', 'right']) {
+          if (
+            pt[operand].dataType === FormulaDataTypes.BOOLEAN &&
+            pt[operand === 'left' ? 'right' : 'left'].dataType ===
+              FormulaDataTypes.NUMERIC
+          ) {
+            pt[operand === 'left' ? 'right' : 'left'] = {
+              type: 'CallExpression',
+              arguments: [pt[operand === 'left' ? 'right' : 'left']],
+              callee: {
+                type: 'Identifier',
+                name: 'BOOLEAN',
+              },
+              dataType: FormulaDataTypes.BOOLEAN,
+            };
+          }
+        }
         if (pt.left.callee?.name !== pt.right.callee?.name) {
           // if left/right is BLANK, accept both NULL and empty string
           for (const operand of ['left', 'right']) {
@@ -1168,7 +1185,7 @@ export default async function formulaQueryBuilderv2(
       const formula = await column.getColOptions<FormulaColumn>();
       // clean the previous formula error if the formula works this time
       if (formula.error) {
-        await FormulaColumn.update(formula.id, {
+        await FormulaColumn.update(column.id, {
           error: null,
         });
       }
@@ -1178,9 +1195,8 @@ export default async function formulaQueryBuilderv2(
 
     console.error(e);
     if (column) {
-      const formula = await column.getColOptions<FormulaColumn>();
       // add formula error to show in UI
-      await FormulaColumn.update(formula.id, {
+      await FormulaColumn.update(column.id, {
         error: e.message,
       });
       // update cache to reflect the error in UI

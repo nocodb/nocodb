@@ -10,6 +10,7 @@ import type { TableType } from 'nocodb-sdk';
 
 const BULK_DATA_BATCH_COUNT = 20; // check size for every 100 records
 const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
+const BULK_LINK_BATCH_COUNT = 1000; // process 1000 records at a time
 const BULK_PARALLEL_PROCESS = 5;
 
 interface AirtableImportContext {
@@ -307,12 +308,10 @@ export async function importLTARData({
   }
 
   let nestedLinkCnt = 0;
+  let importedCount = 0;
+  let assocTableData = [];
   // Iterate over all related M2M associative  table
-  for await (const assocMeta of assocTableMetas) {
-    let assocTableData = [];
-    let importedCount = 0;
-    let tempCount = 0;
-
+  for (const assocMeta of assocTableMetas) {
     //  extract link data from records
     await new Promise((resolve, reject) => {
       const promises = [];
@@ -333,40 +332,35 @@ export async function importLTARData({
                   [assocMeta.refCol.title]: id,
                 })),
               );
-              tempCount++;
 
-              if (tempCount >= BULK_DATA_BATCH_COUNT) {
-                if (sizeof(assocTableData) >= BULK_DATA_BATCH_SIZE) {
-                  readable.pause();
+              if (assocTableData.length >= BULK_LINK_BATCH_COUNT) {
+                readable.pause();
 
-                  let insertArray = assocTableData.splice(
-                    0,
-                    assocTableData.length,
-                  );
+                let insertArray = assocTableData.splice(
+                  0,
+                  assocTableData.length,
+                );
 
-                  logBasic(
-                    `:: Importing '${
-                      table.title
-                    }' LTAR data :: ${importedCount} - ${Math.min(
-                      importedCount + insertArray.length,
-                      insertArray.length,
-                    )}`,
-                  );
+                logBasic(
+                  `:: Importing '${
+                    table.title
+                  }' LTAR data :: ${importedCount} - ${
+                    importedCount + insertArray.length
+                  }`,
+                );
 
-                  await services.bulkDataService.bulkDataInsert({
-                    baseName,
-                    tableName: assocMeta.modelMeta.id,
-                    body: insertArray,
-                    cookie: {},
-                    skip_hooks: true,
-                  });
+                await services.bulkDataService.bulkDataInsert({
+                  baseName,
+                  tableName: assocMeta.modelMeta.id,
+                  body: insertArray,
+                  cookie: {},
+                  skip_hooks: true,
+                });
 
-                  importedCount += insertArray.length;
-                  insertArray = [];
+                importedCount += insertArray.length;
+                insertArray = [];
 
-                  readable.resume();
-                }
-                tempCount = 0;
+                readable.resume();
               }
               resolve(true);
             } catch (e) {
@@ -383,12 +377,9 @@ export async function importLTARData({
           // insert remaining data
           if (assocTableData.length >= 0) {
             logBasic(
-              `:: Importing '${
-                table.title
-              }' LTAR data :: ${importedCount} - ${Math.min(
-                importedCount + assocTableData.length,
-                assocTableData.length,
-              )}`,
+              `:: Importing '${table.title}' LTAR data :: ${importedCount} - ${
+                importedCount + assocTableData.length
+              }`,
             );
 
             await services.bulkDataService.bulkDataInsert({
@@ -403,14 +394,14 @@ export async function importLTARData({
             assocTableData = [];
           }
 
+          nestedLinkCnt += importedCount;
+
           resolve(true);
         } catch (e) {
           reject(e);
         }
       });
     });
-
-    nestedLinkCnt += importedCount;
   }
   return nestedLinkCnt;
 }

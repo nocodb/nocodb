@@ -221,6 +221,7 @@ export class AtImportProcessor {
       rtc.migrationSkipLog.log.push(
         `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`,
       );
+      logWarning(`Skipped ${tbl} :: ${col} (${type}) :: ${reason}`);
     };
 
     // mapping table
@@ -442,6 +443,11 @@ export class AtImportProcessor {
                   el.title.toLowerCase() === (value as any).name.toLowerCase(),
               )
             ) {
+              logWarning(
+                `Duplicate select option found: ${col.name} :: ${
+                  (value as any).name
+                }`,
+              );
               continue;
             }
             options.push({
@@ -517,7 +523,7 @@ export class AtImportProcessor {
           const col = tblSchema[i].columns[j];
 
           // skip link, lookup, rollup fields in this iteration
-          if (['foreignKey', 'lookup', 'rollup'].includes(col.type)) {
+          if (['foreignKey', 'lookup', 'rollup', 'count'].includes(col.type)) {
             continue;
           }
 
@@ -540,7 +546,7 @@ export class AtImportProcessor {
               tblSchema[i].name,
               ncName.title,
               col.type,
-              'column type not supported',
+              'column type not supported yet',
             );
             continue;
           }
@@ -1095,7 +1101,7 @@ export class AtImportProcessor {
         CONCATENATE: '',
         COUNT: 'count',
         COUNTA: '',
-        COUNTALL: '',
+        COUNTALL: 'count',
         MAX: 'max',
         MIN: 'min',
         OR: '',
@@ -1109,7 +1115,7 @@ export class AtImportProcessor {
       // Rollup
       for (let idx = 0; idx < aTblSchema.length; idx++) {
         const aTblColumns = aTblSchema[idx].columns.filter(
-          (x) => x.type === 'rollup',
+          (x) => x.type === 'rollup' || x.type === 'count',
         );
 
         // parent table ID
@@ -1127,16 +1133,19 @@ export class AtImportProcessor {
 
             // fetch associated rollup function
             // skip column creation if supported rollup function does not exist
-            const ncRollupFn = getRollupNcFunction(
-              aTblColumns[i].typeOptions.formulaTextParsed,
-            );
+            const ncRollupFn =
+              aTblColumns[i].type === 'count'
+                ? 'count'
+                : getRollupNcFunction(
+                    aTblColumns[i].typeOptions.formulaTextParsed,
+                  );
 
             if (ncRollupFn === '' || ncRollupFn === undefined) {
               updateMigrationSkipLog(
                 srcTableSchema.title,
                 aTblColumns[i].name,
                 aTblColumns[i].type,
-                `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported`,
+                `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported yet`,
               );
               continue;
             }
@@ -1161,9 +1170,22 @@ export class AtImportProcessor {
             const ncRelationColumnId = await sMap.getNcIdFromAtId(
               aTblColumns[i].typeOptions.relationColumnId,
             );
-            const ncRollupColumnId = await sMap.getNcIdFromAtId(
+            let ncRollupColumnId = await sMap.getNcIdFromAtId(
               aTblColumns[i].typeOptions.foreignTableRollupColumnId,
             );
+
+            if (!ncRollupColumnId && aTblColumns[i].type === 'count') {
+              const ncRelationColumn = await nc_getColumnSchema(
+                aTblColumns[i].typeOptions.relationColumnId,
+              );
+              const ncRelatedModelId =
+                ncRelationColumn?.colOptions?.fk_related_model_id;
+              if (ncRelatedModelId) {
+                ncRollupColumnId = ncSchema.tablesById[
+                  ncRelatedModelId
+                ].columns.find((x) => x.pk)?.id;
+              }
+            }
 
             if (!ncRollupColumnId) {
               aTblColumns[i]['srcTableId'] = srcTableId;
@@ -1185,7 +1207,7 @@ export class AtImportProcessor {
                 srcTableSchema.title,
                 aTblColumns[i].name,
                 aTblColumns[i].type,
-                'rollup referring to a column type not supported currently',
+                'rollup referring to a column type not supported yet',
               );
               continue;
             }
@@ -1879,7 +1901,7 @@ export class AtImportProcessor {
           (x) => x.type === 'lookup',
         );
         const aTblRollup = aTblSchema[idx].columns.filter(
-          (x) => x.type === 'rollup',
+          (x) => x.type === 'rollup' || x.type === 'count',
         );
 
         let invalidColumnId = 0;
@@ -2033,7 +2055,7 @@ export class AtImportProcessor {
             await sMap.getNcNameFromAtId(viewId),
             colSchema.title,
             colSchema.uidt,
-            `filter config skipped; filter over date datatype not supported`,
+            `filter config skipped; filter over date datatype not supported yet`,
           );
           continue;
         }
@@ -2172,7 +2194,7 @@ export class AtImportProcessor {
             await sMap.getNcNameFromAtId(viewId),
             colSchema.title,
             colSchema.uidt,
-            `group config skipped; group over ${datatype}  not supported`,
+            `group config skipped; group over ${datatype}  not supported yet`,
           );
           continue;
         }
@@ -2329,8 +2351,8 @@ export class AtImportProcessor {
     ///////////////////////////////////////////////////////////////////////////////
     try {
       logBasic('SDK initialized');
+
       logDetailed('Base initialization started');
-      // delete base if already exists
 
       logDetailed('Base initialized');
 

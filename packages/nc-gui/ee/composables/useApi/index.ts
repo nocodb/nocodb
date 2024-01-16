@@ -15,7 +15,6 @@ export function createApiInstance<SecurityDataType = any>({
     new Api<SecurityDataType>({
       baseURL,
     }),
-    baseURL,
   )
 }
 

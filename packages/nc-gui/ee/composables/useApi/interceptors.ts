@@ -6,12 +6,12 @@ import {} from '~/ee/store/workspace'
 const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')
 
-export function addAxiosInterceptors(api: Api<any>, baseURL?: string) {
+export function addAxiosInterceptors(api: Api<any>) {
   const { setTiming } = useApiTiming()
   const { getBaseUrl } = useGlobal()
   const router = useRouter()
 
-  addAxiosInterceptorsCE(api, baseURL)
+  addAxiosInterceptorsCE(api)
 
   api.instance.interceptors.request.use((config) => {
     if (!config.url?.endsWith('/jobs/listen') && !config.url?.endsWith('/jobs/status')) {
@@ -23,7 +23,7 @@ export function addAxiosInterceptors(api: Api<any>, baseURL?: string) {
       }
 
       const baseUrl = typeOrWorkspaceId && getBaseUrl(typeOrWorkspaceId)
-      if (baseUrl) {
+      if (baseUrl && !config.url?.endsWith('/auth/token/refresh')) {
         config.baseURL = baseUrl
       }
     }

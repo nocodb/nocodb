@@ -11,12 +11,9 @@ export function createApiInstance<SecurityDataType = any>({
   const config = useRuntimeConfig()
   const baseURL = config.public.ncBackendUrl || _baseUrl
   return addAxiosInterceptors(
-    new Api<SecurityDataType>(
-      {
-        baseURL,
-      },
-      baseUrl,
-    ),
+    new Api<SecurityDataType>({
+      baseURL,
+    }),
   )
 }
 

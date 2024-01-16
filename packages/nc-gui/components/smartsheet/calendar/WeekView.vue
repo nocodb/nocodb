@@ -46,7 +46,11 @@ const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanD
 
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
-  const recordsInDay: any = {
+  const recordsInDay: {
+    [key: number]: {
+      [key: number]: boolean
+    }
+  } = {
     0: {},
     1: {},
     2: {},
@@ -139,8 +143,9 @@ const calendarData = computed(() => {
     } else if (fromCol) {
       for (const record of formattedData.value) {
         const startDate = dayjs(record.row[fromCol.title])
-        const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-        recordsInDay[startDaysDiff]++
+        const startDaysDiff = Math.max(startDate.diff(selectedDateRange.value.start, 'day'), 0)
+        const suitableColumn = findFirstSuitableColumn(recordsInDay, startDaysDiff, 1)
+        recordsInDay[startDaysDiff][suitableColumn] = true
 
         recordsInRange.push({
           ...record,
@@ -150,8 +155,8 @@ const calendarData = computed(() => {
             position: 'rounded',
             style: {
               width: `calc(${perDayWidth}px)`,
-              left: `${startDate.diff(selectedDateRange.value.start, 'day') * perDayWidth}px`,
-              top: `${(recordsInDay[startDaysDiff] - 1) * 50}px`,
+              left: `${startDaysDiff * perDayWidth}px`,
+              top: `${suitableColumn * 50}px`,
             },
           },
         })

@@ -320,7 +320,6 @@ watch(inputWrapperRef, () => {
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'vertical' }"
             :disabled="readOnly"
-            @keydown.stop
             @keydown.escape="isVisible = false"
           />
         </div>

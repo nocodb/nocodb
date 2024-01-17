@@ -194,7 +194,7 @@ watch(editorDom, () => {
       :editor="editor"
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
-        'ml-1 mt-2.5 flex-grow': props.fullMode,
+        'mt-2.5 flex-grow': props.fullMode,
         'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
         'flex-grow': isExpandedFormOpen,
         [`!overflow-hidden children:line-clamp-${rowHeight}`]:
@@ -232,14 +232,17 @@ watch(editorDom, () => {
 }
 
 .nc-rich-text-full {
-  @apply px-1.75;
+  @apply px-3;
   .ProseMirror {
-    @apply !p-2 h-[min(797px,100vh_-_170px)];
+    @apply !p-2 h-[min(797px,100vh_-_170px)] w-[min(1256px,100vw_-_124px)];
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin !important;
+    resize: both;
     min-height: 215px;
     max-height: min(797px, calc(100vh - 170px));
+    min-width: 256px;
+    max-width: min(1256px, 100vw - 124px);
   }
   &.readonly {
     .ProseMirror {
@@ -250,8 +253,8 @@ watch(editorDom, () => {
 
 .nc-textarea-rich-editor {
   .ProseMirror {
-    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2;
-    resize: vertical;
+    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg;
+
     > * {
       @apply ml-1;
     }

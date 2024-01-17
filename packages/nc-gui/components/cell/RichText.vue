@@ -176,8 +176,16 @@ watch(editorDom, () => {
     }"
     tabindex="0"
   >
-    <div v-if="props.showMenu && !props.readonly" class="absolute top-0 right-0.5 xs:hidden">
-      <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
+    <div
+      v-if="props.showMenu && !props.readonly"
+      class="absolute top-0 right-0.5 xs:hidden"
+      :class="{
+        'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': props.fullMode,
+      }"
+    >
+      <div class="nc-scrollbar-x-md">
+        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
+      </div>
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
@@ -226,12 +234,12 @@ watch(editorDom, () => {
 .nc-rich-text-full {
   @apply px-1.75;
   .ProseMirror {
-    @apply !p-2 h-[215px];
+    @apply !p-2 h-[min(797px,100vh_-_170px)];
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin !important;
-    max-height: min(794px, calc(100vh - 170px));
     min-height: 215px;
+    max-height: min(797px, calc(100vh - 170px));
   }
   &.readonly {
     .ProseMirror {

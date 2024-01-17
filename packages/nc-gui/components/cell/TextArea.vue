@@ -123,7 +123,9 @@ const onMouseMove = (e: MouseEvent) => {
   position.value = {
     top: e.clientY - (mousePosition.value?.top || 0) > 0 ? e.clientY - (mousePosition.value?.top || 0) : position.value?.top || 0,
     left:
-      e.clientX - (mousePosition.value?.left || 0) > 0 ? e.clientX - (mousePosition.value?.left || 0) : position.value?.left || 0,
+      e.clientX - (mousePosition.value?.left || 0) > -16
+        ? e.clientX - (mousePosition.value?.left || 0)
+        : position.value?.left || 0,
   }
 }
 
@@ -281,7 +283,7 @@ watch(inputWrapperRef, () => {
       v-model:visible="isVisible"
       :closable="false"
       :footer="null"
-      wrap-class-name="nc-long-text-expanded-modal !z-1151"
+      wrap-class-name="nc-long-text-expanded-modal"
       :mask="true"
       :mask-closable="false"
       :mask-style="{ zIndex: 1051 }"
@@ -298,7 +300,7 @@ watch(inputWrapperRef, () => {
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 overflow-hidden"
           :class="{
             'select-none': isDragging,
             'cursor-move': !isEditColumn,
@@ -335,7 +337,9 @@ textarea:focus {
   box-shadow: none;
 }
 .nc-text-area-expanded {
-  max-height: min(794px, calc(100vh - 170px));
+  @apply h-[min(795px,100vh_-_170px)];
+
+  max-height: min(795px, 100vh - 170px);
   scrollbar-width: thin !important;
   &::-webkit-scrollbar-thumb {
     @apply rounded-lg;
@@ -351,7 +355,7 @@ textarea:focus {
 
 .nc-long-text-expanded-modal {
   .ant-modal {
-    @apply !w-full h-full !top-0;
+    @apply !w-full h-full !top-0 !mx-auto !my-0;
 
     .ant-modal-content {
       @apply absolute w-full min-h-70 !p-0 left-[50%] top-[50%];

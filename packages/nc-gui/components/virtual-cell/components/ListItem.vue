@@ -208,8 +208,11 @@ const displayValue = computed(() => {
       @apply !min-h-6 !max-h-6;
     }
     .nc-rich-text-embed {
-      .ProseMirror {
-        @apply !overflow-hidden line-clamp-1;
+      .nc-textarea-rich-editor {
+        @apply !overflow-hidden;
+        .ProseMirror {
+          @apply !overflow-hidden line-clamp-1;
+        }
       }
     }
   }

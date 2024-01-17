@@ -84,11 +84,6 @@ watch(isVisible, () => {
     setTimeout(() => {
       inputRef.value?.focus()
     }, 100)
-  } else {
-    const modalContent = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
-    if (modalContent) {
-      modalContent.style.transform = 'translate(-50%, -50%)'
-    }
   }
 })
 

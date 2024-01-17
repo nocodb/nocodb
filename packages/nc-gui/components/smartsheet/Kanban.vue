@@ -366,7 +366,7 @@ watch(
         // horizontally scroll to the end of the kanban container
         // when a new option is added within kanban view
         nextTick(() => {
-          if (shouldScrollToRight.value) {
+          if (shouldScrollToRight.value && kanbanContainerRef.value) {
             kanbanContainerRef.value.scrollTo({
               left: kanbanContainerRef.value.scrollWidth,
               behavior: 'smooth',

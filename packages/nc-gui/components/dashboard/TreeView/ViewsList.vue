@@ -158,7 +158,8 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   if (!currentItem || !currentItem.id) return
 
-  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : {}) as ViewType
+  // set default order value as 0 if item not found
+  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }) as ViewType
   const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number

@@ -116,7 +116,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
 })
 
 const hiddenFields = computed(() => {
-  return (meta.value.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
+  // todo: figure out when meta.value is undefined
+  return (meta.value?.columns ?? []).filter((col) => !fields.value?.includes(col)).filter((col) => !isSystemColumn(col))
 })
 
 const showHiddenFields = ref(false)

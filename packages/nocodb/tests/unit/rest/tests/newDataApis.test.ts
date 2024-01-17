@@ -2565,7 +2565,7 @@ function linkBased() {
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: 9999 },
-      status: 200,
+      status: 400,
     });
 
     // Link List: Invalid query parameter - negative limit

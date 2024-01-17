@@ -720,10 +720,12 @@ export const formulas: Record<string, FormulaMeta> = {
           throw new FormulaError(
             FormulaErrorType.INVALID_ARG,
             {
-              key: 'msg.formula.numericTypeIsExpected',
+              key: 'msg.formula.typeIsExpected',
+              type: 'Numeric',
               calleeName: parsedTree.callee?.name?.toUpperCase(),
+              position: 2,
             },
-            'Numeric type is expected'
+            'The REPEAT function requires a numeric as the parameter at position 2'
           );
         }
       },
@@ -1705,26 +1707,32 @@ export async function validateFormulaAndExtractTreeWithType({
                 `Field ${name} with ${argPt.dataType} type is found but ${expectedArgType} type is expected`
               );
             } else {
-              let key = '',
-                message = 'Invalid argument type';
+              let key = '';
+              const position = i + 1;
+              let type = '';
+
               if (expectedArgType === FormulaDataTypes.NUMERIC) {
-                key = 'msg.formula.numericTypeIsExpected';
-                message = 'Numeric type is expected';
+                key = 'msg.formula.typeIsExpected';
+                type = 'numeric';
               } else if (expectedArgType === FormulaDataTypes.BOOLEAN) {
-                key = 'msg.formula.booleanTypeIsExpected';
-                message = 'Boolean type is expected';
+                key = 'msg.formula.typeIsExpected';
+                type = 'boolean';
               } else if (expectedArgType === FormulaDataTypes.DATE) {
-                key = 'msg.formula.dateTypeIsExpected';
-                message = 'Date type is expected';
+                key = 'msg.formula.typeIsExpected';
+                type = 'date';
               }
 
               throw new FormulaError(
                 FormulaErrorType.INVALID_ARG,
                 {
+                  type,
                   key,
+                  position,
                   calleeName,
                 },
-                message
+                `${calleeName?.toUpperCase()} requires a ${
+                  type || expectedArgType
+                } at position ${position}`
               );
             }
           }

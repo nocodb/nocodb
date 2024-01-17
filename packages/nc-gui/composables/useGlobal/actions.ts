@@ -29,12 +29,15 @@ export function useGlobalActions(state: State): Actions {
     }
   }
 
-  /** Sign in by setting the token in localStorage */
-  const signIn: Actions['signIn'] = async (newToken) => {
+  /** Sign in by setting the token in localStorage
+   * keepProps - is for keeping any existing role info if user id is same as previous user
+   * */
+  const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
     state.token.value = newToken
 
     if (state.jwtPayload.value) {
       state.user.value = {
+        ...(keepProps && state.user.value?.id === state.jwtPayload.value.id ? state.user.value || {} : {}),
         id: state.jwtPayload.value.id,
         email: state.jwtPayload.value.email,
         firstname: state.jwtPayload.value.firstname,
@@ -57,7 +60,7 @@ export function useGlobalActions(state: State): Actions {
         })
         .then((response) => {
           if (response.data?.token) {
-            signIn(response.data.token)
+            signIn(response.data.token, true)
           }
         })
         .catch(async () => {

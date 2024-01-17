@@ -199,7 +199,7 @@ function columnTypeSpecificTests() {
         }
       });
 
-      it.only('New record: verify system fields', async () => {
+      it('New record: verify system fields', async () => {
         // created-at is filled with current dateTime, last-modified-at is null
         // created-by is filled with current user, last-modified-by is null
 

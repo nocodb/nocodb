@@ -172,7 +172,7 @@ watch(editorDom, () => {
     }"
     tabindex="0"
   >
-    <div v-if="props.showMenu" class="absolute top-0 right-0.5 xs:hidden">
+    <div v-if="props.showMenu && !props.readonly" class="absolute top-0 right-0.5 xs:hidden">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
@@ -205,6 +205,7 @@ watch(editorDom, () => {
 .nc-rich-text-embed {
   .ProseMirror {
     @apply !border-transparent max-h-full;
+    min-height: 8rem;
   }
 }
 
@@ -213,14 +214,14 @@ watch(editorDom, () => {
   .ProseMirror {
     @apply !p-2;
 
-    max-height: calc(min(60vh, 100rem));
-    min-height: 8rem;
+    max-height: min(794px, calc(100vh - 170px));
+    min-height: 215px;
   }
 }
 
 .nc-textarea-rich-editor {
   .ProseMirror {
-    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2 h-[215px];
+    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2;
     resize: vertical;
     > * {
       @apply ml-1;

@@ -86,7 +86,7 @@ onClickOutside(inputWrapperRef, (e) => {
 })
 
 const onTextClick = () => {
-  if (!props.virtual || readOnly?.value) return
+  if (!props.virtual) return
 
   isVisible.value = true
   editEnabled.value = true
@@ -104,7 +104,6 @@ const isRichMode = computed(() => {
 })
 
 const onExpand = () => {
-  if (readOnly?.value) return
   isVisible.value = true
 }
 
@@ -112,7 +111,6 @@ const onMouseMove = (e: MouseEvent) => {
   if (!isDragging.value) return
 
   e.stopPropagation()
-
   position.value = {
     top: e.clientY - 30,
     left: e.clientX - 120,
@@ -151,6 +149,8 @@ watch(
 )
 
 const dragStart = () => {
+  if (isEditColumn.value) return
+
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 
@@ -160,6 +160,27 @@ const dragStart = () => {
 watch(editEnabled, () => {
   if (editEnabled.value) {
     isVisible.value = true
+  }
+})
+
+const stopPropagation = (event: MouseEvent) => {
+  event.stopPropagation()
+}
+
+watch(inputWrapperRef, () => {
+  if (!isEditColumn.value) return
+
+  // stop event propogation in edit column
+  const modal = document.querySelector('.nc-long-text-expanded-modal') as HTMLElement
+
+  if (isVisible.value && modal?.parentElement) {
+    modal.parentElement.addEventListener('click', stopPropagation)
+    modal.parentElement.addEventListener('mousedown', stopPropagation)
+    modal.parentElement.addEventListener('mouseup', stopPropagation)
+  } else if (modal?.parentElement) {
+    modal.parentElement.removeEventListener('click', stopPropagation)
+    modal.parentElement.removeEventListener('mousedown', stopPropagation)
+    modal.parentElement.removeEventListener('mouseup', stopPropagation)
   }
 })
 </script>
@@ -231,7 +252,7 @@ watch(editEnabled, () => {
       <span v-else>{{ vModel }}</span>
 
       <NcTooltip
-        v-if="!readOnly && !isVisible"
+        v-if="!isVisible"
         placement="bottom"
         class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block"
         :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
@@ -243,25 +264,30 @@ watch(editEnabled, () => {
       </NcTooltip>
     </div>
     <a-modal
-      v-if="isVisible"
       v-model:visible="isVisible"
       :closable="false"
       :footer="null"
-      wrap-class-name="nc-long-text-expanded-modal !z-1051"
+      wrap-class-name="nc-long-text-expanded-modal !z-1151"
+      :mask="true"
+      :mask-closable="false"
+      :mask-style="{ zIndex: 1051 }"
+      :z-index="1052"
+      :destroy-on-close="true"
     >
       <div
         v-if="isVisible"
         ref="inputWrapperRef"
-        class="flex flex-col min-h-70 max-h-[864px] py-3 expanded-cell-input relative"
+        class="flex flex-col py-3 w-full expanded-cell-input relative"
         :class="{
           'cursor-move': isDragging,
         }"
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 cursor-move"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100"
           :class="{
             'select-none': isDragging,
+            'cursor-move': !isEditColumn,
           }"
           @mousedown="dragStart"
         >
@@ -276,7 +302,7 @@ watch(editEnabled, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded p-1 !pt-1 !pr-3 !text-black !cursor-text h-[215px] !min-h-[215px] !rounded-lg focus:border-brand-500"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500"
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'vertical' }"
             :disabled="readOnly"
@@ -285,7 +311,7 @@ watch(editEnabled, () => {
           />
         </div>
 
-        <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
+        <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :readonly="readOnly" />
       </div>
     </a-modal>
   </div>
@@ -296,12 +322,11 @@ textarea:focus {
   box-shadow: none;
 }
 .nc-text-area-expanded {
-  max-height: min(794px, 90vh);
+  max-height: min(794px, calc(100vh - 170px));
   scrollbar-width: thin !important;
-}
-.expanded-cell-input {
-  min-width: min(800px, 90vw);
-  max-width: min(1280px, 90vw);
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-lg;
+  }
 }
 </style>
 
@@ -313,18 +338,18 @@ textarea:focus {
 
 .nc-long-text-expanded-modal {
   .ant-modal {
-    width: 100% !important;
-    height: 100%;
-    top: 0;
-  }
-  .ant-modal-content {
-    position: absolute;
-    width: fit-content;
-    @apply !p-0;
-    left: 50%;
-    top: 50%;
-    /* Use 'transform' to center the div correctly */
-    transform: translate(-50%, -50%);
+    @apply !w-full h-full !top-0;
+
+    .ant-modal-content {
+      @apply absolute w-full min-h-70 !p-0 left-[50%] top-[50%];
+
+      /* Use 'transform' to center the div correctly */
+      transform: translate(-50%, -50%);
+
+      min-width: min(800px, calc(100vw - 100px));
+      max-width: min(1280px, calc(100vw - 100px));
+      max-height: min(864px, calc(100vh - 100px));
+    }
   }
 }
 </style>

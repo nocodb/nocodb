@@ -1679,6 +1679,7 @@ export async function validateFormulaAndExtractTreeWithType({
   const validateAndExtract = async (parsedTree: any) => {
     const res: {
       dataType?: FormulaDataTypes;
+      transform?: FormulaDataTypes;
       errors?: Set<string>;
       [key: string]: any;
     } = { ...parsedTree };
@@ -1763,7 +1764,8 @@ export async function validateFormulaAndExtractTreeWithType({
           if (
             argPt.dataType !== expectedArgType &&
             argPt.dataType !== FormulaDataTypes.NULL &&
-            argPt.dataType !== FormulaDataTypes.UNKNOWN
+            argPt.dataType !== FormulaDataTypes.UNKNOWN &&
+            expectedArgType !== FormulaDataTypes.STRING
           ) {
             if (argPt.type === JSEPNode.IDENTIFIER) {
               const name =
@@ -1808,6 +1810,14 @@ export async function validateFormulaAndExtractTreeWithType({
                 message
               );
             }
+          }
+
+          // if expected type is string and arg type is not string, then transform it to string
+          if (
+            expectedArgType === FormulaDataTypes.STRING &&
+            expectedArgType !== argPt.dataType
+          ) {
+            argPt.transform = FormulaDataTypes.STRING;
           }
         }
       }

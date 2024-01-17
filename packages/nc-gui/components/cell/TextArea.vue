@@ -220,7 +220,7 @@ watch(inputWrapperRef, () => {
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
+        <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -270,7 +270,7 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block"
+        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
@@ -325,7 +325,7 @@ watch(inputWrapperRef, () => {
           />
         </div>
 
-        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :readonly="readOnly" />
+        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
       </div>
     </a-modal>
   </div>
@@ -340,7 +340,7 @@ textarea:focus {
 
   max-height: min(795px, 100vh - 170px);
   min-width: 256px;
-  max-width: min(1256px, 100vw - 124px);
+  max-width: min(1256px, 100vw - 126px);
   scrollbar-width: thin !important;
   &::-webkit-scrollbar-thumb {
     @apply rounded-lg;

@@ -12,7 +12,7 @@ import { RowHeightInj, IsExpandedFormOpenInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
-  readonly?: boolean
+  readOnly?: boolean
   syncValueChange?: boolean
   showMenu?: boolean
   fullMode?: boolean
@@ -119,7 +119,7 @@ const editor = useEditor({
 
     vModel.value = markdown
   },
-  editable: !props.readonly,
+  editable: !props.readOnly,
 })
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
@@ -170,17 +170,17 @@ watch(editorDom, () => {
   <div
     class="h-full focus:outline-none"
     :class="{
-      'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
-      'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,
-      'readonly': props.readonly,
+      'flex flex-col flex-grow nc-rich-text-full': fullMode,
+      'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
+      'readonly': readOnly,
     }"
     tabindex="0"
   >
     <div
-      v-if="props.showMenu && !props.readonly"
+      v-if="showMenu && !readOnly"
       class="absolute top-0 right-0.5 xs:hidden"
       :class="{
-        'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': props.fullMode,
+        'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
       }"
     >
       <div class="nc-scrollbar-x-md">
@@ -194,11 +194,10 @@ watch(editorDom, () => {
       :editor="editor"
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
-        'mt-2.5 flex-grow': props.fullMode,
-        'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
+        'mt-2.5 flex-grow': fullMode,
+        'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
         'flex-grow': isExpandedFormOpen,
-        [`!overflow-hidden children:line-clamp-${rowHeight}`]:
-          !props.fullMode && props.readonly && rowHeight && !isExpandedFormOpen,
+        [`!overflow-hidden children:line-clamp-${rowHeight}`]: !fullMode && readOnly && rowHeight && !isExpandedFormOpen,
       }"
     />
   </div>
@@ -242,7 +241,7 @@ watch(editorDom, () => {
     min-height: 215px;
     max-height: min(797px, calc(100vh - 170px));
     min-width: 256px;
-    max-width: min(1256px, 100vw - 124px);
+    max-width: min(1256px, 100vw - 126px);
   }
   &.readonly {
     .ProseMirror {

@@ -178,8 +178,8 @@ watch(editEnabled, () => {
         v-if="isRichMode"
         class="w-full cursor-pointer"
         :style="{
-          maxHeight: `${height}px !important`,
-          minHeight: `${height}px !important`,
+          maxHeight: isExpandedFormOpen ? `${height}px !important` : `${25 * (rowHeight || 1)}px !important`,
+          minHeight: isExpandedFormOpen ? `${height}px !important` : `${25 * (rowHeight || 1)}px !important`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"

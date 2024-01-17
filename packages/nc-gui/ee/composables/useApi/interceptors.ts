@@ -23,7 +23,7 @@ export function addAxiosInterceptors(api: Api<any>) {
       }
 
       const baseUrl = typeOrWorkspaceId && getBaseUrl(typeOrWorkspaceId)
-      if (baseUrl) {
+      if (baseUrl && !config.url?.endsWith('/auth/token/refresh')) {
         config.baseURL = baseUrl
       }
     }

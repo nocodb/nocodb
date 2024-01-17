@@ -33,6 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         workspaceId: req.ncWorkspaceId,
       })),
       provider: jwtPayload.provider ?? undefined,
+      isAuthorized: true,
     };
   }
 }

@@ -309,6 +309,10 @@ export class AclMiddleware implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const _res = context.switchToHttp().getResponse();
 
+    if (!req.user?.isAuthorized) {
+      NcError.unauthorized('Invalid token');
+    }
+
     const userScopeRole = getUserRoleForScope(req.user, scope);
 
     if (!userScopeRole) {

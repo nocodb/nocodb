@@ -11,7 +11,9 @@ export function addAxiosInterceptors(api: Api<any>) {
   const route = router.currentRoute
   const optimisedQuery = useState('optimisedQuery', () => true)
 
-  api.instance.interceptors.request.use((config) => {
+  const axiosInstance = api.instance
+
+  axiosInstance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
     if (state.token.value) config.headers['xc-auth'] = state.token.value
@@ -38,7 +40,7 @@ export function addAxiosInterceptors(api: Api<any>) {
   })
 
   // Return a successful response back to the calling service
-  api.instance.interceptors.response.use(
+  axiosInstance.interceptors.response.use(
     (response) => {
       return response
     },
@@ -70,7 +72,7 @@ export function addAxiosInterceptors(api: Api<any>) {
             return new Promise((resolve, reject) => {
               const config = error.config
               config.headers['xc-auth'] = token
-              api.instance
+              axiosInstance
                 .request(config)
                 .then((response) => {
                   resolve(response)
@@ -96,7 +98,7 @@ export function addAxiosInterceptors(api: Api<any>) {
       }
 
       // Try request again with new token
-      return api.instance
+      return axiosInstance
         .post('/auth/token/refresh', null, {
           withCredentials: true,
         })
@@ -104,14 +106,14 @@ export function addAxiosInterceptors(api: Api<any>) {
           // New request with new token
           const config = error.config
           config.headers['xc-auth'] = token.data.token
-          state.signIn(token.data.token)
+          state.signIn(token.data.token, true)
 
           // resolve the refresh token promise and reset
           refreshTokenPromiseRes(token.data.token)
           refreshTokenPromise = null
 
           return new Promise((resolve, reject) => {
-            api.instance
+            axiosInstance
               .request(config)
               .then((response) => {
                 resolve(response)

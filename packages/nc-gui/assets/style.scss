@@ -250,7 +250,19 @@ a {
 }
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200
+  @apply border-1 border-gray-200;
+
+  .rc-virtual-list-scrollbar {
+    @apply !w-1;
+  }
+  
+  .rc-virtual-list-scrollbar-thumb{
+    @apply !bg-gray-200;
+
+    &:hover{
+      @apply !bg-gray-300;
+    }
+  }
 }
 
 // menu item styling

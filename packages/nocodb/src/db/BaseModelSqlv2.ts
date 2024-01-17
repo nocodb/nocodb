@@ -6216,6 +6216,7 @@ function shouldSkipField(
   if (fieldsSet) {
     return !fieldsSet.has(column.title);
   } else {
+    if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
     if (!extractPkAndPv) {
       if (!(viewOrTableColumn instanceof Column)) {
         if (

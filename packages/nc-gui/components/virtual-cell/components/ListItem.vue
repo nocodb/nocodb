@@ -202,5 +202,16 @@ const displayValue = computed(() => {
       @apply !hidden;
     }
   }
+  .long-text-wrapper {
+    @apply select-none pointer-events-none;
+    .nc-readonly-rich-text-wrapper {
+      @apply !min-h-6 !max-h-6;
+    }
+    .nc-rich-text-embed {
+      .ProseMirror {
+        @apply !overflow-hidden line-clamp-1;
+      }
+    }
+  }
 }
 </style>

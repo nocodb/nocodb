@@ -172,7 +172,7 @@ watch(editorDom, () => {
     }"
     tabindex="0"
   >
-    <div v-if="props.showMenu" class="absolute top-0 right-0.5">
+    <div v-if="props.showMenu" class="absolute top-0 right-0.5 xs:hidden">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
@@ -220,8 +220,8 @@ watch(editorDom, () => {
 
 .nc-textarea-rich-editor {
   .ProseMirror {
-    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2;
-
+    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2 h-[215px];
+    resize: vertical;
     > * {
       @apply ml-1;
     }
@@ -335,36 +335,9 @@ watch(editorDom, () => {
 
 .nc-rich-text-full {
   .ProseMirror {
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin !important;
-
-    &::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
-    }
-    &::-webkit-scrollbar-track {
-      -webkit-border-radius: 10px;
-      border-radius: 10px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-    &::-webkit-scrollbar-track-piece {
-      width: 0px;
-    }
-    &::-webkit-scrollbar {
-      @apply bg-transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      -webkit-border-radius: 10px;
-      border-radius: 10px;
-
-      width: 4px;
-      @apply bg-gray-300;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-400;
-    }
   }
 }
 </style>

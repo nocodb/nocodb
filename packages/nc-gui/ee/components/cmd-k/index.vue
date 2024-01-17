@@ -15,6 +15,7 @@ interface CmdAction {
   icon?: VNode | string
   keywords?: string[]
   section?: string
+  is_default?: number | null
 }
 
 const props = defineProps<{
@@ -30,7 +31,7 @@ const emits = defineEmits(['update:open', 'scope'])
 
 const vOpen = useVModel(props, 'open', emits)
 
-// const { $e } = useNuxtApp()
+const { t } = useI18n()
 
 const activeScope = ref('root')
 
@@ -53,8 +54,13 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
   for (const el of props.data) {
     rt.push({
       ...el,
+      title: el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title,
+      icon: el.section === 'Views' && el.is_default ? 'grid' : el.icon,
       parent: el.parent || 'root',
-      weight: commandScore(`${el.section}${el.title}${el.keywords?.join()}`, cmdInput.value),
+      weight: commandScore(
+        `${el.section}${el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title}${el.keywords?.join()}`,
+        cmdInput.value,
+      ),
     })
   }
   return rt
@@ -65,7 +71,11 @@ const nestedScope = computed(() => {
   let parent = activeScope.value
   while (parent !== 'root') {
     const parentEl = formattedData.value.find((el) => el.id === parent)
-    rt.push({ id: parent, label: parentEl?.title, icon: parentEl?.icon })
+    rt.push({
+      id: parent,
+      label: parentEl?.title,
+      icon: parentEl?.icon,
+    })
     parent = parentEl?.parent || 'root'
   }
   return rt.reverse()
@@ -328,6 +338,9 @@ defineExpose({
                 '!text-pink-500': el.icon === 'gallery',
               }"
             />
+            <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="el.icon" readonly />
+            </div>
             <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
               <template #title>
                 {{ el.label }}
@@ -385,7 +398,9 @@ defineExpose({
                         '!text-pink-500': act.icon === 'gallery',
                       }"
                     />
-                    <component :is="act.icon" v-else-if="act.icon" class="cmdk-action-icon text-gray-800" />
+                    <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                      <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
+                    </div>
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ act.title }}

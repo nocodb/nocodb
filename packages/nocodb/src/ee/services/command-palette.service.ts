@@ -142,7 +142,7 @@ export class CommandPaletteService {
               id: `tbl-${v.fk_model_id}`,
               title: v._ptn,
               parent: `p-${v.base_id}`,
-              icon: v.ptype,
+              icon: v?.table_meta?.icon || v.ptype,
               projectName: bases.find((el) => el.id === v.base_id)?.title,
               section: 'Tables',
             });
@@ -151,9 +151,10 @@ export class CommandPaletteService {
             id: `vw-${v.id}`,
             title: `${v.title}`,
             parent: `tbl-${v.fk_model_id}`,
-            icon: viewTypeAlias[v.type] || 'table',
+            icon: v?.meta?.icon || viewTypeAlias[v.type] || 'table',
             projectName: bases.find((el) => el.id === v.base_id)?.title,
             section: 'Views',
+            is_default: v?.is_default,
             handler: {
               type: 'navigate',
               payload: `/${data.workspace_id}/${v.base_id}/${

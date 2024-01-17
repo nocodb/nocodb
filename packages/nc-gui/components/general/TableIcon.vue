@@ -9,7 +9,7 @@ const { meta: tableMeta } = defineProps<{
 
 <template>
   <LazyGeneralEmojiPicker
-    v-if="tableMeta.meta?.icon"
+    v-if="tableMeta?.meta?.icon"
     :data-testid="`nc-emoji-${tableMeta.meta?.icon}`"
     class="text-lg"
     size="small"

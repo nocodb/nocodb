@@ -301,9 +301,21 @@ const onClickAudit = () => {
                 <GeneralUserIcon size="base" :email="log.user" />
 
                 <div class="flex flex-col">
-                  <span class="truncate font-bold max-w-50">
-                    {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
-                  </span>
+                  <NcTooltip class="truncate max-w-50" show-on-truncate-only>
+                    <template #title>
+                      {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                    </template>
+                    <span
+                      class="text-ellipsis overflow-hidden font-bold"
+                      :style="{
+                        wordBreak: 'keep-all',
+                        whiteSpace: 'nowrap',
+                        display: 'inline',
+                      }"
+                    >
+                      {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                    </span>
+                  </NcTooltip>
                   <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                     {{ timeAgo(log.created_at) }}
                   </div>

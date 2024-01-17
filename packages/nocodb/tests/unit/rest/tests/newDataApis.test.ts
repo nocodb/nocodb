@@ -140,6 +140,7 @@ const unauthorizedResponse = process.env.EE !== 'true' ? 404 : 403;
 const verifyColumnsInRsp = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
   const expectedColumnsListStr = columns
+    .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c)))
     .map((c) => c.title)
     .sort()
     .join(',');
@@ -680,12 +681,7 @@ function textBased() {
     expect(
       verifyColumnsInRsp(
         rsp.body.list[0],
-        columns.filter(
-          (c) =>
-            (!isCreatedOrLastModifiedTimeCol(c) &&
-              !isCreatedOrLastModifiedByCol(c)) ||
-            !c.system,
-        ),
+        columns.filter((c) => !isCreatedOrLastModifiedTimeCol(c) || !c.system),
       ),
     ).to.equal(true);
     const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
@@ -706,9 +702,7 @@ function textBased() {
     const displayColumns = columns.filter(
       (c) =>
         c.title !== 'SingleLineText' &&
-        ((!isCreatedOrLastModifiedTimeCol(c) &&
-          !isCreatedOrLastModifiedByCol(c)) ||
-          !c.system),
+        (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
   });
@@ -757,8 +751,7 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedOrLastModifiedTimeCol(c) &&
-        !isCreatedOrLastModifiedByCol(c),
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
     return gridView;
@@ -778,8 +771,7 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedOrLastModifiedTimeCol(c) &&
-        !isCreatedOrLastModifiedByCol(c),
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(61);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -801,8 +793,7 @@ function textBased() {
       (c) =>
         c.title !== 'MultiLineText' &&
         c.title !== 'Email' &&
-        !isCreatedOrLastModifiedTimeCol(c) &&
-        !isCreatedOrLastModifiedByCol(c),
+        !isCreatedOrLastModifiedTimeCol(c),
     );
     expect(rsp.body.pageInfo.totalRows).to.equal(7);
     expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(true);
@@ -894,9 +885,11 @@ function textBased() {
       query: {
         offset: 10000,
       },
-      status: 200,
+      status: 400,
     });
-    expect(rsp.body.list.length).to.equal(0);
+    expect(rsp.body.msg).to.equal(
+      'Offset is beyond the total number of records',
+    );
   });
 
   it('List: invalid sort, filter, fields', async function () {
@@ -3062,7 +3055,6 @@ export default function () {
   describe('Date based', dateBased);
   describe('Link based', linkBased);
   describe('User field based', userFieldBased);
-
   // based out of Sakila db, for link based tests
   describe('General', generalDb);
 }

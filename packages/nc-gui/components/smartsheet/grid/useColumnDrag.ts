@@ -143,9 +143,23 @@ export const useColumnDrag = ({
     }
   }
 
+  // fallback for safari browser
+  const onDragEnd = (e: DragEvent) => {
+    e.preventDefault()
+
+    if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
+
+    dragColPlaceholderDomRef.value!.style.left = `0px`
+    dragColPlaceholderDomRef.value!.style.height = '0px'
+    reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    draggedCol.value = null
+    toBeDroppedColId.value = null
+  }
+
   return {
     onDrag,
     onDragStart,
+    onDragEnd,
     draggedCol,
     dragColPlaceholderDomRef,
     toBeDroppedColId,

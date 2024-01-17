@@ -202,7 +202,7 @@ const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
-const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
+const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
   tableBodyEl,
   gridWrapper,
@@ -1368,6 +1368,7 @@ onKeyStroke('ArrowDown', onDown)
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
+                    @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(col)"

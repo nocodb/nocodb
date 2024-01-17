@@ -746,6 +746,23 @@ async function _formulaQueryBuilder(
       arg.fnName = pt.callee.name.toUpperCase();
       arg.argsCount = pt.arguments?.length;
     });
+
+    // if cast is string, then wrap with STRING() function
+    if (pt.cast === FormulaDataTypes.STRING) {
+      return fn(
+        {
+          type: 'CallExpression',
+          arguments: [{ ...pt, cast: null }],
+          callee: {
+            type: 'Identifier',
+            name: 'STRING',
+          },
+        },
+        a,
+        prevBinaryOp,
+      );
+    }
+
     if (pt.type === 'CallExpression') {
       switch (pt.callee.name.toUpperCase()) {
         case 'ADD':

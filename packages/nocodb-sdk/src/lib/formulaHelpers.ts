@@ -267,7 +267,9 @@ interface FormulaMeta {
       max?: number;
       rqd?: number;
 
-      type?: FormulaDataTypes;
+      // array of allowed types when args types are not same
+      // types should be in order of args
+      type?: FormulaDataTypes | FormulaDataTypes[];
     };
     custom?: (args: FormulaDataTypes[], parseTree: any) => void;
   };
@@ -956,38 +958,11 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         min: 2,
         max: 3,
-      },
-      custom(argTypes: FormulaDataTypes[], parsedTree) {
-        if (argTypes[0] !== FormulaDataTypes.STRING) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.stringTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'String type is expected'
-          );
-        }
-        if (argTypes[1] !== FormulaDataTypes.NUMERIC) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.numericTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'Numeric type is expected'
-          );
-        }
-        if (argTypes[2] && argTypes[2] !== FormulaDataTypes.NUMERIC) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.numericTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'Numeric type is expected'
-          );
-        }
+        type: [
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.NUMERIC,
+          FormulaDataTypes.NUMERIC,
+        ],
       },
     },
     description:
@@ -1007,6 +982,11 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 3,
+        type: [
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.NUMERIC,
+          FormulaDataTypes.NUMERIC,
+        ],
       },
       custom(argTypes: FormulaDataTypes[], parsedTree) {
         if (argTypes[0] !== FormulaDataTypes.STRING) {
@@ -1679,6 +1659,7 @@ export async function validateFormulaAndExtractTreeWithType({
   const validateAndExtract = async (parsedTree: any) => {
     const res: {
       dataType?: FormulaDataTypes;
+      cast?: FormulaDataTypes;
       errors?: Set<string>;
       [key: string]: any;
     } = { ...parsedTree };
@@ -1757,13 +1738,21 @@ export async function validateFormulaAndExtractTreeWithType({
       }
       // validate against expected arg types if present
       else if (formulas[calleeName].validation?.args?.type) {
-        const expectedArgType = formulas[calleeName].validation.args.type;
+        for (let i = 0; i < validateResult.length; i++) {
+          const argPt = validateResult[i];
 
-        for (const argPt of validateResult) {
+          // if type
+          const expectedArgType = Array.isArray(
+            formulas[calleeName].validation.args.type
+          )
+            ? formulas[calleeName].validation.args.type[i]
+            : formulas[calleeName].validation.args.type;
+
           if (
             argPt.dataType !== expectedArgType &&
             argPt.dataType !== FormulaDataTypes.NULL &&
-            argPt.dataType !== FormulaDataTypes.UNKNOWN
+            argPt.dataType !== FormulaDataTypes.UNKNOWN &&
+            expectedArgType !== FormulaDataTypes.STRING
           ) {
             if (argPt.type === JSEPNode.IDENTIFIER) {
               const name =
@@ -1784,13 +1773,9 @@ export async function validateFormulaAndExtractTreeWithType({
             } else {
               let key = '',
                 message = 'Invalid argument type';
-
               if (expectedArgType === FormulaDataTypes.NUMERIC) {
                 key = 'msg.formula.numericTypeIsExpected';
                 message = 'Numeric type is expected';
-              } else if (expectedArgType === FormulaDataTypes.STRING) {
-                key = 'msg.formula.stringTypeIsExpected';
-                message = 'String type is expected';
               } else if (expectedArgType === FormulaDataTypes.BOOLEAN) {
                 key = 'msg.formula.booleanTypeIsExpected';
                 message = 'Boolean type is expected';
@@ -1808,6 +1793,14 @@ export async function validateFormulaAndExtractTreeWithType({
                 message
               );
             }
+          }
+
+          // if expected type is string and arg type is not string, then cast it to string
+          if (
+            expectedArgType === FormulaDataTypes.STRING &&
+            expectedArgType !== argPt.dataType
+          ) {
+            argPt.cast = FormulaDataTypes.STRING;
           }
         }
       }

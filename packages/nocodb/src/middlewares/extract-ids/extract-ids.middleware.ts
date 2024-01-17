@@ -216,16 +216,15 @@ export class AclMiddleware implements NestInterceptor {
 
     const req = context.switchToHttp().getRequest();
 
-    if (!req.user?.isAuthorized) {
-      NcError.unauthorized('Invalid token');
-    }
-
     const userScopeRole =
       req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
         ? OrgUserRoles.SUPER_ADMIN
         : getUserRoleForScope(req.user, scope);
 
-    if (!userScopeRole) {
+    if (!userScopeRole)
+      if (!req.user?.isAuthorized) {
+        NcError.unauthorized('Invalid token');
+      }
       NcError.forbidden("You don't have permission to access this resource");
     }
 

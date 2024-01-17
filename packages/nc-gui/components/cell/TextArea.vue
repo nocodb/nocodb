@@ -48,10 +48,15 @@ const position = ref<
       left: number
     }
   | undefined
->({
-  top: 200,
-  left: 600,
-})
+>()
+
+const mousePosition = ref<
+  | {
+      top: number
+      left: number
+    }
+  | undefined
+>()
 
 const isDragging = ref(false)
 
@@ -108,13 +113,6 @@ const isRichMode = computed(() => {
 
 const onExpand = () => {
   isVisible.value = true
-
-  const { top, left } = inputWrapperRef.value?.getBoundingClientRect() ?? { top: 0, left: 0 }
-
-  position.value = {
-    top: top + 42,
-    left,
-  }
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -123,8 +121,11 @@ const onMouseMove = (e: MouseEvent) => {
   e.stopPropagation()
 
   position.value = {
-    top: e.clientY - 30,
-    left: e.clientX - 120,
+    top: e.clientY - (mousePosition.value?.top || 0) > 0 ? e.clientY - (mousePosition.value?.top || 0) : position.value?.top || 0,
+    left:
+      e.clientX - (mousePosition.value?.left || 0) > -16
+        ? e.clientX - (mousePosition.value?.left || 0)
+        : position.value?.left || 0,
   }
 }
 
@@ -135,27 +136,36 @@ const onMouseUp = (e: MouseEvent) => {
 
   isDragging.value = false
   position.value = undefined
+  mousePosition.value = undefined
 
   document.removeEventListener('mousemove', onMouseMove)
   document.removeEventListener('mouseup', onMouseUp)
 }
 
-watch(position, () => {
-  const dom = document.querySelector('.nc-textarea-dropdown-active') as HTMLElement
-  if (!dom) return
+watch(
+  position,
+  () => {
+    const dom = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
+    if (!dom || !position.value) return
 
-  if (!position.value) return
-
-  // Set left and top of dom
-  setTimeout(() => {
-    if (!position.value) return
-
+    // Set left and top of dom
+    dom.style.transform = 'none'
     dom.style.left = `${position.value.left}px`
     dom.style.top = `${position.value.top}px`
-  }, 1)
-})
+  },
+  { deep: true },
+)
 
-const dragStart = () => {
+const dragStart = (e: MouseEvent) => {
+  if (isEditColumn.value) return
+
+  const dom = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
+
+  mousePosition.value = {
+    top: e.clientY - dom.getBoundingClientRect().top,
+    left: e.clientX - dom.getBoundingClientRect().left + 16,
+  }
+
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 
@@ -167,16 +177,31 @@ watch(editEnabled, () => {
     isVisible.value = true
   }
 })
+
+const stopPropagation = (event: MouseEvent) => {
+  event.stopPropagation()
+}
+
+watch(inputWrapperRef, () => {
+  if (!isEditColumn.value) return
+
+  // stop event propogation in edit column
+  const modal = document.querySelector('.nc-long-text-expanded-modal') as HTMLElement
+
+  if (isVisible.value && modal?.parentElement) {
+    modal.parentElement.addEventListener('click', stopPropagation)
+    modal.parentElement.addEventListener('mousedown', stopPropagation)
+    modal.parentElement.addEventListener('mouseup', stopPropagation)
+  } else if (modal?.parentElement) {
+    modal.parentElement.removeEventListener('click', stopPropagation)
+    modal.parentElement.removeEventListener('mousedown', stopPropagation)
+    modal.parentElement.removeEventListener('mouseup', stopPropagation)
+  }
+})
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="isVisible"
-    class="overflow-hidden group"
-    :trigger="[]"
-    placement="bottomLeft"
-    :overlay-class-name="isVisible ? 'nc-textarea-dropdown-active' : undefined"
-  >
+  <div>
     <div
       class="flex flex-row pt-0.5 w-full long-text-wrapper"
       :class="{
@@ -187,15 +212,15 @@ watch(editEnabled, () => {
     >
       <div
         v-if="isRichMode"
-        class="w-full cursor-pointer"
+        class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :style="{
-          maxHeight: `${height}px !important`,
-          minHeight: `${height}px !important`,
+          maxHeight: isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          minHeight: isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
-        <LazyCellRichText v-model:value="vModel" sync-value-change readonly />
+        <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
       <textarea
         v-else-if="editEnabled && !isVisible"
@@ -212,6 +237,7 @@ watch(editEnabled, () => {
           minHeight: `${height}px`,
         }"
         :placeholder="isEditColumn ? $t('labels.optional') : ''"
+        :disabled="readOnly"
         @blur="editEnabled = false"
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
@@ -234,6 +260,7 @@ watch(editEnabled, () => {
         :style="{
           'word-break': 'break-word',
           'white-space': 'pre-line',
+          'max-height': `${25 * (rowHeight || 1)}px`,
         }"
         @click="onTextClick"
       />
@@ -243,7 +270,7 @@ watch(editEnabled, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block"
+        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
@@ -252,21 +279,30 @@ watch(editEnabled, () => {
         </NcButton>
       </NcTooltip>
     </div>
-
-    <template #overlay>
+    <a-modal
+      v-if="isVisible"
+      v-model:visible="isVisible"
+      :closable="false"
+      :footer="null"
+      wrap-class-name="nc-long-text-expanded-modal"
+      :mask="true"
+      :mask-closable="false"
+      :mask-style="{ zIndex: 1051 }"
+      :z-index="1052"
+    >
       <div
-        v-if="isVisible"
         ref="inputWrapperRef"
-        class="flex flex-col min-w-200 min-h-70 py-3 expanded-cell-input relative"
+        class="flex flex-col py-3 w-full expanded-cell-input relative"
         :class="{
           'cursor-move': isDragging,
         }"
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 cursor-move"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 overflow-hidden"
           :class="{
             'select-none': isDragging,
+            'cursor-move': !isEditColumn,
           }"
           @mousedown="dragStart"
         >
@@ -277,33 +313,60 @@ watch(editEnabled, () => {
             </span>
           </div>
         </div>
-        <a-textarea
-          v-if="!isRichMode"
-          ref="inputRef"
-          v-model:value="vModel"
-          class="p-1 !pt-1 !pr-3 !border-0 !border-r-0 !focus:outline-transparent nc-scrollbar-md !text-black !cursor-text"
-          :placeholder="$t('activity.enterText')"
-          :bordered="false"
-          :auto-size="{ minRows: 20, maxRows: 20 }"
-          :disabled="readOnly"
-          @keydown.stop
-          @keydown.escape="isVisible = false"
-        />
+        <div v-if="!isRichMode" class="p-3 pb-0 h-full">
+          <a-textarea
+            ref="inputRef"
+            v-model:value="vModel"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50"
+            :placeholder="$t('activity.enterText')"
+            :style="{ resize: 'both' }"
+            :disabled="readOnly"
+            @keydown.escape="isVisible = false"
+          />
+        </div>
 
-        <LazyCellRichText v-else-if="isVisible" v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
+        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
       </div>
-    </template>
-  </NcDropdown>
+    </a-modal>
+  </div>
 </template>
 
 <style lang="scss" scoped>
 textarea:focus {
   box-shadow: none;
 }
+.nc-text-area-expanded {
+  @apply h-[min(795px,100vh_-_170px)] w-[min(1256px,100vw_-_124px)];
+
+  max-height: min(795px, 100vh - 170px);
+  min-width: 256px;
+  max-width: min(1256px, 100vw - 126px);
+  scrollbar-width: thin !important;
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-lg;
+  }
+}
 </style>
 
 <style lang="scss">
-.cell:hover .nc-text-area-expand-btn {
+.cell:hover .nc-text-area-expand-btn,
+.long-text-wrapper:hover .nc-text-area-expand-btn {
   @apply !block cursor-pointer;
+}
+
+.nc-long-text-expanded-modal {
+  .ant-modal {
+    @apply !w-full h-full !top-0 !mx-auto !my-0;
+
+    .ant-modal-content {
+      @apply absolute w-[fit-content] min-h-70 min-w-70 !p-0 left-[50%] top-[50%];
+
+      /* Use 'transform' to center the div correctly */
+      transform: translate(-50%, -50%);
+
+      max-width: min(1280px, 100vw - 100px);
+      max-height: min(864px, 100vh - 100px);
+    }
+  }
 }
 </style>

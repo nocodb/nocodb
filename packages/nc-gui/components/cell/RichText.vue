@@ -8,10 +8,11 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
+import { RowHeightInj, IsExpandedFormOpenInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
-  readonly?: boolean
+  readOnly?: boolean
   syncValueChange?: boolean
   showMenu?: boolean
   fullMode?: boolean
@@ -20,6 +21,8 @@ const props = defineProps<{
 const emits = defineEmits(['update:value'])
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const turndownService = new TurndownService({})
 
@@ -116,7 +119,7 @@ const editor = useEditor({
 
     vModel.value = markdown
   },
-  editable: !props.readonly,
+  editable: !props.readOnly,
 })
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
@@ -167,13 +170,22 @@ watch(editorDom, () => {
   <div
     class="h-full focus:outline-none"
     :class="{
-      'flex flex-col flex-grow nc-rich-text-full': props.fullMode,
-      'nc-rich-text-embed flex flex-col pl-1 w-full': !props.fullMode,
+      'flex flex-col flex-grow nc-rich-text-full': fullMode,
+      'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
+      'readonly': readOnly,
     }"
     tabindex="0"
   >
-    <div v-if="props.showMenu" class="absolute top-0 right-0.5">
-      <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
+    <div
+      v-if="showMenu && !readOnly"
+      class="absolute top-0 right-0.5 xs:hidden"
+      :class="{
+        'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
+      }"
+    >
+      <div class="nc-scrollbar-x-md">
+        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
+      </div>
     </div>
     <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
@@ -182,9 +194,10 @@ watch(editorDom, () => {
       :editor="editor"
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{
-        'ml-1 mt-2.5 flex-grow': props.fullMode,
-        'nc-scrollbar-md': (!props.fullMode && !props.readonly) || isExpandedFormOpen,
+        'mt-2.5 flex-grow': fullMode,
+        'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
         'flex-grow': isExpandedFormOpen,
+        [`!overflow-hidden children:line-clamp-${rowHeight}`]: !fullMode && readOnly && rowHeight && !isExpandedFormOpen,
       }"
     />
   </div>
@@ -205,22 +218,41 @@ watch(editorDom, () => {
 .nc-rich-text-embed {
   .ProseMirror {
     @apply !border-transparent max-h-full;
+    min-height: 8rem;
+  }
+  &.readonly {
+    .nc-textarea-rich-editor {
+      .ProseMirror {
+        resize: none;
+        white-space: pre-line;
+      }
+    }
   }
 }
 
 .nc-rich-text-full {
-  @apply px-1.75;
+  @apply px-3;
   .ProseMirror {
-    @apply !p-2;
-
-    max-height: calc(min(60vh, 100rem));
-    min-height: 8rem;
+    @apply !p-2 h-[min(797px,100vh_-_170px)] w-[min(1256px,100vw_-_124px)];
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin !important;
+    resize: both;
+    min-height: 215px;
+    max-height: min(797px, calc(100vh - 170px));
+    min-width: 256px;
+    max-width: min(1256px, 100vw - 126px);
+  }
+  &.readonly {
+    .ProseMirror {
+      @apply bg-gray-50;
+    }
   }
 }
 
 .nc-textarea-rich-editor {
   .ProseMirror {
-    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg pr-1 mr-2;
+    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg;
 
     > * {
       @apply ml-1;
@@ -330,41 +362,6 @@ watch(editorDom, () => {
 
   pre {
     height: fit-content;
-  }
-}
-
-.nc-rich-text-full {
-  .ProseMirror {
-    overflow-y: scroll;
-    overflow-x: hidden;
-    scrollbar-width: thin !important;
-
-    &::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
-    }
-    &::-webkit-scrollbar-track {
-      -webkit-border-radius: 10px;
-      border-radius: 10px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-    &::-webkit-scrollbar-track-piece {
-      width: 0px;
-    }
-    &::-webkit-scrollbar {
-      @apply bg-transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-      -webkit-border-radius: 10px;
-      border-radius: 10px;
-
-      width: 4px;
-      @apply bg-gray-300;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-400;
-    }
   }
 }
 </style>

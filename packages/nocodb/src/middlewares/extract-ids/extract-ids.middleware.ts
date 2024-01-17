@@ -216,6 +216,10 @@ export class AclMiddleware implements NestInterceptor {
 
     const req = context.switchToHttp().getRequest();
 
+    if (!req.user?.isAuthorized) {
+      NcError.unauthorized('Invalid token');
+    }
+
     const userScopeRole =
       req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
         ? OrgUserRoles.SUPER_ADMIN

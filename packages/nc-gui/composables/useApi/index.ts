@@ -6,13 +6,13 @@ import { addAxiosInterceptors } from './interceptors'
 import { BASE_FALLBACK_URL, createEventHook, extractSdkResponseErrorMsg, ref, unref, useCounter, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>({
-  baseURL = BASE_FALLBACK_URL,
+  baseURL: _baseUrl = BASE_FALLBACK_URL,
 }: CreateApiOptions = {}): Api<SecurityDataType> {
   const config = useRuntimeConfig()
-
+  const baseURL = config.public.ncBackendUrl || _baseUrl
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
-      baseURL: config.public.ncBackendUrl || baseURL,
+      baseURL,
     }),
   )
 }

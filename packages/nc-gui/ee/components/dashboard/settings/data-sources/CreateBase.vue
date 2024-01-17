@@ -237,6 +237,7 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   readFile(el, (content) => {
     if ('ssl' in formState.value.dataSource.connection && typeof formState.value.dataSource.connection.ssl === 'object')
       formState.value.dataSource.connection.ssl[key] = content ?? ''
+    el.value = null
   })
 }
 

@@ -142,7 +142,9 @@ const onCreateBaseClick = () => {
         @click="openTable(table)"
       >
         <div class="flex flex-row w-2/5 items-center gap-x-2" data-testid="proj-view-list__item-title">
-          <GeneralIcon icon="table" class="text-gray-700" />
+          <div class="min-w-5 flex items-center justify-center">
+            <GeneralTableIcon :meta="table" class="text-gray-500" />
+          </div>
           {{ table?.title }}
         </div>
         <div class="w-1/5 text-gray-600" data-testid="proj-view-list__item-type">

@@ -221,11 +221,16 @@ const toggleSelectAll = (role: Role) => {
             <div v-if="column.name === 'View Name'">
               <div class="flex items-center gap-1">
                 <div class="min-w-5 flex items-center justify-center">
-                  <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>
+                  <GeneralTableIcon
+                    v-if="record?.meta?.icon"
+                    :meta="{ meta: record.meta, type: 'view' }"
+                    class="text-gray-500 !text-sm children:(!w-5 !h-5)"
+                  />
+                  <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
                 </div>
                 <NcTooltip class="overflow-ellipsis min-w-0 shrink-1 truncate" show-on-truncate-only>
-                  <template #title>{{ record.title }}</template>
-                  <span>{{ record.title }}</span>
+                  <template #title>{{ record.is_default ? $t('title.defaultView') : record.title }}</template>
+                  <span>{{ record.is_default ? $t('title.defaultView') : record.title }}</span>
                 </NcTooltip>
               </div>
             </div>

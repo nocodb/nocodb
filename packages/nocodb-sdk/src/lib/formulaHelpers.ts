@@ -1679,7 +1679,7 @@ export async function validateFormulaAndExtractTreeWithType({
   const validateAndExtract = async (parsedTree: any) => {
     const res: {
       dataType?: FormulaDataTypes;
-      transform?: FormulaDataTypes;
+      cast?: FormulaDataTypes;
       errors?: Set<string>;
       [key: string]: any;
     } = { ...parsedTree };
@@ -1790,9 +1790,6 @@ export async function validateFormulaAndExtractTreeWithType({
               if (expectedArgType === FormulaDataTypes.NUMERIC) {
                 key = 'msg.formula.numericTypeIsExpected';
                 message = 'Numeric type is expected';
-              } else if (expectedArgType === FormulaDataTypes.STRING) {
-                key = 'msg.formula.stringTypeIsExpected';
-                message = 'String type is expected';
               } else if (expectedArgType === FormulaDataTypes.BOOLEAN) {
                 key = 'msg.formula.booleanTypeIsExpected';
                 message = 'Boolean type is expected';
@@ -1812,12 +1809,12 @@ export async function validateFormulaAndExtractTreeWithType({
             }
           }
 
-          // if expected type is string and arg type is not string, then transform it to string
+          // if expected type is string and arg type is not string, then cast it to string
           if (
             expectedArgType === FormulaDataTypes.STRING &&
             expectedArgType !== argPt.dataType
           ) {
-            argPt.transform = FormulaDataTypes.STRING;
+            argPt.cast = FormulaDataTypes.STRING;
           }
         }
       }

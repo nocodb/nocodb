@@ -124,11 +124,6 @@ export default class RedisMockCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
-  async getAll(pattern: string): Promise<any> {
-    return this.client.hgetall(pattern);
-  }
-
-  // @ts-ignore
   async delAll(scope: string, pattern: string): Promise<any[]> {
     // Example: nc:<orgs>:model:*:<id>
     const keys = await this.client.keys(`${this.prefix}:${scope}:${pattern}`);

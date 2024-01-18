@@ -8,7 +8,6 @@ export default abstract class CacheMgr {
   ): Promise<any>;
   public abstract incrby(key: string, value: number): Promise<any>;
   public abstract del(key: string): Promise<any>;
-  public abstract getAll(pattern: string): Promise<any[]>;
   public abstract delAll(scope: string, pattern: string): Promise<any[]>;
   public abstract getList(
     scope: string,

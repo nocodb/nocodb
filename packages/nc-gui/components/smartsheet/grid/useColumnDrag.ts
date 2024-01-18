@@ -108,7 +108,7 @@ export const useColumnDrag = ({
     if (!dragColPlaceholderDomRef.value) return
 
     if (e.clientX === 0) {
-      dragColPlaceholderDomRef.value!.style.left = `0px`
+      dragColPlaceholderDomRef.value!.style.left = '0px'
       dragColPlaceholderDomRef.value!.style.height = '0px'
       reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
       draggedCol.value = null
@@ -149,7 +149,7 @@ export const useColumnDrag = ({
 
     if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
 
-    dragColPlaceholderDomRef.value!.style.left = `0px`
+    dragColPlaceholderDomRef.value!.style.left = '0px'
     dragColPlaceholderDomRef.value!.style.height = '0px'
     reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
     draggedCol.value = null

@@ -36,7 +36,12 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         null,
         MetaTable.MODEL_ROLE_VISIBILITY,
       );
-      await NocoCache.setList(CacheScope.MODEL_ROLE_VISIBILITY, [baseId], data);
+      await NocoCache.setList(
+        CacheScope.MODEL_ROLE_VISIBILITY,
+        [baseId],
+        data,
+        ['fk_view_id', 'role'],
+      );
     }
     return data?.map((baseData) => new ModelRoleVisibility(baseData));
   }

@@ -960,6 +960,7 @@ export async function singleQueryList(ctx: {
 
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    console.log(cachedQuery)
     if (cachedQuery) {
       const startTime = process.hrtime();
       const res = await baseModel.execAndParse(

@@ -1168,7 +1168,7 @@ export default class Column<T = any> implements ColumnType {
       // whenever a new request comes for that formula, it will be populated again
       getFormulasReferredTheColumn({
         column: updatedColumn,
-        columns: await Column.list({ fk_model_id: column.fk_model_id }, ncMeta),
+        columns: await Column.list({ fk_model_id: oldCol.fk_model_id }, ncMeta),
       })
         .then(async (formulas) => {
           for (const formula of formulas) {

@@ -2567,7 +2567,8 @@ function linkBased() {
     await ncAxiosLinkGet({
       ...validParams,
       query: { ...validParams.query, offset: 9999 },
-      status: 400,
+      // for BT relation we use btRead so we don't apply offset & limit, also we don't return page info where this check is done
+      status: relationType === 'bt' ? 200 : 400,
     });
 
     // Link List: Invalid query parameter - negative limit

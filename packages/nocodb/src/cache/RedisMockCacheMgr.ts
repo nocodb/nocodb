@@ -234,7 +234,6 @@ export default class RedisMockCacheMgr extends CacheMgr {
     key: string,
     direction: string,
   ): Promise<boolean> {
-    key = `${this.prefix}:${key}`;
     log(`RedisMockCacheMgr::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
       // given a child key, delete all keys in corresponding parent lists

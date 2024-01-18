@@ -261,6 +261,7 @@ export default class RedisCacheMgr extends CacheMgr {
       log(`RedisCacheMgr::deepDel: remove key ${key}`);
       return await this.del(key);
     } else if (direction === CacheDelDirection.PARENT_TO_CHILD) {
+      key = /:list$/.test(key) ? key : `${key}:list`;
       // given a list key, delete all the children
       const listOfChildren = await this.get(key, CacheGetType.TYPE_ARRAY);
       // delete each child key

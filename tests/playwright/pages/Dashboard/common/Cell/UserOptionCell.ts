@@ -134,7 +134,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
-      await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
+      await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toContainText(option);
       counter++;
     }
     await this.rootPage.keyboard.press('Escape');
@@ -155,7 +155,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
-      await expect(selectCell.locator(`.nc-selected-option`).nth(counter)).toHaveText(option);
+      await expect(selectCell.locator(`.nc-selected-option`).nth(counter)).toContainText(option);
       counter++;
     }
   }

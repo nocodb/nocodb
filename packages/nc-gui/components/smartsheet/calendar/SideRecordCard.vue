@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 interface Props {
   name: string
-  date?: string
+  fromDate?: string
+  toDate?: string
   color?: string
   showDate?: boolean
   invalid?: boolean
@@ -9,7 +10,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   name: '',
-  date: '',
+  fromDate: '',
   color: 'blue',
   showDate: true,
   invalid: false,
@@ -32,7 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
       ></span>
       <div class="flex flex-col gap-1 ml-3">
         <span class="text-sm font-bold text-gray-700">{{ name }}</span>
-        <span v-if="showDate" class="text-xs text-gray-500">{{ date }}</span>
+        <span v-if="showDate" class="text-xs text-gray-500">{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span>
       </div>
     </div>
 

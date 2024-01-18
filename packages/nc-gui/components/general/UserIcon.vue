@@ -16,7 +16,7 @@ const props = withDefaults(
 
 const { size, email } = toRefs(props)
 
-const displayName = computed(() => props.name.trim())
+const displayName = computed(() => props.name?.trim() || '')
 
 const backgroundColor = computed(() => {
   // in comments we need to generate user icon from email

@@ -2,7 +2,12 @@ import type { WorkspaceType } from 'nocodb-sdk';
 import type { WorkspacePlan, WorkspaceStatus } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 
 import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
@@ -211,7 +216,11 @@ export default class Workspace implements WorkspaceType {
       fk_workspace_id: id,
     });
 
-    await NocoCache.delAll(CacheScope.WORKSPACE_USER, `${id}:*`);
+    await NocoCache.deepDel(
+      CacheScope.WORKSPACE_USER,
+      `${CacheScope.WORKSPACE_USER}:${id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
 
     const bases = await Base.listByWorkspace(id, ncMeta);
 

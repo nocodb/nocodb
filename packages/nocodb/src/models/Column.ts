@@ -499,10 +499,6 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
-  public static async clear({ id }) {
-    await NocoCache.delAll(CacheScope.COLUMN, `*${id}*`);
-  }
-
   public static async list(
     {
       fk_model_id,

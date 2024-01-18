@@ -275,11 +275,6 @@ export default class Model implements TableType {
     return modelList.map((m) => new Model(m));
   }
 
-  public static async clear({ id }: { id: string }): Promise<void> {
-    await NocoCache.delAll(CacheScope.MODEL, `*${id}*`);
-    await Column.clearList({ fk_model_id: id });
-  }
-
   public static async get(id: string, ncMeta = Noco.ncMeta): Promise<Model> {
     let modelData =
       id &&

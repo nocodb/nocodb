@@ -126,25 +126,6 @@ export default class RedisCacheMgr extends CacheMgr {
     return this.client.incrby(key, value);
   }
 
-  // @ts-ignore
-  async delAll(scope: string, pattern: string): Promise<any[]> {
-    // Example: nc:<orgs>:model:*:<id>
-    const keys = await this.client.keys(`${this.prefix}:${scope}:${pattern}`);
-    log(
-      `RedisCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`,
-    );
-    await Promise.all(
-      keys.map(async (k) => {
-        await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT);
-      }),
-    );
-    return Promise.all(
-      keys.map(async (k) => {
-        await this.del(k);
-      }),
-    );
-  }
-
   async getList(
     scope: string,
     subKeys: string[],

@@ -97,6 +97,7 @@ function onDuplicate() {
     'selectedViewId': view.value!.id,
     'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
+    'calendarRange': view.value!.view!.calendar_range,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -141,9 +142,9 @@ const onDelete = async () => {
 <template>
   <NcMenu
     v-if="view"
+    :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
     class="!min-w-70"
     data-id="toolbar-actions"
-    :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
   >
     <NcTooltip>
       <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
@@ -155,9 +156,9 @@ const onDelete = async () => {
             })
           }}
         </div>
-        <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
-          <GeneralIcon v-if="isViewIdCopied" icon="check" class="max-h-4 min-w-4" />
-          <GeneralIcon v-else else icon="copy" class="max-h-4 min-w-4" />
+        <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
+          <GeneralIcon v-if="isViewIdCopied" class="max-h-4 min-w-4" icon="check" />
+          <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
         </NcButton>
       </div>
     </NcTooltip>
@@ -176,7 +177,7 @@ const onDelete = async () => {
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem @click="onDuplicate">
-        <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
+        <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
         {{ $t('labels.duplicateView') }}
       </NcMenuItem>
     </template>
@@ -212,8 +213,8 @@ const onDelete = async () => {
                     sidebar: props.inSidebar,
                   },
                 ]"
-                class="nc-base-menu-item"
                 :class="{ disabled: lockType === LockType.Locked }"
+                class="nc-base-menu-item"
               >
                 <component :is="iconMap.cloudUpload" />
                 {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
@@ -263,9 +264,9 @@ const onDelete = async () => {
             </div>
             <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
               <LazySmartsheetToolbarLockType
-                hide-tick
                 :type="lockType"
                 class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+                hide-tick
               />
             </div>
             <div class="flex flex-grow"></div>
@@ -289,7 +290,7 @@ const onDelete = async () => {
       <NcTooltip v-if="lockType === LockType.Locked">
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-          <GeneralIcon icon="delete" class="nc-view-delete-icon" />
+          <GeneralIcon class="nc-view-delete-icon" icon="delete" />
           {{
             $t('general.deleteEntity', {
               entity: $t('objects.view'),
@@ -298,7 +299,7 @@ const onDelete = async () => {
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
-        <GeneralIcon icon="delete" class="nc-view-delete-icon" />
+        <GeneralIcon class="nc-view-delete-icon" icon="delete" />
         {{
           $t('general.deleteEntity', {
             entity: $t('objects.view'),
@@ -311,9 +312,9 @@ const onDelete = async () => {
         v-for="tp in quickImportDialogTypes"
         :key="tp"
         v-model="quickImportDialogs[tp].value"
+        :import-data-only="true"
         :import-type="tp"
         :source-id="currentBaseId"
-        :import-data-only="true"
       />
     </template>
   </NcMenu>

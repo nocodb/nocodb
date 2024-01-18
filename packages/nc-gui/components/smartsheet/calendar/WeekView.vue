@@ -306,7 +306,6 @@ const dropEvent = (event: DragEvent) => {
 
       dragElement.value = null
     }
-    console.log(newRow, updateProperty)
     updateRowProperty(newRow, updateProperty, false)
   }
 }

@@ -11,9 +11,15 @@ const container = ref()
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const { selectedTime, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
+const { selectedTime, selectedDate, calDataType, formattedData, formattedSideBarData, calendarRange, updateRowProperty } =
+  useCalendarViewStoreOrThrow()
 
 const recordsAcrossAllRange = computed<Row[]>(() => {
+  let dayRecordCount = 0
+  const perRecordHeight = 40
+  const scheduleStart = dayjs(selectedDate.value).startOf('day')
+  const scheduleEnd = dayjs(selectedDate.value).endOf('day')
+
   if (!calendarRange.value) return []
 
   const recordsByRange: Array<Row> = []
@@ -23,8 +29,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
       for (const record of formattedData.value) {
-        const scheduleStart = dayjs(selectedDate.value).startOf('day')
-        const scheduleEnd = dayjs(selectedDate.value).endOf('day')
         const startDate = dayjs(record.row[fromCol.title])
         const endDate = dayjs(record.row[endCol.title])
         const scaleMin = (scheduleEnd - scheduleStart) / 60000
@@ -52,8 +56,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         const isBeforeSelectedDay = (date) => date.isBefore(selectedDate.value, 'day')
         const isAfterSelectedDay = (date) => date.isAfter(selectedDate.value, 'day')
 
-        console.log(selectedDate.value, startDate, endDate)
-        console.log(isSelectedDay(startDate), isSelectedDay(endDate))
         if (isSelectedDay(startDate) && isSelectedDay(endDate)) {
           position = 'rounded'
         } else if (isBeforeSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
@@ -78,11 +80,17 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
+        dayRecordCount++
         recordsByRange.push({
           ...record,
           rowMeta: {
             ...record.rowMeta,
             range,
+            style: {
+              width: '100%',
+              left: '0',
+              top: `${(dayRecordCount - 1) * perRecordHeight}px`,
+            },
             position: 'rounded',
           },
         })
@@ -109,9 +117,16 @@ const hours = computed<dayjs.Dayjs>(() => {
   }
   return hours
 })
+const dragElement = ref<HTMLElement | null>(null)
 
 const dragStart = (event: DragEvent, record: Row) => {
-  const eventRect = (event.target as HTMLElement).getBoundingClientRect()
+  dragElement.value = event.target as HTMLElement
+
+  dragElement.value.classList.add('hide')
+  dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
+  const eventRect = dragElement.value.getBoundingClientRect()
+
+  const initialClickOffsetX = event.clientX - eventRect.left
   const initialClickOffsetY = event.clientY - eventRect.top
 
   event.dataTransfer?.setData(
@@ -119,6 +134,7 @@ const dragStart = (event: DragEvent, record: Row) => {
     JSON.stringify({
       record,
       initialClickOffsetY,
+      initialClickOffsetX,
     }),
   )
 }
@@ -127,37 +143,135 @@ const dropEvent = (event: DragEvent) => {
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {
-    const { record, initialClickOffsetY } = JSON.parse(data)
+    const {
+      record,
+      initialClickOffsetY,
+      initialClickOffsetX,
+    }: {
+      record: Row
+      initialClickOffsetY: number
+      initialClickOffsetX: number
+    } = JSON.parse(data)
+    const { top, height, width, left } = container.value.getBoundingClientRect()
 
-    const { top, height } = container.value.getBoundingClientRect()
+    const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
+    const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
 
-    const percent = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
+    const fromCol = record.rowMeta.range?.fk_from_col
+    const toCol = record.rowMeta.range?.fk_to_col
 
-    const minutes = percent * 1440
+    const newStartDate = dayjs(selectedDate.value)
+      .startOf('day')
+      .add(percentY * 1440, 'minutes')
 
-    const newStartTime = dayjs(selectedDate.value).startOf('day').add(minutes, 'minutes')
-    const newEndTime = dayjs(newStartTime).add(
-      dayjs(record.row[record.rowMeta.range.fk_to_col.title]).diff(
-        dayjs(record.row[record.rowMeta.range.fk_to_col.title]),
-        'minutes',
-      ),
-      'minutes',
-    )
+    let endDate
 
-    // TODO: Update record with new start and end time
+    const newRow = {
+      ...record,
+      row: {
+        ...record.row,
+        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      },
+    }
+
+    const updateProperty = [fromCol.title]
+
+    if (toCol) {
+      const fromDate = record.row[fromCol.title] ? dayjs(record.row[fromCol.title]) : null
+      const toDate = record.row[toCol.title] ? dayjs(record.row[toCol.title]) : null
+
+      if (fromDate && toDate) {
+        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      } else if (fromDate && !toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else if (!fromDate && toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else {
+        endDate = newStartDate.clone()
+      }
+      newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
+      updateProperty.push(toCol.title)
+    }
+
+    if (!newRow) return
+
+    if (dragElement.value) {
+      formattedData.value = formattedData.value.map((r) => {
+        const pk = extractPkFromRow(r.row, meta.value.columns)
+
+        if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+          return newRow
+        }
+        return r
+      })
+    } else {
+      formattedData.value = [...formattedData.value, newRow]
+      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+        const pk = extractPkFromRow(r.row, meta.value.columns)
+
+        return pk !== extractPkFromRow(newRow.row, meta.value.columns)
+      })
+    }
+
+    if (dragElement.value) {
+      dragElement.value.style.boxShadow = 'none'
+      dragElement.value.classList.remove('hide')
+
+      dragElement.value = null
+    }
+    updateRowProperty(newRow, updateProperty, false)
   }
 }
 </script>
 
 <template>
-  <template v-if="recordsAcrossAllRange && recordsAcrossAllRange.length && displayField">
+  <div
+    v-if="recordsAcrossAllRange.length"
+    ref="container"
+    class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    @drop="dropEvent"
+  >
+    <template v-if="calDataType === UITypes.DateTime">
+      <div
+        v-for="(hour, index) in hours"
+        :key="index"
+        :class="{
+          '!border-brand-500': dayjs(hour).isSame(selectedTime),
+        }"
+        class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+        @click="selectedTime = hour"
+      >
+        <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
+          {{ dayjs(hour).format('H A') }}
+        </div>
+        <div></div>
+        <NcButton
+          :class="{
+            '!block': dayjs(hour).isSame(selectedTime),
+            '!hidden': !dayjs(hour).isSame(selectedTime),
+          }"
+          class="mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+          size="xsmall"
+          type="secondary"
+          @click="emit('new-record')"
+        >
+          <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
+        </NcButton>
+      </div>
+    </template>
+
     <div
-      v-if="calDataType === UITypes.Date"
-      class="flex flex-col pt-3 !gap-2 h-full w-full h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md"
+      v-for="(record, rowIndex) in recordsAcrossAllRange"
+      :key="rowIndex"
+      :draggable="UITypes.DateTime === calDataType"
+      :style="record.rowMeta.style"
+      class="absolute mt-2"
+      @dragstart="dragStart($event, record)"
+      @dragover.prevent
     >
-      <LazySmartsheetRow v-for="(record, rowIndex) in recordsAcrossAllRange" :key="rowIndex" :row="record">
+      <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard
-          :date="record.row[record.rowMeta.range.fk_from_col.title]"
+          :date="dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('H:mm')"
           :name="record.row[displayField.title]"
           :position="record.rowMeta.position"
           :record="record"
@@ -166,72 +280,14 @@ const dropEvent = (event: DragEvent) => {
           @click="emit('expand-record', record)"
         />
       </LazySmartsheetRow>
-      <div class="h-full"></div>
     </div>
-    <div
-      v-else-if="calDataType === UITypes.DateTime"
-      class="flex flex-col w-full h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md"
-    >
-      <div ref="container" class="relative" @drop="dropEvent($event)">
-        <div
-          v-for="(hour, index) in hours"
-          :key="index"
-          :class="{
-            '!border-brand-500': dayjs(hour).isSame(selectedTime),
-          }"
-          class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
-          @click="selectedTime = hour"
-        >
-          <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
-            {{ dayjs(hour).format('H A') }}
-          </div>
-          <div></div>
-          <NcButton
-            :class="{
-              '!block': dayjs(hour).isSame(selectedTime),
-              '!hidden': !dayjs(hour).isSame(selectedTime),
-            }"
-            class="mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-            size="xsmall"
-            type="secondary"
-            @click="emit('new-record')"
-          >
-            <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
-          </NcButton>
-        </div>
-        <div
-          v-for="(record, rowIndex) in recordsAcrossAllRange"
-          :key="rowIndex"
-          :class="{
-            'ml-3': record.rowMeta.position === 'leftRounded',
-            'mr-3': record.rowMeta.position === 'rightRounded',
-            '': record.rowMeta.position === 'rounded',
-          }"
-          :style="record.rowMeta.style"
-          class="absolute"
-          draggable="true"
-          @dragstart="dragStart($event, record)"
-          @dragover.prevent
-        >
-          <LazySmartsheetRow :row="record">
-            <LazySmartsheetCalendarRecordCard
-              :date="dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('H:mm')"
-              :name="record.row[displayField.title]"
-              :position="record.rowMeta.position"
-              :record="record"
-              class="!h-full"
-              color="blue"
-              size="small"
-              @click="emit('expand-record', record)"
-            />
-          </LazySmartsheetRow>
-        </div>
-      </div>
-    </div>
-  </template>
+  </div>
+
   <div
-    v-else-if="!recordsAcrossAllRange.length"
+    v-else
+    ref="container"
     class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
+    @drop="dropEvent"
   >
     No Records in this day
   </div>

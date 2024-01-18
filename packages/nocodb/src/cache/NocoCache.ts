@@ -54,6 +54,8 @@ export default class NocoCache {
 
   public static async del(key): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
+    if (Array.isArray(key))
+      return this.client.del(key.map((k) => `${this.prefix}:${k}`));
     return this.client.del(`${this.prefix}:${key}`);
   }
 

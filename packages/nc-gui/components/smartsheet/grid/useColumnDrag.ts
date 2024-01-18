@@ -73,6 +73,14 @@ export const useColumnDrag = ({
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }
 
+  const handleReorderColumn = async () => {
+    dragColPlaceholderDomRef.value!.style.left = '0px'
+    dragColPlaceholderDomRef.value!.style.height = '0px'
+    await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    draggedCol.value = null
+    toBeDroppedColId.value = null
+  }
+
   const onDragStart = (colId: string, e: DragEvent) => {
     if (!e.dataTransfer) return
 
@@ -108,11 +116,7 @@ export const useColumnDrag = ({
     if (!dragColPlaceholderDomRef.value) return
 
     if (e.clientX === 0) {
-      dragColPlaceholderDomRef.value!.style.left = '0px'
-      dragColPlaceholderDomRef.value!.style.height = '0px'
-      reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
-      draggedCol.value = null
-      toBeDroppedColId.value = null
+      handleReorderColumn()
       return
     }
 
@@ -149,11 +153,7 @@ export const useColumnDrag = ({
 
     if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
 
-    dragColPlaceholderDomRef.value!.style.left = '0px'
-    dragColPlaceholderDomRef.value!.style.height = '0px'
-    reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
-    draggedCol.value = null
-    toBeDroppedColId.value = null
+    handleReorderColumn()
   }
 
   return {

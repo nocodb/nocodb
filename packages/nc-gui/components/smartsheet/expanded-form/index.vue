@@ -168,7 +168,9 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (changedColumns.value.size > 0) {
+  if (!isUIAllowed('dataEdit')) {
+    isExpanded.value = false
+  } else if (changedColumns.value.size > 0) {
     isCloseModalOpen.value = true
   } else {
     if (_row.value?.rowMeta?.new) emits('cancel')
@@ -457,7 +459,7 @@ const onIsExpandedUpdate = (v: boolean) => {
 
   if (changedColumns.value.size === 0 && !isUnsavedFormExist.value) {
     isExpanded.value = v
-  } else if (!v) {
+  } else if (!v && isUIAllowed('dataEdit')) {
     preventModalStatus.value = true
   } else {
     isExpanded.value = v
@@ -555,7 +557,7 @@ export default {
           </div>
           <div class="flex gap-2">
             <NcButton
-              v-if="!isNew"
+              v-if="isUIAllowed('dataEdit') && !isNew"
               type="secondary"
               class="!xs:hidden text-gray-700"
               @click="!isNew ? copyRecordUrl() : () => {}"
@@ -566,29 +568,25 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="!isNew" placement="bottomRight">
+            <NcDropdown v-if="isUIAllowed('dataEdit') && !isNew" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
                 <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem v-if="!isNew" class="text-gray-700" @click="_loadRow()">
+                  <NcMenuItem class="text-gray-700" @click="_loadRow()">
                     <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                       <component :is="iconMap.reload" class="cursor-pointer" />
                       {{ $t('general.reload') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem v-if="!isNew && isMobileMode" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
+                  <NcMenuItem v-if="isMobileMode" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
                     <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
                       <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
                       {{ $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem
-                    v-if="isUIAllowed('dataEdit') && !isNew"
-                    class="text-gray-700"
-                    @click="!isNew ? onDuplicateRow() : () => {}"
-                  >
+                  <NcMenuItem class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
                     <div
                       v-e="['c:row-expand:duplicate']"
                       data-testid="nc-expanded-form-duplicate"
@@ -600,12 +598,8 @@ export default {
                       </span>
                     </div>
                   </NcMenuItem>
-                  <NcDivider v-if="isUIAllowed('dataEdit') && !isNew" />
-                  <NcMenuItem
-                    v-if="isUIAllowed('dataEdit') && !isNew"
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="!isNew && onDeleteRowClick()"
-                  >
+                  <NcDivider />
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="!isNew && onDeleteRowClick()">
                     <div v-e="['c:row-expand:delete']" data-testid="nc-expanded-form-delete" class="flex gap-2 items-center">
                       <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                       <span class="-ml-0.25">

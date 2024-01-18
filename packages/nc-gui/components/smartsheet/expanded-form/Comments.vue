@@ -215,12 +215,24 @@ const onClickAudit = () => {
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :email="log.user" />
+                    <GeneralUserIcon size="base" :name="log.display_name" :email="log.user" />
 
                     <div class="flex flex-col">
-                      <span class="truncate font-bold max-w-42">
-                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared source' }}
-                      </span>
+                      <NcTooltip class="truncate max-w-42" show-on-truncate-only>
+                        <template #title>
+                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                        </template>
+                        <span
+                          class="text-ellipsis overflow-hidden font-bold"
+                          :style="{
+                            wordBreak: 'keep-all',
+                            whiteSpace: 'nowrap',
+                            display: 'inline',
+                          }"
+                        >
+                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                        </span>
+                      </NcTooltip>
                       <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
                       </div>
@@ -298,7 +310,7 @@ const onClickAudit = () => {
           <div class="flex flex-col p-4 gap-3">
             <div class="flex justify-between">
               <div class="flex items-center gap-2">
-                <GeneralUserIcon size="base" :email="log.user" />
+                <GeneralUserIcon size="base" :email="log.user" :name="log.display_name" />
 
                 <div class="flex flex-col">
                   <NcTooltip class="truncate max-w-50" show-on-truncate-only>

@@ -5,8 +5,16 @@ import type { Row } from '~/lib'
 
 const emits = defineEmits(['expand-record'])
 
-const { selectedDateRange, formattedData, calendarRange, selectedDate, displayField, calDataType, updateRowProperty } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDateRange,
+  formattedData,
+  formattedSideBarData,
+  calendarRange,
+  selectedDate,
+  displayField,
+  calDataType,
+  updateRowProperty,
+} = useCalendarViewStoreOrThrow()
 
 const container = ref(null)
 
@@ -206,6 +214,18 @@ const dragStart = (event: DragEvent, record: Row) => {
   )
 }
 
+const dragEnter = (event: DragEvent) => {
+  event.preventDefault()
+  const { width, left } = container.value.getBoundingClientRect()
+
+  const percentX = (event.clientX - left - window.scrollX) / width
+
+  const day = Math.floor(percentX * 7)
+
+  const currSelectedDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+  selectedDate.value = currSelectedDate.toDate()
+}
+
 const dropEvent = (event: DragEvent) => {
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
@@ -222,8 +242,10 @@ const dropEvent = (event: DragEvent) => {
     const { top, height, width, left } = container.value.getBoundingClientRect()
 
     const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
-
     const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
+
+    const fromCol = record.rowMeta.range?.fk_from_col
+    const toCol = record.rowMeta.range?.fk_to_col
 
     const day = Math.floor(percentX * 7)
 
@@ -235,39 +257,57 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [record.rowMeta.range.fk_from_col.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
       },
     }
+    const updateProperty = [fromCol.title]
 
-    const updateProperty = [record.rowMeta.range.fk_from_col.title]
+    if (toCol) {
+      const fromDate = record.row[fromCol.title] ? dayjs(record.row[fromCol.title]) : null
+      const toDate = record.row[toCol.title] ? dayjs(record.row[toCol.title]) : null
 
-    if (record.rowMeta.range.fk_to_col) {
-      const diffDays = dayjs(record.row[record.rowMeta.range.fk_to_col.title]).diff(
-        record.row[record.rowMeta.range.fk_from_col.title],
-        'day',
-      )
-      endDate = dayjs(newStartDate).add(diffDays, 'day')
-      newRow.row[record.rowMeta.range.fk_to_col.title] = dayjs(endDate).format('YYYY-MM-DD')
-      updateProperty.push(record.rowMeta.range.fk_to_col.title)
+      if (fromDate && toDate) {
+        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      } else if (fromDate && !toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else if (!fromDate && toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else {
+        endDate = newStartDate.clone()
+      }
+
+      newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
+      updateProperty.push(toCol.title)
     }
 
     if (!newRow) return
 
-    dragElement.value.style.boxShadow = 'none'
-    dragElement.value.classList.remove('hide')
+    if (dragElement.value) {
+      formattedData.value = formattedData.value.map((r) => {
+        const pk = extractPkFromRow(r.row, meta.value.columns)
 
-    dragElement.value = null
+        if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+          return newRow
+        }
+        return r
+      })
+    } else {
+      formattedData.value = [...formattedData.value, newRow]
+      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+        const pk = extractPkFromRow(r.row, meta.value.columns)
 
+        return pk !== extractPkFromRow(newRow.row, meta.value.columns)
+      })
+    }
+
+    if (dragElement.value) {
+      dragElement.value.style.boxShadow = 'none'
+      dragElement.value.classList.remove('hide')
+
+      dragElement.value = null
+    }
+    console.log(newRow, updateProperty)
     updateRowProperty(newRow, updateProperty, false)
-
-    formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value.columns)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
-        return newRow
-      }
-      return r
-    })
   }
 }
 </script>
@@ -283,7 +323,7 @@ const dropEvent = (event: DragEvent) => {
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
-    <div ref="container" class="flex h-[calc(100vh-11.6rem)]" @drop="dropEvent($event)">
+    <div ref="container" class="flex h-[calc(100vh-11.6rem)]" @dragenter="dragEnter" @drop="dropEvent($event)">
       <div
         v-for="date in weekDates"
         :key="date.toISOString()"

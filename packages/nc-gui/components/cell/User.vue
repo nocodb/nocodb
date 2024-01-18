@@ -297,6 +297,7 @@ const filterOption = (input: string, option: any) => {
                 size="auto"
                 :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
                 :email="selectedOpt.label"
+                class="!text-[0.65rem]"
               />
             </div>
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -361,7 +362,12 @@ const filterOption = (input: string, option: any) => {
               :class="{ 'text-sm': isKanban }"
             >
               <div>
-                <GeneralUserIcon size="auto" :name="op.display_name?.trim() ? op.display_name?.trim() : ''" :email="op.email" />
+                <GeneralUserIcon
+                  size="auto"
+                  :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
+                  :email="op.email"
+                  class="!text-[0.65rem]"
+                />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -408,7 +414,12 @@ const filterOption = (input: string, option: any) => {
             :class="{ 'text-sm': isKanban }"
           >
             <div>
-              <GeneralUserIcon size="auto" :name="!label?.includes('@') ? label.trim() : ''" :email="label" />
+              <GeneralUserIcon
+                size="auto"
+                :name="!label?.includes('@') ? label.trim() : ''"
+                :email="label"
+                class="!text-[0.65rem]"
+              />
             </div>
             {{ label }}
           </span>

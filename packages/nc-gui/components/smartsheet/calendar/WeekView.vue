@@ -184,8 +184,15 @@ const calendarData = computed(() => {
   return recordsInRange
 })
 
+const dragElement = ref<HTMLElement | null>(null)
+
 const dragStart = (event: DragEvent, record: Row) => {
-  const eventRect = (event.target as HTMLElement).getBoundingClientRect()
+  dragElement.value = event.target as HTMLElement
+
+  dragElement.value.classList.add('hide')
+  dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
+  const eventRect = dragElement.value.getBoundingClientRect()
+
   const initialClickOffsetX = event.clientX - eventRect.left
   const initialClickOffsetY = event.clientY - eventRect.top
 
@@ -245,6 +252,11 @@ const dropEvent = (event: DragEvent) => {
     }
 
     if (!newRow) return
+
+    dragElement.value.style.boxShadow = 'none'
+    dragElement.value.classList.remove('hide')
+
+    dragElement.value = null
 
     updateRowProperty(newRow, updateProperty, false)
 
@@ -310,4 +322,9 @@ const dropEvent = (event: DragEvent) => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.hide {
+  transition: 0.01s;
+  transform: translateX(-9999px);
+}
+</style>

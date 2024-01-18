@@ -54,12 +54,6 @@ function baseModelSqlTests() {
     );
     const insertedRow = (await baseModelSql.list())[0];
 
-    inputData.CreatedBy = {
-      id: context.user.id,
-      email: context.user.email,
-      display_name: context.user.display_name,
-    };
-    inputData.UpdatedBy = null;
 
     expect(insertedRow).to.deep.include(inputData);
     expect(insertedRow).to.deep.include(response);
@@ -176,18 +170,10 @@ function baseModelSqlTests() {
     const insertedRows: any[] = await baseModelSql.list();
 
     await baseModelSql.bulkUpdate(
-      insertedRows.map(
-        ({
-          CreatedAt: _,
-          UpdatedAt: __,
-          CreatedBy: ___,
-          UpdatedBy: ____,
-          ...row
-        }) => ({
+      insertedRows.map(({ CreatedAt: _, UpdatedAt: __, ...row }) => ({
           ...row,
           Title: `new-${row['Title']}`,
-        }),
-      ),
+      })),
       { cookie: request },
     );
 

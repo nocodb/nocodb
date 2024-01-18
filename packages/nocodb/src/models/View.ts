@@ -1503,7 +1503,7 @@ export default class View implements ViewType {
     await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
   }
 
-  public static clearSingleQueryCache(
+  public static async clearSingleQueryCache(
     modelId: string,
     views?: { id?: string }[],
     ncMeta = Noco.ncMeta,

@@ -658,7 +658,7 @@ export default class Model implements TableType {
     );
 
     // clear all the cached query under this model
-    await View.clearSingleQueryCache(view.fk_model_id, []);
+    await View.clearSingleQueryCache(tableId, []);
 
     // clear all the cached query under related models
     for (const col of await this.get(tableId).then((t) => t.getColumns())) {

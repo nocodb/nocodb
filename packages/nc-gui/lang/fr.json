@@ -680,7 +680,7 @@
     "enablePublicAccess": "Activer l'accès public",
     "doYouWantToSaveTheChanges": "Voulez-vous enregistrer les modifications ?",
     "editingAccess": "Editing access",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Manage Base Access",
     "allowDownload": "Autoriser le téléchargement",
@@ -733,7 +733,7 @@
     "groupBy": "Grouper par",
     "addSubGroup": "Ajouter un sous-groupe",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Désactiver la base partagée",
       "enable": "N'importe qui disposant du lien",
       "link": "Partager le lien de la base"

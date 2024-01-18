@@ -9,8 +9,8 @@ import {
   type ViewType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { addDays, addMonths, addYears } from '~/utils'
-import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState } from '#imports'
+import { addDays, addMonths, addYears, extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState, useUndoRedo } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(
@@ -48,7 +48,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const selectedTime = ref<Date | null>(null)
 
-    const selectedMonth = ref<Date | null>(new Date())
+    const selectedMonth = ref<Date>(new Date())
 
     const isCalendarDataLoading = ref<boolean>(false)
 
@@ -76,6 +76,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { $api } = useNuxtApp()
 
+    const { t } = useI18n()
+
+    const { addUndo, clone, defineViewScope } = useUndoRedo()
+
     const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
@@ -102,7 +106,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
-      return calendarRange.value[0].fk_from_col.uidt
+      return calendarRange.value[0]!.fk_from_col.uidt
     })
 
     const sideBarFilter = computed(() => {
@@ -297,7 +301,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (isSidebarLoading.value) return
       try {
         const response = !isPublic.value
-          ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+          ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id, {
               ...params,
               offset: params.offset,
               ...{},
@@ -503,7 +507,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           fk_from_col: meta.value?.columns!.find((col) => col.id === range.fk_from_column_id),
           fk_to_col: range.fk_to_column_id ? meta.value?.columns!.find((col) => col.id === range.fk_to_column_id) : null,
         }
-      })
+      }) as any
       displayField.value = meta.value.columns.find((col) => col.pv)
     }
 
@@ -584,6 +588,35 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       isSidebarLoading.value = false
     }
 
+    async function updateRowProperty(toUpdate: Row, property: [], undo = false) {
+      try {
+        const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
+
+        const updateObj = property.reduce((acc, curr) => {
+          acc[curr] = toUpdate.row[curr]
+          return acc
+        }, {})
+
+        return await $api.dbViewRow.update(
+          NOCO,
+          base?.value.id as string,
+          meta.value?.id as string,
+          viewMeta?.value?.id as string,
+          id,
+          updateObj,
+          {
+            query: { ignoreWebhook: !undo },
+          },
+          // todo:
+          // {
+          //   query: { ignoreWebhook: !saved }
+          // }
+        )
+      } catch (e: any) {
+        message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+      }
+    }
+
     watch(selectedDate, async () => {
       if (activeCalendarView.value === 'month' || activeCalendarView.value === 'week') {
         await loadSidebarData()
@@ -634,6 +667,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedTime,
       updateCalendarMeta,
       calendarMetaData,
+      updateRowProperty,
       activeCalendarView,
       pageDate,
       paginationData,

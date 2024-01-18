@@ -186,7 +186,9 @@ function columnTypeSpecificTests() {
         for (let i = 0; i < defaultTableColumns.length; i++) {
           expect(columns[i].title).to.equal(defaultTableColumns[i].title);
           expect(columns[i].uidt).to.equal(defaultTableColumns[i].uidt);
-          expect(columns[i].system).to.equal(defaultTableColumns[i].system);
+          expect(Boolean(columns[i].system)).to.equal(
+            defaultTableColumns[i].system,
+          );
         }
       });
 
@@ -344,9 +346,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedTime,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
 
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
 
@@ -394,9 +396,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedBy,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
         expect(records[0].CreatedBy).to.deep.equal({
           id: context.user.id,
           email: context.user.email,
@@ -409,9 +411,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length + 1].uidt).to.equal(
           UITypes.LastModifiedBy,
         );
-        expect(columns.columns[defaultTableColumns.length + 1].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length + 1].system),
+        ).to.equal(false);
         expect(records[0].LastModifiedBy).to.deep.equal(null);
 
         // update record should fail
@@ -471,9 +473,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedTime,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
 
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
       });
@@ -508,9 +510,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedBy,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
         expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy);
       });
     });

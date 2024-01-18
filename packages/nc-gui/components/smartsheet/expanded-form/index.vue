@@ -557,10 +557,11 @@ export default {
           </div>
           <div class="flex gap-2">
             <NcButton
-              v-if="isUIAllowed('dataEdit') && !isNew"
+              v-if="!isNew && rowId"
               type="secondary"
               class="!xs:hidden text-gray-700"
-              @click="!isNew ? copyRecordUrl() : () => {}"
+              :disabled="isLoading"
+              @click="copyRecordUrl()"
             >
               <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
                 <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row" />
@@ -568,9 +569,9 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="isUIAllowed('dataEdit') && !isNew" placement="bottomRight">
-              <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
-                <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
+            <NcDropdown v-if="!isNew" placement="bottomRight">
+              <NcButton type="secondary" class="nc-expand-form-more-actions w-10" :disabled="isLoading">
+                <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
@@ -580,13 +581,7 @@ export default {
                       {{ $t('general.reload') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem v-if="isMobileMode" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
-                    <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
-                      <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
-                      {{ $t('labels.copyRecordURL') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
+                  <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
                     <div
                       v-e="['c:row-expand:duplicate']"
                       data-testid="nc-expanded-form-duplicate"
@@ -598,8 +593,12 @@ export default {
                       </span>
                     </div>
                   </NcMenuItem>
-                  <NcDivider />
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="!isNew && onDeleteRowClick()">
+                  <NcDivider v-if="isUIAllowed('dataEdit')" />
+                  <NcMenuItem
+                    v-if="isUIAllowed('dataEdit')"
+                    class="!text-red-500 !hover:bg-red-50"
+                    @click="!isNew && onDeleteRowClick()"
+                  >
                     <div v-e="['c:row-expand:delete']" data-testid="nc-expanded-form-delete" class="flex gap-2 items-center">
                       <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                       <span class="-ml-0.25">
@@ -802,15 +801,21 @@ export default {
             class="w-full h-16 border-t-1 border-gray-200 bg-white flex items-center justify-end p-3 xs:(p-0 mt-4 border-t-0 gap-x-4 justify-between)"
           >
             <NcDropdown v-if="!isNew && isMobileMode" placement="bottomRight">
-              <NcButton type="secondary" class="nc-expand-form-more-actions w-10">
-                <GeneralIcon icon="threeDotVertical" class="text-md text-gray-700" />
+              <NcButton type="secondary" class="nc-expand-form-more-actions w-10" :disabled="isLoading">
+                <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem v-if="!isNew" class="text-gray-700" @click="_loadRow()">
+                  <NcMenuItem class="text-gray-700" @click="_loadRow()">
                     <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                       <component :is="iconMap.reload" class="cursor-pointer" />
                       {{ $t('general.reload') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
+                    <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                      <component :is="iconMap.link" class="cursor-pointer nc-duplicate-row" />
+                      {{ $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
                   <NcDivider />

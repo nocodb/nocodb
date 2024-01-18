@@ -680,7 +680,7 @@
     "enablePublicAccess": "Включить публичный доступ",
     "doYouWantToSaveTheChanges": "Вы хотите сохранить изменения?",
     "editingAccess": "Редактирование доступа",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Ограничить доступ паролем",
     "manageProjectAccess": "Управление доступом к базе",
     "allowDownload": "Разрешить загрузку",
@@ -733,7 +733,7 @@
     "groupBy": "Группировать по",
     "addSubGroup": "Добавить подгруппу",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "Отключить общую базу",
       "enable": "Включить общую базу",
       "link": "Ссылка на общую базу"

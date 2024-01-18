@@ -111,7 +111,7 @@ export class UserOptionColumnPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
-      await expect(defaultValueSelector.locator(`.nc-selected-option`).nth(counter)).toHaveText(option);
+      await expect(defaultValueSelector.locator(`.nc-selected-option`).nth(counter)).toContainText(option);
       counter++;
     }
 

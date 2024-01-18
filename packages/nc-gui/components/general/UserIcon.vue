@@ -3,28 +3,24 @@ import { isColorDark, stringToColor } from '~/utils/colorsUtils'
 
 const props = withDefaults(
   defineProps<{
-    size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge'
+    size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
     name?: string
     email?: string
   }>(),
   {
+    size: 'medium',
+    name: '',
     email: '',
   },
 )
 
-const size = computed(() => props.size || 'medium')
+const { size, email } = toRefs(props)
 
-const displayName = computed(() => props.name ?? '')
-
-const email = computed(() => props?.email ?? '')
+const displayName = computed(() => props.name?.trim() || '')
 
 const backgroundColor = computed(() => {
   // in comments we need to generate user icon from email
-  if (email.value.length) {
-    return stringToColor(email.value)
-  }
-
-  return email.value ? stringToColor(email.value) : '#FFFFFF'
+  return displayName.value ? stringToColor(displayName.value) : email.value ? stringToColor(email.value) : '#FFFFFF'
 })
 
 const usernameInitials = computed(() => {
@@ -46,6 +42,7 @@ const usernameInitials = computed(() => {
   <div
     class="flex nc-user-avatar font-bold"
     :class="{
+      'h-full min-h-5 aspect-square': size === 'auto',
       'min-w-4 min-h-4': size === 'small',
       'min-w-6 min-h-6': size === 'medium',
       'w-8 h-8 !text-md': size === 'base',
@@ -62,6 +59,6 @@ const usernameInitials = computed(() => {
 
 <style lang="scss" scoped>
 .nc-user-avatar {
-  @apply rounded-full text-xs flex items-center justify-center  uppercase;
+  @apply rounded-full text-xs flex items-center justify-center uppercase;
 }
 </style>

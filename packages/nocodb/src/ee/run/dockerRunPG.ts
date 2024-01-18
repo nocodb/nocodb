@@ -11,13 +11,13 @@ server.use(
     exposedHeaders: 'xc-db-response',
   }),
 );
-
+console.log('-------------------------------redis-----------------------------');
 server.set('view engine', 'ejs');
 
 const date = new Date();
 const metaDb = `meta_v2_${date.getFullYear()}_${(date.getMonth() + 1)
   .toString()
-  .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
+  .padStart(2, '0')}_${(date.getDate() - 2).toString().padStart(2, '0')}`;
 process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`NC_DATA_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}_data`;
 // process.env[`NC_MINIMAL_DBS`] = `true`;
@@ -25,6 +25,7 @@ process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`NC_DASHBOARD_URL`] = '/test';
 
 // process.env[`DEBUG`] = 'xc*';
+process.env[`NC_REDIS_URL`] = 'redis://127.0.0.1:6379/0';
 
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, async () => {

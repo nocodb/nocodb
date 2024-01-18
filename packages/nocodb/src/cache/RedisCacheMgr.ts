@@ -23,7 +23,7 @@ export default class RedisCacheMgr extends CacheMgr {
       process.env.NC_CLOUD !== 'true'
     ) {
       // flush the existing db with selected key (Default: 0)
-      this.client.flushdb();
+      // this.client.flushdb();
     }
 
     // TODO(cache): fetch orgs once it's implemented

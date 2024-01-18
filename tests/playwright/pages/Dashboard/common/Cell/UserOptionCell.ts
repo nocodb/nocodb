@@ -101,8 +101,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     const locator = this.cell.get({ index, columnHeader }).locator('.ant-tag');
     await locator.waitFor({ state: 'visible' });
-    const text = await locator.allInnerTexts();
-    return expect(text).toContain(option);
+    return expect(locator).toContainText(option);
   }
 
   async verifyNoOptionsSelected({ index, columnHeader }: { index: number; columnHeader: string }) {

@@ -52,7 +52,7 @@ withDefaults(defineProps<Props>(), {
         class="block h-full min-h-5 ml-1 w-1 rounded mr-2"
       ></div>
     </div>
-    <div class="ml-3 mt-2 absolute">
+    <div class="ml-3 mt-2 text-ellipsis overflow-hidden h-6 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
       <span class="text-sm font-bold text-gray-800">{{ name }}</span>
       <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>

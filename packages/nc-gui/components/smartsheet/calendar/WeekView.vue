@@ -70,6 +70,7 @@ const calendarData = computed(() => {
       for (const record of [...formattedData.value].filter((r) => {
         const startDate = dayjs(r.row[fromCol.title])
         const endDate = dayjs(r.row[toCol.title])
+        if (!startDate.isValid() || !endDate.isValid()) return false
         return !endDate.isBefore(startDate)
       })) {
         let startDate = dayjs(record.row[fromCol.title])

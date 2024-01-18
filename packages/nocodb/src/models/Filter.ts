@@ -211,10 +211,8 @@ export default class Filter implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
-        await NocoCache.delAll(
-          CacheScope.SINGLE_QUERY,
-          `${view.fk_model_id}:${view.id}:*`,
-        );
+
+        await View.clearSingleQueryCache(view.fk_model_id, [view]);
       }
     }
 
@@ -259,10 +257,9 @@ export default class Filter implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
-        await NocoCache.delAll(
-          CacheScope.SINGLE_QUERY,
-          `${view.fk_model_id}:${view.id}:*`,
-        );
+        await View.clearSingleQueryCache(view.fk_model_id, [
+          { id: filter.fk_view_id },
+        ]);
       }
     }
 
@@ -290,10 +287,10 @@ export default class Filter implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
-        await NocoCache.delAll(
-          CacheScope.SINGLE_QUERY,
-          `${view.fk_model_id}:${view.id}:*`,
-        );
+
+        await View.clearSingleQueryCache(view.fk_model_id, [
+          { id: filter.fk_view_id },
+        ]);
       }
     }
   }
@@ -448,10 +445,7 @@ export default class Filter implements FilterType {
     // on update delete any optimised single query cache
     {
       const view = await View.get(viewId, ncMeta);
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${view.fk_model_id}:${view.id}:*`,
-      );
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
     }
   }
 

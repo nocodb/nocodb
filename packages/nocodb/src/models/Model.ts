@@ -658,7 +658,7 @@ export default class Model implements TableType {
     );
 
     // clear all the cached query under this model
-    await NocoCache.delAll(CacheScope.SINGLE_QUERY, `${tableId}:*`);
+    await View.clearSingleQueryCache(tableId, []);
 
     // clear all the cached query under related models
     for (const col of await this.get(tableId).then((t) => t.getColumns())) {
@@ -668,10 +668,7 @@ export default class Model implements TableType {
 
       if (colOptions.fk_related_model_id === tableId) continue;
 
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${colOptions.fk_related_model_id}:*`,
-      );
+      await View.clearSingleQueryCache(colOptions.fk_related_model_id, []);
     }
 
     return res;

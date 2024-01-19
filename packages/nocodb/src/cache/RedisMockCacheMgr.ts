@@ -2,7 +2,11 @@ import debug from 'debug';
 import Redis from 'ioredis-mock';
 import CacheMgr from './CacheMgr';
 import type IORedis from 'ioredis';
-import { CacheDelDirection, CacheGetType } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheListProp,
+} from '~/utils/globals';
 const log = debug('nc:cache');
 
 export default class RedisMockCacheMgr extends CacheMgr {
@@ -83,6 +87,10 @@ export default class RedisMockCacheMgr extends CacheMgr {
       if (typeof value === 'object') {
         if (Array.isArray(value) && value.length) {
           return this.client.sadd(key, value);
+        }
+        const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
+        if (keyValue) {
+          value = await this.prepareValue(value, this.getParents(keyValue));
         }
         return this.client.set(
           key,
@@ -192,9 +200,19 @@ export default class RedisMockCacheMgr extends CacheMgr {
         // e.g. nc:<orgs>:<scope>:<prop_value_1>:<prop_value_2>
         getKey = `${this.prefix}:${scope}:${propValues.join(':')}`;
       }
+      log(`RedisMockCacheMgr::setList: get key ${getKey}`);
+      // get Get Key
+      let value = await this.get(getKey, CacheGetType.TYPE_OBJECT);
+      if (value) {
+        log(`RedisMockCacheMgr::setList: preparing key ${getKey}`);
+        // prepare Get Key
+        value = await this.prepareValue(o, this.getParents(value), listKey);
+      } else {
+        value = await this.prepareValue(o, [], listKey);
+      }
       // set Get Key
       log(`RedisMockCacheMgr::setList: setting key ${getKey}`);
-      await this.set(getKey, JSON.stringify(o, this.getCircularReplacer()));
+      await this.set(getKey, JSON.stringify(value, this.getCircularReplacer()));
       // push Get Key to List
       listOfGetKeys.push(getKey);
     }
@@ -210,8 +228,9 @@ export default class RedisMockCacheMgr extends CacheMgr {
   ): Promise<boolean> {
     log(`RedisMockCacheMgr::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
+      const childKey = await this.get(key, CacheGetType.TYPE_OBJECT);
       // given a child key, delete all keys in corresponding parent lists
-      const scopeList = await this.client.keys(`${this.prefix}:${scope}*list`);
+      const scopeList = this.getParents(childKey);
       for (const listKey of scopeList) {
         // get target list
         let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
@@ -268,8 +287,77 @@ export default class RedisMockCacheMgr extends CacheMgr {
       list = [];
       await this.del(listKey);
     }
+
+    log(`RedisMockCacheMgr::appendToList: get key ${key}`);
+    // get Get Key
+    const value = await this.get(key, CacheGetType.TYPE_OBJECT);
+    log(`RedisMockCacheMgr::appendToList: preparing key ${key}`);
+    if (!value) {
+      console.error(
+        `RedisMockCacheMgr::appendToList: value is empty for ${key}`,
+      );
+      await this.del(listKey);
+      return false;
+    }
+    // prepare Get Key
+    const preparedValue = await this.prepareValue(
+      value,
+      this.getParents(value),
+      listKey,
+    );
+    // set Get Key
+    log(`RedisMockCacheMgr::appendToList: setting key ${key}`);
+    await this.set(
+      key,
+      JSON.stringify(preparedValue, this.getCircularReplacer()),
+    );
+
     list.push(key);
     return this.set(listKey, list);
+  }
+
+  prepareValue(value, listKeys = [], newParent?) {
+    if (newParent) {
+      listKeys.push(newParent);
+    }
+
+    if (value && typeof value === 'object') {
+      value[CacheListProp] = listKeys;
+    } else if (value && typeof value === 'string') {
+      const keyHelper = value.split(CacheListProp);
+      if (listKeys.length) {
+        value = `${keyHelper[0]}${CacheListProp}${listKeys.join(',')}`;
+      }
+    } else if (value) {
+      console.error(
+        `RedisMockCacheMgr::prepareListKey: keyValue is not object or string`,
+        value,
+      );
+      throw new Error(
+        `RedisMockCacheMgr::prepareListKey: keyValue is not object or string`,
+      );
+    }
+    return value;
+  }
+
+  getParents(value) {
+    if (value && typeof value === 'object') {
+      if (CacheListProp in value) {
+        const listsForKey = value[CacheListProp];
+        if (listsForKey && listsForKey.length) {
+          return listsForKey;
+        }
+      }
+    } else if (value && typeof value === 'string') {
+      if (value.includes(CacheListProp)) {
+        const keyHelper = value.split(CacheListProp);
+        const listsForKey = keyHelper[1].split(',');
+        if (listsForKey.length) {
+          return listsForKey;
+        }
+      }
+    }
+    return [];
   }
 
   async destroy(): Promise<boolean> {

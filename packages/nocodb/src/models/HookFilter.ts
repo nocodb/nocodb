@@ -100,40 +100,45 @@ export default class Filter {
     if (!value) {
       /* get from db */
       value = await ncMeta.metaGet2(null, null, MetaTable.FILTER_EXP, id);
-      // pushing calls for Promise.all
-      const p = [];
+
       /* store in redis */
-      p.push(NocoCache.set(key, value));
-      /* append key to relevant lists */
-      p.push(
-        NocoCache.appendToList(CacheScope.FILTER_EXP, [filter.fk_view_id], key),
-      );
-      if (filter.fk_parent_id) {
+      await NocoCache.set(key, value).then(async () => {
+        /* append key to relevant lists */
+        const p = [];
         p.push(
           NocoCache.appendToList(
             CacheScope.FILTER_EXP,
-            [filter.fk_view_id, filter.fk_parent_id],
+            [filter.fk_view_id],
             key,
           ),
         );
-        p.push(
-          NocoCache.appendToList(
-            CacheScope.FILTER_EXP,
-            [filter.fk_parent_id],
-            key,
-          ),
-        );
-      }
-      if (filter.fk_column_id) {
-        p.push(
-          NocoCache.appendToList(
-            CacheScope.FILTER_EXP,
-            [filter.fk_column_id],
-            key,
-          ),
-        );
-      }
-      await Promise.all(p);
+        if (filter.fk_parent_id) {
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_view_id, filter.fk_parent_id],
+              key,
+            ),
+          );
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_parent_id],
+              key,
+            ),
+          );
+        }
+        if (filter.fk_column_id) {
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_column_id],
+              key,
+            ),
+          );
+        }
+        await Promise.all(p);
+      });
     }
     return new Filter(value);
   }

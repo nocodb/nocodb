@@ -175,6 +175,8 @@ export enum CacheDelDirection {
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
 
+export const CacheListProp = '__nc_list__';
+
 export const GROUPBY_COMPARISON_OPS = <const>[
   // these are used for groupby
   'gb_eq',

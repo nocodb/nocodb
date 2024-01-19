@@ -86,12 +86,6 @@ export default class Base extends BaseCE {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.PROJECT,
-      [],
-      `${CacheScope.PROJECT}:${baseId}`,
-    );
-
     for (const source of base.sources) {
       await Source.createBase(
         {
@@ -104,7 +98,14 @@ export default class Base extends BaseCE {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(baseId, ncMeta);
+    return this.getWithInfo(baseId, ncMeta).then(async (base) => {
+      await NocoCache.appendToList(
+        CacheScope.PROJECT,
+        [],
+        `${CacheScope.PROJECT}:${baseId}`,
+      );
+      return base;
+    });
   }
 
   // @ts-ignore
@@ -135,16 +136,22 @@ export default class Base extends BaseCE {
       // update data
       // new uuid is generated
       if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
-        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
-        await NocoCache.set(`${CacheScope.PROJECT}:${updateObj.uuid}`, baseId);
+        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${updateObj.uuid}`,
+          baseId,
+        );
       }
       // disable shared base
       if (o.uuid && updateObj.uuid === null) {
-        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
       }
       if (o.title && updateObj.title && o.title !== updateObj.title) {
-        await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
-        await NocoCache.set(`${CacheScope.PROJECT}:${updateObj.title}`, baseId);
+        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.title}`);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${updateObj.title}`,
+          baseId,
+        );
       }
       o = { ...o, ...updateObj };
 
@@ -205,16 +212,22 @@ export default class Base extends BaseCE {
     for (const source of sources) {
       await source.delete(ncMeta, { force: true });
     }
+
     base = await this.get(baseId, ncMeta);
+
+    const res = await ncMeta.metaDelete(null, null, MetaTable.PROJECT, baseId);
 
     if (base) {
       // delete <scope>:<uuid>
-      await NocoCache.del(`${CacheScope.PROJECT}:${base.uuid}`);
       // delete <scope>:<title>
-      await NocoCache.del(`${CacheScope.PROJECT}:${base.title}`);
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.title}`);
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
+      await NocoCache.del([
+        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+        `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+      ]);
     }
 
     await NocoCache.deepDel(
@@ -229,7 +242,7 @@ export default class Base extends BaseCE {
       base_id: baseId,
     });
 
-    return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, baseId);
+    return res;
   }
 
   // @ts-ignore
@@ -248,19 +261,18 @@ export default class Base extends BaseCE {
       models.map((model) => ModelStat.delete(base.fk_workspace_id, model.id)),
     );
 
-    // get existing cache
-    const key = `${CacheScope.PROJECT}:${baseId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
+    if (base) {
       // delete <scope>:<id>
-      await NocoCache.del(`${CacheScope.PROJECT}:${baseId}`);
       // delete <scope>:<title>
-      await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
       // delete <scope>:<uuid>
-      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
+      await NocoCache.del([
+        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+        `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+      ]);
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -271,8 +283,6 @@ export default class Base extends BaseCE {
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
-    await NocoCache.del(`${CacheScope.BASE_TO_WORKSPACE}:${baseId}`);
 
     // set meta
     return await ncMeta.metaUpdate(

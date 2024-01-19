@@ -34,13 +34,14 @@ export default class SelectOption implements SelectOptionType {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.COL_SELECT_OPTION,
-      [data.fk_column_id],
-      `${CacheScope.COL_SELECT_OPTION}:${id}`,
-    );
-
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta).then(async (selectOption) => {
+      await NocoCache.appendToList(
+        CacheScope.COL_SELECT_OPTION,
+        [data.fk_column_id],
+        `${CacheScope.COL_SELECT_OPTION}:${id}`,
+      );
+      return selectOption;
+    });
   }
 
   public static async bulkInsert(
@@ -68,12 +69,12 @@ export default class SelectOption implements SelectOptionType {
     );
 
     for (const d of bulkData) {
+      await NocoCache.set(`${CacheScope.COL_SELECT_OPTION}:${d.id}`, d);
       await NocoCache.appendToList(
         CacheScope.COL_SELECT_OPTION,
         [d.fk_column_id],
         `${CacheScope.COL_SELECT_OPTION}:${d.id}`,
       );
-      await NocoCache.set(`${CacheScope.COL_SELECT_OPTION}:${d.id}`, d);
     }
 
     return true;

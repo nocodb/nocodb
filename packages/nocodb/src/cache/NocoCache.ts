@@ -52,19 +52,11 @@ export default class NocoCache {
     return this.client.get(`${this.prefix}:${key}`, type);
   }
 
-  public static async getAll(pattern: string): Promise<any[]> {
-    if (this.cacheDisabled) return Promise.resolve([]);
-    return this.client.getAll(`${this.prefix}:${pattern}`);
-  }
-
   public static async del(key): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
+    if (Array.isArray(key))
+      return this.client.del(key.map((k) => `${this.prefix}:${k}`));
     return this.client.del(`${this.prefix}:${key}`);
-  }
-
-  public static async delAll(scope: string, pattern: string): Promise<any[]> {
-    if (this.cacheDisabled) return Promise.resolve([]);
-    return this.client.delAll(scope, pattern);
   }
 
   public static async getList(
@@ -98,7 +90,7 @@ export default class NocoCache {
     direction: string,
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
-    return this.client.deepDel(scope, key, direction);
+    return this.client.deepDel(scope, `${this.prefix}:${key}`, direction);
   }
 
   public static async appendToList(

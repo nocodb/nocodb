@@ -90,6 +90,7 @@ useSelectedCellKeyupListener(active, (e) => {
       'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
+      'pointer-events-none': readOnly,
     }"
     :style="{
       height:
@@ -97,6 +98,7 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     @click="onClick(false, $event)"
     @keydown.enter.stop="onClick(true, $event)"
+    :tabindex="readOnly ? -1 : 0"
   >
     <div
       class="flex items-center"

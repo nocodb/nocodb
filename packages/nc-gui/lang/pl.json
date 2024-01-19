@@ -157,8 +157,8 @@
     "groupingField": "Pole grupowania",
     "insertAfter": "Wstaw po",
     "insertBefore": "Wstaw przed",
-    "insertAbove": "Insert above",
-    "insertBelow": "Insert below",
+    "insertAbove": "Wstaw powyżej",
+    "insertBelow": "Wstaw poniżej",
     "hideField": "Ukryj pole",
     "sortAsc": "Sortuj rosnąco",
     "sortDesc": "Sortuj malejąco",
@@ -191,8 +191,8 @@
     "shift": "Zmiana",
     "enter": "Wprowadź",
     "seconds": "Sekundy",
-    "paste": "Paste",
-    "restore": "Restore"
+    "paste": "Wklej",
+    "restore": "Przywróć"
   },
   "objects": {
     "workspace": "Obszar roboczy",
@@ -647,13 +647,13 @@
     "newFormLoaded": "Nowy formularz zostanie załadowany po",
     "webhook": "Webhook",
     "multiField": {
-      "newField": "New field",
-      "saveChanges": "Save changes",
-      "updatedField": "Updated field",
-      "deletedField": "Deleted field",
-      "incompleteConfiguration": "Incomplete configuration",
-      "selectField": "Select a field",
-      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+      "newField": "Nowe pole",
+      "saveChanges": "Zapisz zmiany",
+      "updatedField": "Zaktualizowane pole",
+      "deletedField": "Usunięte pole",
+      "incompleteConfiguration": "Niekompletna konfiguracja",
+      "selectField": "Wybierz pole",
+      "selectFieldLabel": "Dokonaj zmian we właściwościach pola wybierając pole z listy"
     }
   },
   "activity": {
@@ -680,7 +680,7 @@
     "enablePublicAccess": "Włącz dostęp publiczny",
     "doYouWantToSaveTheChanges": "Czy chcesz zapisać zmiany?",
     "editingAccess": "Edycja dostępu",
-    "enabledPublicViewing": "Enable Public Viewing",
+    "enabledPublicViewing": "Włącz widok publiczny",
     "restrictAccessWithPassword": "Ogranicz dostęp hasłem",
     "manageProjectAccess": "Zarządzaj dostępem do bazy",
     "allowDownload": "Zezwól na pobieranie",
@@ -733,7 +733,7 @@
     "groupBy": "Grupuj według",
     "addSubGroup": "Dodaj podgrupę",
     "shareBase": {
-      "label": "Share Base",
+      "label": "Udostępnij bazę",
       "disable": "Wyłącz współdzielenie",
       "enable": "Włącz każdy z linkiem",
       "link": "Link udostępniający bazę"
@@ -1034,7 +1034,7 @@
     "acceptOnlyValid": "Akceptuje tylko",
     "apiTokenCreate": "Utwórz osobiste tokeny API do użytku w automatyzacji lub zewnętrznych aplikacjach.",
     "selectFieldToSort": "Wybierz pole do sortowania",
-    "selectFieldToGroup": "Select Field to Group",
+    "selectFieldToGroup": "Wybierz pole do grupowania",
     "thereAreNoRecordsInTable": "Nie ma rekordów w tabeli",
     "createWebhookMsg1": "Rozpocznij pracę z webhookami!",
     "createWebhookMsg2": "Utwórz webhoooki do zasilania twoich automatyzacji,",
@@ -1062,9 +1062,9 @@
       "duplicateProject": "Czy na pewno chcesz zduplikować bazę?",
       "duplicateTable": "Czy na pewno chcesz zduplikować tabelę?",
       "multiField": {
-        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
-        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
-        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+        "fieldVisibility": "Nie można zmienić widoczności pola, które jest edytowane. Proszę najpierw zapisać lub odrzucić zmiany.",
+        "moveEditedField": "Nie można przenieść edytowanego pola. Proszę najpierw zapisać lub odrzucić zmiany",
+        "moveDeletedField": "Nie można przenieść pola, które zostało usunięte. Proszę najpierw zapisać lub odrzucić zmiany"
       }
     },
     "info": {
@@ -1228,8 +1228,8 @@
       "goToNext": "Przejdź do następnego",
       "thankYou": "Dziękuję!",
       "submittedFormData": "Pomyślnie przesłałeś dane formularza.",
-      "editingSystemKeyNotSupported": "Editing system key not supported",
-      "notAvailableAtTheMoment": "Not available at the moment"
+      "editingSystemKeyNotSupported": "Edycja klucza systemowego nie jest obsługiwana",
+      "notAvailableAtTheMoment": "Obecnie niedostępne"
     },
     "error": {
       "nameRequired": "Wymagana nazwa",
@@ -1292,7 +1292,7 @@
       "followingCharactersAreNotAllowed": "Następujące znaki są niedozwolone",
       "columnNameRequired": "Nazwa kolumny jest wymagana",
       "duplicateColumnName": "Zduplikowana nazwa kolumny",
-      "duplicateSystemColumnName": "Name already used for system field",
+      "duplicateSystemColumnName": "Nazwa jest już używana dla pola systemowego",
       "uiDataTypeRequired": "Typ danych UI jest wymagany",
       "columnNameExceedsCharacters": "Nazwa kolumny przekracza maksymalną długość {value} znaków",
       "projectNameExceeds50Characters": "Nazwa projektu przekracza 50 znaków",
@@ -1307,9 +1307,9 @@
       "fieldRequired": "{value} nie może być puste.",
       "projectNotAccessible": "Projekt niedostępny",
       "copyToClipboardError": "Nie udało się skopiować do schowka",
-      "pasteFromClipboardError": "Failed to paste from clipboard",
-      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
-      "somethingWentWrong": "Something went wrong"
+      "pasteFromClipboardError": "Nie udało się wkleić ze schowka",
+      "multiFieldSaveValidation": "Proszę zakończyć konfigurację wszystkich pól przed zapisaniem",
+      "somethingWentWrong": "Coś poszło nie tak"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

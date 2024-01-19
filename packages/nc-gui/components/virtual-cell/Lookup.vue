@@ -15,6 +15,7 @@ import {
   useMetas,
   useShowNotEditableWarning,
   watch,
+  IsExpandedFormOpenInj,
 } from '#imports'
 
 const { metas, getMeta } = useMetas()
@@ -26,6 +27,8 @@ const meta = inject(MetaInj, ref())
 const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
@@ -101,6 +104,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 <template>
   <div
     class="h-full w-full nc-lookup-cell"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
     tabindex="-1"
     :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"

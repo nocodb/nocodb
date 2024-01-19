@@ -145,7 +145,7 @@ watch([listItemsDlg], () => {
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"
-        tabindex="0"
+        :tabindex="readOnly ? -1 : 0"
         @click.stop.prevent="openChildList"
         @keydown.enter.stop.prevent="openChildList"
       >
@@ -157,7 +157,7 @@ watch([listItemsDlg], () => {
     <div
       v-if="!isUnderLookup"
       ref="plusBtnRef"
-      tabindex="0"
+      :tabindex="readOnly ? -1 : 0"
       class="!xs:hidden flex group justify-end group-hover:flex items-center"
       @keydown.enter.stop="openListDlg"
     >

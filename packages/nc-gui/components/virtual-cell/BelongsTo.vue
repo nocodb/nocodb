@@ -18,6 +18,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
+  IsExpandedFormOpenInj,
 } from '#imports'
 
 const column = inject(ColumnInj)!
@@ -35,6 +36,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const { isUIAllowed } = useRoles()
 
@@ -95,7 +98,7 @@ watch([listItemsDlg], () => {
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-    <div class="chips flex items-center flex-1">
+    <div class="chips flex items-center flex-1" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
       <template v-if="value && relatedTableDisplayValueProp">
         <VirtualCellComponentsItemChip
           :item="value"

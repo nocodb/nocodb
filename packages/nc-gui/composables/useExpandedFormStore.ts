@@ -44,13 +44,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const changedColumns = ref(new Set<string>())
 
   const { base } = storeToRefs(useBase())
-  const row = ref<Row>(_row.value.rowMeta.new ? _row.value : ({ row: {}, oldRow: {}, rowMeta: {} } as Row))
+
+  const { sharedView } = useSharedView()
+
+  const row = ref<Row>(
+    sharedView.value?.type === ViewTypes.GALLERY || sharedView.value?.type === ViewTypes.KANBAN || _row.value.rowMeta.new
+      ? _row.value
+      : ({ row: {}, oldRow: {}, rowMeta: {} } as Row),
+  )
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
 
   const activeView = inject(ActiveViewInj, ref())
-
-  const { sharedView } = useSharedView()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 

@@ -153,6 +153,13 @@ export default class Column<T = any> implements ColumnType {
     if (insertObj.meta && typeof insertObj.meta === 'object') {
       insertObj.meta = JSON.stringify(insertObj.meta);
     }
+
+    insertObj.order =
+      column.order ??
+      (await ncMeta.metaGetNextOrder(MetaTable.COLUMNS, {
+        fk_model_id: column.fk_model_id,
+      }));
+
     if (column.validate) {
       if (typeof column.validate === 'string')
         insertObj.validate = column.validate;

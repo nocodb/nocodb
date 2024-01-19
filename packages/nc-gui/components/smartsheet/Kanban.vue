@@ -291,7 +291,8 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.value.defaultLimit || 25
     const stack = formattedData.value.get(stackTitle)
-    if (stack) {
+
+    if (stack && (countByStack.value.get(stackTitle) === undefined || stack.length < countByStack.value.get(stackTitle)!)) {
       const page = Math.ceil(stack.length / pageSize)
       await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
     }

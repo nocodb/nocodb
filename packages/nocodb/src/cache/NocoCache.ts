@@ -57,11 +57,6 @@ export default class NocoCache {
     return this.client.del(`${this.prefix}:${key}`);
   }
 
-  public static async delAll(scope: string, pattern: string): Promise<any[]> {
-    if (this.cacheDisabled) return Promise.resolve([]);
-    return this.client.delAll(scope, pattern);
-  }
-
   public static async getList(
     scope: string,
     subKeys: string[],

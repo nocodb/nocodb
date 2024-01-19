@@ -91,7 +91,6 @@ export default class Sort {
           order: 'asc',
         },
       });
-      await NocoCache.delAll(CacheScope.SORT, `${sortObj.fk_view_id}:*`);
       await NocoCache.setList(CacheScope.SORT, [sortObj.fk_view_id], sortList);
     } else {
       await NocoCache.appendToList(

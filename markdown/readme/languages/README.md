@@ -16,4 +16,5 @@ Supported Translations:
     <li><a href="russian.md">Russian</a></li>
     <li><a href="dutch.md">Dutch</a></li>
     <li><a href="indonesian.md">Indonesian</a></li>
+    <li><a href="ukrainian.md">Ukrainian</a></li>
 </ul>

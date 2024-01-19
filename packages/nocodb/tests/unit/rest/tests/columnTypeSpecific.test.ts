@@ -52,6 +52,16 @@ function columnTypeSpecificTests() {
       uidt: UITypes.LastModifiedTime,
       system: true,
     },
+    {
+      title: 'nc_created_by',
+      uidt: UITypes.CreatedBy,
+      system: true,
+    },
+    {
+      title: 'nc_updated_by',
+      uidt: UITypes.LastModifiedBy,
+      system: true,
+    },
   ];
 
   describe('Qr Code Column', () => {
@@ -176,7 +186,9 @@ function columnTypeSpecificTests() {
         for (let i = 0; i < defaultTableColumns.length; i++) {
           expect(columns[i].title).to.equal(defaultTableColumns[i].title);
           expect(columns[i].uidt).to.equal(defaultTableColumns[i].uidt);
-          expect(columns[i].system).to.equal(defaultTableColumns[i].system);
+          expect(Boolean(columns[i].system)).to.equal(
+            defaultTableColumns[i].system,
+          );
         }
       });
 
@@ -214,7 +226,7 @@ function columnTypeSpecificTests() {
         expect(unfilteredRecords[0].UpdatedAt).to.equal(null);
       });
 
-      it('Modify record: verify last-modified-at & modified-by is updated', async () => {
+      it('Modify record: verify last-modified-at is updated', async () => {
         // get current date time
         const currentDateTime = new Date();
         const d1 = new Date();
@@ -280,13 +292,6 @@ function columnTypeSpecificTests() {
         // calculate difference between current date time and stored date time
         difference = storedDateTime2.getTime() - storedDateTime1.getTime();
         expect(difference).to.be.greaterThan(1500);
-
-        // verify modified by
-        expect(updatedRecord[0].UpdatedBy).to.not.equal(null);
-        expect(updatedRecord[0].UpdatedBy[0].email).to.equal(
-          'test@example.com',
-        );
-        expect(updatedRecord[0].UpdatedBy[0].display_name).to.equal(null);
       });
 
       it('Modify record: verify that system fields are RO', async () => {
@@ -313,8 +318,8 @@ function columnTypeSpecificTests() {
           .send([
             {
               Id: unfilteredRecords[0].Id,
-              CreatedBy: 'test@example.com',
-              UpdatedBy: 'test@example.com',
+              nc_created_by: 'test@example.com',
+              nc_updated_by: 'test@example.com',
             },
           ])
           .expect(400);
@@ -341,9 +346,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedTime,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
 
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
 
@@ -391,9 +396,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedBy,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
         expect(records[0].CreatedBy).to.deep.equal({
           id: context.user.id,
           email: context.user.email,
@@ -406,10 +411,10 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length + 1].uidt).to.equal(
           UITypes.LastModifiedBy,
         );
-        expect(columns.columns[defaultTableColumns.length + 1].system).to.equal(
-          false,
-        );
-        expect(records[0].UpdatedBy).to.deep.equal(null);
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length + 1].system),
+        ).to.equal(false);
+        expect(records[0].LastModifiedBy).to.deep.equal(null);
 
         // update record should fail
         await request(context.app)
@@ -468,9 +473,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedTime,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
 
         expect(records[0].CreatedAt).to.equal(records[0].CreatedAt2);
       });
@@ -505,9 +510,9 @@ function columnTypeSpecificTests() {
         expect(columns.columns[defaultTableColumns.length].uidt).to.equal(
           UITypes.CreatedBy,
         );
-        expect(columns.columns[defaultTableColumns.length].system).to.equal(
-          false,
-        );
+        expect(
+          Boolean(columns.columns[defaultTableColumns.length].system),
+        ).to.equal(false);
         expect(records[0].CreatedBy).to.deep.equal(records[0].CreatedBy);
       });
     });

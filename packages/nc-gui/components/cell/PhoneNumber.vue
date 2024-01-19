@@ -90,6 +90,7 @@ watch(
     :href="`tel:${vModel}`"
     target="_blank"
     rel="noopener noreferrer"
+    :tabindex="readOnly ? -1 : 0"
   >
     <LazyCellClampedText :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
   </a>

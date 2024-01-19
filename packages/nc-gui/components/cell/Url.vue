@@ -122,6 +122,7 @@ watch(
       class="py-1 z-3 text-sm underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
+      :tabindex="readOnly ? -1 : 0"
     >
       <LazyCellClampedText :value="value" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
     </nuxt-link>
@@ -133,6 +134,7 @@ watch(
       class="py-1 z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
+      :tabindex="readOnly ? -1 : 0"
     >
       <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
     </nuxt-link>

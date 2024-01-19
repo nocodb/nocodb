@@ -5,7 +5,6 @@ import {
   ActiveCellInj,
   CellValueInj,
   ColumnInj,
-  IsExpandedFormOpenInj,
   IsFormInj,
   IsUnderLookupInj,
   ReadonlyInj,
@@ -36,8 +35,6 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const { isUIAllowed } = useRoles()
 
@@ -98,7 +95,7 @@ watch([listItemsDlg], () => {
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-    <div class="chips flex items-center flex-1" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
+    <div class="nc-cell-field chips flex items-center flex-1">
       <template v-if="value && relatedTableDisplayValueProp">
         <VirtualCellComponentsItemChip
           :item="value"

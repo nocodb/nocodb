@@ -67,8 +67,7 @@ watch(
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm py-1"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field w-full outline-none text-sm py-1"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
@@ -80,9 +79,7 @@ watch(
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-    $t('general.null')
-  }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
   <a
     v-else-if="validPhoneNumber"
@@ -92,8 +89,8 @@ watch(
     rel="noopener noreferrer"
     :tabindex="readOnly ? -1 : 0"
   >
-    <LazyCellClampedText :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
+    <LazyCellClampedText :value="vModel" :lines="rowHeight" class="nc-cell-field" />
   </a>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" class="nc-cell-field" />
 </template>

@@ -94,8 +94,7 @@ onMounted(() => {
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="w-full h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field w-full h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="submitCurrency"
     @keydown.down.stop
@@ -108,12 +107,10 @@ onMounted(() => {
     @contextmenu.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-    $t('general.null')
-  }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
   <!-- only show the numeric value as previously string value was accepted -->
-  <span v-else-if="!isNaN(vModel)" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{ currency }}</span>
+  <span v-else-if="!isNaN(vModel)" class="nc-cell-field">{{ currency }}</span>
 
   <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />

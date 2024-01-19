@@ -99,8 +99,7 @@ const focus: VNodeRef = (el) =>
       v-if="!readOnly && editEnabled"
       :ref="focus"
       v-model="localState"
-      class="w-full !border-none !outline-none py-1"
-      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+      class="nc-cell-field w-full !border-none !outline-none py-1"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
@@ -114,13 +113,11 @@ const focus: VNodeRef = (el) =>
       @mousedown.stop
     />
 
-    <span v-else-if="modelValue === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-      $t('general.null')
-    }}</span>
+    <span v-else-if="modelValue === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <span v-else :class="isExpandedFormOpen ? 'px-2' : 'px-0'"> {{ localState }}</span>
+    <span v-else class="nc-cell-field"> {{ localState }}</span>
 
-    <div v-if="showWarningMessage && showValidationError" class="duration-warning" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
+    <div v-if="showWarningMessage && showValidationError" class="nc-cell-field duration-warning">
       {{ $t('msg.plsEnterANumber') }}
     </div>
   </div>

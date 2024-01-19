@@ -99,8 +99,7 @@ watch(
       :ref="focus"
       v-model="vModel"
       :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
-      class="outline-none text-sm w-full py-1 bg-transparent h-full"
-      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+      class="nc-cell-field outline-none text-sm w-full py-1 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop
       @keydown.left.stop
@@ -111,9 +110,7 @@ watch(
       @mousedown.stop
     />
 
-    <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
-      {{ $t('general.null') }}</span
-    >
+    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase"> {{ $t('general.null') }}</span>
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"
@@ -124,7 +121,7 @@ watch(
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
     >
-      <LazyCellClampedText :value="value" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
+      <LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field" />
     </nuxt-link>
 
     <nuxt-link
@@ -136,11 +133,11 @@ watch(
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
     >
-      <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
+      <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" class="nc-cell-field" />
     </nuxt-link>
 
     <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"
-      ><LazyCellClampedText :value="value" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+      ><LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field"
     /></span>
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">

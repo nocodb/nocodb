@@ -99,18 +99,14 @@ export default class FormViewColumn implements FormColumnType {
 
     await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    const { list } = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
-      column.fk_view_id,
-    ]);
-
-    if (list?.length)
+    return this.get(id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
         CacheScope.FORM_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.FORM_VIEW_COLUMN}:${id}`,
       );
-    return this.get(id, ncMeta);
+      return viewColumn;
+    });
   }
 
   public static async list(

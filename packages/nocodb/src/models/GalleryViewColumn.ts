@@ -78,25 +78,20 @@ export default class GalleryViewColumn {
       id,
     );
 
-    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    const { list } = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
-      column.fk_view_id,
-    ]);
-
-    if (list?.length)
-      await NocoCache.appendToList(
-        CacheScope.GALLERY_VIEW_COLUMN,
-        [column.fk_view_id],
-        `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`,
-      );
-
     // on new view column, delete any optimised single query cache
     {
       const view = await View.get(column.fk_view_id, ncMeta);
       await View.clearSingleQueryCache(view.fk_model_id, [view]);
     }
 
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta).then(async (viewColumn) => {
+      await NocoCache.appendToList(
+        CacheScope.GALLERY_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`,
+      );
+      return viewColumn;
+    });
   }
 
   public static async list(

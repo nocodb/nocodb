@@ -319,12 +319,6 @@ export default class View implements ViewType {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.VIEW,
-      [view.fk_model_id],
-      `${CacheScope.VIEW}:${view_id}`,
-    );
-
     let columns: any[] = await (
       await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
     ).getColumns(ncMeta);
@@ -506,7 +500,14 @@ export default class View implements ViewType {
       ncMeta,
     );
 
-    return View.get(view_id, ncMeta);
+    return View.get(view_id, ncMeta).then(async (v) => {
+      await NocoCache.appendToList(
+        CacheScope.VIEW,
+        [view.fk_model_id],
+        `${CacheScope.VIEW}:${view_id}`,
+      );
+      return v;
+    });
   }
 
   static async insertColumnToAllViews(

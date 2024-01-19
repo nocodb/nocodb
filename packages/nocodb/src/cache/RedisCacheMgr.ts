@@ -42,9 +42,9 @@ export default class RedisCacheMgr extends CacheMgr {
   };
 
   // @ts-ignore
-  async del(key: string): Promise<any> {
+  async del(key: string[] | string): Promise<any> {
     log(`RedisCacheMgr::del: deleting key ${key}`);
-    return this.client.del(key);
+    return this.client.del(Array.isArray(key) ? key : [key]);
   }
 
   // @ts-ignore

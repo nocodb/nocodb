@@ -35,9 +35,9 @@ export default class RedisMockCacheMgr extends CacheMgr {
   };
 
   // @ts-ignore
-  async del(key: string): Promise<any> {
+  async del(key: string[] | string): Promise<any> {
     log(`RedisMockCacheMgr::del: deleting key ${key}`);
-    return this.client.del(key);
+    return this.client.del(Array.isArray(key) ? key : [key]);
   }
 
   // @ts-ignore

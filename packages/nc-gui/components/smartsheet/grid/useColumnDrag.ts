@@ -25,7 +25,11 @@ export const useColumnDrag = ({
   const reorderColumn = async (colId: string, toColId: string) => {
     const toBeReorderedViewCol = gridViewCols.value[colId]
 
-    const toViewCol = gridViewCols.value[toColId]!
+    const toViewCol = gridViewCols.value[toColId]
+
+    // if toBeReorderedViewCol/toViewCol is null, return
+    if (!toBeReorderedViewCol || !toViewCol) return
+
     const toColIndex = fields.value.findIndex((f) => f.id === toColId)
 
     const nextToColField = toColIndex < fields.value.length - 1 ? fields.value[toColIndex + 1] : null

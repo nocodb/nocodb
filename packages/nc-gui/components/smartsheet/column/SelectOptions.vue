@@ -176,6 +176,8 @@ const addNewOption = () => {
 // }
 
 const syncOptions = () => {
+  // set initial colOptions if not set
+  vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
     .filter((op) => op.status !== 'remove')
     .sort((a, b) => {

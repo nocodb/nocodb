@@ -66,8 +66,6 @@ const cells = computed(() =>
 
     const value = curr[relatedTableDisplayValueProp.value]
 
-    if (!value) return acc
-
     return [...acc, { value, item: curr }]
   }, []),
 )

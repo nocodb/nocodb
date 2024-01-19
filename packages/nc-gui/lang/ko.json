@@ -972,6 +972,7 @@
       "hintStart": "팁:{placeholder1}을(를) 사용하여 필드(예: {placeholder2})를 참조하십시오.",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "제안된 공식이 없습니다.",
+      "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "숫자 유형이 필요합니다.",
       "stringTypeIsExpected": "문자열 유형이 필요합니다.",
       "operationNotAvailable": "{operation} 작업을 사용할 수 없습니다.",

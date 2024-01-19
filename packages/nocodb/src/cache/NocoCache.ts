@@ -52,11 +52,6 @@ export default class NocoCache {
     return this.client.get(`${this.prefix}:${key}`, type);
   }
 
-  public static async getAll(pattern: string): Promise<any[]> {
-    if (this.cacheDisabled) return Promise.resolve([]);
-    return this.client.getAll(`${this.prefix}:${pattern}`);
-  }
-
   public static async del(key): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.del(`${this.prefix}:${key}`);

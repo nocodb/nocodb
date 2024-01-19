@@ -129,6 +129,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 <template>
   <a-time-picker
     v-model:value="localState"
+    :disabled="readOnly"
     :show-time="true"
     :bordered="false"
     use12-hours

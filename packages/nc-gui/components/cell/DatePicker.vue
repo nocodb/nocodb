@@ -240,6 +240,7 @@ const clickHandler = () => {
 <template>
   <a-date-picker
     v-model:value="localState"
+    :disabled="readOnly"
     :picker="picker"
     :tabindex="0"
     :bordered="false"

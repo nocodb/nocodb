@@ -303,7 +303,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
           </div>
         </div>
         <template v-else-if="renderData.length > 0">
-          <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex">
+          <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
             <LazySmartsheetCalendarSideRecordCard
               :draggable="sideBarFilterOption === 'withoutDates'"
               :from-date="

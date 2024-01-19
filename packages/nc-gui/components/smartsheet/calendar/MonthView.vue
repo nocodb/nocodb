@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
+
 import type { Row } from '#imports'
 
 const emit = defineEmits(['new-record', 'expand-record'])
@@ -60,6 +61,12 @@ const dates = computed(() => {
 
   return weeksArray
 })
+
+function getRandomNumbers() {
+  const typedArray = new Uint8Array(10)
+  const randomValues = window.crypto.getRandomValues(typedArray)
+  return randomValues.join('')
+}
 
 const recordsToDisplay = computed<{
   records: Array<Row>
@@ -172,6 +179,8 @@ const recordsToDisplay = computed<{
         const startDate = dayjs(record.row[startCol.title])
         const endDate = dayjs(record.row[endCol.title])
         let currentWeekStart = startDate.startOf('week')
+
+        const id = getRandomNumbers()
         while (currentWeekStart.isBefore(endDate)) {
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
@@ -272,6 +281,7 @@ const recordsToDisplay = computed<{
               position,
               style,
               range,
+              id,
             },
           })
           currentWeekStart = currentWeekStart.add(1, 'week')
@@ -286,9 +296,12 @@ const recordsToDisplay = computed<{
 })
 
 const dragElement = ref<HTMLElement | null>(null)
+const draggingId = ref<string | null>(null)
 
 const dragStart = (event: DragEvent, record: Row) => {
   dragElement.value = event.target as HTMLElement
+
+  draggingId.value = record.rowMeta.id
 
   dragElement.value.classList.add('hide')
   dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
@@ -318,6 +331,10 @@ const dragEnter = (event: DragEvent) => {
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
 
+  if (dragElement.value) {
+    calendarGridContainer.value.addEventListener('mousemove', onDragMove)
+  }
+
   const currSelectedDate = dayjs(selectedDate.value).startOf('month').add(week, 'week').add(day, 'day')
   selectedDate.value = currSelectedDate.toDate()
 }
@@ -337,8 +354,12 @@ const dropEvent = (event: DragEvent) => {
     } = JSON.parse(data)
     const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
-    const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
+    const percentY = (event.clientY - top - window.scrollY) / height
+    const percentX = (event.clientX - left - window.scrollX) / width
+    /*
+   const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
     const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
+*/
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
@@ -346,7 +367,8 @@ const dropEvent = (event: DragEvent) => {
     const week = Math.floor(percentY * dates.value.length)
     const day = Math.floor(percentX * 7)
 
-    const newStartDate = dayjs(selectedMonth.value).startOf('month').add(week, 'week').add(day, 'day')
+    const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+    if (!newStartDate) return
 
     let endDate
 
@@ -461,18 +483,56 @@ const isDateSelected = (date: Date) => {
               }"
               class="group-hover:hidden"
             ></span>
-            <NcButton
-              :class="{
-                '!block': isDateSelected(day),
-                '!hidden': !isDateSelected(day),
-              }"
-              class="!group-hover:block"
-              size="small"
-              type="secondary"
-              @click="emit('new-record')"
-            >
-              <component :is="iconMap.plus" class="h-4 w-4" />
-            </NcButton>
+            <NcDropdown auto-close>
+              <NcButton
+                :class="{
+                  '!block': isDateSelected(day),
+                  '!hidden': !isDateSelected(day),
+                }"
+                class="!group-hover:block"
+                size="small"
+                type="secondary"
+                @click="
+                  () => {
+                    if (calendarRange.length !== 1) return
+                    const record = {
+                      row: {
+                        [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
+                      },
+                    }
+                    emit('new-record', record)
+                  }
+                "
+              >
+                <component :is="iconMap.plus" class="h-4 w-4" />
+              </NcButton>
+              <template #overlay>
+                <NcMenu class="w-64" @click.stop>
+                  <NcMenuItem> Select date field to add </NcMenuItem>
+                  <NcMenuItem
+                    v-for="(range, index) in calendarRange"
+                    :key="index"
+                    class="text-gray-800 font-semibold text-sm"
+                    @click="
+                      () => {
+                        const record = {
+                          row: {
+                            [range.fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
+                          },
+                        }
+                        emit('new-record', record)
+                      }
+                    "
+                  >
+                    <div class="flex items-center gap-1">
+                      <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                      <span class="ml-1">{{ range.fk_from_col.title }}</span>
+                    </div>
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+
             <span class="px-1 py-2">{{ dayjs(day).format('DD') }}</span>
           </div>
           <div
@@ -491,7 +551,10 @@ const isDateSelected = (date: Date) => {
       <div
         v-for="(record, recordIndex) in recordsToDisplay.records"
         :key="recordIndex"
-        :style="record.rowMeta.style as Partial<CSSStyleValue>"
+        :style="{
+          ...record.rowMeta.style,
+          zIndex: record.rowMeta.id === draggingId ? 100 : 0,
+        }"
         class="absolute pointer-events-auto"
         draggable="true"
         @dragstart="dragStart($event, record)"

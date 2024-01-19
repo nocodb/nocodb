@@ -95,12 +95,13 @@ const expandRecord = (row: RowType) => {
   }
 }
 
-const newRecord = () => {
+const newRecord = (row: Row) => {
   // TODO: The default values has to be filled based on the active calendar view
   // and selected sidebar filter option
   expandRecord({
     row: {
       ...rowDefaultData(meta.value?.columns),
+      ...row.row,
     },
     oldRow: {},
     rowMeta: {

@@ -7,6 +7,7 @@ import {
   inject,
   parseProp,
   useSelectedCellKeyupListener,
+  ReadonlyInj,
 } from '#imports'
 
 interface Props {
@@ -19,7 +20,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
-const readonly = inject(ReadonlyInj, ref(false))
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -73,7 +74,7 @@ watch(rateDomRef, () => {
   <a-rate
     ref="rateDomRef"
     v-model:value="vModel"
-    :disabled="readonly"
+    :disabled="readOnly"
     :count="ratingMeta.max"
     :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 5px'};`"
     @keydown="onKeyPress"

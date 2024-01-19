@@ -13,6 +13,7 @@ import {
   ref,
   useAttachment,
   useVModel,
+  ReadonlyInj,
 } from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 import LinkIcon from '~icons/nc-icons/link'
@@ -39,7 +40,7 @@ const row = useVModel(props, 'row')
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const readonly = inject(ReadonlyInj, ref(false))
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -93,7 +94,7 @@ const displayValue = computed(() => {
       '!bg-white': isLoading,
       '!border-1': isLinked && !isLoading,
       '!hover:border-gray-400': !isLinked,
-      '!cursor-auto !hover:bg-white': readonly,
+      '!cursor-auto !hover:bg-white': readOnly,
     }"
     :body-style="{ padding: 0 }"
     :hoverable="false"
@@ -126,7 +127,7 @@ const displayValue = computed(() => {
             v-if="isLinked && !isLoading"
             class="text-brand-500 text-0.875"
             :class="{
-              '!group-hover:mr-12': fields.length === 0 && !readonly,
+              '!group-hover:mr-12': fields.length === 0 && !readOnly,
             }"
           >
             <LinkIcon class="w-4 h-4" />
@@ -135,7 +136,7 @@ const displayValue = computed(() => {
           <MdiLoading
             v-else-if="isLoading"
             :class="{
-              '!group-hover:mr-8': fields.length === 0 && !readonly,
+              '!group-hover:mr-8': fields.length === 0 && !readOnly,
             }"
             class="w-6 h-6 !text-brand-500 animate-spin"
           />
@@ -174,7 +175,7 @@ const displayValue = computed(() => {
       </div>
     </div>
     <NcButton
-      v-if="!isForm && !isPublic && !readonly"
+      v-if="!isForm && !isPublic && !readOnly"
       v-e="['c:row-expand:open']"
       type="text"
       size="lg"

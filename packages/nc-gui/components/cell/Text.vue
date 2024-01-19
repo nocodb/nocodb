@@ -28,7 +28,7 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
-const readonly = inject(ReadonlyInj, ref(false))
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -42,7 +42,7 @@ const focus: VNodeRef = (el) =>
 
 <template>
   <input
-    v-if="!readonly && editEnabled"
+    v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     class="h-full w-full outline-none py-1 bg-transparent"
@@ -58,7 +58,15 @@ const focus: VNodeRef = (el) =>
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
+    $t('general.null')
+  }}</span>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" :style="{ 'word-break': 'break-word' }" />
+  <LazyCellClampedText
+    v-else
+    :value="vModel"
+    :lines="rowHeight"
+    :style="{ 'word-break': 'break-word' }"
+    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+  />
 </template>

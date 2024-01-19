@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel, ReadonlyInj } from '#imports'
 
 interface Props {
   // when we set a number, then it is number type
@@ -24,6 +24,8 @@ const editEnabled = inject(EditModeInj)
 const column = inject(ColumnInj, null)!
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const domRef = ref<HTMLElement>()
 
@@ -94,7 +96,7 @@ watch(isExpandedFormOpen, () => {
 
 <template>
   <input
-    v-if="editEnabled"
+    v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     class="outline-none py-1 border-none rounded-md w-full h-full !text-sm"
@@ -112,8 +114,10 @@ watch(isExpandedFormOpen, () => {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
-  <span v-else class="text-sm">{{ displayValue }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
+    $t('general.null')
+  }}</span>
+  <span v-else class="text-sm" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{ displayValue }}</span>
 </template>
 
 <style scoped lang="scss">

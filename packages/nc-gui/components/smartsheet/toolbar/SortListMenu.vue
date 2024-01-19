@@ -130,11 +130,7 @@ onMounted(() => {
         class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >
-        <div
-          class="sort-grid max-h-120 nc-scrollbar-md"
-          :class="{ 'pr-3.5': sorts?.length }"
-          @click.stop
-        >
+        <div class="sort-grid max-h-120 nc-scrollbar-md" :class="{ 'pr-3.5': sorts?.length }" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"

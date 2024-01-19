@@ -1520,24 +1520,20 @@ export default class View implements ViewType {
       });
     }
 
-    // clear cache for each view
-    await Promise.all([
-      ...viewsList.map(async (view) => {
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
-        );
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
-        );
-      }),
-      (async () => {
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
-        );
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
-        );
-      })(),
-    ]);
+    const deleteKeys = [];
+
+    for (const view of viewsList) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+      );
+    }
+
+    deleteKeys.push(
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+    );
+
+    await NocoCache.del(deleteKeys);
   }
 }

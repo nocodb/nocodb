@@ -44,7 +44,13 @@ export default class RedisCacheMgr extends CacheMgr {
   // @ts-ignore
   async del(key: string[] | string): Promise<any> {
     log(`RedisCacheMgr::del: deleting key ${key}`);
-    return this.client.del(Array.isArray(key) ? key : [key]);
+    if (Array.isArray(key)) {
+      if (key.length) {
+        return this.client.del(key);
+      }
+    } else if (key) {
+      return this.client.del(key);
+    }
   }
 
   // @ts-ignore
@@ -223,7 +229,6 @@ export default class RedisCacheMgr extends CacheMgr {
         if (list.length) {
           // set target list
           log(`RedisCacheMgr::deepDel: set key ${listKey}`);
-          await this.del(listKey);
           await this.set(listKey, list);
         }
       }
@@ -234,7 +239,7 @@ export default class RedisCacheMgr extends CacheMgr {
       // given a list key, delete all the children
       const listOfChildren = await this.get(key, CacheGetType.TYPE_ARRAY);
       // delete each child key
-      await Promise.all(listOfChildren.map(async (k) => await this.del(k)));
+      await this.del(listOfChildren);
       // delete list key
       return await this.del(key);
     } else {

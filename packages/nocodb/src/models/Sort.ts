@@ -183,12 +183,14 @@ export default class Sort {
 
   public static async delete(sortId: string, ncMeta = Noco.ncMeta) {
     const sort = await this.get(sortId, ncMeta);
+
+    await ncMeta.metaDelete(null, null, MetaTable.SORT, sortId);
+
     await NocoCache.deepDel(
       CacheScope.SORT,
       `${CacheScope.SORT}:${sortId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await ncMeta.metaDelete(null, null, MetaTable.SORT, sortId);
 
     // on delete, delete any optimised single query cache
     if (sort?.fk_view_id) {

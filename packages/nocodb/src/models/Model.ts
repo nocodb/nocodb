@@ -213,6 +213,8 @@ export default class Model implements TableType {
         [base_id, source_id],
         modelList,
       );
+
+      await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
     }
     modelList.sort(
       (a, b) =>
@@ -496,8 +498,13 @@ export default class Model implements TableType {
     );
     await ncMeta.metaDelete(null, null, MetaTable.MODELS, this.id);
 
-    await NocoCache.del(`${CacheScope.MODEL}:${this.base_id}:${this.id}`);
-    await NocoCache.del(`${CacheScope.MODEL}:${this.base_id}:${this.title}`);
+    // delete alias cache
+    await NocoCache.del([
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.id}`,
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.source_id}:${this.id}`,
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.title}`,
+      `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.source_id}:${this.title}`,
+    ]);
     return true;
   }
 
@@ -635,12 +642,12 @@ export default class Model implements TableType {
     }
 
     // delete alias cache
-    await NocoCache.del(
-      `${CacheScope.MODEL}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.title}`,
-    );
-    await NocoCache.del(
-      `${CacheScope.MODEL}:${oldModel.base_id}:${oldModel.title}`,
-    );
+    await NocoCache.del([
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.id}`,
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.id}`,
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.title}`,
+      `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.title}`,
+    ]);
 
     // set meta
     const res = await ncMeta.metaUpdate(

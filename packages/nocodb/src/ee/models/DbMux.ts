@@ -210,8 +210,6 @@ export default class DbMux {
       );
     }
 
-    await NocoCache.del(`${CacheScope.DB_MUX}:${this.id}`);
-
     await NocoCache.deepDel(
       CacheScope.DB_MUX,
       `${CacheScope.DB_MUX}:${this.id}`,

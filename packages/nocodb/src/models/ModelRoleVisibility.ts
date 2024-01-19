@@ -114,12 +114,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     return await ModelRoleVisibility.delete(this.fk_view_id, this.role);
   }
   static async delete(fk_view_id: string, role: string) {
-    await NocoCache.deepDel(
-      CacheScope.MODEL_ROLE_VISIBILITY,
-      `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-    return await Noco.ncMeta.metaDelete(
+    const res = await Noco.ncMeta.metaDelete(
       null,
       null,
       MetaTable.MODEL_ROLE_VISIBILITY,
@@ -128,6 +123,12 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         role,
       },
     );
+    await NocoCache.deepDel(
+      CacheScope.MODEL_ROLE_VISIBILITY,
+      `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    return res;
   }
 
   static async insert(

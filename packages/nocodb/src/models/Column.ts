@@ -854,7 +854,6 @@ export default class Column<T = any> implements ColumnType {
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
-      await NocoCache.del(`${CacheScope.GRID_VIEW_COLUMN}:${col.id}`);
     }
 
     // Form View Columns
@@ -871,7 +870,6 @@ export default class Column<T = any> implements ColumnType {
         `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
-      await NocoCache.del(`${CacheScope.FORM_VIEW_COLUMN}:${col.id}`);
     }
 
     // Kanban View Columns
@@ -888,7 +886,6 @@ export default class Column<T = any> implements ColumnType {
         `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
-      await NocoCache.del(`${CacheScope.KANBAN_VIEW_COLUMN}:${col.id}`);
     }
 
     // Gallery View Column
@@ -905,7 +902,6 @@ export default class Column<T = any> implements ColumnType {
         `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
-      await NocoCache.del(`${CacheScope.GALLERY_VIEW_COLUMN}:${col.id}`);
     }
 
     // Get LTAR columns in which current column is referenced as foreign key

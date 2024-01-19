@@ -5,6 +5,7 @@ import {
   CellUrlDisableOverlayInj,
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   IsUnderLookupInj,
   MetaInj,
   computed,
@@ -15,7 +16,6 @@ import {
   useMetas,
   useShowNotEditableWarning,
   watch,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 const { metas, getMeta } = useMetas()

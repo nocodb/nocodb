@@ -3,6 +3,7 @@ import NcModal from '../nc/Modal.vue'
 import {
   ActiveCellInj,
   EditModeInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   JsonExpandInj,
   ReadonlyInj,
@@ -13,7 +14,6 @@ import {
   useSelectedCellKeyupListener,
   useVModel,
   watch,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 interface Props {

@@ -5,6 +5,7 @@ import {
   IsExpandedFormOpenInj,
   IsFormInj,
   IsPublicInj,
+  ReadonlyInj,
   RowHeightInj,
   computed,
   inject,
@@ -13,7 +14,6 @@ import {
   ref,
   useAttachment,
   useVModel,
-  ReadonlyInj,
 } from '#imports'
 import MaximizeIcon from '~icons/nc-icons/maximize'
 import LinkIcon from '~icons/nc-icons/link'

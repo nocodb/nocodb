@@ -96,9 +96,9 @@ useSelectedCellKeyupListener(active, (e) => {
       height:
         isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
+    :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"
     @keydown.enter.stop="onClick(true, $event)"
-    :tabindex="readOnly ? -1 : 0"
   >
     <div
       class="flex items-center"

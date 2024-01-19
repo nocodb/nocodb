@@ -5,6 +5,7 @@ import {
   ActiveCellInj,
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   IsFormInj,
   IsUnderLookupInj,
   ReadonlyInj,
@@ -18,7 +19,6 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 const column = inject(ColumnInj)!

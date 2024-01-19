@@ -86,12 +86,6 @@ export default class Base extends BaseCE {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.PROJECT,
-      [],
-      `${CacheScope.PROJECT}:${baseId}`,
-    );
-
     for (const source of base.sources) {
       await Source.createBase(
         {
@@ -104,7 +98,14 @@ export default class Base extends BaseCE {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(baseId, ncMeta);
+    return this.getWithInfo(baseId, ncMeta).then(async (base) => {
+      await NocoCache.appendToList(
+        CacheScope.PROJECT,
+        [],
+        `${CacheScope.PROJECT}:${baseId}`,
+      );
+      return base;
+    });
   }
 
   // @ts-ignore

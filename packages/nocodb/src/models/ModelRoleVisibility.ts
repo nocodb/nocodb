@@ -155,15 +155,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       insertObj,
     );
 
-    const key = `${CacheScope.MODEL_ROLE_VISIBILITY}:${body.fk_view_id}:${body.role}`;
-
     insertObj.id = result.id;
-
-    await NocoCache.appendToList(
-      CacheScope.MODEL_ROLE_VISIBILITY,
-      [insertObj.base_id],
-      key,
-    );
 
     return this.get(
       {
@@ -171,6 +163,14 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         role: body.role,
       },
       ncMeta,
-    );
+    ).then(async (modelRoleVisibility) => {
+      const key = `${CacheScope.MODEL_ROLE_VISIBILITY}:${body.fk_view_id}:${body.role}`;
+      await NocoCache.appendToList(
+        CacheScope.MODEL_ROLE_VISIBILITY,
+        [insertObj.base_id],
+        key,
+      );
+      return modelRoleVisibility;
+    });
   }
 }

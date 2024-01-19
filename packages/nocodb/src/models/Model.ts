@@ -146,20 +146,6 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       insertObj,
     );
-    if (sourceId) {
-      await NocoCache.appendToList(
-        CacheScope.MODEL,
-        [baseId, sourceId],
-        `${CacheScope.MODEL}:${id}`,
-      );
-    }
-    // cater cases where sourceId is not required
-    // e.g. xcVisibilityMetaGet
-    await NocoCache.appendToList(
-      CacheScope.MODEL,
-      [baseId],
-      `${CacheScope.MODEL}:${id}`,
-    );
 
     const view = await View.insert(
       {
@@ -175,7 +161,23 @@ export default class Model implements TableType {
       await Column.insert({ ...column, fk_model_id: id, view } as any, ncMeta);
     }
 
-    return this.getWithInfo({ id }, ncMeta);
+    return this.getWithInfo({ id }, ncMeta).then(async (model) => {
+      if (sourceId) {
+        await NocoCache.appendToList(
+          CacheScope.MODEL,
+          [baseId, sourceId],
+          `${CacheScope.MODEL}:${id}`,
+        );
+      }
+      // cater cases where sourceId is not required
+      // e.g. xcVisibilityMetaGet
+      await NocoCache.appendToList(
+        CacheScope.MODEL,
+        [baseId],
+        `${CacheScope.MODEL}:${id}`,
+      );
+      return model;
+    });
   }
 
   public static async list(

@@ -156,17 +156,28 @@ export default class RedisMockCacheMgr extends CacheMgr {
     log(`RedisMockCacheMgr::getList: getting list with key ${key}`);
     const isNoneList = arr.length && arr[0] === 'NONE';
 
-    if (isNoneList) {
+    if (isNoneList || !arr.length) {
       return Promise.resolve({
         list: [],
         isNoneList,
       });
     }
 
+    log(`RedisCacheMgr::getList: getting list with keys ${arr}`);
+    const values = await this.client.mget(arr);
+
     return {
-      list: await Promise.all(
-        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT)),
-      ),
+      list: values.map((res) => {
+        try {
+          const o = JSON.parse(res);
+          if (typeof o === 'object') {
+            return o;
+          }
+        } catch (e) {
+          return res;
+        }
+        return res;
+      }),
       isNoneList,
     };
   }

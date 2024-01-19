@@ -304,10 +304,25 @@ export default class RedisMockCacheMgr extends CacheMgr {
     const value = await this.get(key, CacheGetType.TYPE_OBJECT);
     log(`RedisMockCacheMgr::appendToList: preparing key ${key}`);
     if (!value) {
+      // FALLBACK: this is to get rid of all keys that would be effected by this (should never happen)
       console.error(
         `RedisMockCacheMgr::appendToList: value is empty for ${key}`,
       );
-      await this.del(listKey);
+      const allParents = [];
+      // get all children
+      const listValues = await this.getList(scope, subListKeys);
+      // get all parents from children
+      listValues.list.forEach((v) => {
+        allParents.push(...this.getParents(v));
+      });
+      // remove duplicates
+      const uniqueParents = [...new Set(allParents)];
+      // delete all parents and children
+      await Promise.all(
+        uniqueParents.map(async (p) => {
+          await this.deepDel(scope, p, CacheDelDirection.PARENT_TO_CHILD);
+        }),
+      );
       return false;
     }
     // prepare Get Key

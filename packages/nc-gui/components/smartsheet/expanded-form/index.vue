@@ -569,7 +569,7 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="!isNew" placement="bottomRight">
+            <NcDropdown v-if="!isNew && isUIAllowed('dataEdit')" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10" :disabled="isLoading">
                 <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
               </NcButton>
@@ -581,7 +581,7 @@ export default {
                       {{ $t('general.reload') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
+                  <NcMenuItem class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
                     <div
                       v-e="['c:row-expand:duplicate']"
                       data-testid="nc-expanded-form-duplicate"
@@ -593,12 +593,8 @@ export default {
                       </span>
                     </div>
                   </NcMenuItem>
-                  <NcDivider v-if="isUIAllowed('dataEdit')" />
-                  <NcMenuItem
-                    v-if="isUIAllowed('dataEdit')"
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="!isNew && onDeleteRowClick()"
-                  >
+                  <NcDivider />
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="!isNew && onDeleteRowClick()">
                     <div v-e="['c:row-expand:delete']" data-testid="nc-expanded-form-delete" class="flex gap-2 items-center">
                       <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                       <span class="-ml-0.25">

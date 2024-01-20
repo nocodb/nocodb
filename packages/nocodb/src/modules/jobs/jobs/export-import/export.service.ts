@@ -634,7 +634,8 @@ export class ExportService {
           } catch (e) {
             reject(e);
           }
-        });
+        })
+        .catch(reject);
     });
   }
 
@@ -682,7 +683,8 @@ export class ExportService {
           } catch (e) {
             reject(e);
           }
-        });
+        })
+        .catch(reject);
     });
   }
 

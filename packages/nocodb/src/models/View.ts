@@ -319,12 +319,6 @@ export default class View implements ViewType {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.VIEW,
-      [view.fk_model_id],
-      `${CacheScope.VIEW}:${view_id}`,
-    );
-
     let columns: any[] = await (
       await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
     ).getColumns(ncMeta);
@@ -506,7 +500,14 @@ export default class View implements ViewType {
       ncMeta,
     );
 
-    return View.get(view_id, ncMeta);
+    return View.get(view_id, ncMeta).then(async (v) => {
+      await NocoCache.appendToList(
+        CacheScope.VIEW,
+        [view.fk_model_id],
+        `${CacheScope.VIEW}:${view_id}`,
+      );
+      return v;
+    });
   }
 
   static async insertColumnToAllViews(
@@ -1105,27 +1106,29 @@ export default class View implements ViewType {
     await ncMeta.metaDelete(null, null, columnTable, {
       fk_view_id: viewId,
     });
+    await ncMeta.metaDelete(null, null, table, {
+      fk_view_id: viewId,
+    });
+    await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
     await NocoCache.deepDel(
       tableScope,
       `${tableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await ncMeta.metaDelete(null, null, table, {
-      fk_view_id: viewId,
-    });
     await NocoCache.deepDel(
       columnTableScope,
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
     await NocoCache.deepDel(
       CacheScope.VIEW,
       `${CacheScope.VIEW}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
+    await NocoCache.del([
+      `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.title}`,
+      `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.id}`,
+    ]);
 
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(view.fk_model_id, [view]);
@@ -1520,24 +1523,20 @@ export default class View implements ViewType {
       });
     }
 
-    // clear cache for each view
-    await Promise.all([
-      ...viewsList.map(async (view) => {
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
-        );
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
-        );
-      }),
-      (async () => {
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
-        );
-        await NocoCache.del(
-          `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
-        );
-      })(),
-    ]);
+    const deleteKeys = [];
+
+    for (const view of viewsList) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+      );
+    }
+
+    deleteKeys.push(
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+    );
+
+    await NocoCache.del(deleteKeys);
   }
 }

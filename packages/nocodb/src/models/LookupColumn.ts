@@ -38,19 +38,21 @@ export default class LookupColumn implements LookupType {
 
     await ncMeta.metaInsert2(null, null, MetaTable.COL_LOOKUP, insertObj);
 
-    await NocoCache.appendToList(
-      CacheScope.COL_LOOKUP,
-      [data.fk_lookup_column_id],
-      `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
-    );
+    return this.read(data.fk_column_id, ncMeta).then(async (lookupColumn) => {
+      await NocoCache.appendToList(
+        CacheScope.COL_LOOKUP,
+        [data.fk_lookup_column_id],
+        `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
+      );
 
-    await NocoCache.appendToList(
-      CacheScope.COL_LOOKUP,
-      [data.fk_relation_column_id],
-      `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
-    );
+      await NocoCache.appendToList(
+        CacheScope.COL_LOOKUP,
+        [data.fk_relation_column_id],
+        `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
+      );
 
-    return this.read(data.fk_column_id, ncMeta);
+      return lookupColumn;
+    });
   }
 
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {

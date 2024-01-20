@@ -63,12 +63,6 @@ export default class Base implements BaseType {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.PROJECT,
-      [],
-      `${CacheScope.PROJECT}:${baseId}`,
-    );
-
     for (const source of base.sources) {
       await Source.createBase(
         {
@@ -81,7 +75,14 @@ export default class Base implements BaseType {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(baseId, ncMeta);
+    return this.getWithInfo(baseId, ncMeta).then(async (base) => {
+      await NocoCache.appendToList(
+        CacheScope.PROJECT,
+        [],
+        `${CacheScope.PROJECT}:${baseId}`,
+      );
+      return base;
+    });
   }
 
   static async list(
@@ -174,7 +175,10 @@ export default class Base implements BaseType {
         await NocoCache.set(`${CacheScope.PROJECT}:${baseId}`, baseData);
       }
       if (baseData?.uuid) {
-        await NocoCache.set(`${CacheScope.PROJECT}:${baseData.uuid}`, baseId);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${baseData.uuid}`,
+          baseId,
+        );
       }
     } else {
       if (baseData?.deleted) {
@@ -199,16 +203,15 @@ export default class Base implements BaseType {
     const key = `${CacheScope.PROJECT}:${baseId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
-      // delete <scope>:<id>
-      await NocoCache.del(`${CacheScope.PROJECT}:${baseId}`);
-      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${baseId}`);
       // delete <scope>:<title>
-      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.title}`);
       // delete <scope>:<uuid>
-      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:ref:${o.title}`);
-      await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:ref:${o.id}`);
+      await NocoCache.del([
+        `${CacheScope.PROJECT_ALIAS}:${o.title}`,
+        `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${o.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${o.id}`,
+      ]);
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -257,16 +260,22 @@ export default class Base implements BaseType {
       // update data
       // new uuid is generated
       if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
-        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
-        await NocoCache.set(`${CacheScope.PROJECT}:${updateObj.uuid}`, baseId);
+        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${updateObj.uuid}`,
+          baseId,
+        );
       }
       // disable shared base
       if (o.uuid && updateObj.uuid === null) {
-        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
       }
       if (o.title && updateObj.title && o.title !== updateObj.title) {
-        await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
-        await NocoCache.set(`${CacheScope.PROJECT}:${updateObj.title}`, baseId);
+        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.title}`);
+        await NocoCache.set(
+          `${CacheScope.PROJECT_ALIAS}:${updateObj.title}`,
+          baseId,
+        );
       }
       o = { ...o, ...updateObj };
 
@@ -310,12 +319,14 @@ export default class Base implements BaseType {
 
     if (base) {
       // delete <scope>:<uuid>
-      await NocoCache.del(`${CacheScope.PROJECT}:${base.uuid}`);
       // delete <scope>:<title>
-      await NocoCache.del(`${CacheScope.PROJECT}:${base.title}`);
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.title}`);
-      await NocoCache.del(`${CacheScope.PROJECT}:ref:${base.id}`);
+      await NocoCache.del([
+        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+      ]);
     }
 
     await NocoCache.deepDel(

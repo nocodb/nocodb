@@ -1841,7 +1841,12 @@ export default class View implements ViewType {
 
       for (const sort of sorts) {
         sortInsertObjs.push({
-          ...sort,
+          ...extractProps(sort, [
+            'fk_column_id',
+            'direction',
+            'base_id',
+            'source_id',
+          ]),
           fk_view_id: view_id,
           id: undefined,
         });
@@ -1851,10 +1856,16 @@ export default class View implements ViewType {
         const fn = async (filter, parentId: string = null) => {
           const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
 
-          const { children, ...filterProps } = filter;
-
           filterInsertObjs.push({
-            ...filterProps,
+            ...extractProps(filter, [
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+            ]),
             fk_view_id: view_id,
             id: generatedId,
             fk_parent_id: parentId,

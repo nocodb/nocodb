@@ -1679,6 +1679,8 @@ export default class View implements ViewType {
           if (column.id === mapView?.fk_geo_data_col_id) {
             show = true;
           }
+        } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
+          show = false;
         }
 
         insertObjs.push({

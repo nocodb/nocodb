@@ -10,6 +10,7 @@ import {
   inject,
   parseProp,
   useVModel,
+  ReadonlyInj,
 } from '#imports'
 
 interface Props {
@@ -27,6 +28,8 @@ const column = inject(ColumnInj)!
 const editEnabled = inject(EditModeInj)!
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emit)
 
@@ -87,7 +90,7 @@ onMounted(() => {
 
 <template>
   <input
-    v-if="editEnabled"
+    v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     type="number"
@@ -105,10 +108,12 @@ onMounted(() => {
     @contextmenu.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
+    $t('general.null')
+  }}</span>
 
   <!-- only show the numeric value as previously string value was accepted -->
-  <span v-else-if="!isNaN(vModel)">{{ currency }}</span>
+  <span v-else-if="!isNaN(vModel)" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{ currency }}</span>
 
   <!-- possibly unexpected string / null with showNull == false  -->
   <span v-else />

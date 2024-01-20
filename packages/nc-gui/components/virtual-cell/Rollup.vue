@@ -3,6 +3,7 @@ import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk
 import {
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   MetaInj,
   computed,
   inject,
@@ -10,7 +11,6 @@ import {
   ref,
   useMetas,
   useShowNotEditableWarning,
-  IsExpandedFormOpenInj,
 } from '#imports'
 
 const { metas } = useMetas()
@@ -54,7 +54,7 @@ const childColumn = computed(() => {
 </script>
 
 <template>
-  <div @dblclick="activateShowEditNonEditableFieldWarning" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
+  <div :class="isExpandedFormOpen ? 'px-2' : 'px-0'" @dblclick="activateShowEditNonEditableFieldWarning">
     <div v-if="['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(colOptions.rollup_function)">
       {{ value }}
     </div>

@@ -8,7 +8,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, RowHeightInj, ReadonlyInj } from '#imports'
+import { IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null

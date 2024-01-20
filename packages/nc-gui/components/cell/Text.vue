@@ -45,8 +45,7 @@ const focus: VNodeRef = (el) =>
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="h-full w-full outline-none py-1 bg-transparent"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
@@ -58,15 +57,7 @@ const focus: VNodeRef = (el) =>
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-    $t('general.null')
-  }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-  <LazyCellClampedText
-    v-else
-    :value="vModel"
-    :lines="rowHeight"
-    :style="{ 'word-break': 'break-word' }"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
-  />
+  <LazyCellClampedText v-else class="nc-cell-field" :value="vModel" :lines="rowHeight" :style="{ 'word-break': 'break-word' }" />
 </template>

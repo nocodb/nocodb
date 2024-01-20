@@ -3,7 +3,6 @@ import NcModal from '../nc/Modal.vue'
 import {
   ActiveCellInj,
   EditModeInj,
-  IsExpandedFormOpenInj,
   IsFormInj,
   JsonExpandInj,
   ReadonlyInj,
@@ -37,8 +36,6 @@ const active = inject(ActiveCellInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -190,16 +187,14 @@ watch(isExpanded, () => {
         @update:model-value="localValue = $event"
       />
 
-      <span v-if="error" class="text-xs w-full py-1 text-red-500" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
+      <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">
         {{ error.toString() }}
       </span>
     </div>
 
-    <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-      $t('general.null')
-    }}</span>
+    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
+    <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" class="nc-cell-field" />
   </component>
 </template>
 

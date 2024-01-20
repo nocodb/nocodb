@@ -131,8 +131,7 @@ const onTabPress = (e: KeyboardEvent) => {
       v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
       :ref="focus"
       v-model="vModel"
-      class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
-      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
@@ -146,9 +145,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @selectstart.capture.stop
       @mousedown.stop
     />
-    <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-      $t('general.null')
-    }}</span>
+    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
     <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">
       <a-progress
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
@@ -160,7 +157,7 @@ const onTabPress = (e: KeyboardEvent) => {
       />
     </div>
     <!-- nbsp to keep height even if vModel is zero length -->
-    <span v-else :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{ vModel }}&nbsp;</span>
+    <span v-else class="nc-cell-field">{{ vModel }}&nbsp;</span>
   </div>
 </template>
 

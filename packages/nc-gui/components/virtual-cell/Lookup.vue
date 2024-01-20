@@ -5,7 +5,6 @@ import {
   CellUrlDisableOverlayInj,
   CellValueInj,
   ColumnInj,
-  IsExpandedFormOpenInj,
   IsUnderLookupInj,
   MetaInj,
   computed,
@@ -27,8 +26,6 @@ const meta = inject(MetaInj, ref())
 const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
@@ -103,8 +100,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 <template>
   <div
-    class="h-full w-full nc-lookup-cell"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field h-full w-full nc-lookup-cell"
     tabindex="-1"
     :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"
@@ -189,7 +185,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     :read-only="true"
                     :class="{
                       'min-h-0 min-w-0': isAttachment(lookupColumn),
-                      '!min-w-20 !w-auto pl-2': !isAttachment(lookupColumn),
+                      '!min-w-20 !w-auto px-2': !isAttachment(lookupColumn),
                     }"
                   />
                 </div>

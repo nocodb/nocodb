@@ -946,4 +946,13 @@ export default {
 :deep(.nc-system-field input) {
   @apply bg-transparent;
 }
+:deep(.nc-data-cell .nc-cell .nc-cell-field) {
+  @apply px-2;
+}
+:deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
+  @apply px-2;
+}
+:deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
+  @apply px-0;
+}
 </style>

@@ -90,8 +90,7 @@ function onKeyDown(e: any) {
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none py-1 border-none w-full h-full text-sm"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field outline-none py-1 border-none w-full h-full text-sm"
     type="number"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
@@ -105,10 +104,8 @@ function onKeyDown(e: any) {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
-    $t('general.null')
-  }}</span>
-  <span v-else class="text-sm" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{ displayValue }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else class="nc-cell-field text-sm">{{ displayValue }}</span>
 </template>
 
 <style scoped lang="scss">

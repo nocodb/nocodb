@@ -17,6 +17,7 @@ import {
   useCellUrlConfig,
   useI18n,
   watch,
+  ReadonlyInj,
 } from '#imports'
 
 interface Props {
@@ -39,12 +40,14 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
-// Used in the logic of when to display error since we are not storing the url if it's not valid
-const localState = ref(value)
-
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
+// Used in the logic of when to display error since we are not storing the url if it's not valid
+const localState = ref(value)
 
 const vModel = computed({
   get: () => value,
@@ -92,7 +95,7 @@ watch(
 <template>
   <div class="flex flex-row items-center justify-between w-full h-full">
     <input
-      v-if="editEnabled"
+      v-if="!readOnly && editEnabled"
       :ref="focus"
       v-model="vModel"
       :placeholder="isEditColumn ? $t('labels.enterDefaultUrlOptional') : ''"
@@ -108,31 +111,35 @@ watch(
       @mousedown.stop
     />
 
-    <span v-else-if="vModel === null && showNull" class="nc-null uppercase"> {{ $t('general.null') }}</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">
+      {{ $t('general.null') }}</span
+    >
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"
       no-prefetch
       no-rel
-      class="z-3 text-sm underline hover:opacity-75"
+      class="py-1 z-3 text-sm underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      <LazyCellClampedText :value="value" :lines="rowHeight" />
+      <LazyCellClampedText :value="value" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
     </nuxt-link>
 
     <nuxt-link
       v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
       no-prefetch
       no-rel
-      class="z-3 w-full h-full text-center !no-underline hover:opacity-75"
+      class="py-1 z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" />
+      <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
     </nuxt-link>
 
-    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"><LazyCellClampedText :value="value" :lines="rowHeight" /></span>
+    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"
+      ><LazyCellClampedText :value="value" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    /></span>
 
     <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">

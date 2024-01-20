@@ -10,6 +10,7 @@ import {
   inject,
   useI18n,
   validateEmail,
+  ReadonlyInj,
 } from '#imports'
 
 interface Props {
@@ -30,12 +31,14 @@ const editEnabled = inject(EditModeInj)!
 
 const column = inject(ColumnInj)!
 
-// Used in the logic of when to display error since we are not storing the email if it's not valid
-const localState = ref(value)
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
+// Used in the logic of when to display error since we are not storing the email if it's not valid
+const localState = ref(value)
 
 const vModel = computed({
   get: () => value,
@@ -71,7 +74,7 @@ watch(
 
 <template>
   <input
-    v-if="editEnabled"
+    v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     class="w-full outline-none text-sm py-1"
@@ -87,17 +90,19 @@ watch(
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
+    $t('general.null')
+  }}</span>
 
   <nuxt-link
     v-else-if="validEmail"
     no-ref
-    class="text-sm underline hover:opacity-75 inline-block"
+    class="py-1 text-sm underline hover:opacity-75 inline-block"
     :href="`mailto:${vModel}`"
     target="_blank"
   >
-    <LazyCellClampedText :value="vModel" :lines="rowHeight" />
+    <LazyCellClampedText :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
   </nuxt-link>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
 </template>

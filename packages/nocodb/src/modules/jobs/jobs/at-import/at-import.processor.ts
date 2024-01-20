@@ -11,7 +11,7 @@ import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
-import { importData, importLTARData } from './helpers/readAndProcessData';
+import { importData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
 import type { Base } from '~/models';
@@ -2461,8 +2461,6 @@ export class AtImportProcessor {
 
           logBasic('Reading Records...');
 
-          const recordsMap = {};
-
           for (let i = 0; i < ncTblList.list.length; i++) {
             // not a migrated table, skip
             if (
@@ -2479,59 +2477,28 @@ export class AtImportProcessor {
               });
             recordPerfStats(_perfStart, 'dbTable.read');
 
-            recordsMap[ncTbl.id] = await importData({
+            const importStats = await importData({
               baseName: syncDB.baseId,
               table: ncTbl,
               atBase,
               nocoBaseDataProcessing_v2,
-              sDB: syncDB,
-              services: {
-                tableService: this.tablesService,
-                bulkDataService: this.bulkDataAliasService,
-              },
-              logBasic,
-              logDetailed,
-              logWarning,
-            });
-            rtc.data.records += await recordsMap[ncTbl.id].getCount();
-
-            logDetailed(`Data inserted from ${ncTbl.title}`);
-          }
-
-          logBasic('Configuring Record Links...');
-          for (let i = 0; i < ncTblList.list.length; i++) {
-            // not a migrated table, skip
-            if (
-              undefined ===
-              aTblSchema.find((x) => x.name === ncTblList.list[i].title)
-            )
-              continue;
-
-            // const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-            const ncTbl: any =
-              await this.tablesService.getTableWithAccessibleViews({
-                tableId: ncTblList.list[i].id,
-                user: { ...syncDB.user, base_roles: { owner: true } },
-              });
-
-            rtc.data.nestedLinks += await importLTARData({
-              table: ncTbl,
-              baseName: syncDB.baseId,
-              atBase,
-              fields: null, //Object.values(tblLinkGroup).flat(),
-              insertedAssocRef,
-              records: recordsMap[ncTbl.id],
-              atNcAliasRef,
-              ncLinkMappingTable,
               syncDB,
               services: {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,
               },
+              fields: null, //Object.values(tblLinkGroup).flat(),
+              insertedAssocRef,
+              atNcAliasRef,
+              ncLinkMappingTable,
               logBasic,
               logDetailed,
               logWarning,
             });
+            rtc.data.records += importStats.importedCount;
+            rtc.data.nestedLinks += importStats.nestedLinkCount;
+
+            logDetailed(`Data inserted from ${ncTbl.title}`);
           }
         } catch (error) {
           logBasic(

@@ -125,6 +125,10 @@ export class MetaService {
     data: any | any[],
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
+    if (Array.isArray(data) ? !data.length : !data) {
+      return [];
+    }
+
     const insertObj = [];
     const at = this.now();
 

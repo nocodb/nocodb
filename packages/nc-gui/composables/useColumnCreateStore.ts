@@ -114,6 +114,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             validator: (rule: any, value: any) => {
               return new Promise<void>((resolve, reject) => {
                 if (
+                  value !== '' &&
                   (tableExplorerColumns?.value || meta.value?.columns)?.some(
                     (c) =>
                       c.id !== formState.value.id && // ignore current column
@@ -126,6 +127,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                   return reject(new Error(t('msg.error.duplicateSystemColumnName')))
                 }
                 if (
+                  value !== '' &&
                   (tableExplorerColumns?.value || meta.value?.columns)?.some(
                     (c) =>
                       c.id !== formState.value.id && // ignore current column

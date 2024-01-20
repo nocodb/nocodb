@@ -1354,39 +1354,50 @@ export default class Column<T = any> implements ColumnType {
         source_id: param.source_id,
         fk_model_id: param.fk_model_id,
       };
-      extractedColumnMetas.push(
-        extractProps(colWithId as any, [
-          'id',
-          'fk_model_id',
-          'column_name',
-          'title',
-          'uidt',
-          'dt',
-          'np',
-          'ns',
-          'clen',
-          'cop',
-          'pk',
-          'rqd',
-          'un',
-          'ct',
-          'ai',
-          'unique',
-          'cdf',
-          'cc',
-          'csn',
-          'dtx',
-          'dtxp',
-          'dtxs',
-          'au',
-          'pv',
-          'order',
-          'base_id',
-          'source_id',
-          'system',
-          'meta',
-        ]),
-      );
+
+      const insertObj = extractProps(colWithId as any, [
+        'id',
+        'fk_model_id',
+        'column_name',
+        'title',
+        'uidt',
+        'dt',
+        'np',
+        'ns',
+        'clen',
+        'cop',
+        'pk',
+        'rqd',
+        'un',
+        'ct',
+        'ai',
+        'unique',
+        'cdf',
+        'cc',
+        'csn',
+        'dtx',
+        'dtxp',
+        'dtxs',
+        'au',
+        'pv',
+        'order',
+        'base_id',
+        'source_id',
+        'system',
+        'meta',
+      ]);
+
+      if (column.meta && typeof column.meta === 'object') {
+        insertObj.meta = JSON.stringify(column.meta);
+      }
+
+      if (column.validate) {
+        if (typeof column.validate === 'string')
+          insertObj.validate = column.validate;
+        else insertObj.validate = JSON.stringify(column.validate);
+      }
+      extractedColumnMetas.push(insertObj);
+
       columns.push(colWithId);
     }
 

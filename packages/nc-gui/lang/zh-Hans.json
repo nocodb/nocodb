@@ -972,6 +972,7 @@
       "hintStart": "提示：使用 {placeholder1} 引用字段，例如： {placeholder2}。更多信息，请查阅",
       "hintEnd": "公式",
       "noSuggestedFormulaFound": "未找到建议配方",
+      "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "预计为数字类型",
       "stringTypeIsExpected": "预计为字符串类型",
       "operationNotAvailable": "{operation} 操作不可用",

@@ -972,6 +972,7 @@
       "hintStart": "Hint: Use {placeholder1} to reference fields, e.g: {placeholder2}. For more, please check out",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "No suggested formula found",
+      "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "Numeric type is expected",
       "stringTypeIsExpected": "String type is expected",
       "operationNotAvailable": "{operation} operation not available",

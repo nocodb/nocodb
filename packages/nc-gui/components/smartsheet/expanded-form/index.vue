@@ -582,7 +582,7 @@ export default {
                       {{ $t('general.reload') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
+                  <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
                     <div
                       v-e="['c:row-expand:duplicate']"
                       data-testid="nc-expanded-form-duplicate"
@@ -594,8 +594,12 @@ export default {
                       </span>
                     </div>
                   </NcMenuItem>
-                  <NcDivider />
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="!isNew && onDeleteRowClick()">
+                  <NcDivider v-if="isUIAllowed('dataEdit')" />
+                  <NcMenuItem
+                    v-if="isUIAllowed('dataEdit')"
+                    class="!text-red-500 !hover:bg-red-50"
+                    @click="!isNew && onDeleteRowClick()"
+                  >
                     <div v-e="['c:row-expand:delete']" data-testid="nc-expanded-form-delete" class="flex gap-2 items-center">
                       <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
                       <span class="-ml-0.25">

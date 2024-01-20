@@ -128,7 +128,7 @@ const onTabPress = (e: KeyboardEvent) => {
     @focus="onWrapperFocus"
   >
     <input
-      v-if="!readOnly && editEnabled && expandedEditEnabled"
+      v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
       :ref="focus"
       v-model="vModel"
       class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"

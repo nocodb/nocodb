@@ -51,9 +51,9 @@ export class GridsService {
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
     );
-
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,
+
       showAs: 'grid',
       req: param.req,
     });

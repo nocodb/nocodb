@@ -1,5 +1,4 @@
 import ModelCE from 'src/models/Model';
-export { MethodTimer } from 'src/models/Model';
 import type { TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import View from '~/models/View';

@@ -1338,7 +1338,7 @@ export default class Column<T = any> implements ColumnType {
       source_id: string;
       base_id: string;
     },
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
   ) {
     const extractedColumnMetas = [];
 

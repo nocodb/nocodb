@@ -123,7 +123,7 @@ export default defineComponent({
       if (!column.value && !columnMeta.value) return null
 
       return h(renderIcon((columnMeta.value ?? column.value)!, abstractType.value), {
-        class: 'text-inherit mx-1',
+        class: 'text-inherit mx-1 nc-cell-icon',
       })
     }
   },

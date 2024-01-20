@@ -104,7 +104,7 @@ export default defineComponent({
 
       const { icon: Icon, color } = renderIcon(column.value, relationColumn)
 
-      return h(Icon, { class: `${color} mx-1` })
+      return h(Icon, { class: `${color} mx-1 nc-virtual-cell-icon` })
     }
   },
 })

@@ -724,11 +724,11 @@ a {
   }
 
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
-    @apply !xs:(hidden)
+    @apply !xs:(hidden);
   }
 
   .nc-sidebar-node-btn.nc-sidebar-expand {
-    @apply !xs:(border-1 border-gray-200 w-6.5 h-6.5 mr-1)
+    @apply !xs:(border-1 border-gray-200 w-6.5 h-6.5 mr-1);
   }
 }
 
@@ -740,7 +740,7 @@ a {
   @apply xs:(opacity-100 hover:bg-gray-50);
 
   .nc-icon {
-    @apply xs:(visible opacity-100 !text-gray-500)
+    @apply xs:(visible opacity-100 !text-gray-500);
   }
 }
 
@@ -748,6 +748,11 @@ a {
   @apply !rounded-md;
 
   .ant-message-custom-content{
-    @apply flex items-center
+    @apply flex items-center;
   }
+}
+
+svg.nc-cell-icon, svg.nc-virtual-cell-icon {
+  @apply w-1em h-1em flex-none;
+  font-size: 1rem;
 }

@@ -1564,7 +1564,7 @@ export default class View implements ViewType {
 
     if (viewColumns) {
       for (let i = 0; i < viewColumns.length; i++) {
-        const column = columns[i];
+        const column = viewColumns[i];
 
         insertObjs.push({
           ...column,

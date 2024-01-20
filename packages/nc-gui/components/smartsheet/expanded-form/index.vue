@@ -569,7 +569,7 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="!isNew && isUIAllowed('dataEdit')" placement="bottomRight">
+            <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10" :disabled="isLoading">
                 <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
               </NcButton>

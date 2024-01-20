@@ -76,6 +76,7 @@ watch(rateDomRef, () => {
     v-model:value="vModel"
     :disabled="readOnly"
     :count="ratingMeta.max"
+    :class="readOnly ? 'pointer-events-none' : ''"
     :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 5px'};`"
     @keydown="onKeyPress"
   >

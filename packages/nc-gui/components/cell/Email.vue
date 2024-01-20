@@ -100,6 +100,7 @@ watch(
     class="py-1 text-sm underline hover:opacity-75 inline-block"
     :href="`mailto:${vModel}`"
     target="_blank"
+    :tabindex="readOnly ? -1 : 0"
   >
     <LazyCellClampedText :value="vModel" :lines="rowHeight" :class="isExpandedFormOpen ? 'px-2' : 'px-0'" />
   </nuxt-link>

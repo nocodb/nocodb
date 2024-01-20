@@ -378,7 +378,6 @@ export class TablesService {
     user: User | UserType;
     req?: any;
   }) {
-    const req = param.req as NcRequest || {};
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
@@ -394,8 +393,6 @@ export class TablesService {
       source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-
-    // console.time(req.id + 'tableCreate-addmissing');
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
     {
       for (const uidt of [
@@ -472,7 +469,6 @@ export class TablesService {
         }
       }
     }
-    // console.timeEnd(req.id + 'tableCreate-addmissing');
 
     if (
       !tableCreatePayLoad.table_name ||
@@ -499,8 +495,6 @@ export class TablesService {
         'Leading or trailing whitespace not allowed in table names',
       );
     }
-
-    // console.time(req.id + 'tableCreate-populatealias');
 
     if (
       !(await Model.checkTitleAvailable({
@@ -529,11 +523,6 @@ export class TablesService {
     ) {
       NcError.badRequest('Duplicate table alias');
     }
-
-    // console.timeEnd(req.id + 'tableCreate-populatealias');
-
-
-    // console.time(req.id + 'tableCreate-other');
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(base);
 
@@ -613,17 +602,10 @@ export class TablesService {
         })),
     );
 
-
-    // console.timeEnd(req.id + 'tableCreate-other');
-
-
-    // console.time(req.id + 'tableCreate-sql-create');
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,
       tn: tableCreatePayLoad.table_name,
     });
-
-    // console.timeEnd(req.id + 'tableCreate-sql-create');
 
     let columns: Array<
       Omit<Column, 'column_name' | 'title'> & {
@@ -644,7 +626,6 @@ export class TablesService {
     }
 
     // console.timeEnd(req.id + 'tableCreate-sql-columnList');
-
 
     // console.time(req.id + 'tableCreate-sql-modelList');
     const tables = await Model.list({

@@ -1,11 +1,7 @@
 import debug from 'debug';
 import Redis from 'ioredis';
 import CacheMgr from './CacheMgr';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheListProp,
-} from '~/utils/globals';
+import { CacheDelDirection, CacheGetType, CacheScope } from '~/utils/globals';
 
 const log = debug('nc:cache');
 
@@ -23,7 +19,7 @@ export default class RedisCacheMgr extends CacheMgr {
       process.env.NC_CLOUD !== 'true'
     ) {
       // flush the existing db with selected key (Default: 0)
-      // this.client.flushdb();
+      this.client.flushdb();
     }
 
     // TODO(cache): fetch orgs once it's implemented
@@ -46,15 +42,9 @@ export default class RedisCacheMgr extends CacheMgr {
   };
 
   // @ts-ignore
-  async del(key: string[] | string): Promise<any> {
+  async del(key: string): Promise<any> {
     log(`RedisCacheMgr::del: deleting key ${key}`);
-    if (Array.isArray(key)) {
-      if (key.length) {
-        return this.client.del(key);
-      }
-    } else if (key) {
-      return this.client.del(key);
-    }
+    return this.client.del(key);
   }
 
   // @ts-ignore
@@ -94,10 +84,6 @@ export default class RedisCacheMgr extends CacheMgr {
       if (typeof value === 'object') {
         if (Array.isArray(value) && value.length) {
           return this.client.sadd(key, value);
-        }
-        const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
-        if (keyValue) {
-          value = await this.prepareValue(value, this.getParents(keyValue));
         }
         return this.client.set(
           key,
@@ -140,6 +126,30 @@ export default class RedisCacheMgr extends CacheMgr {
     return this.client.incrby(key, value);
   }
 
+  // @ts-ignore
+  async getAll(pattern: string): Promise<any> {
+    return this.client.hgetall(pattern);
+  }
+
+  // @ts-ignore
+  async delAll(scope: string, pattern: string): Promise<any[]> {
+    // Example: nc:<orgs>:model:*:<id>
+    const keys = await this.client.keys(`${this.prefix}:${scope}:${pattern}`);
+    log(
+      `RedisCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`,
+    );
+    await Promise.all(
+      keys.map(async (k) => {
+        await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT);
+      }),
+    );
+    return Promise.all(
+      keys.map(async (k) => {
+        await this.del(k);
+      }),
+    );
+  }
+
   async getList(
     scope: string,
     subKeys: string[],
@@ -159,28 +169,17 @@ export default class RedisCacheMgr extends CacheMgr {
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
     const isNoneList = arr.length && arr.includes('NONE');
 
-    if (isNoneList || !arr.length) {
+    if (isNoneList) {
       return Promise.resolve({
         list: [],
         isNoneList,
       });
     }
 
-    log(`RedisCacheMgr::getList: getting list with keys ${arr}`);
-    const values = await this.client.mget(arr);
-
     return {
-      list: values.map((res) => {
-        try {
-          const o = JSON.parse(res);
-          if (typeof o === 'object') {
-            return o;
-          }
-        } catch (e) {
-          return res;
-        }
-        return res;
-      }),
+      list: await Promise.all(
+        arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT)),
+      ),
       isNoneList,
     };
   }
@@ -213,20 +212,17 @@ export default class RedisCacheMgr extends CacheMgr {
         const propValues = props.map((p) => o[p]);
         // e.g. nc:<orgs>:<scope>:<prop_value_1>:<prop_value_2>
         getKey = `${this.prefix}:${scope}:${propValues.join(':')}`;
-      }
-      log(`RedisCacheMgr::setList: get key ${getKey}`);
-      // get Get Key
-      let value = await this.get(getKey, CacheGetType.TYPE_OBJECT);
-      if (value) {
-        log(`RedisCacheMgr::setList: preparing key ${getKey}`);
-        // prepare Get Key
-        value = await this.prepareValue(o, this.getParents(value), listKey);
       } else {
-        value = await this.prepareValue(o, [], listKey);
+        // e.g. nc:<orgs>:<scope>:<model_id_1>
+        getKey = `${this.prefix}:${scope}:${o.id}`;
+        // special case - MODEL_ROLE_VISIBILITY
+        if (scope === CacheScope.MODEL_ROLE_VISIBILITY) {
+          getKey = `${this.prefix}:${scope}:${o.fk_view_id}:${o.role}`;
+        }
       }
       // set Get Key
       log(`RedisCacheMgr::setList: setting key ${getKey}`);
-      await this.set(getKey, JSON.stringify(value, this.getCircularReplacer()));
+      await this.set(getKey, JSON.stringify(o, this.getCircularReplacer()));
       // push Get Key to List
       listOfGetKeys.push(getKey);
     }
@@ -240,11 +236,11 @@ export default class RedisCacheMgr extends CacheMgr {
     key: string,
     direction: string,
   ): Promise<boolean> {
+    key = `${this.prefix}:${key}`;
     log(`RedisCacheMgr::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
-      const childKey = await this.get(key, CacheGetType.TYPE_OBJECT);
       // given a child key, delete all keys in corresponding parent lists
-      const scopeList = this.getParents(childKey);
+      const scopeList = await this.client.keys(`${this.prefix}:${scope}*list`);
       for (const listKey of scopeList) {
         // get target list
         let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
@@ -259,17 +255,17 @@ export default class RedisCacheMgr extends CacheMgr {
         if (list.length) {
           // set target list
           log(`RedisCacheMgr::deepDel: set key ${listKey}`);
+          await this.del(listKey);
           await this.set(listKey, list);
         }
       }
       log(`RedisCacheMgr::deepDel: remove key ${key}`);
       return await this.del(key);
     } else if (direction === CacheDelDirection.PARENT_TO_CHILD) {
-      key = /:list$/.test(key) ? key : `${key}:list`;
       // given a list key, delete all the children
       const listOfChildren = await this.get(key, CacheGetType.TYPE_ARRAY);
       // delete each child key
-      await this.del(listOfChildren);
+      await Promise.all(listOfChildren.map(async (k) => await this.del(k)));
       // delete list key
       return await this.del(key);
     } else {
@@ -301,90 +297,8 @@ export default class RedisCacheMgr extends CacheMgr {
       list = [];
       await this.del(listKey);
     }
-
-    log(`RedisCacheMgr::appendToList: get key ${key}`);
-    // get Get Key
-    const value = await this.get(key, CacheGetType.TYPE_OBJECT);
-    log(`RedisCacheMgr::appendToList: preparing key ${key}`);
-    if (!value) {
-      // FALLBACK: this is to get rid of all keys that would be effected by this (should never happen)
-      console.error(`RedisCacheMgr::appendToList: value is empty for ${key}`);
-      const allParents = [];
-      // get all children
-      const listValues = await this.getList(scope, subListKeys);
-      // get all parents from children
-      listValues.list.forEach((v) => {
-        allParents.push(...this.getParents(v));
-      });
-      // remove duplicates
-      const uniqueParents = [...new Set(allParents)];
-      // delete all parents and children
-      await Promise.all(
-        uniqueParents.map(async (p) => {
-          await this.deepDel(scope, p, CacheDelDirection.PARENT_TO_CHILD);
-        }),
-      );
-      return false;
-    }
-    // prepare Get Key
-    const preparedValue = await this.prepareValue(
-      value,
-      this.getParents(value),
-      listKey,
-    );
-    // set Get Key
-    log(`RedisCacheMgr::appendToList: setting key ${key}`);
-    await this.set(
-      key,
-      JSON.stringify(preparedValue, this.getCircularReplacer()),
-    );
-
     list.push(key);
     return this.set(listKey, list);
-  }
-
-  prepareValue(value, listKeys = [], newParent?) {
-    if (newParent) {
-      listKeys.push(newParent);
-    }
-
-    if (value && typeof value === 'object') {
-      value[CacheListProp] = listKeys;
-    } else if (value && typeof value === 'string') {
-      const keyHelper = value.split(CacheListProp);
-      if (listKeys.length) {
-        value = `${keyHelper[0]}${CacheListProp}${listKeys.join(',')}`;
-      }
-    } else if (value) {
-      console.error(
-        `RedisCacheMgr::prepareListKey: keyValue is not object or string`,
-        value,
-      );
-      throw new Error(
-        `RedisCacheMgr::prepareListKey: keyValue is not object or string`,
-      );
-    }
-    return value;
-  }
-
-  getParents(value) {
-    if (value && typeof value === 'object') {
-      if (CacheListProp in value) {
-        const listsForKey = value[CacheListProp];
-        if (listsForKey && listsForKey.length) {
-          return listsForKey;
-        }
-      }
-    } else if (value && typeof value === 'string') {
-      if (value.includes(CacheListProp)) {
-        const keyHelper = value.split(CacheListProp);
-        const listsForKey = keyHelper[1].split(',');
-        if (listsForKey.length) {
-          return listsForKey;
-        }
-      }
-    }
-    return [];
   }
 
   async destroy(): Promise<boolean> {

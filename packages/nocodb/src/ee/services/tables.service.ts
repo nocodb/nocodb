@@ -41,7 +41,6 @@ export class TablesService extends TableServiceCE {
     user: User | UserType;
     req?: NcRequest;
   }) {
-    console.time('tableCreate-1');
     const base = await Base.getWithInfo(param.baseId);
     let source = base.sources[0];
 
@@ -75,7 +74,6 @@ export class TablesService extends TableServiceCE {
       }
     }
 
-    console.timeEnd('tableCreate-1');
     return super.tableCreate(param);
   }
 

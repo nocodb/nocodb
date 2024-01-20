@@ -35,7 +35,7 @@ const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const readonly = inject(ReadonlyInj)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -158,7 +158,7 @@ watch(isExpanded, () => {
     :footer="null"
     :wrap-class-name="isExpanded ? '!z-1051' : null"
   >
-    <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
+    <div v-if="editEnabled && !readOnly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between pt-1 pb-2 nc-json-action" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
           <CilFullscreenExit v-if="isExpanded" class="h-2.5" />

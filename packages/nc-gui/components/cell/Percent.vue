@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel } from '#imports'
+import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, inject, useVModel, ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -14,9 +14,11 @@ const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
@@ -118,14 +120,15 @@ const onTabPress = (e: KeyboardEvent) => {
 <template>
   <div
     ref="wrapperRef"
-    tabindex="0"
+    :tabindex="readOnly ? -1 : 0"
     class="nc-filter-value-select w-full focus:outline-transparent"
+    :class="readOnly ? 'cursor-not-allowed pointer-events-none' : ''"
     @mouseover="onMouseover"
     @mouseleave="onMouseleave"
     @focus="onWrapperFocus"
   >
     <input
-      v-if="editEnabled"
+      v-if="!readOnly && editEnabled && expandedEditEnabled"
       :ref="focus"
       v-model="vModel"
       class="w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
@@ -143,7 +146,9 @@ const onTabPress = (e: KeyboardEvent) => {
       @selectstart.capture.stop
       @mousedown.stop
     />
-    <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+    <span v-else-if="vModel === null && showNull" class="nc-null uppercase" :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{
+      $t('general.null')
+    }}</span>
     <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">
       <a-progress
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
@@ -155,7 +160,7 @@ const onTabPress = (e: KeyboardEvent) => {
       />
     </div>
     <!-- nbsp to keep height even if vModel is zero length -->
-    <span v-else>{{ vModel }}&nbsp;</span>
+    <span v-else :class="isExpandedFormOpen ? 'px-2' : 'px-0'">{{ vModel }}&nbsp;</span>
   </div>
 </template>
 

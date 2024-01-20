@@ -39,7 +39,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const injectedColumn = inject(ColumnInj, ref())
 
-const readonly = inject(ReadonlyInj, ref(false))
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -107,7 +107,7 @@ const expandedFormRow = ref({})
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
-  if (readonly.value) return
+  if (readOnly.value) return
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }
@@ -166,7 +166,7 @@ const isDataExist = computed<boolean>(() => {
 
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (isSharedBase.value) return
-  if (readonly.value) return
+  if (readOnly.value) return
 
   if (isPublic.value && !isForm.value) return
   if (isNew.value || isChildrenListLinked.value[parseInt(id)]) {
@@ -276,7 +276,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
           {{ relatedTableMeta?.title }}
         </p>
         <NcButton
-          v-if="!readonly && childrenListCount < 1"
+          v-if="!readOnly && childrenListCount < 1"
           v-e="['c:links:link']"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"
@@ -322,7 +322,7 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       <div class="flex flex-row gap-2">
         <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
         <NcButton
-          v-if="!readonly && childrenListCount > 0"
+          v-if="!readOnly && childrenListCount > 0"
           v-e="['c:links:link']"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"

@@ -193,7 +193,6 @@ watch(editorDom, () => {
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
     <EditorContent
       ref="editorDom"
-      :disabled="readOnly"
       :editor="editor"
       class="flex flex-col nc-textarea-rich-editor w-full"
       :class="{

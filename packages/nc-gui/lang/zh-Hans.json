@@ -157,8 +157,8 @@
     "groupingField": "分组字段",
     "insertAfter": "在右侧插入列",
     "insertBefore": "在左侧插入列",
-    "insertAbove": "Insert above",
-    "insertBelow": "Insert below",
+    "insertAbove": "将上方内容插入",
+    "insertBelow": "将下方内容插入",
     "hideField": "隐藏字段",
     "sortAsc": "升序",
     "sortDesc": "降序",
@@ -192,7 +192,7 @@
     "enter": "回车键",
     "seconds": "秒",
     "paste": "粘贴",
-    "restore": "Restore"
+    "restore": "还原"
   },
   "objects": {
     "workspace": "工作区",
@@ -647,13 +647,13 @@
     "newFormLoaded": "新表格将在",
     "webhook": "网络钩子",
     "multiField": {
-      "newField": "New field",
-      "saveChanges": "Save changes",
-      "updatedField": "Updated field",
-      "deletedField": "Deleted field",
-      "incompleteConfiguration": "Incomplete configuration",
-      "selectField": "Select a field",
-      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+      "newField": "新建字段",
+      "saveChanges": "保存更改",
+      "updatedField": "已更新字段",
+      "deletedField": "已删除的字段",
+      "incompleteConfiguration": "配置不完整",
+      "selectField": "请设置需要查询的字段",
+      "selectFieldLabel": "从列表中选择一个字段来更改字段属性"
     }
   },
   "activity": {
@@ -680,7 +680,7 @@
     "enablePublicAccess": "启用公共访问",
     "doYouWantToSaveTheChanges": "您要保存这些更改吗？",
     "editingAccess": "编辑访问权限",
-    "enabledPublicViewing": "Enable Public Viewing",
+    "enabledPublicViewing": "启用公开查看",
     "restrictAccessWithPassword": "使用密码限制访问",
     "manageProjectAccess": "管理项目访问",
     "allowDownload": "允许下载",
@@ -733,7 +733,7 @@
     "groupBy": "分组",
     "addSubGroup": "添加子分组",
     "shareBase": {
-      "label": "Share Base",
+      "label": "分享项目",
       "disable": "停止分享项目",
       "enable": "任何有链接的人",
       "link": "分享项目链接"
@@ -972,7 +972,7 @@
       "hintStart": "提示：使用 {placeholder1} 引用字段，例如： {placeholder2}。更多信息，请查阅",
       "hintEnd": "公式",
       "noSuggestedFormulaFound": "未找到建议配方",
-      "typeIsExpected": "{calleeName} requires a {type} at position {position}",
+      "typeIsExpected": "{calleeName} 需要在 {type} 位置 {position}",
       "numericTypeIsExpected": "预计为数字类型",
       "stringTypeIsExpected": "预计为字符串类型",
       "operationNotAvailable": "{operation} 操作不可用",
@@ -1063,9 +1063,9 @@
       "duplicateProject": "你确定要复制项目吗？",
       "duplicateTable": "您确定要复制表格吗？",
       "multiField": {
-        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
-        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
-        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+        "fieldVisibility": "您不能更改正在编辑的字段的可见性。请先保存或放弃更改。",
+        "moveEditedField": "您不能移动正在编辑的字段的可见性。请先保存或放弃更改。",
+        "moveDeletedField": "您不能移动已被删除的字段的可见性。请先保存或放弃更改。"
       }
     },
     "info": {
@@ -1230,7 +1230,7 @@
       "thankYou": "谢谢你！",
       "submittedFormData": "您已成功提交表单数据。",
       "editingSystemKeyNotSupported": "不支持编辑系统密钥",
-      "notAvailableAtTheMoment": "Not available at the moment"
+      "notAvailableAtTheMoment": "当前不可用。"
     },
     "error": {
       "nameRequired": "您必须指定一个名字",
@@ -1309,8 +1309,8 @@
       "projectNotAccessible": "无权访问此项目",
       "copyToClipboardError": "未能复制到剪贴板",
       "pasteFromClipboardError": "从剪贴板粘贴失败",
-      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
-      "somethingWentWrong": "Something went wrong"
+      "multiFieldSaveValidation": "请在保存前完成所有字段的配置",
+      "somethingWentWrong": "出现了一些错误"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

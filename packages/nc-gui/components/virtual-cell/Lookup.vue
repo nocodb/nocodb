@@ -100,7 +100,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 <template>
   <div
-    class="h-full w-full nc-lookup-cell"
+    class="nc-cell-field h-full w-full nc-lookup-cell"
     tabindex="-1"
     :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
     @dblclick="activateShowEditNonEditableFieldWarning"
@@ -185,7 +185,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     :read-only="true"
                     :class="{
                       'min-h-0 min-w-0': isAttachment(lookupColumn),
-                      '!min-w-20 !w-auto pl-2': !isAttachment(lookupColumn),
+                      '!min-w-20 !w-auto px-2': !isAttachment(lookupColumn),
                     }"
                   />
                 </div>

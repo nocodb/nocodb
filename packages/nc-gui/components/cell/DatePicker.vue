@@ -7,7 +7,6 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
-  IsExpandedFormOpenInj,
   ReadonlyInj,
   computed,
   inject,
@@ -41,8 +40,6 @@ const columnMeta = inject(ColumnInj, null)!
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -240,11 +237,12 @@ const clickHandler = () => {
 <template>
   <a-date-picker
     v-model:value="localState"
+    :disabled="readOnly"
     :picker="picker"
     :tabindex="0"
     :bordered="false"
-    class="!w-full !py-1 !border-none !text-current"
-    :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
+    class="nc-cell-field !w-full !py-1 !border-none !text-current"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

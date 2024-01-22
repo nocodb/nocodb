@@ -8,7 +8,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
@@ -23,6 +23,8 @@ const emits = defineEmits(['update:value'])
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const rowHeight = inject(RowHeightInj, ref(1 as const))
+
+const readOnlyCell = inject(ReadonlyInj, ref(false))
 
 const turndownService = new TurndownService({})
 
@@ -174,7 +176,7 @@ watch(editorDom, () => {
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
       'readonly': readOnly,
     }"
-    tabindex="0"
+    :tabindex="readOnlyCell ? -1 : 0"
   >
     <div
       v-if="showMenu && !readOnly"

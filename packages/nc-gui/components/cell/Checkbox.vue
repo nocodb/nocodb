@@ -90,11 +90,13 @@ useSelectedCellKeyupListener(active, (e) => {
       'w-full justify-center': !isForm && !isGallery && !isExpandedFormOpen,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
+      'pointer-events-none': readOnly,
     }"
     :style="{
       height:
         isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
     }"
+    :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"
     @keydown.enter.stop="onClick(true, $event)"
   >

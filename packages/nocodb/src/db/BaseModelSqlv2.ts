@@ -1245,6 +1245,12 @@ class BaseModelSqlv2 {
     // const tn = this.model.tn;
     // const cn = (await relColOptions.getChildColumn()).title;
     const mmTable = await relColOptions.getMMModel();
+
+    // if mm table is not present then return
+    if (!mmTable) {
+      return;
+    }
+
     const vtn = this.getTnPath(mmTable);
     const vcn = (await relColOptions.getMMChildColumn()).column_name;
     const vrcn = (await relColOptions.getMMParentColumn()).column_name;

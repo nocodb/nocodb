@@ -1544,7 +1544,9 @@ export default class View implements ViewType {
     {
       columns,
       viewColumns,
+      copyFromView,
     }: {
+      copyFromView: View;
       columns?: ({
         order?: number;
         show?;
@@ -1589,13 +1591,58 @@ export default class View implements ViewType {
         columns = await Column.list({ fk_model_id: view.fk_model_id });
       }
 
+      let order = 1;
+      let galleryShowLimit = 0;
+      let kanbanShowLimit = 0;
+
       for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
 
+        let show = 'show' in column ? column.show : true;
+
+        if (view.type === ViewTypes.GALLERY) {
+          const galleryView = await GalleryView.get(view.id, ncMeta);
+          if (
+            column.id === galleryView.fk_cover_image_col_id ||
+            column.pv ||
+            galleryShowLimit < 3
+          ) {
+            show = true;
+            galleryShowLimit++;
+          } else {
+            show = false;
+          }
+        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
+          const kanbanView = await KanbanView.get(view.id, ncMeta);
+          if (column.id === kanbanView?.fk_grp_col_id) {
+            // include grouping field if it exists
+            show = true;
+          } else if (
+            column.id === kanbanView.fk_cover_image_col_id ||
+            column.pv
+          ) {
+            // Show cover image or primary key
+            show = true;
+            kanbanShowLimit++;
+          } else if (kanbanShowLimit < 3 && !isSystemColumn(column)) {
+            // show at most 3 non-system columns
+            show = true;
+            kanbanShowLimit++;
+          } else {
+            // other columns will be hidden
+            show = false;
+          }
+        } else if (view.type === ViewTypes.MAP && !copyFromView) {
+          const mapView = await MapView.get(view.id, ncMeta);
+          if (column.id === mapView?.fk_geo_data_col_id) {
+            show = true;
+          }
+        }
+
         insertObjs.push({
           fk_column_id: column.id,
-          order: column.order ?? i + 1,
-          show: column.show ?? true,
+          order: order++,
+          show,
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,
@@ -1806,11 +1853,11 @@ export default class View implements ViewType {
       );
 
       // populate view columns
-      await View.bulkColumnInsertToViews({ viewColumns }, insertedView);
+      await View.bulkColumnInsertToViews({ viewColumns, copyFromView }, insertedView);
     } else {
       // populate view columns
       await View.bulkColumnInsertToViews(
-        { columns: (await model.getColumns()) as any[] },
+        { columns: (await model.getColumns()) as any[], copyFromView },
         insertedView,
       );
     }

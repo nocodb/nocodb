@@ -1515,7 +1515,7 @@ export default class Column<T = any> implements ColumnType {
               }
               insertArr.push({
                 color: selectColors[i % selectColors.length], // in case color is not provided
-                ...option,
+                ...extractProps(option, ['title', 'fk_column_id', 'color']),
                 fk_column_id: column.id,
                 order: i + 1,
               });
@@ -1543,7 +1543,7 @@ export default class Column<T = any> implements ColumnType {
               }
               insertArr.push({
                 color: selectColors[i % selectColors.length], // in case color is not provided
-                ...option,
+                ...extractProps(option, ['title', 'fk_column_id', 'color']),
                 fk_column_id: column.id,
                 order: i + 1,
               });

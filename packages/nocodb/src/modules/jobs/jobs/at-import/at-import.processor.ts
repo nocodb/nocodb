@@ -1528,6 +1528,11 @@ export class AtImportProcessor {
             }
             break;
 
+          case UITypes.LongText:
+            // eslint-disable-next-line no-control-regex
+            rec[key] = value.replace(/\u0000/g, '');
+            break;
+
           default:
             break;
         }
@@ -2352,6 +2357,22 @@ export class AtImportProcessor {
     try {
       logBasic('SDK initialized');
 
+      // clear all tables if debug mode
+      if (debugMode) {
+        const tables = await this.tablesService.getAccessibleTables({
+          baseId: syncDB.baseId,
+          sourceId: syncDB.sourceId,
+          roles: { ...userRole, owner: true },
+        });
+        for (const table of tables) {
+          await this.tablesService.tableDelete({
+            tableId: table.id,
+            user: syncDB.user,
+            forceDeleteRelations: true,
+          });
+        }
+      }
+
       logDetailed('Base initialization started');
 
       logDetailed('Base initialized');
@@ -2462,14 +2483,15 @@ export class AtImportProcessor {
               baseName: syncDB.baseId,
               table: ncTbl,
               atBase,
-              logBasic,
               nocoBaseDataProcessing_v2,
               sDB: syncDB,
-              logDetailed,
               services: {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,
               },
+              logBasic,
+              logDetailed,
+              logWarning,
             });
             rtc.data.records += await recordsMap[ncTbl.id].getCount();
 
@@ -2497,9 +2519,7 @@ export class AtImportProcessor {
               baseName: syncDB.baseId,
               atBase,
               fields: null, //Object.values(tblLinkGroup).flat(),
-              logBasic,
               insertedAssocRef,
-              logDetailed,
               records: recordsMap[ncTbl.id],
               atNcAliasRef,
               ncLinkMappingTable,
@@ -2508,6 +2528,9 @@ export class AtImportProcessor {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,
               },
+              logBasic,
+              logDetailed,
+              logWarning,
             });
           }
         } catch (error) {

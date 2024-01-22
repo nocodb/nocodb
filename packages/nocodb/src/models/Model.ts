@@ -172,7 +172,7 @@ export default class Model implements TableType {
       ncMeta,
     );
 
-    const model = await this.getWithInfo({ id }, ncMeta);
+    const modelRes = await this.getWithInfo({ id }, ncMeta);
 
     // append to model list since model list cache will be there already
     if (sourceId) {
@@ -190,7 +190,7 @@ export default class Model implements TableType {
       `${CacheScope.MODEL}:${id}`,
     );
 
-    return model;
+    return modelRes;
   }
 
   public static async list(

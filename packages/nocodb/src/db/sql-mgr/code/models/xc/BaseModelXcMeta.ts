@@ -83,6 +83,14 @@ abstract class BaseModelXcMeta extends BaseRender {
     return columnsArr;
   }
 
+  protected renderXcHasMany(args) {
+    return JSON.stringify(args.hasMany);
+  }
+
+  protected renderXcBelongsTo(args) {
+    return JSON.stringify(args.belongsTo);
+  }
+
   public getObject() {
     return {
       tn: this.ctx.tn,

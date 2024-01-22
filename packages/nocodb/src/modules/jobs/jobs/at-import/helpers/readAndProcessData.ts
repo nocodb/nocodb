@@ -26,12 +26,14 @@ async function readAllData({
   fields,
   atBase,
   logBasic = (_str) => {},
+  logWarning = (_str) => {},
 }: {
   table: { title?: string };
   fields?;
   atBase: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
+  logWarning?: (string) => void;
 }): Promise<EntityMap> {
   return new Promise((resolve) => {
     let data = null;
@@ -78,8 +80,8 @@ async function readAllData({
         async function done(err) {
           if (err) {
             logger.error(err);
-            logBasic(
-              `:: There were errors on reading '${table.title}' data :: ${err}`,
+            logWarning(
+              `There were errors on reading '${table.title}' data :: ${err}`,
             );
           }
           resolve(data);
@@ -94,8 +96,9 @@ export async function importData({
   atBase,
   nocoBaseDataProcessing_v2,
   sDB,
-  logDetailed = (_str) => {},
   logBasic = (_str) => {},
+  logDetailed = (_str) => {},
+  logWarning = (_str) => {},
   services,
 }: {
   baseName: string;
@@ -104,6 +107,7 @@ export async function importData({
   atBase: AirtableBase;
   logBasic: (string) => void;
   logDetailed: (string) => void;
+  logWarning: (string) => void;
   nocoBaseDataProcessing_v2;
   sDB;
   services: AirtableImportContext;
@@ -179,8 +183,8 @@ export async function importData({
               resolve(true);
             } catch (e) {
               logger.error(e);
-              logBasic(
-                `:: There were errors on importing '${table.title}' data :: ${e}`,
+              logWarning(
+                `There were errors on importing '${table.title}' data :: ${e}`,
               );
               readable.resume();
               resolve(true);
@@ -217,8 +221,8 @@ export async function importData({
           resolve(true);
         } catch (e) {
           logger.error(e);
-          logBasic(
-            `:: There were errors on importing '${table.title}' data :: ${e}`,
+          logWarning(
+            `There were errors on importing '${table.title}' data :: ${e}`,
           );
           resolve(true);
         }
@@ -237,20 +241,19 @@ export async function importLTARData({
   atBase,
   baseName,
   insertedAssocRef = {},
-  logDetailed = (_str) => {},
-  logBasic = (_str) => {},
   records,
   atNcAliasRef,
   ncLinkMappingTable,
   syncDB,
   services,
+  logBasic = (_str) => {},
+  logDetailed = (_str) => {},
+  logWarning = (_str) => {},
 }: {
   baseName: string;
   table: { title?: string; id?: string };
   fields;
   atBase: AirtableBase;
-  logDetailed: (string) => void;
-  logBasic: (string) => void;
   insertedAssocRef: { [assocTableId: string]: boolean };
   records?: EntityMap;
   atNcAliasRef: {
@@ -261,6 +264,9 @@ export async function importLTARData({
   ncLinkMappingTable: Record<string, Record<string, any>>[];
   syncDB;
   services: AirtableImportContext;
+  logBasic: (string) => void;
+  logDetailed: (string) => void;
+  logWarning: (string) => void;
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -379,8 +385,8 @@ export async function importLTARData({
               resolve(true);
             } catch (e) {
               logger.error(e);
-              logBasic(
-                `:: There were errors on importing '${table.title}' LTAR data :: ${e}`,
+              logWarning(
+                `There were errors on importing '${table.title}' LTAR data :: ${e}`,
               );
               readable.resume();
               resolve(true);
@@ -418,8 +424,8 @@ export async function importLTARData({
           resolve(true);
         } catch (e) {
           logger.error(e);
-          logBasic(
-            `:: There were errors on importing '${table.title}' LTAR data :: ${e}`,
+          logWarning(
+            `There were errors on importing '${table.title}' LTAR data :: ${e}`,
           );
           resolve(true);
         }

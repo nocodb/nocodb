@@ -2483,14 +2483,15 @@ export class AtImportProcessor {
               baseName: syncDB.baseId,
               table: ncTbl,
               atBase,
-              logBasic,
               nocoBaseDataProcessing_v2,
               sDB: syncDB,
-              logDetailed,
               services: {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,
               },
+              logBasic,
+              logDetailed,
+              logWarning,
             });
             rtc.data.records += await recordsMap[ncTbl.id].getCount();
 
@@ -2518,9 +2519,7 @@ export class AtImportProcessor {
               baseName: syncDB.baseId,
               atBase,
               fields: null, //Object.values(tblLinkGroup).flat(),
-              logBasic,
               insertedAssocRef,
-              logDetailed,
               records: recordsMap[ncTbl.id],
               atNcAliasRef,
               ncLinkMappingTable,
@@ -2529,6 +2528,9 @@ export class AtImportProcessor {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,
               },
+              logBasic,
+              logDetailed,
+              logWarning,
             });
           }
         } catch (error) {

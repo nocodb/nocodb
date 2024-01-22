@@ -8,6 +8,7 @@ import {
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
+  RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
@@ -173,8 +174,34 @@ export class TablesService {
     await table.getColumns();
 
     if (table.mm) {
+      const columns = await table.getColumns();
+
+      // get table names of the relation which uses the current table as junction table
+      const tables = await Promise.all(
+        columns
+          .filter((c) => isLinksOrLTAR(c))
+          .map((c) => c.colOptions.getRelatedTable()),
+      );
+
+      // get relation column names
+      const relColumns = await Promise.all(
+        tables.map((t) => {
+          return t.getColumns().then((cols) => {
+            return cols.find((c) => {
+              return (
+                isLinksOrLTAR(c) &&
+                (c.colOptions as LinkToAnotherRecordColumn).type ===
+                  RelationTypes.MANY_TO_MANY &&
+                (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
+                  table.id
+              );
+            });
+          });
+        }),
+      );
+
       NcError.badRequest(
-        'Table is a many to many table. Delete the relation instead.',
+        `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
     }
 

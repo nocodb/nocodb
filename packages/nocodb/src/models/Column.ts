@@ -1347,12 +1347,15 @@ export default class Column<T = any> implements ColumnType {
     for (const column of param.columns) {
       // pre-populate column meta to use while inserting colOptions
       const id = await ncMeta.genNanoid(MetaTable.COLUMNS);
-      columns.push({
+      const colWithId = {
         ...column,
         id,
-      });
-      extractedColumnMetas.push({
-        ...extractProps(column as any, [
+        base_id: param.base_id,
+        source_id: param.source_id,
+        fk_model_id: param.fk_model_id,
+      };
+      extractedColumnMetas.push(
+        extractProps(colWithId as any, [
           'id',
           'fk_model_id',
           'column_name',
@@ -1383,9 +1386,8 @@ export default class Column<T = any> implements ColumnType {
           'system',
           'meta',
         ]),
-        id,
-        fk_model_id: param.fk_model_id,
-      });
+      );
+      columns.push(colWithId);
     }
 
     // bulk insert columns

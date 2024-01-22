@@ -601,6 +601,7 @@ export class TablesService {
           column_name: c.column_name,
         })),
     );
+
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,
       tn: tableCreatePayLoad.table_name,

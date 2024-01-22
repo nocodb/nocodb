@@ -1,4 +1,4 @@
-import { RelationTypes } from 'nocodb-sdk';
+import { NcDataErrorCodes, RelationTypes } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { LinksColumn } from '~/models';
 import type { RollupColumn } from '~/models';
@@ -55,6 +55,12 @@ export default async function ({
       const mmModel = await relationColumnOption.getMMModel();
       const mmChildCol = await relationColumnOption.getMMChildColumn();
       const mmParentCol = await relationColumnOption.getMMParentColumn();
+
+      if (!mmModel) {
+        return this.dbDriver.raw(`?`, [
+          NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+        ]);
+      }
 
       return {
         builder: knex(

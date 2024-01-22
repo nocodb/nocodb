@@ -513,6 +513,7 @@
     "databaseType": "Type in Database",
     "lengthValue": "Length/ value",
     "dbType": "Database Type",
+    "servername": "servername / hostAddr",
     "sqliteFile": "SQLite File",
     "hostAddress": "Host Address",
     "port": "Port Number",

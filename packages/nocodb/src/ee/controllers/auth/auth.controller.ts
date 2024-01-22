@@ -150,4 +150,23 @@ export class AuthController extends AuthControllerCE {
       extra: { ...req.extra },
     });
   }
+
+  @Post('/login/callback')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
+  async samlLoginCallback(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
+    await this.setRefreshToken({ req, res });
+    res.json({
+      ...(await this.usersService.login(
+        {
+          ...req.user,
+          provider: 'saml',
+        },
+        req,
+      )),
+      extra: { ...req.extra },
+    });
+  }
 }

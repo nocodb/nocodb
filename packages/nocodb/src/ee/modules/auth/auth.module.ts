@@ -8,6 +8,7 @@ import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.stra
 import { MetasModule } from '~/modules/metas/metas.module';
 import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 import { CognitoStrategyProvider } from '~/strategies/cognito.strategy/cognito.strategy';
+import { NocoSamlStrategyProvider } from '~/strategies/saml.strategy/saml.strategy';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { CognitoStrategyProvider } from '~/strategies/cognito.strategy/cognito.s
     GoogleStrategyProvider,
     OpenidStrategyProvider,
     CognitoStrategyProvider,
+    NocoSamlStrategyProvider,
   ],
   exports: [UsersService],
 })
-export class AuthModule {}
+export class AuthModule { }

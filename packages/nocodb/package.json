@@ -162,6 +162,7 @@
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "passport-saml": "^3.2.4",
     "pg": "^8.10.0",
     "pino-http": "^8.5.0",
     "posthog-node": "^3.1.2",

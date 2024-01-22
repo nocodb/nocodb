@@ -1330,4 +1330,230 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
   }
+
+  static async bulkInsert(
+    param: {
+      columns: Column[];
+      fk_model_id: any;
+      source_id: string;
+      base_id: string;
+    },
+    ncMeta: MetaService = Noco.ncMeta,
+  ) {
+    const extractedColumnMetas = [];
+
+    // add fk_model_id
+    for (const column of param.columns) {
+      extractedColumnMetas.push({
+        ...extractProps(column as any, [
+          'id',
+          'fk_model_id',
+          'column_name',
+          'title',
+          'uidt',
+          'dt',
+          'np',
+          'ns',
+          'clen',
+          'cop',
+          'pk',
+          'rqd',
+          'un',
+          'ct',
+          'ai',
+          'unique',
+          'cdf',
+          'cc',
+          'csn',
+          'dtx',
+          'dtxp',
+          'dtxs',
+          'au',
+          'pv',
+          'order',
+          'base_id',
+          'source_id',
+          'system',
+          'meta',
+        ]),
+        fk_model_id: param.fk_model_id,
+      });
+    }
+
+    // bulk insert columns
+    const columns = await ncMeta.bulkMetaInsert(
+      null,
+      null,
+      MetaTable.COLUMNS,
+      extractedColumnMetas,
+    );
+
+    // insert column options if any
+    // for (const column of columns) {
+    await Column.bulkInsertColOption(columns, ncMeta);
+    // }
+
+    return columns;
+  }
+
+  private static async bulkInsertColOption<T>(
+    columns: (Partial<T> & { source_id?: string; [p: string]: any })[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertGroups = new Map<UITypes, Record<string, any>[]>();
+
+    for (const column of columns) {
+      let insertArr = insertGroups.get(column.uidt=== UITypes.MultiSelect ? UITypes.SingleSelect : column.uidt );
+      if (!insertArr) {
+        insertGroups.set(column.uidt, (insertArr = []));
+      }
+      switch (column.uidt || column.ui_data_type) {
+        case UITypes.Lookup:
+          // LookupColumn.insert()
+          insertArr.push({
+            fk_column_id: column.id,
+            fk_relation_column_id: column.fk_relation_column_id,
+            fk_lookup_column_id: column.fk_lookup_column_id,
+          });
+          break;
+
+        case UITypes.Rollup: {
+          insertArr.push({
+            fk_column_id: column.id,
+            fk_relation_column_id: column.fk_relation_column_id,
+
+            fk_rollup_column_id: column.fk_rollup_column_id,
+            rollup_function: column.rollup_function,
+          });
+          break;
+        }
+        case UITypes.Links:
+        case UITypes.LinkToAnotherRecord: {
+          insertArr.push({
+            fk_column_id: column.id,
+
+            // ref_db_alias
+            type: column.type,
+            // db_type:
+
+            fk_child_column_id: column.fk_child_column_id,
+            fk_parent_column_id: column.fk_parent_column_id,
+
+            fk_mm_model_id: column.fk_mm_model_id,
+            fk_mm_child_column_id: column.fk_mm_child_column_id,
+            fk_mm_parent_column_id: column.fk_mm_parent_column_id,
+
+            ur: column.ur,
+            dr: column.dr,
+
+            fk_index_name: column.fk_index_name,
+            fk_related_model_id: column.fk_related_model_id,
+
+            virtual: column.virtual,
+          });
+          break;
+        }
+        case UITypes.QrCode: {
+          insertArr.push(
+            {
+              fk_column_id: column.id,
+              fk_qr_value_column_id: column.fk_qr_value_column_id,
+            },
+            ncMeta,
+          );
+          break;
+        }
+        case UITypes.Barcode: {
+          insertArr.push({
+            fk_column_id: column.id,
+            fk_barcode_value_column_id: column.fk_barcode_value_column_id,
+            barcode_format: column.barcode_format,
+          });
+          break;
+        }
+        case UITypes.Formula: {
+          insertArr.push({
+            fk_column_id: column.id,
+            formula: column.formula,
+            formula_raw: column.formula_raw,
+            parsed_tree: column.parsed_tree,
+          });
+          break;
+        }
+        case UITypes.MultiSelect: {
+          if (!column.colOptions?.options) {
+            for (const [i, option] of column.dtxp?.split(',').entries() ||
+              [].entries()) {
+              insertArr.push({
+                fk_column_id: column.id,
+                title: option.replace(/^'/, '').replace(/'$/, ''),
+                order: i + 1,
+                color: selectColors[i % selectColors.length],
+              });
+            }
+          } else {
+            for (const [i, option] of column.colOptions.options.entries() ||
+              [].entries()) {
+              // Trim end of enum/set
+              if (column.dt === 'enum' || column.dt === 'set') {
+                option.title = option.title.trimEnd();
+              }
+              insertArr.push({
+                color: selectColors[i % selectColors.length], // in case color is not provided
+                ...option,
+                fk_column_id: column.id,
+                order: i + 1,
+              });
+            }
+          }
+          break;
+        }
+        case UITypes.SingleSelect: {
+          if (!column.colOptions?.options) {
+            for (const [i, option] of column.dtxp?.split(',').entries() ||
+              [].entries()) {
+              insertArr.push({
+                fk_column_id: column.id,
+                title: option.replace(/^'/, '').replace(/'$/, ''),
+                order: i + 1,
+                color: selectColors[i % selectColors.length],
+              });
+            }
+          } else {
+            for (const [i, option] of column.colOptions.options.entries() ||
+              [].entries()) {
+              // Trim end of enum/set
+              if (column.dt === 'enum' || column.dt === 'set') {
+                option.title = option.title.trimEnd();
+              }
+              insertArr.push({
+                color: selectColors[i % selectColors.length], // in case color is not provided
+                ...option,
+                fk_column_id: column.id,
+                order: i + 1,
+              });
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // bulk insert column options
+    for (const group of insertGroups.keys()) {
+      switch (group) {
+        case UITypes.SingleSelect:
+        case UITypes.MultiSelect:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_SELECT_OPTIONS,
+            insertGroups.get(group),
+          );
+          break;
+
+        // todo: handle rest of the cases
+      }
+    }
+  }
 }

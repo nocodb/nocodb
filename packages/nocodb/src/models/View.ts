@@ -1539,4 +1539,271 @@ export default class View implements ViewType {
 
     await NocoCache.del(deleteKeys);
   }
+
+  static async bulkColumnInsertToViews(
+    {
+      columns,
+      viewColumns,
+    }: {
+      columns?: ({
+        order?: number;
+        show?;
+      } & Column)[];
+      viewColumns?: (
+        | GridViewColumn
+        | GalleryViewColumn
+        | FormViewColumn
+        | KanbanViewColumn
+        | MapViewColumn
+      )[];
+    },
+    view: View,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObjs = [];
+
+    if (viewColumns) {
+      for (let i = 0; i < viewColumns.length; i++) {
+        const column = columns[i];
+
+        insertObjs.push({
+          ...column,
+          fk_view_id: view.id,
+          base_id: view.base_id,
+          source_id: view.source_id,
+        });
+      }
+    } else {
+      if (!columns) {
+        columns = await Column.list({ fk_model_id: view.fk_model_id });
+      }
+
+      for (let i = 0; i < columns.length; i++) {
+        const column = columns[i];
+
+        insertObjs.push({
+          fk_column_id: column.id,
+          order: column.order ?? i + 1,
+          show: column.show ?? true,
+          fk_view_id: view.id,
+          base_id: view.base_id,
+          source_id: view.source_id,
+        });
+      }
+    }
+
+    switch (view.type) {
+      case ViewTypes.GRID:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.GRID_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.GALLERY:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.GALLERY_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.MAP:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.MAP_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.KANBAN:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.KANBAN_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+    }
+  }
+
+  static async insertMetaOnly(
+    view: Partial<View> &
+      Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
+        copy_from_id?: string;
+        fk_grp_col_id?: string;
+      },
+    model: {
+      getColumns: () => Promise<Column[]>;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = extractProps(view, [
+      'id',
+      'title',
+      'is_default',
+      'type',
+      'fk_model_id',
+      'base_id',
+      'source_id',
+      'meta',
+    ]);
+
+    if (!insertObj.order) {
+      // get order value
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
+        fk_model_id: view.fk_model_id,
+      });
+    }
+
+    insertObj.show = true;
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+
+    insertObj.meta = stringifyMetaProp(insertObj);
+
+    const copyFromView =
+      view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
+
+    // get base and base id if missing
+    if (!(view.base_id && view.source_id)) {
+      const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
+      insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
+    }
+
+    const insertedView = await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.VIEWS,
+      insertObj,
+    );
+
+    const { id: view_id } = insertedView;
+
+    // insert view metadata based on view type
+    switch (view.type) {
+      case ViewTypes.GRID:
+        await GridView.insert(
+          {
+            ...((copyFromView?.view as GridView) || {}),
+            ...(view as GridView),
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.MAP:
+        await MapView.insert(
+          {
+            ...(view as MapView),
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.GALLERY:
+        await GalleryView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.FORM:
+        await FormView.insert(
+          {
+            heading: view.title,
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.KANBAN:
+        // set grouping field
+        (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
+
+        await KanbanView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+    }
+
+    //  copy from view
+    if (copyFromView) {
+      const sorts = await copyFromView.getSorts(ncMeta);
+      const filters = await Filter.rootFilterList(
+        { viewId: copyFromView.id },
+        ncMeta,
+      );
+      const viewColumns = await copyFromView.getColumns(ncMeta);
+
+      const sortInsertObjs = [];
+      const filterInsertObjs = [];
+
+      for (const sort of sorts) {
+        sortInsertObjs.push({
+          ...sort,
+          fk_view_id: view_id,
+          id: undefined,
+        });
+      }
+
+      for (const filter of filters) {
+        const fn = async (filter, parentId: string = null) => {
+          const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
+
+          const { children, ...filterProps } = filter;
+
+          filterInsertObjs.push({
+            ...filterProps,
+            fk_view_id: view_id,
+            id: generatedId,
+            fk_parent_id: parentId,
+          });
+          if (filter.is_group)
+            await Promise.all(
+              ((await filter.getChildren()) || []).map(async (child) => {
+                await fn(child, generatedId);
+              }),
+            );
+        };
+
+        await fn(filter);
+      }
+
+      await ncMeta.bulkMetaInsert(null, null, MetaTable.SORT, sortInsertObjs);
+
+      await ncMeta.bulkMetaInsert(
+        null,
+        null,
+        MetaTable.FILTER_EXP,
+        filterInsertObjs,
+        true,
+      );
+
+      // populate view columns
+      await View.bulkColumnInsertToViews({ viewColumns }, insertedView);
+    } else {
+      // populate view columns
+      await View.bulkColumnInsertToViews(
+        { columns: (await model.getColumns()) as any[] },
+        insertedView,
+      );
+    }
+
+    return insertedView;
+  }
 }

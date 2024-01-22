@@ -1567,7 +1567,18 @@ export default class View implements ViewType {
         const column = viewColumns[i];
 
         insertObjs.push({
-          ...column,
+          ...extractProps(column, [
+            'fk_view_id',
+            'fk_column_id',
+            'show',
+            'base_id',
+            'source_id',
+            'order',
+            'width',
+            'group_by',
+            'group_by_order',
+            'group_by_sort',
+          ]),
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,

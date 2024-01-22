@@ -626,6 +626,8 @@ export class TablesService {
       source_id: source.id,
     });
 
+    mapDefaultDisplayValue(tableCreatePayLoad.columns);
+
     // todo: type correction
     const result = await Model.insert(base.id, source.id, {
       ...tableCreatePayLoad,
@@ -635,7 +637,6 @@ export class TablesService {
           ...c,
           uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
           ...(colMetaFromDb || {}),
-          dtxp: colMetaFromDb?.dtxp ?? c.dtxp,
           title: c.title || getColumnNameAlias(c.cn, source),
           column_name: colMetaFromDb?.cn || c.cn || c.column_name,
           order: i + 1,

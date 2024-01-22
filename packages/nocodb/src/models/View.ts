@@ -388,7 +388,13 @@ export default class View implements ViewType {
       for (const sort of sorts) {
         await Sort.insert(
           {
-            ...sort,
+            ...extractProps(sort, [
+              'fk_column_id',
+              'direction',
+              'base_id',
+              'source_id',
+              'order',
+            ]),
             fk_view_id: view_id,
             id: null,
           },
@@ -399,7 +405,19 @@ export default class View implements ViewType {
       for (const filter of filters.children) {
         await Filter.insert(
           {
-            ...filter,
+            ...extractProps(filter, [
+              'id',
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+              'base_id',
+              'source_id',
+              'order',
+            ]),
             fk_view_id: view_id,
             id: null,
           },

@@ -626,8 +626,6 @@ export class TablesService {
       source_id: source.id,
     });
 
-    mapDefaultDisplayValue(tableCreatePayLoad.columns);
-
     // todo: type correction
     const result = await Model.insert(base.id, source.id, {
       ...tableCreatePayLoad,

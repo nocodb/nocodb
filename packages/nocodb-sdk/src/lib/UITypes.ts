@@ -116,11 +116,18 @@ export function isCreatedOrLastModifiedByCol(
   );
 }
 
-export function isMMSystemCol(
+export function isHiddenCol(
   col: (ColumnReqType | ColumnType) & { system?: number | boolean }
 ) {
   return (
-    col.system && [UITypes.LinkToAnotherRecord].includes(<UITypes>col.uidt)
+    col.system &&
+    (
+      [
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.LinkToAnotherRecord,
+      ] as string[]
+    ).includes(col.uidt)
   );
 }
 

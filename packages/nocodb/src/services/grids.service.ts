@@ -5,7 +5,7 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Column, GridView, Model, View } from '~/models';
+import { GridView, Model, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 
@@ -22,13 +22,6 @@ export class GridsService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.grid,
     );
-    //
-    // const view = await View.insert({
-    //   ...param.grid,
-    //   // todo: sanitize
-    //   fk_model_id: param.tableId,
-    //   type: ViewTypes.GRID,
-    // });
 
     const model = await Model.get(param.tableId);
 

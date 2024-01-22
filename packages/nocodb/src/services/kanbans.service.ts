@@ -9,9 +9,9 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { KanbanView, Model, View } from '~/models'
-import NocoCache from '~/cache/NocoCache'
-import { CacheScope } from '~/utils/globals'
+import { KanbanView, Model, View } from '~/models';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 @Injectable()
 export class KanbansService {
@@ -31,13 +31,6 @@ export class KanbansService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.kanban,
     );
-
-    // const view = await View.insert({
-    //   ...param.kanban,
-    //   // todo: sanitize
-    //   fk_model_id: param.tableId,
-    //   type: ViewTypes.KANBAN,
-    // });
 
     const model = await Model.get(param.tableId);
 

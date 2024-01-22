@@ -11,6 +11,7 @@ server.use(
     exposedHeaders: 'xc-db-response',
   }),
 );
+
 server.set('view engine', 'ejs');
 
 const date = new Date();
@@ -22,6 +23,7 @@ process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`NC_MINIMAL_DBS`] = `true`;
 // process.env[`NC_TRY`] = 'true';
 // process.env[`NC_DASHBOARD_URL`] = '/test';
+
 // process.env[`DEBUG`] = 'xc*';
 
 (async () => {

@@ -219,7 +219,7 @@ export async function extractColumn({
 
               // if mm table is not present then return
               if (!assocModel) {
-                return qb.selet(
+                return qb.select(
                   knex.raw('? as ??', [
                     NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
                     sanitize(column.id),
@@ -440,7 +440,7 @@ export async function extractColumn({
 
               // if mm table is not present then return
               if (!assocModel) {
-                return qb.selet(
+                return qb.select(
                   knex.raw('? as ??', [
                     NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
                     sanitize(column.id),

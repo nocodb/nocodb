@@ -1564,7 +1564,7 @@ export default class View implements ViewType {
       viewColumns,
       copyFromView,
     }: {
-      copyFromView: View;
+      copyFromView?: View;
       columns?: ({
         order?: number;
         show?;
@@ -1923,7 +1923,7 @@ export default class View implements ViewType {
     } else {
       // populate view columns
       await View.bulkColumnInsertToViews(
-        { columns: (await model.getColumns()) as any[], copyFromView },
+        { columns: (await model.getColumns()) as any[] },
         insertedView,
       );
     }

@@ -614,8 +614,6 @@ export class TablesService {
       }
     >;
 
-    // console.time(req.id + 'tableCreate-sql-columnList');
-
     if (!source.isMeta()) {
       columns = (
         await sqlMgr.sqlOpPlus(source, 'columnList', {
@@ -625,16 +623,11 @@ export class TablesService {
       )?.data?.list;
     }
 
-    // console.timeEnd(req.id + 'tableCreate-sql-columnList');
-
-    // console.time(req.id + 'tableCreate-sql-modelList');
     const tables = await Model.list({
       base_id: base.id,
       source_id: source.id,
     });
-    // console.timeEnd(req.id + 'tableCreate-sql-modelList');
 
-    // console.time(req.id + 'tableCreate-sql-modelInsert');
     // todo: type correction
     const result = await Model.insert(base.id, source.id, {
       ...tableCreatePayLoad,
@@ -651,8 +644,6 @@ export class TablesService {
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
-
-    // console.timeEnd(req.id + 'tableCreate-sql-modelInsert');
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table: result,

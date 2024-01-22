@@ -33,13 +33,6 @@ export class FormsService {
       param.body,
     );
 
-    // const view = await View.insert({
-    //   ...param.body,
-    //   // todo: sanitize
-    //   fk_model_id: param.tableId,
-    //   type: ViewTypes.FORM,
-    // });
-
     const model = await Model.get(param.tableId);
 
     const { id } = await View.insertMetaOnly(

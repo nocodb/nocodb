@@ -157,6 +157,34 @@ export class AuthController extends AuthControllerCE {
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
+    const dashboardPath = this.config.get('dashboardPath', {
+      infer: true,
+    });
+
+    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
+
+    res.redirect(redirectUrl);
+
+    // await this.setRefreshToken({ req, res });
+    // res.json({
+    //   ...(await this.usersService.login(
+    //     {
+    //       ...req.user,
+    //       provider: 'saml',
+    //     },
+    //     req,
+    //   )),
+    //   extra: { ...req.extra },
+    // });
+  }
+
+  @Post('/auth/long-lived-token-refresh')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('long-lived-token-refresh'))
+  async samlLoginCallback(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
+
     await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(

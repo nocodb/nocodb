@@ -51,6 +51,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     await tryGoogleAuth(api, state.signIn)
   }
 
+  await tryShortTokenAuth(api, state.signIn)
+
   /** if public allow all visitors */
   if (to.meta.public) return
 
@@ -137,6 +139,44 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       const {
         data: { token, extra },
       } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
+
+      // if extra prop is null/undefined set it as an empty object as fallback
+      extraProps = extra || {}
+
+      signIn(token)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+
+    const newURL = window.location.href.split('?')[0]
+    window.history.pushState(
+      'object',
+      document.title,
+      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+    )
+    window.location.reload()
+  }
+}
+
+/**
+ * If short-token present, try using it to generate log-living token before navigating to the next page
+ */
+async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
+  if (window.location.search && /\bshort-token=/.test(window.location.search)) {
+    let extraProps: any = {}
+    try {
+      // `extra` prop is used in our cloud implementation, so we are keeping it
+      const {
+        data: { token, extra },
+      } = await api.instance.post(
+        `/auth/long-lived-token-refresh`,
+        {},
+        {
+          headers: {
+            'x-short-token': window.location.search.split('=')[1],
+          } as any,
+        },
+      )
 
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}

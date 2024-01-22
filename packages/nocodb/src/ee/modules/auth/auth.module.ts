@@ -9,6 +9,7 @@ import { MetasModule } from '~/modules/metas/metas.module';
 import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 import { CognitoStrategyProvider } from '~/strategies/cognito.strategy/cognito.strategy';
 import { NocoSamlStrategyProvider } from '~/strategies/saml.strategy/saml.strategy';
+import { LongLivedTokenRefreshStrategy } from '~/strategies/long-lived-token-refresh.strategy/long-lived-token-refresh.strategy';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { NocoSamlStrategyProvider } from '~/strategies/saml.strategy/saml.strate
     OpenidStrategyProvider,
     CognitoStrategyProvider,
     NocoSamlStrategyProvider,
+    LongLivedTokenRefreshStrategy,
   ],
   exports: [UsersService],
 })

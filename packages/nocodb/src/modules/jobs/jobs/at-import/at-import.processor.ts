@@ -2357,6 +2357,22 @@ export class AtImportProcessor {
     try {
       logBasic('SDK initialized');
 
+      // clear all tables if debug mode
+      if (debugMode) {
+        const tables = await this.tablesService.getAccessibleTables({
+          baseId: syncDB.baseId,
+          sourceId: syncDB.sourceId,
+          roles: { ...userRole, owner: true },
+        });
+        for (const table of tables) {
+          await this.tablesService.tableDelete({
+            tableId: table.id,
+            user: syncDB.user,
+            forceDeleteRelations: true,
+          });
+        }
+      }
+
       logDetailed('Base initialization started');
 
       logDetailed('Base initialized');

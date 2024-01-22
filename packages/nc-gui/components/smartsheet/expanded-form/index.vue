@@ -570,7 +570,7 @@ export default {
                 {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
               </div>
             </NcButton>
-            <NcDropdown v-if="!isNew" placement="bottomRight">
+            <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
               <NcButton type="secondary" class="nc-expand-form-more-actions w-10" :disabled="isLoading">
                 <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
               </NcButton>
@@ -698,7 +698,7 @@ export default {
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
                     class="bg-white w-80 xs:w-full px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     :class="{
-                      '!bg-gray-50 !px-0 !select-text nc-system-field': isReadOnlyVirtualCell(col),
+                      '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
                     }"
                   >
                     <LazySmartsheetVirtualCell
@@ -945,5 +945,14 @@ export default {
 
 :deep(.nc-system-field input) {
   @apply bg-transparent;
+}
+:deep(.nc-data-cell .nc-cell .nc-cell-field) {
+  @apply px-2;
+}
+:deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
+  @apply px-2;
+}
+:deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
+  @apply px-0;
 }
 </style>

@@ -6,6 +6,7 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
+  ReadonlyInj,
   computed,
   convertDurationToSeconds,
   convertMS2Duration,
@@ -32,13 +33,15 @@ const column = inject(ColumnInj)
 
 const editEnabled = inject(EditModeInj)
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const showWarningMessage = ref(false)
 
 const durationInMS = ref(0)
 
 const isEdited = ref(false)
-
-const isEditColumn = inject(EditColumnInj, ref(false))
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
@@ -93,11 +96,10 @@ const focus: VNodeRef = (el) =>
 <template>
   <div class="duration-cell-wrapper">
     <input
-      v-if="editEnabled"
+      v-if="!readOnly && editEnabled"
       :ref="focus"
       v-model="localState"
-      class="w-full !border-none !outline-none py-1"
-      :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+      class="nc-cell-field w-full !border-none !outline-none py-1"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
@@ -111,11 +113,11 @@ const focus: VNodeRef = (el) =>
       @mousedown.stop
     />
 
-    <span v-else-if="modelValue === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+    <span v-else-if="modelValue === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
-    <span v-else> {{ localState }}</span>
+    <span v-else class="nc-cell-field"> {{ localState }}</span>
 
-    <div v-if="showWarningMessage && showValidationError" class="duration-warning">
+    <div v-if="showWarningMessage && showValidationError" class="nc-cell-field duration-warning">
       {{ $t('msg.plsEnterANumber') }}
     </div>
   </div>

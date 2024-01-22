@@ -1341,9 +1341,16 @@ export default class Column<T = any> implements ColumnType {
     ncMeta = Noco.ncMeta,
   ) {
     const extractedColumnMetas = [];
+    const columns = [];
 
     // add fk_model_id
     for (const column of param.columns) {
+      // pre-populate column meta to use while inserting colOptions
+      const id = await ncMeta.genNanoid(MetaTable.COLUMNS);
+      columns.push({
+        ...column,
+        id,
+      });
       extractedColumnMetas.push({
         ...extractProps(column as any, [
           'id',
@@ -1376,16 +1383,18 @@ export default class Column<T = any> implements ColumnType {
           'system',
           'meta',
         ]),
+        id,
         fk_model_id: param.fk_model_id,
       });
     }
 
     // bulk insert columns
-    const columns = await ncMeta.bulkMetaInsert(
+    await ncMeta.bulkMetaInsert(
       null,
       null,
       MetaTable.COLUMNS,
       extractedColumnMetas,
+      true,
     );
 
     // insert column options if any
@@ -1403,7 +1412,11 @@ export default class Column<T = any> implements ColumnType {
     const insertGroups = new Map<UITypes, Record<string, any>[]>();
 
     for (const column of columns) {
-      let insertArr = insertGroups.get(column.uidt=== UITypes.MultiSelect ? UITypes.SingleSelect : column.uidt );
+      let insertArr = insertGroups.get(
+        column.uidt === UITypes.MultiSelect
+          ? UITypes.SingleSelect
+          : column.uidt,
+      );
       if (!insertArr) {
         insertGroups.set(column.uidt, (insertArr = []));
       }

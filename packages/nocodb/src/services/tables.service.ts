@@ -613,7 +613,6 @@ export class TablesService {
         system?: boolean;
       }
     >;
-
     if (!source.isMeta()) {
       columns = (
         await sqlMgr.sqlOpPlus(source, 'columnList', {
@@ -622,7 +621,6 @@ export class TablesService {
         })
       )?.data?.list;
     }
-
     const tables = await Model.list({
       base_id: base.id,
       source_id: source.id,
@@ -637,6 +635,7 @@ export class TablesService {
           ...c,
           uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
           ...(colMetaFromDb || {}),
+          dtxp: colMetaFromDb?.dtxp ?? c.dtxp,
           title: c.title || getColumnNameAlias(c.cn, source),
           column_name: colMetaFromDb?.cn || c.cn || c.column_name,
           order: i + 1,

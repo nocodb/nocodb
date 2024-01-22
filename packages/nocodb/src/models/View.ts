@@ -515,7 +515,10 @@ export default class View implements ViewType {
       fk_column_id: any;
       fk_model_id: any;
       order?: number;
-      show;
+      column_show: {
+        show: boolean;
+        view_id?: any;
+      };
     } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -523,12 +526,20 @@ export default class View implements ViewType {
       fk_column_id: param.fk_column_id,
       fk_model_id: param.fk_model_id,
       order: param.order,
-      show: param.show,
+      show: param.column_show.show,
     };
     const views = await this.list(param.fk_model_id, ncMeta);
 
     for (const view of views) {
-      const modifiedInsertObj = { ...insertObj, fk_view_id: view.id };
+      const modifiedInsertObj = {
+        ...insertObj,
+        show: param.column_show?.view_id
+          ? param.column_show?.view_id === view.id
+            ? true
+            : false
+          : insertObj.show,
+        fk_view_id: view.id,
+      };
 
       if (param.column_order?.view_id === view.id) {
         modifiedInsertObj.order = param.column_order?.order;

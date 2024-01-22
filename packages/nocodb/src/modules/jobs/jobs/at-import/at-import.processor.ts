@@ -1528,6 +1528,11 @@ export class AtImportProcessor {
             }
             break;
 
+          case UITypes.LongText:
+            // eslint-disable-next-line no-control-regex
+            rec[key] = value.replace(/\u0000/g, '');
+            break;
+
           default:
             break;
         }

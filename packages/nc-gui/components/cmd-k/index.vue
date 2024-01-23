@@ -431,12 +431,12 @@ defineExpose({
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiFileOutline class="h-4 w-4" />
             <span
+              class="cursor-pointer"
               @click.stop="
                 () => {
                   console.log('clicked')
                 }
               "
-              class="cursor-pointer"
             >
               Document
             </span>
@@ -445,12 +445,12 @@ defineExpose({
           <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
             <MdiMapMarkerOutline class="h-4 w-4" />
             <span
+              class="cursor-pointer"
               @click.stop="
                 () => {
                   console.log('clicked')
                 }
               "
-              class="cursor-pointer"
             >
               Quick Navigation
             </span>
@@ -461,12 +461,12 @@ defineExpose({
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiClockOutline class="h-4 w-4" />
             <span
+              class="cursor-pointer"
               @click.stop="
                 () => {
                   console.log('clicked')
                 }
               "
-              class="cursor-pointer"
             >
               Recent
             </span>

@@ -149,11 +149,11 @@ export const useCommandPalette = createSharedComposable(() => {
           if (activeScope.value.scope === 'disabled') return
           activeScope.value = { scope: 'disabled', data: {} }
           loadScope()
-        } else if (route.value.params.typeOrId.startsWith('w')) {
-          if (activeScope.value.data.workspace_id === route.value.params.typeOrId) return
+        } else if (route.value.params.typeOrId === 'nc') {
+          if (activeScope.value.data.base_id === route.value.params.baseId) return
           activeScope.value = {
-            scope: `ws-${route.value.params.typeOrId}`,
-            data: { workspace_id: route.value.params.typeOrId },
+            scope: `p-${route.value.params.baseId}`,
+            data: {},
           }
           loadScope()
         }

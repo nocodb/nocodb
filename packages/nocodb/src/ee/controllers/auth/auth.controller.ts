@@ -151,6 +151,14 @@ export class AuthController extends AuthControllerCE {
     });
   }
 
+  @Get('/login/saml')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
+  async samlLoginCallback1(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
+  }
+  
   @Post('/login/callback')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
   async samlLoginCallback(
@@ -180,7 +188,7 @@ export class AuthController extends AuthControllerCE {
 
   @Post('/auth/long-lived-token-refresh')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('long-lived-token-refresh'))
-  async samlLoginCallback(
+  async longLivedTokenRefresh(
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {

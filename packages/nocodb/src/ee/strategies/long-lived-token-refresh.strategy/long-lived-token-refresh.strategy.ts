@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import {ExtractJwt, Strategy} from 'passport-jwt';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from '~/models';
-import { UsersService } from '~/services/users/users.service';
-import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class LongLivedTokenRefreshStrategy extends PassportStrategy(
@@ -12,9 +10,9 @@ export class LongLivedTokenRefreshStrategy extends PassportStrategy(
 ) {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromHeader('xc-auth-short-lived'),
+      jwtFromRequest: ExtractJwt.fromHeader('xc-short-token'),
       passReqToCallback: true,
-      expiresIn: '5m',
+      expiresIn: '1m',
       secretOrKey: 'your-secret-key',
     });
   }
@@ -24,13 +22,13 @@ export class LongLivedTokenRefreshStrategy extends PassportStrategy(
 
     const user = await User.getByEmail(jwtPayload?.email);
 
-    if (
-      !user.token_version ||
-      !jwtPayload.token_version ||
-      user.token_version !== jwtPayload.token_version
-    ) {
-      NcError.unauthorized('Token Expired. Please login again.');
-    }
+    // if (
+    //   !user.token_version ||
+    //   !jwtPayload.token_version ||
+    //   user.token_version !== jwtPayload.token_version
+    // ) {
+    //   NcError.unauthorized('Token Expired. Please login again.');
+    // }
     return {
       saml: jwtPayload.saml,
       ...(await User.getWithRoles(user.id, {

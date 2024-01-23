@@ -1657,6 +1657,8 @@ export default class View implements ViewType {
           }
         }
 
+        if (isSystemColumn(column)) show = false;
+
         insertObjs.push({
           fk_column_id: column.id,
           order: order++,
@@ -1698,6 +1700,14 @@ export default class View implements ViewType {
           null,
           null,
           MetaTable.KANBAN_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.FORM:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.FORM_VIEW_COLUMNS,
           insertObjs,
         );
         break;
@@ -1871,7 +1881,10 @@ export default class View implements ViewType {
       );
 
       // populate view columns
-      await View.bulkColumnInsertToViews({ viewColumns, copyFromView }, insertedView);
+      await View.bulkColumnInsertToViews(
+        { viewColumns, copyFromView },
+        insertedView,
+      );
     } else {
       // populate view columns
       await View.bulkColumnInsertToViews(
@@ -1879,6 +1892,11 @@ export default class View implements ViewType {
         insertedView,
       );
     }
+
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
+    );
 
     return insertedView;
   }

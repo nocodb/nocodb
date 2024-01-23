@@ -167,7 +167,7 @@ const recordsToDisplay = computed<{
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? getRandomNumbers()
-        while (currentWeekStart.isBefore(endDate)) {
+        while (currentWeekStart.isSameOrBefore(endDate)) {
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
@@ -596,7 +596,7 @@ const isDateSelected = (date: Date) => {
             'border-brand-500 border-2': isDateSelected(day),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
-          class="text-right relative group py-1 text-sm h-full border-1 bg-white border-gray-200 font-semibold hover:bg-gray-50 text-gray-800"
+          class="text-right relative group text-sm h-full border-1 bg-white border-gray-200 font-semibold hover:bg-gray-50 text-gray-800"
           @click="selectDate(day)"
         >
           <div class="flex justify-between p-1">
@@ -617,21 +617,11 @@ const isDateSelected = (date: Date) => {
                 class="!group-hover:block"
                 size="small"
                 type="secondary"
-                @click="
-                  () => {
-                    const record = {
-                      row: {
-                        [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
-                      },
-                    }
-                    emit('new-record', record)
-                  }
-                "
               >
                 <component :is="iconMap.plus" class="h-4 w-4" />
               </NcButton>
               <template #overlay>
-                <NcMenu class="w-64" @click.stop>
+                <NcMenu class="w-64">
                   <NcMenuItem> Select date field to add </NcMenuItem>
                   <NcMenuItem
                     v-for="(range, index) in calendarRange"
@@ -687,7 +677,7 @@ const isDateSelected = (date: Date) => {
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
               !draggingId
             "
-            class="text-xs absolute bottom-1 text-center inset-x-0 z-[90] text-gray-500"
+            class="text-xs absolute bottom-1 text-center inset-x-0 !z-[90] text-gray-500"
           >
             + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more
           </div>
@@ -720,7 +710,7 @@ const isDateSelected = (date: Date) => {
             :name="record.row[displayField.title]"
             :position="record.rowMeta.position"
             :record="record"
-            :resize="record.rowMeta.range?.fk_to_col"
+            :resize="!!record.rowMeta.range?.fk_to_col"
             @click="emit('expand-record', record)"
             @resize-start="onResizeStart"
           />

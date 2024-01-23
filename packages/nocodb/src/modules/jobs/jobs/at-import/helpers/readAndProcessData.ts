@@ -9,7 +9,7 @@ import type { TablesService } from '~/services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
 
-const logger = new Logger('BaseModelSqlv2');
+const logger = new Logger('at-import:readAndProcessData');
 
 const BULK_DATA_BATCH_COUNT = 40; // check size for every 40 records
 const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes

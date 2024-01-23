@@ -9,6 +9,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
+import { Logger } from '@nestjs/common';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
@@ -33,6 +34,8 @@ import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { TelemetryService } from '~/services/telemetry.service';
+
+const logger = new Logger('at-import');
 
 dayjs.extend(utc);
 
@@ -937,7 +940,7 @@ export class AtImportProcessor {
                 ?.length
             ) {
               if (enableErrorLogs)
-                console.log(`## Invalid column IDs mapped; skip`);
+                logger.log(`## Invalid column IDs mapped; skip`);
 
               updateMigrationSkipLog(
                 srcTableSchema.title,
@@ -1017,7 +1020,7 @@ export class AtImportProcessor {
             );
           }
           if (enableErrorLogs)
-            console.log(
+            logger.log(
               `## Failed to configure ${nestedLookupTbl.length} lookups`,
             );
           break;
@@ -1156,7 +1159,7 @@ export class AtImportProcessor {
                 ?.length
             ) {
               if (enableErrorLogs)
-                console.log(`## Invalid column IDs mapped; skip`);
+                logger.log(`## Invalid column IDs mapped; skip`);
 
               updateMigrationSkipLog(
                 srcTableSchema.title,
@@ -1514,7 +1517,7 @@ export class AtImportProcessor {
                   req: {},
                 });
               } catch (e) {
-                console.log(e);
+                logger.log(e);
               }
 
               rec[key] = JSON.stringify(tempArr);
@@ -1841,7 +1844,7 @@ export class AtImportProcessor {
                 // TODO enable after fixing user invite role issue
                 // logWarning(e.message);
               } else {
-                console.log(e);
+                logger.log(e);
               }
             }),
         );
@@ -2052,7 +2055,7 @@ export class AtImportProcessor {
         const datatype = colSchema.uidt;
         const ncFilters = [];
 
-        // console.log(filter)
+        // logger.log(filter)
         if (datatype === UITypes.Links) {
           // skip filters for links; Link filters in NocoDB are only rollup counts
           // where-as in airtable, filter can be textual
@@ -2526,7 +2529,7 @@ export class AtImportProcessor {
           email: syncDB.user.email,
           data: { error: e.message },
         });
-        console.log(e);
+        logger.log(e);
         throw new Error(e.message);
       }
       throw e;

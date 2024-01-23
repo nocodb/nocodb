@@ -32,6 +32,13 @@ export class GalleriesService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.gallery,
     );
+    //
+    // const view = await View.insert({
+    //   ...param.gallery,
+    //   // todo: sanitize
+    //   fk_model_id: param.tableId,
+    //   type: ViewTypes.GALLERY,
+    // });
 
     const model = await Model.get(param.tableId);
 

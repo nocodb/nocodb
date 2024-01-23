@@ -1338,76 +1338,54 @@ export default class Column<T = any> implements ColumnType {
       source_id: string;
       base_id: string;
     },
-    ncMeta = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncMeta,
   ) {
     const extractedColumnMetas = [];
-    const columns = [];
 
     // add fk_model_id
     for (const column of param.columns) {
-      // pre-populate column meta to use while inserting colOptions
-      const id = await ncMeta.genNanoid(MetaTable.COLUMNS);
-      const colWithId = {
-        ...column,
-        id,
-        base_id: param.base_id,
-        source_id: param.source_id,
+      extractedColumnMetas.push({
+        ...extractProps(column as any, [
+          'id',
+          'fk_model_id',
+          'column_name',
+          'title',
+          'uidt',
+          'dt',
+          'np',
+          'ns',
+          'clen',
+          'cop',
+          'pk',
+          'rqd',
+          'un',
+          'ct',
+          'ai',
+          'unique',
+          'cdf',
+          'cc',
+          'csn',
+          'dtx',
+          'dtxp',
+          'dtxs',
+          'au',
+          'pv',
+          'order',
+          'base_id',
+          'source_id',
+          'system',
+          'meta',
+        ]),
         fk_model_id: param.fk_model_id,
-      };
-
-      const insertObj = extractProps(colWithId as any, [
-        'id',
-        'fk_model_id',
-        'column_name',
-        'title',
-        'uidt',
-        'dt',
-        'np',
-        'ns',
-        'clen',
-        'cop',
-        'pk',
-        'rqd',
-        'un',
-        'ct',
-        'ai',
-        'unique',
-        'cdf',
-        'cc',
-        'csn',
-        'dtx',
-        'dtxp',
-        'dtxs',
-        'au',
-        'pv',
-        'order',
-        'base_id',
-        'source_id',
-        'system',
-        'meta',
-      ]);
-
-      if (column.meta && typeof column.meta === 'object') {
-        insertObj.meta = JSON.stringify(column.meta);
-      }
-
-      if (column.validate) {
-        if (typeof column.validate === 'string')
-          insertObj.validate = column.validate;
-        else insertObj.validate = JSON.stringify(column.validate);
-      }
-      extractedColumnMetas.push(insertObj);
-
-      columns.push(colWithId);
+      });
     }
 
     // bulk insert columns
-    await ncMeta.bulkMetaInsert(
+    const columns = await ncMeta.bulkMetaInsert(
       null,
       null,
       MetaTable.COLUMNS,
       extractedColumnMetas,
-      true,
     );
 
     // insert column options if any
@@ -1425,11 +1403,7 @@ export default class Column<T = any> implements ColumnType {
     const insertGroups = new Map<UITypes, Record<string, any>[]>();
 
     for (const column of columns) {
-      let insertArr = insertGroups.get(
-        column.uidt === UITypes.MultiSelect
-          ? UITypes.SingleSelect
-          : column.uidt,
-      );
+      let insertArr = insertGroups.get(column.uidt=== UITypes.MultiSelect ? UITypes.SingleSelect : column.uidt );
       if (!insertArr) {
         insertGroups.set(column.uidt, (insertArr = []));
       }
@@ -1457,7 +1431,10 @@ export default class Column<T = any> implements ColumnType {
         case UITypes.LinkToAnotherRecord: {
           insertArr.push({
             fk_column_id: column.id,
+
+            // ref_db_alias
             type: column.type,
+            // db_type:
 
             fk_child_column_id: column.fk_child_column_id,
             fk_parent_column_id: column.fk_parent_column_id,
@@ -1523,7 +1500,7 @@ export default class Column<T = any> implements ColumnType {
               }
               insertArr.push({
                 color: selectColors[i % selectColors.length], // in case color is not provided
-                ...extractProps(option, ['title', 'fk_column_id', 'color']),
+                ...option,
                 fk_column_id: column.id,
                 order: i + 1,
               });
@@ -1551,7 +1528,7 @@ export default class Column<T = any> implements ColumnType {
               }
               insertArr.push({
                 color: selectColors[i % selectColors.length], // in case color is not provided
-                ...extractProps(option, ['title', 'fk_column_id', 'color']),
+                ...option,
                 fk_column_id: column.id,
                 order: i + 1,
               });
@@ -1575,56 +1552,7 @@ export default class Column<T = any> implements ColumnType {
           );
           break;
 
-        case UITypes.Lookup:
-          await ncMeta.bulkMetaInsert(
-            null,
-            null,
-            MetaTable.COL_LOOKUP,
-            insertGroups.get(group),
-          );
-          break;
-
-        case UITypes.Rollup:
-          await ncMeta.bulkMetaInsert(
-            null,
-            null,
-            MetaTable.COL_ROLLUP,
-            insertGroups.get(group),
-          );
-          break;
-        case UITypes.Links:
-        case UITypes.LinkToAnotherRecord:
-          await ncMeta.bulkMetaInsert(
-            null,
-            null,
-            MetaTable.COL_RELATIONS,
-            insertGroups.get(group),
-          );
-          break;
-        case UITypes.QrCode:
-          await ncMeta.bulkMetaInsert(
-            null,
-            null,
-            MetaTable.COL_QRCODE,
-            insertGroups.get(group),
-          );
-          break;
-        case UITypes.Barcode:
-          await ncMeta.bulkMetaInsert(
-            null,
-            null,
-            MetaTable.COL_BARCODE,
-            insertGroups.get(group),
-          );
-          break;
-        case UITypes.Formula:
-          await ncMeta.bulkMetaInsert(
-            null,
-            null,
-            MetaTable.COL_FORMULA,
-            insertGroups.get(group),
-          );
-          break;
+        // todo: handle rest of the cases
       }
     }
   }

@@ -5,7 +5,7 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { GridView, Model, View } from '~/models';
+import { Column, GridView, Model, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 
@@ -22,6 +22,13 @@ export class GridsService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.grid,
     );
+    //
+    // const view = await View.insert({
+    //   ...param.grid,
+    //   // todo: sanitize
+    //   fk_model_id: param.tableId,
+    //   type: ViewTypes.GRID,
+    // });
 
     const model = await Model.get(param.tableId);
 
@@ -35,6 +42,14 @@ export class GridsService {
         source_id: model.source_id,
       },
       model,
+    );
+
+    // populate  cache and add to list since the list cache already exist
+    const view = await View.get(id);
+    await NocoCache.appendToList(
+      CacheScope.VIEW,
+      [view.fk_model_id],
+      `${CacheScope.VIEW}:${id}`,
     );
 
     // populate  cache and add to list since the list cache already exist

@@ -27,6 +27,12 @@ export class MapsService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.map,
     );
+    // const view = await View.insert({
+    //   ...param.map,
+    //   // todo: sanitize
+    //   fk_model_id: param.tableId,
+    //   type: ViewTypes.MAP,
+    // });
 
     const model = await Model.get(param.tableId);
 

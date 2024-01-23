@@ -167,12 +167,12 @@ export default class Model implements TableType {
         source_id: sourceId,
       },
       {
-        getColumns: async () => insertedColumns,
+        getColumns: () => insertedColumns,
       },
       ncMeta,
     );
 
-    const modelRes = await this.getWithInfo({ id }, ncMeta);
+    const model = await this.getWithInfo({ id }, ncMeta);
 
     // append to model list since model list cache will be there already
     if (sourceId) {
@@ -190,7 +190,7 @@ export default class Model implements TableType {
       `${CacheScope.MODEL}:${id}`,
     );
 
-    return modelRes;
+    return model;
   }
 
   public static async list(

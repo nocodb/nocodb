@@ -1562,9 +1562,7 @@ export default class View implements ViewType {
     {
       columns,
       viewColumns,
-      copyFromView,
     }: {
-      copyFromView?: View;
       columns?: ({
         order?: number;
         show?;
@@ -1584,21 +1582,10 @@ export default class View implements ViewType {
 
     if (viewColumns) {
       for (let i = 0; i < viewColumns.length; i++) {
-        const column = viewColumns[i];
+        const column = columns[i];
 
         insertObjs.push({
-          ...extractProps(column, [
-            'fk_view_id',
-            'fk_column_id',
-            'show',
-            'base_id',
-            'source_id',
-            'order',
-            'width',
-            'group_by',
-            'group_by_order',
-            'group_by_sort',
-          ]),
+          ...column,
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,
@@ -1609,84 +1596,13 @@ export default class View implements ViewType {
         columns = await Column.list({ fk_model_id: view.fk_model_id });
       }
 
-      // todo: avoid duplicate code
-      if (view.type === ViewTypes.KANBAN && !copyFromView) {
-        // sort by display value & attachment first, then by singleLineText & Number
-        // so that later we can handle control `show` easily
-        columns.sort((a, b) => {
-          const displayValueOrder = +b.pv - +a.pv;
-          const attachmentOrder =
-            +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
-          const singleLineTextOrder =
-            +(b.uidt === UITypes.SingleLineText) -
-            +(a.uidt === UITypes.SingleLineText);
-          const numberOrder =
-            +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
-          const defaultOrder = b.order - a.order;
-          return (
-            displayValueOrder ||
-            attachmentOrder ||
-            singleLineTextOrder ||
-            numberOrder ||
-            defaultOrder
-          );
-        });
-      }
-
-      let order = 1;
-      let galleryShowLimit = 0;
-      let kanbanShowLimit = 0;
-
       for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
 
-        let show = 'show' in column ? column.show : true;
-
-        if (view.type === ViewTypes.GALLERY) {
-          const galleryView = await GalleryView.get(view.id, ncMeta);
-          if (
-            column.id === galleryView.fk_cover_image_col_id ||
-            column.pv ||
-            galleryShowLimit < 3
-          ) {
-            show = true;
-            galleryShowLimit++;
-          } else {
-            show = false;
-          }
-        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
-          const kanbanView = await KanbanView.get(view.id, ncMeta);
-          if (column.id === kanbanView?.fk_grp_col_id) {
-            // include grouping field if it exists
-            show = true;
-          } else if (
-            column.id === kanbanView.fk_cover_image_col_id ||
-            column.pv
-          ) {
-            // Show cover image or primary key
-            show = true;
-            kanbanShowLimit++;
-          } else if (kanbanShowLimit < 3 && !isSystemColumn(column)) {
-            // show at most 3 non-system columns
-            show = true;
-            kanbanShowLimit++;
-          } else {
-            // other columns will be hidden
-            show = false;
-          }
-        } else if (view.type === ViewTypes.MAP && !copyFromView) {
-          const mapView = await MapView.get(view.id, ncMeta);
-          if (column.id === mapView?.fk_geo_data_col_id) {
-            show = true;
-          }
-        } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
-          show = false;
-        }
-
         insertObjs.push({
           fk_column_id: column.id,
-          order: order++,
-          show,
+          order: column.order ?? i + 1,
+          show: column.show ?? true,
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,
@@ -1724,14 +1640,6 @@ export default class View implements ViewType {
           null,
           null,
           MetaTable.KANBAN_VIEW_COLUMNS,
-          insertObjs,
-        );
-        break;
-      case ViewTypes.FORM:
-        await ncMeta.bulkMetaInsert(
-          null,
-          null,
-          MetaTable.FORM_VIEW_COLUMNS,
           insertObjs,
         );
         break;
@@ -1865,12 +1773,7 @@ export default class View implements ViewType {
 
       for (const sort of sorts) {
         sortInsertObjs.push({
-          ...extractProps(sort, [
-            'fk_column_id',
-            'direction',
-            'base_id',
-            'source_id',
-          ]),
+          ...sort,
           fk_view_id: view_id,
           id: undefined,
         });
@@ -1880,16 +1783,10 @@ export default class View implements ViewType {
         const fn = async (filter, parentId: string = null) => {
           const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
 
+          const { children, ...filterProps } = filter;
+
           filterInsertObjs.push({
-            ...extractProps(filter, [
-              'fk_column_id',
-              'comparison_op',
-              'comparison_sub_op',
-              'value',
-              'fk_parent_id',
-              'is_group',
-              'logical_op',
-            ]),
+            ...filterProps,
             fk_view_id: view_id,
             id: generatedId,
             fk_parent_id: parentId,
@@ -1916,10 +1813,7 @@ export default class View implements ViewType {
       );
 
       // populate view columns
-      await View.bulkColumnInsertToViews(
-        { viewColumns, copyFromView },
-        insertedView,
-      );
+      await View.bulkColumnInsertToViews({ viewColumns }, insertedView);
     } else {
       // populate view columns
       await View.bulkColumnInsertToViews(
@@ -1927,11 +1821,6 @@ export default class View implements ViewType {
         insertedView,
       );
     }
-
-    await Model.getNonDefaultViewsCountAndReset(
-      { modelId: view.fk_model_id },
-      ncMeta,
-    );
 
     return insertedView;
   }

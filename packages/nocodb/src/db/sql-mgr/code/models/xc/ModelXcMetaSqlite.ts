@@ -35,7 +35,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
 
     /* for complex code provide a func and args - do derivation within the func cbk */
     data.hasMany = {
-      func: this._renderXcHasMany.bind(this),
+      func: this.renderXcHasMany.bind(this),
       args: {
         tn: this.ctx.tn,
         columns: this.ctx.columns,
@@ -45,7 +45,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
 
     /* for complex code provide a func and args - do derivation within the func cbk */
     data.belongsTo = {
-      func: this._renderXcBelongsTo.bind(this),
+      func: this.renderXcBelongsTo.bind(this),
       args: {
         tn: this.ctx.tn,
         columns: this.ctx.columns,
@@ -54,14 +54,6 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
     };
 
     return data;
-  }
-
-  _renderXcHasMany(args) {
-    return JSON.stringify(args.hasMany);
-  }
-
-  _renderXcBelongsTo(args) {
-    return JSON.stringify(args.belongsTo);
   }
 
   /**

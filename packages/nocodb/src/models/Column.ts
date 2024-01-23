@@ -1457,10 +1457,7 @@ export default class Column<T = any> implements ColumnType {
         case UITypes.LinkToAnotherRecord: {
           insertArr.push({
             fk_column_id: column.id,
-
-            // ref_db_alias
             type: column.type,
-            // db_type:
 
             fk_child_column_id: column.fk_child_column_id,
             fk_parent_column_id: column.fk_parent_column_id,
@@ -1578,7 +1575,56 @@ export default class Column<T = any> implements ColumnType {
           );
           break;
 
-        // todo: handle rest of the cases
+        case UITypes.Lookup:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_LOOKUP,
+            insertGroups.get(group),
+          );
+          break;
+
+        case UITypes.Rollup:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_ROLLUP,
+            insertGroups.get(group),
+          );
+          break;
+        case UITypes.Links:
+        case UITypes.LinkToAnotherRecord:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_RELATIONS,
+            insertGroups.get(group),
+          );
+          break;
+        case UITypes.QrCode:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_QRCODE,
+            insertGroups.get(group),
+          );
+          break;
+        case UITypes.Barcode:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_BARCODE,
+            insertGroups.get(group),
+          );
+          break;
+        case UITypes.Formula:
+          await ncMeta.bulkMetaInsert(
+            null,
+            null,
+            MetaTable.COL_FORMULA,
+            insertGroups.get(group),
+          );
+          break;
       }
     }
   }

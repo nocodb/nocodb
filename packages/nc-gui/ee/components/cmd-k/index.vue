@@ -430,19 +430,46 @@ defineExpose({
         <div class="flex justify-center w-full py-2">
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiFileOutline class="h-4 w-4" />
-            Document
+            <span
+              @click.stop="
+                () => {
+                  console.log('clicked')
+                }
+              "
+              class="cursor-pointer"
+            >
+              Document
+            </span>
             <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + J </span>
           </div>
           <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
             <MdiMapMarkerOutline class="h-4 w-4" />
-            Quick Navigation
+            <span
+              @click.stop="
+                () => {
+                  console.log('clicked')
+                }
+              "
+              class="cursor-pointer"
+            >
+              Quick Navigation
+            </span>
             <span class="bg-brand-500 border-1 border-brand-500 text-sm text-white px-1 rounded-md">
               {{ renderCmdOrCtrlKey() }} + K
             </span>
           </div>
           <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
             <MdiClockOutline class="h-4 w-4" />
-            Recent
+            <span
+              @click.stop="
+                () => {
+                  console.log('clicked')
+                }
+              "
+              class="cursor-pointer"
+            >
+              Recent
+            </span>
             <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + L </span>
           </div>
         </div>

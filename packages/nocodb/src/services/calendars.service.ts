@@ -9,7 +9,9 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { CalendarView, View } from '~/models';
+import { CalendarView, Model, View } from '~/models';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 @Injectable()
 export class CalendarsService {
@@ -30,12 +32,26 @@ export class CalendarsService {
       param.calendar,
     );
 
-    const view = await View.insert({
-      ...param.calendar,
-      // todo: sanitize
-      fk_model_id: param.tableId,
-      type: ViewTypes.CALENDAR,
-    });
+    const model = await Model.get(param.tableId);
+
+    const { id } = await View.insertMetaOnly(
+      {
+        ...param.calendar,
+        fk_model_id: param.tableId,
+        type: ViewTypes.CALENDAR,
+        base_id: model.base_id,
+        source_id: model.source_id,
+      },
+      model,
+    );
+
+    const view = await View.get(id);
+
+    await NocoCache.appendToList(
+      CacheScope.VIEW,
+      [view.fk_model_id],
+      `${CacheScope.VIEW}:${id}`,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       view,

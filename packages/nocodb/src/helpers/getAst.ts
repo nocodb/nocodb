@@ -57,8 +57,8 @@ const getAst = async ({
     const kanban = await KanbanView.get(view.id);
     coverImageId = kanban.fk_cover_image_col_id;
   } else if (view && view.type === ViewTypes.CALENDAR) {
-    const calendar = await CalendarView.get(view.id);
-    coverImageId = calendar.fk_cover_image_col_id;
+    // const calendar = await CalendarView.get(view.id);
+    // coverImageId = calendar.fk_cover_image_col_id;
     const calenderRanges = await CalendarRange.read(view.id);
     if (calenderRanges) {
       dependencyFieldsForCalenderView = calenderRanges.ranges

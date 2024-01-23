@@ -39,8 +39,9 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
+      'group-hover:(border-brand-500 border-2)': resize,
     }"
-    class="relative"
+    class="relative group"
   >
     <div class="h-full absolute py-2">
       <div
@@ -56,12 +57,18 @@ const emit = defineEmits(['resize-start'])
         class="block h-full min-h-5 ml-1 w-1 rounded mr-2"
       ></div>
     </div>
-    <span
-      v-if="resize"
-      class="absolute -left-1 resize mt-1.5 h-9 w-2"
-      @mousedown.stop="emit('resize-start', 'left', $event, record)"
+
+    <div
+      v-if="position === 'leftRounded' || position === 'rounded'"
+      :class="{
+        '!group-hover:(border-brand-500 block border-2 rounded-lg)': resize,
+      }"
+      class="absolute mt-0.6 h-7.1 hidden -left-3 resize"
     >
-    </span>
+      <NcButton v-if="resize" size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
+        <component :is="iconMap.drag" class="text-gray-400"></component>
+      </NcButton>
+    </div>
 
     <div class="ml-3 mt-2 text-ellipsis overflow-hidden w-full h-6 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
@@ -69,12 +76,17 @@ const emit = defineEmits(['resize-start'])
       <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
-    <span
-      v-if="resize"
-      class="absolute mt-1.5 right-1 w-2 h-9 px-1 resize"
-      @mousedown.stop="emit('resize-start', 'right', $event, record)"
+    <div
+      v-if="position === 'rightRounded' || position === 'rounded'"
+      :class="{
+        '!group-hover:(border-brand-500 border-2 block rounded-lg)': resize,
+      }"
+      class="absolute mt-0.6 hidden h-7.1 -right-3 border-1 resize"
     >
-    </span>
+      <NcButton v-if="resize" size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
+        <component :is="iconMap.drag" class="text-gray-400"></component>
+      </NcButton>
+    </div>
   </div>
 </template>
 

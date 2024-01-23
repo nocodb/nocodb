@@ -9,7 +9,7 @@ import {
   type ViewType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { addDays, addMonths, addYears, extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import { addDays, addMonths, addYears, extractPkFromRow, extractSdkResponseErrorMsg, rowPkData } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState, useUndoRedo } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
@@ -541,6 +541,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
+    function findRowInState(rowData: Record<string, any>) {
+      const pk: Record<string, string> = rowPkData(rowData, meta?.value?.columns as ColumnType[])
+      for (const row of formattedData.value) {
+        if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
+          return row
+        }
+      }
+    }
+
     const paginateCalendarView = async (action: 'next' | 'prev') => {
       switch (activeCalendarView.value) {
         case 'month':
@@ -614,7 +623,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           {},
         )
 
-        return await $api.dbViewRow.update(
+        const updatedRowData = await $api.dbViewRow.update(
           NOCO,
           base?.value.id as string,
           meta.value?.id as string,
@@ -629,6 +638,41 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           //   query: { ignoreWebhook: !saved }
           // }
         )
+
+        if (!undo) {
+          addUndo({
+            redo: {
+              fn: async (toUpdate: Row, property: string[]) => {
+                const updatedRow = await updateRowProperty(toUpdate, property, true)
+                const row = findRowInState(toUpdate.row)
+                if (row) {
+                  Object.assign(row.row, updatedRow)
+                }
+                Object.assign(row.oldRow, updatedRow)
+              },
+              args: [clone(toUpdate), property],
+            },
+            undo: {
+              fn: async (toUpdate: Row, property: string[]) => {
+                const updatedData = await updateRowProperty(
+                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                  property,
+                  true,
+                )
+                const row = findRowInState(toUpdate.row)
+                if (row) {
+                  Object.assign(row.row, updatedData)
+                }
+                Object.assign(row.oldRow, updatedData)
+              },
+              args: [clone(toUpdate), property],
+            },
+            scope: defineViewScope({ view: viewMeta.value }),
+          })
+          Object.assign(toUpdate.row, updatedRowData)
+          Object.assign(toUpdate.oldRow, updatedRowData)
+        }
+        return updatedRowData
       } catch (e: any) {
         message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
       }

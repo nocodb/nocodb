@@ -204,6 +204,7 @@ const headerText = computed(() => {
               () => {
                 selectedDate = new Date()
                 pageDate = new Date()
+                selectedMonth = new Date()
                 selectedDateRange = {
                   start: dayjs(new Date()).startOf('week').toDate(),
                   end: dayjs(new Date()).endOf('week').toDate(),

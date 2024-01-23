@@ -506,7 +506,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
               ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
               : 'none',
         }"
-        class="absolute draggable-record pointer-events-auto"
+        class="absolute group draggable-record pointer-events-auto"
         @mousedown.stop="dragStart($event, record)"
       >
         <LazySmartsheetRow :row="record">

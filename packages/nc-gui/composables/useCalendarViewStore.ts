@@ -529,7 +529,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
-      await $api.dbView.calendarUpdate(viewMeta.value.id, updateObj)
+      try {
+        await $api.dbView.calendarUpdate(viewMeta.value.id, updateObj)
+        calendarMetaData.value = {
+          ...calendarMetaData.value,
+          ...updateObj,
+        }
+      } catch (e) {
+        message.error('Error updating changes')
+        console.log(e)
+      }
     }
 
     const paginateCalendarView = async (action: 'next' | 'prev') => {

@@ -245,7 +245,7 @@ const recordsToDisplay = computed<{
             position = 'none'
           }
 
-          if (heightRequired > perHeight) {
+          if (heightRequired + 15 > perHeight) {
             style.display = 'none'
             for (let i = startDayIndex; i <= endDayIndex; i++) {
               const week = dates.value[weekIndex]
@@ -288,6 +288,10 @@ const resizeInProgress = ref(false)
 
 const isDragging = ref(false)
 const dragRecord = ref<Row>()
+
+const selectedRecord = ref<Row>()
+
+const dragTimeout = ref(null)
 
 const onDrag = (event: MouseEvent) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
@@ -564,6 +568,14 @@ const isDateSelected = (date: Date) => {
   if (!selectedDate.value) return false
   return dayjs(date).isSame(selectedDate.value, 'day')
 }
+
+onMounted(() => {
+  document.addEventListener('mouseup', stopDrag)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mouseup', stopDrag)
+})
 </script>
 
 <template>
@@ -572,7 +584,7 @@ const isDateSelected = (date: Date) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-800"
+        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-500"
       >
         {{ day }}
       </div>
@@ -593,10 +605,10 @@ const isDateSelected = (date: Date) => {
           v-for="(day, dateIndex) in week"
           :key="`${weekIndex}-${dateIndex}`"
           :class="{
-            'border-brand-500 border-2': isDateSelected(day),
+            'border-brand-500 border-2 border-r-2 border-b-2': isDateSelected(day),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
-          class="text-right relative group text-sm h-full border-1 bg-white border-gray-200 font-semibold hover:bg-gray-50 text-gray-800"
+          class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-semibold hover:bg-gray-50 text-gray-800 bg-white"
           @click="selectDate(day)"
         >
           <div class="flex justify-between p-1">
@@ -697,7 +709,7 @@ const isDateSelected = (date: Date) => {
               ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
               : 'none',
         }"
-        class="absolute draggable-record cursor-pointer pointer-events-auto"
+        class="absolute group draggable-record cursor-pointer pointer-events-auto"
         @mousedown.stop="dragStart($event, record)"
       >
         <LazySmartsheetRow :row="record">
@@ -711,7 +723,8 @@ const isDateSelected = (date: Date) => {
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col"
-            @click="emit('expand-record', record)"
+            @click="selectedRecord = record"
+            @dblclick="emit('expand-record', record)"
             @resize-start="onResizeStart"
           />
         </LazySmartsheetRow>

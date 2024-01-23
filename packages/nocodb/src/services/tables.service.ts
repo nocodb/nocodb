@@ -601,6 +601,7 @@ export class TablesService {
           column_name: c.column_name,
         })),
     );
+
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,
       tn: tableCreatePayLoad.table_name,
@@ -612,6 +613,7 @@ export class TablesService {
         system?: boolean;
       }
     >;
+
     if (!source.isMeta()) {
       columns = (
         await sqlMgr.sqlOpPlus(source, 'columnList', {
@@ -620,6 +622,7 @@ export class TablesService {
         })
       )?.data?.list;
     }
+
     const tables = await Model.list({
       base_id: base.id,
       source_id: source.id,

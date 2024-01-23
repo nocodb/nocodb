@@ -147,37 +147,50 @@ export default class Model implements TableType {
       insertObj,
     );
 
-    const view = await View.insert(
+    const insertedColumns = await Column.bulkInsert(
+      {
+        columns: (model?.columns || []) as Column[],
+        fk_model_id: id,
+        source_id: sourceId,
+        base_id: baseId,
+      },
+      ncMeta,
+    );
+
+    await View.insertMetaOnly(
       {
         fk_model_id: id,
         title: model.title || model.table_name,
         is_default: true,
         type: ViewTypes.GRID,
+        base_id: baseId,
+        source_id: sourceId,
+      },
+      {
+        getColumns: async () => insertedColumns,
       },
       ncMeta,
     );
 
-    for (const column of model?.columns || []) {
-      await Column.insert({ ...column, fk_model_id: id, view } as any, ncMeta);
-    }
+    const modelRes = await this.getWithInfo({ id }, ncMeta);
 
-    return this.getWithInfo({ id }, ncMeta).then(async (model) => {
-      if (sourceId) {
-        await NocoCache.appendToList(
-          CacheScope.MODEL,
-          [baseId, sourceId],
-          `${CacheScope.MODEL}:${id}`,
-        );
-      }
-      // cater cases where sourceId is not required
-      // e.g. xcVisibilityMetaGet
+    // append to model list since model list cache will be there already
+    if (sourceId) {
       await NocoCache.appendToList(
         CacheScope.MODEL,
-        [baseId],
+        [baseId, sourceId],
         `${CacheScope.MODEL}:${id}`,
       );
-      return model;
-    });
+    }
+    // cater cases where sourceId is not required
+    // e.g. xcVisibilityMetaGet
+    await NocoCache.appendToList(
+      CacheScope.MODEL,
+      [baseId],
+      `${CacheScope.MODEL}:${id}`,
+    );
+
+    return modelRes;
   }
 
   public static async list(

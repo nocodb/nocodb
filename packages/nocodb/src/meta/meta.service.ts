@@ -118,26 +118,35 @@ export class MetaService {
     });
     return insertObj;
   }
-
   public async bulkMetaInsert(
     base_id: string,
     source_id: string,
     target: string,
-    data: any[],
+    data: any | any[],
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
+    if (Array.isArray(data) ? !data.length : !data) {
+      return [];
+    }
+
     const insertObj = [];
     const at = this.now();
-    for (const d of data) {
+
+    const commonProps: Record<string, any> = {
+      created_at: at,
+      updated_at: at,
+    };
+
+    if (source_id !== null) commonProps.source_id = source_id;
+    if (base_id !== null) commonProps.base_id = base_id;
+
+    for (const d of Array.isArray(data) ? data : [data]) {
       const id = d?.id || (await this.genNanoid(target));
       const tempObj = {
         ...d,
         ...(ignoreIdGeneration ? {} : { id }),
-        created_at: at,
-        updated_at: at,
+        ...commonProps,
       };
-      if (source_id !== null) tempObj.source_id = source_id;
-      if (base_id !== null) tempObj.base_id = base_id;
       insertObj.push(tempObj);
     }
 

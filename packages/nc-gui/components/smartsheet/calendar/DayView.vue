@@ -29,8 +29,8 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
       for (const record of formattedData.value) {
-        const startDate = dayjs(record.row[fromCol.title])
-        const endDate = dayjs(record.row[endCol.title])
+        const startDate = dayjs(record.row[fromCol.title!])
+        const endDate = dayjs(record.row[endCol.title!])
 
         dayRecordCount++
 
@@ -42,9 +42,9 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         }
 
         let position = 'none'
-        const isSelectedDay = (date) => date.isSame(selectedDate.value, 'day')
-        const isBeforeSelectedDay = (date) => date.isBefore(selectedDate.value, 'day')
-        const isAfterSelectedDay = (date) => date.isAfter(selectedDate.value, 'day')
+        const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(selectedDate.value, 'day')
+        const isBeforeSelectedDay = (date: dayjs.Dayjs) => date.isBefore(selectedDate.value, 'day')
+        const isAfterSelectedDay = (date: dayjs.Dayjs) => date.isAfter(selectedDate.value, 'day')
 
         if (isSelectedDay(startDate) && isSelectedDay(endDate)) {
           position = 'rounded'
@@ -64,7 +64,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
             ...record.rowMeta,
             position,
             style,
-            range,
+            range: range as any,
           },
         })
       }
@@ -75,7 +75,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           ...record,
           rowMeta: {
             ...record.rowMeta,
-            range,
+            range: range as any,
             style: {
               width: '100%',
               left: '0',
@@ -90,8 +90,8 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
   return recordsByRange
 })
 
-const hours = computed<dayjs.Dayjs>(() => {
-  const hours = []
+const hours = computed(() => {
+  const hours: Array<dayjs.Dayjs> = []
   for (let i = 0; i < 24; i++) {
     hours.push(
       dayjs()
@@ -101,8 +101,7 @@ const hours = computed<dayjs.Dayjs>(() => {
         .millisecond(0)
         .year(selectedDate.value.getFullYear() || dayjs().year())
         .month(selectedDate.value.getMonth() || dayjs().month())
-        .date(selectedDate.value.getDate() || dayjs().date())
-        .toDate(),
+        .date(selectedDate.value.getDate() || dayjs().date()),
     )
   }
   return hours
@@ -154,6 +153,8 @@ const dropEvent = (event: DragEvent) => {
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
 
+    if (!fromCol) return
+
     const newStartDate = dayjs(selectedDate.value)
       .startOf('day')
       .add(percentY * 1440, 'minutes')
@@ -164,15 +165,15 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
       },
     }
 
-    const updateProperty = [fromCol.title]
+    const updateProperty = [fromCol.title!]
 
     if (toCol) {
-      const fromDate = record.row[fromCol.title] ? dayjs(record.row[fromCol.title]) : null
-      const toDate = record.row[toCol.title] ? dayjs(record.row[toCol.title]) : null
+      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
 
       if (fromDate && toDate) {
         endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
@@ -183,17 +184,17 @@ const dropEvent = (event: DragEvent) => {
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
-      updateProperty.push(toCol.title)
+      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+      updateProperty.push(toCol.title!)
     }
 
     if (!newRow) return
 
     if (dragElement.value) {
       formattedData.value = formattedData.value.map((r) => {
-        const pk = extractPkFromRow(r.row, meta.value.columns)
+        const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-        if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+        if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
           return newRow
         }
         return r
@@ -201,9 +202,9 @@ const dropEvent = (event: DragEvent) => {
     } else {
       formattedData.value = [...formattedData.value, newRow]
       formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
-        const pk = extractPkFromRow(r.row, meta.value.columns)
+        const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-        return pk !== extractPkFromRow(newRow.row, meta.value.columns)
+        return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
       })
     }
 
@@ -230,10 +231,10 @@ const dropEvent = (event: DragEvent) => {
         v-for="(hour, index) in hours"
         :key="index"
         :class="{
-          '!border-brand-500': dayjs(hour).isSame(selectedTime),
+          '!border-brand-500': hour.isSame(selectedTime),
         }"
         class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
-        @click="selectedTime = hour"
+        @click="selectedTime = hour.toDate()"
       >
         <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
           {{ dayjs(hour).format('H A') }}
@@ -241,8 +242,8 @@ const dropEvent = (event: DragEvent) => {
         <div></div>
         <NcButton
           :class="{
-            '!block': dayjs(hour).isSame(selectedTime),
-            '!hidden': !dayjs(hour).isSame(selectedTime),
+            '!block': hour.isSame(selectedTime),
+            '!hidden': !hour.isSame(selectedTime),
           }"
           class="mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
           size="xsmall"
@@ -265,8 +266,8 @@ const dropEvent = (event: DragEvent) => {
     >
       <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard
-          :date="dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('H:mm')"
-          :name="record.row[displayField.title]"
+          :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('H:mm')"
+          :name="record.row[displayField!.title!]"
           :position="record.rowMeta.position"
           :record="record"
           :resize="false"

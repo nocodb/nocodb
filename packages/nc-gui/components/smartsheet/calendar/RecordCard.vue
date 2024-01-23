@@ -5,6 +5,7 @@ interface Props {
   date?: string
   color?: string
   resize?: boolean
+  selected?: boolean
   size?: 'small' | 'medium' | 'large'
   showDate?: boolean
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
@@ -14,6 +15,7 @@ withDefaults(defineProps<Props>(), {
   name: '',
   date: '',
   resize: true,
+  selected: false,
   color: 'blue',
   size: 'small',
   showDate: true,
@@ -40,6 +42,7 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500 border-2)': resize,
+      'border-brand-500 border-2': selected,
     }"
     class="relative group"
   >
@@ -61,9 +64,9 @@ const emit = defineEmits(['resize-start'])
     <div
       v-if="position === 'leftRounded' || (position === 'rounded' && resize)"
       :class="{
-        '!group-hover:(border-brand-500 block border-2 rounded-lg)': resize,
+        '!block border-2 rounded-lg border-brand-500': selected,
       }"
-      class="absolute mt-0.6 h-7.1 hidden -left-3 resize"
+      class="absolute mt-0.6 h-7.1 hidden -left-3 resize !group-hover:(border-brand-500 block border-2 rounded-lg)"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>
@@ -79,9 +82,9 @@ const emit = defineEmits(['resize-start'])
     <div
       v-if="position === 'rightRounded' || (position === 'rounded' && resize)"
       :class="{
-        '!group-hover:(border-brand-500 border-2 block rounded-lg)': resize,
+        '!block border-2 rounded-lg border-brand-500': selected,
       }"
-      class="absolute mt-0.6 hidden h-7.1 -right-3 border-1 resize"
+      class="absolute mt-0.6 hidden h-7.1 -right-3 border-1 resize !group-hover:(border-brand-500 border-2 block rounded-lg)"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>

@@ -19,15 +19,33 @@ export class ToolbarFieldsPage extends BasePage {
     title,
     isLocallySaved,
     validateResponse = true,
+    checked,
   }: {
     title: string;
     isLocallySaved?: boolean;
     validateResponse?: boolean;
+    checked?: boolean;
   }) {
     await this.toolbar.clickFields();
 
     // hack
     await this.rootPage.waitForTimeout(100);
+
+    if (checked !== undefined) {
+      // toggle only if input checked value is not equal to given checked value
+      await this.get()
+        .locator(`[data-testid="nc-fields-menu-${title}"]`)
+        .locator('.nc-switch')
+        .scrollIntoViewIfNeeded();
+      const isChecked = await this.get()
+        .locator(`[data-testid="nc-fields-menu-${title}"]`)
+        .locator('.nc-switch')
+        .isChecked();
+      if ((checked && isChecked) || (!checked && !isChecked)) {
+        await this.toolbar.clickFields();
+        return;
+      }
+    }
 
     const toggleColumn = () =>
       this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click();

@@ -613,6 +613,7 @@ export class TablesService {
         system?: boolean;
       }
     >;
+
     if (!source.isMeta()) {
       columns = (
         await sqlMgr.sqlOpPlus(source, 'columnList', {
@@ -621,6 +622,7 @@ export class TablesService {
         })
       )?.data?.list;
     }
+
     const tables = await Model.list({
       base_id: base.id,
       source_id: source.id,

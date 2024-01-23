@@ -167,7 +167,7 @@ export default class Model implements TableType {
         source_id: sourceId,
       },
       {
-        getColumns: async () => insertedColumns
+        getColumns: async () => insertedColumns,
       },
       ncMeta,
     );

@@ -224,7 +224,11 @@ export class AtImportProcessor {
       rtc.migrationSkipLog.log.push(
         `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`,
       );
-      logWarning(`Skipped ${tbl} :: ${col} (${type}) :: ${reason}`);
+      logWarning(
+        `Skipped${tbl ? ` ${tbl} :: ` : ``}${col ? `${col}` : ``}${
+          type ? ` (${type})` : ``
+        } :: ${reason}`,
+      );
     };
 
     // mapping table

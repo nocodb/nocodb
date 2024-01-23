@@ -11,10 +11,10 @@ import type { TableType } from 'nocodb-sdk';
 
 const logger = new Logger('BaseModelSqlv2');
 
-const BULK_DATA_BATCH_COUNT = 20; // check size for every 100 records
+const BULK_DATA_BATCH_COUNT = 40; // check size for every 40 records
 const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
 const BULK_LINK_BATCH_COUNT = 1000; // process 1000 records at a time
-const BULK_PARALLEL_PROCESS = 5;
+const BULK_PARALLEL_PROCESS = 10;
 
 interface AirtableImportContext {
   bulkDataService: BulkDataAliasService;
@@ -26,6 +26,7 @@ async function readAllData({
   fields,
   atBase,
   dataStream,
+  activeProcess,
   logBasic = (_str) => {},
   logWarning = (_str) => {},
 }: {
@@ -33,6 +34,7 @@ async function readAllData({
   fields?;
   atBase: AirtableBase;
   dataStream: Readable;
+  activeProcess?: { count: number };
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
   logWarning?: (string) => void;
@@ -65,6 +67,18 @@ async function readAllData({
               recordCounter - tempCounter,
             )} - ${recordCounter}`,
           );
+
+          // pause reading if we have more than BULK_PARALLEL_PROCESS parallel process to avoid backpressure
+          if (activeProcess && activeProcess.count >= BULK_PARALLEL_PROCESS) {
+            await new Promise((resolve) => {
+              const interval = setInterval(() => {
+                if (activeProcess.count < BULK_PARALLEL_PROCESS) {
+                  clearInterval(interval);
+                  resolve(true);
+                }
+              }, 200);
+            });
+          }
 
           // To fetch the next page of records, call `fetchNextPage`.
           // If there are more records, `page` will get called again.
@@ -124,6 +138,11 @@ export async function importData({
   importedCount: number;
 }> {
   try {
+    // we keep track of active process to pause and resume the stream as we have async calls within the stream and we don't want to load all data in memory
+    const activeProcess = {
+      count: 0,
+    };
+
     const dataStream = new Readable({
       read() {},
     });
@@ -134,8 +153,10 @@ export async function importData({
       table,
       atBase,
       dataStream,
-      logDetailed,
+      activeProcess,
       logBasic,
+      logDetailed,
+      logWarning,
     }).catch((e) => {
       logWarning(`There were errors on reading '${table.title}' data :: ${e}`);
     });
@@ -166,16 +187,14 @@ export async function importData({
       let nestedLinkCount = 0;
       let tempCount = 0;
 
-      // we keep track of active process to pause and resume the stream as we have async calls within the stream and we don't want to load all data in memory
-      let activeProcess = 0;
-
       dataStream.on('data', async (record) => {
         record = JSON.parse(record);
         promises.push(
           new Promise(async (resolve) => {
             try {
-              activeProcess++;
-              if (activeProcess >= BULK_PARALLEL_PROCESS) dataStream.pause();
+              activeProcess.count++;
+              if (activeProcess.count >= BULK_PARALLEL_PROCESS)
+                dataStream.pause();
 
               const { id: rid, ...fields } = record;
               const r = await nocoBaseDataProcessing_v2(syncDB, table, {
@@ -187,8 +206,6 @@ export async function importData({
 
               if (tempCount >= BULK_DATA_BATCH_COUNT) {
                 if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
-                  dataStream.pause();
-
                   let insertArray = tempData.splice(0, tempData.length);
 
                   await services.bulkDataService.bulkDataInsert({
@@ -207,19 +224,19 @@ export async function importData({
 
                   importedCount += insertArray.length;
                   insertArray = [];
-
-                  dataStream.resume();
                 }
                 tempCount = 0;
               }
-              activeProcess--;
-              if (activeProcess < BULK_PARALLEL_PROCESS) dataStream.resume();
+              activeProcess.count--;
+              if (activeProcess.count < BULK_PARALLEL_PROCESS)
+                dataStream.resume();
               resolve(true);
             } catch (e) {
               logger.error(e);
               logWarning(
                 `There were errors on importing '${table.title}' data :: ${e}`,
               );
+              activeProcess.count--;
               dataStream.resume();
               resolve(true);
             }
@@ -384,8 +401,6 @@ export async function importLTARData({
                 assocTableData[assocMeta.modelMeta.id].length >=
                 BULK_LINK_BATCH_COUNT
               ) {
-                dataStream.pause();
-
                 let insertArray = assocTableData[assocMeta.modelMeta.id].splice(
                   0,
                   assocTableData[assocMeta.modelMeta.id].length,
@@ -411,8 +426,6 @@ export async function importLTARData({
                 });
 
                 insertArray = [];
-
-                dataStream.resume();
               }
               resolve(true);
             } catch (e) {
@@ -420,7 +433,6 @@ export async function importLTARData({
               logWarning(
                 `There were errors on importing '${table.title}' LTAR data :: ${e}`,
               );
-              dataStream.resume();
               resolve(true);
             }
           }),

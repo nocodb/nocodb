@@ -15,6 +15,7 @@ const BULK_DATA_BATCH_COUNT = 40; // check size for every 40 records
 const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
 const BULK_LINK_BATCH_COUNT = 1000; // process 1000 records at a time
 const BULK_PARALLEL_PROCESS = 10;
+const STREAM_BUFFER_LIMIT = 200;
 
 interface AirtableImportContext {
   bulkDataService: BulkDataAliasService;
@@ -26,7 +27,7 @@ async function readAllData({
   fields,
   atBase,
   dataStream,
-  activeProcess,
+  counter,
   logBasic = (_str) => {},
   logWarning = (_str) => {},
 }: {
@@ -34,7 +35,7 @@ async function readAllData({
   fields?;
   atBase: AirtableBase;
   dataStream: Readable;
-  activeProcess?: { count: number };
+  counter?: { activeProcess: number; streamingCounter: number };
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
   logWarning?: (string) => void;
@@ -57,6 +58,7 @@ async function readAllData({
             dataStream.push(
               JSON.stringify({ id: record.id, ...record.fields }),
             );
+            counter.streamingCounter++;
             recordCounter++;
             tempCounter++;
           }
@@ -69,14 +71,14 @@ async function readAllData({
           );
 
           // pause reading if we have more than BULK_PARALLEL_PROCESS parallel process to avoid backpressure
-          if (activeProcess && activeProcess.count >= BULK_PARALLEL_PROCESS) {
+          if (counter && counter.streamingCounter >= STREAM_BUFFER_LIMIT) {
             await new Promise((resolve) => {
               const interval = setInterval(() => {
-                if (activeProcess.count < BULK_PARALLEL_PROCESS) {
+                if (counter.streamingCounter < STREAM_BUFFER_LIMIT / 2) {
                   clearInterval(interval);
                   resolve(true);
                 }
-              }, 200);
+              }, 100);
             });
           }
 
@@ -139,8 +141,9 @@ export async function importData({
 }> {
   try {
     // we keep track of active process to pause and resume the stream as we have async calls within the stream and we don't want to load all data in memory
-    const activeProcess = {
-      count: 0,
+    const counter = {
+      activeProcess: 0,
+      streamingCounter: 0,
     };
 
     const dataStream = new Readable({
@@ -153,7 +156,7 @@ export async function importData({
       table,
       atBase,
       dataStream,
-      activeProcess,
+      counter,
       logBasic,
       logDetailed,
       logWarning,
@@ -188,12 +191,13 @@ export async function importData({
       let tempCount = 0;
 
       dataStream.on('data', async (record) => {
+        counter.streamingCounter--;
         record = JSON.parse(record);
         promises.push(
           new Promise(async (resolve) => {
             try {
-              activeProcess.count++;
-              if (activeProcess.count >= BULK_PARALLEL_PROCESS)
+              counter.activeProcess++;
+              if (counter.activeProcess >= BULK_PARALLEL_PROCESS)
                 dataStream.pause();
 
               const { id: rid, ...fields } = record;
@@ -227,8 +231,8 @@ export async function importData({
                 }
                 tempCount = 0;
               }
-              activeProcess.count--;
-              if (activeProcess.count < BULK_PARALLEL_PROCESS)
+              counter.activeProcess--;
+              if (counter.activeProcess < BULK_PARALLEL_PROCESS)
                 dataStream.resume();
               resolve(true);
             } catch (e) {
@@ -236,7 +240,7 @@ export async function importData({
               logWarning(
                 `There were errors on importing '${table.title}' data :: ${e}`,
               );
-              activeProcess.count--;
+              counter.activeProcess--;
               dataStream.resume();
               resolve(true);
             }

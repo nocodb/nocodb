@@ -328,7 +328,7 @@ test.describe('Clipboard support', () => {
   test('multiple cells - horizontal, all data types', async ({ page }) => {
     // skip for local run (clipboard access issue in headless mode)
     if (!process.env.CI && config.use.headless) {
-      test.skip();
+      // test.skip();
     }
 
     // click first cell, press `Ctrl A` and `Ctrl C`

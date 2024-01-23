@@ -1681,8 +1681,6 @@ export default class View implements ViewType {
           }
         }
 
-        if (isSystemColumn(column)) show = false;
-
         insertObjs.push({
           fk_column_id: column.id,
           order: order++,

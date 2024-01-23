@@ -183,7 +183,7 @@ onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
   if (!activeView.value) return
   const index = recentViews.value.findIndex(
-    (v) => v.viewName === activeView?.value.name && v.tableID === activeView?.value.tableId,
+    (v) => v.viewName === activeView.value?.name && v.tableID === activeView.value?.tableId,
   )
   if (index + 1 > recentViews.value.length) {
     selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName
@@ -218,10 +218,10 @@ onMounted(() => {
                   <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
                   <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                     <template #title>
-                      {{ cmdOption.viewName }}
+                      {{ cmdOption.isDefault ? $t('title.defaultView') : cmdOption.viewName }}
                     </template>
                     <span class="max-w- truncate capitalize">
-                      {{ cmdOption.viewName }}
+                      {{ cmdOption.isDefault ? $t('title.defaultView') : cmdOption.viewName }}
                     </span>
                   </a-tooltip>
                 </div>

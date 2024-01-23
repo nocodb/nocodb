@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme } from '#imports'
+import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme, isEeUI } from '#imports'
 
 const router = useRouter()
 
@@ -63,6 +63,12 @@ if (typeof window !== 'undefined') {
   // @ts-expect-error using arbitrary window key
   window.__ncvue = true
 }
+
+function onScope(scope: string) {
+  if (scope === 'root' && isEeUI) {
+    loadTemporaryScope({ scope: 'root', data: {} })
+  }
+}
 </script>
 
 <template>
@@ -79,6 +85,7 @@ if (typeof window !== 'undefined') {
     :data="cmdData"
     :placeholder="cmdPlaceholder"
     :load-temporary-scope="loadTemporaryScope"
+    @scope="onScope"
   />
   <!-- Recent Views. Cycles through recently visited Views -->
   <CmdL v-model:open="cmdL" />

@@ -20,11 +20,8 @@ export class CommandPaletteService {
     try {
       const { scope, data } = param.body;
 
-      console.log('param.user.id', param.user, scope, data);
-
       if (scope === 'root') {
         const bases = await Base.list({ user: param.user });
-        console.log('bases', bases);
 
         for (const base of bases) {
           cmdData.push({
@@ -40,13 +37,10 @@ export class CommandPaletteService {
             },
           });
         }
-
-        console.log('scope');
       } else if (scope.startsWith('p-')) {
         const allBases = [];
 
         const bases = await Base.list({ user: param.user });
-        console.log('bases', bases);
 
         allBases.push(...bases);
 

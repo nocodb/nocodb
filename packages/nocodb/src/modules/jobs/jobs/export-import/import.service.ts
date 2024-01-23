@@ -28,6 +28,7 @@ import { GridColumnsService } from '~/services/grid-columns.service';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { GridsService } from '~/services/grids.service';
 import { FormsService } from '~/services/forms.service';
+import { CalendarsService } from '~/services/calendars.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { HooksService } from '~/services/hooks.service';
@@ -52,6 +53,7 @@ export class ImportService {
     private gridsService: GridsService,
     private formsService: FormsService,
     private galleriesService: GalleriesService,
+    private calendarsService: CalendarsService,
     private kanbansService: KanbansService,
     private bulkDataService: BulkDataAliasService,
     private hooksService: HooksService,
@@ -1087,6 +1089,7 @@ export class ImportService {
             break;
           case ViewTypes.GALLERY:
           case ViewTypes.KANBAN:
+          case ViewTypes.CALENDAR:
             break;
         }
 
@@ -1213,6 +1216,24 @@ export class ImportService {
           });
         }
         return fview;
+      }
+      case ViewTypes.CALENDAR: {
+        const cview = await this.calendarsService.calendarViewCreate({
+          tableId: md.id,
+          calendar: {
+            ...vw,
+            calendar_range: (vw.view as any).calendar_range
+              ? (vw.view as any).calendar_range.map((a) => ({
+                  fk_from_column_id: idMap.get(a.fk_from_column_id as string),
+                  fk_to_column_id: idMap.get(a.fk_to_column_id as string),
+                }))
+              : null,
+          } as ViewCreateReqType,
+          user,
+          req,
+        });
+
+        return cview;
       }
       case ViewTypes.GALLERY: {
         const glview = await this.galleriesService.galleryViewCreate({

@@ -45,7 +45,7 @@ export default class CalendarView implements CalendarType {
         fk_view_id: viewId,
       });
       const calendarRange = await CalendarRange.read(viewId);
-      if (calendarRange) {
+      if (view && calendarRange) {
         view.calendar_range = calendarRange.ranges;
       }
       await NocoCache.set(`${CacheScope.CALENDAR_VIEW}:${viewId}`, view);

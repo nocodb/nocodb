@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useRouter, useTheme } from '#imports'
+import { applyNonSelectable, computed, useRouter, useTheme, useCommandPalette } from '#imports'
 
 const router = useRouter()
 
 const route = router.currentRoute
 
+const cmdK = ref(false)
+
+const cmdL = ref(false)
+
 const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
+
+const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -19,6 +25,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         if (!['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase())) {
           e.preventDefault()
         }
+        break
+      case 'k':
+        e.preventDefault()
+        break
+      case 'l':
+        e.preventDefault()
+        break
+      case 'j':
+        e.preventDefault()
+        break
     }
   }
 })
@@ -47,6 +63,12 @@ if (typeof window !== 'undefined') {
   // @ts-expect-error using arbitrary window key
   window.__ncvue = true
 }
+
+function onScope(scope: string) {
+  if (scope === 'root') {
+    loadTemporaryScope({ scope: 'root', data: {} })
+  }
+}
 </script>
 
 <template>
@@ -55,4 +77,18 @@ if (typeof window !== 'undefined') {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
+  <!-- Command Menu -->
+  <CmdK
+    ref="commandPalette"
+    v-model:open="cmdK"
+    :scope="activeScope.scope"
+    :data="cmdData"
+    :placeholder="cmdPlaceholder"
+    :load-temporary-scope="loadTemporaryScope"
+    @scope="onScope"
+  />
+  <!-- Recent Views. Cycles through recently visited Views -->
+  <CmdL v-model:open="cmdL" />
+  <!-- Documentation. Integrated NocoDB Docs directlt inside the Product -->
+  <CmdJ />
 </template>

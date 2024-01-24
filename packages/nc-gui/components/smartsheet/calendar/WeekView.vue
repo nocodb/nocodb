@@ -503,7 +503,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
         @click="selectedDate = date"
       ></div>
     </div>
-    <div class="absolute mt-9 pointer-events-none inset-0">
+    <div class="absolute nc-scrollbar-md overflow-y-auto mt-9 pointer-events-none inset-0">
       <div
         v-for="(record, id) in calendarData"
         :key="id"
@@ -530,7 +530,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             color="blue"
-            @click="emits('expand-record', record)"
+            @dblclick="emits('expand-record', record)"
             @resize-start="onResizeStart"
           />
         </LazySmartsheetRow>

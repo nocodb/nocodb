@@ -912,24 +912,27 @@ export function useMultiSelect(
           const rows = unref(data).slice(startRow, endRow + 1)
           const props = []
 
-          if (e.clipboardData?.files?.length) {
-            let pasteValue
-            for (const row of rows) {
-              // TODO handle insert new row
-              if (!row || row.rowMeta.new) continue
+          let pasteValue
+          const files = e.clipboardData?.files
+          for (const row of rows) {
+            // TODO handle insert new row
+            if (!row || row.rowMeta.new) continue
 
-              for (const col of cols) {
-                if (!col.title || !isPasteable(row, col) || col.uidt !== UITypes.Attachment) {
+            for (const col of cols) {
+              if (!col.title || !isPasteable(row, col)) {
+                continue
+              }
+
+              if (files?.length) {
+                if (col.uidt !== UITypes.Attachment) {
                   continue
                 }
-
-                props.push(col.title)
 
                 if (pasteValue === undefined) {
                   const fileUploadPayload = convertCellData(
                     {
                       value: '',
-                      files: e.clipboardData?.files,
+                      files: files,
                       to: col.uidt as UITypes,
                       column: col,
                       appInfo: unref(appInfo),
@@ -943,27 +946,8 @@ export function useMultiSelect(
                     pasteValue = Array.isArray(uploadedFiles) && uploadedFiles.length ? JSON.stringify(uploadedFiles) : null
                   }
                 }
-
-                if (pasteValue !== undefined) {
-                  row.row[col.title] = pasteValue
-                }
-              }
-            }
-          } else {
-            for (const row of rows) {
-              // TODO handle insert new row
-              if (!row || row.rowMeta.new) continue
-
-              for (const col of cols) {
-                if (!col.title) continue
-
-                if (!isPasteable(row, col)) {
-                  continue
-                }
-
-                props.push(col.title)
-
-                const pasteValue = convertCellData(
+              } else {
+                pasteValue = convertCellData(
                   {
                     value: clipboardData,
                     to: col.uidt as UITypes,
@@ -973,13 +957,16 @@ export function useMultiSelect(
                   isMysql(meta.value?.source_id),
                   true,
                 )
+              }
 
-                if (pasteValue !== undefined) {
-                  row.row[col.title] = pasteValue
-                }
+              props.push(col.title)
+
+              if (pasteValue !== undefined) {
+                row.row[col.title] = pasteValue
               }
             }
           }
+
           if (!props.length) return
           await bulkUpdateRows?.(rows, props)
         }

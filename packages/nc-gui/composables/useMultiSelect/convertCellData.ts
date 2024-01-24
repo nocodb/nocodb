@@ -182,7 +182,13 @@ export default function convertCellData(
         attachments.push(attachment)
       }
 
-      return attachments.length ? (value ? JSON.stringify(attachments) : files ? attachments : null) : null
+      if (value && attachments.length) {
+        return JSON.stringify(attachments)
+      } else if (files && attachments.length) {
+        return attachments
+      } else {
+        return null
+      }
     }
     case UITypes.SingleSelect:
     case UITypes.MultiSelect: {

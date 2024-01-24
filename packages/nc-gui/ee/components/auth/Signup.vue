@@ -209,6 +209,26 @@ const subDomain = location.host?.split('.')[0]
               </a>
             </div>
 
+            <div
+              v-if="appInfo.samlAuthEnabled"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+            >
+              <a :href="`${appInfo.ncSiteUrl}/auth/saml`" class="!text-primary !no-underline">
+                <button type="button" class="scaling-btn bg-opacity-100">
+                  <span class="flex items-center gap-2">
+                    <MdiLogin />
+
+                    <template v-if="!appInfo.disableEmailAuth">
+                      {{ $t('labels.signUpWithProvider', { provider: appInfo.samlProviderName || 'SAML' }) }}
+                    </template>
+                    <template v-else>
+                      {{ $t('general.signIn') }}
+                    </template>
+                  </span>
+                </button>
+              </a>
+            </div>
+
             <div v-if="!appInfo.disableEmailAuth" class="flex items-center gap-2">
               <a-switch
                 v-model:checked="subscribe"

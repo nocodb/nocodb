@@ -6,12 +6,8 @@ import {
   MetaInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
-  createEventHook,
-  provide,
+  useProvideCalendarViewStore,
   useProvideKanbanViewStore,
-  useProvideSmartsheetStore,
-  useProvideViewColumns,
-  useSharedView,
 } from '#imports'
 
 const { sharedView, meta, nestedFilters } = useSharedView()
@@ -33,8 +29,9 @@ provide(IsPublicInj, ref(true))
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
 useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
-
 useProvideKanbanViewStore(meta, sharedView)
+
+useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
 </script>
 
 <template>
@@ -42,8 +39,10 @@ useProvideKanbanViewStore(meta, sharedView)
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
       <div class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-        <LazySmartsheetGallery />
+        <LazySmartsheetCalendar />
       </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped></style>

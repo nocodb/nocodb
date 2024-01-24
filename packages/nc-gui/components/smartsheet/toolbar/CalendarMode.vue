@@ -57,6 +57,6 @@ onMounted(() => {
 }
 
 .nc-calendar-mode-tab {
-  @apply -ml-120 relative;
+  @apply mr-120 relative;
 }
 </style>

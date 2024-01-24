@@ -17,7 +17,6 @@ import {
   provide,
   ref,
   rowDefaultData,
-  useI18n,
 } from '#imports'
 
 const meta = inject(MetaInj, ref())
@@ -57,6 +56,8 @@ const showSideMenu = ref(true)
 
 const calendarRangeDropdown = ref(false)
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const router = useRouter()
 const route = useRoute()
 
@@ -79,7 +80,7 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const expandRecord = (row: RowType) => {
+const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
@@ -91,6 +92,7 @@ const expandRecord = (row: RowType) => {
     })
   } else {
     expandedFormRow.value = row
+    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }

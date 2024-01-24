@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {
   ActiveViewInj,
   FieldsInj,
@@ -26,6 +26,7 @@ const { loadProject } = useBase()
 const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
 useProvideKanbanViewStore(meta, sharedView)
+useProvideCalendarViewStore(meta, sharedView)
 
 const reloadEventHook = createEventHook()
 

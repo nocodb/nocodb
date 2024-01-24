@@ -35,6 +35,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const pageDate = ref<Date>(new Date())
 
+    const { isUIAllowed } = useRoles()
+
     const displayField = ref<ColumnType>()
 
     const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
@@ -79,8 +81,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const { t } = useI18n()
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-    const { isUIAllowed } = useRoles()
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
@@ -313,7 +313,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           : await fetchSharedViewData({
               ...params,
               sortsArr: sorts.value,
-              filtersArr: [nestedFilters.value, ...sideBarFilter.value],
+              filtersArr: sideBarFilter.value,
               offset: params.offset,
               where: where?.value ?? '',
             })
@@ -522,13 +522,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
             where: where?.value ?? '',
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: [nestedFilters.value, ...filterJSON.value] })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: filterJSON.value })
       formattedData.value = formatData(res!.list)
       isCalendarDataLoading.value = false
     }
 
     async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit') || isPublic.value) return
       try {
         await $api.dbView.calendarUpdate(viewMeta.value.id, updateObj)
         calendarMetaData.value = {
@@ -595,12 +595,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const loadSidebarData = async () => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
       isSidebarLoading.value = true
-      const res = await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
-        ...queryParams.value,
-        ...{},
-        ...{},
-        ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
-      })
+      const res = !isPublic.value
+        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+            ...queryParams.value,
+            ...{},
+            ...{},
+            ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
+          })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: filterJSON.value })
 
       formattedSideBarData.value = formatData(res!.list)
       isSidebarLoading.value = false

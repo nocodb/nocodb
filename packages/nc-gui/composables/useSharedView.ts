@@ -1,4 +1,5 @@
 import type {
+  CalendarType,
   ExportTypes,
   FilterType,
   KanbanType,
@@ -42,7 +43,7 @@ export function useSharedView() {
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = useState<TableType | KanbanType | MapType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | MapType | CalendarType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>

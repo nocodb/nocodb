@@ -49,6 +49,8 @@ const up = async (knex: Knex) => {
 
     table.string('fk_to_column_id', 20);
 
+    table.string('label', 20);
+
     table.string('fk_from_column_id', 20);
 
     table.timestamps(true, true);

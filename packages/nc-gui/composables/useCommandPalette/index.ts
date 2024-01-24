@@ -147,7 +147,17 @@ export const useCommandPalette = createSharedComposable(() => {
       if (route.value.params.typeOrId && typeof route.value.params.typeOrId === 'string') {
         if (route.value.params.typeOrId === 'base') {
           if (activeScope.value.scope === 'disabled') return
+
           activeScope.value = { scope: 'disabled', data: {} }
+
+          loadScope()
+        } else if (route.value.params.typeOrId.startsWith('w')) {
+          if (activeScope.value.data?.workspace_id === route.value.params.typeOrId) return
+
+          activeScope.value = {
+            scope: `ws-${route.value.params.typeOrId}`,
+            data: { workspace_id: route.value.params.typeOrId },
+          }
 
           loadScope()
         } else if (route.value.params.typeOrId === 'nc') {
@@ -161,11 +171,13 @@ export const useCommandPalette = createSharedComposable(() => {
       } else {
         if (route.value.path.startsWith('/account')) {
           if (activeScope.value.scope === 'account_settings') return
+
           activeScope.value = { scope: 'account_settings', data: {} }
 
           loadScope()
         } else {
           if (activeScope.value.scope === 'root') return
+
           activeScope.value = { scope: 'root', data: {} }
 
           loadScope()

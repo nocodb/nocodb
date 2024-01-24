@@ -65,7 +65,9 @@ export const homeCommands = [
 
   Commands:
     * home (Navigate Home)
+    + workspaces (Workspaces - EE)
     + bases (Projects)
+    * workspace (Workspace - EE)
       + tables (Tables)
       + views (Views)
     * account_settings (Account Settings)

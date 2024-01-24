@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
-import { Strategy as SamlStrategy } from 'passport-saml';
+import { Strategy as SamlStrategy } from '@node-saml/passport-saml';
 import * as jwt from 'jsonwebtoken';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import type { AppConfig } from '~/interface/config';
@@ -42,6 +42,8 @@ export class NocoSamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
     } else {
       const salt = await promisify(bcrypt.genSalt)(10);
       user = await this.usersService.registerNewUserIfAllowed({
+    display_name: null,
+        avatar:null,
         user_name: null,
         email_verification_token: null,
         email,
@@ -66,7 +68,7 @@ export class NocoSamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
 }
 
 export const NocoSamlStrategyProvider: FactoryProvider = {
-  provide: OpenidStrategy,
+  provide: NocoSamlStrategy,
   inject: [UsersService, ConfigService<AppConfig>],
   useFactory: async (
     usersService: UsersService,

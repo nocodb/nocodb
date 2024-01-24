@@ -15,11 +15,22 @@ const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: M
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
 }
 
+const updateHighlightPosition = () => {
+  nextTick(() => {
+    const activeTab = document.querySelector('.nc-calendar-mode-tab .tab.active') as HTMLElement
+    if (activeTab) {
+      highlightStyle.value.left = `${activeTab.offsetLeft}px`
+    }
+  })
+}
+
 onMounted(() => {
-  const activeTab = document.querySelector('.nc-calendar-mode-tab .tab.active') as HTMLElement
-  if (activeTab) {
-    highlightStyle.value.left = `${activeTab.offsetLeft}px`
-  }
+  updateHighlightPosition()
+})
+
+watch(activeCalendarView, () => {
+  if (!props.tab) return
+  updateHighlightPosition()
 })
 </script>
 
@@ -37,7 +48,7 @@ onMounted(() => {
     </div>
   </div>
   <div v-else>
-    <NcDropdown trigger="click">
+    <NcDropdown :trigger="['click']">
       <NcButton size="small" type="secondary">
         {{ $t(`objects.${activeCalendarView}`) }}
         <component :is="iconMap.arrowDown" />

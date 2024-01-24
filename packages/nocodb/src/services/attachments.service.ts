@@ -58,33 +58,27 @@ export class AttachmentsService {
           icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         };
 
-        const promises = [];
         // if `url` is null, then it is local attachment
         if (!url) {
           // then store the attachment path only
           // url will be constructed in `useAttachmentCell`
           attachment.path = `download/${filePath.join('/')}/${fileName}`;
 
-          promises.push(
-            PresignedUrl.getSignedUrl({
-              path: attachment.path.replace(/^download\//, ''),
-            }).then((r) => (attachment.signedPath = r)),
-          );
+          attachment.signedPath = await PresignedUrl.getSignedUrl({
+            path: attachment.path.replace(/^download\//, ''),
+          });
         } else {
           if (attachment.url.includes('.amazonaws.com/')) {
             const relativePath = decodeURI(
               attachment.url.split('.amazonaws.com/')[1],
             );
-            promises.push(
-              PresignedUrl.getSignedUrl({
-                path: relativePath,
-                s3: true,
-              }).then((r) => (attachment.signedUrl = r)),
-            );
+
+            attachment.signedUrl = await PresignedUrl.getSignedUrl({
+              path: relativePath,
+              s3: true,
+            });
           }
         }
-
-        await Promise.all(promises);
 
         attachments.push(attachment);
       }),

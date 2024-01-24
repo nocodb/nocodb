@@ -1,3 +1,4 @@
+import process from 'process';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
@@ -371,25 +372,16 @@ export class UtilsService {
       settings = JSON.parse((await Store.get(NC_APP_SETTINGS, true))?.value);
     } catch {}
 
-    const oidcAuthEnabled = !!(
-      process.env.NC_OIDC_ISSUER &&
-      process.env.NC_OIDC_AUTHORIZATION_URL &&
-      process.env.NC_OIDC_TOKEN_URL &&
-      process.env.NC_OIDC_USERINFO_URL &&
-      process.env.NC_OIDC_CLIENT_ID &&
-      process.env.NC_OIDC_CLIENT_SECRET
+    const oidcAuthEnabled = ['openid', 'oidc'].includes(
+      process.env.NC_SSO?.toLowerCase(),
     );
     const oidcProviderName = oidcAuthEnabled
       ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
       : null;
 
-    const samlAuthEnabled = !!(
-      process.env.NC_SAML_ISSUER &&
-      process.env.NC_SAML_ENTRY_POINT &&
-      process.env.NC_SAML_CERT
-    );
+    const samlAuthEnabled = process.env.NC_SSO?.toLowerCase() === 'saml';
     const samlProviderName = samlAuthEnabled
-      ? process.env.NC_SAML_PROVIDER_NAME ?? 'SAML'
+      ? process.env.NC_SSO_SAML_PROVIDER_NAME ?? 'SAML'
       : null;
 
     const result = {

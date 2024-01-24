@@ -10,9 +10,10 @@ import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, User } from '~/models';
+import process from 'process'
 
 @Injectable()
-export class NocoSamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
+export class SamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
   constructor(
     config: any,
     private configService: ConfigService<AppConfig>,
@@ -42,8 +43,8 @@ export class NocoSamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
     } else {
       const salt = await promisify(bcrypt.genSalt)(10);
       user = await this.usersService.registerNewUserIfAllowed({
-    display_name: null,
-        avatar:null,
+        display_name: null,
+        avatar: null,
         user_name: null,
         email_verification_token: null,
         email,
@@ -67,29 +68,47 @@ export class NocoSamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
   }
 }
 
-export const NocoSamlStrategyProvider: FactoryProvider = {
-  provide: NocoSamlStrategy,
+const requiredEnvKeys = [
+  "NC_SSO_SAML_ISSUER",
+  "NC_SSO_SAML_ENTRY_POINT",
+  "NC_SSO_SAML_CERT"
+];
+
+export const SamlStrategyProvider: FactoryProvider = {
+  provide: SamlStrategy,
   inject: [UsersService, ConfigService<AppConfig>],
   useFactory: async (
     usersService: UsersService,
     config: ConfigService<AppConfig>,
   ) => {
-    // OpenID Connect
-    if (
-      process.env.NC_SAML_ISSUER &&
-      process.env.NC_SAML_ENTRY_POINT &&
-      process.env.NC_SAML_CERT
-    ) {
-      const clientConfig = {
-        issuer: process.env.NC_SAML_ISSUER,
-        entryPoint: process.env.NC_SAML_ENTRY_POINT,
-        cert: process.env.NC_SAML_CERT,
-        path: '/login/callback',
-        passReqToCallback: true,
-      };
 
-      return new NocoSamlStrategy(clientConfig, config, usersService);
+    if (process.env.NC_SSO?.toLowerCase() !== "saml") {
+      return null;
     }
-    return null;
+
+    // check if all required env keys are present
+    const missingKeys = requiredEnvKeys.filter((key) => !process.env[key]);
+
+    if (missingKeys.length) {
+      console.log(boxen(`SAML SSO is enabled but missing required env keys: ${missingKeys.join(", ")}`,{
+        padding: 1, margin: 1, borderStyle: 'double',
+        title: "Missing Environment Values"
+      }));
+      process.exit(0);
+    }
+
+
+    const clientConfig = {
+      issuer: process.env.NC_SSO_SAML_ISSUER,
+      entryPoint: process.env.NC_SSO_SAML_ENTRY_POINT,
+      cert: process.env.NC_SSO_SAML_CERT,
+      path: "/auth/saml/callback",
+      passReqToCallback: true
+      // logoutUrl: process.env.NC_SAML_ENTRY_POINT,
+      // logoutCallbackUrl: '/login/callback',
+    };
   },
+
+
+  return new SamlStrategy(clientConfig, config, usersService);
 };

@@ -2,15 +2,19 @@ import {
   Controller,
   Get,
   HttpCode,
+  Injectable,
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/controllers/auth/auth.controller';
+import passport from 'passport';
+import type { ExecutionContext } from '@nestjs/common';
 import type { AppConfig } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
@@ -20,6 +24,34 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('saml') {
+  constructor() {
+    super({
+      samlFallback: 'logout-request',
+    });
+  }
+  canActivate(context: ExecutionContext) {
+    const request: any = context.switchToHttp().getRequest();
+
+    request.user = {
+      nameIDFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+      nameID: 'pranavcbalan@gmail.com',
+    };
+    // Add your custom authentication logic here
+    // for example, call super.logIn(request) to establish a session.
+    // return super.samlLogout()
+    return super.canActivate(context);
+  }
+
+  handleRequest(err, user, info) {
+    // You can throw an exception based on either "info" or "err" arguments
+    if (err || !user) {
+      throw err || new UnauthorizedException();
+    }
+    return user;
+  }
+}
 @Controller()
 export class AuthController extends AuthControllerCE {
   constructor(
@@ -151,15 +183,21 @@ export class AuthController extends AuthControllerCE {
     });
   }
 
-  @Get('/login/saml')
+  @Get('/auth/saml')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
-  async samlLoginCallback1(
-    @Req() req: Request & { extra: any },
-    @Res() res: Response,
-  ) {
+  async samlLogin(@Req() req: Request & { extra: any }, @Res() res: Response) {}
+  @Get('/auth/saml/logout')
+  @UseGuards(PublicApiLimiterGuard, JwtAuthGuard)
+  async samsLogout(@Req() req: Request & { extra: any }, @Res() res: Response) {
+    (req as any).logout(req, function (err, request) {
+      if (!err) {
+        //redirect to the IdP Logout URL
+        res.redirect(request);
+      }
+    });
   }
-  
-  @Post('/login/callback')
+
+  @Post('/auth/saml/redirect')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
   async samlLoginCallback(
     @Req() req: Request & { extra: any },
@@ -172,18 +210,21 @@ export class AuthController extends AuthControllerCE {
     const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
 
     res.redirect(redirectUrl);
+  }
 
-    // await this.setRefreshToken({ req, res });
-    // res.json({
-    //   ...(await this.usersService.login(
-    //     {
-    //       ...req.user,
-    //       provider: 'saml',
-    //     },
-    //     req,
-    //   )),
-    //   extra: { ...req.extra },
-    // });
+  @Get('/auth/saml/logout-redirect')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
+  async samlLogoutCallback(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
+    const dashboardPath = this.config.get('dashboardPath', {
+      infer: true,
+    });
+
+    const redirectUrl = `${dashboardPath}`;
+
+    res.redirect(redirectUrl);
   }
 
   @Post('/auth/long-lived-token-refresh')
@@ -192,7 +233,6 @@ export class AuthController extends AuthControllerCE {
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
-
     await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(

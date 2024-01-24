@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import process from 'process';
 import { Injectable, Optional } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
@@ -99,6 +100,15 @@ export class OpenidStrategy extends PassportStrategy(
   }
 }
 
+const requiredEnvKeys = [
+  'NC_SSO_OIDC_ISSUER',
+  'NC_SSO_OIDC_AUTHORIZATION_URL',
+  'NC_SSO_OIDC_TOKEN_URL',
+  'NC_SSO_OIDC_USERINFO_URL',
+  'NC_SSO_OIDC_CLIENT_ID',
+  'NC_SSO_OIDC_CLIENT_SECRET',
+];
+
 export const OpenidStrategyProvider: FactoryProvider = {
   provide: OpenidStrategy,
   inject: [UsersService, ConfigService<AppConfig>],
@@ -106,83 +116,97 @@ export const OpenidStrategyProvider: FactoryProvider = {
     usersService: UsersService,
     config: ConfigService<AppConfig>,
   ) => {
-    // OpenID Connect
-    if (
-      process.env.NC_OIDC_ISSUER &&
-      process.env.NC_OIDC_AUTHORIZATION_URL &&
-      process.env.NC_OIDC_TOKEN_URL &&
-      process.env.NC_OIDC_USERINFO_URL &&
-      process.env.NC_OIDC_CLIENT_ID &&
-      process.env.NC_OIDC_CLIENT_SECRET
-    ) {
-      const clientConfig = {
-        issuer: process.env.NC_OIDC_ISSUER,
-        authorizationURL: process.env.NC_OIDC_AUTHORIZATION_URL,
-        tokenURL: process.env.NC_OIDC_TOKEN_URL,
-        userInfoURL: process.env.NC_OIDC_USERINFO_URL,
-        clientID: process.env.NC_OIDC_CLIENT_ID,
-        clientSecret: process.env.NC_OIDC_CLIENT_SECRET,
-        scope: ['profile', 'email'],
-
-        // cache based store for managing the state of the authorization request
-        store: {
-          store: async (req, meta, callback) => {
-            const handle = `oidc_${uuidv4()}`;
-            let host: string;
-            let continueAfterSignIn: string;
-
-            // extract workspace id from query params if available
-            // and ignore if it's main sub-domain
-            if (
-              req.query.workspaceId &&
-              req.query.workspaceId !==
-                config.get('mainSubDomain', { infer: true })
-            ) {
-              host = `${req.query.workspaceId}.${process.env.NC_BASE_HOST_NAME}`;
-            } else {
-              // extract host from siteUrl but this approach only works with upgraded workspace
-              const url = new URL(req.ncSiteUrl);
-              host = url.host;
-            }
-
-            if (req.query.continueAfterSignIn) {
-              continueAfterSignIn = req.query.continueAfterSignIn;
-            }
-
-            const state = { handle, host, continueAfterSignIn };
-            for (const key in meta) {
-              state[key] = meta[key];
-            }
-
-            NocoCache.set(`oidc:${handle}`, state)
-              .then(() => callback(null, handle))
-              .catch((err) => callback(err));
-          },
-          verify: (req, providedState, callback) => {
-            const key = `oidc:${providedState}`;
-            NocoCache.get(key, CacheGetType.TYPE_OBJECT)
-              .then(async (state) => {
-                if (!state) {
-                  return callback(null, false, {
-                    message: 'Unable to verify authorization request state.',
-                  });
-                }
-
-                req.extra = {
-                  continueAfterSignIn: state.continueAfterSignIn,
-                };
-                req.ncRedirectHost = state.host;
-
-                await NocoCache.del(key);
-                return callback(null, true, state);
-              })
-              .catch((err) => callback(err));
-          },
-        },
-      };
-
-      return new OpenidStrategy(clientConfig, config, usersService);
+    if (!['openid', 'oidc'].includes(process.env.NC_SSO?.toLowerCase())) {
+      return null;
     }
-    return null;
+
+    // check if all required env keys are present
+    const missingKeys = requiredEnvKeys.filter((key) => !process.env[key]);
+
+    if (missingKeys.length) {
+      console.log(
+        boxen(
+          `Open ID SSO is enabled but missing required env keys: ${missingKeys.join(
+            ', ',
+          )}`,
+          {
+            padding: 1,
+            margin: 1,
+            borderStyle: 'double',
+            title: 'Missing Environment Values',
+          },
+        ),
+      );
+      process.exit(0);
+    }
+
+    // OpenID Connect
+    const clientConfig = {
+      issuer: process.env.NC_SSO_OIDC_ISSUER,
+      authorizationURL: process.env.NC_SSO_OIDC_AUTHORIZATION_URL,
+      tokenURL: process.env.NC_SSO_OIDC_TOKEN_URL,
+      userInfoURL: process.env.NC_SSO_OIDC_USERINFO_URL,
+      clientID: process.env.NC_SSO_OIDC_CLIENT_ID,
+      clientSecret: process.env.NC_SSO_OIDC_CLIENT_SECRET,
+      scope: ['profile', 'email'],
+
+      // cache based store for managing the state of the authorization request
+      store: {
+        store: async (req, meta, callback) => {
+          const handle = `oidc_${uuidv4()}`;
+          let host: string;
+          let continueAfterSignIn: string;
+
+          // extract workspace id from query params if available
+          // and ignore if it's main sub-domain
+          if (
+            req.query.workspaceId &&
+            req.query.workspaceId !==
+              config.get('mainSubDomain', { infer: true })
+          ) {
+            host = `${req.query.workspaceId}.${process.env.NC_BASE_HOST_NAME}`;
+          } else {
+            // extract host from siteUrl but this approach only works with upgraded workspace
+            const url = new URL(req.ncSiteUrl);
+            host = url.host;
+          }
+
+          if (req.query.continueAfterSignIn) {
+            continueAfterSignIn = req.query.continueAfterSignIn;
+          }
+
+          const state = { handle, host, continueAfterSignIn };
+          for (const key in meta) {
+            state[key] = meta[key];
+          }
+
+          NocoCache.set(`oidc:${handle}`, state)
+            .then(() => callback(null, handle))
+            .catch((err) => callback(err));
+        },
+        verify: (req, providedState, callback) => {
+          const key = `oidc:${providedState}`;
+          NocoCache.get(key, CacheGetType.TYPE_OBJECT)
+            .then(async (state) => {
+              if (!state) {
+                return callback(null, false, {
+                  message: 'Unable to verify authorization request state.',
+                });
+              }
+
+              req.extra = {
+                continueAfterSignIn: state.continueAfterSignIn,
+              };
+              req.ncRedirectHost = state.host;
+
+              await NocoCache.del(key);
+              return callback(null, true, state);
+            })
+            .catch((err) => callback(err));
+        },
+      },
+    };
+
+    return new OpenidStrategy(clientConfig, config, usersService);
   },
 };

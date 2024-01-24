@@ -33,6 +33,6 @@
     "nocodb": "0.202.10"
   },
   "overrides": {
-    "sqlite3": "5.1.6"
+    "sqlite3": "5.1.7"
   }
 }

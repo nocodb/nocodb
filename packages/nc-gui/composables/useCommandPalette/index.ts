@@ -148,23 +148,26 @@ export const useCommandPalette = createSharedComposable(() => {
         if (route.value.params.typeOrId === 'base') {
           if (activeScope.value.scope === 'disabled') return
           activeScope.value = { scope: 'disabled', data: {} }
+
           loadScope()
         } else if (route.value.params.typeOrId === 'nc') {
           if (activeScope.value.data.base_id === route.value.params.baseId) return
+
           activeScope.value = {
             scope: `p-${route.value.params.baseId}`,
-            data: {},
+            data: { base_id: route.value.params.baseId },
           }
-          loadScope()
         }
       } else {
         if (route.value.path.startsWith('/account')) {
           if (activeScope.value.scope === 'account_settings') return
           activeScope.value = { scope: 'account_settings', data: {} }
+
           loadScope()
         } else {
           if (activeScope.value.scope === 'root') return
           activeScope.value = { scope: 'root', data: {} }
+
           loadScope()
         }
       }

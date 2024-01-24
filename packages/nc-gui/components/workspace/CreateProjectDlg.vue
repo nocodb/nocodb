@@ -19,9 +19,12 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const baseType = computed(() => props.type ?? NcProjectType.DB)
 
 const basesStore = useBases()
+
 const { createProject: _createProject } = basesStore
 
 const { navigateToProject } = useGlobal()
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const nameValidationRules = [
   {
@@ -59,6 +62,7 @@ const createProject = async () => {
     setTimeout(() => {
       creating.value = false
     }, 500)
+    refreshCommandPalette()
   }
 }
 

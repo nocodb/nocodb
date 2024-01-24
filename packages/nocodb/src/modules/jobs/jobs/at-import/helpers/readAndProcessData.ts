@@ -13,8 +13,8 @@ const logger = new Logger('at-import:readAndProcessData');
 
 const BULK_DATA_BATCH_COUNT = 40; // check size for every 40 records
 const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
-const BULK_LINK_BATCH_COUNT = 1000; // process 1000 records at a time
-const BULK_PARALLEL_PROCESS = 10;
+const BULK_LINK_BATCH_COUNT = 1000; // process 1000 links at a time
+const BULK_PARALLEL_PROCESS = 2;
 const STREAM_BUFFER_LIMIT = 200;
 
 interface AirtableImportContext {
@@ -70,7 +70,7 @@ async function readAllData({
             )} - ${recordCounter}`,
           );
 
-          // pause reading if we have more than BULK_PARALLEL_PROCESS parallel process to avoid backpressure
+          // pause reading if we have more than STREAM_BUFFER_LIMIT to avoid backpressure
           if (counter && counter.streamingCounter >= STREAM_BUFFER_LIMIT) {
             await new Promise((resolve) => {
               const interval = setInterval(() => {

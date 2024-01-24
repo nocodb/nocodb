@@ -12,6 +12,8 @@ const emit = defineEmits(['expand-record', 'new-record'])
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
+const { isUIAllowed } = useRoles()
+
 const { appInfo } = useGlobal()
 
 const { t } = useI18n()
@@ -282,7 +284,12 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
         @scroll="sideBarListScrollHandle"
       >
-        <NcButton class="!absolute right-5 bottom-5 !h-12 !w-12" type="secondary" @click="emit('new-record', { row: {} })">
+        <NcButton
+          v-if="isUIAllowed('dataEdit')"
+          class="!absolute right-5 bottom-5 !h-12 !w-12"
+          type="secondary"
+          @click="emit('new-record', { row: {} })"
+        >
           <div class="px-4 flex items-center gap-2 justify-center">
             <component :is="iconMap.plus" class="h-6 w-6 text-lg text-brand-500" />
           </div>

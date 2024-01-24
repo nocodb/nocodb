@@ -820,6 +820,7 @@ export function useMultiSelect(
               {
                 // Repeat the clipboard data array if the matrix is smaller than the selection
                 value: clipboardMatrix[i % clipboardMatrix.length][j],
+                oldFiles: pasteCol.uidt === UITypes.Attachment ? pasteRow.row[pasteCol.title!] : undefined,
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
@@ -883,6 +884,7 @@ export function useMultiSelect(
             {
               value: clipboardData,
               files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
+              oldFiles: rowObj.row[columnObj.title!],
               to: columnObj.uidt as UITypes,
               column: columnObj,
               appInfo: unref(appInfo),
@@ -892,8 +894,11 @@ export function useMultiSelect(
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
             const uploadedFiles = await handleFileUpload(pasteValue, columnObj.id!)
+
             rowObj.row[columnObj.title!] =
-              Array.isArray(uploadedFiles) && uploadedFiles.length ? JSON.stringify(uploadedFiles) : null
+              Array.isArray(uploadedFiles) && uploadedFiles.length
+                ? JSON.stringify([...handleParseAttachmentCellData(rowObj.row[columnObj.title!]), ...uploadedFiles])
+                : null
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
@@ -932,7 +937,8 @@ export function useMultiSelect(
                   const fileUploadPayload = convertCellData(
                     {
                       value: '',
-                      files: files,
+                      files,
+                      oldFiles: row.row[col.title],
                       to: col.uidt as UITypes,
                       column: col,
                       appInfo: unref(appInfo),
@@ -943,13 +949,18 @@ export function useMultiSelect(
 
                   if (fileUploadPayload?.length) {
                     const uploadedFiles = await handleFileUpload(fileUploadPayload, col.id!)
-                    pasteValue = Array.isArray(uploadedFiles) && uploadedFiles.length ? JSON.stringify(uploadedFiles) : null
+
+                    pasteValue =
+                      Array.isArray(uploadedFiles) && uploadedFiles.length
+                        ? JSON.stringify([...handleParseAttachmentCellData(row.row[col.title]), ...uploadedFiles])
+                        : null
                   }
                 }
               } else {
                 pasteValue = convertCellData(
                   {
                     value: clipboardData,
+                    oldFiles: row.row[col.title],
                     to: col.uidt as UITypes,
                     column: col,
                     appInfo: unref(appInfo),
@@ -1005,6 +1016,16 @@ export function useMultiSelect(
       return data
     } catch (e: any) {
       message.error(e.message || t('msg.error.internalError'))
+    }
+  }
+
+  function handleParseAttachmentCellData(value: string | null) {
+    const parsedVal = parseProp(value)
+
+    if (parsedVal && Array.isArray(parsedVal)) {
+      return parsedVal
+    } else {
+      return []
     }
   }
 

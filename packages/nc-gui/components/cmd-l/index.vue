@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onKeyUp, useDebounceFn, useMagicKeys, useVModel, whenever } from '@vueuse/core'
 import { onClickOutside } from '#imports'
+import type { CommandPaletteType } from '~/lib'
 
 const props = defineProps<{
   open: boolean
+  setActiveCmdView: (cmd: CommandPaletteType) => void
 }>()
 
 const emits = defineEmits(['update:open'])
@@ -57,10 +59,6 @@ function scrollToTarget() {
     top: offsetPosition,
     behavior: 'smooth',
   })
-}
-
-const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'Ctrl'
 }
 
 const moveUp = () => {
@@ -241,27 +239,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="cmdk-footer absolute !bg-white inset-x-0 bottom-0">
-        <div class="flex justify-center w-full py-2">
-          <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
-            <MdiFileOutline class="h-4 w-4" />
-            Document
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + J </span>
-          </div>
-          <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
-            <MdiMapMarkerOutline class="h-4 w-4" />
-            Quick Navigation
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + K </span>
-          </div>
-          <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
-            <MdiClockOutline class="h-4 w-4" />
-            Recent
-            <span class="bg-brand-500 text-white px-1 rounded-md border-1 border-brand-500">
-              {{ renderCmdOrCtrlKey() }} + L
-            </span>
-          </div>
-        </div>
-      </div>
+      <CmdFooter active-cmd="cmd-l" :set-active-cmd-view="setActiveCmdView" />
     </div>
   </div>
 </template>

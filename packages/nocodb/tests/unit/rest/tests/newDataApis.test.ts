@@ -91,7 +91,6 @@ import {
 } from 'nocodb-sdk';
 import { expect } from 'chai';
 import request from 'supertest';
-import validator from 'validator';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
@@ -109,7 +108,6 @@ import { defaultUserArgs } from '../../factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
 import type Model from '../../../../src/models/Model';
-import isCreditCard = validator.isCreditCard;
 
 const debugMode = false;
 

@@ -109,11 +109,6 @@ export default defineNuxtConfig({
             : './link-preview.webp',
         },
       ],
-      script: [
-        {
-          src: '/js/typesense-docsearch.js',
-        },
-      ],
     },
   },
 

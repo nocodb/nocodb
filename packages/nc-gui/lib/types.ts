@@ -182,6 +182,8 @@ interface UsersSortType {
   direction?: 'asc' | 'desc'
 }
 
+type CommandPaletteType = 'cmd-k' | 'cmd-j' | 'cmd-l'
+
 export type {
   User,
   ProjectMetaInfo,
@@ -208,4 +210,5 @@ export type {
   NcButtonSize,
   SidebarTableNode,
   UsersSortType,
+  CommandPaletteType,
 }

@@ -132,7 +132,7 @@ const dragStart = (event: DragEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
-  if (isUIAllowed('dataEdit')) return
+  if (!isUIAllowed('dataEdit')) return
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {

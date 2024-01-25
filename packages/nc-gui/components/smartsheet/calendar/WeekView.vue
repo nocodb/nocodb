@@ -479,10 +479,92 @@ const dragStart = (event: MouseEvent, record: Row) => {
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('mouseup', stopDrag)
 }
+
+const dropEvent = (event: DragEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  event.preventDefault()
+  const data = event.dataTransfer?.getData('text/plain')
+  if (data) {
+    const {
+      record,
+    }: {
+      record: Row
+    } = JSON.parse(data)
+    const { width, left } = container.value.getBoundingClientRect()
+
+    const percentX = (event.clientX - left - window.scrollX) / width
+
+    const fromCol = record.rowMeta.range?.fk_from_col
+    const toCol = record.rowMeta.range?.fk_to_col
+
+    if (!fromCol) return
+
+    const day = Math.floor(percentX * 7)
+
+    const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+
+    let endDate
+
+    const newRow = {
+      ...record,
+      row: {
+        ...record.row,
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      },
+    }
+
+    const updateProperty = [fromCol.title!]
+
+    if (toCol) {
+      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
+
+      if (fromDate && toDate) {
+        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      } else if (fromDate && !toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else if (!fromDate && toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else {
+        endDate = newStartDate.clone()
+      }
+      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+      updateProperty.push(toCol.title!)
+    }
+
+    if (!newRow) return
+
+    if (dragElement.value) {
+      formattedData.value = formattedData.value.map((r) => {
+        const pk = extractPkFromRow(r.row, meta.value!.columns!)
+
+        if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
+          return newRow
+        }
+        return r
+      })
+    } else {
+      formattedData.value = [...formattedData.value, newRow]
+      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+        const pk = extractPkFromRow(r.row, meta.value!.columns!)
+
+        return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
+      })
+    }
+
+    if (dragElement.value) {
+      dragElement.value.style.boxShadow = 'none'
+      dragElement.value.classList.remove('hide')
+
+      dragElement.value = null
+    }
+    updateRowProperty(newRow, updateProperty, false)
+  }
+}
 </script>
 
 <template>
-  <div class="flex relative flex-col prevent-select">
+  <div class="flex relative flex-col prevent-select" @drop="dropEvent">
     <div class="flex">
       <div
         v-for="date in weekDates"

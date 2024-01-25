@@ -13,7 +13,7 @@ const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view')
 
 useTheme()
 
-const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
+const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope, refreshCommandPalette } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -79,6 +79,12 @@ function setActiveCmdView(cmd: CommandPaletteType) {
     cmdK.value = false
   }
 }
+
+onMounted(() => {
+  nextTick(() => {
+    refreshCommandPalette()
+  })
+})
 </script>
 
 <template>

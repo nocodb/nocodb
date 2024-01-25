@@ -2094,12 +2094,15 @@
         "tags": [
           "SSO Client"
         ],
-        "operationId": "sso-client-get",
+        "operationId": "sso-client-list",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClientList"
+                }
               }
             }
           }
@@ -3586,10 +3589,6 @@
               },
               {
                 "$ref": "#/components/schemas/OpenIDClientConfig"
-              },
-              {
-                "type": "string",
-                "description": "SSO Client Configuration in JSON format"
               }
             ]
           }
@@ -3685,6 +3684,25 @@
           "redirectUrl",
           "entityId"
         ]
+      },
+
+      "SSOClientList": {
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/SSOClient"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "title": "Cowriter List",
+        "type": "object",
+        "x-stoplight": {
+          "id": "24eab7d1ead43"
+        }
       }
     },
     "responses": {

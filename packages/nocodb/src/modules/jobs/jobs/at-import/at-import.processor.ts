@@ -15,7 +15,7 @@ import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
-import type { Base } from '~/models';
+import { type Base, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -2464,6 +2464,9 @@ export class AtImportProcessor {
             sourceId: syncDB.sourceId,
             roles: { ...userRole, owner: true },
           });
+
+          const source = await Source.get(syncDB.sourceId);
+
           recordPerfStats(_perfStart, 'base.tableList');
 
           logBasic('Reading Records...');
@@ -2490,6 +2493,7 @@ export class AtImportProcessor {
               atBase,
               nocoBaseDataProcessing_v2,
               syncDB,
+              source,
               services: {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,

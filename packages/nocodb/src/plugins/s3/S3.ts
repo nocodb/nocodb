@@ -56,27 +56,23 @@ export default class S3 implements IStorageAdapterV2 {
     const uploadParams: any = {
       ...this.defaultParams,
     };
-    return new Promise((resolve, reject) => {
-      axios
-        .get(url, {
-          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          responseType: 'stream',
-        })
-        .then((response) => {
-          uploadParams.Body = response.data;
-          uploadParams.Key = key;
-          uploadParams.ContentType = response.headers['content-type'];
 
-          // call S3 to retrieve upload file to specified bucket
-          this.upload(uploadParams).then((data) => {
-            resolve(data);
-          });
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+    try {
+      const response = await axios.get(url, {
+        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        responseType: 'stream',
+      });
+
+      uploadParams.Body = response.data;
+      uploadParams.Key = key;
+      uploadParams.ContentType = response.headers['content-type'];
+
+      const data = await this.upload(uploadParams);
+      return data;
+    } catch (error) {
+      throw error;
+    }
   }
 
   // TODO - implement
@@ -161,26 +157,23 @@ export default class S3 implements IStorageAdapterV2 {
   }
 
   private async upload(uploadParams): Promise<any> {
-    return new Promise((resolve, reject) => {
+    try {
       // call S3 to retrieve upload file to specified bucket
       const upload = new Upload({
         client: this.s3Client,
         params: { ...this.defaultParams, ...uploadParams },
       });
 
-      upload
-        .done()
-        .then((data) => {
-          if (data) {
-            resolve(
-              `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${uploadParams.Key}`,
-            );
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          reject(err);
-        });
-    });
+      const data = await upload.done();
+
+      if (data) {
+        return `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${uploadParams.Key}`;
+      } else {
+        throw new Error('Upload failed or no data returned.');
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }

@@ -1484,22 +1484,24 @@ class PGClient extends PGClientCE {
 
       for (const relation of relationsList) {
         const query = this.sqlClient.raw(
-          this.sqlClient.schema.table(relation.tn, function (table) {
-            table = table
-              .foreign(relation.cn, null)
-              .references(relation.rcn)
-              .on(relation.rtn);
+          this.sqlClient.schema
+            .table(relation.tn, function (table) {
+              table = table
+                .foreign(relation.cn, null)
+                .references(relation.rcn)
+                .on(relation.rtn);
 
-            if (relation.ur) {
-              table = table.onUpdate(relation.ur);
-            }
-            if (relation.dr) {
-              table.onDelete(relation.dr);
-            }
-          }),
+              if (relation.ur) {
+                table = table.onUpdate(relation.ur);
+              }
+              if (relation.dr) {
+                table.onDelete(relation.dr);
+              }
+            })
+            .toQuery(),
         );
 
-        downQuery += this.querySeparator() + query.toQuery();
+        downQuery += this.querySeparator() + query;
 
         await query;
       }

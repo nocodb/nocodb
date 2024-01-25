@@ -3,6 +3,7 @@ import { AppEvents } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
+import PQueue from 'p-queue';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -25,8 +26,13 @@ export class AttachmentsService {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const attachments = await Promise.all(
-      param.files?.map(async (file) => {
+    // just in case we want to increase concurrency in future
+    const queue = new PQueue({ concurrency: 1 });
+
+    const attachments = [];
+
+    queue.addAll(
+      param.files?.map((file) => async () => {
         const originalName = utf8ify(file.originalname);
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
@@ -78,9 +84,13 @@ export class AttachmentsService {
           }
         }
 
-        return Promise.all(promises).then(() => attachment);
+        await Promise.all(promises);
+
+        attachments.push(attachment);
       }),
     );
+
+    await queue.onIdle();
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
@@ -103,8 +113,13 @@ export class AttachmentsService {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const attachments = await Promise.all(
-      param.urls?.map?.(async (urlMeta) => {
+    // just in case we want to increase concurrency in future
+    const queue = new PQueue({ concurrency: 1 });
+
+    const attachments = [];
+
+    queue.addAll(
+      param.urls?.map?.((urlMeta) => async () => {
         const { url, fileName: _fileName } = urlMeta;
 
         const fileName = `${nanoid(18)}${path.extname(
@@ -126,16 +141,18 @@ export class AttachmentsService {
           attachmentPath = `download/${filePath.join('/')}/${fileName}`;
         }
 
-        return {
+        attachments.push({
           ...(attachmentUrl ? { url: attachmentUrl } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
           title: _fileName,
           mimetype: urlMeta.mimetype,
           size: urlMeta.size,
           icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
-        };
+        });
       }),
     );
+
+    await queue.onIdle();
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',

@@ -9,12 +9,13 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
+import { Logger } from '@nestjs/common';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
-import { importData, importLTARData } from './helpers/readAndProcessData';
+import { importData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
 import type { UserType } from 'nocodb-sdk';
-import type { Base } from '~/models';
+import { type Base, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -33,6 +34,8 @@ import { FormsService } from '~/services/forms.service';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { TelemetryService } from '~/services/telemetry.service';
+
+const logger = new Logger('at-import');
 
 dayjs.extend(utc);
 
@@ -221,7 +224,11 @@ export class AtImportProcessor {
       rtc.migrationSkipLog.log.push(
         `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`,
       );
-      logWarning(`Skipped ${tbl} :: ${col} (${type}) :: ${reason}`);
+      logWarning(
+        `Skipped${tbl ? ` ${tbl} :: ` : ``}${col ? `${col}` : ``}${
+          type ? ` (${type})` : ``
+        } :: ${reason}`,
+      );
     };
 
     // mapping table
@@ -937,7 +944,7 @@ export class AtImportProcessor {
                 ?.length
             ) {
               if (enableErrorLogs)
-                console.log(`## Invalid column IDs mapped; skip`);
+                logger.log(`## Invalid column IDs mapped; skip`);
 
               updateMigrationSkipLog(
                 srcTableSchema.title,
@@ -1017,7 +1024,7 @@ export class AtImportProcessor {
             );
           }
           if (enableErrorLogs)
-            console.log(
+            logger.log(
               `## Failed to configure ${nestedLookupTbl.length} lookups`,
             );
           break;
@@ -1156,7 +1163,7 @@ export class AtImportProcessor {
                 ?.length
             ) {
               if (enableErrorLogs)
-                console.log(`## Invalid column IDs mapped; skip`);
+                logger.log(`## Invalid column IDs mapped; skip`);
 
               updateMigrationSkipLog(
                 srcTableSchema.title,
@@ -1514,7 +1521,7 @@ export class AtImportProcessor {
                   req: {},
                 });
               } catch (e) {
-                console.log(e);
+                logger.log(e);
               }
 
               rec[key] = JSON.stringify(tempArr);
@@ -1841,7 +1848,7 @@ export class AtImportProcessor {
                 // TODO enable after fixing user invite role issue
                 // logWarning(e.message);
               } else {
-                console.log(e);
+                logger.log(e);
               }
             }),
         );
@@ -2052,7 +2059,7 @@ export class AtImportProcessor {
         const datatype = colSchema.uidt;
         const ncFilters = [];
 
-        // console.log(filter)
+        // logger.log(filter)
         if (datatype === UITypes.Links) {
           // skip filters for links; Link filters in NocoDB are only rollup counts
           // where-as in airtable, filter can be textual
@@ -2457,11 +2464,12 @@ export class AtImportProcessor {
             sourceId: syncDB.sourceId,
             roles: { ...userRole, owner: true },
           });
+
+          const source = await Source.get(syncDB.sourceId);
+
           recordPerfStats(_perfStart, 'base.tableList');
 
           logBasic('Reading Records...');
-
-          const recordsMap = {};
 
           for (let i = 0; i < ncTblList.list.length; i++) {
             // not a migrated table, skip
@@ -2479,59 +2487,29 @@ export class AtImportProcessor {
               });
             recordPerfStats(_perfStart, 'dbTable.read');
 
-            recordsMap[ncTbl.id] = await importData({
+            const importStats = await importData({
               baseName: syncDB.baseId,
               table: ncTbl,
               atBase,
               nocoBaseDataProcessing_v2,
-              sDB: syncDB,
+              syncDB,
+              source,
               services: {
                 tableService: this.tablesService,
                 bulkDataService: this.bulkDataAliasService,
               },
-              logBasic,
-              logDetailed,
-              logWarning,
-            });
-            rtc.data.records += await recordsMap[ncTbl.id].getCount();
-
-            logDetailed(`Data inserted from ${ncTbl.title}`);
-          }
-
-          logBasic('Configuring Record Links...');
-          for (let i = 0; i < ncTblList.list.length; i++) {
-            // not a migrated table, skip
-            if (
-              undefined ===
-              aTblSchema.find((x) => x.name === ncTblList.list[i].title)
-            )
-              continue;
-
-            // const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-            const ncTbl: any =
-              await this.tablesService.getTableWithAccessibleViews({
-                tableId: ncTblList.list[i].id,
-                user: { ...syncDB.user, base_roles: { owner: true } },
-              });
-
-            rtc.data.nestedLinks += await importLTARData({
-              table: ncTbl,
-              baseName: syncDB.baseId,
-              atBase,
               fields: null, //Object.values(tblLinkGroup).flat(),
               insertedAssocRef,
-              records: recordsMap[ncTbl.id],
               atNcAliasRef,
               ncLinkMappingTable,
-              syncDB,
-              services: {
-                tableService: this.tablesService,
-                bulkDataService: this.bulkDataAliasService,
-              },
               logBasic,
               logDetailed,
               logWarning,
             });
+            rtc.data.records += importStats.importedCount;
+            rtc.data.nestedLinks += importStats.nestedLinkCount;
+
+            logDetailed(`Data inserted from ${ncTbl.title}`);
           }
         } catch (error) {
           logBasic(
@@ -2559,7 +2537,7 @@ export class AtImportProcessor {
           email: syncDB.user.email,
           data: { error: e.message },
         });
-        console.log(e);
+        logger.log(e);
         throw new Error(e.message);
       }
       throw e;

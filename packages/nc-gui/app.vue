@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, isEeUI, useCommandPalette, useRouter, useTheme } from '#imports'
+import { applyNonSelectable, computed, isEeUI, useCommandPalette, useRouter, useTheme, isMac } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 const router = useRouter()
 
@@ -77,6 +77,16 @@ function setActiveCmdView(cmd: CommandPaletteType) {
   } else if (cmd === 'cmd-l') {
     cmdL.value = true
     cmdK.value = false
+  } else {
+    cmdL.value = false
+    cmdK.value = false
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'J',
+        ctrlKey: !isMac() || undefined,
+        metaKey: isMac() || undefined,
+      }),
+    )
   }
 }
 

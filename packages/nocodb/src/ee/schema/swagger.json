@@ -2087,6 +2087,106 @@
           }
         ]
       }
+    },
+    "/api/v2/sso-client": {
+      "get": {
+        "summary": "Get SSO Client",
+        "tags": [
+          "SSO Client"
+        ],
+        "operationId": "sso-client-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create SSO Client",
+        "operationId": "sso-client-create",
+        "tags": [
+          "SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClient"
+                }
+              }
+            }
+          }
+        },
+        "request": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/sso-client/{clientId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "description": "Unique SSO Client ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update SSO Client",
+        "tags": [
+          "SSO Client"
+        ],
+        "operationId": "sso-client-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "request": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete SSO Client",
+        "operationId": "sso-client-delete",
+        "tags": [
+          "SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3458,51 +3558,41 @@
         "description": "Model for SSO Client",
         "type": "object",
         "properties": {
-            "id": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Name of the SSO Client"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the SSO Client is enabled"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of SSO Client",
+            "enum": [
+              "saml",
+              "oidc"
+            ]
+          },
+          "config": {
+            "description": "SSO Client Configuration",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SAMLClientConfig"
+              },
+              {
+                "$ref": "#/components/schemas/OpenIDClientConfig"
+              },
+              {
                 "type": "string",
-                "description": "Unique ID"
-            },
-            "name": {
-                "type": "string",
-                "description": "Name of the SSO Client"
-            },
-            "client_id": {
-                "type": "string",
-                "description": "Client ID of the SSO Client"
-            },
-            "client_secret": {
-                "type": "string",
-                "description": "Client Secret of the SSO Client"
-            },
-            "redirect_uri": {
-                "type": "string",
-                "description": "Redirect URI of the SSO Client"
-            },
-            "auth_url": {
-                "type": "string",
-                "description": "Auth URL of the SSO Client"
-            },
-            "token_url": {
-                "type": "string",
-                "description": "Token URL of the SSO Client"
-            },
-            "user_info_url": {
-                "type": "string",
-                "description": "User Info URL of the SSO Client"
-            },
-            "jwk_url": {
-                "type": "string",
-                "description": "JWK URL of the SSO Client"
-            },
-            "created_at": {
-                "type": "string",
-                "description": "Date and time when the SSO Client was created"
-            },
-            "updated_at": {
-                "type": "string",
-                "description": "Date and time when the SSO Client was last updated"
-            }
-            },
+                "description": "SSO Client Configuration in JSON format"
+              }
+            ]
+          }
         }
       },
       "OpenIDClientConfig": {

@@ -16329,6 +16329,32 @@
         ]
       }
     },
+    "/api/v1/command_palette": {
+      "parameters": [],
+      "post": {
+        "summary": "Get command palette suggestions",
+        "operationId": "utils-command-palette",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {}
+          }
+        },
+        "description": "Get dynamic command palette suggestions based on scope"
+      }
+    },
     "/jobs/listen": {
       "post": {
         "summary": "Jobs Listen",

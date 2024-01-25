@@ -13,8 +13,9 @@ const logger = new Logger('BaseModelSqlv2');
 
 const BULK_DATA_BATCH_COUNT = 20; // check size for every 100 records
 const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
-const BULK_LINK_BATCH_COUNT = 1000; // process 1000 records at a time
-const BULK_PARALLEL_PROCESS = 5;
+const BULK_LINK_BATCH_COUNT = 1000; // process 1000 links at a time
+const BULK_PARALLEL_PROCESS = 2;
+const STREAM_BUFFER_LIMIT = 200;
 
 interface AirtableImportContext {
   bulkDataService: BulkDataAliasService;
@@ -71,6 +72,18 @@ async function readAllData({
               tmpLength - records.length,
             )} - ${tmpLength}`,
           );
+
+          // pause reading if we have more than STREAM_BUFFER_LIMIT to avoid backpressure
+          if (counter && counter.streamingCounter >= STREAM_BUFFER_LIMIT) {
+            await new Promise((resolve) => {
+              const interval = setInterval(() => {
+                if (counter.streamingCounter < STREAM_BUFFER_LIMIT / 2) {
+                  clearInterval(interval);
+                  resolve(true);
+                }
+              }, 100);
+            });
+          }
 
           // To fetch the next page of records, call `fetchNextPage`.
           // If there are more records, `page` will get called again.

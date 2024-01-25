@@ -1,4 +1,7 @@
+import { Logger } from '@nestjs/common';
 import axios from 'axios';
+
+const logger = new Logger('FetchAT');
 
 const info: any = {
   initialized: false,
@@ -44,7 +47,7 @@ async function initialize(shareId, appId?: string) {
         return response.data;
       })
       .catch((e) => {
-        console.log(e);
+        logger.log(e);
         throw {
           message:
             'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -94,7 +97,7 @@ async function initialize(shareId, appId?: string) {
     info.baseId = info.baseInfo.applicationId;
     info.initialized = true;
   } catch (e) {
-    console.log(e);
+    logger.log(e);
     info.initialized = false;
     if (e.message) {
       throw e;
@@ -135,7 +138,7 @@ async function read() {
         return response.data;
       })
       .catch((e) => {
-        console.log(e);
+        logger.log(e);
         throw {
           message:
             'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -202,7 +205,7 @@ async function readView(viewId) {
         return response.data;
       })
       .catch((e) => {
-        console.log(e);
+        logger.log(e);
         throw {
           message:
             'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -252,7 +255,7 @@ async function readTemplate(templateId) {
       return response.data;
     })
     .catch((e) => {
-      console.log(e);
+      logger.log(e);
       throw {
         message:
           'Error Fetching :: Ensure www.airtable.com/templates/featured/<TemplateID> is accessible.',

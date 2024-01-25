@@ -5,7 +5,6 @@ import {
   Processor,
 } from '@nestjs/bull';
 import { Job } from 'bull';
-import boxen from 'boxen';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Logger } from '@nestjs/common';
 import { JobEvents, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
@@ -28,15 +27,8 @@ export class JobsEventService {
   @OnQueueFailed()
   onFailed(job: Job, error: Error) {
     this.logger.error(`Job ${job.id} failed with error ${error.message}`);
-    console.error(
-      boxen(
-        `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
-        {
-          padding: 1,
-          borderStyle: 'double',
-          borderColor: 'yellow',
-        },
-      ),
+    this.logger.error(
+      `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
     );
 
     this.eventEmitter.emit(JobEvents.STATUS, {

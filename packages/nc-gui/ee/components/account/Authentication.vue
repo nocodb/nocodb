@@ -73,6 +73,10 @@ const addSamlProvider = () => {
 const addOIDCProvider = () => {
   oidcDialogShow.value = true
 }
+
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text)
+}
 </script>
 
 <template>
@@ -88,14 +92,14 @@ const addOIDCProvider = () => {
         <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.generalSettings') }}</div>
         <div class="">
           <h1 class="text-md text-gray-800">SignIn URL</h1>
-          <div class="flex border-gray-200 border-1 items-center justify-between py-2 px-4 rounded-lg">
+          <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
             <span class="text-gray-800"> https://idp.example.com/example_login/accounting_team_alhvd8WO </span>
             <NcButton
               size="xsmall"
               type="text"
               @click="
                 () => {
-                  //  #TODO copy to clipboard
+                  copyToClipboard('https://idp.example.com/example_login/accounting_team_alhvd8WO')
                 }
               "
             >

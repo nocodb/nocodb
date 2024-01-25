@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsCalendarInj,
@@ -39,6 +40,7 @@ provide(IsKanbanInj, ref(false))
 provide(IsCalendarInj, ref(true))
 
 const {
+  calDataType,
   loadCalendarMeta,
   loadCalendarData,
   loadSidebarData,
@@ -236,8 +238,13 @@ const headerText = computed(() => {
           @expand-record="expandRecord"
           @new-record="newRecord"
         />
-        <LazySmartsheetCalendarDayView
-          v-else-if="activeCalendarView === 'day'"
+        <LazySmartsheetCalendarDayViewDateField
+          v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
+          @expand-record="expandRecord"
+          @new-record="newRecord"
+        />
+        <LazySmartsheetCalendarDayViewDateTimeField
+          v-else-if="activeCalendarView === 'day' && calDataType === UITypes.DateTime"
           @expand-record="expandRecord"
           @new-record="newRecord"
         />

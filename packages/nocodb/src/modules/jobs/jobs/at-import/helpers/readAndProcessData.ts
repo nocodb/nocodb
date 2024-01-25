@@ -3,6 +3,7 @@ import { Readable } from 'stream';
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import sizeof from 'object-sizeof';
 import { Logger } from '@nestjs/common';
+import PQueue from 'p-queue';
 import type { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import type { TablesService } from '~/services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
@@ -11,11 +12,12 @@ import type { Source } from '~/models';
 
 const logger = new Logger('at-import:readAndProcessData');
 
-const BULK_DATA_BATCH_COUNT = 40; // check size for every 40 records
-const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
-const BULK_LINK_BATCH_COUNT = 1000; // process 1000 links at a time
-const BULK_PARALLEL_PROCESS = 2;
+const BULK_DATA_BATCH_COUNT = 20; // check size for every 20 records
+const BULK_DATA_BATCH_SIZE = 20 * 1024; // in bytes
+const BULK_LINK_BATCH_COUNT = 200; // process 200 links at a time
+const BULK_PARALLEL_PROCESS = 5;
 const STREAM_BUFFER_LIMIT = 200;
+const QUEUE_BUFFER_LIMIT = 50;
 
 interface AirtableImportContext {
   bulkDataService: BulkDataAliasService;
@@ -35,7 +37,7 @@ async function readAllData({
   fields?;
   atBase: AirtableBase;
   dataStream: Readable;
-  counter?: { activeProcess: number; streamingCounter: number };
+  counter?: { streamingCounter: number };
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
   logWarning?: (string) => void;
@@ -142,9 +144,7 @@ export async function importData({
   importedCount: number;
 }> {
   try {
-    // we keep track of active process to pause and resume the stream as we have async calls within the stream and we don't want to load all data in memory
     const counter = {
-      activeProcess: 0,
       streamingCounter: 0,
     };
 
@@ -167,7 +167,7 @@ export async function importData({
     });
 
     return new Promise(async (resolve) => {
-      const promises = [];
+      const queue = new PQueue({ concurrency: BULK_PARALLEL_PROCESS });
 
       const ltarPromise = importLTARData({
         table,
@@ -179,6 +179,7 @@ export async function importData({
         syncDB,
         source,
         services,
+        queue,
         logBasic,
         logDetailed,
         logWarning,
@@ -196,65 +197,65 @@ export async function importData({
       dataStream.on('data', async (record) => {
         counter.streamingCounter--;
         record = JSON.parse(record);
-        promises.push(
-          new Promise(async (resolve) => {
-            try {
-              counter.activeProcess++;
-              if (counter.activeProcess >= BULK_PARALLEL_PROCESS)
-                dataStream.pause();
+        queue.add(
+          () =>
+            new Promise(async (resolve) => {
+              try {
+                const { id: rid, ...fields } = record;
+                const r = await nocoBaseDataProcessing_v2(syncDB, table, {
+                  id: rid,
+                  fields,
+                });
+                tempData.push(r);
+                tempCount++;
 
-              const { id: rid, ...fields } = record;
-              const r = await nocoBaseDataProcessing_v2(syncDB, table, {
-                id: rid,
-                fields,
-              });
-              tempData.push(r);
-              tempCount++;
+                if (tempCount >= BULK_DATA_BATCH_COUNT) {
+                  if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
+                    let insertArray = tempData.splice(0, tempData.length);
 
-              if (tempCount >= BULK_DATA_BATCH_COUNT) {
-                if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
-                  let insertArray = tempData.splice(0, tempData.length);
+                    await services.bulkDataService.bulkDataInsert({
+                      baseName,
+                      tableName: table.id,
+                      body: insertArray,
+                      cookie: {},
+                      skip_hooks: true,
+                      foreign_key_checks: !!source.isMeta(),
+                    });
 
-                  await services.bulkDataService.bulkDataInsert({
-                    baseName,
-                    tableName: table.id,
-                    body: insertArray,
-                    cookie: {},
-                    skip_hooks: true,
-                    foreign_key_checks: !!source.isMeta(),
-                  });
+                    logBasic(
+                      `:: Importing '${
+                        table.title
+                      }' data :: ${importedCount} - ${
+                        importedCount + insertArray.length
+                      }`,
+                    );
 
-                  logBasic(
-                    `:: Importing '${table.title}' data :: ${importedCount} - ${
-                      importedCount + insertArray.length
-                    }`,
-                  );
-
-                  importedCount += insertArray.length;
-                  insertArray = [];
+                    importedCount += insertArray.length;
+                    insertArray = [];
+                  }
+                  tempCount = 0;
                 }
-                tempCount = 0;
+
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+
+                resolve(true);
+              } catch (e) {
+                logger.error(e);
+                logWarning(
+                  `There were errors on importing '${table.title}' data :: ${e}`,
+                );
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+                resolve(true);
               }
-              counter.activeProcess--;
-              if (counter.activeProcess < BULK_PARALLEL_PROCESS)
-                dataStream.resume();
-              resolve(true);
-            } catch (e) {
-              logger.error(e);
-              logWarning(
-                `There were errors on importing '${table.title}' data :: ${e}`,
-              );
-              counter.activeProcess--;
-              dataStream.resume();
-              resolve(true);
-            }
-          }),
+            }),
         );
+
+        if (queue.size >= QUEUE_BUFFER_LIMIT) dataStream.pause();
       });
       dataStream.on('end', async () => {
         try {
           // ensure all chunks are processed
-          await Promise.all(promises);
+          await queue.onIdle();
 
           // insert remaining data
           if (tempData.length > 0) {
@@ -309,6 +310,7 @@ export async function importLTARData({
   syncDB,
   source,
   services,
+  queue,
   logBasic = (_str) => {},
   logWarning = (_str) => {},
 }: {
@@ -325,6 +327,7 @@ export async function importLTARData({
   syncDB;
   source: Source;
   services: AirtableImportContext;
+  queue: PQueue;
   logBasic: (string) => void;
   logDetailed: (string) => void;
   logWarning: (string) => void;
@@ -384,8 +387,6 @@ export async function importLTARData({
   const assocTableData = {};
   //  extract link data from records
   return new Promise((resolve, reject) => {
-    const promises = [];
-
     dataStream.on('data', async (record) => {
       record = JSON.parse(record);
       // Iterate over all related M2M associative  table
@@ -393,68 +394,73 @@ export async function importLTARData({
         if (!assocTableData[assocMeta.modelMeta.id]) {
           assocTableData[assocMeta.modelMeta.id] = [];
         }
-        promises.push(
-          new Promise(async (resolve) => {
-            try {
-              const { id: _atId, ...rec } = record;
+        queue.add(
+          () =>
+            new Promise(async (resolve) => {
+              try {
+                const { id: _atId, ...rec } = record;
 
-              // todo: use actual alias instead of sanitized
-              assocTableData[assocMeta.modelMeta.id].push(
-                ...(
-                  rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
-                ).map((id) => ({
-                  [assocMeta.curCol.title]: record.id,
-                  [assocMeta.refCol.title]: id,
-                })),
-              );
-
-              if (
-                assocTableData[assocMeta.modelMeta.id].length >=
-                BULK_LINK_BATCH_COUNT
-              ) {
-                let insertArray = assocTableData[assocMeta.modelMeta.id].splice(
-                  0,
-                  assocTableData[assocMeta.modelMeta.id].length,
+                // todo: use actual alias instead of sanitized
+                assocTableData[assocMeta.modelMeta.id].push(
+                  ...(
+                    rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
+                  ).map((id) => ({
+                    [assocMeta.curCol.title]: record.id,
+                    [assocMeta.refCol.title]: id,
+                  })),
                 );
 
-                const lastImportedCount = importedCount;
-                importedCount += insertArray.length;
+                if (
+                  assocTableData[assocMeta.modelMeta.id].length >=
+                  BULK_LINK_BATCH_COUNT
+                ) {
+                  let insertArray = assocTableData[
+                    assocMeta.modelMeta.id
+                  ].splice(0, assocTableData[assocMeta.modelMeta.id].length);
 
-                logBasic(
-                  `:: Importing '${
-                    table.title
-                  }' LTAR data :: ${lastImportedCount} - ${
-                    lastImportedCount + insertArray.length
-                  }`,
+                  const lastImportedCount = importedCount;
+                  importedCount += insertArray.length;
+
+                  logBasic(
+                    `:: Importing '${
+                      table.title
+                    }' LTAR data :: ${lastImportedCount} - ${
+                      lastImportedCount + insertArray.length
+                    }`,
+                  );
+
+                  await services.bulkDataService.bulkDataInsert({
+                    baseName,
+                    tableName: assocMeta.modelMeta.id,
+                    body: insertArray,
+                    cookie: {},
+                    skip_hooks: true,
+                    foreign_key_checks: !!source.isMeta(),
+                  });
+
+                  insertArray = [];
+                }
+
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+                resolve(true);
+              } catch (e) {
+                logger.error(e);
+                logWarning(
+                  `There were errors on importing '${table.title}' LTAR data :: ${e}`,
                 );
-
-                await services.bulkDataService.bulkDataInsert({
-                  baseName,
-                  tableName: assocMeta.modelMeta.id,
-                  body: insertArray,
-                  cookie: {},
-                  skip_hooks: true,
-                  foreign_key_checks: !!source.isMeta(),
-                });
-
-                insertArray = [];
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+                resolve(true);
               }
-              resolve(true);
-            } catch (e) {
-              logger.error(e);
-              logWarning(
-                `There were errors on importing '${table.title}' LTAR data :: ${e}`,
-              );
-              resolve(true);
-            }
-          }),
+            }),
         );
       }
+
+      if (queue.size >= QUEUE_BUFFER_LIMIT) dataStream.pause();
     });
     dataStream.on('end', async () => {
       try {
         // ensure all chunks are processed
-        await Promise.all(promises);
+        await queue.onIdle();
 
         for (const assocMeta of assocTableMetas) {
           // insert remaining data

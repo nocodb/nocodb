@@ -4,6 +4,7 @@ import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
 import type { ComputedRef, VNode } from '#imports'
 import { iconMap, onClickOutside } from '#imports'
+import type { CommandPaletteType } from '~/lib'
 
 interface CmdAction {
   id: string
@@ -25,6 +26,7 @@ const props = defineProps<{
   placeholder?: string
   hotkey?: string
   loadTemporaryScope?: (scope: { scope: string; data: any }) => void
+  setActiveCmdView: (cmd: CommandPaletteType) => void
 }>()
 
 const emits = defineEmits(['update:open', 'scope'])
@@ -405,7 +407,7 @@ defineExpose({
                       <template #title>
                         {{ act.title }}
                       </template>
-                      <span class="truncate capitalize mr-4">
+                      <span class="truncate capitalize mr-4 py-0.5">
                         {{ act.title }}
                       </span>
                     </a-tooltip>
@@ -426,54 +428,7 @@ defineExpose({
           </template>
         </div>
       </div>
-      <div class="cmdk-footer absolute inset-x-0 bottom-0">
-        <div class="flex justify-center w-full py-2">
-          <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
-            <MdiFileOutline class="h-4 w-4" />
-            <span
-              class="cursor-pointer"
-              @click.stop="
-                () => {
-                  console.log('clicked')
-                }
-              "
-            >
-              Document
-            </span>
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + J </span>
-          </div>
-          <div class="flex flex-grow-1 text-brand-500 w-full text-sm items-center gap-2 justify-center">
-            <MdiMapMarkerOutline class="h-4 w-4" />
-            <span
-              class="cursor-pointer"
-              @click.stop="
-                () => {
-                  console.log('clicked')
-                }
-              "
-            >
-              Quick Navigation
-            </span>
-            <span class="bg-brand-500 border-1 border-brand-500 text-sm text-white px-1 rounded-md">
-              {{ renderCmdOrCtrlKey() }} + K
-            </span>
-          </div>
-          <div class="flex flex-grow-1 w-full text-sm items-center gap-2 justify-center">
-            <MdiClockOutline class="h-4 w-4" />
-            <span
-              class="cursor-pointer"
-              @click.stop="
-                () => {
-                  console.log('clicked')
-                }
-              "
-            >
-              Recent
-            </span>
-            <span class="bg-gray-100 px-1 rounded-md border-1 border-gray-300"> {{ renderCmdOrCtrlKey() }} + L </span>
-          </div>
-        </div>
-      </div>
+      <CmdFooter active-cmd="cmd-k" :set-active-cmd-view="setActiveCmdView" />
     </div>
   </div>
 </template>

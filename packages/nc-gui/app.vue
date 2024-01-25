@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme, isEeUI } from '#imports'
-
+import type { CommandPaletteType } from '~/lib'
 const router = useRouter()
 
 const route = router.currentRoute
@@ -69,6 +69,16 @@ function onScope(scope: string) {
     loadTemporaryScope({ scope: 'root', data: {} })
   }
 }
+
+function setActiveCmdView(cmd: CommandPaletteType) {
+  if (cmd === 'cmd-k') {
+    cmdK.value = true
+    cmdL.value = false
+  } else if (cmd === 'cmd-l') {
+    cmdL.value = true
+    cmdK.value = false
+  }
+}
 </script>
 
 <template>
@@ -85,10 +95,11 @@ function onScope(scope: string) {
     :data="cmdData"
     :placeholder="cmdPlaceholder"
     :load-temporary-scope="loadTemporaryScope"
+    :set-active-cmd-view="setActiveCmdView"
     @scope="onScope"
   />
   <!-- Recent Views. Cycles through recently visited Views -->
-  <CmdL v-model:open="cmdL" />
+  <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
   <!-- Documentation. Integrated NocoDB Docs directlt inside the Product -->
   <CmdJ />
 </template>

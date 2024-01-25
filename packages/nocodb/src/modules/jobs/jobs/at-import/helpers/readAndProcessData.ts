@@ -2,12 +2,11 @@
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import sizeof from 'object-sizeof';
 import { Logger } from '@nestjs/common';
-import EntityMap from './EntityMap';
-import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
-import type { TablesService } from '../../../../../services/tables.service';
-// @ts-ignore
+import type { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import type { TablesService } from '~/services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
+import type { Source } from '~/models';
 
 const logger = new Logger('BaseModelSqlv2');
 
@@ -108,7 +107,8 @@ export async function importData({
   table,
   atBase,
   nocoBaseDataProcessing_v2,
-  sDB,
+  syncDB,
+  source,
   logBasic = (_str) => {},
   logDetailed = (_str) => {},
   logWarning = (_str) => {},
@@ -118,6 +118,7 @@ export async function importData({
   table: { title?: string; id?: string };
   fields?;
   atBase: AirtableBase;
+  source: Source;
   logBasic: (string) => void;
   logDetailed: (string) => void;
   logWarning: (string) => void;
@@ -138,6 +139,25 @@ export async function importData({
       const readable = records.getStream();
       const allRecordsCount = await records.getCount();
       const promises = [];
+
+      const ltarPromise = importLTARData({
+        table,
+        baseName,
+        insertedAssocRef,
+        dataStream,
+        atNcAliasRef,
+        ncLinkMappingTable,
+        syncDB,
+        source,
+        services,
+        logBasic,
+        logDetailed,
+        logWarning,
+      }).catch((e) => {
+        logWarning(
+          `There were errors on importing '${table.title}' LTAR data :: ${e}`,
+        );
+      });
 
       let tempData = [];
       let importedCount = 0;
@@ -173,6 +193,7 @@ export async function importData({
                     body: insertArray,
                     cookie: {},
                     skip_hooks: true,
+                    foreign_key_checks: !!source.isMeta(),
                   });
 
                   logBasic(
@@ -218,6 +239,7 @@ export async function importData({
               body: tempData,
               cookie: {},
               skip_hooks: true,
+              foreign_key_checks: !!source.isMeta(),
             });
 
             logBasic(
@@ -258,6 +280,7 @@ export async function importLTARData({
   atNcAliasRef,
   ncLinkMappingTable,
   syncDB,
+  source,
   services,
   logBasic = (_str) => {},
   logDetailed = (_str) => {},
@@ -276,6 +299,7 @@ export async function importLTARData({
   };
   ncLinkMappingTable: Record<string, Record<string, any>>[];
   syncDB;
+  source: Source;
   services: AirtableImportContext;
   logBasic: (string) => void;
   logDetailed: (string) => void;
@@ -388,6 +412,7 @@ export async function importLTARData({
                   body: insertArray,
                   cookie: {},
                   skip_hooks: true,
+                  foreign_key_checks: !!source.isMeta(),
                 });
 
                 importedCount += insertArray.length;
@@ -426,6 +451,7 @@ export async function importLTARData({
               body: assocTableData,
               cookie: {},
               skip_hooks: true,
+              foreign_key_checks: !!source.isMeta(),
             });
 
             importedCount += assocTableData.length;

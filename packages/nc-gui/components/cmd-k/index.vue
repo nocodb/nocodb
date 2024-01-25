@@ -45,10 +45,6 @@ const cmdInput = ref('')
 
 const { user } = useGlobal()
 
-const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'Ctrl'
-}
-
 const selected = ref<string>()
 
 const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {

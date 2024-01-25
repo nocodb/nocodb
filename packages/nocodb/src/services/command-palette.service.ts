@@ -18,7 +18,7 @@ export class CommandPaletteService {
   async commandPalette(param: { body: any; user: UserType }) {
     const cmdData = [];
     try {
-      const { scope, data } = param.body;
+      const { scope } = param.body;
 
       if (scope === 'root') {
         const bases = await Base.list({ user: param.user });

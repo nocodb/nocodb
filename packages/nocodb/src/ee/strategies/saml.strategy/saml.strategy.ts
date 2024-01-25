@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import process from 'process';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
@@ -10,7 +11,7 @@ import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, User } from '~/models';
-import process from 'process'
+import boxen from "boxen";
 
 @Injectable()
 export class SamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
@@ -69,9 +70,9 @@ export class SamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
 }
 
 const requiredEnvKeys = [
-  "NC_SSO_SAML_ISSUER",
-  "NC_SSO_SAML_ENTRY_POINT",
-  "NC_SSO_SAML_CERT"
+  'NC_SSO_SAML_ISSUER',
+  'NC_SSO_SAML_ENTRY_POINT',
+  'NC_SSO_SAML_CERT',
 ];
 
 export const SamlStrategyProvider: FactoryProvider = {
@@ -81,8 +82,7 @@ export const SamlStrategyProvider: FactoryProvider = {
     usersService: UsersService,
     config: ConfigService<AppConfig>,
   ) => {
-
-    if (process.env.NC_SSO?.toLowerCase() !== "saml") {
+    if (process.env.NC_SSO?.toLowerCase() !== 'saml') {
       return null;
     }
 
@@ -90,25 +90,32 @@ export const SamlStrategyProvider: FactoryProvider = {
     const missingKeys = requiredEnvKeys.filter((key) => !process.env[key]);
 
     if (missingKeys.length) {
-      console.log(boxen(`SAML SSO is enabled but missing required env keys: ${missingKeys.join(", ")}`,{
-        padding: 1, margin: 1, borderStyle: 'double',
-        title: "Missing Environment Values"
-      }));
+      console.log(
+        boxen(
+          `SAML SSO is enabled but missing required env keys: ${missingKeys.join(
+            ', ',
+          )}`,
+          {
+            padding: 1,
+            margin: 1,
+            borderStyle: 'double',
+            title: 'Missing Environment Values',
+          },
+        ),
+      );
       process.exit(0);
     }
-
 
     const clientConfig = {
       issuer: process.env.NC_SSO_SAML_ISSUER,
       entryPoint: process.env.NC_SSO_SAML_ENTRY_POINT,
       cert: process.env.NC_SSO_SAML_CERT,
-      path: "/auth/saml/callback",
-      passReqToCallback: true
+      path: '/auth/saml/callback',
+      passReqToCallback: true,
       // logoutUrl: process.env.NC_SAML_ENTRY_POINT,
       // logoutCallbackUrl: '/login/callback',
     };
+
+    return new SamlStrategy(clientConfig, config, usersService);
   },
-
-
-  return new SamlStrategy(clientConfig, config, usersService);
 };

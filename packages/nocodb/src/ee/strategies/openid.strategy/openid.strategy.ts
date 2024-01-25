@@ -15,6 +15,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { sanitiseUserObj } from '~/utils';
+import boxen from "boxen";
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(

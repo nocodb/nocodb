@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, isEeUI, useCommandPalette, useRouter, useTheme, isMac } from '#imports'
+import { applyNonSelectable, computed, isEeUI, isMac, useCommandPalette, useRouter, useTheme } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 const router = useRouter()
 

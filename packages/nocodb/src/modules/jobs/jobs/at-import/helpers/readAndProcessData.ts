@@ -11,12 +11,15 @@ import type { Source } from '~/models';
 
 const logger = new Logger('BaseModelSqlv2');
 
-const BULK_DATA_BATCH_COUNT = 20; // check size for every 20 records
-const BULK_DATA_BATCH_SIZE = 20 * 1024; // in bytes
-const BULK_LINK_BATCH_COUNT = 200; // process 200 links at a time
-const BULK_PARALLEL_PROCESS = 5;
-const STREAM_BUFFER_LIMIT = 200;
-const QUEUE_BUFFER_LIMIT = 50;
+const BULK_DATA_BATCH_COUNT =
+  +process.env.AT_IMPORT_BULK_DATA_BATCH_COUNT || 10; // check size for every N records
+const BULK_DATA_BATCH_SIZE =
+  +process.env.AT_IMPORT_BULK_DATA_BATCH_SIZE || 20 * 1024; // import N bytes at a time
+const BULK_LINK_BATCH_COUNT =
+  +process.env.AT_IMPORT_BULK_LINK_BATCH_COUNT || 200; // import N links at a time
+const BULK_PARALLEL_PROCESS = +process.env.AT_IMPORT_BULK_PARALLEL_PROCESS || 2; // process N records at a time
+const STREAM_BUFFER_LIMIT = +process.env.AT_IMPORT_STREAM_BUFFER_LIMIT || 100; // pause reading if we have more than N records to avoid backpressure
+const QUEUE_BUFFER_LIMIT = +process.env.AT_IMPORT_QUEUE_BUFFER_LIMIT || 20; // pause streaming if we have more than N records in the queue
 
 interface AirtableImportContext {
   bulkDataService: BulkDataAliasService;

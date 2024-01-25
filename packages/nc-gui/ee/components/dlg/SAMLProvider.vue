@@ -53,81 +53,99 @@ const dialogShow = computed({
 
 <template>
   <NcModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
-    <div class="font-bold mb-8 text-base">{{ $t('activity.registerSAML') }}</div>
-    <div class="gap-y-8 flex flex-col">
-      <a-form :model="form">
-        <input v-model="form.displayName" class="mb-4" placeholder="SAML Display Name*" required />
-        <div class="flex flex-col gap-2">
-          <div class="flex flex-row items-center">
-            <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
-            <component :is="iconMap.info" class="ml-1 text-gray-800" />
+    <div class="font-bold mb-4 text-base">{{ $t('activity.registerSAML') }}</div>
+    <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
+      <div class="gap-y-8 flex flex-col">
+        <a-form :model="form">
+          <input v-model="form.displayName" class="mb-4" placeholder="SAML Display Name*" required />
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-row items-center">
+              <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
+              <NcTooltip>
+                <template #title>
+                  This is the URL where authentication responses will be sent after successful login. Also referred to as
+                  'Callback URL' or 'Reply URL'.
+                </template>
+                <component :is="iconMap.info" class="ml-1 text-gray-800" />
+              </NcTooltip>
+            </div>
+            <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
+              <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+                https://idp.example.com/example_login/accounting_team_alhvd8WO
+              </span>
+              <NcButton
+                size="xsmall"
+                type="text"
+                @click="
+                  () => {
+                    copyToClipboard(props.saml.redirectUrl)
+                  }
+                "
+              >
+                <component :is="iconMap.copy" class="text-gray-800" />
+              </NcButton>
+            </div>
+            <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
-          <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-            <span class="text-gray-800"> https://idp.example.com/example_login/accounting_team_alhvd8WO </span>
-            <NcButton
-              size="xsmall"
-              type="text"
-              @click="
-                () => {
-                  copyToClipboard(props.saml.redirectUrl)
-                }
-              "
-            >
-              <component :is="iconMap.copy" class="text-gray-800" />
-            </NcButton>
+          <div class="flex flex-col my-8 gap-2">
+            <div class="flex flex-row items-center">
+              <span class="text-gray-800">{{ $t('labels.audience-entityId') }}</span>
+              <NcTooltip>
+                <template #title>
+                  This is the unique identifier for your application that is expected by the Identity Provider (IDP). It helps the
+                  IDP recognise and validate tokens issued specifically for your application.
+                </template>
+                <component :is="iconMap.info" class="ml-1 text-gray-800" />
+              </NcTooltip>
+            </div>
+            <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
+              <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+                https://idp.example.com/example_login/accounting_team_alhvd8WO
+              </span>
+              <NcButton
+                size="xsmall"
+                type="text"
+                @click="
+                  () => {
+                    copyToClipboard(props.saml.entityId)
+                  }
+                "
+              >
+                <component :is="iconMap.copy" class="text-gray-800" />
+              </NcButton>
+            </div>
+            <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
-          <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
-        </div>
-        <div class="flex flex-col my-8 gap-2">
-          <div class="flex flex-row items-center">
-            <span class="text-gray-800">{{ $t('labels.audience-entityId') }}</span>
-            <component :is="iconMap.info" class="ml-1 text-gray-800" />
-          </div>
-          <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-            <span class="text-gray-800"> https://idp.example.com/example_login/accounting_team_alhvd8WO </span>
-            <NcButton
-              size="xsmall"
-              type="text"
-              @click="
-                () => {
-                  copyToClipboard(props.saml.entityId)
-                }
-              "
-            >
-              <component :is="iconMap.copy" class="text-gray-800" />
-            </NcButton>
-          </div>
-          <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
-        </div>
 
-        <a-tabs v-model:activeKey="activeTabKey" class="!pl-0 min-h-53">
-          <a-tab-pane key="metaDataURL">
-            <template #tab>
-              <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
-            </template>
-            <a-form-item>
-              <input v-model="form.metaDataUrl" placeholder="Paste the Metadata URL here from the Identity Provider" />
-            </a-form-item>
-          </a-tab-pane>
-          <a-tab-pane key="xml">
-            <template #tab>
-              <div class="text-sm">XML</div>
-            </template>
-            <a-form-item>
-              <textarea v-model="form.metaDataUrl" placeholder="Paste the Metadata here from the Identity Provider" rows="5" />
-            </a-form-item>
-          </a-tab-pane>
-        </a-tabs>
+          <a-tabs v-model:activeKey="activeTabKey" class="!pl-0 min-h-53">
+            <a-tab-pane key="metaDataURL">
+              <template #tab>
+                <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
+              </template>
+              <a-form-item>
+                <input v-model="form.metaDataUrl" placeholder="Paste the Metadata URL here from the Identity Provider" />
+              </a-form-item>
+            </a-tab-pane>
+            <a-tab-pane key="xml">
+              <template #tab>
+                <div class="text-sm">XML</div>
+              </template>
+              <a-form-item>
+                <textarea v-model="form.metaDataUrl" placeholder="Paste the Metadata here from the Identity Provider" rows="5" />
+              </a-form-item>
+            </a-tab-pane>
+          </a-tabs>
 
-        <div class="flex rounded-lg border-1 border-gray-200 bg-orange-50 p-4 gap-4">
-          <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
-          <div>
-            <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
-            <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+          <div class="flex rounded-lg border-1 border-gray-200 bg-orange-50 p-4 gap-4">
+            <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
+            <div>
+              <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
+              <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+            </div>
+            <NcSwitch v-model:checked="form.ssoOnly" />
           </div>
-          <NcSwitch v-model:checked="form.ssoOnly" />
-        </div>
-      </a-form>
+        </a-form>
+      </div>
     </div>
     <div class="flex justify-end gap-2 mt-8">
       <NcButton size="medium" type="secondary" @click="dialogShow = false">

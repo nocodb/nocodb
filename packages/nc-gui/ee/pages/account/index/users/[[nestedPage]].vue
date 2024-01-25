@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useRoles } from '#imports'
 
 const { isUIAllowed } = useRoles()
@@ -17,8 +17,6 @@ const { isUIAllowed } = useRoles()
     <template v-else-if="$route.params.nestedPage === 'settings'">
       <LazyAccountSignupSettings />
     </template>
-    <template v-else-if="isUIAllowed('superAdminUserManagement')">
-      <LazyAccountUserList />
-    </template>
+    <template v-else-if="isUIAllowed('superAdminUserManagement')"> <LazyAccountUserList /> </template>
   </div>
 </template>

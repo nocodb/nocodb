@@ -1,0 +1,91 @@
+version: '3.8'
+
+networks:
+  nocodb-001:
+    # external: true
+    
+services:
+  redis: 
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    env_file:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nc_properties.env
+    expose:
+      - "6379"    
+    volumes:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/data/redis:/data
+    networks:
+      - nocodb-001
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1000M      
+  
+  postgres:
+    image: postgres:14.7
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nc_properties.env
+    expose:
+      - "5432"              
+    volumes:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/data/postgres:/var/lib/postgresql/data    
+    networks:
+      - nocodb-001
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1000M      
+  
+  nocodb:
+    depends_on:
+      - postgres
+      - redis
+    image: nocodb/nocodb:latest
+    container_name: nocodb
+    restart: unless-stopped
+    env_file:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nc_properties.env
+    expose:
+      - "8080"                 
+    volumes:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/data/nocodb:/usr/app/data/      
+    networks:
+      - nocodb-001
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1000M
+
+  nginx:
+    container_name: nginx
+    depends_on:
+      - nocodb
+    image: nginx
+    restart: unless-stopped
+    env_file:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nc_properties.env    
+    volumes:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/nginx/conf:/opt/nocohub/nginx/conf
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/data/nginx:/opt/nocohub/nginx/data
+      # -  ../nginx/conf/ssl:/etc/nginx/ssl/:ro   
+    expose:
+      - "80"                 
+      - "443"                 
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - nocodb-001
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1000M     

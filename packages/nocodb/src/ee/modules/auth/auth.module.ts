@@ -8,8 +8,8 @@ import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.stra
 import { MetasModule } from '~/modules/metas/metas.module';
 import { WorkspacesModule } from '~/modules/workspaces/workspaces.module';
 import { CognitoStrategyProvider } from '~/strategies/cognito.strategy/cognito.strategy';
-import { NocoSamlStrategyProvider } from '~/strategies/saml.strategy/saml.strategy';
-import { LongLivedTokenRefreshStrategy } from '~/strategies/long-lived-token-refresh.strategy/long-lived-token-refresh.strategy';
+import { SamlStrategyProvider } from '~/strategies/saml.strategy/saml.strategy';
+import { ShortLivedTokenStrategyProvider } from '~/strategies/short-lived-token.strategy/short-lived-token.strategy';
 
 @Module({
   imports: [
@@ -26,9 +26,9 @@ import { LongLivedTokenRefreshStrategy } from '~/strategies/long-lived-token-ref
     GoogleStrategyProvider,
     OpenidStrategyProvider,
     CognitoStrategyProvider,
-    NocoSamlStrategyProvider,
-    LongLivedTokenRefreshStrategy,
+    SamlStrategyProvider,
+    ShortLivedTokenStrategyProvider,
   ],
   exports: [UsersService],
 })
-export class AuthModule { }
+export class AuthModule {}

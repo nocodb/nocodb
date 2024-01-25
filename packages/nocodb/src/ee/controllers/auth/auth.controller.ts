@@ -228,7 +228,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   @Post('/auth/long-lived-token-refresh')
-  @UseGuards(PublicApiLimiterGuard, AuthGuard('long-lived-token-refresh'))
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('short-lived-token'))
   async longLivedTokenRefresh(
     @Req() req: Request & { extra: any },
     @Res() res: Response,

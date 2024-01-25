@@ -4,21 +4,23 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
-import { Strategy as SamlStrategy } from '@node-saml/passport-saml';
+import { Strategy } from '@node-saml/passport-saml';
 import * as jwt from 'jsonwebtoken';
+import boxen from 'boxen';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, User } from '~/models';
-import boxen from "boxen";
+import { MetaService } from '~/meta/meta.service';
 
 @Injectable()
-export class SamlStrategy extends PassportStrategy(SamlStrategy, 'saml') {
+export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
   constructor(
     config: any,
     private configService: ConfigService<AppConfig>,
     private usersService: UsersService,
+    private metaService: MetaService,
   ) {
     super(config);
   }
@@ -77,10 +79,11 @@ const requiredEnvKeys = [
 
 export const SamlStrategyProvider: FactoryProvider = {
   provide: SamlStrategy,
-  inject: [UsersService, ConfigService<AppConfig>],
+  inject: [UsersService, ConfigService<AppConfig>, MetaService],
   useFactory: async (
     usersService: UsersService,
     config: ConfigService<AppConfig>,
+    metaService: MetaService,
   ) => {
     if (process.env.NC_SSO?.toLowerCase() !== 'saml') {
       return null;
@@ -116,6 +119,6 @@ export const SamlStrategyProvider: FactoryProvider = {
       // logoutCallbackUrl: '/login/callback',
     };
 
-    return new SamlStrategy(clientConfig, config, usersService);
+    return new SamlStrategy(clientConfig, config, usersService, metaService);
   },
 };

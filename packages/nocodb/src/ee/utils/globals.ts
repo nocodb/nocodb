@@ -56,6 +56,7 @@ export enum MetaTable {
   NOTIFICATION = 'notification',
   MODEL_STAT = 'nc_model_stats_v2',
   DB_MUX = 'nc_sql_executor_v2',
+  SSO_CLIENT = 'nc_sso_client',
 }
 
 export const orderedMetaTables = [

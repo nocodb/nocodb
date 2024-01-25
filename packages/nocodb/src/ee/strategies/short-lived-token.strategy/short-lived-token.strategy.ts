@@ -1,19 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { User } from '~/models';
+import { MetaService } from '~/meta/meta.service';
 
 @Injectable()
-export class LongLivedTokenRefreshStrategy extends PassportStrategy(
+export class ShortLivedTokenStrategy extends PassportStrategy(
   Strategy,
-  'long-lived-token-refresh',
+  'short-lived-token',
 ) {
-  constructor() {
+  constructor(config: Record<any, any>) {
     super({
+      ...config,
       jwtFromRequest: ExtractJwt.fromHeader('xc-short-token'),
       passReqToCallback: true,
       expiresIn: '1m',
-      secretOrKey: 'your-secret-key',
     });
   }
 
@@ -22,13 +24,6 @@ export class LongLivedTokenRefreshStrategy extends PassportStrategy(
 
     const user = await User.getByEmail(jwtPayload?.email);
 
-    // if (
-    //   !user.token_version ||
-    //   !jwtPayload.token_version ||
-    //   user.token_version !== jwtPayload.token_version
-    // ) {
-    //   NcError.unauthorized('Token Expired. Please login again.');
-    // }
     return {
       saml: jwtPayload.saml,
       ...(await User.getWithRoles(user.id, {
@@ -41,3 +36,18 @@ export class LongLivedTokenRefreshStrategy extends PassportStrategy(
     };
   }
 }
+
+export const ShortLivedTokenStrategyProvider: FactoryProvider = {
+  provide: ShortLivedTokenStrategy,
+  inject: [MetaService],
+  useFactory: async (metaService: MetaService) => {
+    const config = metaService.config;
+
+    const options = {
+      secretOrKey: config.auth.jwt.secret,
+      ...config.auth.jwt.options,
+    };
+
+    return new ShortLivedTokenStrategy(options);
+  },
+};

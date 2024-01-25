@@ -3453,6 +3453,148 @@
             ]
           }
         ]
+      },
+      "SSOClient": {
+        "description": "Model for SSO Client",
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "description": "Unique ID"
+            },
+            "name": {
+                "type": "string",
+                "description": "Name of the SSO Client"
+            },
+            "client_id": {
+                "type": "string",
+                "description": "Client ID of the SSO Client"
+            },
+            "client_secret": {
+                "type": "string",
+                "description": "Client Secret of the SSO Client"
+            },
+            "redirect_uri": {
+                "type": "string",
+                "description": "Redirect URI of the SSO Client"
+            },
+            "auth_url": {
+                "type": "string",
+                "description": "Auth URL of the SSO Client"
+            },
+            "token_url": {
+                "type": "string",
+                "description": "Token URL of the SSO Client"
+            },
+            "user_info_url": {
+                "type": "string",
+                "description": "User Info URL of the SSO Client"
+            },
+            "jwk_url": {
+                "type": "string",
+                "description": "JWK URL of the SSO Client"
+            },
+            "created_at": {
+                "type": "string",
+                "description": "Date and time when the SSO Client was created"
+            },
+            "updated_at": {
+                "type": "string",
+                "description": "Date and time when the SSO Client was last updated"
+            }
+            },
+        }
+      },
+      "OpenIDClientConfig": {
+        "description": "OpenID Configuration",
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "redirectUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "clientId": {
+            "type": "string",
+            "required": true
+          },
+          "authUrl": {
+            "type": "string",
+            "format": "uri",
+            "required": true
+          },
+          "clientSecret": {
+            "type": "string",
+            "required": true
+          },
+          "tokenUrl": {
+            "type": "string",
+            "format": "uri",
+            "required": true
+          },
+          "userInfoUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "jwkUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "required": true
+          },
+          "userNameAttribute": {
+            "type": "string"
+          },
+          "ssoOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "clientId",
+          "authUrl",
+          "clientSecret",
+          "tokenUrl",
+          "scopes"
+        ]
+      },
+      "SAMLClientConfig": {
+        "description": "SAML Configuration",
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "redirectUrl": {
+            "type": "string",
+            "format": "uri",
+            "required": true
+          },
+          "entityId": {
+            "type": "string",
+            "required": true
+          },
+          "metaDataUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "xml": {
+            "type": "string"
+          },
+          "ssoOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "redirectUrl",
+          "entityId"
+        ]
       }
     },
     "responses": {
@@ -3477,3 +3619,4 @@
     }
   }
 }
+

@@ -191,6 +191,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.model.getColumns();
     }
 
+    // we need to post process lookup fields based on the looked up column instead of the lookup column
+    const aliasColumns = {};
+
+    if (!dependencyColumns) {
+      const nestedColumns = this.model?.columns.filter(
+        (col) => col.uidt === UITypes.Lookup,
+      );
+
+      for (const col of nestedColumns) {
+        const nestedColumn = await this.getNestedColumn(col);
+        if (nestedColumn && nestedColumn.colOptions?.type === 'bt') {
+          aliasColumns[col.id] = nestedColumn;
+        }
+      }
+    }
+
     // update attachment fields
     if (!options.skipAttachmentConversion) {
       data = await this.convertAttachmentType(data, dependencyColumns);
@@ -210,6 +226,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       data = await this.substituteColumnIdsWithColumnTitles(
         data,
         dependencyColumns,
+        aliasColumns,
       );
     }
 

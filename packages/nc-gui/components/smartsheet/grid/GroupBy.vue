@@ -72,9 +72,7 @@ const findAndLoadSubGroup = (key: any) => {
         if (grp.nested) {
           if (!grp.children?.length) props.loadGroups({}, grp)
         } else {
-          if (!grp.rows?.length || grp.count !== grp.rows?.length) {
-            props.loadGroupData(grp, true)
-          }
+          if (!grp.rows?.length || grp.count !== grp.rows?.length) props.loadGroupData(grp)
         }
       }
     }

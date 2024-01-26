@@ -4591,6 +4591,14 @@ class BaseModelSqlv2 {
           )
         : await this.dbDriver.raw(query);
 
+    if (!this.model?.columns) {
+      await this.model.getColumns();
+    }
+
+    if (childTable && !childTable?.columns) {
+      await childTable.getColumns();
+    }
+
     // update attachment fields
     if (!options.skipAttachmentConversion) {
       data = await this.convertAttachmentType(data, childTable);
@@ -4706,12 +4714,6 @@ class BaseModelSqlv2 {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
     if (data) {
-      if (childTable && !childTable?.columns) {
-        await childTable.getColumns();
-      } else if (!this.model?.columns) {
-        await this.model.getColumns();
-      }
-
       let userColumns = [];
 
       const columns = childTable ? childTable.columns : this.model.columns;
@@ -4885,12 +4887,6 @@ class BaseModelSqlv2 {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
-      if (childTable && !childTable?.columns) {
-        await childTable.getColumns();
-      } else if (!this.model?.columns) {
-        await this.model.getColumns();
-      }
-
       const attachmentColumns = [];
 
       const columns = childTable ? childTable.columns : this.model.columns;

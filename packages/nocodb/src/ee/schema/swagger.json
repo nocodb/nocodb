@@ -3599,22 +3599,18 @@
         "type": "object",
         "properties": {
           "clientId": {
-            "type": "string",
-            "required": true
+            "type": "string"
           },
           "authUrl": {
             "type": "string",
-            "format": "uri",
-            "required": true
+            "format": "uri"
           },
           "clientSecret": {
-            "type": "string",
-            "required": true
+            "type": "string"
           },
           "tokenUrl": {
             "type": "string",
-            "format": "uri",
-            "required": true
+            "format": "uri"
           },
           "userInfoUrl": {
             "type": "string",
@@ -3628,8 +3624,7 @@
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "required": true
+            }
           },
           "userNameAttribute": {
             "type": "string"
@@ -3650,9 +3645,6 @@
         "description": "SAML Configuration",
         "type": "object",
         "properties": {
-          "displayName": {
-            "type": "string"
-          },
           "entityId": {
             "type": "string"
           },

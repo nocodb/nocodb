@@ -27,17 +27,18 @@ export default async function getColumnPropsFromUIDT(
   newColumn.dtxs = sqlUi.getDefaultScaleForDatatype(newColumn.dt);
 
   const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
-  if (
-    column &&
-    selectTypes.includes(newColumn.uidt) &&
-    selectTypes.includes(column.uidt as UITypes)
-  ) {
-    newColumn.dtxp = (column as NormalColumnRequestType).dtxp;
+  if (column && selectTypes.includes(column.uidt as UITypes)) {
+    newColumn.dtxp =
+      typeof (column as NormalColumnRequestType).dtxp === 'string'
+        ? ((column as NormalColumnRequestType).dtxp as string)
+            .trim()
+            .replace(/'\s*,\s*'/g, "','")
+        : (column as NormalColumnRequestType).dtxp;
   }
 
   newColumn.altered = column.altered || 2;
 
-  const finalColumnMeta = { ...newColumn, ...column };
+  const finalColumnMeta = { ...column, ...newColumn };
 
   if (
     finalColumnMeta.uidt === UITypes.CreatedTime &&

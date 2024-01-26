@@ -4636,6 +4636,7 @@ class BaseModelSqlv2 {
   protected async substituteColumnIdsWithColumnTitles(
     data: Record<string, any>[],
     dependencyColumns?: Column[],
+    aliasColumns?: Record<string, Column>,
   ) {
     const modelColumns = this.model?.columns.concat(dependencyColumns ?? []);
 
@@ -4648,6 +4649,12 @@ class BaseModelSqlv2 {
     const btMap: Record<string, boolean> = {};
 
     modelColumns.forEach((col) => {
+      if (aliasColumns && col.id in aliasColumns) {
+        aliasColumns[col.id].id = col.id;
+        aliasColumns[col.id].title = col.title;
+        col = aliasColumns[col.id];
+      }
+
       idToAliasMap[col.id] = col.title;
       if (col.colOptions?.type === 'bt') {
         btMap[col.id] = true;

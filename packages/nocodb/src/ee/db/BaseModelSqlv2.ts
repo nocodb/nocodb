@@ -187,6 +187,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       data = await execAndGetRows(this, query);
     }
 
+    if (!this.model?.columns) {
+      await this.model.getColumns();
+    }
+
+    if (childTable && !childTable?.columns) {
+      await childTable.getColumns();
+    }
+
     // update attachment fields
     if (!options.skipAttachmentConversion) {
       data = await this.convertAttachmentType(data, childTable);

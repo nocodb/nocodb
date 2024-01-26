@@ -72,7 +72,7 @@ const findAndLoadSubGroup = (key: any) => {
         if (grp.nested) {
           if (!grp.children?.length) props.loadGroups({}, grp)
         } else {
-          if (!grp.rows?.length) props.loadGroupData(grp)
+          if (!grp.rows?.length || grp.count !== grp.rows?.length) props.loadGroupData(grp)
         }
       }
     }
@@ -258,7 +258,9 @@ const shouldRenderCell = (column) =>
                   <div class="flex items-center">
                     <div class="flex flex-col">
                       <div class="flex gap-2">
-                        <div class="text-xs nc-group-column-title">{{ grp.column.title }}</div>
+                        <div class="text-xs nc-group-column-title">
+                          {{ grp.column.title }}
+                        </div>
                         <div class="text-xs text-gray-400 nc-group-row-count">({{ $t('datatype.Count') }}: {{ grp.count }})</div>
                       </div>
                       <div class="flex mt-1">

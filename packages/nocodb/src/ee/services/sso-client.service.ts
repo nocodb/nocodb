@@ -22,6 +22,14 @@ export class SSOClientService {
   async clientAdd(param: { client: SSOClientType; req: any }) {
     // check if user is admin
 
+    // limit to 1 client for now
+    if((await SSOClient.list({
+      // fk_user_id: param.req.user.id,
+      type: param.client.type,
+    })).length > 0) {
+      NcError.notAllowed('Only one client is allowed for now');
+    }
+
     // validate client
     validatePayload('swagger.json#/components/schemas/SSOClient', param.client);
 
@@ -36,69 +44,6 @@ export class SSOClientService {
     });
 
     return client;
-  }
-
-  private async validateAndExtractConfig(param: {
-    client: SSOClientType;
-    req: any;
-    oldClient?: SSOClient;
-  }) {
-    // validate client
-    validatePayload(
-      `swagger.json#/components/schemas/${
-        param.oldClient ? 'SSOClient' : 'SSOClientReq'
-      }`,
-      param.client,
-    );
-
-    if (!param.client.config) return param.client.config;
-
-    const extractedConfig: SAMLClientConfigType | OpenIDClientConfigType = {
-      ...param.client.config,
-    };
-
-    // parse and extract metadata from url or xml if saml
-    switch ((param.client.type || param.oldClient?.type) as string) {
-      case 'saml':
-        {
-          const config = param.client.config as SAMLClientConfigType;
-          if (config.metaDataUrl) {
-            (extractedConfig as SAMLClientConfigType).xml =
-              await this.readSamlMetadata({
-                metadataUrl: config.metaDataUrl,
-              });
-          }
-
-          if (config.xml) {
-            Object.assign(
-              extractedConfig,
-              await this.extractSamlClientConfigFromXml({
-                metadata: (extractedConfig as SAMLClientConfigType).xml,
-              }),
-            );
-          }
-
-          validatePayload('swagger.json#/components/schemas/SAMLClientConfig', {
-            ...param.client.config,
-            extractedConfig,
-          });
-        }
-        break;
-      case 'openid':
-      case 'oidc':
-        {
-          validatePayload(
-            'swagger.json#/components/schemas/OpenIDClientConfig',
-            param.client.config,
-          );
-        }
-        break;
-      default: {
-        NcError.badRequest('Invalid client type');
-      }
-    }
-
-    return extractedConfig;
   }
 
   async clientUpdate(param: {
@@ -184,4 +129,69 @@ export class SSOClientService {
       cert,
     };
   }
+
+
+  private async validateAndExtractConfig(param: {
+    client: SSOClientType;
+    req: any;
+    oldClient?: SSOClient;
+  }) {
+    // validate client
+    validatePayload(
+      `swagger.json#/components/schemas/${
+        param.oldClient ? 'SSOClient' : 'SSOClientReq'
+      }`,
+      param.client,
+    );
+
+    if (!param.client.config) return param.client.config;
+
+    const extractedConfig: SAMLClientConfigType | OpenIDClientConfigType = {
+      ...param.client.config,
+    };
+
+    // parse and extract metadata from url or xml if saml
+    switch ((param.client.type || param.oldClient?.type) as string) {
+      case 'saml':
+      {
+        const config = param.client.config as SAMLClientConfigType;
+        if (config.metaDataUrl) {
+          (extractedConfig as SAMLClientConfigType).xml =
+            await this.readSamlMetadata({
+              metadataUrl: config.metaDataUrl,
+            });
+        }
+
+        if (config.xml) {
+          Object.assign(
+            extractedConfig,
+            await this.extractSamlClientConfigFromXml({
+              metadata: (extractedConfig as SAMLClientConfigType).xml,
+            }),
+          );
+        }
+
+        validatePayload('swagger.json#/components/schemas/SAMLClientConfig', {
+          ...param.client.config,
+          extractedConfig,
+        });
+      }
+        break;
+      case 'openid':
+      case 'oidc':
+      {
+        validatePayload(
+          'swagger.json#/components/schemas/OpenIDClientConfig',
+          param.client.config,
+        );
+      }
+        break;
+      default: {
+        NcError.badRequest('Invalid client type');
+      }
+    }
+
+    return extractedConfig;
+  }
+
 }

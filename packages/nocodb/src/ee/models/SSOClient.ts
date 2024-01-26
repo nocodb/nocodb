@@ -113,7 +113,7 @@ export default class SSOClient implements SSOClientType {
       null,
       null,
       MetaTable.SSO_CLIENT,
-      param,
+      param.type ? { condition: { type: param.type } } : null,
     );
 
     return clients.map((client) => {

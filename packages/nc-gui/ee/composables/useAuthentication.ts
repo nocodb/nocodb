@@ -6,16 +6,20 @@ export const useAuthentication = () => {
   const providers = ref<SSOClientType[]>([])
 
   const fetchProviders = async () => {
-    const res = await api.ssoClient.list()
-    providers.value = res.list
+    try {
+      const res = await api.ssoClient.list()
+      providers.value = res.list
+    } catch (err) {
+      message.error(err.message)
+      console.log(err)
+    }
   }
 
   const updateProvider = async (id: string, provider: Partial<SSOClientType>) => {
     try {
-      const res = await api.ssoClient.update(id, {
+      await api.ssoClient.update(id, {
         body: provider,
       })
-      providers.value = providers.value.map((p) => (p.id === id ? res : p))
     } catch (err) {
       message.error(err.message)
       console.log(err)
@@ -34,10 +38,9 @@ export const useAuthentication = () => {
 
   const addProvider = async (provider: SSOClientType) => {
     try {
-      await api.ssoClient.create({
+      const res = await api.ssoClient.create({
         body: provider,
       })
-      await fetchProviders()
     } catch (err) {
       message.error(err.message)
       console.log(err)

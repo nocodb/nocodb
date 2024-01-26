@@ -1,51 +1,64 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
-import { computed, reactive } from '#imports'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import isURL from 'validator/lib/isURL'
+import { computed, reactive, ref, useAuthentication } from '#imports'
 
-interface Props {
+const props = defineProps<{
   modelValue: boolean
-  saml: SSOClientType & {
-    config: {
-      metaDataUrl: string
-    }
-  }
-}
-interface Form {
-  title: string
-  metaDataUrl?: string
-  xml?: string
-  ssoOnly: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  saml: {
-    title: '',
-    config: {
-      metaDataUrl: '',
-      xml: '',
-      redirectUrl: '',
-      ssoOnly: false,
-    },
-    redirectUrl: '',
-    ssoOnly: false,
-  },
-})
+  isEdit: boolean
+  saml: SSOClientType
+}>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { addProvider } = useAuthentication()
+const { t } = useI18n()
 
-const form = reactive<Form>({
-  title: props.saml.title ?? '',
-  redirectUrl: props.saml.config.redirectUrl ?? '',
-  metaDataUrl: props.saml.config.metaDataUrl ?? '',
-  xml: props.saml.config.xml ?? '',
-  ssoOnly: props.saml.config.ssoOnly ?? false,
+const { addProvider, updateProvider } = useAuthentication()
+
+const form = reactive<{ title: string; metaDataUrl?: string; xml?: string; ssoOnly: boolean }>({
+  title: props.saml?.title ?? '',
+  metaDataUrl: '',
+  xml: props.saml?.config?.xml ?? '',
+  ssoOnly: props.saml?.config?.ssoOnly ?? false,
 })
 
-const isSubmitEnabled = computed(() => {
-  return form.title.length > 0 && (form.metaDataUrl || form.xml)
-})
+const formRules = {
+  title: [
+    // Title is required
+    { required: true, message: t('msg.error.nameRequired') },
+  ] as RuleObject[],
+  // Either metaDataUrl or xml is required
+  metaDataUrl: [
+    // MetaDataUrl is required
+    { required: () => !form.xml?.length, message: t('msg.error.eitherXML') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v.length || !isURL(v)) return resolve()
+
+          reject(new Error(t('msg.error.invalidURL')))
+        })
+      },
+      message: t('msg.error.signUpRules.emailInvalid'),
+    },
+  ] as RuleObject[],
+  xml: [
+    { required: () => !form.metaDataUrl?.length, message: t('msg.error.eitherXML') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v?.length) return resolve()
+
+          reject(new Error('XML is invalid'))
+        })
+      },
+      message: t('msg.error.invalidXML'),
+    },
+  ] as RuleObject[],
+}
+
+const formValidator = ref()
 
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
@@ -59,14 +72,27 @@ const dialogShow = computed({
 })
 
 const saveSamlProvider = async () => {
-  console.log('saveSamlProvider', form)
+  if (!formValidator.value.validate()) return
+  if (props.isEdit) {
+    await updateProvider(props.saml.id, {
+      title: form.title,
+      config: {
+        metaDataUrl: form.metaDataUrl,
+        xml: form.xml,
+        redirectUrl: '',
+        ssoOnly: form.ssoOnly,
+      },
+    })
+    dialogShow.value = false
+    return
+  }
   await addProvider({
     type: 'saml',
     title: form.title,
     config: {
       metaDataUrl: form.metaDataUrl,
       xml: form.xml,
-      redirectUrl: form.redirectUrl,
+      redirectUrl: '',
       ssoOnly: form.ssoOnly,
     },
   })
@@ -79,8 +105,11 @@ const saveSamlProvider = async () => {
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerSAML') }}</div>
     <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
-        <a-form :model="form">
-          <input v-model="form.title" class="mb-4" placeholder="SAML Display Name*" required />
+        <a-form ref="formValidator" :model="form">
+          <a-form-item :rules="formRules.title">
+            <a-input v-model:value="form.title" placeholder="SAML Display Name*" />
+          </a-form-item>
+
           <div class="flex flex-col gap-2">
             <div class="flex flex-row items-center">
               <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
@@ -94,6 +123,7 @@ const saveSamlProvider = async () => {
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
               <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+                <!-- Get Redirect URL from Authentication Composable -->
                 https://idp.example.com/example_login/accounting_team_alhvd8WO
               </span>
               <NcButton
@@ -101,7 +131,8 @@ const saveSamlProvider = async () => {
                 type="text"
                 @click="
                   () => {
-                    copyToClipboard(props.saml.redirectUrl)
+                    // props.saml.config.redirectUrl
+                    copyToClipboard('')
                   }
                 "
               >
@@ -123,6 +154,8 @@ const saveSamlProvider = async () => {
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
               <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+                <!-- Get Entity ID from Authentication Composable -->
+
                 https://idp.example.com/example_login/accounting_team_alhvd8WO
               </span>
               <NcButton
@@ -130,7 +163,8 @@ const saveSamlProvider = async () => {
                 type="text"
                 @click="
                   () => {
-                    copyToClipboard(props.saml.entityId)
+                    // props.saml.config.entityId
+                    copyToClipboard('')
                   }
                 "
               >
@@ -145,48 +179,58 @@ const saveSamlProvider = async () => {
               <template #tab>
                 <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
               </template>
-              <a-form-item>
-                <input v-model="form.metaDataUrl" placeholder="Paste the Metadata URL here from the Identity Provider" />
+              <a-form-item :rules="formRules.metaDataUrl">
+                <a-input v-model:value="form.metaDataUrl" placeholder="Paste the Metadata URL here from the Identity Provider" />
               </a-form-item>
             </a-tab-pane>
             <a-tab-pane key="xml">
               <template #tab>
                 <div class="text-sm">XML</div>
               </template>
-              <a-form-item>
-                <textarea v-model="form.xml" placeholder="Paste the Metadata here from the Identity Provider" rows="5" />
+              <a-form-item :rules="formRules.xml">
+                <a-textarea
+                  v-model="form.xml"
+                  :auto-size="{
+                    minRows: 5,
+                    maxRows: 5,
+                  }"
+                  placeholder="Paste the Metadata here from the Identity Provider"
+                />
               </a-form-item>
             </a-tab-pane>
           </a-tabs>
 
-          <div class="flex rounded-lg border-1 border-gray-200 bg-orange-50 p-4 gap-4">
-            <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
-            <div>
-              <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
-              <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+          <div class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between">
+            <div class="flex gap-4">
+              <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
+              <div>
+                <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
+                <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+              </div>
             </div>
+
             <NcSwitch v-model:checked="form.ssoOnly" />
+          </div>
+          <div class="flex justify-end gap-2 mt-8">
+            <NcButton size="medium" type="secondary" @click="dialogShow = false">
+              {{ $t('labels.cancel') }}
+            </NcButton>
+            <NcButton size="medium" type="primary" @click="saveSamlProvider">
+              {{ $t('labels.save') }}
+            </NcButton>
           </div>
         </a-form>
       </div>
-    </div>
-    <div class="flex justify-end gap-2 mt-8">
-      <NcButton size="medium" type="secondary" @click="dialogShow = false">
-        {{ $t('labels.cancel') }}
-      </NcButton>
-      <NcButton size="medium" type="primary" @click="saveSamlProvider">
-        {{ $t('labels.save') }}
-      </NcButton>
     </div>
   </NcModal>
 </template>
 
 <style lang="scss" scoped>
-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500  border-gray-200 placeholder:text-gray-500 outline-none;
+.ant-input::placeholder {
+  @apply text-gray-500;
 }
 
-textarea {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500  border-gray-200 placeholder:text-gray-500 outline-none;
+.ant-input {
+  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }
 </style>

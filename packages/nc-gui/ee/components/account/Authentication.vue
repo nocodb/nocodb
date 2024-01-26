@@ -4,15 +4,17 @@ import type { SSOClientType } from 'nocodb-sdk'
 const { fetchProviders, providers, deleteProvider, updateProvider, addProvider } = useAuthentication()
 
 const samlProviders = computed(() => {
-  return providers.value.filter((provider) => provider.type === 'saml')
+  return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml')
 })
 
 const oidcProviders = computed(() => {
-  return providers.value.filter((provider) => provider.type === 'oidc')
+  return [...providers.value].filter((provider: SSOClientType) => provider.type === 'oidc')
 })
 
 const samlDialogShow = ref(false)
 const oidcDialogShow = ref(false)
+
+const isEdit = ref(false)
 
 const addSamlProvider = () => {
   samlDialogShow.value = true
@@ -31,48 +33,43 @@ const updateProviderStatus = async (id: string, enabled: boolean) => {
   await updateProvider(id, { enabled })
 }
 
-watch(samlDialogShow, () => {
-  if (samlDialogShow.value) {
-    providerProp.value = {
-      type: 'saml',
-      title: '',
-      config: {
-        metaDataUrl: '',
-        xml: '',
-        ssoOnly: false,
-      },
+watch(
+  () => samlDialogShow.value,
+  async (v) => {
+    if (!v) {
+      isEdit.value = false
+      providerProp.value = undefined
+      await fetchProviders()
     }
-  } else {
-    providerProp.value = {}
-  }
-})
+  },
+)
 
-watch(oidcDialogShow, () => {
-  if (oidcDialogShow.value) {
-    providerProp.value = {
-      type: 'oidc',
-      title: '',
-      config: {
-        clientId: '',
-        clientSecret: '',
-        redirectUrl: '',
-        authUrl: '',
-        tokenUrl: '',
-        userInfoUrl: '',
-        ssoOnly: false,
-      },
+watch(
+  () => oidcDialogShow.value,
+  async (v) => {
+    if (!v) {
+      isEdit.value = false
+      providerProp.value = undefined
+      await fetchProviders()
     }
-  } else {
-    providerProp.value = {}
-  }
-})
+  },
+)
 
 const duplicateProvider = async (id: string) => {
-  console.log('duplicateProvider', id)
   const provider = providers.value.find((p) => p.id === id)
   if (provider) {
     delete provider.id
     await addProvider(provider)
+  }
+}
+
+const enableEdit = (provider: SSOClientType) => {
+  isEdit.value = true
+  providerProp.value = provider
+  if (provider.type === 'saml') {
+    samlDialogShow.value = true
+  } else {
+    oidcDialogShow.value = true
   }
 }
 
@@ -114,9 +111,9 @@ onMounted(async () => {
         <div class="flex font-bold justify-between text-base" data-rec="true">
           {{ $t('labels.saml') }}
 
-          <NcButton size="small" type="secondary" @click="addSamlProvider">
-            <component :is="iconMap.plus" class="text-gray-800" />
-            <span class="text-gray-800"> {{ $t('labels.newProvider') }} </span>
+          <NcButton :disabled="samlProviders.length >= 1" size="small" type="secondary" @click="addSamlProvider">
+            <component :is="iconMap.plus" />
+            <span> {{ $t('labels.newProvider') }} </span>
           </NcButton>
         </div>
         <a-divider class="text-gray-200" />
@@ -145,7 +142,7 @@ onMounted(async () => {
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem>
+                  <NcMenuItem @click="enableEdit(sam)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.edit" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
@@ -174,9 +171,9 @@ onMounted(async () => {
         <div class="flex font-bold justify-between text-base" data-rec="true">
           {{ $t('labels.oidc') }}
 
-          <NcButton size="small" type="secondary" @click="addOIDCProvider">
-            <component :is="iconMap.plus" class="text-gray-800" />
-            <span class="text-gray-800"> {{ $t('labels.newProvider') }} </span>
+          <NcButton :disabled="oidcProviders.length >= 1" size="small" type="secondary" @click="addOIDCProvider">
+            <component :is="iconMap.plus" />
+            <span> {{ $t('labels.newProvider') }} </span>
           </NcButton>
         </div>
         <a-divider class="text-gray-200" />
@@ -188,7 +185,12 @@ onMounted(async () => {
             class="flex flex-row justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
           >
             <div>
-              <NcSwitch :checked="oid.enabled" class="min-w-4" size="small" @click="(val) => {}" />
+              <NcSwitch
+                :checked="oid.enabled"
+                class="min-w-4"
+                size="small"
+                @change="updateProviderStatus(oid.id, !oid.enabled)"
+              />
               <span class="text-inherit ml-2 group-hover:text-black capitalize">
                 {{ oid?.title }}
               </span>
@@ -200,7 +202,7 @@ onMounted(async () => {
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem>
+                  <NcMenuItem @click="enableEdit(oid)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.edit" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
@@ -226,8 +228,8 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <DlgSAMLProvider v-model:model-value="samlDialogShow" :saml="providerProp" />
-    <DlgOIDCProvider v-model:model-value="oidcDialogShow" :oidc="providerProp" />
+    <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" :is-edit="isEdit" :saml="providerProp" />
+    <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" :is-edit="isEdit" :oidc="providerProp" />
   </div>
 </template>
 

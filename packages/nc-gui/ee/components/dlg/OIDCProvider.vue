@@ -1,13 +1,24 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
-import { computed, reactive } from '#imports'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import isURL from 'validator/lib/isURL'
+import { computed, reactive, ref, useAuthentication } from '#imports'
 
-interface Props {
+const props = defineProps<{
   modelValue: boolean
+  isEdit: boolean
   oidc?: SSOClientType
-}
+}>()
 
-interface Form {
+const emit = defineEmits(['update:modelValue'])
+
+const formValidator = ref()
+
+const { t } = useI18n()
+
+const { addProvider, updateProvider } = useAuthentication()
+
+const form = reactive<{
   title: string
   clientId: string
   clientSecret: string
@@ -18,47 +29,81 @@ interface Form {
   scopes: string[]
   userNameAttribute: string
   ssoOnly?: boolean
-}
+}>({
+  title: props.oidc?.title ?? '', // COmplete
+  clientId: props.oidc?.config?.clientId ?? '', // COmplete
+  clientSecret: props.oidc?.config?.clientSecret ?? '', // COmplete
+  authUrl: props.oidc?.config?.authUrl ?? '', // COmplete
+  tokenUrl: props.oidc?.config?.tokenUrl ?? '', // COmplete
+  userInfoUrl: props.oidc?.config?.userInfoUrl ?? '', // COmplete
+  jwkUrl: props.oidc?.config?.jwkUrl ?? '', // COmplete
+  scopes: props.oidc?.config?.scopes ?? [],
+  userNameAttribute: props.oidc?.config?.userNameAttribute ?? '',
+  ssoOnly: props.oidc?.config?.ssoOnly ?? false,
+})
 
-const props = withDefaults(defineProps<Props>(), {
-  oidc: {
-    title: '',
-    config: {
-      clientId: '',
-      clientSecret: '',
-      authUrl: '',
-      tokenUrl: '',
-      userInfoUrl: '',
-      jwkUrl: '',
-      scopes: [],
-      userNameAttribute: '',
+const formRules = {
+  title: [
+    // Title is required
+    { required: true, message: t('msg.error.nameRequired') },
+  ] as RuleObject[],
+  clientId: [{ required: true, message: t('msg.error.clientIdRequired') }] as RuleObject[],
+  clientSecret: [{ required: true, message: t('msg.error.clientSecretRequired') }] as RuleObject[],
+  authUrl: [
+    // MetaDataUrl is required
+    { required: true, message: t('msg.error.authUrlRequired') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v.length || !isURL(v)) return resolve()
+
+          reject(new Error(t('msg.error.invalidURL')))
+        })
+      },
+      message: t('msg.error.authUrlRequired'),
     },
-    redirectUrl: '',
-    ssoOnly: false,
-  },
-})
+  ] as RuleObject[],
+  tokenUrl: [
+    { required: true, message: t('msg.error.authUrlRequired') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v.length || !isURL(v)) return resolve()
 
-const emit = defineEmits(['update:modelValue'])
+          reject(new Error(t('msg.error.invalidURL')))
+        })
+      },
+      message: t('msg.error.authUrlRequired'),
+    },
+  ] as RuleObject[],
+  userInfoUrl: [
+    { required: true, message: t('msg.error.userInfoUrlRequired') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v.length || !isURL(v)) return resolve()
 
-const { addProvider } = useAuthentication()
+          reject(new Error(t('msg.error.invalidURL')))
+        })
+      },
+      message: t('msg.error.userInfoUrlRequired'),
+    },
+  ] as RuleObject[],
+  jwkUrl: [
+    { required: true, message: t('msg.error.jwkUrlRequired') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v.length || !isURL(v)) return resolve()
 
-const form = reactive<Form>({
-  title: props.oidc.title ?? '',
-  clientId: props.oidc.config.clientId ?? '',
-  clientSecret: props.oidc.config.clientSecret ?? '',
-  authUrl: props.oidc.config.authUrl ?? '',
-  redirectUrl: props.oidc.redirectUrl ?? '',
-  tokenUrl: props.oidc.config.tokenUrl ?? '',
-  userInfoUrl: props.oidc.config.userInfoUrl ?? '',
-  jwkUrl: props.oidc.config.jwkUrl ?? '',
-  scopes: props.oidc.config.scopes ?? [],
-  userNameAttribute: props.oidc.config.userNameAttribute ?? '',
-  ssoOnly: props.oidc.ssoOnly,
-})
-
-const isSubmitEnabled = computed(() => {
-  return form.title.length > 0
-})
+          reject(new Error(t('msg.error.invalidURL')))
+        })
+      },
+      message: t('msg.error.jwkUrlRequired'),
+    },
+  ] as RuleObject[],
+  userNameAttribute: [{ required: true, message: t('msg.error.userNameAttributeRequired') }] as RuleObject[],
+}
 
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
@@ -70,6 +115,27 @@ const dialogShow = computed({
 })
 
 const saveOIDCProvider = async () => {
+  if (!formValidator.value.validate()) return
+  if (props.isEdit) {
+    await updateProvider(props.oidc?.id ?? '', {
+      title: form.title,
+      config: {
+        clientId: form.clientId,
+        clientSecret: form.clientSecret,
+        authUrl: form.authUrl,
+        tokenUrl: form.tokenUrl,
+        userInfoUrl: form.userInfoUrl,
+        jwkUrl: form.jwkUrl,
+        // Redirect URL is not editable fetch from props
+        redirectUrl: '',
+        scopes: form.scopes,
+        userNameAttribute: form.userNameAttribute,
+        ssoOnly: form.ssoOnly,
+      },
+    })
+    dialogShow.value = false
+    return
+  }
   await addProvider({
     type: 'oidc',
     enabled: true,
@@ -81,7 +147,8 @@ const saveOIDCProvider = async () => {
       tokenUrl: form.tokenUrl,
       userInfoUrl: form.userInfoUrl,
       jwkUrl: form.jwkUrl,
-      redirectUrl: form.redirectUrl,
+      // Redirect URL is not editable fetch from props
+      redirectUrl: '',
       scopes: form.scopes,
       userNameAttribute: form.userNameAttribute,
       ssoOnly: form.ssoOnly,
@@ -96,8 +163,11 @@ const saveOIDCProvider = async () => {
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerOIDC') }}</div>
     <div class="overflow-y-auto h-[calc(min(75vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
-        <a-form :model="form">
-          <input v-model="form.displayName" class="mb-4" placeholder="OIDC Display Name*" required />
+        <a-form ref="formValidator" :model="form">
+          <a-form-item :rules="formRules.title">
+            <a-input v-model:value="form.title" placeholder="OIDC Display Name*" />
+          </a-form-item>
+
           <div class="flex flex-col gap-2">
             <div class="flex w-full flex-row items-center">
               <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
@@ -118,7 +188,8 @@ const saveOIDCProvider = async () => {
                 type="text"
                 @click="
                   () => {
-                    copyToClipboard(props.oidc.redirectUrl)
+                    // TODO: get redirect url from Props
+                    copyToClipboard('')
                   }
                 "
               >
@@ -128,21 +199,40 @@ const saveOIDCProvider = async () => {
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
 
-          <input v-model="form.clientId" class="mt-4" placeholder="Client ID*" required />
-          <input v-model="form.clientSecret" class="mt-4" placeholder="Client Secret*" required />
-          <input v-model="form.authUrl" class="mt-4" placeholder="Authorisation URL*" required />
-          <input v-model="form.tokenUrl" class="mt-4" placeholder="Token URL*" required />
-          <input v-model="form.userInfoUrl" class="mt-4" placeholder="User Info URL*" required />
-          <input v-model="form.jwkUrl" class="mt-4" placeholder="JWK Set URL*" required />
+          <a-form-item :rules="formRules.clientId">
+            <a-input v-model:value="form.clientId" class="!mt-4" placeholder="Client ID*" />
+          </a-form-item>
 
-          <input v-model="form.userNameAttribute" class="mt-4" placeholder="Username Attribute*" required />
+          <a-form-item :rules="formRules.clientSecret">
+            <a-input v-model:value="form.clientSecret" class="mt-4" placeholder="Client Secret*" required />
+          </a-form-item>
 
-          <div class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 gap-4">
-            <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
-            <div>
-              <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
-              <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+          <a-form-item :rules="formRules.authUrl">
+            <a-input v-model:value="form.authUrl" class="mt-4" placeholder="Authorisation URL*" required />
+          </a-form-item>
+          <a-form-item :rules="formRules.tokenUrl">
+            <a-input v-model:value="form.tokenUrl" class="mt-4" placeholder="Token URL*" required />
+          </a-form-item>
+          <a-form-item :rules="formRules.userInfoUrl">
+            <a-input v-model:value="form.userInfoUrl" class="mt-4" placeholder="User Info URL*" required />
+          </a-form-item>
+          <a-form-item :rules="formRules.jwkUrl">
+            <a-input v-model:value="form.jwkUrl" class="mt-4" placeholder="JWK Set URL*" required />
+          </a-form-item>
+
+          <a-form-item :rules="formRules.userNameAttribute">
+            <a-input v-model:value="form.userNameAttribute" class="mt-4" placeholder="Username Attribute*" required />
+          </a-form-item>
+
+          <div class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between">
+            <div class="flex gap-4">
+              <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
+              <div>
+                <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
+                <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+              </div>
             </div>
+
             <NcSwitch v-model:checked="form.ssoOnly" />
           </div>
         </a-form>
@@ -160,7 +250,11 @@ const saveOIDCProvider = async () => {
 </template>
 
 <style lang="scss" scoped>
-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500  border-gray-200 placeholder:text-gray-500 outline-none;
+.ant-input::placeholder {
+  @apply text-gray-500;
+}
+
+.ant-input {
+  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }
 </style>

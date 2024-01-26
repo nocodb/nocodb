@@ -174,7 +174,7 @@ const queryToPass = computed(() =>
                   <MdiLogin />
 
                   <template v-if="!appInfo.disableEmailAuth">
-                    {{ $t('labels.sigInpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                    {{ $t('labels.sigInWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
                   </template>
                   <template v-else>
                     {{ $t('general.signIn') }}

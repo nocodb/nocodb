@@ -14,16 +14,6 @@ server.use(
   }),
 );
 
-process.env.NC_SSO_OIDC_ISSUER='https://cognito-idp.us-east-2.amazonaws.com/us-east-2_STrmC0yso'
-process.env.NC_SSO_OIDC_AUTHORIZATION_URL='https://auth.nocohub.ai/oauth2/authorize'
-process.env.NC_SSO_OIDC_TOKEN_URL='https://auth.nocohub.ai/oauth2/token'
-process.env.NC_SSO_OIDC_USERINFO_URL='https://auth.nocohub.ai/oauth2/userInfo'
-process.env.NC_SSO_OIDC_CLIENT_ID='15hld9efpnfftfe6mofns4koua'
-process.env.NC_SSO_OIDC_CLIENT_SECRET='1d5ek2h51pjrhloungu5pv2mb4bjijnvij4hi1o1so9ig4t1eh2c'
-process.env.NC_SSO_OIDC_PROVIDER_NAME='Cognito'
-
-
-process.env.NC_SSO='openid'
 
 process.env.NC_SAML_ISSUER='nocodb'
 process.env.NC_SAML_ENTRY_POINT='http://localhost:9090/realms/master/protocol/saml'

@@ -3598,13 +3598,6 @@
         "description": "OpenID Configuration",
         "type": "object",
         "properties": {
-          "displayName": {
-            "type": "string"
-          },
-          "redirectUrl": {
-            "type": "string",
-            "format": "uri"
-          },
           "clientId": {
             "type": "string",
             "required": true
@@ -3660,14 +3653,8 @@
           "displayName": {
             "type": "string"
           },
-          "redirectUrl": {
-            "type": "string",
-            "format": "uri",
-            "required": true
-          },
           "entityId": {
-            "type": "string",
-            "required": true
+            "type": "string"
           },
           "metaDataUrl": {
             "type": "string",
@@ -3679,11 +3666,7 @@
           "ssoOnly": {
             "type": "boolean"
           }
-        },
-        "required": [
-          "redirectUrl",
-          "entityId"
-        ]
+        }
       },
 
       "SSOClientList": {

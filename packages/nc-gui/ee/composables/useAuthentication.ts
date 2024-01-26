@@ -38,7 +38,7 @@ export const useAuthentication = () => {
 
   const addProvider = async (provider: SSOClientType) => {
     try {
-      const res = await api.ssoClient.create({
+      await api.ssoClient.create({
         body: provider,
       })
     } catch (err) {

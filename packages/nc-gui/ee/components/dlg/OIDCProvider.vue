@@ -220,6 +220,14 @@ const saveOIDCProvider = async () => {
             <a-input v-model:value="form.jwkUrl" class="mt-4" placeholder="JWK Set URL*" required />
           </a-form-item>
 
+          <NcSelect
+            v-model:value="form.scopes"
+            :options="[...['openid', 'profile', 'email'].map((s) => ({ label: s, value: s }))]"
+            class="w-full !mb-4"
+            mode="tags"
+            placeholder="-scope not selected*-"
+          />
+
           <a-form-item :rules="formRules.userNameAttribute">
             <a-input v-model:value="form.userNameAttribute" class="mt-4" placeholder="Username Attribute*" required />
           </a-form-item>
@@ -253,7 +261,9 @@ const saveOIDCProvider = async () => {
 .ant-input::placeholder {
   @apply text-gray-500;
 }
-
+.nc-select.ant-select .ant-select-selector {
+  @apply !h-[45px];
+}
 .ant-input {
   @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }

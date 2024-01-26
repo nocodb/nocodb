@@ -1824,7 +1824,6 @@ export class AtImportProcessor {
       const userList = aTblSchema.appBlanket.userInfoById;
       const totalUsers = Object.keys(userList).length;
       let cnt = 0;
-      const insertJobs: Promise<any>[] = [];
 
       for (const [, value] of Object.entries(
         userList as { [key: string]: any },
@@ -1833,28 +1832,25 @@ export class AtImportProcessor {
           `[${++cnt}/${totalUsers}] NC API auth.baseUserAdd :: ${value.email}`,
         );
         const _perfStart = recordPerfStart();
-        insertJobs.push(
-          this.baseUsersService
-            .userInvite({
-              baseId: ncCreatedProjectSchema.id,
-              baseUser: {
-                email: value.email,
-                roles: userRoles[value.permissionLevel],
-              },
-              req: { user: syncDB.user, clientIp: '' },
-            })
-            .catch((e) => {
-              if (e.message) {
-                // TODO enable after fixing user invite role issue
-                // logWarning(e.message);
-              } else {
-                logger.log(e);
-              }
-            }),
-        );
+        await this.baseUsersService
+          .userInvite({
+            baseId: ncCreatedProjectSchema.id,
+            baseUser: {
+              email: value.email,
+              roles: userRoles[value.permissionLevel],
+            },
+            req: { user: syncDB.user, clientIp: '' },
+          })
+          .catch((e) => {
+            if (e.message) {
+              // TODO enable after fixing user invite role issue
+              // logWarning(e.message);
+            } else {
+              logger.log(e);
+            }
+          });
         recordPerfStats(_perfStart, 'auth.baseUserAdd');
       }
-      await Promise.all(insertJobs);
     };
 
     const updateNcTblSchema = (tblSchema) => {
@@ -2080,19 +2076,18 @@ export class AtImportProcessor {
           if (filter.operator === 'doesNotContain') {
             filter.operator = 'isNoneOf';
           }
+
+          for (let j = 0; j < filter.value.length; j++) {
+            filter.value[j] = await sMap.getNcNameFromAtId(filter.value[j]);
+          }
+
           // if array, break it down to multiple filters
           if (Array.isArray(filter.value)) {
             const fx = {
               fk_column_id: columnId,
               logical_op: f.conjunction,
               comparison_op: filterMap[filter.operator],
-              value: (
-                await Promise.all(
-                  filter.value.map(
-                    async (f) => await sMap.getNcNameFromAtId(f),
-                  ),
-                )
-              ).join(','),
+              value: filter.value.join(','),
             };
             ncFilters.push(fx);
           }

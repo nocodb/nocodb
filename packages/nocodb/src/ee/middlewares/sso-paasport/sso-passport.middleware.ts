@@ -21,12 +21,13 @@ export class SSOPassportMiddleware implements NestMiddleware {
       });
     }
 
-    if (client.type === 'openid') {
+    if (client.type === 'oidc') {
     } else if (client.type === 'saml') {
     } else {
       return res.status(400).json({
         msg: `Client not supported`,
       });
     }
+    next();
   }
 }

@@ -116,7 +116,7 @@ export class SSOClientService {
     return client;
   }
 
-  async clientList(param: { req: any }) {
+  async clientList(_param: { req: any }) {
     // check if user is admin
 
     // list clients
@@ -175,6 +175,6 @@ export class SSOClientService {
       ssoEndpoint,
       signingCert,
       encryptionCert,
-    }
+    };
   }
 }

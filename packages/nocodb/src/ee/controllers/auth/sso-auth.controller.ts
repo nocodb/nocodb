@@ -1,19 +1,12 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/controllers/auth/auth.controller';
+import type { Request } from 'express';
 import type { AppConfig } from '~/interface/config';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
-
 
 @Controller()
 export class SSOAuthController extends AuthControllerCE {

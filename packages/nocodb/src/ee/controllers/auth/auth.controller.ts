@@ -23,9 +23,6 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
-
-
-
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('saml') {
   constructor() {
@@ -187,10 +184,10 @@ export class AuthController extends AuthControllerCE {
 
   @Get('/auth/saml')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
-  async samlLogin(@Req() req: Request & { extra: any }, @Res() res: Response) {}
+  async samlLogin() {}
   @Get('/auth/saml/logout')
   @UseGuards(PublicApiLimiterGuard, JwtAuthGuard)
-  async samsLogout(@Req() req: Request & { extra: any }, @Res() res: Response) {
+  async samlLogout(@Req() req: Request & { extra: any }, @Res() res: Response) {
     (req as any).logout(req, function (err, request) {
       if (!err) {
         //redirect to the IdP Logout URL

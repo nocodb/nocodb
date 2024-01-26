@@ -1,4 +1,5 @@
 import {
+  FormulaDataTypes,
   isDateMonthFormat,
   isNumericCol,
   RelationTypes,
@@ -447,7 +448,16 @@ const parseConditionV2 = async (
       ).builder;
       return parseConditionV2(
         baseModelSqlv2,
-        new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
+        new Filter({
+          ...filter,
+          value: knex.raw('?', [
+            // convert value to number if formulaDataType if numeric
+            formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
+            !isNaN(+filter.value)
+              ? +filter.value
+              : filter.value || null, // in gp_null value is undefined
+          ]),
+        } as any),
         aliasCount,
         alias,
         builder,

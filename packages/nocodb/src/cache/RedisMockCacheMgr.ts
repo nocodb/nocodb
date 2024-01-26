@@ -163,8 +163,30 @@ export default class RedisMockCacheMgr extends CacheMgr {
       });
     }
 
-    log(`RedisCacheMgr::getList: getting list with keys ${arr}`);
+    log(`RedisMockCacheMgr::getList: getting list with keys ${arr}`);
     const values = await this.client.mget(arr);
+
+    if (values.some((v) => v === null)) {
+      // FALLBACK: a key is missing from list, this should never happen
+      console.error(`RedisMockCacheMgr::getList: missing value for ${key}`);
+      const allParents = [];
+      // get all parents from children
+      values.forEach((v) => {
+        allParents.push(...this.getParents(v));
+      });
+      // remove duplicates
+      const uniqueParents = [...new Set(allParents)];
+      // delete all parents and children
+      await Promise.all(
+        uniqueParents.map(async (p) => {
+          await this.deepDel(scope, p, CacheDelDirection.PARENT_TO_CHILD);
+        }),
+      );
+      return Promise.resolve({
+        list: [],
+        isNoneList,
+      });
+    }
 
     return {
       list: values.map((res) => {

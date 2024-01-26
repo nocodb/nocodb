@@ -2126,7 +2126,7 @@
             }
           }
         },
-        "request": {
+        "requestBody": {
           "content": {
             "application/json": {
               "schema": {
@@ -2164,7 +2164,7 @@
             }
           }
         },
-        "request": {
+        "requestBody": {
           "content": {
             "application/json": {
               "schema": {
@@ -3557,6 +3557,14 @@
           }
         ]
       },
+      "SSOClientReq": {
+        "$ref": "#/components/schemas/SSOClient",
+        "required": [
+          "title",
+          "type",
+          "config"
+        ]
+      },
       "SSOClient": {
         "description": "Model for SSO Client",
         "type": "object",
@@ -3649,8 +3657,7 @@
             "type": "string"
           },
           "metaDataUrl": {
-            "type": "string",
-            "format": "uri"
+            "type": "string"
           },
           "xml": {
             "type": "string"

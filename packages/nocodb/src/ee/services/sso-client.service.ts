@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import process from 'process';
 import { Injectable } from '@nestjs/common';
 import { parseString } from 'xml2js';
 import axios from 'axios';
@@ -11,7 +12,6 @@ import type {
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
-import process from "process";
 
 const parseStringPromise = promisify(parseString);
 
@@ -41,9 +41,15 @@ export class SSOClientService {
   private async validateAndExtractConfig(param: {
     client: SSOClientType;
     req: any;
+    oldClient?: SSOClient;
   }) {
     // validate client
-    validatePayload('swagger.json#/components/schemas/SSOClient', param.client);
+    validatePayload(
+      `swagger.json#/components/schemas/${
+        param.oldClient ? 'SSOClient' : 'SSOClientReq'
+      }`,
+      param.client,
+    );
 
     if (!param.client.config) return param.client.config;
 
@@ -52,7 +58,7 @@ export class SSOClientService {
     };
 
     // parse and extract metadata from url or xml if saml
-    switch (param.client.type as string) {
+    switch ((param.client.type || param.oldClient?.type) as string) {
       case 'saml':
         {
           const config = param.client.config as SAMLClientConfigType;
@@ -72,17 +78,17 @@ export class SSOClientService {
             );
           }
 
-          validatePayload(
-            'swagger.json#/components/schemas/SAMLClientConfigType',
-            { ...param.client.config, extractedConfig },
-          );
+          validatePayload('swagger.json#/components/schemas/SAMLClientConfig', {
+            ...param.client.config,
+            extractedConfig,
+          });
         }
         break;
       case 'openid':
       case 'oidc':
         {
           validatePayload(
-            'swagger.json#/components/schemas/OpenIDClientConfigType',
+            'swagger.json#/components/schemas/OpenIDClientConfig',
             param.client.config,
           );
         }
@@ -100,7 +106,14 @@ export class SSOClientService {
     client: SSOClientType;
     req: any;
   }) {
-    param.client.config = await this.validateAndExtractConfig(param);
+    // get existing client
+    const oldClient = await SSOClient.get(param.clientId);
+
+    param.client.config = await this.validateAndExtractConfig({
+      oldClient,
+      client: param.client,
+      req: param.req,
+    });
 
     // update client
     const client = await SSOClient.update(param.clientId, param.client);
@@ -150,7 +163,6 @@ export class SSOClientService {
 
   async extractSamlClientConfigFromXml(param: { metadata: string }) {
     const result: any = await parseStringPromise(param.metadata);
-
 
     // Access the SAML metadata properties in the result object
     const issuer = result.EntityDescriptor.$.entityID;

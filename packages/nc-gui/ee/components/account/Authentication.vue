@@ -29,8 +29,9 @@ const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
 }
 
-const updateProviderStatus = async (id: string, enabled: boolean) => {
-  await updateProvider(id, { enabled })
+const updateProviderStatus = async (client: { enabled: boolean}) => {
+  client.enabled = !client.enabled
+  await updateProvider(client.id, { enabled: client.enabled })
 }
 
 watch(
@@ -126,10 +127,10 @@ onMounted(async () => {
           >
             <div>
               <NcSwitch
-                :checked="sam.enabled"
+                :checked="!!sam.enabled"
                 class="min-w-4"
                 size="small"
-                @change="updateProviderStatus(sam.id, !sam.enabled)"
+                @change="updateProviderStatus(sam)"
               />
               <span class="text-inherit ml-2 group-hover:text-black capitalize">
                 {{ sam?.title }}
@@ -186,10 +187,10 @@ onMounted(async () => {
           >
             <div>
               <NcSwitch
-                :checked="oid.enabled"
+                :checked="!!oid.enabled"
                 class="min-w-4"
                 size="small"
-                @change="updateProviderStatus(oid.id, !oid.enabled)"
+                @change="updateProviderStatus(oid)"
               />
               <span class="text-inherit ml-2 group-hover:text-black capitalize">
                 {{ oid?.title }}

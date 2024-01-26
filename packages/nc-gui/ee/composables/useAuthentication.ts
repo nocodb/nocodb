@@ -17,9 +17,7 @@ export const useAuthentication = () => {
 
   const updateProvider = async (id: string, provider: Partial<SSOClientType>) => {
     try {
-      await api.ssoClient.update(id, {
-        body: provider,
-      })
+      await api.ssoClient.update(id, provider)
     } catch (err) {
       message.error(err.message)
       console.log(err)
@@ -38,9 +36,7 @@ export const useAuthentication = () => {
 
   const addProvider = async (provider: SSOClientType) => {
     try {
-      await api.ssoClient.create({
-        body: provider,
-      })
+      await api.ssoClient.create(provider)
     } catch (err) {
       message.error(err.message)
       console.log(err)

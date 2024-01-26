@@ -48,6 +48,7 @@ export default class SSOClient implements SSOClientType {
       'enabled',
       'fk_user_id',
       'fk_workspace_id',
+      'deleted'
     ]);
 
     if ('config' in insertObj) {
@@ -74,6 +75,7 @@ export default class SSOClient implements SSOClientType {
       'type',
       'config',
       'enabled',
+      'deleted',
     ]);
 
     const cacheObj = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

@@ -7,12 +7,15 @@ import { LoggerModule } from 'nestjs-pino';
 import { v4 as uuidv4 } from 'uuid';
 import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
+import type { MiddlewareConsumer } from '@nestjs/common';
 import { WorkspaceUsersModule } from '~/modules/workspace-users/workspace-users.module';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 import { UpdateStatsService } from '~/services/update-stats.service';
+import { SSOPassportMiddleware } from '~/middlewares/sso-paasport/sso-passport.middleware';
+import { SSOAuthController } from '~/controllers/auth/sso-auth.controller';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -85,5 +88,10 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 export class AppModule extends AppCeModule {
   constructor() {
     super();
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    super.configure(consumer);
+    consumer.apply(SSOPassportMiddleware).forRoutes(SSOAuthController);
   }
 }

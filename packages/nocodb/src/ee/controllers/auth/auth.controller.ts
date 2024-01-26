@@ -13,7 +13,6 @@ import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/controllers/auth/auth.controller';
-import passport from 'passport';
 import type { ExecutionContext } from '@nestjs/common';
 import type { AppConfig } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
@@ -23,6 +22,9 @@ import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
+
+
+
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('saml') {

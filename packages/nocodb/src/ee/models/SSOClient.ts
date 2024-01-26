@@ -15,6 +15,7 @@ export default class SSOClient implements SSOClientType {
   title: string;
   type: 'saml' | 'oidc';
   enabled: boolean;
+  deleted?: boolean;
   fk_user_id: string;
   fk_workspace_id: string;
 

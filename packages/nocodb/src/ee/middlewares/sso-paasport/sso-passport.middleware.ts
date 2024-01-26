@@ -6,6 +6,8 @@ import SSOClient from '~/models/SSOClient';
 @Injectable()
 export class SSOPassportMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
+    if (!req.params.clientId) return next();
+
     // get client by id
     const client = await SSOClient.get(req.params.clientId);
 

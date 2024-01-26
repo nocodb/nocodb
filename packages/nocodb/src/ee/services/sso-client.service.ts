@@ -11,6 +11,7 @@ import type {
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import process from "process";
 
 const parseStringPromise = promisify(parseString);
 
@@ -150,31 +151,25 @@ export class SSOClientService {
   async extractSamlClientConfigFromXml(param: { metadata: string }) {
     const result: any = await parseStringPromise(param.metadata);
 
+
     // Access the SAML metadata properties in the result object
-    const entityId = result.EntityDescriptor.$.entityID;
-    const ssoEndpoint =
+    const issuer = result.EntityDescriptor.$.entityID;
+    const entryPoint =
       result.EntityDescriptor.IDPSSODescriptor.SingleSignOnService.$.Location;
 
     // Access the signing and encryption certificates
-    const signingCert: string =
+    const cert: string =
       result.EntityDescriptor.IDPSSODescriptor.KeyDescriptor[0].KeyInfo.X509Data
         .X509Certificate;
     const encryptionCert: string =
       result.EntityDescriptor.IDPSSODescriptor.KeyDescriptor[1].KeyInfo.X509Data
         .X509Certificate;
 
-    // Print or use the extracted certificate information
-    console.log('Signing Certificate:', signingCert);
-    console.log('Encryption Certificate:', encryptionCert);
-
-    console.log('Entity ID:', entityId);
-    console.log('SSO Endpoint:', ssoEndpoint);
-
     return {
-      entityId,
-      ssoEndpoint,
-      signingCert,
+      issuer,
+      entryPoint,
       encryptionCert,
+      cert,
     };
   }
 }

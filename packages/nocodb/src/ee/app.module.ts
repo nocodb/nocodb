@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import {Module, RequestMethod} from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -88,10 +88,5 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
 export class AppModule extends AppCeModule {
   constructor() {
     super();
-  }
-
-  configure(consumer: MiddlewareConsumer) {
-    super.configure(consumer);
-    consumer.apply(SSOPassportMiddleware).forRoutes(SSOAuthController);
   }
 }

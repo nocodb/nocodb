@@ -166,6 +166,7 @@ export async function importData({
       logDetailed,
       logWarning,
     }).catch((e) => {
+      logger.error(e);
       logWarning(`There were errors on reading '${table.title}' data :: ${e}`);
     });
 
@@ -187,6 +188,7 @@ export async function importData({
         logDetailed,
         logWarning,
       }).catch((e) => {
+        logger.error(e);
         logWarning(
           `There were errors on importing '${table.title}' LTAR data :: ${e}`,
         );

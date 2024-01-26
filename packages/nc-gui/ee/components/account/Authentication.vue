@@ -1,68 +1,15 @@
 <script lang="ts" setup>
-const saml = [
-  {
-    displayName: 'Google',
-    redirectUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    entityId: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    ssoOnly: false,
-    active: true,
-  },
-  {
-    displayName: 'Cognito',
-    redirectUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    entityId: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    ssoOnly: false,
-    active: true,
-  },
-  {
-    displayName: 'Keyclock',
-    redirectUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    entityId: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    ssoOnly: false,
-    active: true,
-  },
-]
-const oidc = [
-  {
-    displayName: 'Google',
-    redirectUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    clientId: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    authUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    clientSecret: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    tokenUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    userInfoUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    jwkUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    scopes: ['https://idp.example.com/example_login/accounting_team_alhvd8WO'],
-    userNameAttribute: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    ssoOnly: false,
-  },
-  {
-    displayName: 'Google',
-    redirectUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    clientId: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    authUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    clientSecret: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    tokenUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    userInfoUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    jwkUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    scopes: ['https://idp.example.com/example_login/accounting_team_alhvd8WO'],
-    userNameAttribute: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    ssoOnly: false,
-  },
-  {
-    displayName: 'Google',
-    redirectUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    clientId: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    authUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    clientSecret: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    tokenUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    userInfoUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    jwkUrl: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    scopes: ['https://idp.example.com/example_login/accounting_team_alhvd8WO'],
-    userNameAttribute: 'https://idp.example.com/example_login/accounting_team_alhvd8WO',
-    ssoOnly: false,
-  },
-]
+import type { SSOClientType } from 'nocodb-sdk'
+
+const { fetchProviders, providers, deleteProvider, updateProvider, addProvider } = useAuthentication()
+
+const samlProviders = computed(() => {
+  return providers.value.filter((provider) => provider.type === 'saml')
+})
+
+const oidcProviders = computed(() => {
+  return providers.value.filter((provider) => provider.type === 'oidc')
+})
 
 const samlDialogShow = ref(false)
 const oidcDialogShow = ref(false)
@@ -74,9 +21,64 @@ const addOIDCProvider = () => {
   oidcDialogShow.value = true
 }
 
+const providerProp = ref<SSOClientType>()
+
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
 }
+
+const updateProviderStatus = async (id: string, enabled: boolean) => {
+  await updateProvider(id, { enabled })
+}
+
+watch(samlDialogShow, () => {
+  if (samlDialogShow.value) {
+    providerProp.value = {
+      type: 'saml',
+      title: '',
+      config: {
+        metaDataUrl: '',
+        xml: '',
+        ssoOnly: false,
+      },
+    }
+  } else {
+    providerProp.value = {}
+  }
+})
+
+watch(oidcDialogShow, () => {
+  if (oidcDialogShow.value) {
+    providerProp.value = {
+      type: 'oidc',
+      title: '',
+      config: {
+        clientId: '',
+        clientSecret: '',
+        redirectUrl: '',
+        authUrl: '',
+        tokenUrl: '',
+        userInfoUrl: '',
+        ssoOnly: false,
+      },
+    }
+  } else {
+    providerProp.value = {}
+  }
+})
+
+const duplicateProvider = async (id: string) => {
+  console.log('duplicateProvider', id)
+  const provider = providers.value.find((p) => p.id === id)
+  if (provider) {
+    delete provider.id
+    await addProvider(provider)
+  }
+}
+
+onMounted(async () => {
+  await fetchProviders()
+})
 </script>
 
 <template>
@@ -119,16 +121,21 @@ const copyToClipboard = (text: string) => {
         </div>
         <a-divider class="text-gray-200" />
         <div class="flex flex-col">
-          <span v-if="!saml.length" class="text-gray-500"> {{ $t('msg.info.noSaml') }} </span>
+          <span v-if="!samlProviders.length" class="text-gray-500"> {{ $t('msg.info.noSaml') }} </span>
           <div
-            v-for="(sam, id) in saml"
+            v-for="(sam, id) in samlProviders"
             :key="id"
             class="flex flex-row justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
           >
             <div>
-              <a-switch :checked="sam.active" class="min-w-4" size="small" />
+              <NcSwitch
+                :checked="sam.enabled"
+                class="min-w-4"
+                size="small"
+                @change="updateProviderStatus(sam.id, !sam.enabled)"
+              />
               <span class="text-inherit ml-2 group-hover:text-black capitalize">
-                {{ sam?.displayName }}
+                {{ sam?.title }}
               </span>
             </div>
 
@@ -144,14 +151,14 @@ const copyToClipboard = (text: string) => {
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem>
+                  <NcMenuItem @click="duplicateProvider(sam.id)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.copy" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.duplicate') }} </span>
                     </div>
                   </NcMenuItem>
                   <a-menu-divider class="my-1.5" />
-                  <NcMenuItem>
+                  <NcMenuItem @click="deleteProvider(sam.id)">
                     <div class="text-red-500">
                       <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
                       {{ $t('general.delete') }}
@@ -174,16 +181,16 @@ const copyToClipboard = (text: string) => {
         </div>
         <a-divider class="text-gray-200" />
         <div class="flex flex-col">
-          <span v-if="!oidc.length" class="text-gray-500"> {{ $t('msg.info.noSaml') }} </span>
+          <span v-if="!oidcProviders.length" class="text-gray-500"> {{ $t('msg.info.noSaml') }} </span>
           <div
-            v-for="(oid, id) in oidc"
+            v-for="(oid, id) in oidcProviders"
             :key="id"
             class="flex flex-row justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
           >
             <div>
-              <a-switch :checked="oid.active" class="min-w-4" size="small" />
+              <NcSwitch :checked="oid.enabled" class="min-w-4" size="small" @click="(val) => {}" />
               <span class="text-inherit ml-2 group-hover:text-black capitalize">
-                {{ oid?.displayName }}
+                {{ oid?.title }}
               </span>
             </div>
 
@@ -199,14 +206,14 @@ const copyToClipboard = (text: string) => {
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem>
+                  <NcMenuItem @click="duplicateProvider(oid.id)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.copy" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.duplicate') }} </span>
                     </div>
                   </NcMenuItem>
                   <a-menu-divider class="my-1.5" />
-                  <NcMenuItem>
+                  <NcMenuItem @click="deleteProvider(oid.id)">
                     <div class="text-red-500">
                       <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
                       {{ $t('general.delete') }}
@@ -219,8 +226,8 @@ const copyToClipboard = (text: string) => {
         </div>
       </div>
     </div>
-    <DlgSAMLProvider v-model:model-value="samlDialogShow" />
-    <DlgOIDCProvider v-model:model-value="oidcDialogShow" />
+    <DlgSAMLProvider v-model:model-value="samlDialogShow" :saml="providerProp" />
+    <DlgOIDCProvider v-model:model-value="oidcDialogShow" :oidc="providerProp" />
   </div>
 </template>
 

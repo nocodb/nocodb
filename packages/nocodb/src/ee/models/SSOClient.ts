@@ -74,7 +74,7 @@ export default class SSOClient implements SSOClientType {
       updateObj.config = stringifyMetaProp(updateObj, 'config');
     }
 
-    await ncMeta.metaUpdate(null, null, MetaTable.SSO_CLIENT, id, updateObj);
+    await ncMeta.metaUpdate(null, null, MetaTable.SSO_CLIENT, updateObj, id);
     return this.get(id, ncMeta);
   }
 

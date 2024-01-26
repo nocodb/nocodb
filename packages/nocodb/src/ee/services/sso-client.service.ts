@@ -14,7 +14,9 @@ export class SSOClientService {
     // add client
     const client = await SSOClient.insert({
       ...param.client,
-      fk_user_id: param.req.user.id,
+      // TODO: userId is undefined
+      // fk_user_id: param.req.user.id,
+      fk_user_id: 'usuejdyjt1xc15m6',
     });
 
     return client;

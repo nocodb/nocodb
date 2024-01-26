@@ -1,7 +1,8 @@
 import {
   Body,
   Controller,
-  Delete, Get,
+  Delete,
+  Get,
   HttpCode,
   Param,
   Patch,
@@ -22,7 +23,7 @@ export class SsoClientController {
 
   @Get('/api/v2/sso-client')
   async clientList(@Req() req) {
-    const clients = await this.ssoClientService.clientList({req});
+    const clients = await this.ssoClientService.clientList({ req });
     return new PagedResponseImpl(clients);
   }
 
@@ -42,10 +43,7 @@ export class SsoClientController {
   }
 
   @Delete('/api/v2/sso-client/:clientId')
-  async clientDelete(
-    @Param('clientId') clientId: string,
-    @Req() req,
-  ) {
+  async clientDelete(@Param('clientId') clientId: string, @Req() req) {
     return this.ssoClientService.clientDelete({ clientId, req });
   }
 }

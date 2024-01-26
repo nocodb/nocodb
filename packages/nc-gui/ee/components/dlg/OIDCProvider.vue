@@ -1,25 +1,14 @@
 <script lang="ts" setup>
+import type { SSOClientType } from 'nocodb-sdk'
 import { computed, reactive } from '#imports'
 
 interface Props {
   modelValue: boolean
-  oidc?: {
-    displayName?: string
-    redirectUrl: string
-    clientId: string
-    authUrl: string
-    clientSecret: string
-    tokenUrl: string
-    userInfoUrl: string
-    jwkUrl: string
-    scopes: string[]
-    userNameAttribute: string
-    ssoOnly?: boolean
-  }
+  oidc?: SSOClientType
 }
 
 interface Form {
-  displayName: string
+  title: string
   clientId: string
   clientSecret: string
   authUrl: string
@@ -33,27 +22,42 @@ interface Form {
 
 const props = withDefaults(defineProps<Props>(), {
   oidc: {
+    title: '',
+    config: {
+      clientId: '',
+      clientSecret: '',
+      authUrl: '',
+      tokenUrl: '',
+      userInfoUrl: '',
+      jwkUrl: '',
+      scopes: [],
+      userNameAttribute: '',
+    },
+    redirectUrl: '',
     ssoOnly: false,
   },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
+const { addProvider } = useAuthentication()
+
 const form = reactive<Form>({
-  displayName: props.oidc.displayName || '',
-  clientId: props.oidc.clientId,
-  clientSecret: props.oidc.clientSecret,
-  authUrl: props.oidc.authUrl,
-  tokenUrl: props.oidc.tokenUrl,
-  userInfoUrl: props.oidc.userInfoUrl,
-  jwkUrl: props.oidc.jwkUrl,
-  scopes: props.oidc.scopes,
-  userNameAttribute: props.oidc.userNameAttribute,
+  title: props.oidc.title ?? '',
+  clientId: props.oidc.config.clientId ?? '',
+  clientSecret: props.oidc.config.clientSecret ?? '',
+  authUrl: props.oidc.config.authUrl ?? '',
+  redirectUrl: props.oidc.redirectUrl ?? '',
+  tokenUrl: props.oidc.config.tokenUrl ?? '',
+  userInfoUrl: props.oidc.config.userInfoUrl ?? '',
+  jwkUrl: props.oidc.config.jwkUrl ?? '',
+  scopes: props.oidc.config.scopes ?? [],
+  userNameAttribute: props.oidc.config.userNameAttribute ?? '',
   ssoOnly: props.oidc.ssoOnly,
 })
 
 const isSubmitEnabled = computed(() => {
-  return form.displayName.length > 0
+  return form.title.length > 0
 })
 
 const copyToClipboard = (text: string) => {
@@ -64,10 +68,31 @@ const dialogShow = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
+
+const saveOIDCProvider = async () => {
+  await addProvider({
+    type: 'oidc',
+    enabled: true,
+    title: form.title,
+    config: {
+      clientId: form.clientId,
+      clientSecret: form.clientSecret,
+      authUrl: form.authUrl,
+      tokenUrl: form.tokenUrl,
+      userInfoUrl: form.userInfoUrl,
+      jwkUrl: form.jwkUrl,
+      redirectUrl: form.redirectUrl,
+      scopes: form.scopes,
+      userNameAttribute: form.userNameAttribute,
+      ssoOnly: form.ssoOnly,
+    },
+  })
+  dialogShow.value = false
+}
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
+  <NcModal v-model:visible="dialogShow" size="medium" @keydown.esc="dialogShow = false">
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerOIDC') }}</div>
     <div class="overflow-y-auto h-[calc(min(75vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
@@ -127,7 +152,7 @@ const dialogShow = computed({
       <NcButton size="medium" type="secondary" @click="dialogShow = false">
         {{ $t('labels.cancel') }}
       </NcButton>
-      <NcButton :disabled="!isSubmitEnabled" size="medium" type="primary">
+      <NcButton size="medium" type="primary" @click="saveOIDCProvider">
         {{ $t('labels.save') }}
       </NcButton>
     </div>

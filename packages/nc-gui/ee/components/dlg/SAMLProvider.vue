@@ -1,20 +1,17 @@
 <script lang="ts" setup>
+import type { SSOClientType } from 'nocodb-sdk'
 import { computed, reactive } from '#imports'
 
 interface Props {
   modelValue: boolean
-  saml: {
-    displayName?: string
-    redirectUrl: string
-    entityId: string
-    metaDataUrl?: string
-    xml?: string
-    ssoOnly?: boolean
+  saml: SSOClientType & {
+    config: {
+      metaDataUrl: string
+    }
   }
 }
-
 interface Form {
-  displayName: string
+  title: string
   metaDataUrl?: string
   xml?: string
   ssoOnly: boolean
@@ -22,21 +19,32 @@ interface Form {
 
 const props = withDefaults(defineProps<Props>(), {
   saml: {
+    title: '',
+    config: {
+      metaDataUrl: '',
+      xml: '',
+      redirectUrl: '',
+      ssoOnly: false,
+    },
+    redirectUrl: '',
     ssoOnly: false,
   },
 })
 
 const emit = defineEmits(['update:modelValue'])
 
+const { addProvider } = useAuthentication()
+
 const form = reactive<Form>({
-  displayName: props.saml.displayName || '',
-  metaDataUrl: props.saml.metaDataUrl,
-  xml: props.saml.xml,
-  ssoOnly: props.saml.ssoOnly,
+  title: props.saml.title ?? '',
+  redirectUrl: props.saml.config.redirectUrl ?? '',
+  metaDataUrl: props.saml.config.metaDataUrl ?? '',
+  xml: props.saml.config.xml ?? '',
+  ssoOnly: props.saml.config.ssoOnly ?? false,
 })
 
 const isSubmitEnabled = computed(() => {
-  return form.displayName.length > 0 && (form.metaDataUrl || form.xml)
+  return form.title.length > 0 && (form.metaDataUrl || form.xml)
 })
 
 const copyToClipboard = (text: string) => {
@@ -49,6 +57,21 @@ const dialogShow = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
+
+const saveSamlProvider = async () => {
+  console.log('saveSamlProvider', form)
+  await addProvider({
+    type: 'saml',
+    title: form.title,
+    config: {
+      metaDataUrl: form.metaDataUrl,
+      xml: form.xml,
+      redirectUrl: form.redirectUrl,
+      ssoOnly: form.ssoOnly,
+    },
+  })
+  dialogShow.value = false
+}
 </script>
 
 <template>
@@ -57,7 +80,7 @@ const dialogShow = computed({
     <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form :model="form">
-          <input v-model="form.displayName" class="mb-4" placeholder="SAML Display Name*" required />
+          <input v-model="form.title" class="mb-4" placeholder="SAML Display Name*" required />
           <div class="flex flex-col gap-2">
             <div class="flex flex-row items-center">
               <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
@@ -131,7 +154,7 @@ const dialogShow = computed({
                 <div class="text-sm">XML</div>
               </template>
               <a-form-item>
-                <textarea v-model="form.metaDataUrl" placeholder="Paste the Metadata here from the Identity Provider" rows="5" />
+                <textarea v-model="form.xml" placeholder="Paste the Metadata here from the Identity Provider" rows="5" />
               </a-form-item>
             </a-tab-pane>
           </a-tabs>
@@ -151,7 +174,7 @@ const dialogShow = computed({
       <NcButton size="medium" type="secondary" @click="dialogShow = false">
         {{ $t('labels.cancel') }}
       </NcButton>
-      <NcButton :disabled="!isSubmitEnabled" size="medium" type="primary">
+      <NcButton size="medium" type="primary" @click="saveSamlProvider">
         {{ $t('labels.save') }}
       </NcButton>
     </div>

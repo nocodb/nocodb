@@ -141,7 +141,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
-    childTable?: Model,
+    dependencyColumns?: Column[],
     options: {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
@@ -191,27 +191,26 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.model.getColumns();
     }
 
-    if (childTable && !childTable?.columns) {
-      await childTable.getColumns();
-    }
-
     // update attachment fields
     if (!options.skipAttachmentConversion) {
-      data = await this.convertAttachmentType(data, childTable);
+      data = await this.convertAttachmentType(data, dependencyColumns);
     }
 
     // update date time fields
     if (!options.skipDateConversion) {
-      data = this.convertDateFormat(data, childTable);
+      data = this.convertDateFormat(data, dependencyColumns);
     }
 
     // update user fields
     if (!options.skipUserConversion) {
-      data = await this.convertUserFormat(data, childTable);
+      data = await this.convertUserFormat(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
-      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
+      data = await this.substituteColumnIdsWithColumnTitles(
+        data,
+        dependencyColumns,
+      );
     }
 
     if (options.first) {

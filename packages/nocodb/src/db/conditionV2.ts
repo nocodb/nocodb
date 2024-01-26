@@ -455,7 +455,7 @@ const parseConditionV2 = async (
             formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
             !isNaN(+filter.value)
               ? +filter.value
-              : filter.value || null, // in gp_null value is undefined
+              : filter.value ?? null, // in gp_null value is undefined
           ]),
         } as any),
         aliasCount,

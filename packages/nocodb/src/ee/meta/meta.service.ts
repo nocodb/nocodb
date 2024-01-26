@@ -116,6 +116,9 @@ export class MetaService extends MetaServiceCE {
       case MetaTable.COWRITER:
         prefix = 'cw';
         break;
+      case MetaTable.SSO_CLIENT:
+        prefix = 'sso';
+        break;
       default:
         prefix = 'nc';
         break;

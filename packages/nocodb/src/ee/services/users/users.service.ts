@@ -60,7 +60,6 @@ export class UsersService extends UsersServiceCE {
       settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
     } catch {}
 
-
     const isFirstUserAndSuperUserAllowed = process.env.NC_CLOUD !== 'true' && await User.isFirst();
 
     if (isFirstUserAndSuperUserAllowed) {

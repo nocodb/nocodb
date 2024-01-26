@@ -3,10 +3,11 @@ import type {
   SAMLClientConfigType,
   SSOClientType,
 } from 'nocodb-sdk';
-import { MetaTable } from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import NocoCache from '~/cache/NocoCache';
 
 export default class SSOClient implements SSOClientType {
   config: SAMLClientConfigType | OpenIDClientConfigType;
@@ -22,14 +23,18 @@ export default class SSOClient implements SSOClientType {
   }
 
   public static async get(clientId: string, ncMeta = Noco.ncMeta) {
-    // todo: cache
-    const client = await ncMeta.metaGet2(null, null, MetaTable.SSO_CLIENT, {
-      id: clientId,
-    });
+    const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
+    let client = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (!client) {
+      client = await ncMeta.metaGet2(null, null, MetaTable.SSO_CLIENT, {
+        id: clientId,
+      });
 
-    if (!client) return null;
+      if (!client) return null;
 
-    client.config = parseMetaProp(client, 'config');
+      client.config = parseMetaProp(client, 'config');
+      await NocoCache.set(key, client);
+    }
 
     return new SSOClient(client);
   }
@@ -58,11 +63,11 @@ export default class SSOClient implements SSOClientType {
   }
 
   public static async update(
-    id: string,
+    clientId: string,
     client: Partial<SSOClientType>,
     ncMeta = Noco.ncMeta,
   ) {
-    // todo: update cache
+    const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
     const updateObj: Record<string, any> = extractProps(client, [
       'title',
       'type',
@@ -70,21 +75,37 @@ export default class SSOClient implements SSOClientType {
       'enabled',
     ]);
 
+    const cacheObj = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (cacheObj) {
+      Object.assign(cacheObj, updateObj);
+      await NocoCache.set(key, cacheObj);
+    }
     if ('config' in updateObj) {
       updateObj.config = stringifyMetaProp(updateObj, 'config');
     }
 
-    await ncMeta.metaUpdate(null, null, MetaTable.SSO_CLIENT, updateObj, id);
-    return this.get(id, ncMeta);
-  }
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.SSO_CLIENT,
+      clientId,
+      updateObj,
+    );
 
-  public static async delete(id: string, ncMeta = Noco.ncMeta) {
-    // delete from cache
-    await ncMeta.metaDelete(null, null, MetaTable.SSO_CLIENT, id);
     return true;
   }
 
-  static async list(param: {}) {
+  public static async delete(clientId: string, ncMeta = Noco.ncMeta) {
+    // delete from cache
+    await ncMeta.metaDelete(null, null, MetaTable.SSO_CLIENT, clientId);
+
+    const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
+    await NocoCache.del(key);
+
+    return true;
+  }
+
+  static async list(param: any) {
     const clients = await Noco.ncMeta.metaList2(
       null,
       null,

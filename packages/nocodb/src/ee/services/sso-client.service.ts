@@ -6,7 +6,7 @@ import SSOClient from '~/models/SSOClient';
 export class SSOClientService {
   constructor() {}
 
-  clientAdd(param: { client: SSOClientType; req: any }) {
+  async clientAdd(param: { client: SSOClientType; req: any }) {
     // check if user is admin
 
     // validate client
@@ -20,7 +20,11 @@ export class SSOClientService {
     return client;
   }
 
-  clientUpdate(param: { clientId: string; client: SSOClientType; req: any }) {
+  async clientUpdate(param: {
+    clientId: string;
+    client: SSOClientType;
+    req: any;
+  }) {
     // check if user is admin
 
     // validate client
@@ -31,7 +35,7 @@ export class SSOClientService {
     return client;
   }
 
-  clientDelete(param: { clientId: string; req: any }) {
+  async clientDelete(param: { clientId: string; req: any }) {
     // check if user is admin
 
     // delete client

@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Delete,
+  Delete, Get,
   HttpCode,
   Param,
   Patch,
@@ -44,9 +44,8 @@ export class SsoClientController {
   @Delete('/api/v2/sso-client/:clientId')
   async clientDelete(
     @Param('clientId') clientId: string,
-    @Body() client: SSOClientType,
     @Req() req,
   ) {
-    return this.ssoClientService.clientDelete({ clientId, req, client });
+    return this.ssoClientService.clientDelete({ clientId, req });
   }
 }

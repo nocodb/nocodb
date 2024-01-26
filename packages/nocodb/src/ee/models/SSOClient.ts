@@ -9,7 +9,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class SSOClient implements SSOClientType {
-  config: SAMLClientConfigType | OpenIDClientConfigType | string;
+  config: SAMLClientConfigType | OpenIDClientConfigType;
   id: string;
   title: string;
   type: 'saml' | 'oidc';
@@ -34,8 +34,8 @@ export default class SSOClient implements SSOClientType {
     return new SSOClient(client);
   }
 
-  public static async insert(client: SSOClientType, ncMeta = Noco.ncMeta) {
-    const insertObj = extractProps(client, [
+  public static async insert(client: Partial<SSOClient>, ncMeta = Noco.ncMeta) {
+    const insertObj: Record<string, any> = extractProps(client, [
       'title',
       'type',
       'config',
@@ -59,11 +59,11 @@ export default class SSOClient implements SSOClientType {
 
   public static async update(
     id: string,
-    client: SSOClientType,
+    client: Partial<SSOClientType>,
     ncMeta = Noco.ncMeta,
   ) {
     // todo: update cache
-    const updateObj = extractProps(client, [
+    const updateObj: Record<string, any> = extractProps(client, [
       'title',
       'type',
       'config',

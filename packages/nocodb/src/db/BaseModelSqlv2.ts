@@ -4720,7 +4720,7 @@ class BaseModelSqlv2 {
         if (col.uidt === UITypes.Lookup) {
           if (
             [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              (await this.getNestedUidt(col)) as UITypes,
+              (await this.getNestedColumn(col))?.uidt as UITypes,
             )
           ) {
             userColumns.push(col);
@@ -4870,12 +4870,12 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  public async getNestedUidt(column: Column) {
+  public async getNestedColumn(column: Column) {
     if (column.uidt !== UITypes.Lookup) {
-      return column.uidt;
+      return column;
     }
     const colOptions = await column.getColOptions<LookupColumn>();
-    return this.getNestedUidt(await colOptions?.getLookupColumn());
+    return this.getNestedColumn(await colOptions?.getLookupColumn());
   }
 
   public async convertAttachmentType(
@@ -4897,7 +4897,7 @@ class BaseModelSqlv2 {
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedUidt(col)) === UITypes.Attachment) {
+          if ((await this.getNestedColumn(col))?.uidt === UITypes.Attachment) {
             attachmentColumns.push(col);
           }
         } else {

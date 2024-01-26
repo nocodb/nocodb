@@ -1033,7 +1033,10 @@ class BaseModelSqlv2 {
 
       // console.log(childQb.toQuery())
 
-      const children = await this.execAndParse(childQb, childTable);
+      const children = await this.execAndParse(
+        childQb,
+        await childTable.getColumns(),
+      );
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -1165,7 +1168,10 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
-      const children = await this.execAndParse(qb, childTable);
+      const children = await this.execAndParse(
+        qb,
+        await childTable.getColumns(),
+      );
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -1292,7 +1298,10 @@ class BaseModelSqlv2 {
       !this.isSqlite,
     );
 
-    const children = await this.execAndParse(finalQb, childTable);
+    const children = await this.execAndParse(
+      finalQb,
+      await childTable.getColumns(),
+    );
 
     const proto = await (
       await Model.getBaseModelSQL({
@@ -1361,7 +1370,7 @@ class BaseModelSqlv2 {
     qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
-    const children = await this.execAndParse(qb, childTable);
+    const children = await this.execAndParse(qb, await childTable.getColumns());
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -1595,7 +1604,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, await childTable.getColumns());
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1710,7 +1719,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, await childTable.getColumns());
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1829,7 +1838,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    const data = await this.execAndParse(qb, parentTable);
+    const data = await this.execAndParse(qb, await parentTable.getColumns());
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -4547,7 +4556,7 @@ class BaseModelSqlv2 {
 
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
-    childTable?: Model,
+    dependencyColumns?: Column[],
     options: {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
@@ -4595,27 +4604,26 @@ class BaseModelSqlv2 {
       await this.model.getColumns();
     }
 
-    if (childTable && !childTable?.columns) {
-      await childTable.getColumns();
-    }
-
     // update attachment fields
     if (!options.skipAttachmentConversion) {
-      data = await this.convertAttachmentType(data, childTable);
+      data = await this.convertAttachmentType(data, dependencyColumns);
     }
 
     // update date time fields
     if (!options.skipDateConversion) {
-      data = this.convertDateFormat(data, childTable);
+      data = this.convertDateFormat(data, dependencyColumns);
     }
 
     // update user fields
     if (!options.skipUserConversion) {
-      data = await this.convertUserFormat(data, childTable);
+      data = await this.convertUserFormat(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
-      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
+      data = await this.substituteColumnIdsWithColumnTitles(
+        data,
+        dependencyColumns,
+      );
     }
 
     if (options.first) {
@@ -4627,9 +4635,9 @@ class BaseModelSqlv2 {
 
   protected async substituteColumnIdsWithColumnTitles(
     data: Record<string, any>[],
-    childTable?: Model,
+    dependencyColumns?: Column[],
   ) {
-    const modelColumns = this.model?.columns.concat(childTable?.columns ?? []);
+    const modelColumns = this.model?.columns.concat(dependencyColumns ?? []);
 
     if (!modelColumns || !data.length) {
       return data;
@@ -4709,14 +4717,14 @@ class BaseModelSqlv2 {
 
   protected async convertUserFormat(
     data: Record<string, any>,
-    childTable?: Model,
+    dependencyColumns?: Column[],
   ) {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
     if (data) {
       let userColumns = [];
 
-      const columns = childTable ? childTable.columns : this.model.columns;
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
@@ -4753,7 +4761,7 @@ class BaseModelSqlv2 {
       // process user columns that are present in data
       if (userColumns.length) {
         const baseUsers = await BaseUser.getUsersList({
-          base_id: childTable ? childTable.base_id : this.model.base_id,
+          base_id: this.model.base_id,
         });
 
         if (Array.isArray(data)) {
@@ -4882,14 +4890,14 @@ class BaseModelSqlv2 {
 
   public async convertAttachmentType(
     data: Record<string, any>,
-    childTable?: Model,
+    dependencyColumns?: Column[],
   ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
       const attachmentColumns = [];
 
-      const columns = childTable ? childTable.columns : this.model.columns;
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
@@ -5047,13 +5055,15 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  public convertDateFormat(data: Record<string, any>, childTable?: Model) {
+  public convertDateFormat(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
     // Show the date time in UTC format in API response
     // e.g. 2022-01-01 04:30:00+00:00
     if (data) {
-      const dateTimeColumns = (
-        childTable ? childTable.columns : this.model.columns
-      ).filter(
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+      const dateTimeColumns = columns.filter(
         (c) =>
           c.uidt === UITypes.DateTime ||
           c.uidt === UITypes.Date ||
@@ -5697,9 +5707,13 @@ class BaseModelSqlv2 {
 
       await parentModel.selectObject({ qb, fieldsSet: args.fieldSet });
 
-      const parent = await this.execAndParse(qb, parentTable, {
-        first: true,
-      });
+      const parent = await this.execAndParse(
+        qb,
+        await parentTable.getColumns(),
+        {
+          first: true,
+        },
+      );
 
       const proto = await parentModel.getProto();
 

@@ -28,7 +28,7 @@ export default async function getColumnPropsFromUIDT(
 
   const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
   if (column && selectTypes.includes(column.uidt as UITypes)) {
-    newColumn.dtxp =
+    (column as NormalColumnRequestType).dtxp =
       typeof (column as NormalColumnRequestType).dtxp === 'string'
         ? ((column as NormalColumnRequestType).dtxp as string)
             .trim()
@@ -38,7 +38,7 @@ export default async function getColumnPropsFromUIDT(
 
   newColumn.altered = column.altered || 2;
 
-  const finalColumnMeta = { ...column, ...newColumn };
+  const finalColumnMeta = { ...newColumn, ...column };
 
   if (
     finalColumnMeta.uidt === UITypes.CreatedTime &&

@@ -18,7 +18,7 @@ export class SSOAuthController {
 
   @Get('/sso/:clientId/')
   @UseGuards(PublicApiLimiterGuard)
-  async longLivedTokenRefresh(
+  async ssoLogin(
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
@@ -38,38 +38,30 @@ export class SSOAuthController {
 
   @Post('/sso/:clientId/redirect')
   @UseGuards(PublicApiLimiterGuard)
-  async longLivedTokenRefresh1(
+  async ssoRedirect(
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
-    // await this.setRefreshToken({ req, res });
-    res.json({
-      ...(await this.usersService.login(
-        {
-          ...req.user,
-          provider: 'saml',
-        },
-        req,
-      )),
-      extra: { ...req.extra },
+    const dashboardPath = this.config.get('dashboardPath', {
+      infer: true,
     });
+
+    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
+
+    res.redirect(redirectUrl);
   }
-  @Post('/sso/:clientId/redirect')
+  @Get('/sso/:clientId/redirect')
   @UseGuards(PublicApiLimiterGuard)
-  async longLivedTokenRefresh2(
+  async ssoRedirectGet(
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
-    // await this.setRefreshToken({ req, res });
-    res.json({
-      ...(await this.usersService.login(
-        {
-          ...req.user,
-          provider: 'saml',
-        },
-        req,
-      )),
-      extra: { ...req.extra },
+    const dashboardPath = this.config.get('dashboardPath', {
+      infer: true,
     });
+
+    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
+
+    res.redirect(redirectUrl);
   }
 }

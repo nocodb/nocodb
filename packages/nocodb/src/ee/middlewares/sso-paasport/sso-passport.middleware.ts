@@ -26,6 +26,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
     private config: ConfigService<AppConfig>,
     private usersService: UsersService,
   ) {}
+
   async use(req: Request, res: Response, next: NextFunction) {
     if (!req.params.clientId) return next();
 
@@ -55,7 +56,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       });
     }
 
-    passport.authenticate(strategy)(req, res, next);
+    passport.authenticate(strategy, { session: false })(req, res, next);
   }
 
   // get saml strategy
@@ -66,7 +67,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       issuer: config.issuer,
       entryPoint: config.entryPoint,
       cert: config.cert,
-      path: `/sso/${client.id}/redirect`,
+      callbackUrl: req.ncSiteUrl + `/sso/${client.id}/redirect`,
       passReqToCallback: true,
       // logoutUrl: process.env.NC_SAML_ENTRY_POINT,
       // logoutCallbackUrl:`/sso/${client.id}/logout-redirect`',
@@ -74,52 +75,55 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     return new SAMLStrategy(
       clientConfig,
-      async (req, profile) => {
-        const email = profile.nameID;
-        let user: any;
-        user = await User.getByEmail(email);
-        if (user) {
-          // if base id defined extract base level roles
-          if (req.ncBaseId) {
-            user = await BaseUser.get(req.ncBaseId, user.id).then(
-              async (baseUser) => {
-                user.roles = baseUser?.roles || user.roles;
-                return sanitiseUserObj(user);
-              },
-            );
+      async (req, profile, callback) => {
+        try {
+          const email = profile.nameID;
+          let user: any;
+          user = await User.getByEmail(email);
+          if (user) {
+            // if base id defined extract base level roles
+            if (req.ncBaseId) {
+              user = await BaseUser.get(req.ncBaseId, user.id).then(
+                async (baseUser) => {
+                  user.roles = baseUser?.roles || user.roles;
+                  return sanitiseUserObj(user);
+                },
+              );
+            } else {
+              user = sanitiseUserObj(user);
+            }
+            // if user not found create new user if allowed
+            // or return error
           } else {
+            const salt = await promisify(bcrypt.genSalt)(10);
+            user = await this.usersService.registerNewUserIfAllowed({
+              display_name: null,
+              avatar: null,
+              user_name: null,
+              email_verification_token: null,
+              email,
+              password: '',
+              salt,
+              req,
+            });
             user = sanitiseUserObj(user);
           }
-          // if user not found create new user if allowed
-          // or return error
-        } else {
-          const salt = await promisify(bcrypt.genSalt)(10);
-          user = await this.usersService.registerNewUserIfAllowed({
-            display_name: null,
-            avatar: null,
-            user_name: null,
-            email_verification_token: null,
-            email,
-            password: '',
-            salt,
-            req,
-          });
-          user = sanitiseUserObj(user);
+
+          // Here, you can generate a JWT token using profile information
+          const token = jwt.sign(
+            { id: user.id, email: email, saml: true },
+            'your-secret-key',
+            {
+              expiresIn: '1m',
+            },
+          );
+
+          return callback(null, { ...user, token });
+        } catch (e) {
+          callback(e);
         }
-
-        // Here, you can generate a JWT token using profile information
-        const token = jwt.sign(
-          { id: user.id, email: email, saml: true },
-          'your-secret-key',
-          {
-            expiresIn: '1m',
-          },
-        );
-
-        return { ...user, token };
       },
       (req, profile, done) => {
-
         done(null, profile);
       },
     );

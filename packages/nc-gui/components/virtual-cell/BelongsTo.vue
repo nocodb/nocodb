@@ -99,7 +99,7 @@ watch([listItemsDlg], () => {
       <template v-if="value && relatedTableDisplayValueProp">
         <VirtualCellComponentsItemChip
           :item="value"
-          :value="value[relatedTableDisplayValueProp]"
+          :value="!Array.isArray(value) && typeof value === 'object' ? value[relatedTableDisplayValueProp] : value"
           :column="belongsToColumn"
           :show-unlink-button="true"
           @unlink="unlinkRef(value)"

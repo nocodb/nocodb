@@ -229,6 +229,20 @@ const subDomain = location.host?.split('.')[0]
               </a>
             </div>
 
+            <div
+              v-for="client of appInfo.ssoClients"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+            >
+              <a :href="client.url" class="!text-primary !no-underline">
+                <button type="button" class="scaling-btn bg-opacity-100">
+                  <span class="flex items-center gap-2">
+                    <MdiLogin />
+                    {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
+                  </span>
+                </button>
+              </a>
+            </div>
+
             <div v-if="!appInfo.disableEmailAuth" class="flex items-center gap-2">
               <a-switch
                 v-model:checked="subscribe"

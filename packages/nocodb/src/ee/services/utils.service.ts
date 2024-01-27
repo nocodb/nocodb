@@ -7,6 +7,7 @@ import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import SSOClient from '~/models/SSOClient';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -487,6 +488,18 @@ export class UtilsService extends UtilsServiceCE {
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const result: any = await super.appInfo(param);
 
+    // get sso clients and extract id, url and display name
+    const ssoClients = (await SSOClient.list({}))
+      .filter((client) => client.enabled && !client.deleted)
+      .map((client) => {
+        return {
+          id: client.id,
+          url: new URL(`/sso/${client.id}`, param.req.ncSiteUrl).toString(),
+          title: client.title,
+          type: client.type,
+        };
+      });
+
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;
 
@@ -495,6 +508,7 @@ export class UtilsService extends UtilsServiceCE {
     });
 
     result.cognito = cognitoConfig;
+    result.ssoClients = ssoClients;
 
     return result;
   }

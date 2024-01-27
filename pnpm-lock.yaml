@@ -432,7 +432,7 @@ importers:
         version: 3.1.2
       '@nestjs/bull':
         specifier: ^10.0.1
-        version: 10.0.1(@nestjs/common@10.2.10)(@nestjs/core@10.2.10)(bull@4.11.5)
+        version: 10.0.1(@nestjs/common@10.2.10)(@nestjs/core@10.2.10)(bull@4.12.2)
       '@nestjs/common':
         specifier: ^10.2.10
         version: 10.2.10(reflect-metadata@0.1.14)(rxjs@7.2.0)
@@ -515,8 +515,8 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2
       bull:
-        specifier: ^4.11.5
-        version: 4.11.5
+        specifier: ^4.12.2
+        version: 4.12.2
       bullmq:
         specifier: ^1.91.1
         version: 1.91.1
@@ -5361,7 +5361,7 @@ packages:
       tslib: 2.6.0
     dev: false
 
-  /@nestjs/bull@10.0.1(@nestjs/common@10.2.10)(@nestjs/core@10.2.10)(bull@4.11.5):
+  /@nestjs/bull@10.0.1(@nestjs/common@10.2.10)(@nestjs/core@10.2.10)(bull@4.12.2):
     resolution: {integrity: sha512-1GcJ8BkHDgQdBMZ7SqAqgUHiFnISXmpGvewFeTc8wf87JLk2PweiKv9j9/KQKU+NI237pCe82XB0bXzTnsdxSw==}
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
@@ -5371,7 +5371,7 @@ packages:
       '@nestjs/bull-shared': 10.0.1(@nestjs/common@10.2.10)(@nestjs/core@10.2.10)
       '@nestjs/common': 10.2.10(reflect-metadata@0.1.14)(rxjs@7.2.0)
       '@nestjs/core': 10.2.10(@nestjs/common@10.2.10)(@nestjs/platform-express@10.2.10)(@nestjs/websockets@10.2.10)(reflect-metadata@0.1.14)(rxjs@7.2.0)
-      bull: 4.11.5
+      bull: 4.12.2
       tslib: 2.6.0
     dev: false
 
@@ -11919,15 +11919,15 @@ packages:
       semver: 7.5.4
     dev: true
 
-  /bull@4.11.5:
-    resolution: {integrity: sha512-9jazyvBBYr55IRDkfJh/mJjWiq8NJUMoCC5zTuBX4JhkZvVXegnwsaIa1jr3x9xwSxGvWEhwQ9lt1jlCT5j6pQ==}
+  /bull@4.12.2:
+    resolution: {integrity: sha512-WPuc0VCYx+cIVMiZtPwRpWyyJFBrj4/OgKJ6n9Jf4tIw7rQNV+HAKQv15UDkcTvfpGFehvod7Fd1YztbYSJIDQ==}
     engines: {node: '>=12'}
     dependencies:
       cron-parser: 4.9.0
       get-port: 5.1.1
       ioredis: 5.3.2
       lodash: 4.17.21
-      msgpackr: 1.9.7
+      msgpackr: 1.10.1
       semver: 7.5.4
       uuid: 8.3.2
     transitivePeerDependencies:
@@ -19840,6 +19840,12 @@ packages:
       '@msgpackr-extract/msgpackr-extract-win32-x64': 3.0.2
     dev: false
     optional: true
+
+  /msgpackr@1.10.1:
+    resolution: {integrity: sha512-r5VRLv9qouXuLiIBrLpl2d5ZvPt8svdQTl5/vMvE4nzDMyEX4sgW5yWhuBBj5UmgwOTWj8CIdSXn5sAfsHAWIQ==}
+    optionalDependencies:
+      msgpackr-extract: 3.0.2
+    dev: false
 
   /msgpackr@1.9.7:
     resolution: {integrity: sha512-baUNaLvKQvVhzfWTNO07njwbZK1Lxjtb0P1JL6/EhXdLTHzR57/mZqqJC39TtQKvOmkJA4pcejS4dbk7BDgLLA==}

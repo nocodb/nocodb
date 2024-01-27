@@ -22,6 +22,17 @@ const isSystemColumn = (col): boolean =>
     (col.pk && col.meta && col.meta.ag) ||
     col.system);
 
+const isSelfReferencingTableColumn = (col): boolean => {
+  return (
+    col &&
+    (col.uidt === UITypes.Links || col.uidt === UITypes.LinkToAnotherRecord) &&
+    (col?.fk_model_id || col?.colOptions?.fk_model_id) &&
+    col?.colOptions?.fk_related_model_id &&
+    (col?.fk_model_id || col?.colOptions?.fk_model_id) ===
+      col.colOptions.fk_related_model_id
+  );
+};
+
 const extractRolesObj = (roles: RolesType): RolesObj => {
   if (!roles) return null;
 
@@ -89,6 +100,7 @@ export {
   getSystemColumnsIds,
   getSystemColumns,
   isSystemColumn,
+  isSelfReferencingTableColumn,
   extractRolesObj,
   stringifyRolesObj,
   getAvailableRollupForUiType,

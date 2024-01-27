@@ -590,8 +590,8 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2(graphql@15.3.0)
       handlebars:
-        specifier: ^4.7.6
-        version: 4.7.6
+        specifier: ^4.7.8
+        version: 4.7.8
       html-to-json-parser:
         specifier: ^2.0.0
         version: 2.0.0
@@ -16496,19 +16496,6 @@ packages:
       unenv: 1.9.0
     dev: true
 
-  /handlebars@4.7.6:
-    resolution: {integrity: sha512-1f2BACcBfiwAfStCKZNrUCgqNZkGsAT7UM3kkYtXuLo0KnaVfjKOyf7PRzB6++aK9STyT1Pd2ZCPe3EGOXleXA==}
-    engines: {node: '>=0.4.7'}
-    hasBin: true
-    dependencies:
-      minimist: 1.2.8
-      neo-async: 2.6.2
-      source-map: 0.6.1
-      wordwrap: 1.0.0
-    optionalDependencies:
-      uglify-js: 3.17.4
-    dev: false
-
   /handlebars@4.7.8:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
     engines: {node: '>=0.4.7'}
@@ -16520,7 +16507,6 @@ packages:
       wordwrap: 1.0.0
     optionalDependencies:
       uglify-js: 3.17.4
-    dev: true
 
   /happy-dom@6.0.4:
     resolution: {integrity: sha512-b+ID23Ms0BY08UNLymsOMG7EI2jSlwEt4cbJs938GZfeNAg+fqgkSO3TokQMgSOFoHznpjWmpVjBUL5boJ9PWw==}

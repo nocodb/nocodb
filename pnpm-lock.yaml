@@ -593,8 +593,8 @@ importers:
         specifier: ^4.7.6
         version: 4.7.6
       html-to-json-parser:
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^2.0.0
+        version: 2.0.0
       import-fresh:
         specifier: ^3.3.0
         version: 3.3.0
@@ -16694,8 +16694,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /html-to-json-parser@1.1.0:
-    resolution: {integrity: sha512-j6JiUBhIQkC+guahmh0VKwQRrnsROpUaRWAQyRlu5tp6atQg9ljeU70eBtpHSJwNALFNo//VOozvif7AQlfOtA==}
+  /html-to-json-parser@2.0.0:
+    resolution: {integrity: sha512-x83te6MTtOGupRk0ljjWsDaBTq5VoyWWUT6yOZJFTrbLa59fWSXIlK4F3H3Pgtsa8OBf8cgBTg92nN3aUazVGA==}
     dependencies:
       xmldom: 0.6.0
     dev: false

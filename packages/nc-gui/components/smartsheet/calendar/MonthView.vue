@@ -304,8 +304,8 @@ const onDrag = (event: MouseEvent) => {
   const percentY = (event.clientY - top - window.scrollY) / height
   const percentX = (event.clientX - left - window.scrollX) / width
 
-  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
-  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
+  const fromCol = dragRecord.value!.rowMeta.range?.fk_from_col
+  const toCol = dragRecord.value!.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
@@ -322,14 +322,14 @@ const onDrag = (event: MouseEvent) => {
   const newRow = {
     ...dragRecord.value,
     row: {
-      ...dragRecord.value.row,
-      [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      ...dragRecord.value!.row,
+      [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title] ? dayjs(dragRecord.value.row[fromCol.title]) : null
-    const toDate = dragRecord.value.row[toCol.title] ? dayjs(dragRecord.value.row[toCol.title]) : null
+    const fromDate = dragRecord.value!.row[fromCol!.title!] ? dayjs(dragRecord!.value!.row[fromCol!.title!]) : null
+    const toDate = dragRecord.value!.row[toCol!.title!] ? dayjs(dragRecord.value!.row[toCol!.title!]) : null
 
     if (fromDate && toDate) {
       endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
@@ -341,13 +341,13 @@ const onDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
+    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
   }
 
   formattedData.value = formattedData.value.map((r) => {
-    const pk = extractPkFromRow(r.row, meta.value.columns)
+    const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-    if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+    if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
       return newRow
     }
     return r
@@ -390,7 +390,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title]: dayjs(newEndDate).format('YYYY-MM-DD'),
+        [toCol.title]: dayjs(newEndDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
@@ -416,7 +416,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
@@ -482,7 +482,7 @@ const stopDrag = (event: MouseEvent) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -503,7 +503,7 @@ const stopDrag = (event: MouseEvent) => {
     }
 
     dragRecord.value = null
-    newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
+    newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
 
     updateProperty.push(toCol.title)
   }
@@ -611,7 +611,7 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
@@ -630,7 +630,7 @@ const dropEvent = (event: DragEvent) => {
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
       updateProperty.push(toCol.title!)
     }
 
@@ -746,7 +746,7 @@ onBeforeUnmount(() => {
                       () => {
                         const record = {
                           row: {
-                            [range.fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
+                            [range.fk_from_col.title]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
                           },
                         }
                         emit('new-record', record)
@@ -773,7 +773,7 @@ onBeforeUnmount(() => {
                 () => {
                   const record = {
                     row: {
-                      [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
+                      [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
                     },
                   }
                   emit('new-record', record)

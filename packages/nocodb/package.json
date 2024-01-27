@@ -157,7 +157,7 @@
     "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.1.14",
     "request-filtering-agent": "^1.1.2",
-    "request-ip": "^2.1.3",
+    "request-ip": "^3.3.0",
     "rmdir": "^1.2.0",
     "rxjs": "^7.2.0",
     "slash": "^3.0.0",

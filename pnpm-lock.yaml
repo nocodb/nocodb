@@ -746,8 +746,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2
       request-ip:
-        specifier: ^2.1.3
-        version: 2.1.3
+        specifier: ^3.3.0
+        version: 3.3.0
       rmdir:
         specifier: ^1.2.0
         version: 1.2.0
@@ -17600,10 +17600,6 @@ packages:
     resolution: {integrity: sha512-ajQCouIvkcSnl2iRdK70Jug9mohIHVX9uKpoWnl115ov0R5mzBvRrXxrnHbsA+8AdwCwc/sfw7HXmd4I5EJBdQ==}
     dev: false
 
-  /is_js@0.9.0:
-    resolution: {integrity: sha512-8Y5EHSH+TonfUHX2g3pMJljdbGavg55q4jmHzghJCdqYDbdNROC8uw/YFQwIRCRqRJT1EY3pJefz+kglw+o7sg==}
-    dev: false
-
   /isarray@1.0.0:
     resolution: {integrity: sha512-VLghIWNM6ELQzo7zwmcg0NmTVyWKYjvIeM83yjp0wRDTmUnrM678fQbcKBo6n2CJEF0szoG//ytg+TKla89ALQ==}
 
@@ -22743,10 +22739,8 @@ packages:
       ipaddr.js: 2.1.0
     dev: false
 
-  /request-ip@2.1.3:
-    resolution: {integrity: sha512-J3qdE/IhVM3BXkwMIVO4yFrvhJlU3H7JH16+6yHucadT4fePnR8dyh+vEs6FIx0S2x5TCt2ptiPfHcn0sqhbYQ==}
-    dependencies:
-      is_js: 0.9.0
+  /request-ip@3.3.0:
+    resolution: {integrity: sha512-cA6Xh6e0fDBBBwH77SLJaJPBmD3nWVAcF9/XAcsrIHdjhFzFiB5aNQFytdjCGPezU3ROwrR11IddKAM08vohxA==}
     dev: false
 
   /request@2.88.0:

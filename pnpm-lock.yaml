@@ -665,8 +665,8 @@ importers:
         specifier: ^3.6.5
         version: 3.6.5
       nanoid:
-        specifier: ^5.0.4
-        version: 5.0.4
+        specifier: ^3.3.4
+        version: 3.3.7
       nc-help:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
@@ -19889,12 +19889,6 @@ packages:
     engines: {node: ^14 || ^16 || >=18}
     hasBin: true
     dev: true
-
-  /nanoid@5.0.4:
-    resolution: {integrity: sha512-vAjmBf13gsmhXSgBrtIclinISzFFy22WwCYoyilZlsrRXNIHSwgFQ1bEdjRwMT3aoadeIF6HMuDRlOxzfXV8ig==}
-    engines: {node: ^18 || >=20}
-    hasBin: true
-    dev: false
 
   /nanopop@2.3.0:
     resolution: {integrity: sha512-fzN+T2K7/Ah25XU02MJkPZ5q4Tj5FpjmIYq4rvoHX4yb16HzFdCO6JxFFn5Y/oBhQ8no8fUZavnyIv9/+xkBBw==}

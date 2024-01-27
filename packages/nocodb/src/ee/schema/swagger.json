@@ -3561,8 +3561,7 @@
         "$ref": "#/components/schemas/SSOClient",
         "required": [
           "title",
-          "type",
-          "config"
+          "type"
         ]
       },
       "SSOClient": {
@@ -3591,7 +3590,7 @@
           },
           "config": {
             "description": "SSO Client Configuration",
-            "oneOf": [
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/SAMLClientConfig"
               },
@@ -3636,9 +3635,6 @@
           },
           "userNameAttribute": {
             "type": "string"
-          },
-          "ssoOnly": {
-            "type": "boolean"
           }
         },
         "required": [
@@ -3661,11 +3657,20 @@
           },
           "xml": {
             "type": "string"
-          },
-          "ssoOnly": {
-            "type": "boolean"
           }
-        }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "metaDataUrl"
+            ]
+          },
+          {
+            "required": [
+              "xml"
+            ]
+          }
+        ]
       },
 
       "SSOClientList": {

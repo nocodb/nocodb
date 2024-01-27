@@ -120,7 +120,7 @@
     "kafkajs": "^2.2.4",
     "knex": "2.4.2",
     "list-github-dir-content": "^3.0.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "lru-cache": "^6.0.0",
     "mailersend": "^1.5.0",
     "marked": "^4.3.0",

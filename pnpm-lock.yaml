@@ -635,8 +635,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       lodash:
-        specifier: ^4.17.19
-        version: 4.17.19
+        specifier: ^4.17.21
+        version: 4.17.21
       lru-cache:
         specifier: ^6.0.0
         version: 6.0.0
@@ -19082,10 +19082,6 @@ packages:
     resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
     dev: true
 
-  /lodash@4.17.19:
-    resolution: {integrity: sha512-JNvd8XER9GQX0v2qJgsaN/mzFCNA5BRe/j8JN9d+tWyGLSodKQHKFicdwNYzWwI3wjRnaKPsGj1XkBjx/F96DQ==}
-    dev: false
-
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
@@ -24983,7 +24979,7 @@ packages:
       axios: 0.21.1(debug@4.3.4)
       dayjs: 1.11.10
       jsonwebtoken: 8.5.1
-      lodash: 4.17.19
+      lodash: 4.17.21
       q: 2.0.3
       qs: 6.11.2
       rootpath: 0.1.2

@@ -455,6 +455,7 @@ export class ColumnPageObject extends BasePage {
 
     // close sort menu
     await this.grid.toolbar.clickSort();
+    await this.rootPage.waitForTimeout(100);
   }
 
   async resize(param: { src: string; dst: string }) {

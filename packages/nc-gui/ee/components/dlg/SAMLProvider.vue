@@ -29,33 +29,6 @@ const formRules = {
     { required: true, message: t('msg.error.nameRequired') },
   ] as RuleObject[],
   // Either metaDataUrl or xml is required
-  metaDataUrl: [
-    // MetaDataUrl is required
-    { required: () => !form.xml?.length, message: t('msg.error.eitherXML') },
-    {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (!v.length || !isURL(v)) return resolve()
-
-          reject(new Error(t('msg.error.invalidURL')))
-        })
-      },
-      message: t('msg.error.signUpRules.emailInvalid'),
-    },
-  ] as RuleObject[],
-  xml: [
-    { required: () => !form.metaDataUrl?.length, message: t('msg.error.eitherXML') },
-    {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (!v?.length) return resolve()
-
-          reject(new Error('XML is invalid'))
-        })
-      },
-      message: t('msg.error.invalidXML'),
-    },
-  ] as RuleObject[],
 }
 
 const formValidator = ref()
@@ -72,7 +45,13 @@ const dialogShow = computed({
 })
 
 const saveSamlProvider = async () => {
-  if (!formValidator.value.validate()) return
+  const isValid = await formValidator.value.validate()
+
+  const isXMLorMetaDataUrlValid = () => {
+    if (form.metaDataUrl) return isURL(form.metaDataUrl)
+    return !!form.xml
+  }
+  if (!isValid || !isXMLorMetaDataUrlValid()) return
   if (props.isEdit) {
     await updateProvider(props.saml.id, {
       title: form.title,
@@ -106,7 +85,7 @@ const saveSamlProvider = async () => {
     <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
-          <a-form-item :rules="formRules.title">
+          <a-form-item :rules="formRules.title" name="title">
             <a-input v-model:value="form.title" placeholder="SAML Display Name*" />
           </a-form-item>
 
@@ -179,7 +158,7 @@ const saveSamlProvider = async () => {
               <template #tab>
                 <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
               </template>
-              <a-form-item :rules="formRules.metaDataUrl">
+              <a-form-item name="metaDataUrl">
                 <a-input v-model:value="form.metaDataUrl" placeholder="Paste the Metadata URL here from the Identity Provider" />
               </a-form-item>
             </a-tab-pane>
@@ -187,9 +166,9 @@ const saveSamlProvider = async () => {
               <template #tab>
                 <div class="text-sm">XML</div>
               </template>
-              <a-form-item :rules="formRules.xml">
+              <a-form-item name="xml">
                 <a-textarea
-                  v-model="form.xml"
+                  v-model:value="form.xml"
                   :auto-size="{
                     minRows: 5,
                     maxRows: 5,

@@ -1249,11 +1249,13 @@
       "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
+      "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
       "clientIdRequired": "Client ID is required",
       "clientSecretRequired": "Client Secret is required",
       "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
       "userInfoUrlRequired": "UserInfo URL is required",
       "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Name Required",

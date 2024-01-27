@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import isURL from 'validator/lib/isURL'
-import { computed, reactive, ref, useAuthentication } from '#imports'
+import { computed, isValidURL, reactive, ref, useAuthentication } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -30,13 +29,13 @@ const form = reactive<{
   userNameAttribute: string
   ssoOnly?: boolean
 }>({
-  title: props.oidc?.title ?? '', // COmplete
-  clientId: props.oidc?.config?.clientId ?? '', // COmplete
-  clientSecret: props.oidc?.config?.clientSecret ?? '', // COmplete
-  authUrl: props.oidc?.config?.authUrl ?? '', // COmplete
-  tokenUrl: props.oidc?.config?.tokenUrl ?? '', // COmplete
-  userInfoUrl: props.oidc?.config?.userInfoUrl ?? '', // COmplete
-  jwkUrl: props.oidc?.config?.jwkUrl ?? '', // COmplete
+  title: props.oidc?.title ?? '',
+  clientId: props.oidc?.config?.clientId ?? '',
+  clientSecret: props.oidc?.config?.clientSecret ?? '',
+  authUrl: props.oidc?.config?.authUrl ?? '',
+  tokenUrl: props.oidc?.config?.tokenUrl ?? '',
+  userInfoUrl: props.oidc?.config?.userInfoUrl ?? '',
+  jwkUrl: props.oidc?.config?.jwkUrl ?? '',
   scopes: props.oidc?.config?.scopes ?? [],
   userNameAttribute: props.oidc?.config?.userNameAttribute ?? '',
   ssoOnly: props.oidc?.config?.ssoOnly ?? false,
@@ -55,7 +54,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v.length || !isURL(v)) return resolve()
+          if (!v.length || isValidURL(v)) return resolve()
 
           reject(new Error(t('msg.error.invalidURL')))
         })
@@ -64,16 +63,16 @@ const formRules = {
     },
   ] as RuleObject[],
   tokenUrl: [
-    { required: true, message: t('msg.error.authUrlRequired') },
+    { required: true, message: t('msg.error.tokenUrlRequired') },
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v.length || !isURL(v)) return resolve()
+          if (!v.length || isValidURL(v)) return resolve()
 
           reject(new Error(t('msg.error.invalidURL')))
         })
       },
-      message: t('msg.error.authUrlRequired'),
+      message: t('msg.error.tokenUrlRequired'),
     },
   ] as RuleObject[],
   userInfoUrl: [
@@ -81,7 +80,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v.length || !isURL(v)) return resolve()
+          if (!v.length || isValidURL(v)) return resolve()
 
           reject(new Error(t('msg.error.invalidURL')))
         })
@@ -94,7 +93,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v.length || !isURL(v)) return resolve()
+          if (!v.length || isValidURL(v)) return resolve()
 
           reject(new Error(t('msg.error.invalidURL')))
         })
@@ -103,6 +102,7 @@ const formRules = {
     },
   ] as RuleObject[],
   userNameAttribute: [{ required: true, message: t('msg.error.userNameAttributeRequired') }] as RuleObject[],
+  scopes: [{ required: true, message: t('msg.error.scopesRequired') }] as RuleObject[],
 }
 
 const copyToClipboard = (text: string) => {
@@ -115,7 +115,8 @@ const dialogShow = computed({
 })
 
 const saveOIDCProvider = async () => {
-  if (!formValidator.value.validate()) return
+  const isValid = await formValidator.value.validate()
+  if (!isValid) return
   if (props.isEdit) {
     await updateProvider(props.oidc?.id ?? '', {
       title: form.title,
@@ -164,7 +165,7 @@ const saveOIDCProvider = async () => {
     <div class="overflow-y-auto h-[calc(min(75vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
-          <a-form-item :rules="formRules.title">
+          <a-form-item :rules="formRules.title" name="title">
             <a-input v-model:value="form.title" placeholder="OIDC Display Name*" />
           </a-form-item>
 
@@ -199,36 +200,38 @@ const saveOIDCProvider = async () => {
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
 
-          <a-form-item :rules="formRules.clientId">
+          <a-form-item :rules="formRules.clientId" name="clientId">
             <a-input v-model:value="form.clientId" class="!mt-4" placeholder="Client ID*" />
           </a-form-item>
 
-          <a-form-item :rules="formRules.clientSecret">
+          <a-form-item :rules="formRules.clientSecret" name="clientSecret">
             <a-input v-model:value="form.clientSecret" class="mt-4" placeholder="Client Secret*" required />
           </a-form-item>
 
-          <a-form-item :rules="formRules.authUrl">
-            <a-input v-model:value="form.authUrl" class="mt-4" placeholder="Authorisation URL*" required />
+          <a-form-item :rules="formRules.authUrl" name="authUrl">
+            <a-input v-model:value="form.authUrl" class="mt-4" placeholder="Authorisation URL*" required type="url" />
           </a-form-item>
-          <a-form-item :rules="formRules.tokenUrl">
-            <a-input v-model:value="form.tokenUrl" class="mt-4" placeholder="Token URL*" required />
+          <a-form-item :rules="formRules.tokenUrl" name="tokenUrl">
+            <a-input v-model:value="form.tokenUrl" class="mt-4" placeholder="Token URL*" required type="url" />
           </a-form-item>
-          <a-form-item :rules="formRules.userInfoUrl">
-            <a-input v-model:value="form.userInfoUrl" class="mt-4" placeholder="User Info URL*" required />
+          <a-form-item :rules="formRules.userInfoUrl" name="userInfoUrl">
+            <a-input v-model:value="form.userInfoUrl" class="mt-4" placeholder="User Info URL*" required type="url" />
           </a-form-item>
-          <a-form-item :rules="formRules.jwkUrl">
-            <a-input v-model:value="form.jwkUrl" class="mt-4" placeholder="JWK Set URL*" required />
+          <a-form-item :rules="formRules.jwkUrl" name="jwkUrl">
+            <a-input v-model:value="form.jwkUrl" class="mt-4" placeholder="JWK Set URL*" required type="url" />
           </a-form-item>
 
-          <NcSelect
-            v-model:value="form.scopes"
-            :options="[...['openid', 'profile', 'email'].map((s) => ({ label: s, value: s }))]"
-            class="w-full !mb-4"
-            mode="tags"
-            placeholder="-scope not selected*-"
-          />
+          <a-form-item :rules="formRules.scopes" class="!mb-4" name="scopes">
+            <NcSelect
+              v-model:value="form.scopes"
+              :options="[...['openid', 'profile', 'email'].map((s) => ({ label: s, value: s }))]"
+              class="w-full"
+              mode="tags"
+              placeholder="-scope not selected*-"
+            />
+          </a-form-item>
 
-          <a-form-item :rules="formRules.userNameAttribute">
+          <a-form-item :rules="formRules.userNameAttribute" name="userNameAttribute">
             <a-input v-model:value="form.userNameAttribute" class="mt-4" placeholder="Username Attribute*" required />
           </a-form-item>
 

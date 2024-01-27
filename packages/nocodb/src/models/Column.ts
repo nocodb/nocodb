@@ -198,7 +198,13 @@ export default class Column<T = any> implements ColumnType {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
         column_show: {
-          show: false,
+          show:
+            column.uidt === UITypes.LinkToAnotherRecord ||
+            (column.uidt === UITypes.Links &&
+              column.type === 'mm' &&
+              !column.view_id)
+              ? false
+              : !column.view_id,
           view_id: column.view_id,
         },
         column_order: column.column_order,

@@ -551,13 +551,12 @@ export default class View implements ViewType {
     for (const view of views) {
       const modifiedInsertObj = {
         ...insertObj,
-        show: param.column_show?.view_id
-          ? param.column_show?.view_id === view.id
-            ? true
-            : false
-          : insertObj.show,
         fk_view_id: view.id,
       };
+
+      if (param.column_show?.view_id === view.id) {
+        modifiedInsertObj.show = true;
+      }
 
       if (param.column_order?.view_id === view.id) {
         modifiedInsertObj.order = param.column_order?.order;

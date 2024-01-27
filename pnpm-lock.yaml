@@ -689,8 +689,8 @@ importers:
         specifier: workspace:^
         version: link:../nocodb-sdk
       nodemailer:
-        specifier: ^6.4.10
-        version: 6.4.10
+        specifier: ^6.9.8
+        version: 6.9.8
       object-hash:
         specifier: ^3.0.0
         version: 3.0.0
@@ -20340,10 +20340,9 @@ packages:
       node.extend: 1.0.8
     dev: false
 
-  /nodemailer@6.4.10:
-    resolution: {integrity: sha512-j+pS9CURhPgk6r0ENr7dji+As2xZiHSvZeVnzKniLOw1eRAyM/7flP0u65tCnsapV8JFu+t0l/5VeHsCZEeh9g==}
+  /nodemailer@6.9.8:
+    resolution: {integrity: sha512-cfrYUk16e67Ks051i4CntM9kshRYei1/o/Gi8K1d+R34OIs21xdFnW7Pt7EucmVKA0LKtqUGNcjMZ7ehjl49mQ==}
     engines: {node: '>=6.0.0'}
-    requiresBuild: true
     dev: false
 
   /nodemon@3.0.3:

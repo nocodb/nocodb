@@ -165,33 +165,6 @@ test.describe.serial('Test table', () => {
       view_id: tables[0].views[0].id,
     });
 
-    const hiddenLinksTableColumns = [
-      {
-        tableName: 'Table1',
-        columns: ['Table0'],
-      },
-      {
-        tableName: 'Table2',
-        columns: ['Table1'],
-      },
-      {
-        tableName: 'Table3',
-        columns: ['Table0s'],
-      },
-      {
-        tableName: 'Table4',
-        columns: ['Table3s'],
-      },
-    ];
-
-    // Unhide links columns
-    for (const table of hiddenLinksTableColumns) {
-      await dashboard.treeView.openTable({ title: table.tableName });
-      for (const column of table.columns) {
-        await dashboard.grid.toolbar.fields.toggle({ title: column, isLocallySaved: false, checked: true });
-      }
-    }
-
     // Add links
     // TableA <hm> TableB <hm> TableC
     // Link every record in tableA to 3 records in tableB
@@ -245,6 +218,33 @@ test.describe.serial('Test table', () => {
 
     // refresh page
     await page.reload();
+
+    const hiddenLinksTableColumns = [
+      {
+        tableName: 'Table1',
+        columns: ['Table0'],
+      },
+      {
+        tableName: 'Table2',
+        columns: ['Table1'],
+      },
+      {
+        tableName: 'Table3',
+        columns: ['Table0s'],
+      },
+      {
+        tableName: 'Table4',
+        columns: ['Table3s'],
+      },
+    ];
+
+    // Unhide links columns
+    for (const table of hiddenLinksTableColumns) {
+      await dashboard.treeView.openTable({ title: table.tableName });
+      for (const column of table.columns) {
+        await dashboard.grid.toolbar.fields.toggle({ title: column, isLocallySaved: false, checked: true });
+      }
+    }
   });
 
   test.afterEach(async () => {

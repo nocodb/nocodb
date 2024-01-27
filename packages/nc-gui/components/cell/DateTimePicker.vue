@@ -6,7 +6,6 @@ import {
   CellClickHookInj,
   ColumnInj,
   EditColumnInj,
-  IsExpandedFormOpenInj,
   ReadonlyInj,
   inject,
   isDrawerOrModalExist,
@@ -39,8 +38,6 @@ const editable = inject(EditModeInj, ref(false))
 const { t } = useI18n()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -297,8 +294,8 @@ const isColDisabled = computed(() => {
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="!w-full !py-1 !border-none !text-current"
-    :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
+    class="nc-cell-field !w-full !py-1 !border-none !text-current"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateTimeFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

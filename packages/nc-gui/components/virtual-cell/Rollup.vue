@@ -41,7 +41,7 @@ const childColumn = computed(() => {
 </script>
 
 <template>
-  <div @dblclick="activateShowEditNonEditableFieldWarning">
+  <div class="nc-cell-field" @dblclick="activateShowEditNonEditableFieldWarning">
     <div v-if="['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(colOptions.rollup_function)">
       {{ value }}
     </div>

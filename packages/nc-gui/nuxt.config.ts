@@ -101,6 +101,11 @@ export default defineNuxtConfig({
           content: './link-preview.webp',
         },
       ],
+      script: [
+        {
+          src: '/js/typesense-docsearch.js',
+        },
+      ],
     },
   },
 
@@ -110,6 +115,7 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
+    '~/assets/css/typesense-docsearch.css',
   ],
 
   runtimeConfig: {

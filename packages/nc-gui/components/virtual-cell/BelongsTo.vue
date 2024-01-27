@@ -95,7 +95,7 @@ watch([listItemsDlg], () => {
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-    <div class="chips flex items-center flex-1">
+    <div class="nc-cell-field chips flex items-center flex-1">
       <template v-if="value && relatedTableDisplayValueProp">
         <VirtualCellComponentsItemChip
           :item="value"

@@ -21,8 +21,6 @@ import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service
 import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
 import { PublicDocsService } from '~/services/docs/public/public-docs.service';
 // import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
-import { CommandPaletteService } from '~/services/command-palette.service';
-import { CommandPaletteController } from '~/controllers/command-palette.controller';
 
 // import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
 
@@ -47,7 +45,6 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
     WidgetsService,
     LayoutsService,
     LayoutFilterService,
-    CommandPaletteService,
     // ClickhouseService,
     // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
@@ -63,7 +60,6 @@ import { CommandPaletteController } from '~/controllers/command-palette.controll
           LayoutsController,
           LayoutFilterController,
 
-          CommandPaletteController,
           TelemetryController,
         ]
       : []),

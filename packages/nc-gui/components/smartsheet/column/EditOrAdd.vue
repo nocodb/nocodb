@@ -260,7 +260,7 @@ if (props.fromTableExplorer) {
       <div class="flex flex-col gap-2">
         <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
           <div
-            class="flex flex-grow px-2 py-1 items-center rounded-lg bg-gray-100 focus:bg-gray-100 outline-none"
+            class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
             style="outline-style: solid; outline-width: thin"
           >
             <input
@@ -281,7 +281,7 @@ if (props.fromTableExplorer) {
           <a-input
             ref="antInput"
             v-model:value="formState.title"
-            class="nc-column-name-input !rounded !mt-1"
+            class="nc-column-name-input !rounded-md !mt-1"
             :disabled="isKanban || readOnly"
             @input="onAlter(8)"
           />
@@ -297,7 +297,7 @@ if (props.fromTableExplorer) {
             <a-select
               v-model:value="formState.uidt"
               show-search
-              class="nc-column-type-input !rounded"
+              class="nc-column-type-input !rounded-md"
               :disabled="isKanban || readOnly"
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-md border-gray-200"
               @dropdown-visible-change="onDropdownChange"
@@ -450,7 +450,7 @@ if (props.fromTableExplorer) {
 <style lang="scss">
 .nc-column-type-input {
   .ant-select-selector {
-    @apply !rounded;
+    @apply !rounded-md;
   }
 }
 </style>

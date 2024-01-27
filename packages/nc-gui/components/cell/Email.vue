@@ -6,6 +6,7 @@ import {
   IsExpandedFormOpenInj,
   IsFormInj,
   IsSurveyFormInj,
+  ReadonlyInj,
   computed,
   inject,
   useI18n,
@@ -30,12 +31,14 @@ const editEnabled = inject(EditModeInj)!
 
 const column = inject(ColumnInj)!
 
-// Used in the logic of when to display error since we are not storing the email if it's not valid
-const localState = ref(value)
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
+// Used in the logic of when to display error since we are not storing the email if it's not valid
+const localState = ref(value)
 
 const vModel = computed({
   get: () => value,
@@ -71,11 +74,10 @@ watch(
 
 <template>
   <input
-    v-if="editEnabled"
+    v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm py-1"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field w-full outline-none text-sm py-1"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
@@ -87,17 +89,18 @@ watch(
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
   <nuxt-link
     v-else-if="validEmail"
     no-ref
-    class="text-sm underline hover:opacity-75 inline-block"
+    class="py-1 text-sm underline hover:opacity-75 inline-block"
     :href="`mailto:${vModel}`"
     target="_blank"
+    :tabindex="readOnly ? -1 : 0"
   >
-    <LazyCellClampedText :value="vModel" :lines="rowHeight" />
+    <LazyCellClampedText :value="vModel" :lines="rowHeight" class="nc-cell-field" />
   </nuxt-link>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" class="nc-cell-field" />
 </template>

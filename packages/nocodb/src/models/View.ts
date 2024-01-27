@@ -388,7 +388,13 @@ export default class View implements ViewType {
       for (const sort of sorts) {
         await Sort.insert(
           {
-            ...sort,
+            ...extractProps(sort, [
+              'fk_column_id',
+              'direction',
+              'base_id',
+              'source_id',
+              'order',
+            ]),
             fk_view_id: view_id,
             id: null,
           },
@@ -399,7 +405,19 @@ export default class View implements ViewType {
       for (const filter of filters.children) {
         await Filter.insert(
           {
-            ...filter,
+            ...extractProps(filter, [
+              'id',
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+              'base_id',
+              'source_id',
+              'order',
+            ]),
             fk_view_id: view_id,
             id: null,
           },
@@ -1548,5 +1566,383 @@ export default class View implements ViewType {
     );
 
     await NocoCache.del(deleteKeys);
+  }
+
+  static async bulkColumnInsertToViews(
+    {
+      columns,
+      viewColumns,
+      copyFromView,
+    }: {
+      copyFromView?: View;
+      columns?: ({
+        order?: number;
+        show?;
+      } & Column)[];
+      viewColumns?: (
+        | GridViewColumn
+        | GalleryViewColumn
+        | FormViewColumn
+        | KanbanViewColumn
+        | MapViewColumn
+      )[];
+    },
+    view: View,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObjs = [];
+
+    if (viewColumns) {
+      for (let i = 0; i < viewColumns.length; i++) {
+        const column = viewColumns[i];
+
+        insertObjs.push({
+          ...extractProps(column, [
+            'fk_view_id',
+            'fk_column_id',
+            'show',
+            'base_id',
+            'source_id',
+            'order',
+            'width',
+            'group_by',
+            'group_by_order',
+            'group_by_sort',
+          ]),
+          fk_view_id: view.id,
+          base_id: view.base_id,
+          source_id: view.source_id,
+        });
+      }
+    } else {
+      if (!columns) {
+        columns = await Column.list({ fk_model_id: view.fk_model_id });
+      }
+
+      // todo: avoid duplicate code
+      if (view.type === ViewTypes.KANBAN && !copyFromView) {
+        // sort by display value & attachment first, then by singleLineText & Number
+        // so that later we can handle control `show` easily
+        columns.sort((a, b) => {
+          const displayValueOrder = +b.pv - +a.pv;
+          const attachmentOrder =
+            +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
+          const singleLineTextOrder =
+            +(b.uidt === UITypes.SingleLineText) -
+            +(a.uidt === UITypes.SingleLineText);
+          const numberOrder =
+            +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
+          const defaultOrder = b.order - a.order;
+          return (
+            displayValueOrder ||
+            attachmentOrder ||
+            singleLineTextOrder ||
+            numberOrder ||
+            defaultOrder
+          );
+        });
+      }
+
+      let order = 1;
+      let galleryShowLimit = 0;
+      let kanbanShowLimit = 0;
+
+      for (let i = 0; i < columns.length; i++) {
+        const column = columns[i];
+
+        let show = 'show' in column ? column.show : true;
+
+        if (view.type === ViewTypes.GALLERY) {
+          const galleryView = await GalleryView.get(view.id, ncMeta);
+          if (
+            column.id === galleryView.fk_cover_image_col_id ||
+            column.pv ||
+            galleryShowLimit < 3
+          ) {
+            show = true;
+            galleryShowLimit++;
+          } else {
+            show = false;
+          }
+        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
+          const kanbanView = await KanbanView.get(view.id, ncMeta);
+          if (column.id === kanbanView?.fk_grp_col_id) {
+            // include grouping field if it exists
+            show = true;
+          } else if (
+            column.id === kanbanView.fk_cover_image_col_id ||
+            column.pv
+          ) {
+            // Show cover image or primary key
+            show = true;
+            kanbanShowLimit++;
+          } else if (kanbanShowLimit < 3 && !isSystemColumn(column)) {
+            // show at most 3 non-system columns
+            show = true;
+            kanbanShowLimit++;
+          } else {
+            // other columns will be hidden
+            show = false;
+          }
+        } else if (view.type === ViewTypes.MAP && !copyFromView) {
+          const mapView = await MapView.get(view.id, ncMeta);
+          if (column.id === mapView?.fk_geo_data_col_id) {
+            show = true;
+          }
+        } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
+          show = false;
+        }
+
+        insertObjs.push({
+          fk_column_id: column.id,
+          order: order++,
+          show,
+          fk_view_id: view.id,
+          base_id: view.base_id,
+          source_id: view.source_id,
+        });
+      }
+    }
+
+    switch (view.type) {
+      case ViewTypes.GRID:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.GRID_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.GALLERY:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.GALLERY_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.MAP:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.MAP_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.KANBAN:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.KANBAN_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.FORM:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.FORM_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+    }
+  }
+
+  static async insertMetaOnly(
+    view: Partial<View> &
+      Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
+        copy_from_id?: string;
+        fk_grp_col_id?: string;
+      },
+    model: {
+      getColumns: () => Promise<Column[]>;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = extractProps(view, [
+      'id',
+      'title',
+      'is_default',
+      'type',
+      'fk_model_id',
+      'base_id',
+      'source_id',
+      'meta',
+    ]);
+
+    if (!insertObj.order) {
+      // get order value
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
+        fk_model_id: view.fk_model_id,
+      });
+    }
+
+    insertObj.show = true;
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+
+    insertObj.meta = stringifyMetaProp(insertObj);
+
+    const copyFromView =
+      view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
+
+    // get base and base id if missing
+    if (!(view.base_id && view.source_id)) {
+      const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
+      insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
+    }
+
+    const insertedView = await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.VIEWS,
+      insertObj,
+    );
+
+    const { id: view_id } = insertedView;
+
+    // insert view metadata based on view type
+    switch (view.type) {
+      case ViewTypes.GRID:
+        await GridView.insert(
+          {
+            ...((copyFromView?.view as GridView) || {}),
+            ...(view as GridView),
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.MAP:
+        await MapView.insert(
+          {
+            ...(view as MapView),
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.GALLERY:
+        await GalleryView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.FORM:
+        await FormView.insert(
+          {
+            heading: view.title,
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.KANBAN:
+        // set grouping field
+        (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
+
+        await KanbanView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+    }
+
+    //  copy from view
+    if (copyFromView) {
+      const sorts = await copyFromView.getSorts(ncMeta);
+      const filters = await Filter.rootFilterList(
+        { viewId: copyFromView.id },
+        ncMeta,
+      );
+      const viewColumns = await copyFromView.getColumns(ncMeta);
+
+      const sortInsertObjs = [];
+      const filterInsertObjs = [];
+
+      for (const sort of sorts) {
+        sortInsertObjs.push({
+          ...extractProps(sort, [
+            'fk_column_id',
+            'direction',
+            'base_id',
+            'source_id',
+          ]),
+          fk_view_id: view_id,
+          id: undefined,
+        });
+      }
+
+      for (const filter of filters) {
+        const fn = async (filter, parentId: string = null) => {
+          const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
+
+          filterInsertObjs.push({
+            ...extractProps(filter, [
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+            ]),
+            fk_view_id: view_id,
+            id: generatedId,
+            fk_parent_id: parentId,
+          });
+          if (filter.is_group)
+            await Promise.all(
+              ((await filter.getChildren()) || []).map(async (child) => {
+                await fn(child, generatedId);
+              }),
+            );
+        };
+
+        await fn(filter);
+      }
+
+      await ncMeta.bulkMetaInsert(null, null, MetaTable.SORT, sortInsertObjs);
+
+      await ncMeta.bulkMetaInsert(
+        null,
+        null,
+        MetaTable.FILTER_EXP,
+        filterInsertObjs,
+        true,
+      );
+
+      // populate view columns
+      await View.bulkColumnInsertToViews(
+        { viewColumns, copyFromView },
+        insertedView,
+      );
+    } else {
+      // populate view columns
+      await View.bulkColumnInsertToViews(
+        { columns: (await model.getColumns()) as any[] },
+        insertedView,
+      );
+    }
+
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
+    );
+
+    return insertedView;
   }
 }

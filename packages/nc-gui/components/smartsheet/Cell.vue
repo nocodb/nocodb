@@ -273,4 +273,8 @@ onUnmounted(() => {
     text-align: right;
   }
 }
+
+.nc-cell .nc-cell-field {
+  @apply px-0;
+}
 </style>

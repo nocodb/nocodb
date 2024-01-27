@@ -1,17 +1,26 @@
 /* eslint-disable no-async-promise-executor */
+import { Readable } from 'stream';
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import sizeof from 'object-sizeof';
-import EntityMap from './EntityMap';
-import type { BulkDataAliasService } from '../../../../../services/bulk-data-alias.service';
-import type { TablesService } from '../../../../../services/tables.service';
-// @ts-ignore
+import { Logger } from '@nestjs/common';
+import PQueue from 'p-queue';
+import type { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import type { TablesService } from '~/services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
+import type { Source } from '~/models';
 
-const BULK_DATA_BATCH_COUNT = 20; // check size for every 100 records
-const BULK_DATA_BATCH_SIZE = 50 * 1024; // in bytes
-const BULK_LINK_BATCH_COUNT = 1000; // process 1000 records at a time
-const BULK_PARALLEL_PROCESS = 5;
+const logger = new Logger('at-import:readAndProcessData');
+
+const BULK_DATA_BATCH_COUNT =
+  +process.env.AT_IMPORT_BULK_DATA_BATCH_COUNT || 10; // check size for every N records
+const BULK_DATA_BATCH_SIZE =
+  +process.env.AT_IMPORT_BULK_DATA_BATCH_SIZE || 20 * 1024; // import N bytes at a time
+const BULK_LINK_BATCH_COUNT =
+  +process.env.AT_IMPORT_BULK_LINK_BATCH_COUNT || 500; // import N links at a time
+const BULK_PARALLEL_PROCESS = +process.env.AT_IMPORT_BULK_PARALLEL_PROCESS || 2; // process N records at a time
+const STREAM_BUFFER_LIMIT = +process.env.AT_IMPORT_STREAM_BUFFER_LIMIT || 100; // pause reading if we have more than N records to avoid backpressure
+const QUEUE_BUFFER_LIMIT = +process.env.AT_IMPORT_QUEUE_BUFFER_LIMIT || 20; // pause streaming if we have more than N records in the queue
 
 interface AirtableImportContext {
   bulkDataService: BulkDataAliasService;
@@ -22,50 +31,61 @@ async function readAllData({
   table,
   fields,
   atBase,
+  dataStream,
+  counter,
   logBasic = (_str) => {},
+  logWarning = (_str) => {},
 }: {
   table: { title?: string };
   fields?;
   atBase: AirtableBase;
+  dataStream: Readable;
+  counter?: { streamingCounter: number };
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
-}): Promise<EntityMap> {
-  return new Promise((resolve, reject) => {
-    let data = null;
-
+  logWarning?: (string) => void;
+}): Promise<boolean> {
+  return new Promise((resolve) => {
     const selectParams: any = {
       pageSize: 100,
     };
 
     if (fields) selectParams.fields = fields;
 
+    let recordCounter = 0;
+
     atBase(table.title)
       .select(selectParams)
       .eachPage(
         async function page(records, fetchNextPage) {
-          if (!data) {
-            /*
-              EntityMap is a sqlite3 table dynamically populated based on json data provided
-              It is used to store data temporarily and then stream it in bulk to import
-
-              This is done to avoid memory issues - heap out of memory - while importing large data
-            */
-            data = new EntityMap();
-            await data.init();
+          let tempCounter = 0;
+          for (const record of records) {
+            dataStream.push(
+              JSON.stringify({ id: record.id, ...record.fields }),
+            );
+            counter.streamingCounter++;
+            recordCounter++;
+            tempCounter++;
           }
-
-          for await (const record of records) {
-            await data.addRow({ id: record.id, ...record.fields });
-          }
-
-          const tmpLength = await data.getCount();
 
           logBasic(
             `:: Reading '${table.title}' data :: ${Math.max(
               1,
-              tmpLength - records.length,
-            )} - ${tmpLength}`,
+              recordCounter - tempCounter,
+            )} - ${recordCounter}`,
           );
+
+          // pause reading if we have more than STREAM_BUFFER_LIMIT to avoid backpressure
+          if (counter && counter.streamingCounter >= STREAM_BUFFER_LIMIT) {
+            await new Promise((resolve) => {
+              const interval = setInterval(() => {
+                if (counter.streamingCounter < STREAM_BUFFER_LIMIT / 2) {
+                  clearInterval(interval);
+                  resolve(true);
+                }
+              }, 100);
+            });
+          }
 
           // To fetch the next page of records, call `fetchNextPage`.
           // If there are more records, `page` will get called again.
@@ -74,10 +94,13 @@ async function readAllData({
         },
         async function done(err) {
           if (err) {
-            console.error(err);
-            return reject(err);
+            logger.error(err);
+            logWarning(
+              `There were errors on reading '${table.title}' data :: ${err}`,
+            );
           }
-          resolve(data);
+          dataStream.push(null);
+          resolve(true);
         },
       );
   });
@@ -88,100 +111,156 @@ export async function importData({
   table,
   atBase,
   nocoBaseDataProcessing_v2,
-  sDB,
-  logDetailed = (_str) => {},
+  syncDB,
+  source,
   logBasic = (_str) => {},
+  logDetailed = (_str) => {},
+  logWarning = (_str) => {},
   services,
+  // link related props start
+  insertedAssocRef = {},
+  atNcAliasRef,
+  ncLinkMappingTable,
 }: {
   baseName: string;
   table: { title?: string; id?: string };
   fields?;
   atBase: AirtableBase;
+  source: Source;
   logBasic: (string) => void;
   logDetailed: (string) => void;
+  logWarning: (string) => void;
   nocoBaseDataProcessing_v2;
-  sDB;
+  // link related props start
+  insertedAssocRef: { [assocTableId: string]: boolean };
+  atNcAliasRef: {
+    [ncTableId: string]: {
+      [ncTitle: string]: string;
+    };
+  };
+  ncLinkMappingTable: Record<string, Record<string, any>>[];
+  // link related props end
+  syncDB;
   services: AirtableImportContext;
-}): Promise<EntityMap> {
+}): Promise<{
+  nestedLinkCount: number;
+  importedCount: number;
+}> {
   try {
-    // returns EntityMap which allows us to stream data
-    const records: EntityMap = await readAllData({
-      table,
-      atBase,
-      logDetailed,
-      logBasic,
+    const counter = {
+      streamingCounter: 0,
+    };
+
+    const dataStream = new Readable({
+      read() {},
     });
 
-    await new Promise(async (resolve, reject) => {
-      const readable = records.getStream();
-      const allRecordsCount = await records.getCount();
-      const promises = [];
+    dataStream.pause();
+
+    readAllData({
+      table,
+      atBase,
+      dataStream,
+      counter,
+      logBasic,
+      logDetailed,
+      logWarning,
+    }).catch((e) => {
+      logger.error(e);
+      logWarning(`There were errors on reading '${table.title}' data :: ${e}`);
+    });
+
+    return new Promise(async (resolve) => {
+      const queue = new PQueue({ concurrency: BULK_PARALLEL_PROCESS });
+
+      const ltarPromise = importLTARData({
+        table,
+        baseName,
+        insertedAssocRef,
+        dataStream,
+        atNcAliasRef,
+        ncLinkMappingTable,
+        syncDB,
+        source,
+        services,
+        queue,
+        logBasic,
+        logDetailed,
+        logWarning,
+      }).catch((e) => {
+        logger.error(e);
+        logWarning(
+          `There were errors on importing '${table.title}' LTAR data :: ${e}`,
+        );
+      });
 
       let tempData = [];
       let importedCount = 0;
+      let nestedLinkCount = 0;
       let tempCount = 0;
 
-      // we keep track of active process to pause and resume the stream as we have async calls within the stream and we don't want to load all data in memory
-      let activeProcess = 0;
+      dataStream.on('data', async (record) => {
+        counter.streamingCounter--;
+        record = JSON.parse(record);
+        queue.add(
+          () =>
+            new Promise(async (resolve) => {
+              try {
+                const { id: rid, ...fields } = record;
+                const r = await nocoBaseDataProcessing_v2(syncDB, table, {
+                  id: rid,
+                  fields,
+                });
+                tempData.push(r);
+                tempCount++;
 
-      readable.on('data', async (record) => {
-        promises.push(
-          new Promise(async (resolve, reject) => {
-            try {
-              activeProcess++;
-              if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
+                if (tempCount >= BULK_DATA_BATCH_COUNT) {
+                  if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
+                    let insertArray = tempData.splice(0, tempData.length);
 
-              const { id: rid, ...fields } = record;
-              const r = await nocoBaseDataProcessing_v2(sDB, table, {
-                id: rid,
-                fields,
-              });
-              tempData.push(r);
-              tempCount++;
+                    await services.bulkDataService.bulkDataInsert({
+                      baseName,
+                      tableName: table.id,
+                      body: insertArray,
+                      cookie: {},
+                      skip_hooks: true,
+                      foreign_key_checks: !!source.isMeta(),
+                    });
 
-              if (tempCount >= BULK_DATA_BATCH_COUNT) {
-                if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
-                  readable.pause();
+                    logBasic(
+                      `:: Importing '${
+                        table.title
+                      }' data :: ${importedCount} - ${
+                        importedCount + insertArray.length
+                      }`,
+                    );
 
-                  let insertArray = tempData.splice(0, tempData.length);
-
-                  await services.bulkDataService.bulkDataInsert({
-                    baseName,
-                    tableName: table.id,
-                    body: insertArray,
-                    cookie: {},
-                    skip_hooks: true,
-                  });
-
-                  logBasic(
-                    `:: Importing '${
-                      table.title
-                    }' data :: ${importedCount} - ${Math.min(
-                      importedCount + insertArray.length,
-                      allRecordsCount,
-                    )}`,
-                  );
-
-                  importedCount += insertArray.length;
-                  insertArray = [];
-
-                  readable.resume();
+                    importedCount += insertArray.length;
+                    insertArray = [];
+                  }
+                  tempCount = 0;
                 }
-                tempCount = 0;
+
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+
+                resolve(true);
+              } catch (e) {
+                logger.error(e);
+                logWarning(
+                  `There were errors on importing '${table.title}' data :: ${e}`,
+                );
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+                resolve(true);
               }
-              activeProcess--;
-              if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
-              resolve(true);
-            } catch (e) {
-              reject(e);
-            }
-          }),
+            }),
         );
+
+        if (queue.size >= QUEUE_BUFFER_LIMIT) dataStream.pause();
       });
-      readable.on('end', async () => {
+      dataStream.on('end', async () => {
         try {
           // ensure all chunks are processed
-          await Promise.all(promises);
+          await queue.onIdle();
 
           // insert remaining data
           if (tempData.length > 0) {
@@ -191,27 +270,36 @@ export async function importData({
               body: tempData,
               cookie: {},
               skip_hooks: true,
+              foreign_key_checks: !!source.isMeta(),
             });
 
             logBasic(
-              `:: Importing '${
-                table.title
-              }' data :: ${importedCount} - ${Math.min(
-                importedCount + tempData.length,
-                allRecordsCount,
-              )}`,
+              `:: Importing '${table.title}' data :: ${importedCount} - ${
+                importedCount + tempData.length
+              }`,
             );
             importedCount += tempData.length;
             tempData = [];
           }
-          resolve(true);
+
+          nestedLinkCount = (await ltarPromise) as number;
+
+          resolve({
+            importedCount,
+            nestedLinkCount,
+          });
         } catch (e) {
-          return reject(e);
+          logger.error(e);
+          logWarning(
+            `There were errors on importing '${table.title}' data :: ${e}`,
+          );
+          resolve({
+            importedCount,
+            nestedLinkCount,
+          });
         }
       });
     });
-
-    return records;
   } catch (e) {
     throw e;
   }
@@ -219,26 +307,22 @@ export async function importData({
 
 export async function importLTARData({
   table,
-  fields,
-  atBase,
   baseName,
   insertedAssocRef = {},
-  logDetailed = (_str) => {},
-  logBasic = (_str) => {},
-  records,
+  dataStream,
   atNcAliasRef,
   ncLinkMappingTable,
   syncDB,
+  source,
   services,
+  queue,
+  logBasic = (_str) => {},
+  logWarning = (_str) => {},
 }: {
   baseName: string;
   table: { title?: string; id?: string };
-  fields;
-  atBase: AirtableBase;
-  logDetailed: (string) => void;
-  logBasic: (string) => void;
   insertedAssocRef: { [assocTableId: string]: boolean };
-  records?: EntityMap;
+  dataStream?: Readable;
   atNcAliasRef: {
     [ncTableId: string]: {
       [ncTitle: string]: string;
@@ -246,23 +330,19 @@ export async function importLTARData({
   };
   ncLinkMappingTable: Record<string, Record<string, any>>[];
   syncDB;
+  source: Source;
   services: AirtableImportContext;
-}) {
+  queue: PQueue;
+  logBasic: (string) => void;
+  logDetailed: (string) => void;
+  logWarning: (string) => void;
+}): Promise<number> {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
     colMeta: { title?: string };
     curCol: { title?: string };
     refCol: { title?: string };
   }> = [];
-  const allData: EntityMap =
-    records ||
-    (await readAllData({
-      table,
-      fields,
-      atBase,
-      logDetailed,
-      logBasic,
-    }));
 
   const modelMeta: any =
     await services.tableService.getTableWithAccessibleViews({
@@ -309,99 +389,116 @@ export async function importLTARData({
 
   let nestedLinkCnt = 0;
   let importedCount = 0;
-  let assocTableData = [];
-  // Iterate over all related M2M associative  table
-  for (const assocMeta of assocTableMetas) {
-    //  extract link data from records
-    await new Promise((resolve, reject) => {
-      const promises = [];
-      const readable = allData.getStream();
+  const assocTableData = {};
+  //  extract link data from records
+  return new Promise((resolve, reject) => {
+    dataStream.on('data', async (record) => {
+      record = JSON.parse(record);
+      // Iterate over all related M2M associative  table
+      for (const assocMeta of assocTableMetas) {
+        if (!assocTableData[assocMeta.modelMeta.id]) {
+          assocTableData[assocMeta.modelMeta.id] = [];
+        }
+        queue.add(
+          () =>
+            new Promise(async (resolve) => {
+              try {
+                const { id: _atId, ...rec } = record;
 
-      readable.on('data', async (record) => {
-        promises.push(
-          new Promise(async (resolve) => {
-            try {
-              const { id: _atId, ...rec } = record;
+                // todo: use actual alias instead of sanitized
+                const links =
+                  rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || [];
+                for (const id of links) {
+                  assocTableData[assocMeta.modelMeta.id].push({
+                    [assocMeta.curCol.title]: record.id,
+                    [assocMeta.refCol.title]: id,
+                  });
 
-              // todo: use actual alias instead of sanitized
-              assocTableData.push(
-                ...(
-                  rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
-                ).map((id) => ({
-                  [assocMeta.curCol.title]: record.id,
-                  [assocMeta.refCol.title]: id,
-                })),
-              );
+                  if (
+                    assocTableData[assocMeta.modelMeta.id].length >=
+                    BULK_LINK_BATCH_COUNT
+                  ) {
+                    let insertArray = assocTableData[
+                      assocMeta.modelMeta.id
+                    ].splice(0, assocTableData[assocMeta.modelMeta.id].length);
 
-              if (assocTableData.length >= BULK_LINK_BATCH_COUNT) {
-                readable.pause();
+                    const lastImportedCount = importedCount;
+                    importedCount += insertArray.length;
 
-                let insertArray = assocTableData.splice(
-                  0,
-                  assocTableData.length,
+                    logBasic(
+                      `:: Importing '${
+                        table.title
+                      }' LTAR data :: ${lastImportedCount} - ${
+                        lastImportedCount + insertArray.length
+                      }`,
+                    );
+
+                    await services.bulkDataService.bulkDataInsert({
+                      baseName,
+                      tableName: assocMeta.modelMeta.id,
+                      body: insertArray,
+                      cookie: {},
+                      skip_hooks: true,
+                      foreign_key_checks: !!source.isMeta(),
+                    });
+
+                    insertArray = [];
+                  }
+                }
+
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+                resolve(true);
+              } catch (e) {
+                logger.error(e);
+                logWarning(
+                  `There were errors on importing '${table.title}' LTAR data :: ${e}`,
                 );
-
-                logBasic(
-                  `:: Importing '${
-                    table.title
-                  }' LTAR data :: ${importedCount} - ${
-                    importedCount + insertArray.length
-                  }`,
-                );
-
-                await services.bulkDataService.bulkDataInsert({
-                  baseName,
-                  tableName: assocMeta.modelMeta.id,
-                  body: insertArray,
-                  cookie: {},
-                  skip_hooks: true,
-                });
-
-                importedCount += insertArray.length;
-                insertArray = [];
-
-                readable.resume();
+                if (queue.size < QUEUE_BUFFER_LIMIT / 2) dataStream.resume();
+                resolve(true);
               }
-              resolve(true);
-            } catch (e) {
-              reject(e);
-            }
-          }),
+            }),
         );
-      });
-      readable.on('end', async () => {
-        try {
-          // ensure all chunks are processed
-          await Promise.all(promises);
+      }
 
+      if (queue.size >= QUEUE_BUFFER_LIMIT) dataStream.pause();
+    });
+    dataStream.on('end', async () => {
+      try {
+        // ensure all chunks are processed
+        await queue.onIdle();
+
+        for (const assocMeta of assocTableMetas) {
           // insert remaining data
-          if (assocTableData.length >= 0) {
+          if (assocTableData[assocMeta.modelMeta.id].length >= 0) {
             logBasic(
               `:: Importing '${table.title}' LTAR data :: ${importedCount} - ${
-                importedCount + assocTableData.length
+                importedCount + assocTableData[assocMeta.modelMeta.id].length
               }`,
             );
 
             await services.bulkDataService.bulkDataInsert({
               baseName,
               tableName: assocMeta.modelMeta.id,
-              body: assocTableData,
+              body: assocTableData[assocMeta.modelMeta.id],
               cookie: {},
               skip_hooks: true,
+              foreign_key_checks: !!source.isMeta(),
             });
 
-            importedCount += assocTableData.length;
-            assocTableData = [];
+            importedCount += assocTableData[assocMeta.modelMeta.id].length;
+            assocTableData[assocMeta.modelMeta.id] = [];
           }
-
-          nestedLinkCnt += importedCount;
-
-          resolve(true);
-        } catch (e) {
-          reject(e);
         }
-      });
+
+        nestedLinkCnt += importedCount;
+
+        resolve(nestedLinkCnt);
+      } catch (e) {
+        reject(e);
+      }
     });
-  }
-  return nestedLinkCnt;
+
+    // resume the stream after all listeners are attached
+    dataStream.resume();
+  });
 }

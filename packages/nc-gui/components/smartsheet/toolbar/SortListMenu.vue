@@ -130,11 +130,7 @@ onMounted(() => {
         class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
         data-testid="nc-sorts-menu"
       >
-        <div
-          class="sort-grid max-h-120 nc-scrollbar-md"
-          :class="{ 'pb-3 pr-3.5': sorts?.length, '!pb-0': !availableColumns.length }"
-          @click.stop
-        >
+        <div class="sort-grid max-h-120 nc-scrollbar-md" :class="{ 'pr-3.5': sorts?.length }" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
@@ -187,6 +183,7 @@ onMounted(() => {
           v-if="availableColumns.length"
           v-model:visible="showCreateSort"
           :trigger="['click']"
+          class="mt-3"
           overlay-class-name="nc-toolbar-dropdown"
         >
           <template v-if="isEeUI && !isPublic">
@@ -204,6 +201,7 @@ onMounted(() => {
                 {{ $t('activity.addSort') }}
               </div>
             </NcButton>
+            <span v-else></span>
           </template>
           <template v-else>
             <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">

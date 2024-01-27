@@ -222,7 +222,7 @@ watch(isDropdownOpen, async () => {
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
-          :readonly="isMobileMode"
+          :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>

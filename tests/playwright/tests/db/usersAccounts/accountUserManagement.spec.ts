@@ -52,7 +52,8 @@ test.describe('User roles', () => {
     for (let i = 0; i < roleDb.length; i++) {
       const user = await api.orgUsers.list();
       if (user.list.length > 0) {
-        const u = user.list.find((u: any) => u.email === roleDb[i].email);
+        // const u = user.list.find((u: any) => u.email === roleDb[i].email);
+        const u = user.list.find((u: any) => u.email === accountUsersPage.prefixEmail(roleDb[i].email));
         if (u) await api.orgUsers.delete(u.id);
       }
     }

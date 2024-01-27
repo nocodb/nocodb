@@ -212,7 +212,7 @@ export default class Column<T = any> implements ColumnType {
       ncMeta,
     );
 
-    await View.clearSingleQueryCache(column.fk_model_id, []);
+    await View.clearSingleQueryCache(column.fk_model_id);
 
     return col;
   }
@@ -1202,7 +1202,7 @@ export default class Column<T = any> implements ColumnType {
 
     const column = await Column.get({ colId }, ncMeta);
 
-    await View.clearSingleQueryCache(column.fk_model_id, []);
+    await View.clearSingleQueryCache(column.fk_model_id);
   }
 
   public getValidators(): any {

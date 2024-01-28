@@ -18,7 +18,7 @@ export const useAuthentication = () => {
 
   const updateProvider = async (id: string, provider: Partial<SSOClientType>) => {
     try {
-      await api.ssoClient.update(id, provider)
+      await api.ssoClient.update(id, { ...provider, deleted: false })
     } catch (err) {
       message.error(await extractSdkResponseErrorMsg(err))
       console.log(err)
@@ -37,12 +37,33 @@ export const useAuthentication = () => {
 
   const addProvider = async (provider: SSOClientType) => {
     try {
-      await api.ssoClient.create(provider)
+      return await api.ssoClient.create(provider)
     } catch (err) {
       message.error(await extractSdkResponseErrorMsg(err))
       console.log(err)
     }
   }
 
-  return { providers, fetchProviders, updateProvider, deleteProvider, addProvider }
+  // pre-populate provider if not exist with deleted flag
+  // it is to populate redirect url for sso client which requires id
+  const getPrePopulatedProvider = (type: SSOClientType['type']) => {
+    // check pre-populated provider exist
+    let prePopulated = providers.value.find((p) => p.type === type && p.deleted)
+
+    if (prePopulated) {
+      return prePopulated
+    }
+
+    // pre-populate provider if not exist with deleted flag
+    prePopulated = await addProvider({
+      type,
+      deleted: true,
+    })
+
+    providers.value.push(prePopulated)
+
+    return prePopulated
+  }
+
+  return { providers, fetchProviders, updateProvider, deleteProvider, addProvider, getPrePopulatedProvider }
 }

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 
-const { fetchProviders, providers, deleteProvider, updateProvider, addProvider } = useAuthentication()
+const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider } = useAuthentication()
 
 const samlProviders = computed(() => {
   return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml')
@@ -16,14 +16,18 @@ const oidcDialogShow = ref(false)
 
 const isEdit = ref(false)
 
-const addSamlProvider = () => {
-  samlDialogShow.value = true
-}
-const addOIDCProvider = () => {
-  oidcDialogShow.value = true
-}
-
 const providerProp = ref<SSOClientType>()
+
+const addSamlProvider = async () => {
+  samlDialogShow.value = true
+  isEdit.value = true
+  providerProp.value = await getPrePopulatedProvider('saml')
+}
+const addOIDCProvider = async () => {
+  oidcDialogShow.value = true
+  isEdit.value = true
+  providerProp.value = await getPrePopulatedProvider('oidc')
+}
 
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)

@@ -60,7 +60,7 @@
     "dagre": "^0.8.5",
     "dayjs": "^1.11.10",
     "deep-object-diff": "^1.1.9",
-    "emoji-mart-vue-fast": "^15.0.0",
+    "emoji-mart-vue-fast": "^15.0.1",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
     "httpsnippet": "^2.0.0",

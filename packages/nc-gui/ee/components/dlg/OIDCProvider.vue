@@ -17,8 +17,20 @@ const { t } = useI18n()
 
 const { addProvider, updateProvider } = useAuthentication()
 
+
+
+issuer: (config as any).issuer,
+  authorizationURL: config.authUrl,
+  tokenURL: config.tokenUrl,
+  userInfoURL: config.userInfoUrl,
+  clientID: config.clientId,
+  clientSecret: config.clientSecret,
+  scope: config.scopes || ['profile', 'email'],
+
+
 const form = reactive<{
   title: string
+  issuer: string
   clientId: string
   clientSecret: string
   authUrl: string
@@ -30,6 +42,7 @@ const form = reactive<{
   ssoOnly?: boolean
 }>({
   title: props.oidc?.title ?? '',
+  issuer: props.oidc?.config?.issuer ?? '',
   clientId: props.oidc?.config?.clientId ?? '',
   clientSecret: props.oidc?.config?.clientSecret ?? '',
   authUrl: props.oidc?.config?.authUrl ?? '',
@@ -47,6 +60,7 @@ const formRules = {
     { required: true, message: t('msg.error.nameRequired') },
   ] as RuleObject[],
   clientId: [{ required: true, message: t('msg.error.clientIdRequired') }] as RuleObject[],
+  issuer: [{ required: true, message: t('msg.error.issuerRequired') }] as RuleObject[],
   clientSecret: [{ required: true, message: t('msg.error.clientSecretRequired') }] as RuleObject[],
   authUrl: [
     // MetaDataUrl is required
@@ -122,6 +136,7 @@ const saveOIDCProvider = async () => {
       title: form.title,
       config: {
         clientId: form.clientId,
+        issuer: form.issuer,
         clientSecret: form.clientSecret,
         authUrl: form.authUrl,
         tokenUrl: form.tokenUrl,
@@ -143,6 +158,7 @@ const saveOIDCProvider = async () => {
     title: form.title,
     config: {
       clientId: form.clientId,
+      issuer: form.issuer,
       clientSecret: form.clientSecret,
       authUrl: form.authUrl,
       tokenUrl: form.tokenUrl,
@@ -205,6 +221,10 @@ const saveOIDCProvider = async () => {
             </div>
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
+
+          <a-form-item :rules="formRules.issuer" name="issuer">
+            <a-input v-model:value="form.issuer" class="!mt-4" data-test-id="nc-oidc-issuer" placeholder="Issuer*" />
+          </a-form-item>
 
           <a-form-item :rules="formRules.clientId" name="clientId">
             <a-input v-model:value="form.clientId" class="!mt-4" data-test-id="nc-oidc-client-id" placeholder="Client ID*" />

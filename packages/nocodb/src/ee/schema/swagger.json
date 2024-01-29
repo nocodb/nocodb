@@ -3605,6 +3605,10 @@
         "description": "OpenID Configuration",
         "type": "object",
         "properties": {
+          "issuer": {
+            "type": "string",
+            "format": "uri"
+          },
           "clientId": {
             "type": "string"
           },

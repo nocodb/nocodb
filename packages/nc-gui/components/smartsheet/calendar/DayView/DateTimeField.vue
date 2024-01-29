@@ -203,20 +203,22 @@ const onDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
 
-  const { top } = container.value.getBoundingClientRect()
+  const { top, bottom } = container.value.getBoundingClientRect()
+
+  if (event.clientY > bottom - 20) {
+    container.value.scrollTop += 10
+  } else if (event.clientY < top + 20) {
+    container.value.scrollTop -= 10
+  }
 
   const { scrollHeight } = container.value
 
-  console.log(scrollHeight)
-
-  const percentY = (event.clientY - top - window.scrollY) / scrollHeight
+  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
   if (!fromCol) return
-
-  console.log('percentY', percentY)
 
   const hour = Math.floor(percentY * 24)
 
@@ -274,7 +276,7 @@ const stopDrag = (event: MouseEvent) => {
 
   const { scrollHeight } = container.value
 
-  const percentY = (event.clientY - top - window.scrollY) / scrollHeight
+  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col

@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
+import { OrgUserRoles } from 'nocodb-sdk';
 import init from '../../../init';
 import type { OpenIDClientConfigType } from 'nocodb-sdk';
 
@@ -276,7 +277,7 @@ function ssoTests() {
       .expect('Location', /https:\/\/mocksaml.com\/api\/saml\/sso/);
   });
 
-  it.only('Get login urls(utils api) and verify - OpenId', async () => {
+  it('Get login urls(utils api) and verify - OpenId', async () => {
     // create saml client
     const res = await request(context.app)
       .post('/api/v2/sso-client')

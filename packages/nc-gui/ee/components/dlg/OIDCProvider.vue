@@ -53,7 +53,19 @@ const formRules = {
     { required: true, message: t('msg.error.nameRequired') },
   ] as RuleObject[],
   clientId: [{ required: true, message: t('msg.error.clientIdRequired') }] as RuleObject[],
-  issuer: [{ required: true, message: t('msg.error.issuerRequired') }] as RuleObject[],
+  issuer: [
+    { required: true, message: t('msg.error.issuerRequired') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (!v.length || isValidURL(v)) return resolve()
+
+          reject(new Error(t('msg.error.invalidURL')))
+        })
+      },
+      message: t('msg.error.issuerRequired'),
+    },
+  ] as RuleObject[],
   clientSecret: [{ required: true, message: t('msg.error.clientSecretRequired') }] as RuleObject[],
   authUrl: [
     // MetaDataUrl is required
@@ -197,11 +209,7 @@ const saveOIDCProvider = async () => {
               <span class="text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
                 {{ getRedirectUrl(oidc) }}
               </span>
-              <NcButton
-                size="xsmall"
-                type="text"
-                @click="copy(getRedirectUrl(oidc))"
-              >
+              <NcButton size="xsmall" type="text" @click="copy(getRedirectUrl(oidc))">
                 <component :is="iconMap.copy" class="text-gray-800" />
               </NcButton>
             </div>

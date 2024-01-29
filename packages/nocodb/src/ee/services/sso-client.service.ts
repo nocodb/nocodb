@@ -15,6 +15,7 @@ import type {
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import { extractProps } from '~/helpers/extractProps';
 
 const parseStringPromise = promisify(parseString);
 
@@ -37,11 +38,23 @@ export class SSOClientService {
       NcError.notAllowed('Only one client is allowed for now');
     }
 
-    // validate client
-    validatePayload('swagger.json#/components/schemas/SSOClient', param.client);
+    // skip validation if deleted is true which is used for precreate for UI
+    if (param.client['deleted']) {
+      param.client = extractProps(param.client, [
+        'deleted',
+        'title',
+        'type',
+        'enabled',
+      ]);
+    } else {
+      // validate client
+      validatePayload(
+        'swagger.json#/components/schemas/SSOClient',
+        param.client,
+      );
 
-    param.client.config = await this.validateAndExtractConfig(param);
-
+      param.client.config = await this.validateAndExtractConfig(param);
+    }
     // add client
     const client = await SSOClient.insert({
       ...param.client,

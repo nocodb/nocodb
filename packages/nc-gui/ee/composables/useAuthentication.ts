@@ -46,7 +46,7 @@ export const useAuthentication = () => {
 
   // pre-populate provider if not exist with deleted flag
   // it is to populate redirect url for sso client which requires id
-  const getPrePopulatedProvider = (type: SSOClientType['type']) => {
+  const getPrePopulatedProvider = async (type: SSOClientType['type']) => {
     // check pre-populated provider exist
     let prePopulated = providers.value.find((p) => p.type === type && p.deleted)
 

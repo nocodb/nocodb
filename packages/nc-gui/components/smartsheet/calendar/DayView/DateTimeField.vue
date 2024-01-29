@@ -283,8 +283,6 @@ const stopDrag = (event: MouseEvent) => {
 
   const hour = Math.floor(percentY * 24)
 
-  console.log('hour', hour)
-
   const newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
   if (!newStartDate || !fromCol) return
 
@@ -348,7 +346,7 @@ const stopDrag = (event: MouseEvent) => {
   if (dragElement.value) {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value.classList.remove('hide')
-    isDragging.value = false
+    //  isDragging.value = false
     draggingId.value = null
     dragElement.value = null
   }
@@ -362,47 +360,40 @@ const stopDrag = (event: MouseEvent) => {
 const dragStart = (event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   let target = event.target as HTMLElement
-  let isMoved = false
 
-  const onMouseMove = () => {
-    isMoved = true
-    document.removeEventListener('mousemove', onMouseMove)
-  }
-  document.addEventListener('mousemove', onMouseMove)
+  isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
-    if (isMoved) {
-      while (!target.classList.contains('draggable-record')) {
-        target = target.parentElement as HTMLElement
-      }
-
-      const allRecords = document.querySelectorAll('.draggable-record')
-      allRecords.forEach((el) => {
-        if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-          // el.style.visibility = 'hidden'
-          el.style.opacity = '30%'
-        }
-      })
-
-      dragRecord.value = record
-
-      isDragging.value = true
-      dragElement.value = target
-      draggingId.value = record.rowMeta.id!
-      dragRecord.value = record
-
-      document.addEventListener('mousemove', onDrag)
-      document.addEventListener('mouseup', stopDrag)
-    } else {
-      clearTimeout(dragTimeout.value)
-      document.removeEventListener('mousemove', onMouseMove)
+    isDragging.value = true
+    while (!target.classList.contains('draggable-record')) {
+      target = target.parentElement as HTMLElement
     }
-  }, 50)
+
+    const allRecords = document.querySelectorAll('.draggable-record')
+    allRecords.forEach((el) => {
+      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
+        // el.style.visibility = 'hidden'
+        el.style.opacity = '30%'
+      }
+    })
+
+    dragRecord.value = record
+
+    isDragging.value = true
+    dragElement.value = target
+    draggingId.value = record.rowMeta.id!
+    dragRecord.value = record
+
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
+  }, 200)
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value)
-    document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
+    if (!isDragging.value) {
+      emit('expand-record', record)
+    }
   }
 
   document.addEventListener('mouseup', onMouseUp)
@@ -516,7 +507,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
           :key="rowIndex"
           :data-unique-id="record.rowMeta.id"
           :style="record.rowMeta.style"
-          class="absolute draggable-record pointer-events-auto"
+          class="absolute draggable-record cursor-pointer pointer-events-auto"
           @mousedown="dragStart($event, record)"
           @dragover.prevent
         >
@@ -529,7 +520,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
               :resize="false"
               color="blue"
               size="auto"
-              @click="emit('expand-record', record)"
             />
           </LazySmartsheetRow>
         </div>

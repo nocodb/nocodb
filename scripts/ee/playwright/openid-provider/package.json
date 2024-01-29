@@ -1,0 +1,16 @@
+{
+  "name": "playwright-openid-provider",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "camelcase": "^6.2.0",
+    "oidc-provider": "^7.5.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

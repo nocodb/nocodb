@@ -48,7 +48,7 @@ const saveSamlProvider = async () => {
   const isValid = await formValidator.value.validate()
 
   const isXMLorMetaDataUrlValid = () => {
-    if (form.metaDataUrl) return isURL(form.metaDataUrl)
+    if (form.metaDataUrl) return isURL(form.metaDataUrl, { require_tld: false })
     return !!form.xml
   }
   if (!isValid || !isXMLorMetaDataUrlValid()) return

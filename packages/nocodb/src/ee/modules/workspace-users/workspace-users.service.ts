@@ -21,7 +21,6 @@ import { getWorkspaceSiteUrl } from '~/utils';
 import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
-import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 
@@ -226,17 +225,9 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const usersInWorkspace = await Noco.ncMeta.metaCount(
-      null,
-      null,
-      MetaTable.WORKSPACE_USER,
-      {
-        condition: {
-          fk_workspace_id: workspaceId,
-        },
-        aggField: 'fk_user_id',
-      },
-    );
+    const usersInWorkspace = await WorkspaceUser.count({
+      workspaceId,
+    });
 
     const userLimitForWorkspace = await getLimit(
       PlanLimitTypes.WORKSPACE_USER_LIMIT,

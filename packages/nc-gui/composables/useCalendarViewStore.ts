@@ -181,13 +181,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             break
         }
 
-        if (calDataType.value === UITypes.Date) {
-          fromDate = dayjs(fromDate).format('YYYY-MM-DDZ')
-          toDate = dayjs(toDate).format('YYYY-MM-DDZ')
-        } else if (calDataType.value === UITypes.DateTime) {
-          fromDate = dayjs(fromDate).format('YYYY-MM-DD HH:mm:ssZ')
-          toDate = dayjs(toDate).format('YYYY-MM-DD HH:mm:ssZ')
-        }
+        fromDate = dayjs(fromDate).format('YYYY-MM-DD HH:mm:ssZ')
+        toDate = dayjs(toDate).format('YYYY-MM-DD HH:mm:ssZ')
 
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
@@ -352,13 +347,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           break
       }
 
-      if (calDataType.value === UITypes.Date) {
-        fromDate = dayjs(fromDate).format('YYYY-MM-DDZ')
-        toDate = dayjs(toDate).format('YYYY-MM-DDZ')
-      } else if (calDataType.value === UITypes.DateTime) {
-        fromDate = dayjs(fromDate).format('YYYY-MM-DD HH:mm:ssZ')
-        toDate = dayjs(toDate).format('YYYY-MM-DD HH:mm:ssZ')
-      }
+      fromDate = dayjs(fromDate).format('YYYY-MM-DD HH:mm:ssZ')
+      toDate = dayjs(toDate).format('YYYY-MM-DD HH:mm:ssZ')
 
       calendarRange.value.forEach((range) => {
         const fromCol = range.fk_from_col

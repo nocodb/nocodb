@@ -63,11 +63,11 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
 
         if (!startDate.isValid() || startDate.isAfter(endDate)) continue
 
-        if (startDate.isBefore(scheduleStart)) {
+        if (startDate.isBefore(scheduleStart, 'minutes')) {
           startDate = scheduleStart
         }
 
-        if (endDate.isAfter(scheduleEnd)) {
+        if (endDate.isAfter(scheduleEnd, 'minutes')) {
           endDate = scheduleEnd
         }
 
@@ -88,7 +88,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           overlaps[startMinutes].push(id)
           startMinutes += 15
         }
-        const finalTopInPixels = topInPixels + startHour
+        const finalTopInPixels = topInPixels + 5 + startHour * 2
 
         const style: Partial<CSSStyleDeclaration> = {
           top: `${finalTopInPixels}px`,

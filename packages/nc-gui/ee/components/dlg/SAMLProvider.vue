@@ -2,7 +2,7 @@
 import type { SSOClientType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import isURL from 'validator/lib/isURL'
-import { computed, reactive, ref, useAuthentication } from '#imports'
+import { computed, reactive, ref, useAuthentication, useCopy } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider } = useAuthentication()
+const { addProvider, updateProvider, getRedirectUrl, getEntityId } = useAuthentication()
 
 const form = reactive<{ title: string; metaDataUrl?: string; xml?: string; ssoOnly: boolean }>({
   title: props.saml?.title ?? '',
@@ -33,9 +33,7 @@ const formRules = {
 
 const formValidator = ref()
 
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text)
-}
+const { copy } = useCopy()
 
 const activeTabKey = ref('metaDataURL')
 
@@ -103,18 +101,9 @@ const saveSamlProvider = async () => {
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
               <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
                 <!-- Get Redirect URL from Authentication Composable -->
-                https://idp.example.com/example_login/accounting_team_alhvd8WO
+                {{ getRedirectUrl(saml) }}
               </span>
-              <NcButton
-                size="xsmall"
-                type="text"
-                @click="
-                  () => {
-                    // props.saml.config.redirectUrl
-                    copyToClipboard('')
-                  }
-                "
-              >
+              <NcButton size="xsmall" type="text" @click="copy(getRedirectUrl(saml))">
                 <component :is="iconMap.copy" class="text-gray-800" />
               </NcButton>
             </div>
@@ -135,18 +124,9 @@ const saveSamlProvider = async () => {
               <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
                 <!-- Get Entity ID from Authentication Composable -->
 
-                https://idp.example.com/example_login/accounting_team_alhvd8WO
+                {{ getEntityId(saml) }}
               </span>
-              <NcButton
-                size="xsmall"
-                type="text"
-                @click="
-                  () => {
-                    // props.saml.config.entityId
-                    copyToClipboard('')
-                  }
-                "
-              >
+              <NcButton size="xsmall" type="text" @click="copy(getEntityId(saml))">
                 <component :is="iconMap.copy" class="text-gray-800" />
               </NcButton>
             </div>

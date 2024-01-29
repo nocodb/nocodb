@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 
-const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider } = useAuthentication()
+const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider, signInUrl } =
+  useAuthentication()
 
 const samlProviders = computed(() => {
   return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml')
@@ -29,9 +30,7 @@ const addOIDCProvider = async () => {
   providerProp.value = await getPrePopulatedProvider('oidc')
 }
 
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text)
-}
+const { copy } = useCopy()
 
 const updateProviderStatus = async (client: { enabled: boolean }) => {
   client.enabled = !client.enabled
@@ -97,15 +96,11 @@ onMounted(async () => {
         <div class="">
           <h1 class="text-md text-gray-800">SignIn URL</h1>
           <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-            <span class="text-gray-800"> https://idp.example.com/example_login/accounting_team_alhvd8WO </span>
+            <span class="text-gray-800"> {{ signInUrl }} </span>
             <NcButton
               size="xsmall"
               type="text"
-              @click="
-                () => {
-                  copyToClipboard('https://idp.example.com/example_login/accounting_team_alhvd8WO')
-                }
-              "
+              @click="copy(signInUrl)"
             >
               <component :is="iconMap.copy" class="text-gray-800" />
             </NcButton>

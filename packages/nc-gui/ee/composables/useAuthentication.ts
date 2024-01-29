@@ -3,6 +3,7 @@ import { message } from 'ant-design-vue'
 
 export const useAuthentication = () => {
   const { api } = useApi()
+  const { appInfo } = useGlobal()
 
   const providers = ref<SSOClientType[]>([])
 
@@ -65,5 +66,42 @@ export const useAuthentication = () => {
     return prePopulated
   }
 
-  return { providers, fetchProviders, updateProvider, deleteProvider, addProvider, getPrePopulatedProvider }
+  // method to costruct redirect url for sso client
+  const getRedirectUrl =  (provider: SSOClientType) => {
+    if (!provider?.id) return ``
+
+    const { ncSiteUrl } = appInfo.value
+    const { id } = provider
+
+    return `${ncSiteUrl}/sso/${id}/redirect`
+  }
+
+  // for saml
+  const getEntityId =  (provider: SSOClientType) => {
+    if (!provider?.id) return ``
+
+    const { ncSiteUrl } = appInfo.value
+    const { id } = provider
+
+    return `${ncSiteUrl}/sso/${id}`
+  }
+
+  const signInUrl = computed(() => {
+    const url = new URL(location.href)
+    url.hash = '/signin'
+
+    return url.href
+  })
+
+  return {
+    providers,
+    fetchProviders,
+    updateProvider,
+    deleteProvider,
+    addProvider,
+    getPrePopulatedProvider,
+    getRedirectUrl,
+    signInUrl,
+    getEntityId,
+  }
 }

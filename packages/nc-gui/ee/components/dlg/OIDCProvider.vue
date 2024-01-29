@@ -1,11 +1,7 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { computed, isValidURL as _isValidURL, reactive, ref, useAuthentication } from '#imports'
-
-const isValidURL = (v: string) => {
-  return _isValidURL(v, { require_tld: false })
-}
+import { isValidURL as _isValidURL, computed, reactive, ref, useAuthentication } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -15,22 +11,15 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const isValidURL = (v: string) => {
+  return _isValidURL(v, { require_tld: false })
+}
+
 const formValidator = ref()
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider } = useAuthentication()
-
-
-
-issuer: (config as any).issuer,
-  authorizationURL: config.authUrl,
-  tokenURL: config.tokenUrl,
-  userInfoURL: config.userInfoUrl,
-  clientID: config.clientId,
-  clientSecret: config.clientSecret,
-  scope: config.scopes || ['profile', 'email'],
-
+const { addProvider, updateProvider, getRedirectUrl } = useAuthentication()
 
 const form = reactive<{
   title: string
@@ -123,9 +112,7 @@ const formRules = {
   scopes: [{ required: true, message: t('msg.error.scopesRequired') }] as RuleObject[],
 }
 
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text)
-}
+const { copy } = useCopy()
 
 const dialogShow = computed({
   get: () => props.modelValue,
@@ -208,17 +195,12 @@ const saveOIDCProvider = async () => {
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
               <span class="text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
-                https://idp.example.com/example_login/accounting_team_alhvd8WO
+                {{ getRedirectUrl(oidc) }}
               </span>
               <NcButton
                 size="xsmall"
                 type="text"
-                @click="
-                  () => {
-                    // TODO: get redirect url from Props
-                    copyToClipboard('')
-                  }
-                "
+                @click="copy(getRedirectUrl(oidc))"
               >
                 <component :is="iconMap.copy" class="text-gray-800" />
               </NcButton>

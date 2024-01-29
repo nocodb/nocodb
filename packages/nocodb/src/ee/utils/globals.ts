@@ -103,6 +103,7 @@ export const orderedMetaTables = [
   MetaTable.WORKSPACE,
   MetaTable.COWRITER,
   MetaTable.FOLLOWER,
+  MetaTable.SSO_CLIENT,
 ];
 
 export enum CacheScope {

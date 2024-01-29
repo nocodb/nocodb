@@ -1,8 +1,7 @@
-import { Base, Model } from '../../../src/models';
-import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
-import { orderedMetaTables } from '../../../src/utils/globals';
+import { Base, Model } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { orderedMetaTables } from '~/utils/globals';
 import TestDbMngr from '../TestDbMngr';
-import { isPg } from './db';
 
 const dropTablesAllNonExternalProjects = async () => {
   const bases = await Base.list({});

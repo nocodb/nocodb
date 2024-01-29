@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import { OrgUserRoles } from 'nocodb-sdk';
 import init from '../../../init';
 import type { OpenIDClientConfigType } from 'nocodb-sdk';
 
@@ -11,9 +10,9 @@ import type { OpenIDClientConfigType } from 'nocodb-sdk';
 // 3. Create a new client - OpenID - with invalid and valid payloads
 // 4. Update client - SAML - with invalid and valid payloads
 // 5. Update client - OpenID - with invalid and valid payloads
-// 6. Remove client - SAML
-// 7. Remove client - OpenID
-// 8. Get login urls(utils api) and verify
+// 6. Remove client - SAML/OpenID
+// 7. Get login urls(utils api) and verify - SAML
+// 8. Get login urls(utils api) and verify - OpenID
 
 const validSAMLPayload = {
   type: 'saml',
@@ -47,6 +46,7 @@ const validOpenIDPayload = {
     logoutUrl: 'https://samples.auth0.com/v2/logout',
     callbackUrl: 'https://samples.auth0.com/callback',
     clientSecret: 'secret',
+    issuer: 'https://samples.auth0.com/',
     scopes: ['profile', 'email'],
   } as OpenIDClientConfigType,
 };
@@ -201,7 +201,7 @@ function ssoTests() {
 
   it('Remove client - OpenID/SAML', async () => {
     for (const payload of [validOpenIDPayload, validSAMLPayload]) {
-      // create saml client
+      // create client
       const res = await request(context.app)
         .post('/api/v2/sso-client')
         .set('xc-auth', context.token)
@@ -242,10 +242,76 @@ function ssoTests() {
       expect(listResponseAfterDelete.body.list).to.have.length(0);
     }
   });
+
+  it('Get login urls(utils api) and verify - SAML', async () => {
+    // create saml client
+    const res = await request(context.app)
+      .post('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .send(validSAMLPayload)
+      .expect(200);
+
+    expect(res.body).to.have.property('id');
+
+    const appInfoRes = await request(context.app)
+      .get('/api/v2/meta/nocodb/info')
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(appInfoRes.body)
+      .to.have.property('ssoClients')
+      .is.an('array')
+      .length(1);
+
+    const client = appInfoRes.body.ssoClients[0];
+
+    expect(client).to.have.property('id').to.be.equal(res.body.id);
+    expect(client).to.have.property('url').is.a('string');
+
+    const loginUrl = new URL(client.url);
+
+    await request(context.app)
+      .get(loginUrl.pathname)
+      .set('xc-auth', context.token)
+      .expect('Location', /https:\/\/mocksaml.com\/api\/saml\/sso/);
+  });
+
+  it.only('Get login urls(utils api) and verify - OpenId', async () => {
+    // create saml client
+    const res = await request(context.app)
+      .post('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .send(validOpenIDPayload)
+      .expect(200);
+
+    expect(res.body).to.have.property('id');
+
+    const appInfoRes = await request(context.app)
+      .get('/api/v2/meta/nocodb/info')
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(appInfoRes.body)
+      .to.have.property('ssoClients')
+      .is.an('array')
+      .length(1);
+
+    const client = appInfoRes.body.ssoClients[0];
+
+    expect(client).to.have.property('id').to.be.equal(res.body.id);
+    expect(client).to.have.property('url').is.a('string');
+
+    const loginUrl = new URL(client.url);
+
+    await request(context.app)
+      .get(loginUrl.pathname)
+      .set('xc-auth', context.token)
+      .expect('Location', /https:\/\/samples.auth0.com\/authorize/);
+  });
 }
 
 export default function () {
   if (process.env.EE) {
-    describe.only('SSO', ssoTests);
+    describe('SSO', ssoTests);
   }
 }

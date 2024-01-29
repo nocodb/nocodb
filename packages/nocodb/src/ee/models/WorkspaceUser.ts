@@ -323,7 +323,7 @@ export default class WorkspaceUser {
           fk_workspace_id: workspaceId,
           deleted: false,
         },
-        aggField: 'fk_workspace_id',
+        aggField: 'fk_user_id',
       });
 
       await NocoCache.set(key, count);

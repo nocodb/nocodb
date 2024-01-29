@@ -553,6 +553,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
+  isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
     while (!target.classList.contains('draggable-record')) {
@@ -577,6 +578,16 @@ const dragStart = (event: MouseEvent, record: Row) => {
     document.addEventListener('mousemove', onDrag)
     document.addEventListener('mouseup', stopDrag)
   }, 500)
+
+  const onMouseUp = () => {
+    clearTimeout(dragTimeout.value)
+    document.removeEventListener('mouseup', onMouseUp)
+    if (!isDragging.value) {
+      emit('expand-record', record)
+    }
+  }
+
+  document.addEventListener('mouseup', onMouseUp)
 }
 
 const dropEvent = (event: DragEvent) => {

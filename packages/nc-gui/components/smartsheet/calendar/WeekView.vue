@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib'
+import { ref } from '#imports'
 
 const emits = defineEmits(['expand-record'])
 
@@ -211,6 +212,8 @@ const draggingId = ref<string | null>(null)
 
 const resizeInProgress = ref(false)
 
+const dragTimeout = ref(null)
+
 const isDragging = ref(false)
 const dragRecord = ref<Row>()
 
@@ -366,6 +369,8 @@ const onDrag = (event: MouseEvent) => {
 
 const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
+  clearTimeout(dragTimeout.value)
+
   if (!isUIAllowed('dataEdit')) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
@@ -441,7 +446,7 @@ const stopDrag = (event: MouseEvent) => {
   if (dragElement.value) {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value.classList.remove('hide')
-    isDragging.value = false
+    // isDragging.value = false
     draggingId.value = null
     dragElement.value = null
   }
@@ -457,32 +462,48 @@ const dragStart = (event: MouseEvent, record: Row) => {
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
-  while (!target.classList.contains('draggable-record')) {
-    target = target.parentElement as HTMLElement
+  isDragging.value = false
+
+  dragTimeout.value = setTimeout(() => {
+    isDragging.value = true
+    while (!target.classList.contains('draggable-record')) {
+      target = target.parentElement as HTMLElement
+    }
+
+    const allRecords = document.querySelectorAll('.draggable-record')
+    allRecords.forEach((el) => {
+      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
+        // el.style.visibility = 'hidden'
+        el.style.opacity = '30%'
+      }
+    })
+
+    dragRecord.value = record
+
+    isDragging.value = true
+    dragElement.value = target
+    draggingId.value = record.rowMeta.id!
+    dragRecord.value = record
+
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
+  }, 200)
+
+  const onMouseUp = () => {
+    clearTimeout(dragTimeout.value)
+    document.removeEventListener('mouseup', onMouseUp)
+    if (!isDragging.value) {
+      emit('expand-record', record)
+    }
   }
 
-  const allRecords = document.querySelectorAll('.draggable-record')
-  allRecords.forEach((el) => {
-    if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-      // el.style.visibility = 'hidden'
-      el.style.opacity = '30%'
-    }
-  })
-
-  dragRecord.value = record
-
-  isDragging.value = true
-  dragElement.value = target
-  draggingId.value = record.rowMeta.id!
-  dragRecord.value = record
-
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
+  document.addEventListener('mouseup', onMouseUp)
 }
 
 const dropEvent = (event: DragEvent) => {
   if (!isUIAllowed('dataEdit')) return
   event.preventDefault()
+
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {
     const {
@@ -598,7 +619,7 @@ const dropEvent = (event: DragEvent) => {
               : 'none',
         }"
         class="absolute group draggable-record pointer-events-auto"
-        @mousedown.stop="dragStart($event, record)"
+        @mousedown="dragStart($event, record)"
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard

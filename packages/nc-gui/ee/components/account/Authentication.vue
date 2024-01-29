@@ -33,7 +33,7 @@ const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
 }
 
-const updateProviderStatus = async (client: { enabled: boolean}) => {
+const updateProviderStatus = async (client: { enabled: boolean }) => {
   client.enabled = !client.enabled
   await updateProvider(client.id, { enabled: client.enabled })
 }
@@ -84,7 +84,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center">
+  <div class="flex flex-col items-center" data-test-id="nc-authentication">
     <div class="flex flex-col w-150">
       <div class="flex justify-between items-center" data-rec="true">
         <span class="font-bold text-xl">
@@ -116,7 +116,13 @@ onMounted(async () => {
         <div class="flex font-bold justify-between text-base" data-rec="true">
           {{ $t('labels.saml') }}
 
-          <NcButton :disabled="samlProviders.length >= 1" size="small" type="secondary" @click="addSamlProvider">
+          <NcButton
+            :disabled="samlProviders.length >= 1"
+            data-test-id="nc-new-saml-provider"
+            size="small"
+            type="secondary"
+            @click="addSamlProvider"
+          >
             <component :is="iconMap.plus" />
             <span> {{ $t('labels.newProvider') }} </span>
           </NcButton>
@@ -127,40 +133,42 @@ onMounted(async () => {
           <div
             v-for="(sam, id) in samlProviders"
             :key="id"
-            class="flex flex-row justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
+            :data-test-id="`nc-saml-provider-${sam.title}`"
+            class="flex flex-row justify-between nc-saml-provider w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
           >
-            <div>
-              <NcSwitch
-                :checked="!!sam.enabled"
-                class="min-w-4"
-                size="small"
-                @change="updateProviderStatus(sam)"
-              />
-              <span class="text-inherit ml-2 group-hover:text-black capitalize">
+            <div :class="`nc-saml-${sam.title}-enable`">
+              <NcSwitch :checked="!!sam.enabled" class="min-w-4" size="small" @change="updateProviderStatus(sam)" />
+              <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title">
                 {{ sam?.title }}
               </span>
             </div>
 
             <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
-              <NcButton class="!text-gray-500 !hover:text-gray-800" size="xsmall" type="text">
+              <NcButton
+                :class="`nc-saml-${sam.title}-more-option`"
+                class="!text-gray-500 !hover:text-gray-800"
+                data-test-id="nc-saml-more-option"
+                size="xsmall"
+                type="text"
+              >
                 <GeneralIcon class="text-inherit" icon="threeDotVertical" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem @click="enableEdit(sam)">
+                  <NcMenuItem data-test-id="nc-saml-edit" @click="enableEdit(sam)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.edit" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem @click="duplicateProvider(sam.id)">
+                  <NcMenuItem data-test-id="nc-saml-duplicate" @click="duplicateProvider(sam.id)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.copy" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.duplicate') }} </span>
                     </div>
                   </NcMenuItem>
                   <a-menu-divider class="my-1.5" />
-                  <NcMenuItem @click="deleteProvider(sam.id)">
+                  <NcMenuItem data-test-id="nc-saml-delete" @click="deleteProvider(sam.id)">
                     <div class="text-red-500">
                       <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
                       {{ $t('general.delete') }}
@@ -172,11 +180,17 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+      <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6" data-test-id="nc-oidc-provider">
         <div class="flex font-bold justify-between text-base" data-rec="true">
           {{ $t('labels.oidc') }}
 
-          <NcButton :disabled="oidcProviders.length >= 1" size="small" type="secondary" @click="addOIDCProvider">
+          <NcButton
+            :disabled="oidcProviders.length >= 1"
+            data-test-id="nc-new-oidc-provider"
+            size="small"
+            type="secondary"
+            @click="addOIDCProvider"
+          >
             <component :is="iconMap.plus" />
             <span> {{ $t('labels.newProvider') }} </span>
           </NcButton>
@@ -187,40 +201,42 @@ onMounted(async () => {
           <div
             v-for="(oid, id) in oidcProviders"
             :key="id"
-            class="flex flex-row justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
+            :data-test-id="`nc-oidc-provider-${oid.name}`"
+            class="flex flex-row nc-oidc-provider justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
           >
-            <div>
-              <NcSwitch
-                :checked="!!oid.enabled"
-                class="min-w-4"
-                size="small"
-                @change="updateProviderStatus(oid)"
-              />
-              <span class="text-inherit ml-2 group-hover:text-black capitalize">
+            <div :class="`nc-oidc-${oid.title}-enable`">
+              <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" />
+              <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-oidc-title">
                 {{ oid?.title }}
               </span>
             </div>
 
             <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
-              <NcButton class="!text-gray-500 !hover:text-gray-800" size="xsmall" type="text">
+              <NcButton
+                :class="`nc-oidc-${oid.title}-more-option`"
+                class="!text-gray-500 !hover:text-gray-800"
+                data-test-id="nc-oidc-more-option"
+                size="xsmall"
+                type="text"
+              >
                 <GeneralIcon class="text-inherit" icon="threeDotVertical" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem @click="enableEdit(oid)">
+                  <NcMenuItem data-test-id="nc-oidc-edit" @click="enableEdit(oid)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.edit" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem @click="duplicateProvider(oid.id)">
+                  <NcMenuItem data-test-id="nc-oidc-duplicate" @click="duplicateProvider(oid.id)">
                     <div class="flex flex-row items-center">
                       <component :is="iconMap.copy" class="text-gray-800" />
                       <span class="text-gray-800 ml-2"> {{ $t('general.duplicate') }} </span>
                     </div>
                   </NcMenuItem>
                   <a-menu-divider class="my-1.5" />
-                  <NcMenuItem @click="deleteProvider(oid.id)">
+                  <NcMenuItem data-test-id="nc-oidc-delete" @click="deleteProvider(oid.id)">
                     <div class="text-red-500">
                       <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
                       {{ $t('general.delete') }}

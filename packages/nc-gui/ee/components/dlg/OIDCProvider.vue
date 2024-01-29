@@ -160,13 +160,19 @@ const saveOIDCProvider = async () => {
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="medium" @keydown.esc="dialogShow = false">
+  <NcModal
+    v-model:visible="dialogShow"
+    class="nc-oidc-modal"
+    data-test-id="nc-oidc-modal"
+    size="medium"
+    @keydown.esc="dialogShow = false"
+  >
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerOIDC') }}</div>
     <div class="overflow-y-auto h-[calc(min(75vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
           <a-form-item :rules="formRules.title" name="title">
-            <a-input v-model:value="form.title" placeholder="OIDC Display Name*" />
+            <a-input v-model:value="form.title" data-test-id="nc-oidc-title" placeholder="OIDC Display Name*" />
           </a-form-item>
 
           <div class="flex flex-col gap-2">
@@ -201,24 +207,58 @@ const saveOIDCProvider = async () => {
           </div>
 
           <a-form-item :rules="formRules.clientId" name="clientId">
-            <a-input v-model:value="form.clientId" class="!mt-4" placeholder="Client ID*" />
+            <a-input v-model:value="form.clientId" class="!mt-4" data-test-id="nc-oidc-client-id" placeholder="Client ID*" />
           </a-form-item>
 
           <a-form-item :rules="formRules.clientSecret" name="clientSecret">
-            <a-input v-model:value="form.clientSecret" class="mt-4" placeholder="Client Secret*" required />
+            <a-input
+              v-model:value="form.clientSecret"
+              class="mt-4"
+              data-test-id="nc-oidc-client-secret"
+              placeholder="Client Secret*"
+              required
+            />
           </a-form-item>
 
           <a-form-item :rules="formRules.authUrl" name="authUrl">
-            <a-input v-model:value="form.authUrl" class="mt-4" placeholder="Authorisation URL*" required type="url" />
+            <a-input
+              v-model:value="form.authUrl"
+              class="mt-4"
+              data-test-id="nc-oidc-authUrl"
+              placeholder="Authorisation URL*"
+              required
+              type="url"
+            />
           </a-form-item>
           <a-form-item :rules="formRules.tokenUrl" name="tokenUrl">
-            <a-input v-model:value="form.tokenUrl" class="mt-4" placeholder="Token URL*" required type="url" />
+            <a-input
+              v-model:value="form.tokenUrl"
+              class="mt-4"
+              data-test-id="nc-oidc-tokenUrl"
+              placeholder="Token URL*"
+              required
+              type="url"
+            />
           </a-form-item>
           <a-form-item :rules="formRules.userInfoUrl" name="userInfoUrl">
-            <a-input v-model:value="form.userInfoUrl" class="mt-4" placeholder="User Info URL*" required type="url" />
+            <a-input
+              v-model:value="form.userInfoUrl"
+              class="mt-4"
+              data-test-id="nc-oidc-userInfoUrl"
+              placeholder="User Info URL*"
+              required
+              type="url"
+            />
           </a-form-item>
           <a-form-item :rules="formRules.jwkUrl" name="jwkUrl">
-            <a-input v-model:value="form.jwkUrl" class="mt-4" placeholder="JWK Set URL*" required type="url" />
+            <a-input
+              v-model:value="form.jwkUrl"
+              class="mt-4"
+              data-test-id="nc-oidc-jwkUrl"
+              placeholder="JWK Set URL*"
+              required
+              type="url"
+            />
           </a-form-item>
 
           <a-form-item :rules="formRules.scopes" class="!mb-4" name="scopes">
@@ -226,16 +266,26 @@ const saveOIDCProvider = async () => {
               v-model:value="form.scopes"
               :options="[...['openid', 'profile', 'email'].map((s) => ({ label: s, value: s }))]"
               class="w-full"
+              data-test-id="nc-oidc-scopes"
               mode="tags"
               placeholder="-scope not selected*-"
             />
           </a-form-item>
 
           <a-form-item :rules="formRules.userNameAttribute" name="userNameAttribute">
-            <a-input v-model:value="form.userNameAttribute" class="mt-4" placeholder="Username Attribute*" required />
+            <a-input
+              v-model:value="form.userNameAttribute"
+              class="mt-4"
+              data-test-id="nc-oidc-user-attribute"
+              placeholder="Username Attribute*"
+              required
+            />
           </a-form-item>
 
-          <div class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between">
+          <div
+            class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between"
+            data-test-id="nc-oidc-sso-only"
+          >
             <div class="flex gap-4">
               <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
               <div>
@@ -250,10 +300,10 @@ const saveOIDCProvider = async () => {
       </div>
     </div>
     <div class="flex justify-end gap-2 mt-4">
-      <NcButton size="medium" type="secondary" @click="dialogShow = false">
+      <NcButton data-test-id="nc-oidc-cancel-btn" size="medium" type="secondary" @click="dialogShow = false">
         {{ $t('labels.cancel') }}
       </NcButton>
-      <NcButton size="medium" type="primary" @click="saveOIDCProvider">
+      <NcButton data-test-id="nc-oidc-save-btn" size="medium" type="primary" @click="saveOIDCProvider">
         {{ $t('labels.save') }}
       </NcButton>
     </div>

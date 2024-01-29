@@ -80,13 +80,13 @@ const saveSamlProvider = async () => {
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" @keydown.esc="dialogShow = false">
+  <NcModal v-model:visible="dialogShow" class="nc-saml-modal" data-test-id="nc-saml-modal" @keydown.esc="dialogShow = false">
     <div class="font-bold mb-4 text-base">{{ $t('activity.registerSAML') }}</div>
     <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
           <a-form-item :rules="formRules.title" name="title">
-            <a-input v-model:value="form.title" placeholder="SAML Display Name*" />
+            <a-input v-model:value="form.title" data-test-id="nc-saml-title" placeholder="SAML Display Name*" />
           </a-form-item>
 
           <div class="flex flex-col gap-2">
@@ -159,7 +159,11 @@ const saveSamlProvider = async () => {
                 <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
               </template>
               <a-form-item name="metaDataUrl">
-                <a-input v-model:value="form.metaDataUrl" placeholder="Paste the Metadata URL here from the Identity Provider" />
+                <a-input
+                  v-model:value="form.metaDataUrl"
+                  data-test-id="nc-saml-metadata-url"
+                  placeholder="Paste the Metadata URL here from the Identity Provider"
+                />
               </a-form-item>
             </a-tab-pane>
             <a-tab-pane key="xml">
@@ -173,6 +177,7 @@ const saveSamlProvider = async () => {
                     minRows: 5,
                     maxRows: 5,
                   }"
+                  data-test-id="nc-saml-xml"
                   placeholder="Paste the Metadata here from the Identity Provider"
                 />
               </a-form-item>
@@ -194,7 +199,7 @@ const saveSamlProvider = async () => {
             <NcButton size="medium" type="secondary" @click="dialogShow = false">
               {{ $t('labels.cancel') }}
             </NcButton>
-            <NcButton size="medium" type="primary" @click="saveSamlProvider">
+            <NcButton data-test-id="nc-saml-submit" size="medium" type="primary" @click="saveSamlProvider">
               {{ $t('labels.save') }}
             </NcButton>
           </div>

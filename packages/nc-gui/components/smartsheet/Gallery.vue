@@ -188,7 +188,7 @@ reloadViewDataHook?.on(
 )
 
 // provide view data reload hook as fallback to row data reload
-provide(ReloadRowDataHookInj, reloadViewDataHook)
+provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 watch(
   view,

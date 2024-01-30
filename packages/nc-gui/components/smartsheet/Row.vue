@@ -26,9 +26,9 @@ const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef } = useProvideSmar
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 
 // override reload trigger and use it to reload row
-const reloadHook = createEventHook<boolean | void>()
+const reloadHook = createEventHook()
 
-reloadHook.on((shouldShowLoading) => {
+reloadHook.on(({ shouldShowLoading }) => {
   if (isNew.value) return
   reloadViewDataTrigger?.trigger({ shouldShowLoading: shouldShowLoading as boolean })
 })

@@ -9,7 +9,7 @@ const { cowriterTable, cowriterGridView } = useCowriterStoreOrThrow()
 
 const fields = ref<ColumnType[]>([])
 
-const reloadEventHook = createEventHook<void | boolean>()
+const reloadEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
 

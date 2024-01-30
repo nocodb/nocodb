@@ -30,7 +30,7 @@ const reloadHook = createEventHook<boolean | void>()
 
 reloadHook.on((shouldShowLoading) => {
   if (isNew.value) return
-  reloadViewDataTrigger?.trigger(shouldShowLoading)
+  reloadViewDataTrigger?.trigger({ shouldShowLoading: shouldShowLoading as boolean })
 })
 
 provide(ReloadRowDataHookInj, reloadHook)

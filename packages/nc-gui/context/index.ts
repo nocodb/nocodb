@@ -24,7 +24,8 @@ export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injectio
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 /** when bool is passed, it indicates if a loading spinner should be visible while reloading */
-export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
+export const ReloadViewDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
+  Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadRowDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-row-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')

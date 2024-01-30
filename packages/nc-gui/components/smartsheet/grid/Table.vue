@@ -56,7 +56,7 @@ import type { CellRange, Row } from '#imports'
 const props = defineProps<{
   data: Row[]
   paginationData?: PaginatedType
-  loadData?: () => Promise<void>
+  loadData?: (params?: unknown) => Promise<void>
   changePage?: (page: number) => void
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
@@ -1061,7 +1061,7 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
+async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {
   isViewDataLoading.value = true
 
   if (predictedNextColumn.value?.length) {
@@ -1071,7 +1071,7 @@ async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
   // save any unsaved data before reload
   await saveOrUpdateRecords()
 
-  await loadData?.()
+  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
 
   isViewDataLoading.value = false
 }
@@ -1320,7 +1320,10 @@ onKeyStroke('ArrowDown', onDown)
                     :title="true"
                     :paragraph="false"
                     class="ml-2 -mt-2"
-                    :class="{ 'max-w-32': colIndex !== 0, 'max-w-5 !ml-3.5': colIndex === 0 }"
+                    :class="{
+                      'max-w-32': colIndex !== 0,
+                      'max-w-5 !ml-3.5': colIndex === 0,
+                    }"
                   />
                 </td>
               </tr>
@@ -1330,7 +1333,10 @@ onKeyStroke('ArrowDown', onDown)
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
-                        :class="{ hidden: !vSelectedAllRecords, flex: vSelectedAllRecords }"
+                        :class="{
+                          hidden: !vSelectedAllRecords,
+                          flex: vSelectedAllRecords,
+                        }"
                         class="nc-check-all w-full items-center"
                       >
                         <a-checkbox v-model:checked="vSelectedAllRecords" />
@@ -1405,7 +1411,9 @@ onKeyStroke('ArrowDown', onDown)
                             <template #title>
                               <div class="flex flex-row items-center py-3">
                                 <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">{{ $t('activity.predictColumns') }}</div>
+                                <div class="text-xs pl-2">
+                                  {{ $t('activity.predictColumns') }}
+                                </div>
                                 <MdiChevronRight class="text-gray-500 ml-2" />
                               </div>
                             </template>
@@ -1434,14 +1442,18 @@ onKeyStroke('ArrowDown', onDown)
                             <div class="flex flex-row items-center py-3" @click="predictNextColumn">
                               <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
                               <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">{{ $t('activity.predictColumns') }}</div>
+                              <div class="text-xs pl-2">
+                                {{ $t('activity.predictColumns') }}
+                              </div>
                             </div>
                           </NcMenuItem>
                           <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
                             <template #title>
                               <div class="flex flex-row items-center py-3">
                                 <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">{{ $t('activity.predictFormulas') }}</div>
+                                <div class="text-xs pl-2">
+                                  {{ $t('activity.predictFormulas') }}
+                                </div>
                                 <MdiChevronRight class="text-gray-500 ml-2" />
                               </div>
                             </template>
@@ -1451,7 +1463,11 @@ onKeyStroke('ArrowDown', onDown)
                                 <NcMenuItem>
                                   <div
                                     class="flex flex-row items-center py-3"
-                                    @click="loadColumn(col.title, 'Formula', { formula_raw: col.formula })"
+                                    @click="
+                                      loadColumn(col.title, 'Formula', {
+                                        formula_raw: col.formula,
+                                      })
+                                    "
                                   >
                                     <div class="text-xs pl-2">{{ col.title }}</div>
                                   </div>
@@ -1464,7 +1480,9 @@ onKeyStroke('ArrowDown', onDown)
                             <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
                               <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
                               <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">{{ $t('activity.predictFormulas') }}</div>
+                              <div class="text-xs pl-2">
+                                {{ $t('activity.predictFormulas') }}
+                              </div>
                             </div>
                           </NcMenuItem>
                         </NcMenu>
@@ -1521,7 +1539,10 @@ onKeyStroke('ArrowDown', onDown)
                         </div>
                         <div
                           v-if="!readOnly"
-                          :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                          :class="{
+                            hidden: !row.rowMeta.selected,
+                            flex: row.rowMeta.selected,
+                          }"
                           class="nc-row-expand-and-checkbox"
                         >
                           <a-checkbox v-model:checked="row.rowMeta.selected" />
@@ -1544,7 +1565,9 @@ onKeyStroke('ArrowDown', onDown)
                             v-if="row.rowMeta?.commentCount && expandForm"
                             v-e="['c:expanded-form:open']"
                             class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                            :style="{
+                              backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length],
+                            }"
                             @click="expandAndLooseFocus(row, state)"
                           >
                             {{ row.rowMeta.commentCount }}
@@ -1674,7 +1697,11 @@ onKeyStroke('ArrowDown', onDown)
                 ? 'z-3'
                 : 'z-4'
             "
-            :style="{ top: `${fillHandleTop}px`, left: `${fillHandleLeft}px`, cursor: 'crosshair' }"
+            :style="{
+              top: `${fillHandleTop}px`,
+              left: `${fillHandleLeft}px`,
+              cursor: 'crosshair',
+            }"
           />
         </div>
 
@@ -1847,7 +1874,9 @@ onKeyStroke('ArrowDown', onDown)
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
-                <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
+                <template v-if="isAddNewRecordGridMode">
+                  {{ $t('activity.newRecord') }}
+                </template>
                 <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
               </span>
             </div>
@@ -1875,7 +1904,9 @@ onKeyStroke('ArrowDown', onDown)
 
                       <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">
+                      {{ $t('labels.addRowGrid') }}
+                    </div>
                   </div>
                   <div
                     v-e="['c:row:add:form']"
@@ -1890,7 +1921,9 @@ onKeyStroke('ArrowDown', onDown)
 
                       <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">
+                      {{ $t('labels.addRowForm') }}
+                    </div>
                   </div>
                 </div>
               </div>

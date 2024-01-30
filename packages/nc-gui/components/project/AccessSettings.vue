@@ -156,7 +156,7 @@ onMounted(async () => {
         v-else-if="!filteredCollaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <a-empty description="$t('title.noMembersFound')" />
+        <Empty description="$t('title.noMembersFound')" />
       </div>
       <div v-else class="nc-collaborators-list mt-6 h-full">
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">

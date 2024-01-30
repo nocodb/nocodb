@@ -37,13 +37,13 @@ const stopSAMLIpd = async () => {
   childProcess.kill();
 };
 
-test.describe('SSO SAML Auth Flow', () => {
+test.describe.only('SSO SAML Auth Flow', () => {
   let accountsPage: AccountPage;
   let openidLoginPage: OpenIDLoginPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
 
     accountsPage = new AccountPage(page);
     await accountsPage.authentication.goto();

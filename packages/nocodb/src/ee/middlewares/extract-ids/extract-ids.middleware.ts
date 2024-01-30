@@ -13,6 +13,7 @@ import {
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import { extractRolesObj } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -40,6 +41,8 @@ import {
 } from '~/models';
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
+import { GlobalGuard } from '~/guards/global/global.guard'
+import { JwtStrategy } from '~/strategies/jwt.strategy'
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -286,7 +289,7 @@ function getUserRoleForScope(user: any, scope: string) {
 
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
   async intercept(
     context: ExecutionContext,
@@ -308,7 +311,15 @@ export class AclMiddleware implements NestInterceptor {
 
     const req = context.switchToHttp().getRequest();
     const _res = context.switchToHttp().getResponse();
-
+    if (!req.user) {
+      try {
+        const guard = new GlobalGuard(this.jwtStrategy);
+       const a =  await guard.canActivate(context);
+       console.log(a);
+      } catch (e) {
+        console.log(e)
+      }
+    }
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }

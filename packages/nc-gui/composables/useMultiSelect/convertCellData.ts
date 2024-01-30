@@ -5,11 +5,11 @@ import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { to: UITypes; value: string; files?: FileList | File[]; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: string; files?: FileList | File[]; oldFiles?: any[] | null; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
   isMultiple = false,
 ) {
-  const { to, value, files, column } = args
+  const { to, value, files, oldFiles, column } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
@@ -113,7 +113,13 @@ export default function convertCellData(
       }
     }
     case UITypes.Attachment: {
-      if (!value && !files) return null
+      const parsedOldFiles = parseProp(oldFiles)
+      const oldAttachments = parsedOldFiles && Array.isArray(parsedOldFiles) ? parsedOldFiles : []
+
+      if (!value && !files) {
+        if (oldAttachments.length) return undefined
+        return null
+      }
 
       let parsedVal = []
       if (value) {
@@ -178,12 +184,24 @@ export default function convertCellData(
             continue
           }
         }
+        // this prevent file with same names
+        const isFileNameAlreadyExist = oldAttachments.some((el) => el.title === (attachment?.title || attachment?.name))
+        if (isFileNameAlreadyExist) {
+          if (isMultiple) {
+            message.error(`File with name ${attachment?.title || attachment?.name} already attached`)
+            continue
+          } else {
+            throw new Error(`File with name ${attachment?.title || attachment?.name} already attached`)
+          }
+        }
 
         attachments.push(attachment)
       }
 
-      if (value && attachments.length) {
-        return JSON.stringify(attachments)
+      if (oldAttachments.length && !attachments.length) {
+        return undefined
+      } else if (value && attachments.length) {
+        return JSON.stringify([...oldAttachments, ...attachments])
       } else if (files && attachments.length) {
         return attachments
       } else {

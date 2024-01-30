@@ -5,11 +5,11 @@ import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { to: UITypes; value: string; files?: FileList | File[]; oldFiles?: any[] | null; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
   isMysql = false,
   isMultiple = false,
 ) {
-  const { to, value, files = [], oldFiles, column } = args
+  const { to, value, column, files = [], oldValue } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
@@ -113,8 +113,8 @@ export default function convertCellData(
       }
     }
     case UITypes.Attachment: {
-      const parsedOldFiles = parseProp(oldFiles)
-      const oldAttachments = parsedOldFiles && Array.isArray(parsedOldFiles) ? parsedOldFiles : []
+      const parsedOldValue = parseProp(oldValue)
+      const oldAttachments = parsedOldValue && Array.isArray(parsedOldValue) ? parsedOldValue : []
 
       if (!value && !files.length) {
         if (oldAttachments.length) return undefined

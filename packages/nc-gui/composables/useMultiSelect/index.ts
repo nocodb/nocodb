@@ -820,10 +820,10 @@ export function useMultiSelect(
               {
                 // Repeat the clipboard data array if the matrix is smaller than the selection
                 value: clipboardMatrix[i % clipboardMatrix.length][j],
-                oldFiles: pasteCol.uidt === UITypes.Attachment ? pasteRow.row[pasteCol.title!] : undefined,
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
+                oldValue: pasteCol.uidt === UITypes.Attachment ? pasteRow.row[pasteCol.title!] : undefined,
               },
               isMysql(meta.value?.source_id),
               true,
@@ -883,11 +883,11 @@ export function useMultiSelect(
           const pasteValue = convertCellData(
             {
               value: clipboardData,
-              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
-              oldFiles: rowObj.row[columnObj.title!],
               to: columnObj.uidt as UITypes,
               column: columnObj,
               appInfo: unref(appInfo),
+              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
+              oldValue: rowObj.row[columnObj.title!],
             },
             isMysql(meta.value?.source_id),
           )
@@ -937,11 +937,11 @@ export function useMultiSelect(
                   const fileUploadPayload = convertCellData(
                     {
                       value: '',
-                      files,
-                      oldFiles: row.row[col.title],
                       to: col.uidt as UITypes,
                       column: col,
                       appInfo: unref(appInfo),
+                      files,
+                      oldValue: row.row[col.title],
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -960,10 +960,10 @@ export function useMultiSelect(
                 pasteValue = convertCellData(
                   {
                     value: clipboardData,
-                    oldFiles: row.row[col.title],
                     to: col.uidt as UITypes,
                     column: col,
                     appInfo: unref(appInfo),
+                    oldValue: row.row[col.title],
                   },
                   isMysql(meta.value?.source_id),
                   true,

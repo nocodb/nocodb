@@ -5,16 +5,16 @@ import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: string; files?: FileList | File[]; column: ColumnType; appInfo: AppInfo },
   isMysql = false,
   isMultiple = false,
 ) {
-  const { to, value, column } = args
+  const { to, value, files, column } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
   // return null if value is empty
-  if (value === '') return null
+  if (value === '' && to !== UITypes.Attachment) return null
 
   switch (to) {
     case UITypes.SingleLineText:
@@ -113,20 +113,24 @@ export default function convertCellData(
       }
     }
     case UITypes.Attachment: {
-      let parsedVal
-      try {
-        parsedVal = parseProp(value)
-        parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
-      } catch (e) {
-        if (isMultiple) {
-          return null
-        } else {
-          throw new Error('Invalid attachment data')
-        }
-      }
+      if (!value && !files) return null
 
-      if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
-        return null
+      let parsedVal = []
+      if (value) {
+        try {
+          parsedVal = parseProp(value)
+          parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
+        } catch (e) {
+          if (isMultiple) {
+            return null
+          } else {
+            throw new Error('Invalid attachment data')
+          }
+        }
+
+        if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
+          return null
+        }
       }
 
       // TODO(refactor): duplicate logic in attachment/utils.ts
@@ -147,7 +151,7 @@ export default function convertCellData(
 
       const attachments = []
 
-      for (const attachment of parsedVal) {
+      for (const attachment of value ? parsedVal : files!) {
         if (args.appInfo.ee) {
           // verify number of files
           if (parsedVal.length > attachmentMeta.maxNumberOfAttachments) {
@@ -164,7 +168,6 @@ export default function convertCellData(
             message.error(`The size of ${attachment.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
             continue
           }
-
           // verify mime type
           if (
             !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
@@ -179,7 +182,7 @@ export default function convertCellData(
         attachments.push(attachment)
       }
 
-      return JSON.stringify(attachments)
+      return attachments.length ? (value ? JSON.stringify(attachments) : files ? attachments : null) : null
     }
     case UITypes.SingleSelect:
     case UITypes.MultiSelect: {

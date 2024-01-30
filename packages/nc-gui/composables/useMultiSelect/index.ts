@@ -20,6 +20,7 @@ import {
   reactive,
   ref,
   unref,
+  useApi,
   useBase,
   useCopy,
   useEventListener,
@@ -60,6 +61,10 @@ export function useMultiSelect(
   const { appInfo } = useGlobal()
 
   const { isMysql, isPg } = useBase()
+
+  const { base } = storeToRefs(useBase())
+
+  const { api } = useApi()
 
   const editEnabled = ref(_editEnabled)
 
@@ -772,7 +777,6 @@ export function useMultiSelect(
 
     // Replace \" with " in clipboard data
     const clipboardData = e.clipboardData?.getData('text/plain') || ''
-
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
@@ -878,6 +882,7 @@ export function useMultiSelect(
           const pasteValue = convertCellData(
             {
               value: clipboardData,
+              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
               to: columnObj.uidt as UITypes,
               column: columnObj,
               appInfo: unref(appInfo),
@@ -885,7 +890,11 @@ export function useMultiSelect(
             isMysql(meta.value?.source_id),
           )
 
-          if (pasteValue !== undefined) {
+          if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
+            const uploadedFiles = await handleFileUpload(pasteValue, columnObj.id!)
+            rowObj.row[columnObj.title!] =
+              Array.isArray(uploadedFiles) && uploadedFiles.length ? JSON.stringify(uploadedFiles) : null
+          } else if (pasteValue) {
             rowObj.row[columnObj.title!] = pasteValue
           }
 
@@ -955,6 +964,22 @@ export function useMultiSelect(
     }
 
     event.preventDefault()
+  }
+
+  async function handleFileUpload(files: File[], columnId: string) {
+    try {
+      const data = await api.storage.upload(
+        {
+          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
+        },
+        {
+          files,
+        },
+      )
+      return data
+    } catch (e: any) {
+      message.error(e.message || t('msg.error.internalError'))
+    }
   }
 
   useEventListener(document, 'keydown', handleKeyDown)

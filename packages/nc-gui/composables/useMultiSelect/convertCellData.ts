@@ -9,7 +9,7 @@ export default function convertCellData(
   isMysql = false,
   isMultiple = false,
 ) {
-  const { to, value, files, oldFiles, column } = args
+  const { to, value, files = [], oldFiles, column } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
@@ -116,7 +116,7 @@ export default function convertCellData(
       const parsedOldFiles = parseProp(oldFiles)
       const oldAttachments = parsedOldFiles && Array.isArray(parsedOldFiles) ? parsedOldFiles : []
 
-      if (!value && !files) {
+      if (!value && !files.length) {
         if (oldAttachments.length) return undefined
         return null
       }
@@ -157,7 +157,7 @@ export default function convertCellData(
 
       const attachments = []
 
-      for (const attachment of value ? parsedVal : files!) {
+      for (const attachment of value ? parsedVal : files) {
         if (args.appInfo.ee) {
           // verify number of files
           if (parsedVal.length > attachmentMeta.maxNumberOfAttachments) {
@@ -202,7 +202,7 @@ export default function convertCellData(
         return undefined
       } else if (value && attachments.length) {
         return JSON.stringify([...oldAttachments, ...attachments])
-      } else if (files && attachments.length) {
+      } else if (files.length && attachments.length) {
         return attachments
       } else {
         return null

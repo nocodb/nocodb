@@ -162,6 +162,21 @@ export function isCreatedOrLastModifiedByCol(
   );
 }
 
+export function isHiddenCol(
+  col: (ColumnReqType | ColumnType) & { system?: number | boolean }
+) {
+  return (
+    col.system &&
+    (
+      [
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.LinkToAnotherRecord,
+      ] as string[]
+    ).includes(col.uidt)
+  );
+}
+
 export function isLinksOrLTAR(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
 ) {

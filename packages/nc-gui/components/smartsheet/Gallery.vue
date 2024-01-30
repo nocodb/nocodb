@@ -174,18 +174,11 @@ reloadViewMetaHook?.on(async () => {
     reloadAttachments.value = false
   })
 })
-reloadViewDataHook?.on(
-  async (
-    params: void | {
-      shouldShowLoading?: boolean | undefined
-      offset?: number | undefined
-    },
-  ) => {
-    await loadData({
-      ...(params?.offset !== undefined ? { offset: params.offset } : {}),
-    })
-  },
-)
+reloadViewDataHook?.on(async (params) => {
+  await loadData({
+    ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+  })
+})
 
 // provide view data reload hook as fallback to row data reload
 provide(ReloadRowDataHookInj, reloadViewDataHook!)

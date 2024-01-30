@@ -28,7 +28,30 @@ const formRules = {
     // Title is required
     { required: true, message: t('msg.error.nameRequired') },
   ] as RuleObject[],
-  // Either metaDataUrl or xml is required
+  xml: [
+    // XML is required if MetaData URL is not provided
+    {
+      validator: (rule, value, callback) => {
+        if (!form.metaDataUrl && !value) {
+          return callback(t('msg.error.eitherXML'))
+        }
+        return callback()
+      },
+    },
+  ] as RuleObject[],
+
+  metaDataUrl: [
+    // MetaData URL is required if XML is not provided
+    {
+      validator: (rule, value, callback) => {
+        if (!form.xml && !value && !isURL(value, { require_tld: false })) {
+          return callback(t('msg.error.eitherXML'))
+        }
+
+        return callback()
+      },
+    },
+  ] as RuleObject[],
 }
 
 const formValidator = ref()
@@ -40,6 +63,34 @@ const activeTabKey = ref('metaDataURL')
 const dialogShow = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
+})
+
+const isCopied = ref({
+  redirectUrl: false,
+  entityId: false,
+})
+
+const copyRedirectUrl = async (redirectUrl: string) => {
+  await copy(redirectUrl)
+  isCopied.value.redirectUrl = true
+}
+
+const copyEntityId = async (entityId: string) => {
+  await copy(entityId)
+  isCopied.value.entityId = true
+}
+
+watch(isCopied.value, (v) => {
+  if (v.redirectUrl) {
+    setTimeout(() => {
+      isCopied.value.redirectUrl = false
+    }, 2000)
+  }
+  if (v.entityId) {
+    setTimeout(() => {
+      isCopied.value.entityId = false
+    }, 2000)
+  }
 })
 
 const saveSamlProvider = async () => {
@@ -103,8 +154,9 @@ const saveSamlProvider = async () => {
                 <!-- Get Redirect URL from Authentication Composable -->
                 {{ getRedirectUrl(saml) }}
               </span>
-              <NcButton size="xsmall" type="text" @click="copy(getRedirectUrl(saml))">
-                <component :is="iconMap.copy" class="text-gray-800" />
+              <NcButton size="xsmall" type="text" @click="copyRedirectUrl(getRedirectUrl(saml))">
+                <MdiCheck v-if="isCopied.redirectUrl" class="h-3.5" />
+                <component :is="iconMap.copy" v-else class="text-gray-800" />
               </NcButton>
             </div>
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
@@ -126,8 +178,9 @@ const saveSamlProvider = async () => {
 
                 {{ getEntityId(saml) }}
               </span>
-              <NcButton size="xsmall" type="text" @click="copy(getEntityId(saml))">
-                <component :is="iconMap.copy" class="text-gray-800" />
+              <NcButton size="xsmall" type="text" @click="copyEntityId(getEntityId(saml))">
+                <MdiCheck v-if="isCopied.entityId" class="h-3.5" />
+                <component :is="iconMap.copy" v-else class="text-gray-800" />
               </NcButton>
             </div>
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
@@ -138,7 +191,7 @@ const saveSamlProvider = async () => {
               <template #tab>
                 <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
               </template>
-              <a-form-item name="metaDataUrl">
+              <a-form-item :rules="formRules.metaDataUrl" name="metaDataUrl">
                 <a-input
                   v-model:value="form.metaDataUrl"
                   data-test-id="nc-saml-metadata-url"
@@ -150,7 +203,7 @@ const saveSamlProvider = async () => {
               <template #tab>
                 <div class="text-sm">XML</div>
               </template>
-              <a-form-item name="xml">
+              <a-form-item :rules="formRules.xml" name="xml">
                 <a-textarea
                   v-model:value="form.xml"
                   :auto-size="{

@@ -17,6 +17,10 @@ const oidcDialogShow = ref(false)
 
 const isEdit = ref(false)
 
+const isCopied = ref({
+  signIn: false,
+})
+
 const providerProp = ref<SSOClientType>()
 
 const addSamlProvider = async () => {
@@ -31,6 +35,11 @@ const addOIDCProvider = async () => {
 }
 
 const { copy } = useCopy()
+
+const copyRedirectUrl = async () => {
+  await copy(signInUrl)
+  isCopied.value.signIn = true
+}
 
 const updateProviderStatus = async (client: { enabled: boolean }) => {
   client.enabled = !client.enabled
@@ -47,6 +56,15 @@ watch(
     }
   },
 )
+
+watch(isCopied.value, (v) => {
+  if (v.signIn) {
+    console.log('copied')
+    setTimeout(() => {
+      isCopied.value.signIn = false
+    }, 2000)
+  }
+})
 
 watch(
   () => oidcDialogShow.value,
@@ -97,12 +115,9 @@ onMounted(async () => {
           <h1 class="text-md text-gray-800">SignIn URL</h1>
           <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
             <span class="text-gray-800"> {{ signInUrl }} </span>
-            <NcButton
-              size="xsmall"
-              type="text"
-              @click="copy(signInUrl)"
-            >
-              <component :is="iconMap.copy" class="text-gray-800" />
+            <NcButton size="xsmall" type="text" @click="copyRedirectUrl">
+              <MdiCheck v-if="isCopied.signIn" class="h-3.5" />
+              <component :is="iconMap.copy" v-else class="text-gray-800" />
             </NcButton>
           </div>
         </div>

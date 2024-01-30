@@ -67,7 +67,7 @@ export const useAuthentication = () => {
   }
 
   // method to costruct redirect url for sso client
-  const getRedirectUrl =  (provider: SSOClientType) => {
+  const getRedirectUrl = (provider: SSOClientType) => {
     if (!provider?.id) return ``
 
     const { ncSiteUrl } = appInfo.value
@@ -77,7 +77,7 @@ export const useAuthentication = () => {
   }
 
   // for saml
-  const getEntityId =  (provider: SSOClientType) => {
+  const getEntityId = (provider: SSOClientType) => {
     if (!provider?.id) return ``
 
     const { ncSiteUrl } = appInfo.value

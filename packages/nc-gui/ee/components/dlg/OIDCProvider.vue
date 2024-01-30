@@ -11,9 +11,28 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { copy } = useCopy()
+
 const isValidURL = (v: string) => {
   return _isValidURL(v, { require_tld: false })
 }
+
+const isCopied = ref({
+  redirectUrl: false,
+})
+
+const copyRedirectUrl = async (redirectUrl: string) => {
+  await copy(redirectUrl)
+  isCopied.value.redirectUrl = true
+}
+
+watch(isCopied.value, (v) => {
+  if (v.redirectUrl) {
+    setTimeout(() => {
+      isCopied.value.redirectUrl = false
+    }, 2000)
+  }
+})
 
 const formValidator = ref()
 
@@ -124,8 +143,6 @@ const formRules = {
   scopes: [{ required: true, message: t('msg.error.scopesRequired') }] as RuleObject[],
 }
 
-const { copy } = useCopy()
-
 const dialogShow = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
@@ -209,8 +226,9 @@ const saveOIDCProvider = async () => {
               <span class="text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
                 {{ getRedirectUrl(oidc) }}
               </span>
-              <NcButton size="xsmall" type="text" @click="copy(getRedirectUrl(oidc))">
-                <component :is="iconMap.copy" class="text-gray-800" />
+              <NcButton size="xsmall" type="text" @click="copyRedirectUrl(getRedirectUrl(oidc))">
+                <MdiCheck v-if="isCopied.redirectUrl" class="h-3.5" />
+                <component :is="iconMap.copy" v-else class="text-gray-800" />
               </NcButton>
             </div>
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>

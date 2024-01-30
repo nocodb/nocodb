@@ -14,13 +14,15 @@ const getSystemColumnsIds = (columns) => {
 const getSystemColumns = (columns) => columns.filter(isSystemColumn) || [];
 
 const isSystemColumn = (col): boolean =>
-  col &&
-  (col.uidt === UITypes.ForeignKey ||
-    ((col.column_name === 'created_at' || col.column_name === 'updated_at') &&
-      col.uidt === UITypes.DateTime) ||
-    (col.pk && (col.ai || col.cdf)) ||
-    (col.pk && col.meta && col.meta.ag) ||
-    col.system);
+  !!(
+    col &&
+    (col.uidt === UITypes.ForeignKey ||
+      ((col.column_name === 'created_at' || col.column_name === 'updated_at') &&
+        col.uidt === UITypes.DateTime) ||
+      (col.pk && (col.ai || col.cdf)) ||
+      (col.pk && col.meta && col.meta.ag) ||
+      col.system)
+  );
 
 const isSelfReferencingTableColumn = (col): boolean => {
   return (

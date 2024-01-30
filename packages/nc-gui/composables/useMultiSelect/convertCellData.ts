@@ -125,7 +125,11 @@ export default function convertCellData(
       if (value) {
         try {
           parsedVal = parseProp(value)
-          parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
+          parsedVal = Array.isArray(parsedVal)
+            ? parsedVal
+            : typeof parsedVal === 'object' && Object.keys(parsedVal).length
+            ? [parsedVal]
+            : []
         } catch (e) {
           if (isMultiple) {
             return null

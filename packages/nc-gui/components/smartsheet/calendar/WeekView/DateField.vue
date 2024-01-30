@@ -1,21 +1,12 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { ref } from '#imports'
 
 const emits = defineEmits(['expand-record'])
 
-const {
-  selectedDateRange,
-  formattedData,
-  formattedSideBarData,
-  calendarRange,
-  selectedDate,
-  displayField,
-  calDataType,
-  updateRowProperty,
-} = useCalendarViewStoreOrThrow()
+const { selectedDateRange, formattedData, formattedSideBarData, calendarRange, selectedDate, displayField, updateRowProperty } =
+  useCalendarViewStoreOrThrow()
 
 const container = ref<null | HTMLElement>(null)
 
@@ -212,7 +203,7 @@ const draggingId = ref<string | null>(null)
 
 const resizeInProgress = ref(false)
 
-const dragTimeout = ref(null)
+const dragTimeout = ref<string | number | null | NodeJS.Timeout>(null)
 
 const isDragging = ref(false)
 const dragRecord = ref<Row>()
@@ -369,7 +360,7 @@ const onDrag = (event: MouseEvent) => {
 
 const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
-  clearTimeout(dragTimeout.value)
+  clearTimeout(dragTimeout.value!)
 
   if (!isUIAllowed('dataEdit')) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
@@ -490,10 +481,10 @@ const dragStart = (event: MouseEvent, record: Row) => {
   }, 200)
 
   const onMouseUp = () => {
-    clearTimeout(dragTimeout.value)
+    clearTimeout(dragTimeout.value!)
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
-      emit('expand-record', record)
+      emits('expand-record', record)
     }
   }
 
@@ -623,11 +614,7 @@ const dropEvent = (event: DragEvent) => {
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :date="
-              calDataType === UITypes.DateTime
-                ? dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('DD-MM-YYYY HH:MM')
-                : dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('DD-MM-YYYY')
-            "
+            :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('DD-MM-YYYY')"
             :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"

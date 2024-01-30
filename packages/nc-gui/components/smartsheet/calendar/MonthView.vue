@@ -376,12 +376,12 @@ const onResize = (event: MouseEvent) => {
   const day = Math.floor(percentX * 7)
 
   if (resizeDirection.value === 'right') {
-    let newEndDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+    let newEndDate = dates.value[week] ? dayjs(dates.value[week][day]).endOf('day') : null
 
     const updateProperty = [toCol.title]
 
     if (dayjs(newEndDate).isBefore(ogStartDate)) {
-      newEndDate = dayjs(ogStartDate).clone()
+      newEndDate = dayjs(ogStartDate).clone().endOf('day')
     }
 
     if (!newEndDate) return

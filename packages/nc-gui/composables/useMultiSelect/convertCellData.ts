@@ -5,16 +5,16 @@ import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
 export default function convertCellData(
-  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo },
+  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
   isMysql = false,
   isMultiple = false,
 ) {
-  const { to, value, column } = args
+  const { to, value, column, files = [], oldValue } = args
 
   const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
   // return null if value is empty
-  if (value === '') return null
+  if (value === '' && to !== UITypes.Attachment) return null
 
   switch (to) {
     case UITypes.SingleLineText:
@@ -113,20 +113,34 @@ export default function convertCellData(
       }
     }
     case UITypes.Attachment: {
-      let parsedVal
-      try {
-        parsedVal = parseProp(value)
-        parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]
-      } catch (e) {
-        if (isMultiple) {
-          return null
-        } else {
-          throw new Error('Invalid attachment data')
-        }
+      const parsedOldValue = parseProp(oldValue)
+      const oldAttachments = parsedOldValue && Array.isArray(parsedOldValue) ? parsedOldValue : []
+
+      if (!value && !files.length) {
+        if (oldAttachments.length) return undefined
+        return null
       }
 
-      if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
-        return null
+      let parsedVal = []
+      if (value) {
+        try {
+          parsedVal = parseProp(value)
+          parsedVal = Array.isArray(parsedVal)
+            ? parsedVal
+            : typeof parsedVal === 'object' && Object.keys(parsedVal).length
+            ? [parsedVal]
+            : []
+        } catch (e) {
+          if (isMultiple) {
+            return null
+          } else {
+            throw new Error('Invalid attachment data')
+          }
+        }
+
+        if (parsedVal.some((v: any) => v && !(v.url || v.data || v.path))) {
+          return null
+        }
       }
 
       // TODO(refactor): duplicate logic in attachment/utils.ts
@@ -147,7 +161,7 @@ export default function convertCellData(
 
       const attachments = []
 
-      for (const attachment of parsedVal) {
+      for (const attachment of value ? parsedVal : files) {
         if (args.appInfo.ee) {
           // verify number of files
           if (parsedVal.length > attachmentMeta.maxNumberOfAttachments) {
@@ -164,7 +178,6 @@ export default function convertCellData(
             message.error(`The size of ${attachment.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
             continue
           }
-
           // verify mime type
           if (
             !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
@@ -175,11 +188,29 @@ export default function convertCellData(
             continue
           }
         }
+        // this prevent file with same names
+        const isFileNameAlreadyExist = oldAttachments.some((el) => el.title === (attachment?.title || attachment?.name))
+        if (isFileNameAlreadyExist) {
+          if (isMultiple) {
+            message.error(`File with name ${attachment?.title || attachment?.name} already attached`)
+            continue
+          } else {
+            throw new Error(`File with name ${attachment?.title || attachment?.name} already attached`)
+          }
+        }
 
         attachments.push(attachment)
       }
 
-      return JSON.stringify(attachments)
+      if (oldAttachments.length && !attachments.length) {
+        return undefined
+      } else if (value && attachments.length) {
+        return JSON.stringify([...oldAttachments, ...attachments])
+      } else if (files.length && attachments.length) {
+        return attachments
+      } else {
+        return null
+      }
     }
     case UITypes.SingleSelect:
     case UITypes.MultiSelect: {

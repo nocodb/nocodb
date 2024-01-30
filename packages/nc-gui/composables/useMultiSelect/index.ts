@@ -20,6 +20,7 @@ import {
   reactive,
   ref,
   unref,
+  useApi,
   useBase,
   useCopy,
   useEventListener,
@@ -60,6 +61,10 @@ export function useMultiSelect(
   const { appInfo } = useGlobal()
 
   const { isMysql, isPg } = useBase()
+
+  const { base } = storeToRefs(useBase())
+
+  const { api } = useApi()
 
   const editEnabled = ref(_editEnabled)
 
@@ -772,7 +777,6 @@ export function useMultiSelect(
 
     // Replace \" with " in clipboard data
     const clipboardData = e.clipboardData?.getData('text/plain') || ''
-
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
@@ -819,6 +823,7 @@ export function useMultiSelect(
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
+                oldValue: pasteCol.uidt === UITypes.Attachment ? pasteRow.row[pasteCol.title!] : undefined,
               },
               isMysql(meta.value?.source_id),
               true,
@@ -881,11 +886,20 @@ export function useMultiSelect(
               to: columnObj.uidt as UITypes,
               column: columnObj,
               appInfo: unref(appInfo),
+              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
+              oldValue: rowObj.row[columnObj.title!],
             },
             isMysql(meta.value?.source_id),
           )
 
-          if (pasteValue !== undefined) {
+          if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
+            const uploadedFiles = await handleFileUpload(pasteValue, columnObj.id!)
+
+            rowObj.row[columnObj.title!] =
+              Array.isArray(uploadedFiles) && uploadedFiles.length
+                ? JSON.stringify([...handleParseAttachmentCellData(rowObj.row[columnObj.title!]), ...uploadedFiles])
+                : null
+          } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
 
@@ -903,29 +917,60 @@ export function useMultiSelect(
           const rows = unref(data).slice(startRow, endRow + 1)
           const props = []
 
+          let pasteValue
+          const files = e.clipboardData?.files
           for (const row of rows) {
             // TODO handle insert new row
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              if (!col.title) continue
-
-              if (!isPasteable(row, col)) {
+              if (!col.title || !isPasteable(row, col)) {
                 continue
               }
 
-              props.push(col.title)
+              if (files?.length) {
+                if (col.uidt !== UITypes.Attachment) {
+                  continue
+                }
 
-              const pasteValue = convertCellData(
-                {
-                  value: clipboardData,
-                  to: col.uidt as UITypes,
-                  column: col,
-                  appInfo: unref(appInfo),
-                },
-                isMysql(meta.value?.source_id),
-                true,
-              )
+                if (pasteValue === undefined) {
+                  const fileUploadPayload = convertCellData(
+                    {
+                      value: '',
+                      to: col.uidt as UITypes,
+                      column: col,
+                      appInfo: unref(appInfo),
+                      files,
+                      oldValue: row.row[col.title],
+                    },
+                    isMysql(meta.value?.source_id),
+                    true,
+                  )
+
+                  if (fileUploadPayload?.length) {
+                    const uploadedFiles = await handleFileUpload(fileUploadPayload, col.id!)
+
+                    pasteValue =
+                      Array.isArray(uploadedFiles) && uploadedFiles.length
+                        ? JSON.stringify([...handleParseAttachmentCellData(row.row[col.title]), ...uploadedFiles])
+                        : null
+                  }
+                }
+              } else {
+                pasteValue = convertCellData(
+                  {
+                    value: clipboardData,
+                    to: col.uidt as UITypes,
+                    column: col,
+                    appInfo: unref(appInfo),
+                    oldValue: row.row[col.title],
+                  },
+                  isMysql(meta.value?.source_id),
+                  true,
+                )
+              }
+
+              props.push(col.title)
 
               if (pasteValue !== undefined) {
                 row.row[col.title] = pasteValue
@@ -933,6 +978,7 @@ export function useMultiSelect(
             }
           }
 
+          if (!props.length) return
           await bulkUpdateRows?.(rows, props)
         }
       }
@@ -955,6 +1001,32 @@ export function useMultiSelect(
     }
 
     event.preventDefault()
+  }
+
+  async function handleFileUpload(files: File[], columnId: string) {
+    try {
+      const data = await api.storage.upload(
+        {
+          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
+        },
+        {
+          files,
+        },
+      )
+      return data
+    } catch (e: any) {
+      message.error(e.message || t('msg.error.internalError'))
+    }
+  }
+
+  function handleParseAttachmentCellData(value: string | null) {
+    const parsedVal = parseProp(value)
+
+    if (parsedVal && Array.isArray(parsedVal)) {
+      return parsedVal
+    } else {
+      return []
+    }
   }
 
   useEventListener(document, 'keydown', handleKeyDown)

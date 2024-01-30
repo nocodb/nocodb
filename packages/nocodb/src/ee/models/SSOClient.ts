@@ -66,7 +66,7 @@ export default class SSOClient implements SSOClientType {
 
   public static async update(
     clientId: string,
-    client: Partial<SSOClientType>,
+    client: Partial<SSOClientType & {deleted?: boolean}>,
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;

@@ -209,6 +209,18 @@ async function localInit({
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
+    // delete sso-clients
+    if (isEE() && api['ssoClient']) {
+      const clients = await api.ssoClient.list();
+      for (const client of clients.list) {
+        try {
+          await api.ssoClient.delete(client.id);
+        } catch (e) {
+          console.log(`Error deleting sso-client: ${client.id}`);
+        }
+      }
+    }
+
     if (isEE() && api['workspace']) {
       // Delete associated workspace
       // Note that: on worker error, entire thread is reset & worker ID numbering is reset too

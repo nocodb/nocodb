@@ -81,7 +81,7 @@ export class SSOClientService {
     });
 
     // update client
-    const client = await SSOClient.update(param.clientId, param.client);
+    const client = await SSOClient.update(param.clientId, { ...param.client, deleted: false });
 
     return client;
   }
@@ -157,7 +157,7 @@ export class SSOClientService {
               });
           }
 
-          if (config.xml) {
+          if ((extractedConfig as SAMLClientConfigType).xml) {
             Object.assign(
               extractedConfig,
               await parse((extractedConfig as SAMLClientConfigType).xml),

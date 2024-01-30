@@ -7,7 +7,7 @@ runServer({
   audience: `https://foo.okta.com/auth/saml20/metadata`,
   config: {
     user: {
-      email: 'test@nocodb.com'
+      email: 'test@nocodb.com',
     },
     // The auth-service requires at least one AttributeStatement in the SAML assertion.
     metadata: [{

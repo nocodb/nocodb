@@ -4,7 +4,6 @@ import setup, { unsetup } from '../../setup';
 import { AccountPage } from '../../pages/Account';
 import { AccountLicensePage } from '../../pages/Account/License';
 
-// 230826 additional options for attachments are currently disabled
 //
 test.describe.skip('Attachment column', () => {
   let dashboard: DashboardPage;

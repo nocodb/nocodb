@@ -150,7 +150,10 @@ const saveSamlProvider = async () => {
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-              <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+              <span
+                data-test-id="nc-saml-redirect-url"
+                class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+              >
                 <!-- Get Redirect URL from Authentication Composable -->
                 {{ getRedirectUrl(saml) }}
               </span>
@@ -173,7 +176,10 @@ const saveSamlProvider = async () => {
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-              <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+              <span
+                data-test-id="nc-saml-issuer-url"
+                class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+              >
                 <!-- Get Entity ID from Authentication Composable -->
 
                 {{ getEntityId(saml) }}

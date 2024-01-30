@@ -61,12 +61,21 @@ export class AccountAuthenticationPage extends BasePage {
     }
   }
 
-  async createSAMLProvider(p: { title: string; url?: string; xml?: string }) {
+  async createSAMLProvider(
+    p: { title: string; url?: string; xml?: string },
+    setupRedirectUrlCbk?: ({ redirectUrl: string, audience: string }) => Promise<void>
+  ) {
     const newSamlBtn = this.get().locator('[data-test-id="nc-new-saml-provider"]');
 
     await newSamlBtn.click();
 
     const samlModal = this.accountPage.rootPage.locator('.nc-saml-modal');
+
+    if (setupRedirectUrlCbk) {
+      const redirectUrl = (await samlModal.locator('[data-test-id="nc-saml-redirect-url"]').textContent()).trim();
+      const audience = (await samlModal.locator('[data-test-id="nc-saml-issuer-url"]').textContent()).trim();
+      await setupRedirectUrlCbk({ redirectUrl, audience });
+    }
 
     await samlModal.locator('[data-test-id="nc-saml-title"]').fill(p.title);
     if (p.url) {

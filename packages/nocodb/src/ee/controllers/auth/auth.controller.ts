@@ -125,7 +125,7 @@ export class AuthController extends AuthControllerCE {
   @Post(['/api/v1/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
-    if (!(req as any).isAuthenticated()) {
+    if (!(req as any).isAuthenticated?.()) {
       NcError.forbidden('Not allowed');
     }
 
@@ -226,7 +226,7 @@ export class AuthController extends AuthControllerCE {
     res.redirect(redirectUrl);
   }
 
-  @Post('/auth/long-lived-token-refresh')
+  @Post('/auth/long-lived-token')
   @UseGuards(PublicApiLimiterGuard, AuthGuard('short-lived-token'))
   async longLivedTokenRefresh(
     @Req() req: Request & { extra: any },

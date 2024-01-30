@@ -3,8 +3,8 @@
 const { runServer } = require('saml-idp')
 
 runServer({
-  acsUrl: `https://foo.okta.com/auth/saml20/assertion-consumer`,
-  audience: `https://foo.okta.com/auth/saml20/metadata`,
+  acsUrl: process.env.REDIRECT_URL,
+  audience: process.env.AUDIENCE,
   config: {
     user: {
       email: 'test@nocodb.com',
@@ -16,12 +16,6 @@ runServer({
       displayName: 'E-Mail Address',
       description: 'The e-mail address of the user',
       multiValue: false,
-    }, {
-      id: 'userType',
-      optional: true,
-      displayName: 'User Type',
-      description: 'The type of user',
-      options: ['Admin', 'Editor', 'Commenter'],
     }],
   },
 })

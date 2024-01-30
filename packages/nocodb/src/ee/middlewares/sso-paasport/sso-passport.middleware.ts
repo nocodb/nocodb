@@ -19,12 +19,14 @@ import { sanitiseUserObj } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
+import { MetaService } from '~/meta/meta.service';
 
 @Injectable()
 export class SSOPassportMiddleware implements NestMiddleware {
   constructor(
     private config: ConfigService<AppConfig>,
     private usersService: UsersService,
+    private metaService: MetaService,
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
@@ -63,18 +65,17 @@ export class SSOPassportMiddleware implements NestMiddleware {
   async getSAMLStrategy(client: SSOClient, req: Request) {
     const config: any = client.config;
 
-    const clientConfig = {
-      issuer: config.issuer,
-      entryPoint: config.entryPoint,
-      cert: config.cert,
-      callbackUrl: req.ncSiteUrl + `/sso/${client.id}/redirect`,
-      passReqToCallback: true,
-      // logoutUrl: process.env.NC_SAML_ENTRY_POINT,
-      // logoutCallbackUrl:`/sso/${client.id}/logout-redirect`',
-    };
-
     return new SAMLStrategy(
-      clientConfig,
+      {
+        issuer: config.issuer,
+        entryPoint: config.entryPoint,
+        cert: config.cert,
+        callbackUrl: req.ncSiteUrl + `/sso/${client.id}/redirect`,
+        audience: req.ncSiteUrl + `/sso/${client.id}`,
+        passReqToCallback: true,
+        // logoutUrl: process.env.NC_SAML_ENTRY_POINT,
+        // logoutCallbackUrl:`/sso/${client.id}/logout-redirect`',
+      },
       async (req, profile, callback) => {
         try {
           const email = profile.nameID;
@@ -109,10 +110,16 @@ export class SSOPassportMiddleware implements NestMiddleware {
             user = sanitiseUserObj(user);
           }
 
+          const config = this.metaService.config;
+
+          const options = {
+            secretOrKey: config.auth.jwt.secret,
+            ...config.auth.jwt.options,
+          };
           // Here, you can generate a JWT token using profile information
           const token = jwt.sign(
             { id: user.id, email: email, saml: true },
-            'your-secret-key',
+            options.secretOrKey,
             {
               expiresIn: '1m',
             },

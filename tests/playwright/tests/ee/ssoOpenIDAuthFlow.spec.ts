@@ -11,7 +11,7 @@ const startSAMLIdp = async (env = {}) => {
   return new Promise((resolve, reject) => {
     try {
       childProcess = spawn('npm', ['start'], {
-        cwd: path.join(__dirname, '../../../../scripts/ee/playwright/saml-provider'),
+        cwd: path.join(__dirname, '../../../../scripts/ee/playwright/openid-provider'),
         env: {
           ...process.env,
           ...env,
@@ -20,7 +20,7 @@ const startSAMLIdp = async (env = {}) => {
 
       childProcess.stdout.on('data', function (data) {
         console.log('stdout: ' + data.toString());
-        if (data.toString().includes('IdP server ready at')) resolve();
+        if (data.toString().includes('oidc-provider listening on port 4000')) resolve();
       });
 
       childProcess.stdout.on('error', function (data) {
@@ -30,6 +30,21 @@ const startSAMLIdp = async (env = {}) => {
     } catch (e) {
       console.log(e);
     }
+    // ls.stderr.on('data', function (data) {
+    //   console.log('stderr: ' + data.toString());
+    // });
+
+    // ,
+    // (error, stdout, stderr) => {
+    //   console.log(`stdout: ${stdout}`);
+    //   if (error !== null) {
+    //     console.log(`exec error: ${error}`);
+    //   }
+    // },
+    // (a) => {
+    //
+    // }
+    // );
   });
 };
 
@@ -37,7 +52,7 @@ const stopSAMLIpd = async () => {
   childProcess.kill();
 };
 
-test.describe.only('SSO SAML Auth Flow', () => {
+test.describe('SSO SAML Auth Flow', () => {
   let accountsPage: AccountPage;
   let samlLoginPage: SAMLLoginPage;
   let context: any;

@@ -66,7 +66,7 @@ export const useAuthentication = () => {
     return prePopulated
   }
 
-  // method to costruct redirect url for sso client
+  // method to construct redirect url for sso client
   const getRedirectUrl = (provider: SSOClientType) => {
     if (!provider?.id) return ``
 

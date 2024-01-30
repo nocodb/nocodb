@@ -12,8 +12,21 @@ const oidcProviders = computed(() => {
   return [...providers.value].filter((provider: SSOClientType) => provider.type === 'oidc')
 })
 
+const googleProvider = computed(() => {
+  const provider = [...providers.value].filter((provider: SSOClientType) => provider.type === 'google')
+  if (provider.length > 0) {
+    return provider[0]
+  } else {
+    return {
+      enabled: false,
+      provider: 'google',
+    }
+  }
+})
+
 const samlDialogShow = ref(false)
 const oidcDialogShow = ref(false)
+const googleDialogShow = ref(false)
 
 const isEdit = ref(false)
 
@@ -34,6 +47,12 @@ const addOIDCProvider = async () => {
   providerProp.value = await getPrePopulatedProvider('oidc')
 }
 
+const addGoogleProvider = async () => {
+  googleDialogShow.value = true
+  isEdit.value = true
+  providerProp.value = await getPrePopulatedProvider('google')
+}
+
 const { copy } = useCopy()
 
 const copyRedirectUrl = async () => {
@@ -41,13 +60,25 @@ const copyRedirectUrl = async () => {
   isCopied.value.signIn = true
 }
 
-const updateProviderStatus = async (client: { enabled: boolean }) => {
+const updateProviderStatus = async (client: { enabled: boolean; id: string }) => {
+  if (!client.id) return
   client.enabled = !client.enabled
   await updateProvider(client.id, { enabled: client.enabled })
 }
 
 watch(
   () => samlDialogShow.value,
+  async (v) => {
+    if (!v) {
+      isEdit.value = false
+      providerProp.value = undefined
+      await fetchProviders()
+    }
+  },
+)
+
+watch(
+  () => googleDialogShow.value,
   async (v) => {
     if (!v) {
       isEdit.value = false
@@ -90,8 +121,10 @@ const enableEdit = (provider: SSOClientType) => {
   providerProp.value = provider
   if (provider.type === 'saml') {
     samlDialogShow.value = true
-  } else {
+  } else if (provider.type === 'oidc') {
     oidcDialogShow.value = true
+  } else if (provider.type === 'google') {
+    googleDialogShow.value = true
   }
 }
 
@@ -121,6 +154,42 @@ onMounted(async () => {
             </NcButton>
           </div>
         </div>
+      </div>
+
+      <div
+        class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
+        data-test-id="nc-google-provider"
+      >
+        <div class="nc-google-enable">
+          <NcSwitch
+            :checked="googleProvider.enabled"
+            class="min-w-4"
+            size="small"
+            @change="updateProviderStatus(googleProvider)"
+          />
+          <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title"> Google </span>
+        </div>
+
+        <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
+          <NcButton
+            class="!text-gray-500 !hover:text-gray-800 nc-google-more-option"
+            data-test-id="nc-google-more-option"
+            size="xsmall"
+            type="text"
+          >
+            <GeneralIcon class="text-inherit" icon="threeDotVertical" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu>
+              <NcMenuItem data-test-id="nc-google-edit" @click="enableEdit(googleProvider)">
+                <div class="flex flex-row items-center">
+                  <component :is="iconMap.edit" class="text-gray-800" />
+                  <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
       </div>
       <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6">
         <div class="flex font-bold justify-between text-base" data-rec="true">
@@ -259,6 +328,7 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+    <DlgGoogleProvider v-if="googleDialogShow" v-model:model-value="googleDialogShow" :google="providerProp" :is-edit="isEdit" />
     <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" :is-edit="isEdit" :saml="providerProp" />
     <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" :is-edit="isEdit" :oidc="providerProp" />
   </div>

@@ -669,6 +669,7 @@
     }
   },
   "activity": {
+    "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "Open in a new tab",

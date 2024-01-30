@@ -52,6 +52,7 @@ test.describe('SSO SAML', () => {
       title: 'oidc',
       clientId: 'test',
       clientSecret: 'test',
+      issuer: 'https://samltest.id/saml/idp',
       authUrl: 'https://samltest.id/saml/idp',
       tokenUrl: 'https://samltest.id/saml/idp',
       userInfoUrl: 'https://samltest.id/saml/idp',

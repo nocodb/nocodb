@@ -3,7 +3,7 @@ import setup, { unsetup } from '../../setup';
 import { AccountPage } from '../../pages/Account';
 import { spawn } from 'child_process';
 import path from 'path';
-import { SAMLLoginPage } from '../../pages/SsoIdpPage/SAMLLoginPage';
+import { OpenIDLoginPage } from '../../pages/SsoIdpPage/OpenIDLoginPage';
 
 // todo: move to utils
 let childProcess: ChildProcess;
@@ -30,21 +30,6 @@ const startSAMLIdp = async (env = {}) => {
     } catch (e) {
       console.log(e);
     }
-    // ls.stderr.on('data', function (data) {
-    //   console.log('stderr: ' + data.toString());
-    // });
-
-    // ,
-    // (error, stdout, stderr) => {
-    //   console.log(`stdout: ${stdout}`);
-    //   if (error !== null) {
-    //     console.log(`exec error: ${error}`);
-    //   }
-    // },
-    // (a) => {
-    //
-    // }
-    // );
   });
 };
 
@@ -54,7 +39,7 @@ const stopSAMLIpd = async () => {
 
 test.describe('SSO SAML Auth Flow', () => {
   let accountsPage: AccountPage;
-  let samlLoginPage: SAMLLoginPage;
+  let openidLoginPage: OpenIDLoginPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
@@ -64,23 +49,33 @@ test.describe('SSO SAML Auth Flow', () => {
     await accountsPage.authentication.goto();
 
     // Create SAML provider
-    await accountsPage.authentication.createSAMLProvider(
+    await accountsPage.authentication.createOIDCProvider(
       {
         title: 'test',
-        url: 'http://localhost:7000/metadata',
+        clientId: 'test-client',
+        clientSecret: 'test-secret',
+        issuer: 'http://localhost:4000',
+        authUrl: 'http://localhost:4000/auth',
+        userInfoUrl: 'http://localhost:4000/me',
+        tokenUrl: 'http://localhost:4000/token',
+        jwkUrl: 'http://localhost:4000/certs',
+        scopes: ['openid', 'profile', 'email'],
+        userAttributes: 'id,email,first_name,last_name',
       },
-      async ({ redirectUrl, audience }) => {
+      async ({ redirectUrl }) => {
         await startSAMLIdp({
-          REDIRECT_URL: redirectUrl,
-          AUDIENCE: audience,
+          CLIENT_ID: 'test-client',
+          CLIENT_SECRET: 'test-secret',
+          CLIENT_REDIRECT_URI: redirectUrl,
+          CLIENT_LOGOUT_REDIRECT_URI: redirectUrl,
         });
       }
     );
 
     // Verify SAML provider count
-    await accountsPage.authentication.verifySAMLProviderCount({ count: 1 });
+    await accountsPage.authentication.verifyOIDCProviderCount({ count: 1 });
 
-    samlLoginPage = new SAMLLoginPage(page);
+    openidLoginPage = new OpenIDLoginPage(page);
   });
 
   test.afterEach(async () => {
@@ -91,9 +86,9 @@ test.describe('SSO SAML Auth Flow', () => {
   test('SAML Provider', async () => {
     await accountsPage.signOut();
 
-    await samlLoginPage.goto('test');
+    await openidLoginPage.goto('test');
 
-    await samlLoginPage.signIn({
+    await openidLoginPage.signIn({
       email: 'test@nocodb.com',
     });
 

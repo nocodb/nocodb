@@ -13,15 +13,11 @@ export class SSOAuthController {
     protected readonly usersService: UsersService,
     protected readonly appHooksService: AppHooksService,
     protected readonly config: ConfigService<AppConfig>,
-  ) {
-  }
+  ) {}
 
   @Get('/sso/:clientId/')
   @UseGuards(PublicApiLimiterGuard)
-  async ssoLogin(
-    @Req() req: Request & { extra: any },
-    @Res() res: Response,
-  ) {
+  async ssoLogin(@Req() req: Request & { extra: any }, @Res() res: Response) {
     // todo: move to service and reuse
     // await this.setRefreshToken({ req, res });
     res.json({

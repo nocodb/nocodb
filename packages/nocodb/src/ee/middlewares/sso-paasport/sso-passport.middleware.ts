@@ -136,7 +136,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
     );
   }
 
-  private async getOIDCStrategy(client: SSOClient, _req: Request) {
+  private async getOIDCStrategy(client: SSOClient, req: Request) {
     const config = client.config as OpenIDClientConfigType;
 
     // OpenID Connect
@@ -149,6 +149,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
       clientID: config.clientId,
       clientSecret: config.clientSecret,
       scope: config.scopes || ['profile', 'email'],
+      callbackURL: req.ncSiteUrl + `/sso/${client.id}/redirect`,
+
+      pkce: 'S256',
 
       // cache based store for managing the state of the authorization request
       store: {
@@ -219,11 +222,27 @@ export class SSOPassportMiddleware implements NestMiddleware {
         // get user by email
         User.getByEmail(email)
           .then(async (user) => {
+            const config = this.metaService.config;
+
+            const options = {
+              secretOrKey: config.auth.jwt.secret,
+              ...config.auth.jwt.options,
+            };
+            // Here, you can generate a JWT token using profile information
+            const getToken = (user) =>
+              jwt.sign(
+                { id: user.id, email: email, saml: true },
+                options.secretOrKey,
+                {
+                  expiresIn: '1m',
+                },
+              );
             if (user) {
               return done(null, {
                 ...sanitiseUserObj(user),
                 provider: 'openid',
                 display_name: profile._json?.name,
+                token: getToken(user),
               });
             } else {
               // if user not found create new user
@@ -241,7 +260,11 @@ export class SSOPassportMiddleware implements NestMiddleware {
                   req: null,
                 })
                 .then((user) => {
-                  done(null, { ...sanitiseUserObj(user), provider: 'openid' });
+                  done(null, {
+                    ...sanitiseUserObj(user),
+                    provider: 'openid',
+                    token: getToken(user),
+                  });
                 })
                 .catch((e) => done(e));
             }

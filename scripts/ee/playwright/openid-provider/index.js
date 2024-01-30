@@ -4,14 +4,6 @@ const assert = require('assert')
 const camelCase = require('camelcase')
 
 const Provider = require('oidc-provider')
-
-process.env.CLIENT_ID='my-client'
-process.env.CLIENT_SECRET='my-secret'
-process.env.CLIENT_REDIRECT_URI='http://localhost:8080/.auth'
-process.env.CLIENT_LOGOUT_REDIRECT_URI='http://localhost:8080/.magnolia/admincentral'
-
-
-
 const host = process.env.HOST || 'localhost'
 const port = process.env.PORT || 4000
 

@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { User } from '~/models';
 import { MetaService } from '~/meta/meta.service';
+import { sanitiseUserObj } from '~/utils'
 
 @Injectable()
 export class ShortLivedTokenStrategy extends PassportStrategy(
@@ -20,7 +21,9 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
   }
 
   async validate(req, jwtPayload) {
-    if (!jwtPayload?.email) return jwtPayload;
+    if (!jwtPayload?.email) {
+      return jwtPayload;
+    }
 
     const user = await User.getByEmail(jwtPayload?.email);
 

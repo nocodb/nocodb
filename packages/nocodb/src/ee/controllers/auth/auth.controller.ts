@@ -125,14 +125,14 @@ export class AuthController extends AuthControllerCE {
   @Post(['/api/v1/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
-    if (!(req as any).isAuthenticated?.()) {
-      NcError.forbidden('Not allowed');
-    }
-
     const result: Record<string, string> = await this.usersService.signOut({
       req,
       res,
     });
+
+    if (!(req as any).isAuthenticated?.() && !req.user?.['isAuthorized']) {
+      return res.json(result);
+    }
 
     // todo: check provider as well, if we have multiple ways of login mechanism
     if (process.env.NC_OIDC_LOGOUT_URL) {
@@ -233,15 +233,16 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
   ) {
     await this.setRefreshToken({ req, res });
-    res.json({
+    const result = {
       ...(await this.usersService.login(
         {
           ...req.user,
-          provider: 'saml',
         },
         req,
       )),
       extra: { ...req.extra },
-    });
+    };
+
+    res.json(result);
   }
 }

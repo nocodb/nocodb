@@ -223,7 +223,10 @@ const saveOIDCProvider = async () => {
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-              <span class="text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+              <span
+                class="text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                data-test-id="nc-openid-redirect-url"
+              >
                 {{ getRedirectUrl(oidc) }}
               </span>
               <NcButton size="xsmall" type="text" @click="copyRedirectUrl(getRedirectUrl(oidc))">

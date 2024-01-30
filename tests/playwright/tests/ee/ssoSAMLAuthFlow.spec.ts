@@ -37,7 +37,7 @@ const stopSAMLIpd = async () => {
   childProcess.kill();
 };
 
-test.describe.only('SSO SAML Auth Flow', () => {
+test.describe('SSO SAML Auth Flow', () => {
   let accountsPage: AccountPage;
   let samlLoginPage: SAMLLoginPage;
   let context: any;

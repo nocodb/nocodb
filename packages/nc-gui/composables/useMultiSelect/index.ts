@@ -852,8 +852,7 @@ export function useMultiSelect(
             (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
           ) {
             const clipboardContext = JSON.parse(clipboardData!)
-
-            rowObj.row[columnObj.title!] = convertCellData(
+            let pasteVal = convertCellData(
               {
                 value: clipboardContext,
                 to: columnObj.uidt as UITypes,
@@ -862,6 +861,10 @@ export function useMultiSelect(
               },
               isMysql(meta.value?.source_id),
             )
+
+            if (pasteVal === undefined) return
+
+            rowObj.row[columnObj.title!] = pasteVal
 
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,

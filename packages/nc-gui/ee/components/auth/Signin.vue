@@ -201,13 +201,16 @@ const queryToPass = computed(() =>
             </a>
           </div>
 
-
-          <div v-for="client of appInfo.ssoClients" class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+          <div
+            v-for="client of appInfo.ssoClients"
+            :key="client.id"
+            class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+          >
             <a :href="client.url" class="!text-primary !no-underline">
               <button type="button" class="scaling-btn bg-opacity-100">
                 <span class="flex items-center gap-2">
                   <MdiLogin />
-                    {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
+                  {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
                 </span>
               </button>
             </a>

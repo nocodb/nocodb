@@ -48,7 +48,7 @@ export default class SSOClient implements SSOClientType {
       'enabled',
       'fk_user_id',
       'fk_workspace_id',
-      'deleted'
+      'deleted',
     ]);
 
     if ('config' in insertObj) {
@@ -66,7 +66,7 @@ export default class SSOClient implements SSOClientType {
 
   public static async update(
     clientId: string,
-    client: Partial<SSOClientType & {deleted?: boolean}>,
+    client: Partial<SSOClientType & { deleted?: boolean }>,
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;

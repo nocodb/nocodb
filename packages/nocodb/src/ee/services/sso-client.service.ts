@@ -1,12 +1,10 @@
 import { promisify } from 'util';
-import process from 'process';
 import crypto from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { parseString } from 'xml2js';
 import axios from 'axios';
 import libxmljs from 'libxmljs';
 
-import { useAgent } from 'request-filtering-agent';
 import type {
   OpenIDClientConfigType,
   SAMLClientConfigType,
@@ -16,8 +14,6 @@ import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { extractProps } from '~/helpers/extractProps';
-
-const parseStringPromise = promisify(parseString);
 
 @Injectable()
 export class SSOClientService {
@@ -81,7 +77,10 @@ export class SSOClientService {
     });
 
     // update client
-    const client = await SSOClient.update(param.clientId, { ...param.client, deleted: false });
+    const client = await SSOClient.update(param.clientId, {
+      ...param.client,
+      deleted: false,
+    });
 
     return client;
   }

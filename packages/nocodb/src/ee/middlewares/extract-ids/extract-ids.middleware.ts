@@ -13,7 +13,6 @@ import {
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import { extractRolesObj } from 'nocodb-sdk';
-import { AuthGuard } from '@nestjs/passport';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -41,8 +40,8 @@ import {
 } from '~/models';
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
-import { GlobalGuard } from '~/guards/global/global.guard'
-import { JwtStrategy } from '~/strategies/jwt.strategy'
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -314,10 +313,10 @@ export class AclMiddleware implements NestInterceptor {
     if (!req.user) {
       try {
         const guard = new GlobalGuard(this.jwtStrategy);
-       const a =  await guard.canActivate(context);
-       console.log(a);
+        const a = await guard.canActivate(context);
+        console.log(a);
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     }
     if (!req.user?.isAuthorized) {

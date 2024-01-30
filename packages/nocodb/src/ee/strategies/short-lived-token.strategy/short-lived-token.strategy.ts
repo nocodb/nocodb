@@ -4,7 +4,6 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { User } from '~/models';
 import { MetaService } from '~/meta/meta.service';
-import { sanitiseUserObj } from '~/utils'
 
 @Injectable()
 export class ShortLivedTokenStrategy extends PassportStrategy(

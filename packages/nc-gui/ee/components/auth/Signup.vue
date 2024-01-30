@@ -231,6 +231,7 @@ const subDomain = location.host?.split('.')[0]
 
             <div
               v-for="client of appInfo.ssoClients"
+              :key="client.id"
               class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
             >
               <a :href="client.url" class="!text-primary !no-underline">

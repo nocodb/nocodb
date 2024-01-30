@@ -1732,7 +1732,7 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -1751,7 +1751,7 @@ onKeyStroke('ArrowDown', onDown)
                 (isLinksOrLTAR(fields[contextMenuTarget.col]) || !isVirtualCol(fields[contextMenuTarget.col]))
               "
               class="nc-base-menu-item"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -1765,7 +1765,7 @@ onKeyStroke('ArrowDown', onDown)
             <NcMenuItem
               v-else-if="contextMenuTarget && hasEditPermission"
               class="nc-base-menu-item"
-              :disabled="isSystemColumn(fields[contextMenuTarget.col])"
+              :disabled="!!isSystemColumn(fields[contextMenuTarget.col])"
               data-testid="context-menu-item-clear"
               @click="clearSelectedRangeOfCells()"
             >

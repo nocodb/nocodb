@@ -20,9 +20,10 @@ export const useAuthentication = () => {
   const updateProvider = async (id: string, provider: Partial<SSOClientType>) => {
     try {
       await api.ssoClient.update(id, { ...provider, deleted: false })
+      return true
     } catch (err) {
       message.error(await extractSdkResponseErrorMsg(err))
-      console.log(err)
+      return false
     }
   }
 

@@ -102,7 +102,7 @@ const saveSamlProvider = async () => {
   }
   if (!isValid || !isXMLorMetaDataUrlValid()) return
   if (props.isEdit) {
-    await updateProvider(props.saml.id, {
+    const res = await updateProvider(props.saml.id, {
       title: form.title,
       config: {
         metaDataUrl: form.metaDataUrl,
@@ -111,10 +111,12 @@ const saveSamlProvider = async () => {
         ssoOnly: form.ssoOnly,
       },
     })
-    dialogShow.value = false
+    if (res) {
+      dialogShow.value = false
+    }
     return
   }
-  await addProvider({
+  const res = await addProvider({
     type: 'saml',
     title: form.title,
     config: {
@@ -124,7 +126,9 @@ const saveSamlProvider = async () => {
       ssoOnly: form.ssoOnly,
     },
   })
-  dialogShow.value = false
+  if (res) {
+    dialogShow.value = false
+  }
 }
 </script>
 
@@ -151,10 +155,9 @@ const saveSamlProvider = async () => {
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
               <span
-                data-test-id="nc-saml-redirect-url"
                 class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                data-test-id="nc-saml-redirect-url"
               >
-                <!-- Get Redirect URL from Authentication Composable -->
                 {{ getRedirectUrl(saml) }}
               </span>
               <NcButton size="xsmall" type="text" @click="copyRedirectUrl(getRedirectUrl(saml))">
@@ -177,11 +180,9 @@ const saveSamlProvider = async () => {
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
               <span
-                data-test-id="nc-saml-issuer-url"
                 class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                data-test-id="nc-saml-issuer-url"
               >
-                <!-- Get Entity ID from Authentication Composable -->
-
                 {{ getEntityId(saml) }}
               </span>
               <NcButton size="xsmall" type="text" @click="copyEntityId(getEntityId(saml))">
@@ -203,6 +204,7 @@ const saveSamlProvider = async () => {
                   data-test-id="nc-saml-metadata-url"
                   placeholder="Paste the Metadata URL here from the Identity Provider"
                 />
+                <div class="text-sm text-gray-500 mt-2">Metadata will be fetched from url and saved under XML</div>
               </a-form-item>
             </a-tab-pane>
             <a-tab-pane key="xml">
@@ -227,7 +229,7 @@ const saveSamlProvider = async () => {
             <div class="flex gap-4">
               <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
               <div>
-                <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
+                <div class="text-gray-800 mb-1 font-bold">Allow SSO Login only</div>
                 <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
               </div>
             </div>

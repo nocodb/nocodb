@@ -152,7 +152,7 @@ const saveOIDCProvider = async () => {
   const isValid = await formValidator.value.validate()
   if (!isValid) return
   if (props.isEdit) {
-    await updateProvider(props.oidc?.id ?? '', {
+    const res = await updateProvider(props.oidc?.id ?? '', {
       title: form.title,
       config: {
         clientId: form.clientId,
@@ -169,10 +169,10 @@ const saveOIDCProvider = async () => {
         ssoOnly: form.ssoOnly,
       },
     })
-    dialogShow.value = false
+    if (res) dialogShow.value = false
     return
   }
-  await addProvider({
+  const res = await addProvider({
     type: 'oidc',
     enabled: true,
     title: form.title,
@@ -191,7 +191,7 @@ const saveOIDCProvider = async () => {
       ssoOnly: form.ssoOnly,
     },
   })
-  dialogShow.value = false
+  if (res) dialogShow.value = false
 }
 </script>
 
@@ -324,7 +324,7 @@ const saveOIDCProvider = async () => {
             <div class="flex gap-4">
               <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
               <div>
-                <div class="text-gray-800 mb-1 font-bold">Allow SSO Log In only</div>
+                <div class="text-gray-800 mb-1 font-bold">Allow SSO Login only</div>
                 <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
               </div>
             </div>

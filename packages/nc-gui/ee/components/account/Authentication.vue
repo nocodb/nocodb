@@ -5,11 +5,11 @@ const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, 
   useAuthentication()
 
 const samlProviders = computed(() => {
-  return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml')
+  return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml' && !provider.deleted)
 })
 
 const oidcProviders = computed(() => {
-  return [...providers.value].filter((provider: SSOClientType) => provider.type === 'oidc')
+  return [...providers.value].filter((provider: SSOClientType) => provider.type === 'oidc' && !provider.deleted)
 })
 
 const googleProvider = computed(() => {
@@ -157,6 +157,7 @@ onMounted(async () => {
       </div>
 
       <div
+        v-if="false"
         class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
         data-test-id="nc-google-provider"
       >
@@ -214,6 +215,7 @@ onMounted(async () => {
             :key="id"
             :data-test-id="`nc-saml-provider-${sam.title}`"
             class="flex flex-row justify-between nc-saml-provider w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
+            @click="enableEdit(sam)"
           >
             <div :class="`nc-saml-${sam.title}-enable`">
               <NcSwitch :checked="!!sam.enabled" class="min-w-4" size="small" @change="updateProviderStatus(sam)" />
@@ -240,10 +242,10 @@ onMounted(async () => {
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem data-test-id="nc-saml-duplicate" @click="duplicateProvider(sam.id)">
+                  <NcMenuItem class="!hover:bg-white !cursor-not-allowed" data-test-id="nc-saml-duplicate">
                     <div class="flex flex-row items-center">
-                      <component :is="iconMap.copy" class="text-gray-800" />
-                      <span class="text-gray-800 ml-2"> {{ $t('general.duplicate') }} </span>
+                      <component :is="iconMap.copy" class="text-gray-400" />
+                      <span class="text-gray-400 ml-2"> {{ $t('general.duplicate') }} </span>
                     </div>
                   </NcMenuItem>
                   <a-menu-divider class="my-1.5" />
@@ -282,6 +284,7 @@ onMounted(async () => {
             :key="id"
             :data-test-id="`nc-oidc-provider-${oid.name}`"
             class="flex flex-row nc-oidc-provider justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
+            @click="enableEdit(oid)"
           >
             <div :class="`nc-oidc-${oid.title}-enable`">
               <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" />
@@ -308,10 +311,14 @@ onMounted(async () => {
                       <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem data-test-id="nc-oidc-duplicate" @click="duplicateProvider(oid.id)">
+                  <NcMenuItem
+                    class="!hover:bg-white !cursor-not-allowed"
+                    data-test-id="nc-oidc-duplicate"
+                    @click="duplicateProvider(oid.id)"
+                  >
                     <div class="flex flex-row items-center">
-                      <component :is="iconMap.copy" class="text-gray-800" />
-                      <span class="text-gray-800 ml-2"> {{ $t('general.duplicate') }} </span>
+                      <component :is="iconMap.copy" class="text-gray-400" />
+                      <span class="text-gray-400 ml-2"> {{ $t('general.duplicate') }} </span>
                     </div>
                   </NcMenuItem>
                   <a-menu-divider class="my-1.5" />

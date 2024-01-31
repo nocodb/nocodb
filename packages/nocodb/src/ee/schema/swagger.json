@@ -3580,6 +3580,10 @@
             "type": "boolean",
             "description": "Whether the SSO Client is enabled"
           },
+          "deleted": {
+            "type": "boolean",
+            "description": "Whether the SSO Client is deleted or not"
+          },
           "type": {
             "type": "string",
             "description": "Type of SSO Client",

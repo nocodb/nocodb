@@ -373,7 +373,7 @@ export default abstract class BaseApiBuilder<T extends Noco> {
         dir: '',
         ctx,
         filename: '',
-      }).getVitualColumns();
+      }).getVirtualColumns();
       // set default display values
       ModelXcMetaFactory.create(
         this.connectionConfig,

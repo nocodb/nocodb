@@ -44,6 +44,7 @@ const rolePermissions = {
   [WorkspaceUserRoles.CREATOR]: {
     include: {
       baseCreate: true,
+      baseMove: true,
       baseDuplicate: true,
       workspaceSettings: true,
       tableCreate: true,

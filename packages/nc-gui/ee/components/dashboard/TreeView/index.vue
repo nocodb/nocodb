@@ -213,10 +213,6 @@ const updateProjectOrder = async (baseId: string, order: number) => {
   }
 }
 
-watchEffect(() => {
-  console.log('baselist', basesList.value)
-})
-
 const onMove = async (
   _event: { moved: { newIndex: number; oldIndex: number; element: NcProject } },
   currentBaseList: NcProject[],
@@ -260,7 +256,7 @@ const onMove = async (
         <div>
           <Draggable
             :model-value="starredProjectList"
-            :disabled="!isUIAllowed('viewCreateOrEdit')"
+            :disabled="!isUIAllowed('baseMove') || starredProjectList?.length < 2"
             item-key="starred-project"
             @change="onMove($event, starredProjectList)"
           >
@@ -280,7 +276,7 @@ const onMove = async (
       <div v-if="nonStarredProjectList?.length">
         <Draggable
           v-model="nonStarredProjectList"
-          :disabled="!isUIAllowed('viewCreateOrEdit')"
+          :disabled="!isUIAllowed('baseMove') || nonStarredProjectList?.length < 2"
           item-key="non-starred-project"
           @change="onMove($event, nonStarredProjectList)"
         >

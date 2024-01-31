@@ -14,7 +14,11 @@ export const useBases = defineStore('basesStore', () => {
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
-  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()))
+  const basesList = computed<NcProject[]>(() =>
+    Array.from(bases.value.values()).sort(
+      (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
+    ),
+  )
   const basesUser = ref<Map<string, User[]>>(new Map())
 
   const router = useRouter()
@@ -176,7 +180,7 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function checkForNullBaseOrder() {
-    let basesArray = Array.from(bases.value.values())
+    const basesArray = Array.from(bases.value.values())
     const isOrderNullPresent = basesArray.some((base) => base.order === null)
     if (isOrderNullPresent) {
       const orderUpdateBasesList = basesArray.map((base, i) => {

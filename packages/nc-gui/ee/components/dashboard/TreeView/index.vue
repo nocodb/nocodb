@@ -17,7 +17,6 @@ import {
   useNuxtApp,
   useRoles,
   useTablesStore,
-  extractSdkResponseErrorMsg,
 } from '#imports'
 
 import { useRouter } from '#app'
@@ -50,16 +49,8 @@ const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
 
-const starredProjectList = computed(() =>
-  basesList.value
-    .filter((base) => base.starred)
-    .sort((a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity)),
-)
-const nonStarredProjectList = computed(() =>
-  basesList.value
-    .filter((base) => !base.starred)
-    .sort((a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity)),
-)
+const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
+const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -203,16 +194,6 @@ provide(TreeViewInj, {
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
-const updateProjectOrder = async (baseId: string, order: number) => {
-  try {
-    await updateProject(baseId, {
-      order: order,
-    })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 const onMove = async (
   _event: { moved: { newIndex: number; oldIndex: number; element: NcProject } },
   currentBaseList: NcProject[],
@@ -240,7 +221,9 @@ const onMove = async (
 
   const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
 
-  await updateProjectOrder(element.id, _nextOrder)
+  await updateProject(element.id, {
+    order: _nextOrder,
+  })
 
   $e('a:base:reorder')
 }
@@ -258,6 +241,8 @@ const onMove = async (
             :model-value="starredProjectList"
             :disabled="!isUIAllowed('baseMove') || starredProjectList?.length < 2"
             item-key="starred-project"
+            handle=".base-title-node"
+            ghost-class="ghost"
             @change="onMove($event, starredProjectList)"
           >
             <template #item="{ element: base }">
@@ -278,6 +263,8 @@ const onMove = async (
           v-model="nonStarredProjectList"
           :disabled="!isUIAllowed('baseMove') || nonStarredProjectList?.length < 2"
           item-key="non-starred-project"
+          handle=".base-title-node"
+          ghost-class="ghost"
           @change="onMove($event, nonStarredProjectList)"
         >
           <template #item="{ element: base }">
@@ -301,5 +288,12 @@ const onMove = async (
 <style scoped lang="scss">
 .nc-treeview-subheading {
   @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
+}
+.ghost,
+.ghost > * {
+  @apply !pointer-events-none;
+}
+.ghost {
+  @apply !bg-primary-selected;
 }
 </style>

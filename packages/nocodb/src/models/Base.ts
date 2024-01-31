@@ -265,7 +265,7 @@ export default class Base implements BaseType {
       'password',
       'roles',
     ]);
-    console.log('basess', updateObj);
+
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

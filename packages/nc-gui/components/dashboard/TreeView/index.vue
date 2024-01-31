@@ -32,7 +32,7 @@ const route = router.currentRoute
 
 const basesStore = useBases()
 
-const { createProject: _createProject } = basesStore
+const { createProject: _createProject, updateProject } = basesStore
 
 const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
@@ -188,6 +188,37 @@ const scrollTableNode = () => {
   activeTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 }
 
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: NcProject } }) => {
+  const {
+    moved: { newIndex = 0, oldIndex = 0, element },
+  } = _event
+
+  if (!element?.id) return
+
+  // set default order value as 0 if item not found
+  const previousItem = basesList.value[newIndex - 1]?.order ? { order: basesList.value[newIndex - 1].order } : { order: 0 }
+  const nextItem = basesList.value[newIndex + 1]?.order ? { order: basesList.value[newIndex + 1].order } : { order: 0 }
+
+  let nextOrder: number
+
+  // set new order value based on the new order of the items
+  if (basesList.value.length - 1 === newIndex) {
+    nextOrder = parseFloat(String(previousItem.order)) + 1
+  } else if (newIndex === 0) {
+    nextOrder = parseFloat(String(nextItem.order)) / 2
+  } else {
+    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
+  }
+
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+  await updateProject(element.id, {
+    order: _nextOrder,
+  })
+
+  $e('a:base:reorder')
+}
+
 watch(
   () => _activeTable.value?.id,
   () => {
@@ -224,11 +255,24 @@ watch(
   <div class="nc-treeview-container flex flex-col justify-between select-none">
     <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
-      <template v-if="basesList?.length">
-        <ProjectWrapper v-for="base of basesList" :key="base.id" :base-role="base.project_role" :base="base">
-          <DashboardTreeViewProjectNode />
-        </ProjectWrapper>
-      </template>
+      <div v-if="basesList?.length">
+        <Draggable
+          :model-value="basesList"
+          :disabled="!isUIAllowed('baseMove') || basesList?.length < 2"
+          item-key="id"
+          handle=".base-title-node"
+          ghost-class="ghost"
+          @change="onMove($event)"
+        >
+          <template #item="{ element: base }">
+            <div :key="base.id">
+              <ProjectWrapper :base-role="base.project_role" :base="base">
+                <DashboardTreeViewProjectNode />
+              </ProjectWrapper>
+            </div>
+          </template>
+        </Draggable>
+      </div>
 
       <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
@@ -236,4 +280,12 @@ watch(
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.ghost,
+.ghost > * {
+  @apply !pointer-events-none;
+}
+.ghost {
+  @apply !bg-primary-selected;
+}
+</style>

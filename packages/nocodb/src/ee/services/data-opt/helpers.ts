@@ -1,5 +1,5 @@
 // eslint-disable-file no-fallthrough
-import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk'
+import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {

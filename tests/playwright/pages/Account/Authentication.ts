@@ -71,6 +71,9 @@ export class AccountAuthenticationPage extends BasePage {
 
     const samlModal = this.accountPage.rootPage.locator('.nc-saml-modal');
 
+    // wait until redirect url is generated
+    await samlModal.locator('[data-test-id="nc-saml-redirect-url"]:has-text("http://")').waitFor();
+
     if (setupRedirectUrlCbk) {
       const redirectUrl = (
         await samlModal.locator('[data-test-id="nc-saml-redirect-url"]:has-text("http://")').textContent()
@@ -116,6 +119,9 @@ export class AccountAuthenticationPage extends BasePage {
     await newOIDCBtn.click();
 
     const oidcModal = this.accountPage.rootPage.locator('.nc-oidc-modal');
+
+    // wait until redirect url is generated
+    await oidcModal.locator('[data-test-id="nc-openid-redirect-url"]:has-text("http://")').waitFor();
 
     if (setupRedirectUrlCbk) {
       const redirectUrl = (

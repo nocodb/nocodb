@@ -412,7 +412,7 @@ const setup = async ({
   }
   await page.addInitScript(
     async ({ token }) => {
-      if (location.search?.match(/code=|short-token=|skipRestore/)) return;
+      if (location.search?.match(/code=|short-token=/)) return;
       try {
         let initialLocalStorage = {};
         try {

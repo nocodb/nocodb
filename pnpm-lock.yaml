@@ -257,8 +257,8 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       '@iconify-json/lucide':
-        specifier: ^1.1.160
-        version: 1.1.160
+        specifier: ^1.1.161
+        version: 1.1.161
       '@iconify-json/material-symbols':
         specifier: ^1.1.71
         version: 1.1.71
@@ -4629,8 +4629,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.160:
-    resolution: {integrity: sha512-wQJvbP+wliSEEAcQZUWvEFSo9vEzpGbK21dE4kQjISix8joS3ud3vIrxP82YGWCEScYcXi1T+gBxqej3SQLzTg==}
+  /@iconify-json/lucide@1.1.161:
+    resolution: {integrity: sha512-jDjqCQ+Oj0uKf9a4uEby6buLqQDIUqwaUNvaDv6fmuo+QmbnJh1KSL2RNH0zJJYnBSytvYB8QVN4ebPNhEWlKQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true

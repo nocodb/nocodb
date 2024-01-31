@@ -51,12 +51,22 @@ export default class Base extends BaseCE {
             },
           ],
         },
+        orderBy: {
+          order: 'asc',
+        },
       });
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
-    baseList = baseList.filter(
-      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
-    );
+    baseList = baseList
+      .filter(
+        (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
+      )
+      .sort(
+        (a, b) =>
+          (a.order != null ? a.order : Infinity) -
+          (b.order != null ? b.order : Infinity),
+      );
+
     return baseList
       .map((m) => this.castType(m))
       .filter((p) => !param?.type || p.type === param.type);

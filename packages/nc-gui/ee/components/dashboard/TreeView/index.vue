@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Draggable from 'vuedraggable'
 import { type TableType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 import {
@@ -16,6 +17,7 @@ import {
   useNuxtApp,
   useRoles,
   useTablesStore,
+  extractSdkResponseErrorMsg,
 } from '#imports'
 
 import { useRouter } from '#app'
@@ -32,7 +34,7 @@ const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
-const { createProject: _createProject } = basesStore
+const { createProject: _createProject, updateProject } = basesStore
 
 const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
@@ -48,8 +50,16 @@ const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
 
-const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
-const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
+const starredProjectList = computed(() =>
+  basesList.value
+    .filter((base) => base.starred)
+    .sort((a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity)),
+)
+const nonStarredProjectList = computed(() =>
+  basesList.value
+    .filter((base) => !base.starred)
+    .sort((a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity)),
+)
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -192,6 +202,52 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
+
+const updateProjectOrder = async (baseId: string, order: number) => {
+  try {
+    await updateProject(baseId, {
+      order: order,
+    })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+watchEffect(() => {
+  console.log('baselist', basesList.value)
+})
+
+const onMove = async (
+  _event: { moved: { newIndex: number; oldIndex: number; element: NcProject } },
+  currentBaseList: NcProject[],
+) => {
+  const {
+    moved: { newIndex = 0, oldIndex = 0, element },
+  } = _event
+
+  if (!element?.id) return
+
+  // set default order value as 0 if item not found
+  const previousItem = currentBaseList[newIndex - 1]?.order ? { order: currentBaseList[newIndex - 1].order } : { order: 0 }
+  const nextItem = currentBaseList[newIndex + 1]?.order ? { order: currentBaseList[newIndex + 1].order } : { order: 0 }
+
+  let nextOrder: number
+
+  // set new order value based on the new order of the items
+  if (currentBaseList.length - 1 === newIndex) {
+    nextOrder = parseFloat(String(previousItem.order)) + 1
+  } else if (newIndex === 0) {
+    nextOrder = parseFloat(String(nextItem.order)) / 2
+  } else {
+    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
+  }
+
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+  await updateProjectOrder(element.id, _nextOrder)
+
+  $e('a:base:reorder')
+}
 </script>
 
 <template>
@@ -201,28 +257,42 @@ useEventListener(document, 'contextmenu', handleContext, true)
         <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
           <div class="text-gray-500 font-medium">Starred</div>
         </div>
-        <ProjectWrapper
-          v-for="base of starredProjectList"
-          :key="base.id"
-          :base-role="base.project_role || base.workspace_role"
-          :base="base"
-        >
-          <DashboardTreeViewProjectNode />
-        </ProjectWrapper>
+        <div>
+          <Draggable
+            :model-value="starredProjectList"
+            :disabled="!isUIAllowed('viewCreateOrEdit')"
+            item-key="starred-project"
+            @change="onMove($event, starredProjectList)"
+          >
+            <template #item="{ element: base }">
+              <div :key="base.id">
+                <ProjectWrapper :base-role="base.project_role || base.workspace_role" :base="base">
+                  <DashboardTreeViewProjectNode />
+                </ProjectWrapper>
+              </div>
+            </template>
+          </Draggable>
+        </div>
       </template>
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
       </div>
-      <template v-if="nonStarredProjectList?.length">
-        <ProjectWrapper
-          v-for="base of nonStarredProjectList"
-          :key="base.id"
-          :base-role="base.project_role || stringifyRolesObj(workspaceRoles)"
-          :base="base"
+      <div v-if="nonStarredProjectList?.length">
+        <Draggable
+          v-model="nonStarredProjectList"
+          :disabled="!isUIAllowed('viewCreateOrEdit')"
+          item-key="non-starred-project"
+          @change="onMove($event, nonStarredProjectList)"
         >
-          <DashboardTreeViewProjectNode />
-        </ProjectWrapper>
-      </template>
+          <template #item="{ element: base }">
+            <div :key="base.id">
+              <ProjectWrapper :key="base.id" :base-role="base.project_role || stringifyRolesObj(workspaceRoles)" :base="base">
+                <DashboardTreeViewProjectNode />
+              </ProjectWrapper>
+            </div>
+          </template>
+        </Draggable>
+      </div>
 
       <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
     </div>

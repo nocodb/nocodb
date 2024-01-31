@@ -11,7 +11,7 @@ export const useBases = defineStore('basesStore', () => {
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
-  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at))
+  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()))
   const basesUser = ref<Map<string, User[]>>(new Map())
 
   const router = useRouter()
@@ -214,8 +214,17 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   const updateProject = async (baseId: string, baseUpdatePayload: BaseType) => {
+    const existingProject = bases.value.get(baseId) ?? ({} as any)
+
+    const base = {
+      ...existingProject,
+      ...baseUpdatePayload,
+    }
+
+    bases.value.set(baseId, base)
+
     await api.base.update(baseId, baseUpdatePayload)
-    // todo: update base in store
+
     await loadProject(baseId, true)
   }
 

@@ -290,6 +290,12 @@ export default class BaseUser extends BaseUserCE {
       }
     }
 
-    return baseList.filter((p) => !params?.type || p.type === params.type);
+    return baseList
+      .filter((p) => !params?.type || p.type === params.type)
+      .sort(
+        (a, b) =>
+          (a.order != null ? a.order : Infinity) -
+          (b.order != null ? b.order : Infinity),
+      );
   }
 }

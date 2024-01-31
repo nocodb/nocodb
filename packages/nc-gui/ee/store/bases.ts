@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type { NcProject, User } from '#imports'
@@ -14,7 +14,7 @@ export const useBases = defineStore('basesStore', () => {
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
-  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at))
+  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()))
   const basesUser = ref<Map<string, User[]>>(new Map())
 
   const router = useRouter()
@@ -165,11 +165,32 @@ export const useBases = defineStore('basesStore', () => {
         })
         return acc
       }, new Map())
+
+      await checkForNullBaseOrder()
     } catch (e) {
       console.error(e)
       message.error(e.message)
     } finally {
       isProjectsLoading.value = false
+    }
+  }
+
+  async function checkForNullBaseOrder() {
+    let basesArray = Array.from(bases.value.values())
+    const isOrderNullPresent = basesArray.some((base) => base.order === null)
+    if (isOrderNullPresent) {
+      const orderUpdateBasesList = basesArray.map((base, i) => {
+        bases.value.set(base.id!, { ...base, order: i + 1 })
+
+        return {
+          id: base.id,
+          order: i + 1,
+        }
+      })
+
+      for (const orderUpdateBase of orderUpdateBasesList) {
+        await api.base.update(orderUpdateBase.id!, { order: orderUpdateBase.order })
+      }
     }
   }
 
@@ -252,8 +273,17 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   const updateProject = async (baseId: string, baseUpdatePayload: BaseType) => {
+    const existingProject = bases.value.get(baseId) ?? ({} as any)
+
+    const base = {
+      ...existingProject,
+      ...baseUpdatePayload,
+    }
+
+    bases.value.set(baseId, base)
+
     await api.base.update(baseId, baseUpdatePayload)
-    // todo: update base in store
+
     await loadProject(baseId, true)
   }
 

@@ -78,8 +78,13 @@ export class BasesService {
       'meta',
       'color',
       'status',
+      'order',
     ]);
     await this.validateProjectTitle(data, base);
+    console.log('base', data, param?.base);
+    if (data?.order !== undefined) {
+      data.order = !isNaN(+data.order) ? +data.order : 0;
+    }
 
     const result = await Base.update(param.baseId, data);
 
@@ -190,6 +195,10 @@ export class BasesService {
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
+
+    const bases = await Base.list(param);
+
+    console.log('list', bases);
 
     const base = await Base.createProject(baseBody);
 

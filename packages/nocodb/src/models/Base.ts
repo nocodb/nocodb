@@ -54,6 +54,7 @@ export default class Base implements BaseType {
       'status',
       'meta',
       'color',
+      'order',
     ]);
 
     const { id: baseId } = await ncMeta.metaInsert2(
@@ -110,12 +111,23 @@ export default class Base implements BaseType {
             },
           ],
         },
+        orderBy: {
+          order: 'asc',
+        },
       });
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
-    baseList = baseList.filter(
-      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
-    );
+
+    baseList = baseList
+      .filter(
+        (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
+      )
+      .sort(
+        (a, b) =>
+          (a.order != null ? a.order : Infinity) -
+          (b.order != null ? b.order : Infinity),
+      );
+
     const castedProjectList = baseList.map((m) => this.castType(m));
 
     await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
@@ -253,6 +265,7 @@ export default class Base implements BaseType {
       'password',
       'roles',
     ]);
+    console.log('basess', updateObj);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

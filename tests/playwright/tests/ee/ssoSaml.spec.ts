@@ -9,7 +9,7 @@ test.describe('SSO SAML', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     accountsPage = new AccountPage(page);
   });
 

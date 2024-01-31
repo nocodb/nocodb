@@ -57,6 +57,11 @@ export default class Base implements BaseType {
       'order',
     ]);
 
+    if (!insertObj.order) {
+      // get order value
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.PROJECT, {});
+    }
+
     const { id: baseId } = await ncMeta.metaInsert2(
       null,
       null,

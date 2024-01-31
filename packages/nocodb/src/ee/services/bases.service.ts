@@ -217,9 +217,6 @@ export class BasesService extends BasesServiceCE {
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
 
-    // todo: create base add order
-    // const bases = await Base.list(param);
-
     const base = await Base.createProject(baseBody);
 
     // TODO: consider to also include check if the base is of type Dashboard

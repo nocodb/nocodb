@@ -24,11 +24,11 @@ export class AccountAuthenticationPage extends BasePage {
   }
 
   async verifySAMLProviderCount({ count }: { count: number }) {
-    expect(await this.get().locator('.nc-saml-provider').count()).toBe(count);
+    await expect.poll(async () => await this.get().locator('.nc-saml-provider').count()).toBe(count);
   }
 
   async verifyOIDCProviderCount({ count }: { count: number }) {
-    expect(await this.get().locator('.nc-oidc-provider').count()).toBe(count);
+    await expect.poll(async () => await this.get().locator('.nc-oidc-provider').count()).toBe(count);
   }
 
   async getProvider(provider: 'saml' | 'oidc', title: string) {

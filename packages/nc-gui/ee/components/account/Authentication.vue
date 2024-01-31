@@ -224,7 +224,7 @@ onMounted(async () => {
               </span>
             </div>
 
-            <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
+            <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
               <NcButton
                 :class="`nc-saml-${sam.title}-more-option`"
                 class="!text-gray-500 !hover:text-gray-800"
@@ -293,7 +293,7 @@ onMounted(async () => {
               </span>
             </div>
 
-            <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
+            <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
               <NcButton
                 :class="`nc-oidc-${oid.title}-more-option`"
                 class="!text-gray-500 !hover:text-gray-800"

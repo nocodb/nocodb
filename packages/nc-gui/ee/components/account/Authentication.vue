@@ -218,7 +218,9 @@ onMounted(async () => {
             @click="enableEdit(sam)"
           >
             <div :class="`nc-saml-${sam.title}-enable`">
-              <NcSwitch :checked="!!sam.enabled" class="min-w-4" size="small" @change="updateProviderStatus(sam)" />
+              <span @click.stop>
+                <NcSwitch :checked="!!sam.enabled" class="min-w-4" size="small" @change="updateProviderStatus(sam)" />
+              </span>
               <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title">
                 {{ sam?.title }}
               </span>
@@ -287,7 +289,9 @@ onMounted(async () => {
             @click="enableEdit(oid)"
           >
             <div :class="`nc-oidc-${oid.title}-enable`">
-              <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" />
+              <span @click.stop>
+                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @click.stop @change="updateProviderStatus(oid)" />
+              </span>
               <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-oidc-title">
                 {{ oid?.title }}
               </span>

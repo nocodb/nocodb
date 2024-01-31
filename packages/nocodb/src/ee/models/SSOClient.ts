@@ -91,8 +91,8 @@ export default class SSOClient implements SSOClientType {
       null,
       null,
       MetaTable.SSO_CLIENT,
-      clientId,
       updateObj,
+      clientId,
     );
 
     return true;

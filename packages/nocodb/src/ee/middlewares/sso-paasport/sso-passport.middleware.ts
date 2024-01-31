@@ -21,6 +21,9 @@ import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { MetaService } from '~/meta/meta.service';
 
+// this middleware is used to authenticate user using passport
+// in which we decide which strategy to use based on client type
+// it's all done dynamically based on client id(sso-client)
 @Injectable()
 export class SSOPassportMiddleware implements NestMiddleware {
   constructor(
@@ -256,7 +259,6 @@ export class SSOPassportMiddleware implements NestMiddleware {
                   user_name: null,
                   display_name: profile._json?.name,
                   salt,
-                  // todo: check if req available
                   req: null,
                 })
                 .then((user) => {

@@ -2,14 +2,12 @@ import crypto from 'crypto';
 import libxmljs from 'libxmljs';
 
 // metadata parser - https://github.com/mikefowler/node-idp-metadata-parser/tree/master
-
 export async function parseSamlMetadata(metadataXml, options: any = {}) {
   return new Promise((resolve) => {
     const { entityId, ssoBinding, sloBinding } = options;
 
     const doc = libxmljs.parseXml(metadataXml);
     const entityDescriptor = getEntityDescriptor(doc, entityId);
-    const idpNameIdFormat = getIdpNameIdFormat(entityDescriptor);
     const singleSignOnServiceUrl = getSingleSignonServiceUrl(
       entityDescriptor,
       ssoBinding,
@@ -18,33 +16,19 @@ export async function parseSamlMetadata(metadataXml, options: any = {}) {
       entityDescriptor,
       sloBinding,
     );
-    const attributeNames = getAttributeNames(entityDescriptor);
     const certificates = getCertificates(entityDescriptor);
-    const certificateMetadata = getCertificateMetadata(certificates);
 
     const metadata = {
-      // idpEntityId: entityDescriptor.getAttribute('entityID').value(),
-      // nameIdentifierFormat: idpNameIdFormat,
-      // idpSsoTargetUrl: singleSignOnServiceUrl,
-      // idpSloTargetUrl: singleLogoutServiceUrl,
-      // idpAttributeNames: attributeNames,
-      // ...certificateMetadata,
-
       issuer: entityDescriptor.getAttribute('entityID').value(),
       entryPoint: singleSignOnServiceUrl,
-      // encryptionCert,
-      cert: certificates?.signing?.[0],
+      cert: certificates?.signing,
+      encryption: certificates?.encryption,
+      logoutUrl: singleLogoutServiceUrl,
     };
 
     resolve(metadata);
   });
 }
-
-// export function parseRemote(metadataUrl, options = {}) {
-//   return requestMetadata(metadataUrl).then((metadata) =>
-//     parse(metadata, options),
-//   );
-// }
 
 const NAMESPACE = {
   md: 'urn:oasis:names:tc:SAML:2.0:metadata',
@@ -52,10 +36,6 @@ const NAMESPACE = {
   saml: 'urn:oasis:names:tc:SAML:2.0:assertion',
   ds: 'http://www.w3.org/2000/09/xmldsig#',
 };
-
-// export function requestMetadata(uri) {
-//   return request({ uri });
-// }
 
 function getEntityDescriptorPath(entityId) {
   const path = '//md:EntityDescriptor';

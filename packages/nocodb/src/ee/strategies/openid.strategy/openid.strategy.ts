@@ -17,8 +17,6 @@ import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { sanitiseUserObj } from '~/utils';
 
-// multi-client support - https://stackoverflow.com/questions/43072392/how-to-dynamically-configure-passportjs-strategies
-
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(
   OpenIDConnectStrategy,

@@ -2,18 +2,15 @@ import {
   Controller,
   Get,
   HttpCode,
-  Injectable,
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/controllers/auth/auth.controller';
-import type { ExecutionContext } from '@nestjs/common';
 import type { AppConfig } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
@@ -23,34 +20,6 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
-@Injectable()
-export class JwtAuthGuard extends AuthGuard('saml') {
-  constructor() {
-    super({
-      samlFallback: 'logout-request',
-    });
-  }
-  canActivate(context: ExecutionContext) {
-    const request: any = context.switchToHttp().getRequest();
-
-    request.user = {
-      nameIDFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-      nameID: 'pranavcbalan@gmail.com',
-    };
-    // Add your custom authentication logic here
-    // for example, call super.logIn(request) to establish a session.
-    // return super.samlLogout()
-    return super.canActivate(context);
-  }
-
-  handleRequest(err, user) {
-    // You can throw an exception based on either "info" or "err" arguments
-    if (err || !user) {
-      throw err || new UnauthorizedException();
-    }
-    return user;
-  }
-}
 @Controller()
 export class AuthController extends AuthControllerCE {
   constructor(
@@ -207,21 +176,6 @@ export class AuthController extends AuthControllerCE {
     });
 
     const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
-
-    res.redirect(redirectUrl);
-  }
-
-  @Get('/auth/saml/logout-redirect')
-  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
-  async samlLogoutCallback(
-    @Req() req: Request & { extra: any },
-    @Res() res: Response,
-  ) {
-    const dashboardPath = this.config.get('dashboardPath', {
-      infer: true,
-    });
-
-    const redirectUrl = `${dashboardPath}`;
 
     res.redirect(redirectUrl);
   }

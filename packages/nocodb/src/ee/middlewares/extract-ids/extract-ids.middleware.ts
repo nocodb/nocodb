@@ -309,16 +309,19 @@ export class AclMiddleware implements NestInterceptor {
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
-    const _res = context.switchToHttp().getResponse();
+
+    // if user is not defined then run GlobalGuard
+    // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
+    // todo: later we can move guard part to this middleware or add where it's missing
     if (!req.user) {
       try {
         const guard = new GlobalGuard(this.jwtStrategy);
-        const a = await guard.canActivate(context);
-        console.log(a);
+        await guard.canActivate(context);
       } catch (e) {
         console.log(e);
       }
     }
+
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }

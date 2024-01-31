@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 import type {
@@ -10,20 +10,18 @@ import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { extractProps } from '~/helpers/extractProps';
-import { parseSamlMetadata } from '~/utils/saml'
+import { parseSamlMetadata } from '~/utils/saml';
 
 @Injectable()
 export class SSOClientService {
+  private logger = new Logger(SSOClientService.name);
   constructor() {}
 
   async clientAdd(param: { client: SSOClientType; req: any }) {
-    // check if user is admin
-
     // limit to 1 client for now
     if (
       (
         await SSOClient.list({
-          // fk_user_id: param.req.user.id,
           type: param.client.type,
         })
       ).length > 0
@@ -51,9 +49,7 @@ export class SSOClientService {
     // add client
     const client = await SSOClient.insert({
       ...param.client,
-      // TODO: userId is undefined
-      // fk_user_id: param.req.user.id,
-      fk_user_id: 'usuejdyjt1xc15m6',
+      fk_user_id: param.req.user.id,
     });
 
     return client;
@@ -83,8 +79,6 @@ export class SSOClientService {
   }
 
   async clientDelete(param: { clientId: string; req: any }) {
-    // check if user is admin
-
     // delete client
     const client = await SSOClient.delete(param.clientId);
 
@@ -92,12 +86,8 @@ export class SSOClientService {
   }
 
   async clientList(_param: { req: any }) {
-    // check if user is admin
-
     // list clients
-    const clients = await SSOClient.list({
-      // fk_user_id: param.req.user.id,
-    });
+    const clients = await SSOClient.list({});
 
     return clients;
   }
@@ -105,6 +95,7 @@ export class SSOClientService {
   async readSamlMetadata(param: { metadataUrl: string }) {
     try {
       const response = await axios(param.metadataUrl, {
+        // todo: enable later when we are going to support it in cloud
         // httpAgent: useAgent(param.metadataUrl, {
         //   stopPortScanningByUrlRedirection: true,
         // }),
@@ -154,10 +145,17 @@ export class SSOClientService {
           }
 
           if ((extractedConfig as SAMLClientConfigType).xml) {
-            Object.assign(
-              extractedConfig,
-              await parseSamlMetadata((extractedConfig as SAMLClientConfigType).xml),
-            );
+            try {
+              Object.assign(
+                extractedConfig,
+                await parseSamlMetadata(
+                  (extractedConfig as SAMLClientConfigType).xml,
+                ),
+              );
+            } catch (e) {
+              logger.error(e);
+              NcError.badRequest('Invalid metadata xml - parsing failed');
+            }
           }
 
           validatePayload('swagger.json#/components/schemas/SAMLClientConfig', {

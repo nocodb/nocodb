@@ -107,7 +107,6 @@ const saveSamlProvider = async () => {
       config: {
         metaDataUrl: form.metaDataUrl,
         xml: form.xml,
-        redirectUrl: '',
         ssoOnly: form.ssoOnly,
       },
     })
@@ -122,7 +121,6 @@ const saveSamlProvider = async () => {
     config: {
       metaDataUrl: form.metaDataUrl,
       xml: form.xml,
-      redirectUrl: '',
       ssoOnly: form.ssoOnly,
     },
   })

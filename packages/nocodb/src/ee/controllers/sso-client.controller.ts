@@ -14,10 +14,6 @@ import { SSOClientService } from '~/services/sso-client.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
-// todo:
-// 1. add acl
-// 2. add pagination if required
-
 @Controller()
 export class SsoClientController {
   constructor(private readonly ssoClientService: SSOClientService) {}

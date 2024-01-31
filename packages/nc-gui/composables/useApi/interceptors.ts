@@ -16,6 +16,7 @@ export function addAxiosInterceptors(api: Api<any>) {
   axiosInstance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
+    // Add auth header only if signed in and if `xc-short-token` header is not present (for short-lived tokens used for token generation)
     if (state.token.value && !config.headers['xc-short-token']) config.headers['xc-auth'] = state.token.value
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles') && state.previewAs?.value) {

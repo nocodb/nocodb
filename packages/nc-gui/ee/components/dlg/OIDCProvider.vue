@@ -162,8 +162,6 @@ const saveOIDCProvider = async () => {
         tokenUrl: form.tokenUrl,
         userInfoUrl: form.userInfoUrl,
         jwkUrl: form.jwkUrl,
-        // Redirect URL is not editable fetch from props
-        redirectUrl: '',
         scopes: form.scopes,
         userNameAttribute: form.userNameAttribute,
         ssoOnly: form.ssoOnly,
@@ -184,8 +182,6 @@ const saveOIDCProvider = async () => {
       tokenUrl: form.tokenUrl,
       userInfoUrl: form.userInfoUrl,
       jwkUrl: form.jwkUrl,
-      // Redirect URL is not editable fetch from props
-      redirectUrl: '',
       scopes: form.scopes,
       userNameAttribute: form.userNameAttribute,
       ssoOnly: form.ssoOnly,

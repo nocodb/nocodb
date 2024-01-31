@@ -18,12 +18,10 @@ import type { AppConfig } from '~/interface/config';
 
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { randomTokenString, setTokenCookie } from '~/services/users/helpers';
 
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { User } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 
@@ -246,25 +244,6 @@ export class AuthController {
   }
 
   async setRefreshToken({ res, req }) {
-    const userId = req.user?.id;
-
-    if (!userId) return;
-
-    const user = await User.get(userId);
-
-    if (!user) return;
-
-    const refreshToken = randomTokenString();
-
-    if (!user['token_version']) {
-      user['token_version'] = randomTokenString();
-    }
-
-    await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
-      token_version: user['token_version'],
-    });
-    setTokenCookie(res, refreshToken);
+    await this.usersService.setRefreshToken({ res, req });
   }
 }

@@ -18,8 +18,6 @@ export class SSOAuthController {
   @Get('/sso/:clientId/')
   @UseGuards(PublicApiLimiterGuard)
   async ssoLogin(@Req() req: Request & { extra: any }, @Res() res: Response) {
-    // todo: move to service and reuse
-    // await this.setRefreshToken({ req, res });
     res.json({
       ...(await this.usersService.login(
         {

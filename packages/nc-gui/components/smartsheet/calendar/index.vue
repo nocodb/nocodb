@@ -238,7 +238,7 @@ const headerText = computed(() => {
           @expand-record="expandRecord"
           @new-record="newRecord"
         />
-        <LazySmartsheetCalendarWeekViewDateField
+        <LazySmartsheetCalendarWeekViewDateTimeField
           v-else-if="activeCalendarView === 'week' && calDataType === UITypes.DateTime"
           @expand-record="expandRecord"
           @new-record="newRecord"

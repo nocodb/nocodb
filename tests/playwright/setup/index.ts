@@ -410,9 +410,9 @@ const setup = async ({
     // ignore error: some roles will not have permission for license reset
     // console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
-
   await page.addInitScript(
     async ({ token }) => {
+      if (location.search?.match(/code=|short-token=/)) return;
       try {
         let initialLocalStorage = {};
         try {
@@ -420,6 +420,9 @@ const setup = async ({
         } catch (e) {
           console.error('Failed to parse local storage', e);
         }
+
+        if (initialLocalStorage?.token) return;
+
         window.localStorage.setItem(
           'nocodb-gui-v2',
           JSON.stringify({

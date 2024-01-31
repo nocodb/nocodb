@@ -38,11 +38,7 @@ export class SSOAuthController {
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
-    const dashboardPath = this.config.get('dashboardPath', {
-      infer: true,
-    });
-
-    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
+    const redirectUrl = `${req.dashboardUrl}?short-token=${req.user['token']}`;
 
     res.redirect(redirectUrl);
   }
@@ -52,11 +48,7 @@ export class SSOAuthController {
     @Req() req: Request & { extra: any },
     @Res() res: Response,
   ) {
-    const dashboardPath = this.config.get('dashboardPath', {
-      infer: true,
-    });
-
-    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
+    const redirectUrl = `${req.dashboardUrl}?short-token=${req.user['token']}`;
 
     res.redirect(redirectUrl);
   }

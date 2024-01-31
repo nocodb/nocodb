@@ -10,5 +10,6 @@ declare module 'express-serve-static-core' {
     };
     ncSiteUrl: string;
     clientIp: string;
+    dashboardUrl: string;
   }
 }

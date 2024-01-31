@@ -63,6 +63,13 @@ jobs:
         run: |
           npm install
           npm run dev &
+      - name: install dependencies of sso idp
+        working-directory: ./scripts/ee/playwright
+        run: |
+          cd ./openid-provider
+          npm install
+          cd ../saml-provider
+          npm install
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: pnpm run ci:run:ee

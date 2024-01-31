@@ -33,14 +33,10 @@ export class OpenIDLoginPage extends BasePage {
     const authorize = this.get();
 
     await Promise.all([
-      this.rootPage.waitForNavigation({ url: /localhost:8080/ }),
+      this.rootPage.waitForNavigation({ url: /localhost:3000/ }),
       authorize.locator(`[type="submit"]`).click(),
     ]);
 
-    await this.rootPage.goto(`http://localhost:3000?` + this.rootPage.url().split('?')[1]);
-
-    await this.projectsPage.waitToBeRendered();
-
-    console.log('111');
+    await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]:has-text("${email.split('@')[0]}")`);
   }
 }

@@ -81,7 +81,5 @@ test.describe('SSO SAML Auth Flow', () => {
     await samlLoginPage.signIn({
       email: 'test@nocodb.com',
     });
-
-    console.log('abc');
   });
 });

@@ -37,7 +37,7 @@ const stopSAMLIpd = async () => {
   childProcess.kill();
 };
 
-test.describe.only('SSO SAML Auth Flow', () => {
+test.describe('SSO SAML Auth Flow', () => {
   let accountsPage: AccountPage;
   let openidLoginPage: OpenIDLoginPage;
   let context: any;
@@ -91,7 +91,5 @@ test.describe.only('SSO SAML Auth Flow', () => {
     await openidLoginPage.signIn({
       email: 'test@nocodb.com',
     });
-
-    console.log('abc');
   });
 });

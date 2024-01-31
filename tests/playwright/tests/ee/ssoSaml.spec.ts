@@ -39,9 +39,9 @@ test.describe('SSO SAML', () => {
     await accountsPage.authentication.deleteProvider('saml', 'test');
 
     // Verify SAML provider count
-
-    const samlProviderCount2 = await accountsPage.authentication.getSAMLProviderCount();
-    assert.equal(samlProviderCount2, 0, 'SAML provider count is not 0');
+    await accountsPage.authentication.verifySAMLProviderCount({
+      count: 0,
+    });
   });
 
   test('OIDC Provider', async () => {

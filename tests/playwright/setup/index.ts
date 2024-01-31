@@ -210,7 +210,7 @@ async function localInit({
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
 
     // delete sso-clients
-    if (isEE() && api['ssoClient']) {
+    if (isEE() && api['ssoClient'] && isSuperUser) {
       const clients = await api.ssoClient.list();
       for (const client of clients.list) {
         try {

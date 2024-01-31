@@ -43,7 +43,7 @@ test.describe('SSO SAML Auth Flow', () => {
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
 
     accountsPage = new AccountPage(page);
     await accountsPage.authentication.goto();

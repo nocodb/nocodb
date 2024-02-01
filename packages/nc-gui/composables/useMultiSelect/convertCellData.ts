@@ -246,6 +246,17 @@ export default function convertCellData(
 
       return parsedVal || value
     }
+    case UITypes.LinkToAnotherRecord: {
+      const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+      if (!(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal))) {
+        throw new Error('Invalid LTAR data')
+      }
+
+      if (isMultiple) {
+        return undefined
+      }
+      return parsedVal
+    }
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:

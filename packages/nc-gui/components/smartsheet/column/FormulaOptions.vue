@@ -5,7 +5,7 @@ import jsep from 'jsep'
 import {
   FormulaError,
   UITypes,
-  isCreatedOrLastModifiedByCol,
+  isHiddenCol,
   jsepCurlyHook,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
@@ -58,7 +58,7 @@ const supportedColumns = computed(
         return false
       }
 
-      if (isCreatedOrLastModifiedByCol(col) && col.system) {
+      if (isHiddenCol(col)) {
         return false
       }
 

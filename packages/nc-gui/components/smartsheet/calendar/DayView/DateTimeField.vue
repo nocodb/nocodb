@@ -253,9 +253,6 @@ const onDrag = (event: MouseEvent) => {
     newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
   }
 
-  console.log('newStartDate', newStartDate.format('YYYY-MM-DD HH:mm:ssZ'))
-  console.log('endDate', endDate?.format('YYYY-MM-DD HH:mm:ssZ'))
-
   formattedData.value = formattedData.value.map((r) => {
     const pk = extractPkFromRow(r.row, meta.value!.columns!)
 

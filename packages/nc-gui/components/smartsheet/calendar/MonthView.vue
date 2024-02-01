@@ -341,7 +341,7 @@ const onDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
   }
 
   formattedData.value = formattedData.value.map((r) => {
@@ -378,7 +378,7 @@ const onResize = (event: MouseEvent) => {
   if (resizeDirection.value === 'right') {
     let newEndDate = dates.value[week] ? dayjs(dates.value[week][day]).endOf('day') : null
 
-    const updateProperty = [toCol.title]
+    const updateProperty = [toCol!.title!]
 
     if (dayjs(newEndDate).isBefore(ogStartDate)) {
       newEndDate = dayjs(ogStartDate).clone().endOf('day')
@@ -390,14 +390,14 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title]: dayjs(newEndDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [toCol!.title!]: dayjs(newEndDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
     formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value.columns)
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
         return newRow
       }
       return r
@@ -405,7 +405,7 @@ const onResize = (event: MouseEvent) => {
     useDebouncedRowUpdate(newRow, updateProperty, false)
   } else if (resizeDirection.value === 'left') {
     let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
-    const updateProperty = [fromCol.title]
+    const updateProperty = [fromCol!.title!]
 
     if (dayjs(newStartDate).isAfter(ogEndDate)) {
       newStartDate = dayjs(ogEndDate).clone()
@@ -416,14 +416,14 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
     formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value.columns)
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
         return newRow
       }
       return r
@@ -482,15 +482,15 @@ const stopDrag = (event: MouseEvent) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
-  const updateProperty = [fromCol.title]
+  const updateProperty = [fromCol!.title!]
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title] ? dayjs(dragRecord.value.row[fromCol.title]) : null
-    const toDate = dragRecord.value.row[toCol.title] ? dayjs(dragRecord.value.row[toCol.title]) : null
+    const fromDate = dragRecord.value.row[fromCol!.title!] ? dayjs(dragRecord.value.row[fromCol!.title!]) : null
+    const toDate = dragRecord.value.row[toCol!.title!] ? dayjs(dragRecord.value.row[toCol!.title!]) : null
 
     if (fromDate && toDate) {
       endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
@@ -503,9 +503,9 @@ const stopDrag = (event: MouseEvent) => {
     }
 
     dragRecord.value = null
-    newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol!.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
 
-    updateProperty.push(toCol.title)
+    updateProperty.push(toCol!.title!)
   }
 
   if (!newRow) return

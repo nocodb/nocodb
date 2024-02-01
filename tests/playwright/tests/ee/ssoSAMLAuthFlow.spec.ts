@@ -19,14 +19,20 @@ const startSAMLIdp = async (env = {}) => {
       });
 
       childProcess.stdout.on('data', function (data) {
-        console.log('stdout: ' + data.toString());
-        if (data.toString().includes('IdP server ready at')) resolve();
+        const log = data.toString();
+        console.log(log);
+        if (log.includes('IdP server ready at')) resolve();
       });
 
       childProcess.stdout.on('error', function (data) {
-        console.log('stdout: ' + data.toString());
+        console.log('error: ' + data.toString());
         reject(data);
       });
+
+      // set a timeout to reject promise if not resolved
+      setTimeout(() => {
+        reject('timeout');
+      }, 10000);
     } catch (e) {
       console.log(e);
     }
@@ -34,7 +40,9 @@ const startSAMLIdp = async (env = {}) => {
 };
 
 const stopSAMLIpd = async () => {
-  childProcess.kill();
+  childProcess.stdout.destroy();
+  childProcess.stderr.destroy();
+  childProcess.kill('SIGINT');
 };
 
 test.describe('SSO SAML Auth Flow', () => {

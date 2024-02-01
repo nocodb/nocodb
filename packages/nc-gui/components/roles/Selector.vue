@@ -41,7 +41,7 @@ function onChangeRole(val: SelectValue) {
       v-model:value="roleRef"
       :open="isDropdownOpen"
       :dropdown-match-select-width="false"
-      dropdown-class-name="!rounded-lg !h-fit max-w-64 nc-role-selector-dropdown"
+      dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-role-selector-dropdown"
       class="py-1 !absolute top-0 left-0 w-full h-full z-10 text-xs opacity-0"
       @change="onChangeRole"
     >
@@ -57,7 +57,7 @@ function onChangeRole(val: SelectValue) {
             <RolesBadge :class="`nc-role-select-${rl}`" :role="rl" :inherit="inheritRef === rl" :border="false" />
             <GeneralIcon v-if="rl === roleRef" icon="check" class="text-primary" />
           </div>
-          <div v-if="descriptionRef" class="text-gray-500">{{ RoleDescriptions[rl] }}</div>
+          <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
         </div>
       </a-select-option>
     </a-select>

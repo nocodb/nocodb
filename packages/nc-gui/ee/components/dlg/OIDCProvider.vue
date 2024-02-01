@@ -66,6 +66,21 @@ const form = reactive<{
   ssoOnly: props.oidc?.config?.ssoOnly ?? false,
 })
 
+const isButtonDisabled = computed(() => {
+  return (
+    !form.title ||
+    !form.issuer ||
+    !form.clientId ||
+    !form.clientSecret ||
+    !form.authUrl ||
+    !form.tokenUrl ||
+    !form.userInfoUrl ||
+    !form.jwkUrl ||
+    !form.userNameAttribute ||
+    !form.scopes.length
+  )
+})
+
 const formRules = {
   title: [
     // Title is required
@@ -334,7 +349,13 @@ const saveOIDCProvider = async () => {
       <NcButton data-test-id="nc-oidc-cancel-btn" size="medium" type="secondary" @click="dialogShow = false">
         {{ $t('labels.cancel') }}
       </NcButton>
-      <NcButton data-test-id="nc-oidc-save-btn" size="medium" type="primary" @click="saveOIDCProvider">
+      <NcButton
+        :disabled="isButtonDisabled"
+        data-test-id="nc-oidc-save-btn"
+        size="medium"
+        type="primary"
+        @click="saveOIDCProvider"
+      >
         {{ $t('labels.save') }}
       </NcButton>
     </div>

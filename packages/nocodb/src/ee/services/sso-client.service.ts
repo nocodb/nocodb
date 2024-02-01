@@ -153,7 +153,7 @@ export class SSOClientService {
                 ),
               );
             } catch (e) {
-              logger.error(e);
+              this.logger.error(e);
               NcError.badRequest('Invalid metadata xml - parsing failed');
             }
           }

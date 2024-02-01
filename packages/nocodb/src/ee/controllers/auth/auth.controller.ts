@@ -155,7 +155,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
   async samlLogin() {}
   @Get('/auth/saml/logout')
-  @UseGuards(PublicApiLimiterGuard, JwtAuthGuard)
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
   async samlLogout(@Req() req: Request & { extra: any }, @Res() res: Response) {
     (req as any).logout(req, function (err, request) {
       if (!err) {

@@ -80,6 +80,11 @@ const copyEntityId = async (entityId: string) => {
   isCopied.value.entityId = true
 }
 
+const isButtonDisabled = computed(() => {
+  if (form.metaDataUrl) return !isURL(form.metaDataUrl, { require_tld: false })
+  return !form.xml
+})
+
 watch(isCopied.value, (v) => {
   if (v.redirectUrl) {
     setTimeout(() => {
@@ -238,7 +243,13 @@ const saveSamlProvider = async () => {
             <NcButton size="medium" type="secondary" @click="dialogShow = false">
               {{ $t('labels.cancel') }}
             </NcButton>
-            <NcButton data-test-id="nc-saml-submit" size="medium" type="primary" @click="saveSamlProvider">
+            <NcButton
+              :disabled="isButtonDisabled"
+              data-test-id="nc-saml-submit"
+              size="medium"
+              type="primary"
+              @click="saveSamlProvider"
+            >
               {{ $t('labels.save') }}
             </NcButton>
           </div>

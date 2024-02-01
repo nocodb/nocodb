@@ -290,7 +290,7 @@ onMounted(async () => {
           >
             <div :class="`nc-oidc-${oid.title}-enable`">
               <span @click.stop>
-                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @click.stop @change="updateProviderStatus(oid)" />
+                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" @click.stop />
               </span>
               <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-oidc-title">
                 {{ oid?.title }}

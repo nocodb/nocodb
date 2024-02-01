@@ -130,6 +130,7 @@ const recordsAcrossAllRange = computed<{
     sortedFormattedData.forEach((record: Row) => {
       if (!toCol && fromCol) {
         const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+        if (!startDate) return
         const dateKey = startDate?.format('YYYY-MM-DD')
         const hourKey = startDate?.format('HH:mm')
 
@@ -152,7 +153,7 @@ const recordsAcrossAllRange = computed<{
         const dayIndex = dayjs(dateKey).day() - 1
         const hourIndex = datesHours.value[dayIndex].findIndex((h) => h.format('HH:mm') === hourKey)
 
-        const style = {
+        const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           top: `${hourIndex * perHeight}px`,
         }
@@ -187,6 +188,7 @@ const recordsAcrossAllRange = computed<{
         let endDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
 
         if (!startDate?.isValid() || !endDate?.isValid()) return
+
         if (startDate.isBefore(scheduleStart, 'minutes')) {
           startDate = scheduleStart
         }
@@ -198,14 +200,8 @@ const recordsAcrossAllRange = computed<{
 
         while (currentStartDate.isSameOrBefore(endDate!, 'day')) {
           const currentEndDate = currentStartDate.clone().endOf('day')
-          const recordStart = currentEndDate.isSame(startDate, 'day') ? startDate : currentStartDate
+          const recordStart: dayjs.Dayjs = currentEndDate.isSame(startDate, 'day') ? startDate : currentStartDate
           const recordEnd = currentEndDate.isSame(endDate, 'day') ? endDate : currentEndDate
-
-          console.log(
-            record.row[displayField.value.title],
-            recordStart.format('YYYY-MM-DD HH:mm'),
-            recordEnd.format('YYYY-MM-DD HH:mm'),
-          )
 
           const dateKey = recordStart.format('YYYY-MM-DD')
 
@@ -228,36 +224,53 @@ const recordsAcrossAllRange = computed<{
             hour = hour.add(1, 'hour')
           }
 
-          const dayIndex = dayjs(dateKey).day()
-          console.log('dayIndex', record.row[displayField.value.title], dayIndex)
+          let dayIndex = recordStart.day()
+
+          if (dayIndex === -1) {
+            dayIndex = 7
+          }
 
           let maxRecordCount = 0
 
-          for (let i = 0; i < (datesHours.value[dayIndex] ?? []).length; i++) {
-            const hourKey = datesHours.value[dayIndex][i].format('HH:mm')
+          for (let i = 0; i < (datesHours.value[dayIndex - 1] ?? []).length; i++) {
+            const hourKey = datesHours.value[dayIndex - 1][i].format('HH:mm')
             if (recordsInDayHour[dateKey]?.[hourKey]?.count > maxRecordCount) {
               maxRecordCount = recordsInDayHour[dateKey][hourKey].count
             }
           }
 
           const startHourIndex = Math.max(
-            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordStart.format('HH:mm')),
+            (datesHours.value[dayIndex - 1] ?? []).findIndex((h) => h.format('HH:mm') === recordStart.format('HH:mm')),
             0,
           )
 
           const endHourIndex = Math.max(
-            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm')),
+            (datesHours.value[dayIndex - 1] ?? []).findIndex(
+              (h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm'),
+            ),
             0,
+          )
+
+          console.log(
+            record.row[displayField.value.title],
+            recordEnd?.startOf('hour').format('HH:mm'),
+            (datesHours.value[dayIndex - 1] ?? []).findIndex(
+              (h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm'),
+            ),
           )
 
           const spanHours = endHourIndex - startHourIndex + 1
 
-          console.log(record.row[displayField.value.title], dayIndex)
+          const left = (dayIndex - 1) * perWidth
+
+          const top = startHourIndex * perRecordHeight
+
+          const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
 
           const style: Partial<CSSStyleDeclaration> = {
-            left: `${(dayIndex - 1) * perWidth}px`,
-            top: `${startHourIndex * perHeight}px`,
-            height: `${(endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5}px`,
+            left: `${left}px`,
+            top: `${top}px`,
+            height: `${height}px`,
           }
 
           recordsToDisplay.push({
@@ -592,10 +605,7 @@ const dropEvent = (event: DragEvent) => {
             {{ hour.format('h A') }}
           </span>
           <div
-            v-if="
-              recordsAcrossAllRange.count?.[dayjs(hour).format('YYYY-MM-DD')]?.[dayjs(hour).format('HH:mm')]?.overflow &&
-              !draggingId
-            "
+            v-if="recordsAcrossAllRange.count?.[dayjs(hour).format('YYYY-MM-DD')]?.[dayjs(hour).format('HH:mm')]?.overflow"
             class="text-xs absolute bottom-2 text-center inset-x-0 !z-[90] text-gray-500"
           >
             +

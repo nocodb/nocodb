@@ -122,6 +122,7 @@ const recordsAcrossAllRange = computed(() => {
           rowMeta: {
             ...record.rowMeta,
             id,
+            position: 'rounded',
             style,
             range,
             dayIndex,
@@ -166,6 +167,23 @@ const recordsAcrossAllRange = computed(() => {
             0,
           )
 
+          let position: 'topRounded' | 'bottomRounded' | 'rounded' | 'none' = 'rounded'
+          const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(currentStartDate, 'day')
+          const isBeforeSelectedDay = (date: dayjs.Dayjs) => date.isBefore(currentStartDate, 'day')
+          const isAfterSelectedDay = (date: dayjs.Dayjs) => date.isAfter(currentStartDate, 'day')
+
+          if (isSelectedDay(startDate) && isSelectedDay(endDate)) {
+            position = 'rounded'
+          } else if (isBeforeSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
+            position = 'none'
+          } else if (isSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
+            position = 'topRounded'
+          } else if (isBeforeSelectedDay(startDate) && isSelectedDay(endDate)) {
+            position = 'bottomRounded'
+          } else {
+            position = 'none'
+          }
+
           let _startHourIndex = startHourIndex
 
           while (_startHourIndex <= endHourIndex) {
@@ -198,6 +216,7 @@ const recordsAcrossAllRange = computed(() => {
               id,
               style,
               range,
+              position,
               dayIndex,
             },
           })
@@ -210,16 +229,16 @@ const recordsAcrossAllRange = computed(() => {
     recordsToDisplay = recordsToDisplay.map((record) => {
       let maxOverlaps = 1
       let overlapIndex = 0
-      for (const days in overlaps) {
-        for (const hours in overlaps[days]) {
-          if (overlaps[days][hours].includes(record.rowMeta.id!)) {
-            maxOverlaps = Math.max(maxOverlaps, overlaps[days][hours].length)
-            overlapIndex = Math.max(overlapIndex, overlaps[days][hours].indexOf(record.rowMeta.id!))
-          }
+      const dayIndex = record.rowMeta.dayIndex
+
+      const dateKey = dayjs(selectedDateRange.value.start).add(dayIndex, 'day').format('YYYY-MM-DD')
+
+      for (const hours in overlaps[dateKey]) {
+        if (overlaps[dateKey][hours].includes(record.rowMeta.id!)) {
+          maxOverlaps = Math.max(maxOverlaps, overlaps[dateKey][hours].length)
+          overlapIndex = Math.max(overlapIndex, overlaps[dateKey][hours].indexOf(record.rowMeta.id!))
         }
       }
-
-      const dayIndex = record.rowMeta.dayIndex
       const spacing = 1
       const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps / 7
       const leftPerRecord = widthPerRecord * overlapIndex

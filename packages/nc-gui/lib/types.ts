@@ -70,7 +70,8 @@ interface Row {
       fk_to_col: ColumnType | null
     }
     id?: string
-    position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none' | string
+    position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none' | 'topRounded' | 'bottomRounded' | string
+    dayIndex?: number
   }
 }
 

@@ -43,8 +43,8 @@ const emit = defineEmits(['resize-start'])
   </div>
   <div
     :class="{
-      'rounded-t-lg mt-3': position === 'topRounded',
-      'rounded-b-lg mb-3': position === 'bottomRounded',
+      'rounded-t-lg': position === 'topRounded',
+      'rounded-b-lg': position === 'bottomRounded',
       'rounded-lg': position === 'rounded',
       'rounded-none': position === 'none',
       'bg-maroon-50': color === 'maroon',
@@ -72,13 +72,13 @@ const emit = defineEmits(['resize-start'])
       ></div>
     </div>
 
-    <div v-if="position === 'topRounded' || position === 'none'" class="absolute inset-x-0 mx-0">....</div>
+    <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
     <div class="ml-3 mt-2 pr-3 text-ellipsis overflow-hidden w-full h-6 absolute">
       <span class="text-sm text-gray-800">{{ name }}</span>
       <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>
     </div>
-    <div v-if="position === 'bottomRounded' || position === 'none'" class="absolute inset-x-0 mx-0">....</div>
+    <div v-if="position === 'topRounded' || position === 'none'" class="h-full pb-7 flex items-end ml-3">....</div>
   </div>
   <div
     v-if="(position === 'bottomRounded' || position === 'rounded') && resize"

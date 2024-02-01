@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import type { Row } from '~/lib'
 import { ref } from '#imports'
 
-const emits = defineEmits(['expand-record'])
+const emits = defineEmits(['expandRecord'])
 
 const { selectedDateRange, formattedData, formattedSideBarData, calendarRange, selectedDate, displayField, updateRowProperty } =
   useCalendarViewStoreOrThrow()
@@ -203,7 +203,7 @@ const draggingId = ref<string | null>(null)
 
 const resizeInProgress = ref(false)
 
-const dragTimeout = ref<string | number | null | NodeJS.Timeout>(null)
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const isDragging = ref(false)
 const dragRecord = ref<Row>()
@@ -484,7 +484,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
     clearTimeout(dragTimeout.value!)
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
-      emits('expand-record', record)
+      emits('expandRecord', record)
     }
   }
 

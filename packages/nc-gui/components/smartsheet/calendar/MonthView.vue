@@ -47,7 +47,7 @@ const resizeInProgress = ref(false)
 const isDragging = ref(false)
 const dragRecord = ref<Row>()
 
-const dragTimeout = ref(null)
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const focusedDate = ref<Date | null>(null)
 
@@ -85,18 +85,7 @@ function getRandomNumbers() {
   return randomValues.join('')
 }
 
-const recordsToDisplay = computed<{
-  records: Array<Row>
-  count: {
-    [key: string]:
-      | {
-          overflow: boolean
-          count: number
-          overflowCount: number
-        }
-      | undefined
-  }
-}>(() => {
+const recordsToDisplay = computed(() => {
   if (!dates.value || !calendarRange.value) return []
 
   const perWidth = gridContainerWidth.value / 7
@@ -121,11 +110,11 @@ const recordsToDisplay = computed<{
     const endCol = range.fk_to_col
 
     const sortedFormattedData = [...formattedData.value].filter((record) => {
-      const fromDate = record.row[startCol?.title] ? dayjs(record.row[startCol.title]) : null
+      const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
 
       if (startCol && endCol) {
-        const fromDate = record.row[startCol.title] ? dayjs(record.row[startCol.title]) : null
-        const toDate = record.row[endCol.title] ? dayjs(record.row[endCol.title]) : null
+        const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
+        const toDate = record.row[endCol!.title!] ? dayjs(record.row[endCol!.title!]) : null
         return fromDate && toDate && !toDate.isBefore(fromDate)
       } else if (startCol && !endCol) {
         return !!fromDate
@@ -135,7 +124,7 @@ const recordsToDisplay = computed<{
 
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
-        const startDate = dayjs(record.row[startCol.title])
+        const startDate = dayjs(record.row[startCol!.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
         if (!recordsInDay[dateKey]) {
@@ -179,8 +168,8 @@ const recordsToDisplay = computed<{
           },
         })
       } else if (startCol && endCol) {
-        const startDate = dayjs(record.row[startCol.title])
-        const endDate = dayjs(record.row[endCol.title])
+        const startDate = dayjs(record.row[startCol!.title!])
+        const endDate = dayjs(record.row[endCol!.title!])
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? getRandomNumbers()
@@ -292,20 +281,23 @@ const recordsToDisplay = computed<{
       }
     })
   })
-  return {
+
+  const result: { records: Row[]; count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } } } = {
     records: recordsToDisplay,
     count: recordsInDay,
   }
+  return result
 })
 
 const onDrag = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit') || !dragRecord.value) return
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
   const percentX = (event.clientX - left - window.scrollX) / width
 
-  const fromCol = dragRecord.value!.rowMeta.range?.fk_from_col
-  const toCol = dragRecord.value!.rowMeta.range?.fk_to_col
+  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
+  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
@@ -359,15 +351,15 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!isUIAllowed('dataEdit') || !resizeRecord.value) return
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
   const percentX = (event.clientX - left - window.scrollX) / width
 
-  const ogEndDate = resizeRecord.value.row[resizeRecord.value.rowMeta.range?.fk_to_col.title]
-  const ogStartDate = resizeRecord.value.row[resizeRecord.value.rowMeta.range?.fk_from_col.title]
+  const ogEndDate = resizeRecord.value.row[resizeRecord.value.rowMeta!.range!.fk_to_col!.title!]
+  const ogStartDate = resizeRecord.value.row[resizeRecord.value.rowMeta!.range!.fk_from_col!.title!]
 
   const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
@@ -435,8 +427,8 @@ const onResize = (event: MouseEvent) => {
 
 const onResizeEnd = () => {
   resizeInProgress.value = false
-  resizeDirection.value = null
-  resizeRecord.value = null
+  resizeDirection.value = undefined
+  resizeRecord.value = undefined
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
 }
@@ -453,14 +445,14 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const stopDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!isUIAllowed('dataEdit') || !dragRecord.value) return
 
   event.preventDefault()
   clearTimeout(dragTimeout.value)
 
   if (!isDragging.value) return
 
-  dragElement.value.style.boxShadow = 'none'
+  dragElement.value!.style.boxShadow = 'none'
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
@@ -502,7 +494,7 @@ const stopDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    dragRecord.value = null
+    dragRecord.value = undefined
     newRow.row[toCol!.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
 
     updateProperty.push(toCol!.title!)
@@ -512,9 +504,9 @@ const stopDrag = (event: MouseEvent) => {
 
   if (dragElement.value) {
     formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value.columns)
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
         return newRow
       }
       return r
@@ -522,9 +514,9 @@ const stopDrag = (event: MouseEvent) => {
   } else {
     formattedData.value = [...formattedData.value, newRow]
     formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
-      const pk = extractPkFromRow(r.row, meta.value.columns)
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
 
-      return pk !== extractPkFromRow(newRow.row, meta.value.columns)
+      return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
     })
   }
 
@@ -550,8 +542,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (resizeInProgress.value) return
+  if (!isUIAllowed('dataEdit') || resizeInProgress.value || !record.rowMeta.id) return
   let target = event.target as HTMLElement
   isDragging.value = false
 
@@ -562,7 +553,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
-      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id)) {
+      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
         // el.style.visibility = 'hidden'
         el.style.opacity = '30%'
       }
@@ -583,7 +574,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
     clearTimeout(dragTimeout.value)
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
-      emit('expand-record', record)
+      emit('expandRecord', record)
     }
   }
 
@@ -757,7 +748,7 @@ onBeforeUnmount(() => {
                       () => {
                         const record = {
                           row: {
-                            [range.fk_from_col.title]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
+                            [range.fk_from_col!.title!]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
                           },
                         }
                         emit('new-record', record)
@@ -766,7 +757,7 @@ onBeforeUnmount(() => {
                   >
                     <div class="flex items-center gap-1">
                       <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
-                      <span class="ml-1">{{ range.fk_from_col.title }}</span>
+                      <span class="ml-1">{{ range.fk_from_col!.title }}</span>
                     </div>
                   </NcMenuItem>
                 </NcMenu>
@@ -784,7 +775,7 @@ onBeforeUnmount(() => {
                 () => {
                   const record = {
                     row: {
-                      [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
+                      [calendarRange[0].fk_from_col!.title!]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
                     },
                   }
                   emit('new-record', record)
@@ -833,7 +824,7 @@ onBeforeUnmount(() => {
                 ? dayjs(record.row[record.rowMeta.range?.fk_from_col.title]).format('YYYY-MM-DD HH:mm')
                 : dayjs(record.row[record.rowMeta.range?.fk_from_col.title]).format('YYYY-MM-DD')
             "
-            :name="record.row[displayField.title]"
+            :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"

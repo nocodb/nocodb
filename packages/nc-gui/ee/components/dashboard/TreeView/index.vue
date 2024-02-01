@@ -269,7 +269,7 @@ const onMove = async (
         >
           <template #item="{ element: base }">
             <div :key="base.id">
-              <ProjectWrapper :key="base.id" :base-role="base.project_role || stringifyRolesObj(workspaceRoles)" :base="base">
+              <ProjectWrapper :base-role="base.project_role || stringifyRolesObj(workspaceRoles)" :base="base">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>
@@ -291,9 +291,9 @@ const onMove = async (
 }
 .ghost,
 .ghost > * {
-  @apply !pointer-events-none;
+  @apply pointer-events-none;
 }
 .ghost {
-  @apply !bg-primary-selected;
+  @apply bg-primary-selected;
 }
 </style>

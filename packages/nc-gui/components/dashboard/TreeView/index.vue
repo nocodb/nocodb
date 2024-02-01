@@ -283,9 +283,9 @@ watch(
 <style scoped lang="scss">
 .ghost,
 .ghost > * {
-  @apply !pointer-events-none;
+  @apply pointer-events-none;
 }
 .ghost {
-  @apply !bg-primary-selected;
+  @apply bg-primary-selected;
 }
 </style>

@@ -16,6 +16,7 @@ const startSAMLIdp = async (env = {}) => {
           ...process.env,
           ...env,
         },
+        detached: true,
       });
 
       childProcess.stdout.on('data', function (data) {
@@ -40,9 +41,7 @@ const startSAMLIdp = async (env = {}) => {
 };
 
 const stopSAMLIpd = async () => {
-  childProcess.stdout.destroy();
-  childProcess.stderr.destroy();
-  childProcess.kill('SIGINT');
+  process.kill(-childProcess.pid);
 };
 
 test.describe('SSO SAML Auth Flow', () => {

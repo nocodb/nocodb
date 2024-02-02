@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import Draggable from 'vuedraggable'
 import type { TableType } from 'nocodb-sdk'
-
 import ProjectWrapper from './ProjectWrapper.vue'
 
 import {

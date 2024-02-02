@@ -196,10 +196,6 @@ export class BasesService {
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
 
-    const bases = await Base.list(param);
-
-    console.log('list', bases);
-
     const base = await Base.createProject(baseBody);
 
     // TODO: create n:m instances here

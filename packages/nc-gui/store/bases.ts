@@ -9,6 +9,8 @@ import type { NcProject, User } from '#imports'
 export const useBases = defineStore('basesStore', () => {
   const { $api } = useNuxtApp()
 
+  const { isUIAllowed } = useRoles()
+
   const bases = ref<Map<string, NcProject>>(new Map())
 
   const basesList = computed<NcProject[]>(() =>
@@ -150,6 +152,8 @@ export const useBases = defineStore('basesStore', () => {
         })
         return acc
       }, new Map())
+
+      await updateNullBaseOrder()
     } catch (e) {
       console.error(e)
       message.error(e.message)
@@ -298,6 +302,27 @@ export const useBases = defineStore('basesStore', () => {
     }
 
     await navigateTo(`/nc/${baseId}`)
+  }
+
+  async function updateNullBaseOrder() {
+    if (!isUIAllowed('baseMove')) return
+    
+    const basesArray = Array.from(bases.value.values())
+    const isOrderNullPresent = basesArray.some((base) => base.order === null)
+    if (isOrderNullPresent) {
+      const orderUpdateBasesList = basesArray.map((base, i) => {
+        bases.value.set(base.id!, { ...base, order: i + 1 })
+
+        return {
+          id: base.id,
+          order: i + 1,
+        }
+      })
+
+      for (const orderUpdateBase of orderUpdateBasesList) {
+        await api.base.update(orderUpdateBase.id!, { order: orderUpdateBase.order })
+      }
+    }
   }
 
   onMounted(() => {

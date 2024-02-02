@@ -445,12 +445,10 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const stopDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !dragRecord.value) return
+  if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
 
   event.preventDefault()
   clearTimeout(dragTimeout.value)
-
-  if (!isDragging.value) return
 
   dragElement.value!.style.boxShadow = 'none'
 
@@ -547,6 +545,8 @@ const dragStart = (event: MouseEvent, record: Row) => {
   isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
+    isDragging.value = true
+
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
     }
@@ -568,7 +568,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     document.addEventListener('mousemove', onDrag)
     document.addEventListener('mouseup', stopDrag)
-  }, 500)
+  }, 200)
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value)
@@ -685,14 +685,6 @@ const isDateSelected = (date: Date) => {
   if (!selectedDate.value) return false
   return dayjs(date).isSame(selectedDate.value, 'day')
 }
-
-onMounted(() => {
-  document.addEventListener('mouseup', stopDrag)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('mouseup', stopDrag)
-})
 </script>
 
 <template>

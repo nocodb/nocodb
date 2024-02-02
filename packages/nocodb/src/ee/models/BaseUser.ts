@@ -291,9 +291,9 @@ export default class BaseUser extends BaseUserCE {
             (a.order != null ? a.order : Infinity) -
             (b.order != null ? b.order : Infinity),
         )
-        .map((m) => {
-          m.meta = parseMetaProp(m);
-          return Base.castType(m);
+        .map((p) => {
+          p.meta = parseMetaProp(p);
+          return Base.castType(p);
         });
     } else {
       return [];

@@ -57,6 +57,7 @@ export default class Base extends BaseCE {
       });
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
+
     return baseList
       .filter(
         (p) =>
@@ -374,16 +375,21 @@ export default class Base extends BaseCE {
 
     const bases = await baseListQb;
 
-    // parse meta
-    for (const base of bases) {
-      base.meta = parseMetaProp(base);
+    if (bases && bases?.length) {
+      const promises = [];
+
+      const castedProjectList = bases.map((p) => {
+        p.meta = parseMetaProp(p);
+        promises.push(p.getSources(ncMeta));
+        return this.castType(p);
+      });
+
+      await Promise.all(promises);
+
+      return castedProjectList;
+    } else {
+      return [];
     }
-
-    const castedProjectList = bases.map((m) => this.castType(m));
-
-    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
-
-    return castedProjectList;
   };
 
   static async listByWorkspace(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
@@ -395,16 +401,21 @@ export default class Base extends BaseCE {
 
     const bases = await baseListQb;
 
-    // parse meta
-    for (const base of bases) {
-      base.meta = parseMetaProp(base);
+    if (bases && bases?.length) {
+      const promises = [];
+
+      const castedProjectList = bases.map((p) => {
+        p.meta = parseMetaProp(p);
+        promises.push(p.getSources(ncMeta));
+        return this.castType(p);
+      });
+
+      await Promise.all(promises);
+
+      return castedProjectList;
+    } else {
+      return [];
     }
-
-    const castedProjectList = bases.map((m) => this.castType(m));
-
-    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
-
-    return castedProjectList;
   }
 
   static async countByWorkspace(fk_workspace_id: string, ncMeta = Noco.ncMeta) {

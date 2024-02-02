@@ -354,6 +354,8 @@ export default class BaseUser {
     const baseList = await qb;
 
     if (baseList && baseList?.length) {
+      const promises = [];
+
       const castedProjectList = baseList
         .filter((p) => !params?.type || p.type === params.type)
         .sort(
@@ -361,14 +363,14 @@ export default class BaseUser {
             (a.order != null ? a.order : Infinity) -
             (b.order != null ? b.order : Infinity),
         )
-        .map((m) => {
-          m.meta = parseMetaProp(m);
-          return Base.castType(m);
+        .map((p) => {
+          promises.push(p.getSources(ncMeta));
+          p.meta = parseMetaProp(p);
+          return Base.castType(p);
         });
 
-      await Promise.all(
-        castedProjectList.map((base) => base.getSources(ncMeta)),
-      );
+      await Promise.all(promises);
+
       return castedProjectList;
     } else {
       return [];

@@ -618,7 +618,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
               :name="record.row![displayField!.title!]"
               :position="record.rowMeta!.position"
               :record="record"
-              :resize="true"
+              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               color="blue"
               size="auto"
               @resize-start="onResizeStart"

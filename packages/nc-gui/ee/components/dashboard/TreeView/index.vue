@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Draggable from 'vuedraggable'
 import { type TableType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 import {
@@ -32,7 +33,7 @@ const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
-const { createProject: _createProject } = basesStore
+const { createProject: _createProject, updateProject } = basesStore
 
 const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
@@ -192,6 +193,41 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
+
+const onMove = async (
+  _event: { moved: { newIndex: number; oldIndex: number; element: NcProject } },
+  currentBaseList: NcProject[],
+) => {
+  const {
+    moved: { newIndex = 0, oldIndex = 0, element },
+  } = _event
+
+  if (!element?.id) return
+
+  let nextOrder: number
+
+  // set new order value based on the new order of the items
+  if (currentBaseList.length - 1 === newIndex) {
+    // If moving to the end, set nextOrder greater than the maximum order in the list
+    nextOrder = Math.max(...currentBaseList.map((item) => item?.order ?? 0)) + 1
+  } else if (newIndex === 0) {
+    // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+    nextOrder = Math.min(...currentBaseList.map((item) => item?.order ?? 0)) / 2
+  } else {
+    nextOrder =
+      (parseFloat(String(currentBaseList[newIndex - 1]?.order ?? 0)) +
+        parseFloat(String(currentBaseList[newIndex + 1]?.order ?? 0))) /
+      2
+  }
+
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+  await updateProject(element.id, {
+    order: _nextOrder,
+  })
+
+  $e('a:base:reorder')
+}
 </script>
 
 <template>
@@ -201,28 +237,46 @@ useEventListener(document, 'contextmenu', handleContext, true)
         <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
           <div class="text-gray-500 font-medium">Starred</div>
         </div>
-        <ProjectWrapper
-          v-for="base of starredProjectList"
-          :key="base.id"
-          :base-role="base.project_role || base.workspace_role"
-          :base="base"
-        >
-          <DashboardTreeViewProjectNode />
-        </ProjectWrapper>
+        <div>
+          <Draggable
+            :model-value="starredProjectList"
+            :disabled="!isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+            item-key="starred-project"
+            handle=".base-title-node"
+            ghost-class="ghost"
+            @change="onMove($event, starredProjectList)"
+          >
+            <template #item="{ element: base }">
+              <div :key="base.id">
+                <ProjectWrapper :base-role="base.project_role || base.workspace_role" :base="base">
+                  <DashboardTreeViewProjectNode />
+                </ProjectWrapper>
+              </div>
+            </template>
+          </Draggable>
+        </div>
       </template>
       <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
         <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
       </div>
-      <template v-if="nonStarredProjectList?.length">
-        <ProjectWrapper
-          v-for="base of nonStarredProjectList"
-          :key="base.id"
-          :base-role="base.project_role || stringifyRolesObj(workspaceRoles)"
-          :base="base"
+      <div v-if="nonStarredProjectList?.length">
+        <Draggable
+          v-model="nonStarredProjectList"
+          :disabled="!isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
+          item-key="non-starred-project"
+          handle=".base-title-node"
+          ghost-class="ghost"
+          @change="onMove($event, nonStarredProjectList)"
         >
-          <DashboardTreeViewProjectNode />
-        </ProjectWrapper>
-      </template>
+          <template #item="{ element: base }">
+            <div :key="base.id">
+              <ProjectWrapper :base-role="base.project_role || stringifyRolesObj(workspaceRoles)" :base="base">
+                <DashboardTreeViewProjectNode />
+              </ProjectWrapper>
+            </div>
+          </template>
+        </Draggable>
+      </div>
 
       <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
     </div>
@@ -235,5 +289,12 @@ useEventListener(document, 'contextmenu', handleContext, true)
 <style scoped lang="scss">
 .nc-treeview-subheading {
   @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
+}
+.ghost,
+.ghost > * {
+  @apply pointer-events-none;
+}
+.ghost {
+  @apply bg-primary-selected;
 }
 </style>

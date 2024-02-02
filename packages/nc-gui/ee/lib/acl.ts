@@ -50,6 +50,7 @@ const rolePermissions = {
       tableRename: true,
       tableDelete: true,
       viewCreateOrEdit: true,
+      baseReorder: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

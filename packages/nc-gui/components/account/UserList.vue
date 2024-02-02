@@ -252,7 +252,7 @@ const openDeleteModal = (user: UserType) => {
                 {{ $t('labels.superAdmin') }}
               </div>
               <NcSelect
-                v-else
+                v-else-if="el.id !== loggedInUser?.id"
                 v-model:value="el.roles"
                 class="w-55 nc-user-roles"
                 :dropdown-match-select-width="false"
@@ -297,6 +297,9 @@ const openDeleteModal = (user: UserType) => {
                   </span>
                 </a-select-option>
               </NcSelect>
+              <div v-else class="font-weight-bold" data-rec="true">
+                {{ $t(`objects.roleType.orgLevelCreator`) }}
+              </div>
             </div>
             <span class="w-26 flex items-center justify-end mr-4">
               <div

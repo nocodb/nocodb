@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import passport from 'passport';
+import isEmail from 'validator/lib/isEmail';
 import type { NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import type { OpenIDClientConfigType } from 'nocodb-sdk';
@@ -68,20 +69,33 @@ export class SSOPassportMiddleware implements NestMiddleware {
   async getSAMLStrategy(client: SSOClient, req: Request) {
     const config: any = client.config;
 
+    // issuer and audience should be same and should be unique for each client
+    // by default in all clients audience is same as entityId by default
     return new SAMLStrategy(
       {
-        issuer: config.issuer,
+        issuer: config.issuer ?? req.ncSiteUrl + `/sso/${client.id}`,
         entryPoint: config.entryPoint,
         cert: config.cert,
         callbackUrl: req.ncSiteUrl + `/sso/${client.id}/redirect`,
-        audience: req.ncSiteUrl + `/sso/${client.id}`,
+        audience: config.audience ?? req.ncSiteUrl + `/sso/${client.id}`,
         passReqToCallback: true,
-        // logoutUrl: process.env.NC_SAML_ENTRY_POINT,
-        // logoutCallbackUrl:`/sso/${client.id}/logout-redirect`',
+        // disable signature verification for response since enabling this will
+        // disable assertion signing in some providers
+        // it's(response signing) disabled by default in most of the providers ( Azure AD and Auth0 )
+        wantAuthnResponseSigned: false,
       },
       async (req, profile, callback) => {
         try {
           const email = profile.nameID;
+
+          if (!isEmail(email)) {
+            callback(
+              new Error(
+                'NameID is not a valid email address and cannot be used as a user identifier. Please contact your administrator.',
+              ),
+            );
+          }
+
           let user: any;
           user = await User.getByEmail(email);
           if (user) {

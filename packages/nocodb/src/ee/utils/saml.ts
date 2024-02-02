@@ -19,7 +19,7 @@ export async function parseSamlMetadata(metadataXml, options: any = {}) {
     const certificates = getCertificates(entityDescriptor);
 
     const metadata = {
-      issuer: entityDescriptor.getAttribute('entityID').value(),
+      entityIdFromMeta: entityDescriptor.getAttribute('entityID').value(),
       entryPoint: singleSignOnServiceUrl,
       cert: certificates?.signing,
       encryption: certificates?.encryption,

@@ -45,7 +45,7 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500 border-2)': resize,
       'border-brand-500 border-2': selected,
     }"
-    class="relative group"
+    class="relative group border-2 border-white"
   >
     <div class="h-full absolute py-2">
       <div
@@ -67,7 +67,7 @@ const emit = defineEmits(['resize-start'])
       :class="{
         '!block border-2 rounded-lg border-brand-500': selected,
       }"
-      class="absolute mt-0.6 h-7.1 hidden -left-3 resize !group-hover:(border-brand-500 block border-2 rounded-lg)"
+      class="absolute mt-0.6 h-7.1 hidden -left-4 resize !group-hover:(border-brand-500 block border-2 rounded-lg)"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>
@@ -85,7 +85,7 @@ const emit = defineEmits(['resize-start'])
       :class="{
         '!block border-2 rounded-lg border-brand-500': selected,
       }"
-      class="absolute mt-0.6 hidden h-7.1 -right-3 border-1 resize !group-hover:(border-brand-500 border-2 block rounded-lg)"
+      class="absolute mt-0.6 hidden h-7.1 -right-4 border-1 resize !group-hover:(border-brand-500 border-2 block rounded-lg)"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>

@@ -153,7 +153,7 @@ export const useBases = defineStore('basesStore', () => {
         return acc
       }, new Map())
 
-      await updateNullBaseOrder()
+      await updateIfBaseOrderIsNullOrDuplicate()
     } catch (e) {
       console.error(e)
       message.error(e.message)
@@ -304,29 +304,43 @@ export const useBases = defineStore('basesStore', () => {
     await navigateTo(`/nc/${baseId}`)
   }
 
-  async function updateNullBaseOrder() {
-    if (!isUIAllowed('baseMove')) return
+  async function updateIfBaseOrderIsNullOrDuplicate() {
+    if (!isUIAllowed('baseReorder')) return
 
     const basesArray = Array.from(bases.value.values())
 
-    // Filter bases with null orders, update the local state and return updated bases payload
-    const basesWithNullOrder = basesArray
-      .filter((base) => base.order === null)
-      .map((base, i) => {
-        bases.value.set(base.id!, { ...base, order: i + 1 })
+    let baseOrderSet = new Set()
+    let hasNullOrDuplicates = false
 
-        return {
-          id: base.id,
-          order: i + 1,
-        }
-      })
+    // Check if basesArray contains null or duplicate order
+    for (const base of basesArray) {
+      if (base.order === null || baseOrderSet.has(base.order)) {
+        hasNullOrDuplicates = true
+        break
+      }
+      baseOrderSet.add(base.order)
+    }
 
-    if (basesWithNullOrder.length) {
+    if (!hasNullOrDuplicates) return
+
+    // update the local state and return updated bases payload
+    let updatedBasesOrder = basesArray.map((base, i) => {
+      bases.value.set(base.id!, { ...base, order: i + 1 })
+
+      return {
+        id: base.id,
+        order: i + 1,
+      }
+    })
+
+    try {
       await Promise.all(
-        basesWithNullOrder.map(async (base) => {
+        updatedBasesOrder.map(async (base) => {
           await api.base.update(base.id!, { order: base.order })
         }),
       )
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 

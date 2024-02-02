@@ -11,7 +11,11 @@ export const useBases = defineStore('basesStore', () => {
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
-  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()))
+  const basesList = computed<NcProject[]>(() =>
+    Array.from(bases.value.values()).sort(
+      (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
+    ),
+  )
   const basesUser = ref<Map<string, User[]>>(new Map())
 
   const router = useRouter()

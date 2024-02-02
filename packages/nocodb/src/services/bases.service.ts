@@ -81,7 +81,7 @@ export class BasesService {
       'order',
     ]);
     await this.validateProjectTitle(data, base);
-    console.log('base', data, param?.base);
+
     if (data?.order !== undefined) {
       data.order = !isNaN(+data.order) ? +data.order : 0;
     }

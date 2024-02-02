@@ -175,7 +175,7 @@ reloadViewDataHook?.on(async () => {
   await loadMapData()
 })
 
-provide(ReloadRowDataHookInj, reloadViewDataHook)
+provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
   if (formattedData.value == null || mapMetaData.value?.fk_view_id == null || markersClusterGroupRef.value == null) {

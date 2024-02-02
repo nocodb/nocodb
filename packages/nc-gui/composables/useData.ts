@@ -860,13 +860,12 @@ export function useData(args: {
   ) {
     isPaginationLoading.value = true
     try {
-      const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows, {
+      const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
         viewId: viewMetaValue?.id as string,
       })
 
       await callbacks?.syncCount?.()
-
-      return bulkDeletedRowsData
+      return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {

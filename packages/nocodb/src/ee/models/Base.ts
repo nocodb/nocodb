@@ -378,11 +378,18 @@ export default class Base extends BaseCE {
     if (bases && bases?.length) {
       const promises = [];
 
-      const castedProjectList = bases.map((p) => {
-        p.meta = parseMetaProp(p);
-        promises.push(p.getSources(ncMeta));
-        return this.castType(p);
-      });
+      const castedProjectList = bases
+        .sort(
+          (a, b) =>
+            (a.order != null ? a.order : Infinity) -
+            (b.order != null ? b.order : Infinity),
+        )
+        .map((p) => {
+          const base = this.castType(p);
+          base.meta = parseMetaProp(base);
+          promises.push(base.getSources(ncMeta));
+          return base;
+        });
 
       await Promise.all(promises);
 
@@ -404,11 +411,18 @@ export default class Base extends BaseCE {
     if (bases && bases?.length) {
       const promises = [];
 
-      const castedProjectList = bases.map((p) => {
-        p.meta = parseMetaProp(p);
-        promises.push(p.getSources(ncMeta));
-        return this.castType(p);
-      });
+      const castedProjectList = bases
+        .sort(
+          (a, b) =>
+            (a.order != null ? a.order : Infinity) -
+            (b.order != null ? b.order : Infinity),
+        )
+        .map((p) => {
+          const base = this.castType(p);
+          base.meta = parseMetaProp(base);
+          promises.push(base.getSources(ncMeta));
+          return base;
+        });
 
       await Promise.all(promises);
 

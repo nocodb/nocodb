@@ -5,6 +5,7 @@ const { runServer } = require('saml-idp')
 runServer({
   acsUrl: process.env.REDIRECT_URL,
   audience: process.env.AUDIENCE,
+  issuer: process.env.AUDIENCE,
   config: {
     user: {
       email: 'test@nocodb.com',

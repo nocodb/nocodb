@@ -80,7 +80,7 @@ const {
   activeView,
   parentId?.value,
   computed(() => autoSave.value),
-  () => reloadDataHook.trigger(showLoading.value),
+  () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value }),
   modelValue.value || nestedFilters.value,
   !modelValue.value,
   webHook.value,
@@ -486,7 +486,10 @@ function isDateType(uidt: UITypes) {
               v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
               class="caption nc-filter-sub_operation-select min-w-28"
-              :class="{ 'flex-grow w-full': !showFilterInput(filter), 'max-w-28': showFilterInput(filter) }"
+              :class="{
+                'flex-grow w-full': !showFilterInput(filter),
+                'max-w-28': showFilterInput(filter),
+              }"
               :placeholder="$t('labels.operationSub')"
               density="compact"
               variant="solo"

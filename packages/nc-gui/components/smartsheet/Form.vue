@@ -71,7 +71,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
-const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook<boolean | void>())
+const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadEventHook.on(async () => {
   await loadFormView()
@@ -137,7 +137,11 @@ async function submitForm() {
     if (e.errorFields.length) return
   }
 
-  await insertRow({ row: { ...formState, ...state.value }, oldRow: {}, rowMeta: { new: true } })
+  await insertRow({
+    row: { ...formState, ...state.value },
+    oldRow: {},
+    rowMeta: { new: true },
+  })
 
   submitted.value = true
 }
@@ -407,7 +411,9 @@ const onFormItemClick = (element: any) => {
       <div class="text-gray-500 text-5xl font-semibold leading-16">
         {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
       </div>
-      <div class="text-gray-500 text-base font-medium leading-normal">{{ $t('msg.formViewNotSupportedOnMobile') }}</div>
+      <div class="text-gray-500 text-base font-medium leading-normal">
+        {{ $t('msg.formViewNotSupportedOnMobile') }}
+      </div>
     </div>
   </template>
   <template v-else>
@@ -416,7 +422,9 @@ const onFormItemClick = (element: any) => {
         <div v-if="formViewData" class="items-center justify-center text-center mt-2">
           <a-alert type="success">
             <template #message>
-              <div class="text-center">{{ formViewData.success_msg || $t('msg.successfullySubmittedFormData') }}</div>
+              <div class="text-center">
+                {{ formViewData.success_msg || $t('msg.successfullySubmittedFormData') }}
+              </div>
             </template>
           </a-alert>
 
@@ -589,7 +597,9 @@ const onFormItemClick = (element: any) => {
                   />
                 </a-form-item>
               </div>
-              <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>
+              <div v-else class="px-4 ml-3 w-full text-bold text-4xl">
+                {{ formViewData.heading }}
+              </div>
 
               <!-- Sub Header -->
               <div v-if="isEditable" class="px-4 lg:px-12">
@@ -616,7 +626,9 @@ const onFormItemClick = (element: any) => {
                 </a-form-item>
               </div>
 
-              <div v-else class="px-4 ml-3 w-full text-bold text-md">{{ formViewData.subheading || '---' }}</div>
+              <div v-else class="px-4 ml-3 w-full text-bold text-md">
+                {{ formViewData.subheading || '---' }}
+              </div>
 
               <Draggable
                 ref="draggableRef"
@@ -887,7 +899,8 @@ const onFormItemClick = (element: any) => {
 
                 <!-- Email me at <email> -->
                 <span class="ml-4">
-                  {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ user?.email }}</span>
+                  {{ $t('msg.info.emailForm') }}
+                  <span class="text-bold text-gray-600">{{ user?.email }}</span>
                 </span>
               </div>
             </div>

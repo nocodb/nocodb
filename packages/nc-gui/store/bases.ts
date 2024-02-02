@@ -308,9 +308,11 @@ export const useBases = defineStore('basesStore', () => {
     if (!isUIAllowed('baseMove')) return
 
     const basesArray = Array.from(bases.value.values())
-    const isOrderNullPresent = basesArray.some((base) => base.order === null)
-    if (isOrderNullPresent) {
-      const orderUpdateBasesList = basesArray.map((base, i) => {
+
+    // Filter bases with null orders, update the local state and return updated bases payload
+    const basesWithNullOrder = basesArray
+      .filter((base) => base.order === null)
+      .map((base, i) => {
         bases.value.set(base.id!, { ...base, order: i + 1 })
 
         return {
@@ -319,9 +321,12 @@ export const useBases = defineStore('basesStore', () => {
         }
       })
 
-      for (const orderUpdateBase of orderUpdateBasesList) {
-        await api.base.update(orderUpdateBase.id!, { order: orderUpdateBase.order })
-      }
+    if (basesWithNullOrder.length) {
+      await Promise.all(
+        basesWithNullOrder.map(async (base) => {
+          await api.base.update(base.id!, { order: base.order })
+        }),
+      )
     }
   }
 

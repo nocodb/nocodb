@@ -306,7 +306,7 @@ export const useBases = defineStore('basesStore', () => {
 
   async function updateNullBaseOrder() {
     if (!isUIAllowed('baseMove')) return
-    
+
     const basesArray = Array.from(bases.value.values())
     const isOrderNullPresent = basesArray.some((base) => base.order === null)
     if (isOrderNullPresent) {

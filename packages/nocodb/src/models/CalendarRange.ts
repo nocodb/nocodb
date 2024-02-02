@@ -2,12 +2,7 @@ import type { CalendarRangeType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class CalendarRange implements CalendarRangeType {
   id?: string;
@@ -47,16 +42,13 @@ export default class CalendarRange implements CalendarRangeType {
     for (const fk of uniqueFks) {
       await NocoCache.deepDel(
         CacheScope.CALENDAR_VIEW_RANGE,
-        fk,
+        `${CacheScope.CALENDAR_VIEW_RANGE}:${fk}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
     }
 
     for (const d of bulkData) {
-      await NocoCache.set(
-        `${CacheScope.CALENDAR_VIEW_RANGE}:${d.fk_view_id}`,
-        d,
-      );
+      await NocoCache.set(`${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`, d);
 
       await NocoCache.appendToList(
         CacheScope.CALENDAR_VIEW_RANGE,

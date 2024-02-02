@@ -101,13 +101,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       params.formViewId ||
       params.gridViewId ||
       params.kanbanViewId ||
-      params.galleryViewId
+      params.galleryViewId||
+      params.calendarViewId
     ) {
       const view = await View.get(
         params.formViewId ||
           params.gridViewId ||
           params.kanbanViewId ||
-          params.galleryViewId,
+          params.galleryViewId ||
+          params.calendarViewId,
       );
       req.ncBaseId = view?.base_id;
     } else if (params.publicDataUuid) {

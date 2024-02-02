@@ -25,8 +25,7 @@ export class CalendarsController {
     '/api/v1/db/meta/calendars/:calendarViewId',
     '/api/v2/meta/calendars/:calendarViewId',
   ])
-  // #TODO Enable ACL Later
-  // @Acl('calendarViewGet')
+  @Acl('calendarViewGet')
   async calendarViewGet(@Param('calendarViewId') calendarViewId: string) {
     return await this.calendarsService.calendarViewGet({
       calendarViewId,
@@ -38,8 +37,7 @@ export class CalendarsController {
     '/api/v2/meta/tables/:tableId/calendars',
   ])
   @HttpCode(200)
-  // #TODO Enable ACL Later
-  // @Acl('calendarViewCreate')
+  @Acl('calendarViewCreate')
   async calendarViewCreate(
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
@@ -57,8 +55,7 @@ export class CalendarsController {
     '/api/v1/db/meta/calendars/:calendarViewId',
     '/api/v2/meta/calendars/:calendarViewId',
   ])
-  // #TODO Enable ACL Later
-  // @Acl('calendarViewUpdate')
+  @Acl('calendarViewUpdate')
   async calendarViewUpdate(
     @Param('calendarViewId') calendarViewId: string,
     @Body() body,

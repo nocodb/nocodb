@@ -1,5 +1,5 @@
 // eslint-disable-file no-fallthrough
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -220,6 +220,16 @@ export async function extractColumn({
               const assocModel = await column.colOptions.getMMModel();
               const childColumn = await column.colOptions.getChildColumn();
               const parentColumn = await column.colOptions.getParentColumn();
+
+              // if mm table is not present then return
+              if (!assocModel) {
+                qb.select(
+                  knex.raw('? as ??', [
+                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+                    sanitize(column.id),
+                  ]),
+                );
+              }
 
               const assocQb = knex(
                 knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),
@@ -442,6 +452,16 @@ export async function extractColumn({
               const assocModel = await relationColOpts.getMMModel();
               const childColumn = await relationColOpts.getChildColumn();
               const parentColumn = await relationColOpts.getParentColumn();
+
+              // if mm table is not present then return
+              if (!assocModel) {
+                return qb.select(
+                  knex.raw('? as ??', [
+                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+                    sanitize(column.id),
+                  ]),
+                );
+              }
 
               const assocQb = knex(
                 knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),

@@ -1723,7 +1723,16 @@ onKeyStroke('ArrowDown', onDown)
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
-              <div v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
+              <div
+                v-if="data.filter((r) => r.rowMeta.selected).length === 1"
+                v-e="['a:row:delete']"
+                class="flex gap-2 items-center"
+              >
+                <component :is="iconMap.delete" />
+                <!-- Delete Selected Rows -->
+                {{ $t('activity.deleteSelectedRow') }}
+              </div>
+              <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
                 <component :is="iconMap.delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}

@@ -204,19 +204,20 @@ const onMove = async (
 
   if (!element?.id) return
 
-  // set default order value as 0 if item not found
-  const previousItem = currentBaseList[newIndex - 1]?.order ? { order: currentBaseList[newIndex - 1].order } : { order: 0 }
-  const nextItem = currentBaseList[newIndex + 1]?.order ? { order: currentBaseList[newIndex + 1].order } : { order: 0 }
-
   let nextOrder: number
 
   // set new order value based on the new order of the items
   if (currentBaseList.length - 1 === newIndex) {
-    nextOrder = parseFloat(String(previousItem.order)) + 1
+    // If moving to the end, set nextOrder greater than the maximum order in the list
+    nextOrder = Math.max(...currentBaseList.map((item) => item?.order ?? 0)) + 1
   } else if (newIndex === 0) {
-    nextOrder = parseFloat(String(nextItem.order)) / 2
+    // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+    nextOrder = Math.min(...currentBaseList.map((item) => item?.order ?? 0)) / 2
   } else {
-    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
+    nextOrder =
+      (parseFloat(String(currentBaseList[newIndex - 1]?.order ?? 0)) +
+        parseFloat(String(currentBaseList[newIndex + 1]?.order ?? 0))) /
+      2
   }
 
   const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex

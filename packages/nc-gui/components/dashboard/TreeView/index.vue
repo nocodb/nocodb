@@ -258,7 +258,7 @@ watch(
       <div v-if="basesList?.length">
         <Draggable
           :model-value="basesList"
-          :disabled="!isUIAllowed('baseMove') || basesList?.length < 2"
+          :disabled="!isUIAllowed('baseReorder') || basesList?.length < 2"
           item-key="id"
           handle=".base-title-node"
           ghost-class="ghost"

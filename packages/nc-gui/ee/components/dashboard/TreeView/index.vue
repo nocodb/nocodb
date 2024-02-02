@@ -239,7 +239,7 @@ const onMove = async (
         <div>
           <Draggable
             :model-value="starredProjectList"
-            :disabled="!isUIAllowed('baseMove') || starredProjectList?.length < 2"
+            :disabled="!isUIAllowed('baseReorder') || starredProjectList?.length < 2"
             item-key="starred-project"
             handle=".base-title-node"
             ghost-class="ghost"
@@ -261,7 +261,7 @@ const onMove = async (
       <div v-if="nonStarredProjectList?.length">
         <Draggable
           v-model="nonStarredProjectList"
-          :disabled="!isUIAllowed('baseMove') || nonStarredProjectList?.length < 2"
+          :disabled="!isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
           item-key="non-starred-project"
           handle=".base-title-node"
           ghost-class="ghost"

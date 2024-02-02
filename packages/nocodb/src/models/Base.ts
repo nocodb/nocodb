@@ -123,7 +123,7 @@ export default class Base implements BaseType {
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
 
-    baseList = baseList
+    const castedProjectList = baseList
       .filter(
         (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
       )
@@ -131,9 +131,8 @@ export default class Base implements BaseType {
         (a, b) =>
           (a.order != null ? a.order : Infinity) -
           (b.order != null ? b.order : Infinity),
-      );
-
-    const castedProjectList = baseList.map((m) => this.castType(m));
+      )
+      .map((m) => this.castType(m));
 
     await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
 

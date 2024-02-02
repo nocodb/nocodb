@@ -283,19 +283,20 @@ export default class BaseUser extends BaseUserCE {
     qb.whereNot(`${MetaTable.PROJECT}.deleted`, true);
 
     const baseList = await qb;
-    if (baseList?.length) {
-      // parse meta
-      for (const base of baseList) {
-        base.meta = parseMetaProp(base);
-      }
+    if (baseList && baseList?.length) {
+      return baseList
+        .filter((p) => !params?.type || p.type === params.type)
+        .sort(
+          (a, b) =>
+            (a.order != null ? a.order : Infinity) -
+            (b.order != null ? b.order : Infinity),
+        )
+        .map((m) => {
+          m.meta = parseMetaProp(m);
+          return Base.castType(m);
+        });
+    } else {
+      return [];
     }
-
-    return baseList
-      .filter((p) => !params?.type || p.type === params.type)
-      .sort(
-        (a, b) =>
-          (a.order != null ? a.order : Infinity) -
-          (b.order != null ? b.order : Infinity),
-      );
   }
 }

@@ -57,19 +57,21 @@ export default class Base extends BaseCE {
       });
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
-    baseList = baseList
+    return baseList
       .filter(
-        (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
+        (p) =>
+          p.deleted === 0 ||
+          p.deleted === false ||
+          p.deleted === null ||
+          !param?.type ||
+          p.type === param.type,
       )
       .sort(
         (a, b) =>
           (a.order != null ? a.order : Infinity) -
           (b.order != null ? b.order : Infinity),
-      );
-
-    return baseList
-      .map((m) => this.castType(m))
-      .filter((p) => !param?.type || p.type === param.type);
+      )
+      .map((m) => this.castType(m));
   }
 
   public static async createProject(

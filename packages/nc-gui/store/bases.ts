@@ -309,7 +309,7 @@ export const useBases = defineStore('basesStore', () => {
 
     const basesArray = Array.from(bases.value.values())
 
-    let baseOrderSet = new Set()
+    const baseOrderSet = new Set()
     let hasNullOrDuplicates = false
 
     // Check if basesArray contains null or duplicate order
@@ -324,7 +324,7 @@ export const useBases = defineStore('basesStore', () => {
     if (!hasNullOrDuplicates) return
 
     // update the local state and return updated bases payload
-    let updatedBasesOrder = basesArray.map((base, i) => {
+    const updatedBasesOrder = basesArray.map((base, i) => {
       bases.value.set(base.id!, { ...base, order: i + 1 })
 
       return {

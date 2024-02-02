@@ -25,8 +25,8 @@ import {
   NavigateDir,
   ReadonlyInj,
   computed,
-  enumColor,
   extractPkFromRow,
+  getEnumColorByIndex,
   iconMap,
   inject,
   isColumnRequiredAndNull,
@@ -56,7 +56,7 @@ import type { CellRange, Row } from '#imports'
 const props = defineProps<{
   data: Row[]
   paginationData?: PaginatedType
-  loadData?: () => Promise<void>
+  loadData?: (params?: any) => Promise<void>
   changePage?: (page: number) => void
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
@@ -1061,7 +1061,7 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
+async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {
   isViewDataLoading.value = true
 
   if (predictedNextColumn.value?.length) {
@@ -1071,7 +1071,7 @@ async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
   // save any unsaved data before reload
   await saveOrUpdateRecords()
 
-  await loadData?.()
+  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
 
   isViewDataLoading.value = false
 }
@@ -1566,7 +1566,7 @@ onKeyStroke('ArrowDown', onDown)
                             v-e="['c:expanded-form:open']"
                             class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                             :style="{
-                              backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length],
+                              backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
                             }"
                             @click="expandAndLooseFocus(row, state)"
                           >

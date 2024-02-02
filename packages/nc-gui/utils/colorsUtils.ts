@@ -235,3 +235,7 @@ export function isColorDark(hexColor: string) {
   // Choose a luminance threshold (e.g., 0.5) to determine darkness/lightness
   return luminance < 128
 }
+
+export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light') {
+  return enumColor[mode][i % enumColor[mode].length]
+}

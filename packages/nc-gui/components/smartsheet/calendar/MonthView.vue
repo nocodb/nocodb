@@ -6,16 +6,8 @@ import type { Row } from '#imports'
 
 const emit = defineEmits(['new-record', 'expandRecord'])
 
-const {
-  selectedDate,
-  selectedMonth,
-  formattedData,
-  formattedSideBarData,
-  displayField,
-  calendarRange,
-  calDataType,
-  updateRowProperty,
-} = useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, formattedData, formattedSideBarData, displayField, calendarRange, updateRowProperty } =
+  useCalendarViewStoreOrThrow()
 
 const isMondayFirst = ref(true)
 

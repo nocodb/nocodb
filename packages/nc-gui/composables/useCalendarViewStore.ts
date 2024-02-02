@@ -158,11 +158,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             fromDate = dayjs(selectedDateRange.value.start).startOf('day')
             toDate = dayjs(selectedDateRange.value.end).endOf('day')
             break
-          case 'month':
-            fromDate = dayjs(selectedMonth.value).startOf('month')
-            toDate = dayjs(selectedMonth.value).endOf('month')
+          case 'month': {
+            const startOfMonth = dayjs(selectedMonth.value).startOf('month')
+            const endOfMonth = dayjs(selectedMonth.value).endOf('month')
 
+            const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
+            fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
+            toDate = fromDate.add(daysToDisplay, 'day')
             break
+          }
           case 'year':
             fromDate = dayjs(selectedDate.value).startOf('year')
             toDate = dayjs(selectedDate.value).endOf('year')
@@ -325,10 +329,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           fromDate = dayjs(selectedDateRange.value.start).startOf('day')
           toDate = dayjs(selectedDateRange.value.end).endOf('day')
           break
-        case 'month':
-          fromDate = dayjs(selectedMonth.value).startOf('month')
-          toDate = dayjs(selectedMonth.value).endOf('month')
+        case 'month': {
+          const startOfMonth = dayjs(selectedMonth.value).startOf('month')
+          const endOfMonth = dayjs(selectedMonth.value).endOf('month')
+
+          const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
+          fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day')
+          toDate = fromDate.add(daysToDisplay, 'day')
           break
+        }
         case 'year':
           fromDate = dayjs(selectedDate.value).startOf('year')
           toDate = dayjs(selectedDate.value).endOf('year')

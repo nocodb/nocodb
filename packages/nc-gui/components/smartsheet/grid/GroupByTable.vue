@@ -8,7 +8,7 @@ const props = defineProps<{
   group: Group
 
   loadGroups: (params?: any, group?: Group) => Promise<void>
-  loadGroupData: (group: Group, force?: boolean) => Promise<void>
+  loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
 
@@ -87,8 +87,10 @@ const { deleteRow, deleteSelectedRows, deleteRangeOfRows, updateOrSaveRow, bulkU
     },
   })
 
-const reloadTableData = async () => {
-  await props.loadGroupData(vGroup.value, true)
+const reloadTableData = async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
+  await props.loadGroupData(vGroup.value, true, {
+    ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+  })
 }
 
 onBeforeUnmount(async () => {

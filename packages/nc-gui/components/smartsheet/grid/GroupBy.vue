@@ -12,7 +12,7 @@ const props = defineProps<{
   group: Group
 
   loadGroups: (params?: any, group?: Group) => Promise<void>
-  loadGroupData: (group: Group, force?: boolean) => Promise<void>
+  loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
 
@@ -80,11 +80,13 @@ const findAndLoadSubGroup = (key: any) => {
   oldActiveGroups.value = key
 }
 
-const reloadViewDataHandler = () => {
+const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
   if (vGroup.value.nested) {
-    props.loadGroups({}, vGroup.value)
+    props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
   } else {
-    props.loadGroupData(vGroup.value, true)
+    props.loadGroupData(vGroup.value, true, {
+      ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+    })
   }
 }
 

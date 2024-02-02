@@ -25,8 +25,8 @@ import {
   NavigateDir,
   ReadonlyInj,
   computed,
-  enumColor,
   extractPkFromRow,
+  getEnumColorByIndex,
   iconMap,
   inject,
   isColumnRequiredAndNull,
@@ -1566,7 +1566,7 @@ onKeyStroke('ArrowDown', onDown)
                             v-e="['c:expanded-form:open']"
                             class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                             :style="{
-                              backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length],
+                              backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
                             }"
                             @click="expandAndLooseFocus(row, state)"
                           >

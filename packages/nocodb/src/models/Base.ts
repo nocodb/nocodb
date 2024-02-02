@@ -135,8 +135,9 @@ export default class Base implements BaseType {
           (b.order != null ? b.order : Infinity),
       )
       .map((p) => {
-        promises.push(p.getSources(ncMeta));
-        return this.castType(p);
+        const base = this.castType(p);
+        promises.push(base.getSources(ncMeta));
+        return base;
       });
 
     await Promise.all(promises);

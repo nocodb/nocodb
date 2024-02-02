@@ -364,9 +364,10 @@ export default class BaseUser {
             (b.order != null ? b.order : Infinity),
         )
         .map((p) => {
-          promises.push(p.getSources(ncMeta));
-          p.meta = parseMetaProp(p);
-          return Base.castType(p);
+          const base = Base.castType(p);
+          base.meta = parseMetaProp(base);
+          promises.push(base.getSources(ncMeta));
+          return base;
         });
 
       await Promise.all(promises);

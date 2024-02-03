@@ -55,13 +55,32 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
     const endCol = range.fk_to_col
+
+    const sortedFormattedData = [...formattedData.value].filter((record) => {
+      const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
+
+      if (fromCol && endCol) {
+        const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+        const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
+
+        return fromDate && toDate?.isValid() ? fromDate.isBefore(toDate) : true
+      } else if (fromCol && !endCol) {
+        return !!fromDate
+      }
+      return false
+    })
+
     if (fromCol && endCol) {
-      for (const record of formattedData.value) {
+      for (const record of sortedFormattedData) {
         const id = getRandomNumbers()
         let startDate = dayjs(record.row[fromCol.title!])
         let endDate = dayjs(record.row[endCol.title!])
 
         if (!startDate.isValid() || startDate.isAfter(endDate)) continue
+
+        if (!endDate.isValid()) {
+          endDate = startDate.clone().add(30, 'minutes')
+        }
 
         if (startDate.isBefore(scheduleStart, 'minutes')) {
           startDate = scheduleStart
@@ -124,11 +143,11 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         })
       }
     } else if (fromCol) {
-      for (const record of formattedData.value) {
+      for (const record of sortedFormattedData) {
         const id = getRandomNumbers()
 
         const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
+        const endDate = dayjs(record.row[fromCol.title!]).add(30, 'minutes')
 
         const startHour = startDate.hour()
         const endHour = endDate.hour()

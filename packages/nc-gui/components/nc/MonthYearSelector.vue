@@ -53,11 +53,11 @@ const isMonthSelected = (date: dayjs.Dayjs) => {
 }
 
 const paginateMonth = (action: 'next' | 'prev') => {
-  const date = dayjs(pageDate.value)
+  let date = dayjs(pageDate.value)
   if (action === 'next') {
-    date.add(1, 'month')
+    date = date.add(1, 'year')
   } else {
-    date.subtract(1, 'month')
+    date = date.subtract(1, 'year')
   }
   pageDate.value = date.toDate()
   emit('update:pageDate', date.toDate())
@@ -66,9 +66,9 @@ const paginateMonth = (action: 'next' | 'prev') => {
 const paginateYear = (action: 'next' | 'prev') => {
   let date = dayjs(pageDate.value)
   if (action === 'next') {
-    date = date.add(1, 'year').clone()
+    date = date.add(12, 'year').clone()
   } else {
-    date = date.subtract(1, 'year').clone()
+    date = date.subtract(12, 'year').clone()
   }
   pageDate.value = date.toDate()
   emit('update:pageDate', date.toDate())

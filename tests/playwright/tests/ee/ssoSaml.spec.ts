@@ -1,10 +1,8 @@
 import { test } from '@playwright/test';
-import { DashboardPage } from '../../pages/Dashboard';
 import setup, { unsetup } from '../../setup';
 import { AccountPage } from '../../pages/Account';
-import assert from 'assert';
 
-test.describe('SSO SAML', () => {
+test.describe.serial('SSO SAML', () => {
   let accountsPage: AccountPage;
   let context: any;
 

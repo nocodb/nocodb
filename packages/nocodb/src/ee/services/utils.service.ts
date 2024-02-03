@@ -489,7 +489,9 @@ export class UtilsService extends UtilsServiceCE {
     const result: any = await super.appInfo(param);
 
     // get sso clients and extract id, url and display name
-    const ssoClients = (await SSOClient.getPublicList({}))
+    const ssoClients = await SSOClient.getPublicList({
+      ncSiteUrl: param.req.ncSiteUrl,
+    });
 
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;

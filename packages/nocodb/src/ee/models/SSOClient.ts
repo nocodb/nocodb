@@ -127,7 +127,7 @@ export default class SSOClient implements SSOClientType {
     });
   }
 
-  static async getPublicList(_param: {}) {
+  static async getPublicList(param: { ncSiteUrl: string }) {
     let filteredList: any[] = await NocoCache.get(
       PUBLIC_LIST_KEY,
       CacheGetType.TYPE_OBJECT,
@@ -141,7 +141,7 @@ export default class SSOClient implements SSOClientType {
       .map((client) => {
         return {
           id: client.id,
-          url: new URL(`/sso/${client.id}`, param.req.ncSiteUrl).toString(),
+          url: new URL(`/sso/${client.id}`, param.ncSiteUrl).toString(),
           title: client.title,
           type: client.type,
         };

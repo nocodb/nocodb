@@ -47,6 +47,7 @@ const resizeInProgress = ref(false)
 const isDragging = ref(false)
 const dragRecord = ref<Row>()
 
+const hoverRecord = ref<string | null>()
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const focusedDate = ref<Date | null>(null)
@@ -173,7 +174,7 @@ const recordsToDisplay = computed(() => {
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? getRandomNumbers()
-        while (currentWeekStart.isSameOrBefore(endDate)) {
+        while (currentWeekStart.isBefore(endDate)) {
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
@@ -434,9 +435,9 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
+  if (!isUIAllowed('dataEdit') || draggingId.value) return
 
-  if (draggingId.value) return
+  selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -560,6 +561,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
     })
 
     dragRecord.value = record
+    selectedDate.value = null
 
     isDragging.value = true
     dragElement.value = target
@@ -829,10 +831,13 @@ const isDateSelected = (date: Date) => {
               : 'none',
         }"
         class="absolute group draggable-record cursor-pointer pointer-events-auto"
+        @mouseleave="hoverRecord = null"
+        @mouseover="hoverRecord = record.rowMeta.id"
         @mousedown.stop="dragStart($event, record)"
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
+            :hover="hoverRecord === record.rowMeta.id"
             :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"

@@ -232,6 +232,7 @@ export function useMultiSelect(
     ) {
       return JSON.stringify({
         rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+        columnId: columnObj.id,
         fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
         value: !isNaN(+textToCopy) ? +textToCopy : 0,
       })
@@ -923,16 +924,20 @@ export function useMultiSelect(
 
             let result
 
+            console.log('column', columnObj.id)
+
             try {
               result = await api.dbDataTableRow.nestedLinkUnlink(meta.value?.id as string, columnObj.id as string, [
                 {
                   operation: 'copy',
                   rowId: pasteVal.rowId,
+                  columnId: pasteVal.columnId,
                   fk_related_model_id: pasteVal.fk_related_model_id,
                 },
                 {
                   operation: 'paste',
                   rowId: pasteRowPk,
+                  columnId: pasteVal.columnId,
                   fk_related_model_id:
                     (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
                 },
@@ -942,6 +947,10 @@ export function useMultiSelect(
             }
 
             if (result && result?.link && result?.unlink && Array.isArray(result.link) && Array.isArray(result.unlink)) {
+              if (!result.link.length && !result.unlink.length) {
+                rowObj.row[columnObj.title!] = oldCellValue
+                return
+              }
               addUndo({
                 redo: {
                   fn: async (

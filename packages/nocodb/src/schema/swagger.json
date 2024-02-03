@@ -23249,11 +23249,14 @@
             "rowId": {
               "type": "string"
             },
+            "columnId":{
+              "type": "string"
+            },
             "fk_related_model_id":{
               "type": "string"
             }
           },
-          "required": ["operation", "rowId", "fk_related_model_id"]
+          "required": ["operation", "rowId", "columnId", "fk_related_model_id"]
         }
       }
     },

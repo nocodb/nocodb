@@ -206,6 +206,7 @@ export class DataTableController {
     data: {
       operation: 'copy' | 'paste';
       rowId: string;
+      columnId: string;
       fk_related_model_id: string;
     }[],
   ) {

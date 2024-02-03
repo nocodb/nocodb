@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import HTMLParser, { JSONToHTML } from 'html-to-json-parser';
+import { HTMLToJSON, JSONToHTML } from 'html-to-json-parser';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { DocsPagesUpdateService } from '../docs-page-update.service';
@@ -277,7 +277,7 @@ export class DocsPageHistoryService {
 
     const _diffHtml = diff(oldHtml, newHtml);
 
-    const htmlParse = (HTMLParser as any).default as typeof HTMLParser;
+    const htmlParse = (HTMLToJSON as any).default as typeof HTMLToJSON;
 
     const domJson = (await htmlParse(
       `<html>${_diffHtml}</html>`,

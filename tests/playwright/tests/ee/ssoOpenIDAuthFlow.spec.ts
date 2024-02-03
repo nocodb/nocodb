@@ -33,7 +33,7 @@ const startSAMLIdp = async (env = {}) => {
       // set a timeout to reject promise if not resolved
       setTimeout(() => {
         reject('timeout');
-      }, 10000);
+      }, 20000);
     } catch (e) {
       console.log(e);
     }
@@ -44,7 +44,7 @@ const stopSAMLIpd = async () => {
   process.kill(-childProcess.pid);
 };
 
-test.describe('SSO SAML Auth Flow', () => {
+test.describe.serial('SSO OpenID Auth Flow', () => {
   let accountsPage: AccountPage;
   let openidLoginPage: OpenIDLoginPage;
   let context: any;
@@ -90,7 +90,7 @@ test.describe('SSO SAML Auth Flow', () => {
     await stopSAMLIpd();
   });
 
-  test('SAML Provider', async () => {
+  test('OpenID Login Flow', async () => {
     await accountsPage.signOut();
 
     await openidLoginPage.goto('test');

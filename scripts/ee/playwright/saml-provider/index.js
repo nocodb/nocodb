@@ -1,8 +1,9 @@
 // ref: https://github.com/mcguinness/saml-idp
-
+require('dotenv').config()
 const { runServer } = require('saml-idp')
 
 runServer({
+  port: process.env.PORT || 7000,
   acsUrl: process.env.REDIRECT_URL,
   audience: process.env.AUDIENCE,
   issuer: process.env.AUDIENCE,

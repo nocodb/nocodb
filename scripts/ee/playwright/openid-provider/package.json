@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "camelcase": "^6.2.0",
+    "dotenv": "^16.4.1",
     "oidc-provider": "^7.5.1"
   },
   "keywords": [],

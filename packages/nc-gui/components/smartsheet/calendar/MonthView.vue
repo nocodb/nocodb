@@ -13,6 +13,7 @@ const {
   sideBarFilterOption,
   displayField,
   calendarRange,
+  showSideMenu,
   updateRowProperty,
 } = useCalendarViewStoreOrThrow()
 
@@ -681,6 +682,7 @@ const selectDate = (date: dayjs.Dayjs) => {
 const viewMore = (date: dayjs.Dayjs) => {
   sideBarFilterOption.value = 'selectedDate' as const
   selectedDate.value = date
+  showSideMenu.value = true
 }
 
 const isDateSelected = (date: dayjs.Dayjs) => {

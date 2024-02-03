@@ -49,12 +49,11 @@ const {
   selectedMonth,
   activeDates,
   pageDate,
+  showSideMenu,
   selectedDateRange,
   activeCalendarView,
   paginateCalendarView,
 } = useCalendarViewStoreOrThrow()
-
-const showSideMenu = ref(true)
 
 const calendarRangeDropdown = ref(false)
 
@@ -212,12 +211,12 @@ const headerText = computed(() => {
             type="secondary"
             @click="
               () => {
-                selectedDate = new Date()
-                pageDate = new Date()
-                selectedMonth = new Date()
+                selectedDate = dayjs()
+                pageDate = dayjs()
+                selectedMonth = dayjs()
                 selectedDateRange = {
-                  start: dayjs(new Date()).startOf('week').toDate(),
-                  end: dayjs(new Date()).endOf('week').toDate(),
+                  start: dayjs().startOf('week'),
+                  end: dayjs().endOf('week'),
                 }
               }
             "

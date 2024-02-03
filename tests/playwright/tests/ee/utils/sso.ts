@@ -7,7 +7,7 @@ export const startOpenIDIdp = async (env = {}) => {
   return new Promise((resolve, reject) => {
     try {
       openIDChildProcess = spawn('npm', ['start'], {
-        cwd: path.join(__dirname, '../../../../scripts/ee/playwright/openid-provider'),
+        cwd: path.join(__dirname, '../../../../../scripts/ee/playwright/openid-provider'),
         env: {
           ...process.env,
           ...env,
@@ -48,7 +48,7 @@ export const startSAMLIdp = async (env = {}) => {
   return new Promise((resolve, reject) => {
     try {
       samlChildProcess = spawn('npm', ['start'], {
-        cwd: path.join(__dirname, '../../../../scripts/ee/playwright/saml-provider'),
+        cwd: path.join(__dirname, '../../../../../scripts/ee/playwright/saml-provider'),
         env: {
           ...process.env,
           ...env,

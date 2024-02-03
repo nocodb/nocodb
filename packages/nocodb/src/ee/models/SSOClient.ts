@@ -9,6 +9,8 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 
+const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
+
 export default class SSOClient implements SSOClientType {
   config: SAMLClientConfigType | OpenIDClientConfigType;
   id: string;
@@ -61,6 +63,7 @@ export default class SSOClient implements SSOClientType {
       MetaTable.SSO_CLIENT,
       client,
     );
+    await NocoCache.del(PUBLIC_LIST_KEY);
     return this.get(id, ncMeta);
   }
 
@@ -94,6 +97,7 @@ export default class SSOClient implements SSOClientType {
       updateObj,
       clientId,
     );
+    await NocoCache.del(PUBLIC_LIST_KEY);
 
     return true;
   }
@@ -104,6 +108,7 @@ export default class SSOClient implements SSOClientType {
 
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
     await NocoCache.del(key);
+    await NocoCache.del(PUBLIC_LIST_KEY);
 
     return true;
   }
@@ -120,5 +125,30 @@ export default class SSOClient implements SSOClientType {
       client.config = parseMetaProp(client, 'config');
       return new SSOClient(client);
     });
+  }
+
+  static async getPublicList(_param: {}) {
+    let filteredList: any[] = await NocoCache.get(
+      PUBLIC_LIST_KEY,
+      CacheGetType.TYPE_OBJECT,
+    );
+    if (filteredList) return filteredList;
+
+    const list = await this.list({});
+
+    filteredList = list
+      .filter((client) => client.enabled && !client.deleted)
+      .map((client) => {
+        return {
+          id: client.id,
+          url: new URL(`/sso/${client.id}`, param.req.ncSiteUrl).toString(),
+          title: client.title,
+          type: client.type,
+        };
+      });
+
+    await NocoCache.set(PUBLIC_LIST_KEY, filteredList);
+
+    return filteredList;
   }
 }

@@ -193,4 +193,29 @@ export class DataTableController {
       cookie: req,
     });
   }
+
+  @Post(['/api/v2/tables/:modelId/links/:columnId/records'])
+  @Acl('nestedDataLinkUnlink')
+  async nestedLinkUnlink(
+    @Req() req: Request,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Body()
+    data: {
+      operation: 'copy' | 'paste';
+      rowId: string;
+    }[],
+  ) {
+    console.log('data', data);
+
+    return await this.dataTableService.nestedLinkUnlink({
+      modelId,
+      query: req.query,
+      viewId,
+      columnId,
+      data,
+      cookie: req,
+    });
+  }
 }

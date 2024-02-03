@@ -8,6 +8,7 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Column, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { validatePayload } from 'src/helpers';
 
 @Injectable()
 export class DataTableService {
@@ -439,6 +440,25 @@ export class DataTableService {
       rowId: param.rowId,
       cookie: param.cookie,
     });
+
+    return true;
+  }
+
+  async nestedLinkUnlink(param: {
+    cookie: any;
+    viewId: string;
+    modelId: string;
+    columnId: string;
+    query: any;
+    data: {
+      operation: 'copy' | 'paste';
+      rowId: string;
+    }[];
+  }) {
+    validatePayload(
+      'swagger.json#/components/schemas/NestedLinkUnlinkReq',
+      param.data,
+    );
 
     return true;
   }

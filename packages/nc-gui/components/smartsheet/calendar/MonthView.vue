@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { UITypes } from 'nocodb-sdk'
 
 import type { Row } from '#imports'
 
@@ -35,8 +34,8 @@ const calendarGridContainer = ref()
 
 const { width: gridContainerWidth, height: gridContainerHeight } = useElementSize(calendarGridContainer)
 
-const isDayInPagedMonth = (date: Date) => {
-  return date.getMonth() === selectedMonth.value.getMonth()
+const isDayInPagedMonth = (date: dayjs.Dayjs) => {
+  return date.month() === selectedMonth.value.month()
 }
 
 const dragElement = ref<HTMLElement | null>(null)
@@ -50,14 +49,14 @@ const dragRecord = ref<Row>()
 const hoverRecord = ref<string | null>()
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
-const focusedDate = ref<Date | null>(null)
+const focusedDate = ref<dayjs.Dayjs | null>(null)
 
 const resizeDirection = ref<'right' | 'left'>()
 const resizeRecord = ref<Row>()
 
 const dates = computed(() => {
-  const startOfMonth = dayjs(selectedMonth.value).startOf('month')
-  const endOfMonth = dayjs(selectedMonth.value).endOf('month')
+  const startOfMonth = selectedMonth.value.startOf('month')
+  const endOfMonth = selectedMonth.value.endOf('month')
 
   const firstDayToDisplay = startOfMonth.startOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
   const lastDayToDisplay = endOfMonth.endOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
@@ -71,7 +70,7 @@ const dates = computed(() => {
   for (let week = 0; week < numberOfRows; week++) {
     const weekArray = []
     for (let day = 0; day < 7; day++) {
-      weekArray.push(currentDay.toDate())
+      weekArray.push(currentDay)
       currentDay = currentDay.add(1, 'day')
     }
     weeksArray.push(weekArray)
@@ -669,7 +668,7 @@ const dropEvent = (event: DragEvent) => {
   }
 }
 
-const selectDate = (date: Date) => {
+const selectDate = (date: dayjs.Dayjs) => {
   dragRecord.value = undefined
   draggingId.value = null
   resizeRecord.value = undefined
@@ -679,12 +678,12 @@ const selectDate = (date: Date) => {
   selectedDate.value = date
 }
 
-const viewMore = (date: Date) => {
+const viewMore = (date: dayjs.Dayjs) => {
   sideBarFilterOption.value = 'selectedDate' as const
   selectedDate.value = date
 }
 
-const isDateSelected = (date: Date) => {
+const isDateSelected = (date: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
   return dayjs(date).isSame(selectedDate.value, 'day')
 }
@@ -782,7 +781,7 @@ const isDateSelected = (date: Date) => {
                 () => {
                   const record = {
                     row: {
-                      [calendarRange[0].fk_from_col!.title!]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
+                      [calendarRange[0].fk_from_col!.title!]: (day).format('YYYY-MM-DD HH:mm:ssZ'),
                     },
                   }
                   emit('new-record', record)
@@ -793,11 +792,11 @@ const isDateSelected = (date: Date) => {
             </NcButton>
             <span
               :class="{
-                'bg-brand-50  text-brand-500': dayjs(day).isSame(dayjs(), 'date'),
+                'bg-brand-50  text-brand-500': day.isSame(dayjs(), 'date'),
               }"
               class="px-1.5 rounded-lg py-1 my-1"
             >
-              {{ dayjs(day).format('DD') }}
+              {{ day.format('DD') }}
             </span>
           </div>
           <div v-if="!isUIAllowed('dataEdit')" class="p-3">{{ dayjs(day).format('DD') }}</div>

@@ -25,7 +25,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       throw new Error('Table meta is not available')
     }
 
-    const pageDate = ref<Date>(new Date())
+    const pageDate = ref<dayjs.Dayjs>(dayjs())
 
     const { isUIAllowed } = useRoles()
 
@@ -38,20 +38,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       field: '',
     })
 
-    const selectedDate = ref<Date>(new Date())
+    const selectedDate = ref<dayjs.Dayjs>(dayjs())
 
-    const selectedTime = ref<Date | null>(null)
+    const selectedTime = ref<dayjs.Dayjs | null>(null)
 
-    const selectedMonth = ref<Date>(new Date())
+    const selectedMonth = ref<dayjs.Dayjs>(dayjs())
 
     const isCalendarDataLoading = ref<boolean>(false)
 
     const selectedDateRange = ref<{
-      start: Date | null
-      end: Date | null
+      start: dayjs.Dayjs | null
+      end: dayjs.Dayjs | null
     }>({
-      start: dayjs(selectedDate.value).startOf('week').toDate(), // This will be the previous Monday
-      end: dayjs(selectedDate.value).startOf('week').add(6, 'day').toDate(), // This will be the following Sunday
+      start: dayjs(selectedDate.value).startOf('week'), // This will be the previous Monday
+      end: dayjs(selectedDate.value).startOf('week').add(6, 'day'), // This will be the following Sunday
     })
 
     const defaultPageSize = 25
@@ -151,16 +151,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         switch (sideBarFilterOption.value) {
           case 'day':
-            fromDate = dayjs(selectedDate.value).startOf('day')
-            toDate = dayjs(selectedDate.value).endOf('day')
+            fromDate = selectedDate.value.startOf('day')
+            toDate = selectedDate.value.endOf('day')
             break
           case 'week':
-            fromDate = dayjs(selectedDateRange.value.start).startOf('day')
-            toDate = dayjs(selectedDateRange.value.end).endOf('day')
+            fromDate = selectedDateRange.value.start.startOf('day')
+            toDate = selectedDateRange.value.end.endOf('day')
             break
           case 'month': {
-            const startOfMonth = dayjs(selectedMonth.value).startOf('month')
-            const endOfMonth = dayjs(selectedMonth.value).endOf('month')
+            const startOfMonth = selectedMonth.value.startOf('month')
+            const endOfMonth = selectedMonth.value.endOf('month')
 
             const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
             fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
@@ -168,17 +168,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             break
           }
           case 'year':
-            fromDate = dayjs(selectedDate.value).startOf('year')
-            toDate = dayjs(selectedDate.value).endOf('year')
+            fromDate = selectedDate.value.startOf('year')
+            toDate = selectedDate.value.endOf('year')
             break
           case 'selectedDate':
-            fromDate = dayjs(selectedDate.value).startOf('day')
-            toDate = dayjs(selectedDate.value).endOf('day')
+            fromDate = selectedDate.value.startOf('day')
+            toDate = selectedDate.value.endOf('day')
             break
         }
 
-        fromDate = dayjs(fromDate).format('YYYY-MM-DD HH:mm:ssZ')
-        toDate = dayjs(toDate).format('YYYY-MM-DD HH:mm:ssZ')
+        fromDate = fromDate!.format('YYYY-MM-DD HH:mm:ssZ')
+        toDate = toDate!.format('YYYY-MM-DD HH:mm:ssZ')
 
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
@@ -326,12 +326,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       switch (activeCalendarView.value) {
         case 'week':
-          fromDate = dayjs(selectedDateRange.value.start).startOf('day')
-          toDate = dayjs(selectedDateRange.value.end).endOf('day')
+          fromDate = selectedDateRange.value.start.startOf('day')
+          toDate = selectedDateRange.value.end.endOf('day')
           break
         case 'month': {
-          const startOfMonth = dayjs(selectedMonth.value).startOf('month')
-          const endOfMonth = dayjs(selectedMonth.value).endOf('month')
+          const startOfMonth = selectedMonth.value.startOf('month')
+          const endOfMonth = selectedMonth.value.endOf('month')
 
           const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
           fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day')
@@ -339,17 +339,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           break
         }
         case 'year':
-          fromDate = dayjs(selectedDate.value).startOf('year')
-          toDate = dayjs(selectedDate.value).endOf('year')
+          fromDate = selectedDate.value.startOf('year')
+          toDate = selectedDate.value.endOf('year')
           break
         case 'day':
-          fromDate = dayjs(selectedDate.value).startOf('day')
-          toDate = dayjs(selectedDate.value).endOf('day')
+          fromDate = selectedDate.value.startOf('day')
+          toDate = selectedDate.value.endOf('day')
           break
       }
 
-      fromDate = dayjs(fromDate).format('YYYY-MM-DD HH:mm:ssZ')
-      toDate = dayjs(toDate).format('YYYY-MM-DD HH:mm:ssZ')
+      fromDate = fromDate!.format('YYYY-MM-DD HH:mm:ssZ')
+      toDate = toDate!.format('YYYY-MM-DD HH:mm:ssZ')
 
       calendarRange.value.forEach((range) => {
         const fromCol = range.fk_from_col
@@ -435,7 +435,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // Set of Dates that have data
     const activeDates = computed(() => {
       if (!formattedData.value || !calendarRange.value) return []
-      const dates = new Set<Date>()
+      const dates = new Set<dayjs.Dayjs>()
 
       calendarRange.value.forEach((range) => {
         formattedData.value.forEach((row) => {
@@ -454,11 +454,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               currentDate = endDate
             }
             while (currentDate.isSameOrBefore(endDate)) {
-              dates.add(currentDate.toDate())
+              dates.add(currentDate)
               currentDate = currentDate.add(1, 'day')
             }
           } else if (start) {
-            dates.add(new Date(start))
+            dates.add(dayjs(start))
           }
         })
       })
@@ -641,7 +641,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 if (row) {
                   Object.assign(row.row, updatedRow)
                 }
-                Object.assign(row.oldRow, updatedRow)
+                Object.assign(row?.oldRow, updatedRow)
               },
               args: [clone(toUpdate), property],
             },
@@ -698,23 +698,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         selectedDate.value = selectedMonth.value
         pageDate.value = selectedDate.value
         selectedDateRange.value = {
-          start: dayjs(selectedDate.value).startOf('week').toDate(),
-          end: dayjs(selectedDate.value).endOf('week').toDate(),
+          start: selectedDate.value.startOf('week'),
+          end: selectedDate.value.endOf('week'),
         }
       } else if (oldValue === 'day') {
         pageDate.value = selectedDate.value
 
         selectedMonth.value = selectedDate.value
         selectedDateRange.value = {
-          start: dayjs(selectedDate.value).startOf('week').toDate(),
-          end: dayjs(selectedDate.value).endOf('week').toDate(),
+          start: selectedDate.value.startOf('week'),
+          end: selectedDate.value.endOf('week'),
         }
       } else if (oldValue === 'year') {
         selectedMonth.value = selectedDate.value
         pageDate.value = selectedDate.value
         selectedDateRange.value = {
-          start: dayjs(selectedDate.value).startOf('week').toDate(),
-          end: dayjs(selectedDate.value).endOf('week').toDate(),
+          start: selectedDate.value.startOf('week'),
+          end: selectedDate.value.endOf('week'),
         }
       }
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'

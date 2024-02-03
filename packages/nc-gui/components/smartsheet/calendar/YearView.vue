@@ -4,7 +4,7 @@ const { selectedDate, activeDates } = useCalendarViewStoreOrThrow()
 const months = computed(() => {
   const months = []
   for (let i = 0; i < 12; i++) {
-    months.push(new Date(selectedDate.value.getFullYear(), i, 1))
+    months.push(selectedDate.value.set('month', i).set('date', 1))
   }
   return months
 })

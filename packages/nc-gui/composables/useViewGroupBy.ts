@@ -295,7 +295,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
   }
 
-  async function loadGroupData(group: Group, force = false) {
+  async function loadGroupData(group: Group, force = false, params: any = {}) {
     if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
     if (group.children && !force) return
@@ -315,6 +315,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
           ...query,
+          ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
         } as any)

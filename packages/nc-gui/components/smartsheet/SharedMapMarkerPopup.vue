@@ -48,7 +48,7 @@ onMounted(async () => {
   await loadData()
 })
 
-provide(ReloadRowDataHookInj, reloadViewDataHook)
+provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 const currentRow = toRef(props, 'row')
 

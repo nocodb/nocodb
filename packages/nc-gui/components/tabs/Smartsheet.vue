@@ -55,7 +55,7 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmart
 
 useSqlEditor()
 
-const reloadEventHook = createEventHook<void | boolean>()
+const reloadEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
 

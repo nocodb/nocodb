@@ -5763,7 +5763,7 @@ class BaseModelSqlv2 {
     );
 
     if (lastModifiedTimeColumn) {
-      updateObject[lastModifiedTimeColumn.column_name] = Noco.ncMeta.now();
+      updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
     if (lastModifiedByColumn) {
@@ -5798,13 +5798,13 @@ class BaseModelSqlv2 {
       if (column.system) {
         if (isInsertData) {
           if (column.uidt === UITypes.CreatedTime) {
-            data[column.column_name] = Noco.ncMeta.now();
+            data[column.column_name] = this.now();
           } else if (column.uidt === UITypes.CreatedBy) {
             data[column.column_name] = cookie?.user?.id;
           }
         }
         if (column.uidt === UITypes.LastModifiedTime) {
-          data[column.column_name] = isInsertData ? null : Noco.ncMeta.now();
+          data[column.column_name] = isInsertData ? null : this.now();
         } else if (column.uidt === UITypes.LastModifiedBy) {
           data[column.column_name] = isInsertData ? null : cookie?.user?.id;
         }
@@ -5945,6 +5945,12 @@ class BaseModelSqlv2 {
         }
       }
     }
+  }
+
+  public now() {
+    return dayjs()
+      .utc()
+      .format(this.isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 }
 

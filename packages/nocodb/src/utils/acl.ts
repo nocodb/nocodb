@@ -255,6 +255,7 @@ const rolePermissions:
       passwordChange: true,
       baseList: true,
       testConnection: true,
+      isPluginActive: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -267,7 +268,6 @@ const rolePermissions:
       userInviteResend: true,
       upload: true,
       uploadViaURL: true,
-      isPluginActive: true,
       baseCreate: true,
       duplicateSharedBase: true,
     },

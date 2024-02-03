@@ -46,7 +46,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
-    "@types/jest": "^29.5.11",
+    "@types/jest": "^29.5.12",
     "cspell": "^4.2.8",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^8.10.0",

@@ -227,8 +227,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2(esbuild@0.19.11)
       '@iconify-json/ant-design':
-        specifier: ^1.1.14
-        version: 1.1.14
+        specifier: ^1.1.15
+        version: 1.1.15
       '@iconify-json/bi':
         specifier: ^1.1.23
         version: 1.1.23
@@ -257,11 +257,11 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       '@iconify-json/lucide':
-        specifier: ^1.1.161
-        version: 1.1.161
+        specifier: ^1.1.162
+        version: 1.1.162
       '@iconify-json/material-symbols':
-        specifier: ^1.1.71
-        version: 1.1.71
+        specifier: ^1.1.72
+        version: 1.1.72
       '@iconify-json/mdi':
         specifier: ^1.1.64
         version: 1.1.64
@@ -269,8 +269,8 @@ importers:
         specifier: ^1.1.8
         version: 1.1.8
       '@iconify-json/ph':
-        specifier: ^1.1.10
-        version: 1.1.10
+        specifier: ^1.1.11
+        version: 1.1.11
       '@iconify-json/ri':
         specifier: ^1.1.19
         version: 1.1.19
@@ -281,8 +281,8 @@ importers:
         specifier: ^1.1.12
         version: 1.1.12
       '@iconify-json/tabler':
-        specifier: ^1.1.104
-        version: 1.1.104
+        specifier: ^1.1.105
+        version: 1.1.105
       '@iconify-json/vscode-icons':
         specifier: ^1.1.33
         version: 1.1.33
@@ -527,8 +527,8 @@ importers:
         specifier: ^2.6.0
         version: 2.6.0
       clickhouse-migrations:
-        specifier: ^0.1.13
-        version: 0.1.13
+        specifier: ^0.1.14
+        version: 0.1.14
       colors:
         specifier: ^1.4.0
         version: 1.4.0
@@ -813,8 +813,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       '@types/jest':
-        specifier: ^29.5.11
-        version: 29.5.11
+        specifier: ^29.5.12
+        version: 29.5.12
       '@types/mocha':
         specifier: ^10.0.6
         version: 10.0.6
@@ -916,8 +916,8 @@ importers:
         version: 1.3.8
     devDependencies:
       '@types/jest':
-        specifier: ^29.5.11
-        version: 29.5.11
+        specifier: ^29.5.12
+        version: 29.5.12
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.14.0
         version: 6.14.0(@typescript-eslint/parser@6.14.0)(eslint@8.54.0)(typescript@5.3.2)
@@ -2860,20 +2860,12 @@ packages:
       - encoding
     dev: false
 
-  /@babel/code-frame@7.23.4:
-    resolution: {integrity: sha512-r1IONyb6Ia+jYR2vvIDhdWdlTGhqbBoFqLTQidzZ4kepUFH15ejXvFHxCVbtl7BOXIudsIubf4E81xeA3h3IXA==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      '@babel/highlight': 7.23.4
-      chalk: 2.4.2
-
   /@babel/code-frame@7.23.5:
     resolution: {integrity: sha512-CgH3s1a96LipHCmSUmYFPwY7MNx8C3avkq7i4Wl3cfa662ldtUe4VM1TPXX70pfmrlWTb6jLqTYrZyT2ZTJBgA==}
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/highlight': 7.23.4
       chalk: 2.4.2
-    dev: true
 
   /@babel/compat-data@7.22.9:
     resolution: {integrity: sha512-5UamI7xkUcJ3i9qVDS+KFDEK8/7oJ55/sJMB1Ge7IEapr7KfdfV/HErR+koZwOfd+SgtFKOKRhRakdg++DcJpQ==}
@@ -2889,7 +2881,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       '@ampproject/remapping': 2.2.1
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       '@babel/generator': 7.23.4
       '@babel/helper-compilation-targets': 7.22.15
       '@babel/helper-module-transforms': 7.23.3(@babel/core@7.23.3)
@@ -3368,7 +3360,7 @@ packages:
     resolution: {integrity: sha512-QPErUVm4uyJa60rkI73qneDacvdvzxshT3kksGqlGWYdOTIUOwJ7RDUL8sGqslY1uXWSL6xMFKEXDS3ox2uF0w==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       '@babel/parser': 7.23.6
       '@babel/types': 7.23.4
 
@@ -3376,7 +3368,7 @@ packages:
     resolution: {integrity: sha512-IYM8wSUwunWTB6tFC2dkKZhxbIjHoWemdK+3f8/wq8aKhbUscxD5MX72ubd90fxvFknaLPeGw5ycU84V1obHJg==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       '@babel/generator': 7.23.4
       '@babel/helper-environment-visitor': 7.22.20
       '@babel/helper-function-name': 7.23.0
@@ -3444,7 +3436,7 @@ packages:
     dependencies:
       '@vueuse/core': 7.7.1(vue@3.3.13)
       vue: 3.3.13
-      vue-demi: 0.14.6(vue@3.3.13)
+      vue-demi: 0.14.7(vue@3.3.13)
     dev: false
 
   /@ckpack/vue-color@1.5.0(vue@3.3.13):
@@ -3458,12 +3450,15 @@ packages:
       vue: 3.3.13
     dev: false
 
-  /@clickhouse/client@0.0.14:
-    resolution: {integrity: sha512-JkqPN0PhHyvf+jvPiD50LdXtemwJ+GZxDdWs0ysEL1qnVduDyvudzUECSqa29TG6Ho2NUFAEf5XjeUb+dMaT8A==}
-    engines: {node: '>=14'}
+  /@clickhouse/client-common@0.2.9:
+    resolution: {integrity: sha512-ecXcegMbT4HYNWtGcfyidW6lNVRqPogbFMY5kfjJmz4IXJ4WZbQMwj2IQgemwFwE7jyia2OEwPIVfw1sNfDHRA==}
+    dev: false
+
+  /@clickhouse/client@0.2.9:
+    resolution: {integrity: sha512-KqQlO9vZNSLyhMWG9+0/VXqcUZrNk1Hybr9icgI/nLCoX8RD19BJsakZJj38IQvQxNUTxvcItm/kyu/gD/9LXA==}
+    engines: {node: '>=16'}
     dependencies:
-      node-abort-controller: 3.1.1
-      uuid: 9.0.1
+      '@clickhouse/client-common': 0.2.9
     dev: false
 
   /@cloudflare/kv-asset-handler@0.3.0:
@@ -4569,8 +4564,8 @@ packages:
     engines: {node: '>=6.9.0'}
     dev: true
 
-  /@iconify-json/ant-design@1.1.14:
-    resolution: {integrity: sha512-43K3xnXzhGnNWwXhaSAZrP8ZV7pbqpGQsr3F88EpVJCUbQ9iquPbOldkGQ72k24FPvFKInCYFTgIuwhOVu0q1A==}
+  /@iconify-json/ant-design@1.1.15:
+    resolution: {integrity: sha512-E8XLyDo2HWVeVT8ViNTxF2+0Vgcox8FC73G4v64AM+lvlWpERcY90g7jXoBOeykl1pQCf1awkQUwjkynZ8Xb7A==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4629,14 +4624,14 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.161:
-    resolution: {integrity: sha512-jDjqCQ+Oj0uKf9a4uEby6buLqQDIUqwaUNvaDv6fmuo+QmbnJh1KSL2RNH0zJJYnBSytvYB8QVN4ebPNhEWlKQ==}
+  /@iconify-json/lucide@1.1.162:
+    resolution: {integrity: sha512-qmyZP9dTKN1J+ZNxzpqery29qysl9507tPqkGhRUjIJT/AhVxPZ1EY29ISg+jqqoCOhMvl+mR56z5LFb6KH37w==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/material-symbols@1.1.71:
-    resolution: {integrity: sha512-6zW73qQjzxPgQV0zJRyV9RabSJiVVGvDQtcZV4eZyw5Xpt5WZSJ7Gq3J0w+AkxAf5B21jMydJysQV6umrUMnrA==}
+  /@iconify-json/material-symbols@1.1.72:
+    resolution: {integrity: sha512-5IRqdI4HSbdatHBn6NZG+O9M1pJA39IrUhoBD824dXkKKE/3OmS2aU16w1hAhnr7n/euBqclkXAeUG3rDs0l1A==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4653,8 +4648,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ph@1.1.10:
-    resolution: {integrity: sha512-e7owJfx9BgnUVGXKk/243iFV4tHH1UiBDl5mWYkwKoPf4nN2rzPGdD7ISfvwr3SB25VvOteSC5DOVWxjs56Ywg==}
+  /@iconify-json/ph@1.1.11:
+    resolution: {integrity: sha512-izLvLZrU7WM03zNwNWNrAySv3i45hM3D3K6USjCGBSQMUG0HB8zxwrMf4O0leDrganmuQBH7Z0DWTgyH1ET/fg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4677,8 +4672,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/tabler@1.1.104:
-    resolution: {integrity: sha512-wULNz6HmRZSOUansZl57uI9PkE98QlkplIpalBEez56RtJ2Ygi30JqFNG+eSBRA8dYcYJG9TPNg6fcOV3TZYpA==}
+  /@iconify-json/tabler@1.1.105:
+    resolution: {integrity: sha512-USJbNfa0fAHBLilxTKn70wkvFnopmfcomfpqD0ul/69uyZnonztHhyrbM8MI9Ua4eYXaPymoB7tuZ+Ionx6xfg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -5005,7 +5000,7 @@ packages:
       jest-validate: 29.6.3
       jest-watcher: 29.6.4
       micromatch: 4.0.5
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
       slash: 3.0.0
       strip-ansi: 6.0.1
     transitivePeerDependencies:
@@ -8875,11 +8870,11 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest@29.5.11:
-    resolution: {integrity: sha512-S2mHmYIVe13vrm6q4kN6fLYYAka15ALQki/vgDC3mIukEOx8WJlv0kQPM+d4w8Gp6u0uSdKND04IlTXBv0rwnQ==}
+  /@types/jest@29.5.12:
+    resolution: {integrity: sha512-eDC8bTvT/QhYdxJAulQikueigY5AsdBRH2yDKW3yveW7svY3+DzN84/2NUgkw10RTiJbWqZrTtoGVdYlvFJdLw==}
     dependencies:
       expect: 29.6.4
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
     dev: true
 
   /@types/json-schema@7.0.12:
@@ -10362,7 +10357,7 @@ packages:
     dependencies:
       '@vueuse/shared': 7.7.1(vue@3.3.13)
       vue: 3.3.13
-      vue-demi: 0.14.6(vue@3.3.13)
+      vue-demi: 0.14.7(vue@3.3.13)
     dev: false
 
   /@vueuse/integrations@10.2.1(fuse.js@6.6.2)(jwt-decode@3.1.2)(qrcode@1.5.3)(sortablejs@1.15.2)(vue@3.3.13):
@@ -10472,7 +10467,7 @@ packages:
         optional: true
     dependencies:
       vue: 3.3.13
-      vue-demi: 0.14.6(vue@3.3.13)
+      vue-demi: 0.14.7(vue@3.3.13)
     dev: false
 
   /@webassemblyjs/ast@1.11.6:
@@ -12348,12 +12343,12 @@ packages:
     engines: {node: '>= 10'}
     dev: true
 
-  /clickhouse-migrations@0.1.13:
-    resolution: {integrity: sha512-PQ5+AZnT7kS3kY71XgmsJurG6U/KYft0XSCOSha3Y95YVJNq1fCEamVKMHRgv3TU9uCsxOniYK2az0JqtI9VUg==}
+  /clickhouse-migrations@0.1.14:
+    resolution: {integrity: sha512-N9Pf9CK+BACP0C8hf/FXDm5Rl0NG4l/FHdtRp7/5mNu7RSMY3orLoxV6bdz8dOtS99OzdHgVT0WnzibbHWxqzg==}
     hasBin: true
     dependencies:
-      '@clickhouse/client': 0.0.14
-      commander: 10.0.1
+      '@clickhouse/client': 0.2.9
+      commander: 11.1.0
     dev: false
 
   /clickhouse@2.6.0:
@@ -12531,9 +12526,15 @@ packages:
   /commander@10.0.1:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
     engines: {node: '>=14'}
+    dev: true
 
   /commander@11.0.0:
     resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
+    engines: {node: '>=16'}
+    dev: false
+
+  /commander@11.1.0:
+    resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
     engines: {node: '>=16'}
     dev: false
 
@@ -15597,7 +15598,7 @@ packages:
       typescript: latest
       webpack: ^5.11.0
     dependencies:
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       chalk: 4.1.2
       chokidar: 3.5.3
       cosmiconfig: 8.2.0
@@ -17724,7 +17725,7 @@ packages:
       jest-snapshot: 29.6.4
       jest-util: 29.6.3
       p-limit: 3.1.0
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
       pure-rand: 6.0.2
       slash: 3.0.0
       stack-utils: 2.0.6
@@ -17794,7 +17795,7 @@ packages:
       jest-validate: 29.6.3
       micromatch: 4.0.5
       parse-json: 5.2.0
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
       ts-node: 10.9.2(@types/node@20.3.3)(typescript@5.3.2)
@@ -17810,7 +17811,7 @@ packages:
       chalk: 4.1.2
       diff-sequences: 29.6.3
       jest-get-type: 29.6.3
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
     dev: true
 
   /jest-docblock@29.6.3:
@@ -17828,7 +17829,7 @@ packages:
       chalk: 4.1.2
       jest-get-type: 29.6.3
       jest-util: 29.6.3
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
     dev: true
 
   /jest-environment-node@29.6.4:
@@ -17872,7 +17873,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       jest-get-type: 29.6.3
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
     dev: true
 
   /jest-matcher-utils@29.6.4:
@@ -17882,20 +17883,20 @@ packages:
       chalk: 4.1.2
       jest-diff: 29.6.4
       jest-get-type: 29.6.3
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
     dev: true
 
   /jest-message-util@29.6.3:
     resolution: {integrity: sha512-FtzaEEHzjDpQp51HX4UMkPZjy46ati4T5pEMyM6Ik48ztu4T9LQplZ6OsimHx7EuM9dfEh5HJa6D3trEftu3dA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       '@jest/types': 29.6.3
       '@types/stack-utils': 2.0.1
       chalk: 4.1.2
       graceful-fs: 4.2.11
       micromatch: 4.0.5
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
       slash: 3.0.0
       stack-utils: 2.0.6
     dev: true
@@ -18032,7 +18033,7 @@ packages:
       jest-message-util: 29.6.3
       jest-util: 29.6.3
       natural-compare: 1.4.0
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
       semver: 7.5.4
     transitivePeerDependencies:
       - supports-color
@@ -18059,7 +18060,7 @@ packages:
       chalk: 4.1.2
       jest-get-type: 29.6.3
       leven: 3.1.0
-      pretty-format: 29.6.3
+      pretty-format: 29.7.0
     dev: true
 
   /jest-watcher@29.6.4:
@@ -21242,7 +21243,7 @@ packages:
     resolution: {integrity: sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==}
     engines: {node: '>=8'}
     dependencies:
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       error-ex: 1.3.2
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
@@ -22017,15 +22018,6 @@ packages:
   /pretty-bytes@6.1.1:
     resolution: {integrity: sha512-mQUvGU6aUFQ+rNvTIAcZuWGRT9a6f6Yrg9bHs4ImKF+HZCEK+plBvnAZYSIQztknZF2qnzNtr6F8s0+IuptdlQ==}
     engines: {node: ^14.13.1 || >=16.0.0}
-    dev: true
-
-  /pretty-format@29.6.3:
-    resolution: {integrity: sha512-ZsBgjVhFAj5KeK+nHfF1305/By3lechHQSMWCTl8iHSbfOm2TN5nHEtFc/+W7fAyUeCs2n5iow72gld4gW0xDw==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@jest/schemas': 29.6.3
-      ansi-styles: 5.2.0
-      react-is: 18.2.0
     dev: true
 
   /pretty-format@29.7.0:
@@ -25706,7 +25698,7 @@ packages:
       vue-tsc:
         optional: true
     dependencies:
-      '@babel/code-frame': 7.23.4
+      '@babel/code-frame': 7.23.5
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       chokidar: 3.5.3
@@ -26096,6 +26088,21 @@ packages:
         optional: true
     dependencies:
       vue: 3.3.13
+
+  /vue-demi@0.14.7(vue@3.3.13):
+    resolution: {integrity: sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==}
+    engines: {node: '>=12'}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: 3.3.13
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      vue: 3.3.13
+    dev: false
 
   /vue-devtools-stub@0.1.0:
     resolution: {integrity: sha512-RutnB7X8c5hjq39NceArgXg28WZtZpGc3+J16ljMiYnFhKvd8hITxSWQSQ5bvldxMDU6gG5mkxl1MTQLXckVSQ==}

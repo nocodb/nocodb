@@ -140,13 +140,24 @@ const paginate = (action: 'next' | 'prev') => {
       }"
       class="flex items-center"
     >
-      <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
-        <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
+          <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
+        </NcButton>
+        <template #title>
+          <span>{{ $t('labels.previousMonth') }}</span>
+        </template>
+      </NcTooltip>
+
       <span class="font-bold text-gray-700">{{ currentMonth }}</span>
-      <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
-        <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
+          <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+        </NcButton>
+        <template #title>
+          <span>{{ $t('labels.nextMonth') }}</span>
+        </template>
+      </NcTooltip>
     </div>
     <div class="border-1 border-gray-200 rounded-y-xl max-w-[320px]">
       <div class="flex flex-row bg-gray-100 gap-2 rounded-t-xl justify-between p-2">

@@ -41,16 +41,16 @@ importers:
         version: 0.5.1(vue@3.3.13)
       '@tiptap/extension-link':
         specifier: 2.2.1
-        version: 2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1)
+        version: 2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1)
       '@tiptap/extension-task-list':
         specifier: 2.2.1
-        version: 2.2.1(@tiptap/core@2.1.16)
+        version: 2.2.1(@tiptap/core@2.2.1)
       '@tiptap/extension-underline':
         specifier: ^2.2.1
-        version: 2.2.1(@tiptap/core@2.1.16)
+        version: 2.2.1(@tiptap/core@2.2.1)
       '@tiptap/html':
         specifier: 2.2.1
-        version: 2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1)
+        version: 2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1)
       '@tiptap/pm':
         specifier: ^2.2.1
         version: 2.2.1
@@ -59,7 +59,7 @@ importers:
         version: 2.2.1(@tiptap/pm@2.2.1)
       '@tiptap/vue-3':
         specifier: 2.2.1
-        version: 2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1)(vue@3.3.13)
+        version: 2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1)(vue@3.3.13)
       '@vue-flow/additional-components':
         specifier: ^1.3.3
         version: 1.3.3(@vue-flow/core@1.30.1)(vue@3.3.13)
@@ -225,7 +225,7 @@ importers:
         version: 0.43.1(eslint@8.56.0)
       '@esbuild-plugins/node-modules-polyfill':
         specifier: ^0.2.2
-        version: 0.2.2(esbuild@0.19.11)
+        version: 0.2.2(esbuild@0.20.0)
       '@iconify-json/ant-design':
         specifier: ^1.1.15
         version: 1.1.15
@@ -3442,12 +3442,12 @@ packages:
       jsdoc-type-pratt-parser: 4.0.0
     dev: true
 
-  /@esbuild-plugins/node-modules-polyfill@0.2.2(esbuild@0.19.11):
+  /@esbuild-plugins/node-modules-polyfill@0.2.2(esbuild@0.20.0):
     resolution: {integrity: sha512-LXV7QsWJxRuMYvKbiznh+U1ilIop3g2TeKRzUxOG5X3YITc8JyyTa90BmLwqqv0YnX4v32CSlG+vsziZp9dMvA==}
     peerDependencies:
       esbuild: '*'
     dependencies:
-      esbuild: 0.19.11
+      esbuild: 0.20.0
       escape-string-regexp: 4.0.0
       rollup-plugin-node-polyfills: 0.2.1
     dev: true
@@ -8227,14 +8227,6 @@ packages:
     resolution: {integrity: sha512-7qSgZbincDDDFyRweCIEvZULFAw5iz/DeunhvuxpL31nfntX3P4Yd4HkHBRg9H8CdqY1e5WFN1PZIz/REL9MVQ==}
     dev: false
 
-  /@tiptap/core@2.1.16(@tiptap/pm@2.2.1):
-    resolution: {integrity: sha512-nKnV603UyzbcrqhCXTWxDN22Ujb4VNfmKkACms1JOMGo7BVARmMCp2nBsLW8fmgCxmf8AS0LXY63tU7ILWYc5g==}
-    peerDependencies:
-      '@tiptap/pm': ^2.0.0
-    dependencies:
-      '@tiptap/pm': 2.2.1
-    dev: false
-
   /@tiptap/core@2.2.1(@tiptap/pm@2.2.1):
     resolution: {integrity: sha512-9G6N2d5q4M5i/elK61qu28uO5MBDKEbStQnHuVKNe+LVNpb6xZal1AcIilmq1FVeuCUh3kYl3cFH3nBQOXtZUw==}
     peerDependencies:
@@ -8259,13 +8251,13 @@ packages:
       '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
     dev: false
 
-  /@tiptap/extension-bubble-menu@2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1):
+  /@tiptap/extension-bubble-menu@2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1):
     resolution: {integrity: sha512-FQO1CDS777E34T8jwnYDBz3VmGyVzv3Olj0o01c3fHR7OSnA7urAxx+z9Z4CWqUJhRMV9td0v0wiZjQ4q1DdYw==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
       '@tiptap/pm': 2.2.1
       tippy.js: 6.3.7
     dev: false
@@ -8314,13 +8306,13 @@ packages:
       '@tiptap/pm': 2.2.1
     dev: false
 
-  /@tiptap/extension-floating-menu@2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1):
+  /@tiptap/extension-floating-menu@2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1):
     resolution: {integrity: sha512-2lQaEIUbexw8yCGDLxNqhCwpZMoclnDtAdObDKCgufLcA+tVSdVirfcx7HJZ4kmRXmUhdG3uvawQVchZJ7FGiw==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
       '@tiptap/pm': 2.2.1
       tippy.js: 6.3.7
     dev: false
@@ -8379,13 +8371,13 @@ packages:
       '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
     dev: false
 
-  /@tiptap/extension-link@2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1):
+  /@tiptap/extension-link@2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1):
     resolution: {integrity: sha512-3oh+tRFGtj3Scv3i6FBJOakX650NBI+cmemJxggaiH8PPw3+q+eZneqDQHqINcgel5/HQXFdXWSpfYsZi7EDoQ==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
       '@tiptap/pm': 2.2.1
       linkifyjs: 4.1.3
     dev: false
@@ -8422,12 +8414,12 @@ packages:
       '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
     dev: false
 
-  /@tiptap/extension-task-list@2.2.1(@tiptap/core@2.1.16):
+  /@tiptap/extension-task-list@2.2.1(@tiptap/core@2.2.1):
     resolution: {integrity: sha512-hE/h7a2fYm0olWax7ywm+K10L4whyWZdlwDSTHiuE44++o+ANn4AcV/izz8/qFBbPUnf9qG0QZituzLQlTTenw==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
     dev: false
 
   /@tiptap/extension-text@2.2.1(@tiptap/core@2.2.1):
@@ -8438,21 +8430,21 @@ packages:
       '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
     dev: false
 
-  /@tiptap/extension-underline@2.2.1(@tiptap/core@2.1.16):
+  /@tiptap/extension-underline@2.2.1(@tiptap/core@2.2.1):
     resolution: {integrity: sha512-lGPoFFzVhqApG2Q4dIsxzMVbdhJw6bLqFHN9g1Ei53NZ3uGMJbaHoB9bbRGWPkuG+K6Y5shf5fByXbmSjBvBuA==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
     dev: false
 
-  /@tiptap/html@2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1):
+  /@tiptap/html@2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1):
     resolution: {integrity: sha512-EN4cEJImXG+wtYhWeVtpJ6F4MXn64m3Gtr+qbywdHwbDf6u/6TJ9Um2QB1YqbBYBP0QBS/pBpgBghKZeVrtB0g==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
       '@tiptap/pm': 2.2.1
       zeed-dom: 0.10.11
     dev: false
@@ -8506,16 +8498,16 @@ packages:
       - '@tiptap/pm'
     dev: false
 
-  /@tiptap/vue-3@2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1)(vue@3.3.13):
+  /@tiptap/vue-3@2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1)(vue@3.3.13):
     resolution: {integrity: sha512-vRYTPnpKJBrpQEjj+7WDx7AKcjNskOlHMEfgCPlwFMG6o1dwbDDtXWj9U53SyiZfitRkudb7WAbX0RyleBjdIQ==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
       vue: 3.3.13
     dependencies:
-      '@tiptap/core': 2.1.16(@tiptap/pm@2.2.1)
-      '@tiptap/extension-bubble-menu': 2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1)
-      '@tiptap/extension-floating-menu': 2.2.1(@tiptap/core@2.1.16)(@tiptap/pm@2.2.1)
+      '@tiptap/core': 2.2.1(@tiptap/pm@2.2.1)
+      '@tiptap/extension-bubble-menu': 2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1)
+      '@tiptap/extension-floating-menu': 2.2.1(@tiptap/core@2.2.1)(@tiptap/pm@2.2.1)
       '@tiptap/pm': 2.2.1
       vue: 3.3.13
     dev: false
@@ -9841,7 +9833,7 @@ packages:
       fast-glob: 3.3.2
       magic-string: 0.30.5
       unplugin: 1.6.0
-      webpack: 5.89.0(esbuild@0.19.11)
+      webpack: 5.89.0(esbuild@0.20.0)
       webpack-sources: 3.2.3
     transitivePeerDependencies:
       - rollup
@@ -11852,7 +11844,7 @@ packages:
   /call-bind@1.0.2:
     resolution: {integrity: sha512-7O+FbCihrB5WGbFYesctwmTKae6rOiIzmz1icreWJ+0aA7LJfuqhEso2T9ncpcFtzMQtzXf2QGGueWJGTYsqrA==}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       get-intrinsic: 1.2.1
 
   /call-bind@1.0.5:
@@ -13826,7 +13818,7 @@ packages:
     dependencies:
       define-properties: 1.2.0
       es-abstract: 1.22.1
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       functions-have-names: 1.2.3
       get-intrinsic: 1.2.1
       globalthis: 1.0.3
@@ -15488,12 +15480,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /function-bind@1.1.1:
-    resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
-
   /function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
-    dev: true
 
   /function.prototype.name@1.1.5:
     resolution: {integrity: sha512-uN7m/BzVKQnCUF/iW8jYea67v++2u7m5UgENbHRtdDVclOUP+FMPlCNdmk0h/ysGyo2tavMJEDqJAkJdRa1vMA==}
@@ -15617,7 +15605,7 @@ packages:
   /get-intrinsic@1.2.1:
     resolution: {integrity: sha512-2DcsyfABl+gVHEfCOaTrWgyt+tb6MSEGmKq+kI5HwLbIYgjgmMcV8KQ41uaKz1xxUcn9tJtgFbQUEVcEbd0FYw==}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       has: 1.0.3
       has-proto: 1.0.1
       has-symbols: 1.0.3
@@ -16259,7 +16247,7 @@ packages:
     resolution: {integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==}
     engines: {node: '>= 0.4.0'}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
 
   /hash-sum@2.0.0:
     resolution: {integrity: sha512-WdZTbAByD+pHfl/g9QSsBIIwy8IT+EsPiKDs0KNX+zSHhdDLFKdZu0BQHljvO+0QI/BasbMSUa8wYNCZTvhslg==}
@@ -24046,7 +24034,7 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /terser-webpack-plugin@5.3.9(esbuild@0.19.11)(webpack@5.89.0):
+  /terser-webpack-plugin@5.3.9(esbuild@0.20.0)(webpack@5.89.0):
     resolution: {integrity: sha512-ZuXsqE07EcggTWQjXUj+Aot/OMcD0bMKGgF63f7UxYcu5/AJF53aIpK1YoP5xR9l6s/Hy2b+t1AM0bLNPRuhwA==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
@@ -24063,12 +24051,12 @@ packages:
         optional: true
     dependencies:
       '@jridgewell/trace-mapping': 0.3.20
-      esbuild: 0.19.11
+      esbuild: 0.20.0
       jest-worker: 27.5.1
       schema-utils: 3.3.0
       serialize-javascript: 6.0.1
       terser: 5.19.2
-      webpack: 5.89.0(esbuild@0.19.11)
+      webpack: 5.89.0(esbuild@0.20.0)
     dev: true
 
   /terser-webpack-plugin@5.3.9(webpack@5.89.0):
@@ -24386,7 +24374,7 @@ packages:
       micromatch: 4.0.5
       semver: 7.5.4
       source-map: 0.7.4
-      webpack: 5.89.0(esbuild@0.19.11)
+      webpack: 5.89.0(esbuild@0.20.0)
     dev: true
 
   /ts-morph@4.3.3:
@@ -26021,7 +26009,7 @@ packages:
     resolution: {integrity: sha512-poXpCylU7ExuvZK8z+On3kX+S8o/2dQ/SVYueKA0D4WEMXROXgY8Ez50/bQEUmvoSMMrWcrJqCHuhAbsiwg7Dg==}
     dev: true
 
-  /webpack@5.89.0(esbuild@0.19.11):
+  /webpack@5.89.0(esbuild@0.20.0):
     resolution: {integrity: sha512-qyfIC10pOr70V+jkmud8tMfajraGCZMBWJtrmuBymQKCrLTRejBI8STDp1MCyZu/QTdZSeacCQYpYNQVOzX5kw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
@@ -26052,7 +26040,7 @@ packages:
       neo-async: 2.6.2
       schema-utils: 3.3.0
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.9(esbuild@0.19.11)(webpack@5.89.0)
+      terser-webpack-plugin: 5.3.9(esbuild@0.20.0)(webpack@5.89.0)
       watchpack: 2.4.0
       webpack-sources: 3.2.3
     transitivePeerDependencies:

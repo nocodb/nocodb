@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
 import type { ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
-import { parseProp } from '#imports'
+import { isBt, isMm, parseProp } from '#imports'
 
 export default function convertCellData(
   args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
@@ -254,7 +254,7 @@ export default function convertCellData(
         return undefined
       }
 
-      if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO) {
+      if (isBt(column)) {
         const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
 
         if (
@@ -274,7 +274,7 @@ export default function convertCellData(
         return undefined
       }
 
-      if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY) {
+      if (isMm(column)) {
         const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
 
         if (

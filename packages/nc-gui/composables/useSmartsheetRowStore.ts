@@ -83,7 +83,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
           base.value.id as string,
           metaValue?.id as string,
           encodeURIComponent(rowId),
-          type as 'mm' | 'hm',
+          type,
           column.id as string,
           encodeURIComponent(relatedRowId),
         )
@@ -185,6 +185,43 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       })
     }
 
+    // clear MM cell
+    const cleaMMCell = async (column: ColumnType) => {
+      try {
+        if (!column || !isLinksOrLTAR(column)) return
+
+        const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
+
+        if (isNew.value) {
+          state.value[column.title!] = null
+        } else if (currentRow.value) {
+          if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.MANY_TO_MANY) {
+            if (!currentRow.value.row[column.title!]) return
+
+            console.log('currentRow.value.row, meta.value?.columns', currentRow.value.row, meta.value?.columns)
+            const result = await $api.dbDataTableRow.nestedListCopyPasteOrDeleteAll(
+              meta.value?.id as string,
+              column.id as string,
+              [
+                {
+                  operation: 'deleteAll',
+                  rowId: extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]) as string,
+                  columnId: column.id as string,
+                  fk_related_model_id: (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+                },
+              ],
+            )
+
+            currentRow.value.row[column.title!] = null
+
+            return Array.isArray(result.unlink) ? result.unlink : []
+          }
+        }
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
     return {
       row,
       state,
@@ -196,6 +233,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       loadRow,
       currentRow,
       clearLTARCell,
+      cleaMMCell,
     }
   },
   'smartsheet-row-store',

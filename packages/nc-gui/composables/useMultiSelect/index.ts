@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType, UserFieldRecordType, ViewType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
+import { UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
@@ -12,9 +12,11 @@ import type { Nullable, Row } from '#imports'
 import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  isBt,
   isDrawerOrModalExist,
   isExpandedCellInputExist,
   isMac,
+  isMm,
   isTypableInputColumn,
   message,
   parseProp,
@@ -136,10 +138,7 @@ export function useMultiSelect(
       }
     }
 
-    if (
-      columnObj.uidt === UITypes.LinkToAnotherRecord &&
-      (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
-    ) {
+    if (isBt(columnObj)) {
       // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
       textToCopy = {
         fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
@@ -147,10 +146,7 @@ export function useMultiSelect(
       }
     }
 
-    if (
-      columnObj.uidt === UITypes.Links &&
-      (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY
-    ) {
+    if (isMm(columnObj)) {
       textToCopy = {
         rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
         columnId: columnObj.id,
@@ -878,10 +874,7 @@ export function useMultiSelect(
           const columnObj = unref(fields)[activeCell.col]
 
           // handle belongs to column
-          if (
-            columnObj.uidt === UITypes.LinkToAnotherRecord &&
-            (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
-          ) {
+          if (isBt(columnObj)) {
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
@@ -911,10 +904,7 @@ export function useMultiSelect(
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }
 
-          if (
-            columnObj.uidt === UITypes.Links &&
-            (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY
-          ) {
+          if (isMm(columnObj)) {
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
@@ -937,21 +927,26 @@ export function useMultiSelect(
             let result
 
             try {
-              result = await api.dbDataTableRow.nestedListCopyPaste(meta.value?.id as string, columnObj.id as string, [
-                {
-                  operation: 'copy',
-                  rowId: pasteVal.rowId,
-                  columnId: pasteVal.columnId,
-                  fk_related_model_id: pasteVal.fk_related_model_id,
-                },
-                {
-                  operation: 'paste',
-                  rowId: pasteRowPk,
-                  columnId: pasteVal.columnId,
-                  fk_related_model_id:
-                    (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
-                },
-              ])
+              result = await api.dbDataTableRow.nestedListCopyPasteOrDeleteAll(
+                meta.value?.id as string,
+                columnObj.id as string,
+                [
+                  {
+                    operation: 'copy',
+                    rowId: pasteVal.rowId,
+                    columnId: pasteVal.columnId,
+                    fk_related_model_id: pasteVal.fk_related_model_id,
+                  },
+                  {
+                    operation: 'paste',
+                    rowId: pasteRowPk,
+                    columnId: columnObj.id as string,
+                    fk_related_model_id:
+                      (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
+                  },
+                ],
+                { viewId: activeView?.value?.id },
+              )
             } catch {
               rowObj.row[columnObj.title!] = oldCellValue
               return
@@ -970,17 +965,23 @@ export function useMultiSelect(
                     pasteRowPk: string,
                     result: { link: any[]; unlink: any[] },
                     value: number,
-                    activeCell: Nullable<Cell>,
+                    activeCell: Cell,
                   ) => {
+                    const rowObj = unref(data)[activeCell.row]
+                    const columnObj = unref(fields)[activeCell.col]
+
                     await Promise.all([
                       result.link.length &&
-                        api.dbDataTableRow.nestedLink(tableId, columnId, encodeURIComponent(pasteRowPk), result.link),
+                        api.dbDataTableRow.nestedLink(tableId, columnId, encodeURIComponent(pasteRowPk), result.link, {
+                          viewId: activeView?.value?.id,
+                        }),
                       result.unlink.length &&
                         api.dbDataTableRow.nestedUnlink(
                           meta.value?.id as string,
                           columnObj.id as string,
                           encodeURIComponent(pasteRowPk),
                           result.unlink,
+                          { viewId: activeView?.value?.id },
                         ),
                     ])
 
@@ -997,8 +998,11 @@ export function useMultiSelect(
                     pasteRowPk: string,
                     result: { link: any[]; unlink: any[] },
                     value: number,
-                    activeCell: Nullable<Cell>,
+                    activeCell: Cell,
                   ) => {
+                    const rowObj = unref(data)[activeCell.row]
+                    const columnObj = unref(fields)[activeCell.col]
+
                     await Promise.all([
                       result.unlink.length &&
                         api.dbDataTableRow.nestedLink(tableId, columnId, encodeURIComponent(pasteRowPk), result.unlink),

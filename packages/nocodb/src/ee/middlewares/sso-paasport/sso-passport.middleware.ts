@@ -142,7 +142,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
             },
           );
 
-          return callback(null, { ...user, token });
+          callback(null, { ...user, token });
         } catch (e) {
           callback(e);
         }
@@ -158,7 +158,6 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     // OpenID Connect
     const clientConfig = {
-      // todo: add issuer or replace
       issuer: (config as any).issuer,
       authorizationURL: config.authUrl,
       tokenURL: config.tokenUrl,
@@ -167,9 +166,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       clientSecret: config.clientSecret,
       scope: config.scopes || ['profile', 'email'],
       callbackURL: req.ncSiteUrl + `/sso/${client.id}/redirect`,
-
       pkce: 'S256',
-
       // cache based store for managing the state of the authorization request
       store: {
         store: async (req, meta, callback) => {

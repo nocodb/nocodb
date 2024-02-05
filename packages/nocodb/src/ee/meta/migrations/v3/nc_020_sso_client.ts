@@ -21,8 +21,8 @@ const up = async (knex: Knex) => {
   });
 };
 
-const down = async (_knex) => {
-  // todo:
+const down = async (knex: Knex) => {
+  await knex.schema.dropTable(MetaTable.SSO_CLIENT);
 };
 
 export { up, down };

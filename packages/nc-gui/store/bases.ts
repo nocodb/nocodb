@@ -9,9 +9,15 @@ import type { NcProject, User } from '#imports'
 export const useBases = defineStore('basesStore', () => {
   const { $api } = useNuxtApp()
 
+  const { isUIAllowed } = useRoles()
+
   const bases = ref<Map<string, NcProject>>(new Map())
 
-  const basesList = computed<NcProject[]>(() => Array.from(bases.value.values()).sort((a, b) => a.updated_at - b.updated_at))
+  const basesList = computed<NcProject[]>(() =>
+    Array.from(bases.value.values()).sort(
+      (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
+    ),
+  )
   const basesUser = ref<Map<string, User[]>>(new Map())
 
   const router = useRouter()
@@ -146,6 +152,8 @@ export const useBases = defineStore('basesStore', () => {
         })
         return acc
       }, new Map())
+
+      await updateIfBaseOrderIsNullOrDuplicate()
     } catch (e) {
       console.error(e)
       message.error(e.message)
@@ -214,8 +222,17 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   const updateProject = async (baseId: string, baseUpdatePayload: BaseType) => {
+    const existingProject = bases.value.get(baseId) ?? ({} as any)
+
+    const base = {
+      ...existingProject,
+      ...baseUpdatePayload,
+    }
+
+    bases.value.set(baseId, base)
+
     await api.base.update(baseId, baseUpdatePayload)
-    // todo: update base in store
+
     await loadProject(baseId, true)
   }
 
@@ -285,6 +302,46 @@ export const useBases = defineStore('basesStore', () => {
     }
 
     await navigateTo(`/nc/${baseId}`)
+  }
+
+  async function updateIfBaseOrderIsNullOrDuplicate() {
+    if (!isUIAllowed('baseReorder')) return
+
+    const basesArray = Array.from(bases.value.values())
+
+    const baseOrderSet = new Set()
+    let hasNullOrDuplicates = false
+
+    // Check if basesArray contains null or duplicate order
+    for (const base of basesArray) {
+      if (base.order === null || baseOrderSet.has(base.order)) {
+        hasNullOrDuplicates = true
+        break
+      }
+      baseOrderSet.add(base.order)
+    }
+
+    if (!hasNullOrDuplicates) return
+
+    // update the local state and return updated bases payload
+    const updatedBasesOrder = basesArray.map((base, i) => {
+      bases.value.set(base.id!, { ...base, order: i + 1 })
+
+      return {
+        id: base.id,
+        order: i + 1,
+      }
+    })
+
+    try {
+      await Promise.all(
+        updatedBasesOrder.map(async (base) => {
+          await api.base.update(base.id!, { order: base.order })
+        }),
+      )
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   onMounted(() => {

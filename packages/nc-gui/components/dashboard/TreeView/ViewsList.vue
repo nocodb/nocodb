@@ -22,7 +22,15 @@ import {
 } from '#imports'
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
+  (
+    event: 'openModal',
+    data: {
+      type: ViewTypes
+      title?: string
+      copyViewId?: string
+      groupingFieldColumnId?: string
+    },
+  ): void
 
   (event: 'deleted'): void
 }
@@ -119,7 +127,10 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   if (views.value.length < 2) return
 
-  const { newIndex = 0, oldIndex = 0 } = evt
+  let { newIndex = 0, oldIndex = 0 } = evt
+
+  newIndex = newIndex - 1
+  oldIndex = oldIndex - 1
 
   if (newIndex === oldIndex) return
 
@@ -149,7 +160,10 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
     })
   }
 
-  const children = evt.to.children as unknown as HTMLLIElement[]
+  const children = Array.from(evt.to.children as unknown as HTMLLIElement[])
+
+  // remove `Create View` children from list
+  children.shift()
 
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
@@ -196,7 +210,7 @@ const initSortable = (el: HTMLElement) => {
   })
 }
 
-onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
+onMounted(() => menuRef.value && isUIAllowed('viewCreateOrEdit') && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 async function changeView(view: ViewType) {
@@ -279,7 +293,11 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
-      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, baseId: base.value.id })
+      removeFromRecentViews({
+        viewId: view.id,
+        tableId: view.fk_model_id,
+        baseId: base.value.id,
+      })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({

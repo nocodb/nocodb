@@ -22,6 +22,8 @@ const source = computed(() => base.value?.sources?.[sourceIndex.value])
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
@@ -114,7 +116,7 @@ const initSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (menuRefs.value) {
+  if (menuRefs.value && isUIAllowed('viewCreateOrEdit')) {
     if (menuRefs.value instanceof HTMLElement) {
       initSortable(menuRefs.value)
     } else {

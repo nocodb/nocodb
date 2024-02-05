@@ -2785,7 +2785,8 @@
                   "value": {
                     "color": "#24716E",
                     "meta": null,
-                    "title": "My Base"
+                    "title": "My Base",
+                    "order": 1
                   }
                 }
               }
@@ -21266,7 +21267,8 @@
           {
             "color": "#24716E",
             "meta": null,
-            "title": "My Base"
+            "title": "My Base",
+            "order": 1
           }
         ],
         "title": "Base Update Request Model",
@@ -21303,6 +21305,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the list of projects.",
+            "example": 1,
+            "minimum": 0
           }
         }
       },

@@ -51,7 +51,7 @@ const { allowCSVDownload } = useSharedView()
       <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
       <LazySmartsheetToolbarFieldsMenu
-        v-if="isGrid || isGallery || isKanban || isMap || isCalendar"
+        v-if="isGrid || isGallery || isKanban || isMap || !isCalendar"
         :show-system-fields="false"
       />
 

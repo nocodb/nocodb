@@ -22,6 +22,7 @@ const {
   pageDate,
   displayField,
   selectedDate,
+  selectedTime,
   selectedMonth,
   calendarRange,
   selectedDateRange,
@@ -91,6 +92,7 @@ const renderData = computed<Array<Row>>(() => {
           sideBarFilterOption.value === 'month' ||
           sideBarFilterOption.value === 'year' ||
           sideBarFilterOption.value === 'selectedDate' ||
+          sideBarFilterOption.value === 'selectedHours' ||
           sideBarFilterOption.value === 'week' ||
           sideBarFilterOption.value === 'day'
         ) {
@@ -118,6 +120,10 @@ const renderData = computed<Array<Row>>(() => {
               fromDate = dayjs(selectedDate.value).startOf('day')
               toDate = dayjs(selectedDate.value).endOf('day')
               break
+            case 'selectedHours':
+              fromDate = dayjs(selectedTime.value).startOf('hour')
+              toDate = dayjs(selectedTime.value).endOf('hour')
+              break
           }
 
           if (from && to) {
@@ -141,6 +147,10 @@ const renderData = computed<Array<Row>>(() => {
           pushToArray(rangedData, record, range)
         } else if (sideBarFilterOption.value === 'selectedDate' || sideBarFilterOption.value === 'day') {
           if (from.isSame(selectedDate.value, 'day')) {
+            pushToArray(rangedData, record, range)
+          }
+        } else if (sideBarFilterOption.value === 'selectedHours') {
+          if (from.isSame(selectedTime.value, 'hour')) {
             pushToArray(rangedData, record, range)
           }
         } else if (
@@ -196,11 +206,21 @@ const options = computed(() => {
         ]
       }
     case 'week' as const:
-      return [
-        { label: 'In this week', value: 'week' },
-        { label: 'Without dates', value: 'withoutDates' },
-        { label: 'All records', value: 'allRecords' },
-      ]
+      if (calDataType.value === UITypes.Date) {
+        return [
+          { label: 'In this day', value: 'day' },
+          { label: 'Without dates', value: 'withoutDates' },
+          { label: 'All records', value: 'allRecords' },
+        ]
+      } else {
+        return [
+          { label: 'In this day', value: 'day' },
+          { label: 'Without dates', value: 'withoutDates' },
+          { label: 'All records', value: 'allRecords' },
+          { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'In selected date', value: 'selectedDate' },
+        ]
+      }
     case 'month' as const:
       return [
         { label: 'In this month', value: 'month' },

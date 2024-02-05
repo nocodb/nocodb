@@ -1,7 +1,15 @@
 import type { ComputedRef, Ref } from 'vue'
-import { type Api, type CalendarType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
+import {
+  type Api,
+  type CalendarType,
+  type ColumnType,
+  type PaginatedType,
+  type TableType,
+  UITypes,
+  type ViewType,
+} from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { addDays, addMonths, addYears, extractPkFromRow, extractSdkResponseErrorMsg, rowPkData } from '~/utils'
+import { extractPkFromRow, extractSdkResponseErrorMsg, rowPkData } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState, useUndoRedo } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
@@ -40,7 +48,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const selectedDate = ref<dayjs.Dayjs>(dayjs())
 
-    const selectedTime = ref<dayjs.Dayjs | null>(null)
+    const selectedTime = ref<dayjs.Dayjs>(dayjs())
 
     const selectedMonth = ref<dayjs.Dayjs>(dayjs())
 
@@ -146,7 +154,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         sideBarFilterOption.value === 'month' ||
         sideBarFilterOption.value === 'day' ||
         sideBarFilterOption.value === 'year' ||
-        sideBarFilterOption.value === 'selectedDate'
+        sideBarFilterOption.value === 'selectedDate' ||
+        sideBarFilterOption.value === 'selectedHours'
       ) {
         let fromDate: string | null | dayjs.Dayjs = null
         let toDate: string | null | dayjs.Dayjs = null
@@ -177,10 +186,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             fromDate = selectedDate.value.startOf('day')
             toDate = selectedDate.value.endOf('day')
             break
+          case 'selectedHours':
+            fromDate = selectedTime.value?.startOf('hour')
+            toDate = selectedTime.value?.endOf('hour')
+            break
         }
 
-        fromDate = fromDate!.format('YYYY-MM-DD HH:mm:ssZ')
-        toDate = toDate!.format('YYYY-MM-DD HH:mm:ssZ')
+        if (calDataType.value === UITypes.Date) {
+          fromDate = fromDate!.format('YYYY-MM-DD')
+          toDate = toDate!.format('YYYY-MM-DD')
+        } else {
+          fromDate = fromDate!.format('YYYY-MM-DD HH:mm:ssZ')
+          toDate = toDate!.format('YYYY-MM-DD HH:mm:ssZ')
+        }
 
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
@@ -675,15 +693,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     watch(selectedDate, async () => {
       if (activeCalendarView.value === 'month' || activeCalendarView.value === 'week') {
-        await loadSidebarData()
+        if (sideBarFilterOption.value === 'selectedDate') {
+          await loadSidebarData()
+        }
       } else {
         await Promise.all([loadCalendarData(), loadSidebarData()])
       }
     })
 
-    watch(selectedMonth, async () => {
+    watch(selectedMonth, async (value, oldValue) => {
       if (activeCalendarView.value !== 'month') return
-      await Promise.all([loadCalendarData(), loadSidebarData()])
+      if (value.month() !== oldValue.month()) {
+        await Promise.all([loadCalendarData(), loadSidebarData()])
+      }
     })
 
     watch(selectedDateRange, async () => {

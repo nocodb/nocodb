@@ -591,7 +591,7 @@ const dropEvent = (event: DragEvent) => {
         v-for="date in weekDates"
         :key="date.toISOString()"
         :class="{
-          '!border-2 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
+          '!border-1 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
         }"
         class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         @click="selectedDate = date"
@@ -614,7 +614,6 @@ const dropEvent = (event: DragEvent) => {
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('DD-MM-YYYY')"
             :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"

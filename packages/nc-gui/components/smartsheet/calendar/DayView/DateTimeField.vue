@@ -635,7 +635,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
-              :date="dayjs(record.row![record.rowMeta!.range!.fk_from_col.title!]).format('HH:mm')"
               :name="record.row![displayField!.title!]"
               :position="record.rowMeta!.position"
               :record="record"

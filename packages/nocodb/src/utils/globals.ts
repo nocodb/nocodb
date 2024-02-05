@@ -176,6 +176,8 @@ export enum CacheDelDirection {
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
 
+export const CacheMetaSplitter = '__nc_meta__';
+
 export const CacheListProp = '__nc_list__';
 
 export const CacheTimeProp = '__nc_time__';

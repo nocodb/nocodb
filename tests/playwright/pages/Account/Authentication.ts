@@ -138,7 +138,7 @@ export class AccountAuthenticationPage extends BasePage {
 
     await oidcModal.locator('[data-test-id="nc-oidc-client-secret"]').fill(p.clientSecret);
 
-    await oidcModal.locator('[data-test-id="nc-oidc-authUrl"]').fill(p.authUrl);
+    await oidcModal.locator('[data-test-id="nc-oidc-auth-url"]').fill(p.authUrl);
 
     await oidcModal.locator('[data-test-id="nc-oidc-tokenUrl"]').fill(p.tokenUrl);
 

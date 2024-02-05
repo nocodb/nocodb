@@ -29,7 +29,6 @@ const formRules = {
     { required: true, message: t('msg.error.nameRequired') },
   ] as RuleObject[],
   xml: [
-    // XML is required if MetaData URL is not provided
     {
       validator: (rule, value, callback) => {
         if (!form.metaDataUrl && !value) {
@@ -41,7 +40,6 @@ const formRules = {
   ] as RuleObject[],
 
   metaDataUrl: [
-    // MetaData URL is required if XML is not provided
     {
       validator: (rule, value, callback) => {
         if (!form.xml && !value && !isURL(value, { require_tld: false })) {

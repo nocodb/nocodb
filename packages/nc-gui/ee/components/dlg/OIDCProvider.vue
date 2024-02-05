@@ -2,6 +2,7 @@
 import type { SSOClientType } from 'nocodb-sdk'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { isValidURL as _isValidURL, computed, reactive, ref, useAuthentication } from '#imports'
+import { urlValidator } from '~/utils'
 
 const props = defineProps<{
   modelValue: boolean
@@ -102,55 +103,30 @@ const formRules = {
   ] as RuleObject[],
   clientSecret: [{ required: true, message: t('msg.error.clientSecretRequired') }] as RuleObject[],
   authUrl: [
-    // MetaDataUrl is required
     { required: true, message: t('msg.error.authUrlRequired') },
     {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (!v.length || isValidURL(v)) return resolve()
-
-          reject(new Error(t('msg.error.invalidURL')))
-        })
-      },
+      urlValidator,
       message: t('msg.error.authUrlRequired'),
     },
   ] as RuleObject[],
   tokenUrl: [
     { required: true, message: t('msg.error.tokenUrlRequired') },
     {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (!v.length || isValidURL(v)) return resolve()
-
-          reject(new Error(t('msg.error.invalidURL')))
-        })
-      },
+      urlValidator,
       message: t('msg.error.tokenUrlRequired'),
     },
   ] as RuleObject[],
   userInfoUrl: [
     { required: true, message: t('msg.error.userInfoUrlRequired') },
     {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (!v.length || isValidURL(v)) return resolve()
-
-          reject(new Error(t('msg.error.invalidURL')))
-        })
-      },
+      urlValidator,
       message: t('msg.error.userInfoUrlRequired'),
     },
   ] as RuleObject[],
   jwkUrl: [
     { required: true, message: t('msg.error.jwkUrlRequired') },
     {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (!v.length || isValidURL(v)) return resolve()
-
-          reject(new Error(t('msg.error.invalidURL')))
-        })
-      },
+      urlValidator,
       message: t('msg.error.jwkUrlRequired'),
     },
   ] as RuleObject[],
@@ -270,7 +246,7 @@ const saveOIDCProvider = async () => {
             <a-input
               v-model:value="form.authUrl"
               class="mt-4"
-              data-test-id="nc-oidc-authUrl"
+              data-test-id="nc-oidc-auth-url"
               placeholder="Authorisation URL*"
               required
               type="url"

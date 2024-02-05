@@ -126,7 +126,6 @@ export default class DbMux {
     await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObject, {});
 
     await NocoCache.deepDel(
-      CacheScope.DB_MUX,
       `${CacheScope.DB_MUX}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -211,7 +210,6 @@ export default class DbMux {
     }
 
     await NocoCache.deepDel(
-      CacheScope.DB_MUX,
       `${CacheScope.DB_MUX}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

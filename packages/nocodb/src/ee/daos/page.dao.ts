@@ -228,7 +228,6 @@ export class PageDao {
 
     if ('parent_page_id' in attributes) {
       await NocoCache.deepDel(
-        CacheScope.DOCS_PAGE,
         `${CacheScope.DOCS_PAGE}:${baseId}:${pageId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -541,7 +540,6 @@ export class PageDao {
     });
 
     await NocoCache.deepDel(
-      CacheScope.DOCS_PAGE,
       `${CacheScope.DOCS_PAGE}:${baseId}:${id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

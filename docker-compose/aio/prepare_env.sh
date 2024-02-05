@@ -18,18 +18,21 @@ fi
 
 function acceptProperty(){
     local varDetail="$1"
+    local promptUser="${2:-true}"
     prompt=$(echo "$varDetail" | cut -d '|' -f1)    
     prop=$(echo "$varDetail" | cut -d '|' -f2)
     key=$(echo "$prop" | cut -d'=' -f1)
     default_value="${prop#*=}"
     prev_value_or_default=${!key:-${default_value}}
-
+    
     # echo prompt: ${prompt}
     # echo prop: ${prop}
     # echo key: ${key}
     # echo default_value: ${default_value}
-    
-    read -p "Enter value for $key (default: ${prev_value_or_default}): " user_input
+
+    if(${promptUser} == "true"); then
+        read -p " || Enter value for $key (default: ${prev_value_or_default}): " user_input
+    fi
 
     # Use user input or default value if empty
     value=${user_input:-$prev_value_or_default}
@@ -38,26 +41,26 @@ function acceptProperty(){
     userValues="${userValues}${key}=${value}\n"
 }
 # Iterate over the properties array and prompt user for input
-echo basic_properties : "${basic_properties[@]}"
 for multi_property_array in basic_properties invite_only_signup_priorities google_login_properties email_properties s3_attachment_properties ; do
     array_name="$multi_property_array[@]"  # Name of the array to process
     array=("${!array_name}")  
-    # array=("${!multi_property_array}")   
-    echo array : "${array[@]}"
     for varDetail in "${array[@]}"; do
-        echo varDetail : ${varDetail}
-        prompt=$(echo "$varDetail" | cut -d '|' -f1)    
+        promptUser=true
+        promptMsg=$(echo "$varDetail" | cut -d '|' -f1)    
         prop=$(echo "$varDetail" | cut -d '|' -f2)
-        if [[ ${prompt} == "main" ]]
+        if [[ ${promptMsg} == "main" ]]
         then
             echo $prop
             if asksure; then 
                 continue
             else
+                # set all defaults here          
+                promptUser=false      
+                # acceptProperty "${varDetail}" "${promptUser}"
                 break
             fi
         fi   
-        acceptProperty "${varDetail}"
+        acceptProperty "${varDetail}" "${promptUser}"
     done
 done
 

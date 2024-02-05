@@ -17,14 +17,14 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source ${SCRIPT_DIR}/sbin/util.sh
 source ${SCRIPT_DIR}/sbin/install_vars.sh
 echo "Performing nocodb system check and setup. This step may require sudo permissions to"
-echo "Check if ports are accessible"
+echo " | Check if ports are accessible"
 PRE_REQ=0
 
 # d. Check if required tools are installed
 echo "Checking if required tools (docker, docker-compose, jq, lsof) are installed..."
 for tool in docker docker-compose lsof; do
   if ! command -v "$tool" &> /dev/null; then
-    echo "Error: $tool is not installed. Please install it before proceeding."
+    echo " | Error: $tool is not installed. Please install it before proceeding."
     exit 1
   fi
 done
@@ -36,13 +36,13 @@ done
 # echo "NocoDB version: $nocodb_install_version"
 
 # f. Port mapping check
-echo "Checking port accessibility..."
+echo " | Checking port accessibility..."
 for port in "${REQUIRED_PORTS[@]}"; do
   if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null; then
-    echo "Port $port is in use. Please make sure it is free." >&2
+    echo " | Port $port is in use. Please make sure it is free." >&2
     PRE_REQ=1
   else
-    echo "Port $port is free."
+    echo " | Port $port is free."
   fi
 done
 
@@ -57,5 +57,5 @@ done
 #   fi
 # done
 
-echo "System check completed successfully."
+echo "** System check completed successfully. **"
 exit $PRE_REQ

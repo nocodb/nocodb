@@ -4,7 +4,7 @@
 #
 
 asksure() {
-echo -n "Are you sure (Y/N)? "
+echo -n " | Press Y to continue or N to skip to next step (Y/N)? "
 while read -r -n 1 -s answer; do
   if [[ $answer = [YyNn] ]]; then
     [[ $answer = [Yy] ]] && retval=0

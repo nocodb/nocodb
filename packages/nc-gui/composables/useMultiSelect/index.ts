@@ -17,6 +17,7 @@ import {
   isMac,
   isTypableInputColumn,
   message,
+  parseProp,
   reactive,
   ref,
   unref,
@@ -28,7 +29,6 @@ import {
   useI18n,
   useMetas,
   useUndoRedo,
-  parseProp,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -950,8 +950,8 @@ export function useMultiSelect(
                 },
               ])
             } catch {
-              console.log('catch')
               rowObj.row[columnObj.title!] = oldCellValue
+              return
             }
 
             if (result && result?.link && result?.unlink && Array.isArray(result.link) && Array.isArray(result.unlink)) {

@@ -27,7 +27,6 @@ import {
   useEventListener,
   useGlobal,
   useI18n,
-  useMetas,
   useUndoRedo,
 } from '#imports'
 
@@ -58,8 +57,6 @@ export function useMultiSelect(
   const { t } = useI18n()
 
   const { copy } = useCopy()
-
-  const { getMeta } = useMetas()
 
   const { appInfo } = useGlobal()
 

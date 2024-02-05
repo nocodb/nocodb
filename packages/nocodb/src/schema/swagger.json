@@ -15831,14 +15831,30 @@
         }
       ],
       "post": {
-        "summary": "Create Nest and delete nested Relations Rows",
-        "operationId": "db-data-table-row-nested-link-unlink",
+        "summary": "Copy paste nested link",
+        "operationId": "db-data-table-row-nested-list-copy-paste",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {}
+              },
+              "examples": {
+                "Example 1" : {
+                  "value": {
+                    "link": [
+                      {"Id": 1},
+                      {"Id": 2},
+                      {"Id": 3},
+                      {"Id": 5},
+                      {"Id": 6},
+                    ],
+                    "unlink": [
+                      {"Id": 4}
+                    ]
+                }
+                }
               }
             }
           },
@@ -15852,26 +15868,30 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NestedLinkUnlinkReq"
+                "$ref": "#/components/schemas/nestedListCopyPasteReq"
               },
               "examples": {
                 "Example 1": {
                   "value": [
                     {
-                      "rowId": 1,
-                      "operation": "copy"
+                      "operation": "copy",
+                      "rowId": "1",
+                      "columnId": "ca2ppiy8raidc09",
+                      "fk_related_model_id": "m797s6vbrqvo2pv"
                     },
                     {
-                      "rowId": 2,
-                      "operation": "paste"
+                      "operation": "paste",
+                      "rowId": "2",
+                      "columnId": "ca2ppiy8raidc09",
+                      "fk_related_model_id": "m797s6vbrqvo2pv"
                     }
-                  ]
+                ]
                 }
               }
             }
           }
         },
-        "description": "Copy links from the row specified by the copy operation ID and paste them into the row identified by the paste operation ID.",
+        "description": "Copy links from the one cell and paste them into another cell",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -23235,7 +23255,7 @@
           }
         }
       },
-      "NestedLinkUnlinkReq": {
+      "nestedListCopyPasteReq": {
         "type": "array",
         "minItems": 2,
         "maxItems": 2,

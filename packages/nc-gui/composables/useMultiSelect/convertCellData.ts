@@ -251,7 +251,7 @@ export default function convertCellData(
         return undefined
       }
 
-      if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY) {
+      if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO) {
         const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
 
         if (

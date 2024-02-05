@@ -119,8 +119,6 @@ export function useMultiSelect(
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
     let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
 
-    console.log('rowObj, columnObj', rowObj, columnObj)
-
     if (columnObj.uidt === UITypes.Checkbox) {
       textToCopy = !!textToCopy
     }
@@ -138,12 +136,27 @@ export function useMultiSelect(
     }
 
     if (
-      typeof textToCopy === 'object' &&
       columnObj.uidt === UITypes.LinkToAnotherRecord &&
       (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
     ) {
       // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
-      textToCopy = { ...textToCopy, fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id }
+      textToCopy = {
+        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
+        value: textToCopy || null,
+      }
+    }
+
+    if (
+      columnObj.uidt === UITypes.Links &&
+      (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY
+    ) {
+      textToCopy = {
+        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+        columnId: columnObj.id,
+        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
+        value: !isNaN(+textToCopy) ? +textToCopy : 0,
+      }
     }
 
     if (typeof textToCopy === 'object') {
@@ -233,18 +246,6 @@ export function useMultiSelect(
 
     if (columnObj.uidt === UITypes.LongText) {
       textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
-    }
-
-    if (
-      columnObj.uidt === UITypes.Links &&
-      (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY
-    ) {
-      return JSON.stringify({
-        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
-        columnId: columnObj.id,
-        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
-        value: !isNaN(+textToCopy) ? +textToCopy : 0,
-      })
     }
 
     return textToCopy
@@ -892,17 +893,15 @@ export function useMultiSelect(
 
             if (pasteVal === undefined) return
 
-            rowObj.row[columnObj.title!] = pasteVal
-
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
             )
 
-            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
-
             if (!foreignKeyColumn) return
 
-            rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(pasteVal, (relatedTableMeta as any)!.columns!)
+            rowObj.row[columnObj.title!] = pasteVal?.value
+
+            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value ? pasteVal.rowId : null
 
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }
@@ -932,10 +931,8 @@ export function useMultiSelect(
 
             let result
 
-            console.log('column', columnObj.id)
-
             try {
-              result = await api.dbDataTableRow.nestedLinkUnlink(meta.value?.id as string, columnObj.id as string, [
+              result = await api.dbDataTableRow.nestedListCopyPaste(meta.value?.id as string, columnObj.id as string, [
                 {
                   operation: 'copy',
                   rowId: pasteVal.rowId,
@@ -951,6 +948,7 @@ export function useMultiSelect(
                 },
               ])
             } catch {
+              console.log('catch')
               rowObj.row[columnObj.title!] = oldCellValue
             }
 

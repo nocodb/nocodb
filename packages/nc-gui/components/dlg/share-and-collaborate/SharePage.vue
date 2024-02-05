@@ -163,6 +163,9 @@ function sharedViewUrl() {
     case ViewTypes.MAP:
       viewType = 'map'
       break
+    case ViewTypes.CALENDAR:
+      viewType = 'calendar'
+      break
     default:
       viewType = 'view'
   }
@@ -280,11 +283,11 @@ const isPublicShared = computed(() => {
         <div class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</div>
         <a-switch
           v-e="['c:share:view:enable:toggle']"
-          data-testid="share-view-toggle"
           :checked="isPublicShared"
+          :disabled="isLocked"
           :loading="isUpdating.public"
           class="share-view-toggle !mt-0.25"
-          :disabled="isLocked"
+          data-testid="share-view-toggle"
           @click="toggleShare"
         />
       </div>
@@ -297,22 +300,22 @@ const isPublicShared = computed(() => {
             <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
             <a-switch
               v-e="['c:share:view:password:toggle']"
-              data-testid="share-password-toggle"
               :checked="passwordProtected"
               :loading="isUpdating.password"
               class="share-password-toggle !mt-0.25"
+              data-testid="share-password-toggle"
               @click="togglePasswordProtected"
             />
           </div>
-          <Transition name="layout" mode="out-in">
+          <Transition mode="out-in" name="layout">
             <div v-if="passwordProtected" class="flex gap-2 mt-2 w-2/3">
               <a-input-password
                 v-model:value="password"
-                data-testid="nc-modal-share-view__password"
+                :placeholder="$t('placeholder.password.enter')"
                 class="!rounded-lg !py-1 !bg-white"
+                data-testid="nc-modal-share-view__password"
                 size="small"
                 type="password"
-                :placeholder="$t('placeholder.password.enter')"
               />
             </div>
           </Transition>
@@ -332,9 +335,9 @@ const isPublicShared = computed(() => {
             <a-switch
               v-model:checked="allowCSVDownload"
               v-e="['c:share:view:allow-csv-download:toggle']"
-              data-testid="share-download-toggle"
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
+              data-testid="share-download-toggle"
             />
           </div>
 
@@ -361,23 +364,23 @@ const isPublicShared = computed(() => {
               <div class="text-black">{{ $t('activity.useTheme') }}</div>
               <a-switch
                 v-e="['c:share:view:theme:toggle']"
-                data-testid="share-theme-toggle"
                 :checked="viewTheme"
                 :loading="isUpdating.password"
                 class="share-theme-toggle !mt-0.25"
+                data-testid="share-theme-toggle"
                 @click="viewTheme = !viewTheme"
               />
             </div>
 
-            <Transition name="layout" mode="out-in">
+            <Transition mode="out-in" name="layout">
               <div v-if="viewTheme" class="flex -ml-1">
                 <LazyGeneralColorPicker
-                  data-testid="nc-modal-share-view__theme-picker"
-                  class="!p-0 !bg-inherit"
-                  :model-value="activeView?.meta?.theme?.primaryColor"
-                  :colors="baseThemeColors"
-                  :row-size="9"
                   :advanced="false"
+                  :colors="baseThemeColors"
+                  :model-value="activeView?.meta?.theme?.primaryColor"
+                  :row-size="9"
+                  class="!p-0 !bg-inherit"
+                  data-testid="nc-modal-share-view__theme-picker"
                   @input="onChangeTheme"
                 />
               </div>

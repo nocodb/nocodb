@@ -164,10 +164,8 @@ const headerText = computed(() => {
               size="small"
               type="secondary"
             >
-              <div class="flex gap-2 justify-between items-center">
-                <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
-                <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
-              </div>
+              <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
+              <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
             </NcButton>
 
             <template #overlay>

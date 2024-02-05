@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '#imports'
+import { isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['new-record', 'expandRecord'])
 
@@ -151,7 +153,7 @@ const recordsToDisplay = computed<{
         const recordIndex = recordsInDay[dateKey].count
 
         const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * perRecordHeight
-        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords
+        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 25
 
         if (heightRequired > perHeight) {
           style.display = 'none'
@@ -726,7 +728,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
           :class="{
             'border-brand-500 border-1 border-r-1 border-b-1':
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
-            '!text-gray-200': !isDayInPagedMonth(day),
+            '!text-gray-400': !isDayInPagedMonth(day),
           }"
           class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           @click="selectDate(day)"
@@ -847,7 +849,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
             :hover="hoverRecord === record.rowMeta.id"
-            :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
@@ -860,7 +861,31 @@ const isDateSelected = (date: dayjs.Dayjs) => {
             "
             @resize-start="onResizeStart"
             @dblclick.stop="emit('expand-record', record)"
-          />
+          >
+            <template v-if="!isRowEmpty(record, displayField)">
+              <div
+                :class="{
+                  '!mt-2': displayField.uidt === UITypes.SingleLineText,
+                  '!mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
+                }"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(displayField)"
+                  v-model="record.row[displayField.title]"
+                  :column="displayField"
+                  :row="record"
+                />
+
+                <LazySmartsheetCell
+                  v-else
+                  v-model="record.row[displayField.title]"
+                  :column="displayField"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </div>
+            </template>
+          </LazySmartsheetCalendarRecordCard>
         </LazySmartsheetRow>
       </div>
     </div>

@@ -1,18 +1,18 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { type Row, computed, ref } from '#imports'
+import { isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expand-record', 'new-record'])
 const meta = inject(MetaInj, ref())
-const fields = inject(FieldsInj, ref([]))
 
 const container = ref()
 
 const { isUIAllowed } = useRoles()
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
-
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty } = useCalendarViewStoreOrThrow()
+const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, displayField } =
+  useCalendarViewStoreOrThrow()
 
 const recordsAcrossAllRange = computed<Row[]>(() => {
   let dayRecordCount = 0
@@ -178,14 +178,37 @@ const dropEvent = (event: DragEvent) => {
     <div v-for="(record, rowIndex) in recordsAcrossAllRange" :key="rowIndex" :style="record.rowMeta.style" class="absolute mt-2">
       <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard
-          :name="record.row[displayField!.title!]"
           :position="record.rowMeta.position"
           :record="record"
           :resize="false"
           color="blue"
           size="small"
           @click="emit('expand-record', record)"
-        />
+        >
+          <template v-if="!isRowEmpty(record, displayField)">
+            <div
+              :class="{
+                '!mt-2': displayField.uidt === UITypes.SingleLineText,
+                '!mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
+              }"
+            >
+              <LazySmartsheetVirtualCell
+                v-if="isVirtualCol(displayField)"
+                v-model="record.row[displayField.title]"
+                :column="displayField"
+                :row="record"
+              />
+
+              <LazySmartsheetCell
+                v-else
+                v-model="record.row[displayField.title]"
+                :column="displayField"
+                :edit-enabled="false"
+                :read-only="true"
+              />
+            </div>
+          </template>
+        </LazySmartsheetCalendarRecordCard>
       </LazySmartsheetRow>
     </div>
   </div>

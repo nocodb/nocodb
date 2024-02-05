@@ -1,22 +1,16 @@
 <script lang="ts" setup>
 interface Props {
   record: Record<string, string>
-  name: string
-  date?: string
   color?: string
   resize?: boolean
   selected?: boolean
-  showDate?: boolean
   position?: 'topRounded' | 'bottomRounded' | 'rounded' | 'none'
 }
 
 withDefaults(defineProps<Props>(), {
-  name: '',
-  date: '',
   resize: true,
   selected: false,
   color: 'blue',
-  showDate: true,
   position: 'rounded',
 })
 
@@ -73,9 +67,10 @@ const emit = defineEmits(['resize-start'])
 
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
-    <div class="ml-3 mt-2 pr-3 text-ellipsis overflow-hidden w-full h-6 absolute">
-      <span class="text-sm text-gray-800">{{ name }}</span>
-      <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>
+    <div class="ml-3 pr-3 text-ellipsis overflow-hidden w-full h-8 absolute">
+      <span class="text-sm text-gray-800">
+        <slot />
+      </span>
     </div>
     <div v-if="position === 'topRounded' || position === 'none'" class="h-full pb-7 flex items-end ml-3">....</div>
   </div>

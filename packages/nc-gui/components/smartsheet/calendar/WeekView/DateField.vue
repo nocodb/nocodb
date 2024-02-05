@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { ref } from '#imports'
+import { isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
 
@@ -614,14 +616,37 @@ const dropEvent = (event: DragEvent) => {
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             color="blue"
             @dblclick="emits('expand-record', record)"
             @resize-start="onResizeStart"
-          />
+          >
+            <template v-if="!isRowEmpty(record, displayField)">
+              <div
+                :class="{
+                  '!mt-2': displayField.uidt === UITypes.SingleLineText,
+                  '!mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
+                }"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(displayField)"
+                  v-model="record.row[displayField.title]"
+                  :column="displayField"
+                  :row="record"
+                />
+
+                <LazySmartsheetCell
+                  v-else
+                  v-model="record.row[displayField.title]"
+                  :column="displayField"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </div>
+            </template>
+          </LazySmartsheetCalendarRecordCard>
         </LazySmartsheetRow>
       </div>
     </div>

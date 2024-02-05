@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import {
@@ -87,6 +87,8 @@ const isGrid = inject(IsGridInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isCalendar = inject(IsCalendarInj, ref(false))
 
 const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
@@ -195,20 +197,20 @@ onUnmounted(() => {
 <template>
   <div
     ref="elementToObserve"
-    class="nc-cell w-full h-full relative"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       {
-        'text-brand-500': isPrimary(column) && !props.virtual && !isForm,
+        'text-brand-500': isPrimary(column) && !props.virtual && !isForm && !isCalendar,
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
         'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
         '!min-h-30 resize-y': isTextArea(column) && (isForm || isSurveyForm),
       },
     ]"
+    class="nc-cell w-full h-full relative"
+    @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
-    @contextmenu="onContextmenu"
   >
     <template v-if="column">
       <template v-if="intersected">
@@ -260,7 +262,7 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .nc-grid-numeric-cell-left {
   text-align: left;
   :deep(input) {

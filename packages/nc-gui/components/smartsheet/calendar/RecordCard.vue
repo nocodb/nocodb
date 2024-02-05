@@ -1,26 +1,19 @@
 <script lang="ts" setup>
 interface Props {
-  record: Record<string, string>
-  name: string
-  date?: string
   color?: string
   resize?: boolean
   hover?: boolean
   selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
-  showDate?: boolean
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  name: '',
-  date: '',
+withDefaults(defineProps<Props>(), {
   resize: true,
   selected: false,
   hover: false,
   color: 'blue',
   size: 'small',
-  showDate: true,
   position: 'rounded',
 })
 
@@ -34,9 +27,9 @@ const emit = defineEmits(['resize-start'])
       'min-h-10': size === 'medium',
       'min-h-12': size === 'large',
       'h-full': size === 'auto',
-      'rounded-l-lg ml-3': position === 'leftRounded',
-      'rounded-r-lg mr-3': position === 'rightRounded',
-      'rounded-lg mx-3': position === 'rounded',
+      'rounded-l-lg ml-1': position === 'leftRounded',
+      'rounded-r-lg mr-1': position === 'rightRounded',
+      'rounded-lg mx-1': position === 'rounded',
       'rounded-none': position === 'none',
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
@@ -76,10 +69,11 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="ml-3 mt-2 pr-3 text-ellipsis overflow-hidden w-full h-6 absolute">
+    <div class="ml-3 pr-3 text-ellipsis overflow-hidden w-full h-8 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
-      <span class="text-sm text-gray-800">{{ name }}</span>
-      <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>
+      <span class="text-sm text-gray-800">
+        <slot />
+      </span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
     <div

@@ -28,6 +28,7 @@ import {
   useI18n,
   useMetas,
   useUndoRedo,
+  parseProp,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -173,7 +174,7 @@ export function useMultiSelect(
       })
     }
 
-    if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(columnObj.uidt)) {
+    if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(columnObj.uidt as UITypes)) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
@@ -194,14 +195,15 @@ export function useMultiSelect(
       // therefore, here we reformat to the correct datetime format based on the meta
       textToCopy = d.format(constructDateTimeFormat(columnObj))
 
-      if (!dayjs(textToCopy).isValid()) {
+      if (!d.isValid()) {
         // return empty string for invalid datetime
         return ''
       }
     }
 
     if (columnObj.uidt === UITypes.Date) {
-      const dateFormat = columnObj.meta?.date_format
+      const dateFormat = parseProp(columnObj.meta)?.date_format
+
       if (dateFormat && isDateMonthFormat(dateFormat)) {
         // any date month format (e.g. YYYY-MM) couldn't be stored in database
         // with date type since it is not a valid date

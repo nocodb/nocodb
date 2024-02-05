@@ -137,6 +137,15 @@ export function useMultiSelect(
       }
     }
 
+    if (
+      typeof textToCopy === 'object' &&
+      columnObj.uidt === UITypes.LinkToAnotherRecord &&
+      (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO
+    ) {
+      // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
+      textToCopy = { ...textToCopy, fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id }
+    }
+
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
     } else {
@@ -871,10 +880,9 @@ export function useMultiSelect(
             columnObj.uidt === UITypes.LinkToAnotherRecord &&
             (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
           ) {
-            const clipboardContext = JSON.parse(clipboardData!)
             const pasteVal = convertCellData(
               {
-                value: clipboardContext,
+                value: clipboardData,
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
@@ -894,7 +902,7 @@ export function useMultiSelect(
 
             if (!foreignKeyColumn) return
 
-            rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext, (relatedTableMeta as any)!.columns!)
+            rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(pasteVal, (relatedTableMeta as any)!.columns!)
 
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }

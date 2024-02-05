@@ -251,12 +251,20 @@ export default function convertCellData(
         return undefined
       }
 
-      const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
-      if (!(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal))) {
+      if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY) {
+        const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+
+        if (
+          !(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal)) ||
+          parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+        ) {
+          throw new Error(`Unsupported conversion for ${to}`)
+        }
+
+        return parsedVal
+      } else {
         throw new Error(`Unsupported conversion for ${to}`)
       }
-
-      return parsedVal
     }
     case UITypes.Links: {
       if (isMultiple) {
@@ -265,6 +273,7 @@ export default function convertCellData(
 
       if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY) {
         const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+
         if (
           !(
             parsedVal &&

@@ -5163,28 +5163,29 @@ class BaseModelSqlv2 {
                   ]),
                 );
               });
-              console.log('q', childRowsQb.toQuery());
-              if (parentTable.primaryKeys.length > 1) {
-                childRowsQb.where((qb) => {
-                  for (const childId of childIds) {
-                    qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
-                  }
-                });
-              } else {
-                childRowsQb.whereIn(
-                  `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
-                  typeof childIds[0] === 'object'
-                    ? childIds.map(
-                        (c) =>
-                          c[parentTable.primaryKey.title] ||
-                          c[parentTable.primaryKey.column_name],
-                      )
-                    : childIds,
-                );
-              }
+            if (parentTable.primaryKeys.length > 1) {
+              childRowsQb.where((qb) => {
+                for (const childId of childIds) {
+                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                }
+              });
+            } else {
+              childRowsQb.whereIn(
+                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                typeof childIds[0] === 'object'
+                  ? childIds.map(
+                      (c) =>
+                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.column_name],
+                    )
+                  : childIds,
+              );
+            }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
-              childRowsQb.select(parentTable.primaryKey.column_name);
+              childRowsQb.select(
+                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+              );
 
             const childRows = await this.execAndParse(childRowsQb, null, {
               raw: true,
@@ -5442,7 +5443,7 @@ class BaseModelSqlv2 {
               });
             } else if (typeof childIds[0] === 'object') {
               childRowsQb.whereIn(
-                parentTable.primaryKey.column_name,
+                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
                 childIds.map(
                   (c) =>
                     c[parentTable.primaryKey.title] ||
@@ -5450,11 +5451,16 @@ class BaseModelSqlv2 {
                 ),
               );
             } else {
-              childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
+              childRowsQb.whereIn(
+                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                childIds,
+              );
             }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
-              childRowsQb.select(parentTable.primaryKey.column_name);
+              childRowsQb.select(
+                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+              );
 
             const childRows = await this.execAndParse(childRowsQb, null, {
               raw: true,
@@ -5493,7 +5499,7 @@ class BaseModelSqlv2 {
             .delete();
 
           delQb.whereIn(
-            vParentCol.column_name,
+            `${vTn.table_name}.${vParentCol.column_name}`,
             typeof childIds[0] === 'object'
               ? childIds.map(
                   (c) =>

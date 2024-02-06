@@ -572,7 +572,13 @@ export default class View implements ViewType {
           await KanbanViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.CALENDAR:
-          await CalendarViewColumn.insert(modifiedInsertObj, ncMeta);
+          await CalendarViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
           break;
       }
     }

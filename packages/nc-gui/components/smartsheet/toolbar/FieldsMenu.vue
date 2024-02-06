@@ -370,7 +370,7 @@ useMenuCloseOnEsc(open)
                 <div
                   v-if="
                     filteredFieldList
-                      .filter((el) => el !== gridDisplayValueField && el.title.toLowerCase().includes(filterQuery.toLowerCase()))
+                      .filter((el) => (activeView.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField : true))
                       .includes(field)
                   "
                   :key="field.id"
@@ -403,7 +403,7 @@ useMenuCloseOnEsc(open)
                   <div class="flex-1" />
                 </div>
               </template>
-              <template v-if="activeView?.type === ViewTypes.GRID || activeView?.type === ViewTypes.CALENDAR" #header>
+              <template v-if="activeView?.type === ViewTypes.GRID" #header>
                 <div
                   v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
                   :key="`pv-${gridDisplayValueField.id}`"

@@ -1,14 +1,10 @@
 import debug from 'debug';
+import { Logger } from '@nestjs/common';
 import type IORedis from 'ioredis';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheListProp,
-  CacheMetaSplitter,
-  CacheTimestampProp,
-} from '~/utils/globals';
+import { CacheDelDirection, CacheGetType } from '~/utils/globals';
 
 const log = debug('nc:cache');
+const logger = new Logger('CacheMgr');
 export default abstract class CacheMgr {
   client: IORedis;
   prefix: string;
@@ -41,38 +37,42 @@ export default abstract class CacheMgr {
   }
 
   // @ts-ignore
-  async get(key: string, type: string): Promise<any> {
-    log(`${this.context}::get: getting key ${key} with type ${type}`);
+  private async getRaw(key: string, type?: string): Promise<any> {
+    log(`${this.context}::getRaw: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
       return this.client.smembers(key);
-    } else if (type === CacheGetType.TYPE_OBJECT) {
+    } else {
       const res = await this.client.get(key);
-      try {
-        const o = JSON.parse(res);
-        if (typeof o === 'object') {
-          if (
-            o &&
-            Object.keys(o).length === 0 &&
-            Object.getPrototypeOf(o) === Object.prototype
-          ) {
-            log(`${this.context}::get: object is empty!`);
+      if (res) {
+        try {
+          const o = JSON.parse(res);
+          if (typeof o === 'object') {
+            if (
+              o &&
+              Object.keys(o).length === 0 &&
+              Object.getPrototypeOf(o) === Object.prototype
+            ) {
+              log(`${this.context}::get: object is empty!`);
+            }
+            return Promise.resolve(o);
           }
-          return Promise.resolve(o);
+        } catch (e) {
+          logger.error(`Bad value stored for key ${key} : ${res}`);
+          return Promise.resolve(res);
         }
-      } catch (e) {}
-      const valueHelper = res.split(CacheMetaSplitter);
-      return Promise.resolve(valueHelper[0]);
-    } else if (type === CacheGetType.TYPE_STRING) {
-      return this.client.get(key).then((res) => {
-        if (!res) {
-          return res;
-        }
-        const valueHelper = res.split(CacheMetaSplitter);
-        return valueHelper[0];
-      });
+      }
+      return Promise.resolve(res);
     }
-    log(`Invalid CacheGetType: ${type}`);
-    return Promise.resolve(false);
+  }
+
+  // @ts-ignore
+  async get(key: string, type: string): Promise<any> {
+    return this.getRaw(key, type).then((res) => {
+      if (res && res.value) {
+        return res.value;
+      }
+      return res;
+    });
   }
 
   // @ts-ignore
@@ -80,7 +80,9 @@ export default abstract class CacheMgr {
     key: string,
     value: any,
     options: {
+      // when we prepare beforehand, we don't need to prepare again
       skipPrepare?: boolean;
+      // timestamp for the value, if not provided, it will be set to current time
       timestamp?: number;
     } = {
       skipPrepare: false,
@@ -91,38 +93,25 @@ export default abstract class CacheMgr {
     if (typeof value !== 'undefined' && value) {
       log(`${this.context}::set: setting key ${key} with value ${value}`);
 
-      if (typeof value === 'object') {
-        if (Array.isArray(value) && value.length) {
-          return this.client.sadd(key, value);
-        }
-
-        if (!skipPrepare) {
-          // try to get old key value
-          const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
-          // prepare new key value
-          value = this.prepareValue(value, {
-            parentKeys: this.getParents(keyValue),
-            timestamp,
-          });
-        }
-
-        return this.client.set(
-          key,
-          JSON.stringify(value, this.getCircularReplacer()),
-        );
+      if (Array.isArray(value) && value.length) {
+        return this.client.sadd(key, value);
       }
 
       if (!skipPrepare) {
         // try to get old key value
-        const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
+        const keyValue = await this.getRaw(key);
         // prepare new key value
-        value = this.prepareValue(value.toString(), {
+        value = this.prepareValue({
+          value,
           parentKeys: this.getParents(keyValue),
           timestamp,
         });
       }
 
-      return this.client.set(key, value);
+      return this.client.set(
+        key,
+        JSON.stringify(value, this.getCircularReplacer()),
+      );
     } else {
       log(`${this.context}::set: value is empty for ${key}. Skipping ...`);
       return Promise.resolve(true);
@@ -130,23 +119,47 @@ export default abstract class CacheMgr {
   }
 
   // @ts-ignore
-  async setExpiring(key: string, value: any, seconds: number): Promise<any> {
+  async setExpiring(
+    key: string,
+    value: any,
+    seconds: number,
+    options: {
+      // when we prepare beforehand, we don't need to prepare again
+      skipPrepare?: boolean;
+      // timestamp for the value, if not provided, it will be set to current time
+      timestamp?: number;
+    } = {
+      skipPrepare: false,
+    },
+  ): Promise<any> {
+    const { skipPrepare, timestamp } = options;
+
     if (typeof value !== 'undefined' && value) {
       log(
-        `${this.context}::setExpiring: setting key ${key} with value ${value} for ${seconds} seconds`,
+        `${this.context}::setExpiring: setting key ${key} with value ${value}`,
       );
-      if (typeof value === 'object') {
-        if (Array.isArray(value) && value.length) {
-          return this.client.sadd(key, value);
-        }
-        return this.client.set(
-          key,
-          JSON.stringify(value, this.getCircularReplacer()),
-          'EX',
-          seconds,
-        );
+
+      if (Array.isArray(value) && value.length) {
+        return this.client.sadd(key, value);
       }
-      return this.client.set(key, value, 'EX', seconds);
+
+      if (!skipPrepare) {
+        // try to get old key value
+        const keyValue = await this.getRaw(key);
+        // prepare new key value
+        value = this.prepareValue({
+          value,
+          parentKeys: this.getParents(keyValue),
+          timestamp,
+        });
+      }
+
+      return this.client.set(
+        key,
+        JSON.stringify(value, this.getCircularReplacer()),
+        'EX',
+        seconds,
+      );
     } else {
       log(`${this.context}::set: value is empty for ${key}. Skipping ...`);
       return Promise.resolve(true);
@@ -189,7 +202,7 @@ export default abstract class CacheMgr {
 
     if (values.some((v) => v === null)) {
       // FALLBACK: a key is missing from list, this should never happen
-      console.error(`${this.context}::getList: missing value for ${key}`);
+      logger.error(`${this.context}::getList: missing value for ${key}`);
       const allParents = [];
       // get all parents from children
       values.forEach((v) => {
@@ -214,7 +227,7 @@ export default abstract class CacheMgr {
         try {
           const o = JSON.parse(res);
           if (typeof o === 'object') {
-            return o;
+            return o.value;
           }
         } catch (e) {
           return res;
@@ -260,30 +273,29 @@ export default abstract class CacheMgr {
       }
       log(`${this.context}::setList: get key ${getKey}`);
       // get key
-      let value = await this.get(getKey, CacheGetType.TYPE_OBJECT);
+      let value = await this.getRaw(getKey, CacheGetType.TYPE_OBJECT);
       if (value) {
         log(`${this.context}::setList: preparing key ${getKey}`);
         // prepare key
-        value = this.prepareValue(o, {
-          parentKeys: this.getParents(value).concat(listKey),
+        value = this.prepareValue({
+          value: o,
+          parentKeys: this.getParents(value),
+          newKey: listKey,
           timestamp,
         });
       } else {
-        value = this.prepareValue(o, {
+        value = this.prepareValue({
+          value: o,
           parentKeys: [listKey],
           timestamp,
         });
       }
       // set key
       log(`${this.context}::setList: setting key ${getKey}`);
-      await this.set(
-        getKey,
-        JSON.stringify(value, this.getCircularReplacer()),
-        {
-          skipPrepare: true,
-          timestamp,
-        },
-      );
+      await this.set(getKey, value, {
+        skipPrepare: true,
+        timestamp,
+      });
       // push key to list
       listOfGetKeys.push(getKey);
     }
@@ -361,7 +373,7 @@ export default abstract class CacheMgr {
     log(`${this.context}::appendToList: preparing key ${key}`);
     if (!value) {
       // FALLBACK: this is to get rid of all keys that would be effected by this (should never happen)
-      console.error(`${this.context}::appendToList: value is empty for ${key}`);
+      logger.error(`${this.context}::appendToList: value is empty for ${key}`);
       const allParents = [];
       // get all children
       const listValues = await this.getList(scope, subListKeys);
@@ -380,115 +392,54 @@ export default abstract class CacheMgr {
       return false;
     }
     // prepare Get Key
-    const preparedValue = this.prepareValue(value, {
-      parentKeys: this.getParents(value).concat(listKey),
+    const preparedValue = this.prepareValue({
+      value,
+      parentKeys: this.getParents(value),
+      newKey: listKey,
     });
     // set Get Key
     log(`${this.context}::appendToList: setting key ${key}`);
-    await this.set(
-      key,
-      JSON.stringify(preparedValue, this.getCircularReplacer()),
-      {
-        skipPrepare: true,
-      },
-    );
+    await this.set(key, preparedValue, {
+      skipPrepare: true,
+    });
 
     list.push(key);
     return this.set(listKey, list);
   }
 
-  prepareValue(
-    value,
-    options: {
-      parentKeys: string[];
-      timestamp?: number;
-    },
-  ) {
-    const { parentKeys, timestamp } = options;
+  // wrap value with metadata
+  prepareValue(args: {
+    value: any;
+    parentKeys: string[];
+    newKey?: string;
+    timestamp?: number;
+  }) {
+    const { value, parentKeys, newKey, timestamp } = args;
 
-    if (value && typeof value === 'object') {
-      value[CacheListProp] = parentKeys;
-
-      if (timestamp) {
-        value[CacheTimestampProp] = timestamp;
-      } else {
-        value[CacheTimestampProp] = Date.now();
-      }
-    } else if (value && typeof value === 'string') {
-      const metaHelper = value.split(CacheMetaSplitter);
-      if (metaHelper.length > 1) {
-        const keyVal = metaHelper[0];
-        const keyMeta = metaHelper[1];
-        try {
-          const meta = JSON.parse(keyMeta);
-          meta[CacheListProp] = parentKeys;
-          meta[CacheTimestampProp] = timestamp || Date.now();
-          value = `${keyVal}${CacheMetaSplitter}${JSON.stringify(meta)}`;
-        } catch (e) {
-          console.error(
-            `${this.context}::prepareValue: keyValue meta is not JSON`,
-            keyMeta,
-          );
-          throw new Error(
-            `${this.context}::prepareValue: keyValue meta is not JSON`,
-          );
-        }
-      } else {
-        const meta = {
-          [CacheListProp]: parentKeys,
-          [CacheTimestampProp]: timestamp || Date.now(),
-        };
-        value = `${value}${CacheMetaSplitter}${JSON.stringify(meta)}`;
-      }
-    } else if (value) {
-      console.error(
-        `${this.context}::prepareValue: keyValue is not object or string`,
-        value,
-      );
-      throw new Error(
-        `${this.context}::prepareValue: keyValue is not object or string`,
-      );
+    if (newKey && !parentKeys.includes(newKey)) {
+      parentKeys.push(newKey);
     }
-    return value;
+
+    const cacheObj = {
+      value,
+      parentKeys,
+      timestamp: timestamp || Date.now(),
+    };
+
+    return cacheObj;
   }
 
-  async refreshTTL(key: string): Promise<void> {
-    log(`${this.context}::refreshTTL: refreshing key ${key}`);
-    const value = await this.get(key, CacheGetType.TYPE_OBJECT);
-    if (value) {
-      const parents = this.getParents(value);
-      if (parents.length) {
-        for (const p of parents) {
-          const childList = await this.get(p, CacheGetType.TYPE_ARRAY);
-          for (const c of childList) {
-            const childValue = await this.get(c, CacheGetType.TYPE_OBJECT);
-            await this.set(c, childValue, { timestamp: Date.now() });
-          }
-        }
-      } else {
-        await this.set(key, value, { timestamp: Date.now() });
-      }
+  getParents(rawValue) {
+    if (rawValue && rawValue.parentKeys) {
+      return rawValue.parentKeys;
+    } else if (!rawValue) {
+      return [];
+    } else {
+      logger.error(
+        `${this.context}::getParents: parentKeys not found ${rawValue}`,
+      );
+      return [];
     }
-  }
-
-  getParents(value) {
-    if (value && typeof value === 'object') {
-      if (CacheListProp in value) {
-        const listsForKey = value[CacheListProp];
-        if (listsForKey && listsForKey.length) {
-          return listsForKey;
-        }
-      }
-    } else if (value && typeof value === 'string') {
-      if (value.includes(CacheListProp)) {
-        const keyHelper = value.split(CacheListProp);
-        const listsForKey = keyHelper[1].split(',');
-        if (listsForKey.length) {
-          return listsForKey;
-        }
-      }
-    }
-    return [];
   }
 
   async destroy(): Promise<boolean> {

@@ -26,7 +26,7 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex border-2 rounded-lg border-brand-500': selected,
+        '!flex border-2 rounded-lg border-brand-500': selected || hover,
       }"
       class="!group-hover:(border-brand-500) !border-2 cursor-ns-resize"
       size="xsmall"
@@ -51,7 +51,7 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500)': resize,
       '!border-brand-500 border-2': selected || hover,
     }"
-    class="relative h-full border-2 border-white"
+    class="relative h-full ml-0.25 border-2 border-gray-50"
   >
     <div class="h-full absolute py-2">
       <div
@@ -82,7 +82,7 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex border-2 rounded-lg z-1 cursor-ns-resize	border-brand-500': selected,
+        '!flex border-2 rounded-lg z-1 cursor-ns-resize	border-brand-500': selected || hover,
       }"
       class="!group-hover:(border-brand-500) !border-2"
       size="xsmall"

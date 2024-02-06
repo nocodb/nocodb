@@ -5502,7 +5502,7 @@ class BaseModelSqlv2 {
             .delete();
 
           delQb.whereIn(
-            `${vTn.table_name}.${vParentCol.column_name}`,
+            `${vTable.table_name}.${vParentCol.column_name}`,
             typeof childIds[0] === 'object'
               ? childIds.map(
                   (c) =>

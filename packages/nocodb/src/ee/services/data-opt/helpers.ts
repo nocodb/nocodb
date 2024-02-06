@@ -1116,7 +1116,7 @@ export async function singleQueryList(ctx: {
       (c) => c.uidt === UITypes.CreatedTime && c.system,
     );
     if (createdAtColumn) {
-      rootQb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
+      qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
     }
     /*else if (ctx.model.primaryKey) {
       rootQb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);

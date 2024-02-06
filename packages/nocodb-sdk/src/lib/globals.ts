@@ -123,6 +123,10 @@ export enum TiptapMarksTypes {
   underline = 'underline',
 }
 
+export enum NcDataErrorCodes {
+  NC_ERR_MM_MODEL_NOT_FOUND = 'NC_ERR_MM_MODEL_NOT_FOUND',
+}
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;

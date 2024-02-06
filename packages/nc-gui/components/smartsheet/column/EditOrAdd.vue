@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSelfReferencingTableColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsKanbanInj,
@@ -172,7 +172,7 @@ onMounted(() => {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
       emit('cancel')
-    } else if (isSystemColumn(formState.value)) {
+    } else if (isSystemColumn(formState.value) && !isSelfReferencingTableColumn(formState.value)) {
       message.info(t('msg.info.editingSystemKeyNotSupported'))
       emit('cancel')
     }

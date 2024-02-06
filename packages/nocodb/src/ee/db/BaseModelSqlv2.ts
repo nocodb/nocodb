@@ -141,7 +141,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
-    childTable?: Model,
+    dependencyColumns?: Column[],
     options: {
       skipDateConversion?: boolean;
       skipAttachmentConversion?: boolean;
@@ -187,23 +187,47 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       data = await execAndGetRows(this, query);
     }
 
+    if (!this.model?.columns) {
+      await this.model.getColumns();
+    }
+
+    // we need to post process lookup fields based on the looked up column instead of the lookup column
+    const aliasColumns = {};
+
+    if (!dependencyColumns) {
+      const nestedColumns = this.model?.columns.filter(
+        (col) => col.uidt === UITypes.Lookup,
+      );
+
+      for (const col of nestedColumns) {
+        const nestedColumn = await this.getNestedColumn(col);
+        if (nestedColumn && nestedColumn.colOptions?.type === 'bt') {
+          aliasColumns[col.id] = nestedColumn;
+        }
+      }
+    }
+
     // update attachment fields
     if (!options.skipAttachmentConversion) {
-      data = await this.convertAttachmentType(data, childTable);
+      data = await this.convertAttachmentType(data, dependencyColumns);
     }
 
     // update date time fields
     if (!options.skipDateConversion) {
-      data = this.convertDateFormat(data, childTable);
+      data = this.convertDateFormat(data, dependencyColumns);
     }
 
     // update user fields
     if (!options.skipUserConversion) {
-      data = await this.convertUserFormat(data, childTable);
+      data = await this.convertUserFormat(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
-      data = await this.substituteColumnIdsWithColumnTitles(data, childTable);
+      data = await this.substituteColumnIdsWithColumnTitles(
+        data,
+        dependencyColumns,
+        aliasColumns,
+      );
     }
 
     if (options.first) {

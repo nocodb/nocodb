@@ -23,10 +23,12 @@ export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-in
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
-/** when bool is passed, it indicates if a loading spinner should be visible while reloading */
-export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
+/** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
+export const ReloadViewDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
+  Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
-export const ReloadRowDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-row-data-injection')
+export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
+  Symbol('reload-row-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<ColumnType[]>> = Symbol('fields-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')

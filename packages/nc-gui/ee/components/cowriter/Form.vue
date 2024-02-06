@@ -45,7 +45,7 @@ const { loadFormView, formColumnData, formViewData } = useViewData(
   cowriterFormView as Ref<ViewType>,
 )
 
-const reloadEventHook = createEventHook<boolean | void>()
+const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
 
@@ -267,7 +267,9 @@ watch(cowriterFormView, async () => {
               />
             </a-form-item>
 
-            <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+            <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">
+              {{ element.description }}
+            </div>
           </div>
         </template>
 

@@ -197,34 +197,22 @@ export default class Column<T = any> implements ColumnType {
       {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
-        show: !column.view_id,
+        column_show: {
+          show:
+            column.uidt === UITypes.LinkToAnotherRecord ||
+            (column.uidt === UITypes.Links &&
+              column.type === 'mm' &&
+              !column.view_id)
+              ? false
+              : !column.view_id,
+          view_id: column.view_id,
+        },
         column_order: column.column_order,
       },
       ncMeta,
     );
 
-    await View.clearSingleQueryCache(column.fk_model_id, []);
-
-    if (column.view_id) {
-      const viewColId = await View.getViewColumnId(
-        {
-          viewId: column.view_id,
-          colId: row.id,
-        },
-        ncMeta,
-      );
-
-      if (viewColId) {
-        await View.updateColumn(
-          column.view_id,
-          viewColId,
-          {
-            show: true,
-          },
-          ncMeta,
-        );
-      }
-    }
+    await View.clearSingleQueryCache(column.fk_model_id);
 
     return col;
   }
@@ -1214,7 +1202,7 @@ export default class Column<T = any> implements ColumnType {
 
     const column = await Column.get({ colId }, ncMeta);
 
-    await View.clearSingleQueryCache(column.fk_model_id, []);
+    await View.clearSingleQueryCache(column.fk_model_id);
   }
 
   public getValidators(): any {

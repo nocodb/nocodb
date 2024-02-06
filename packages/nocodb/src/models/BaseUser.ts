@@ -352,20 +352,30 @@ export default class BaseUser {
     qb.whereNot(`${MetaTable.PROJECT}.deleted`, true);
 
     const baseList = await qb;
-    if (baseList?.length) {
-      // parse meta
-      for (const base of baseList) {
-        base.meta = parseMetaProp(base);
-      }
+
+    if (baseList && baseList?.length) {
+      const promises = [];
+
+      const castedProjectList = baseList
+        .filter((p) => !params?.type || p.type === params.type)
+        .sort(
+          (a, b) =>
+            (a.order != null ? a.order : Infinity) -
+            (b.order != null ? b.order : Infinity),
+        )
+        .map((p) => {
+          const base = Base.castType(p);
+          base.meta = parseMetaProp(base);
+          promises.push(base.getSources(ncMeta));
+          return base;
+        });
+
+      await Promise.all(promises);
+
+      return castedProjectList;
+    } else {
+      return [];
     }
-
-    const castedProjectList = baseList
-      .filter((p) => !params?.type || p.type === params.type)
-      .map((m) => Base.castType(m));
-
-    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
-
-    return castedProjectList;
   }
 
   static async updateOrInsert(

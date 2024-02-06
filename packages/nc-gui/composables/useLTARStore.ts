@@ -45,7 +45,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     column: Ref<Required<ColumnType>>,
     row: Ref<Row>,
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
-    reloadData = (_showProgress?: boolean) => {},
+    reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
     // state
     const { metas, getMeta } = useMetas()
@@ -351,7 +351,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            reloadData?.(false)
+            reloadData?.({ shouldShowLoading: false })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -429,7 +429,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }, 600)
       }
 
-      reloadData?.(false)
+      reloadData?.({ shouldShowLoading: false })
       $e('a:links:unlink')
     }
 
@@ -499,7 +499,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }, 600)
       }
 
-      reloadData?.(false)
+      reloadData?.({ shouldShowLoading: false })
       $e('a:links:link')
     }
 

@@ -86,6 +86,15 @@ export class MetaService extends MetaServiceCE {
       case MetaTable.KANBAN_VIEW_COLUMNS:
         prefix = 'kvc';
         break;
+      case MetaTable.CALENDAR_VIEW:
+        prefix = 'cv';
+        break;
+      case MetaTable.CALENDAR_VIEW_COLUMNS:
+        prefix = 'cvc';
+        break;
+      case MetaTable.CALENDAR_VIEW_RANGE:
+        prefix = 'cvr';
+        break;
       case MetaTable.USERS:
         prefix = 'us';
         break;

@@ -5150,7 +5150,7 @@ class BaseModelSqlv2 {
           // validate Ids
           {
             const childRowsQb = this.dbDriver(parentTn)
-              .select(parentColumn.column_name)
+              .select(`${parentTable.table_name}.${parentColumn.column_name}`)
               .select(`${vTable.table_name}.${vChildCol.column_name}`)
               .leftJoin(vTn, (qb) => {
                 qb.on(
@@ -5163,25 +5163,25 @@ class BaseModelSqlv2 {
                   ]),
                 );
               });
-
-            if (parentTable.primaryKeys.length > 1) {
-              childRowsQb.where((qb) => {
-                for (const childId of childIds) {
-                  qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
-                }
-              });
-            } else {
-              childRowsQb.whereIn(
-                parentTable.primaryKey.column_name,
-                typeof childIds[0] === 'object'
-                  ? childIds.map(
-                      (c) =>
-                        c[parentTable.primaryKey.title] ||
-                        c[parentTable.primaryKey.column_name],
-                    )
-                  : childIds,
-              );
-            }
+              console.log('q', childRowsQb.toQuery());
+              if (parentTable.primaryKeys.length > 1) {
+                childRowsQb.where((qb) => {
+                  for (const childId of childIds) {
+                    qb.orWhere(_wherePk(parentTable.primaryKeys, childId));
+                  }
+                });
+              } else {
+                childRowsQb.whereIn(
+                  `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                  typeof childIds[0] === 'object'
+                    ? childIds.map(
+                        (c) =>
+                          c[parentTable.primaryKey.title] ||
+                          c[parentTable.primaryKey.column_name],
+                      )
+                    : childIds,
+                );
+              }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(parentTable.primaryKey.column_name);

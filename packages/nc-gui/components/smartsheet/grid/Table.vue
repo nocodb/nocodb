@@ -29,15 +29,18 @@ import {
   getEnumColorByIndex,
   iconMap,
   inject,
+  isBt,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
   isEeUI,
   isMac,
+  isMm,
   message,
   onClickOutside,
   onMounted,
   provide,
   ref,
+  useApi,
   useEventListener,
   useI18n,
   useMultiSelect,
@@ -50,7 +53,6 @@ import {
   useViewColumnsOrThrow,
   useViewsStore,
   watch,
-  useApi
 } from '#imports'
 import type { CellRange, Row } from '#imports'
 
@@ -291,7 +293,6 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
               columnObj.id === col.id
             ) {
-
               if (rowRefs.value) {
                 if (isBt(columnObj)) {
                   rowObj.row[columnObj.title] = row.row[columnObj.title]
@@ -299,7 +300,12 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                   await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
                   await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
                 } else if (isMm(columnObj)) {
-                  await api.dbDataTableRow.nestedLink(meta.value?.id as string, columnObj.id as string, encodeURIComponent(rowId as string), mmClearResult)
+                  await api.dbDataTableRow.nestedLink(
+                    meta.value?.id as string,
+                    columnObj.id as string,
+                    encodeURIComponent(rowId as string),
+                    mmClearResult,
+                  )
                   rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
                 }
               }
@@ -319,7 +325,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
         args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult:any[]) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -331,7 +337,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               if (rowRefs.value) {
                 if (isBt(columnObj)) {
                   await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
-                } else if (isMm(columnObj)){
+                } else if (isMm(columnObj)) {
                   await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
                 }
               }
@@ -347,7 +353,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
       },
       scope: defineViewScope({ view: view.value }),
     })
@@ -912,13 +918,20 @@ async function clearSelectedRangeOfCells() {
   const cols = fields.value.slice(startCol, endCol + 1)
   const rows = dataRef.value.slice(startRow, endRow + 1)
   const props = []
+  let isInfoShown = false
 
   for (const row of rows) {
     for (const col of cols) {
       if (!row || !col || !col.title) continue
 
       // TODO handle LinkToAnotherRecord
-      if (isVirtualCol(col)) continue
+      if (isVirtualCol(col)) {
+        if ((isBt(col) || isMm(col)) && !isInfoShown) {
+          message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
+          isInfoShown = true
+        }
+        continue
+      }
 
       row.row[col.title] = null
       props.push(col.title)

@@ -825,6 +825,7 @@ export function useMultiSelect(
         const propsToPaste: string[] = []
 
         let pastedRows = 0
+        let isInfoShown = false
 
         for (let i = 0; i < pasteMatrixRows; i++) {
           const pasteRow = rowsToPaste[i]
@@ -838,6 +839,10 @@ export function useMultiSelect(
             const pasteCol = colsToPaste[j]
 
             if (!isPasteable(pasteRow, pasteCol)) {
+              if ((isBt(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
+                message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                isInfoShown = true
+              }
               continue
             }
 
@@ -1070,13 +1075,20 @@ export function useMultiSelect(
           const props = []
 
           let pasteValue
+          let isInfoShown = false
+
           const files = e.clipboardData?.files
+
           for (const row of rows) {
             // TODO handle insert new row
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
               if (!col.title || !isPasteable(row, col)) {
+                if ((isBt(col) || isMm(col)) && !isInfoShown) {
+                  message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                  isInfoShown = true
+                }
                 continue
               }
 

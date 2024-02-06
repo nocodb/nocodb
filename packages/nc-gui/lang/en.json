@@ -1247,7 +1247,10 @@
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
       "editingSystemKeyNotSupported": "Editing system key not supported",
-      "notAvailableAtTheMoment": "Not available at the moment"
+      "notAvailableAtTheMoment": "Not available at the moment",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+
     },
     "error": {
       "scopesRequired": "Scopes required",

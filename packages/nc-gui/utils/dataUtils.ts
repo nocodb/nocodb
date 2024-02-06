@@ -1,7 +1,7 @@
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import type { Row } from '~/lib'
 import { isColumnRequiredAndNull } from './columnUtils'
+import type { Row } from '~/lib'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null

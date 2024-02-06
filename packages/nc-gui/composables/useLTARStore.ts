@@ -1,14 +1,11 @@
-import {
+import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import type {
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
+  RelationTypes,
   type RequestParams,
   type TableType,
-  UITypes,
-  dateFormats,
-  parseStringDateTime,
-  timeFormats,
-  RelationTypes,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {

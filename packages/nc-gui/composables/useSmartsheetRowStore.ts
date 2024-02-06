@@ -190,8 +190,6 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       try {
         if (!column || !isLinksOrLTAR(column)) return
 
-        const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
-
         if (isNew.value) {
           state.value[column.title!] = null
         } else if (currentRow.value) {

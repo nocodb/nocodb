@@ -140,11 +140,11 @@ export class AccountAuthenticationPage extends BasePage {
 
     await oidcModal.locator('[data-test-id="nc-oidc-auth-url"]').fill(p.authUrl);
 
-    await oidcModal.locator('[data-test-id="nc-oidc-tokenUrl"]').fill(p.tokenUrl);
+    await oidcModal.locator('[data-test-id="nc-oidc-token-url"]').fill(p.tokenUrl);
 
-    await oidcModal.locator('[data-test-id="nc-oidc-userInfoUrl"]').fill(p.userInfoUrl);
+    await oidcModal.locator('[data-test-id="nc-oidc-user-info-url"]').fill(p.userInfoUrl);
 
-    await oidcModal.locator('[data-test-id="nc-oidc-jwkUrl"]').fill(p.jwkUrl);
+    await oidcModal.locator('[data-test-id="nc-oidc-jwk-url"]').fill(p.jwkUrl);
 
     await this.selectScope({
       type: p.scopes,

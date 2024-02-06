@@ -256,7 +256,7 @@ const saveOIDCProvider = async () => {
             <a-input
               v-model:value="form.tokenUrl"
               class="mt-4"
-              data-test-id="nc-oidc-tokenUrl"
+              data-test-id="nc-oidc-token-url"
               placeholder="Token URL*"
               required
               type="url"
@@ -266,7 +266,7 @@ const saveOIDCProvider = async () => {
             <a-input
               v-model:value="form.userInfoUrl"
               class="mt-4"
-              data-test-id="nc-oidc-userInfoUrl"
+              data-test-id="nc-oidc-user-info-url"
               placeholder="User Info URL*"
               required
               type="url"
@@ -276,7 +276,7 @@ const saveOIDCProvider = async () => {
             <a-input
               v-model:value="form.jwkUrl"
               class="mt-4"
-              data-test-id="nc-oidc-jwkUrl"
+              data-test-id="nc-oidc-jwk-url"
               placeholder="JWK Set URL*"
               required
               type="url"

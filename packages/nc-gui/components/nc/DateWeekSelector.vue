@@ -33,9 +33,9 @@ const selectedWeek = useVModel(props, 'selectedWeek', emit)
 
 const days = computed(() => {
   if (props.isMondayFirst) {
-    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
   } else {
-    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   }
 })
 

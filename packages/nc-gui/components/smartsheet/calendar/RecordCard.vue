@@ -74,11 +74,12 @@ const emit = defineEmits(['resize-start'])
 
     <div class="ml-3 pr-3 text-ellipsis overflow-hidden w-full h-8 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
-      <span class="text-sm text-gray-800">
+      <span class="absolute ml-1 text-sm text-gray-800">
         <slot />
       </span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
+
     <div
       v-if="(position === 'rightRounded' || position === 'rounded') && resize"
       :class="{

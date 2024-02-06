@@ -4,12 +4,14 @@ interface Props {
   color?: string
   resize?: boolean
   selected?: boolean
+  hover?: boolean
   position?: 'topRounded' | 'bottomRounded' | 'rounded' | 'none'
 }
 
 withDefaults(defineProps<Props>(), {
   resize: true,
   selected: false,
+  hover: false,
   color: 'blue',
   position: 'rounded',
 })
@@ -47,7 +49,7 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500)': resize,
-      'border-brand-500': selected,
+      '!border-brand-500 border-2': selected || hover,
     }"
     class="relative h-full border-2 border-white"
   >

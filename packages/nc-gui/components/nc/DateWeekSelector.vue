@@ -198,18 +198,18 @@ const paginate = (action: 'next' | 'prev') => {
 }
 
 .nc-selected-week:before {
-  @apply absolute top-0 left-0 w-full h-full border-y-2 bg-brand-50 border-brand-500;
+  @apply absolute top-0 left-0 w-full h-full border-y-1 bg-brand-50 border-brand-500;
   content: '';
   width: 124%;
   height: 100%;
 }
 
 .nc-selected-week-start:before {
-  @apply !border-l-2 !rounded-l-lg;
+  @apply !border-l-1 !rounded-l-lg;
 }
 
 .nc-selected-week-end:before {
   width: 100%;
-  @apply !border-r-2 !rounded-r-lg;
+  @apply !border-r-1 !rounded-r-lg;
 }
 </style>

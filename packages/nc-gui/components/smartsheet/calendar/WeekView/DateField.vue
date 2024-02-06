@@ -231,7 +231,7 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const day = Math.floor(percentX * 7)
+  const day = Math.min(Math.floor(percentX * 7), 6)
 
   if (resizeDirection.value === 'right') {
     let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day')
@@ -318,7 +318,7 @@ const onDrag = (event: MouseEvent) => {
 
   if (!fromCol) return
 
-  const day = Math.floor(percentX * 7)
+  const day = Math.min(Math.floor(percentX * 7), 6)
 
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
   if (!newStartDate) return

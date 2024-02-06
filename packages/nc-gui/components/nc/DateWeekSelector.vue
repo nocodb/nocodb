@@ -132,7 +132,7 @@ const paginate = (action: 'next' | 'prev') => {
 </script>
 
 <template>
-  <div class="p-4 flex flex-col gap-4">
+  <div class="px-4 pt-3 pb-4 flex flex-col gap-4">
     <div
       :class="{
         'justify-center': disablePagination,
@@ -160,7 +160,7 @@ const paginate = (action: 'next' | 'prev') => {
       </NcTooltip>
     </div>
     <div class="border-1 border-gray-200 rounded-y-xl max-w-[320px]">
-      <div class="flex flex-row bg-gray-100 gap-2 rounded-t-xl justify-between p-2">
+      <div class="flex flex-row bg-gray-100 gap-2 rounded-t-xl justify-between px-2">
         <span v-for="(day, index) in days" :key="index" class="h-9 flex items-center justify-center w-9 text-gray-500">{{
           day
         }}</span>

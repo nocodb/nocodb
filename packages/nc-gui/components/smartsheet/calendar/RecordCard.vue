@@ -43,38 +43,36 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500 border-2)': resize,
       '!border-brand-500 border-2': selected || hover,
     }"
-    class="relative group border-2 border-white"
+    class="relative flex items-center px-1 group border-2 border-transparent"
   >
-    <div class="h-full absolute py-2">
-      <div
-        v-if="position === 'leftRounded' || position === 'rounded'"
-        :class="{
-          'bg-maroon-500': color === 'maroon',
-          'bg-blue-500': color === 'blue',
-          'bg-green-500': color === 'green',
-          'bg-yellow-500': color === 'yellow',
-          'bg-pink-500': color === 'pink',
-          'bg-purple-500': color === 'purple',
-        }"
-        class="block h-full min-h-5 ml-1 w-1 rounded mr-2"
-      ></div>
-    </div>
+    <div
+      v-if="position === 'leftRounded' || position === 'rounded'"
+      :class="{
+        'bg-maroon-500': color === 'maroon',
+        'bg-blue-500': color === 'blue',
+        'bg-green-500': color === 'green',
+        'bg-yellow-500': color === 'yellow',
+        'bg-pink-500': color === 'pink',
+        'bg-purple-500': color === 'purple',
+      }"
+      class="block h-full min-h-5 w-1 rounded"
+    ></div>
 
     <div
       v-if="(position === 'leftRounded' || position === 'rounded') && resize"
       :class="{
         '!block !border-2 !rounded-lg !border-brand-500': selected || hover,
       }"
-      class="absolute mt-0.6 h-7.1 hidden -left-4 resize"
+      class="mt-0.6 h-7.1 hidden -left-4 resize"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>
       </NcButton>
     </div>
 
-    <div class="ml-3 pr-3 text-ellipsis overflow-hidden w-full h-8 absolute">
-      <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
-      <span class="absolute ml-1 text-sm text-gray-800">
+    <div class="ml-3 pr-3 overflow-hidden w-full h-8 absolute">
+      <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
+      <span class="absolute text-sm text-gray-800">
         <slot />
       </span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>

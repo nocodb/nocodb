@@ -922,8 +922,6 @@ export class SqliteUi {
       'VALUE',
       'COUNTA',
       'COUNT',
-      'ROUNDDOWN',
-      'ROUNDUP',
       'DATESTR',
       'DAY',
       'MONTH',

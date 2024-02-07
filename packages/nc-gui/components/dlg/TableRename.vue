@@ -193,7 +193,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
   <NcModal v-model:visible="dialogShow" size="small">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" />
+        <GeneralIcon icon="rename" />
         {{ $t('activity.renameTable') }}
       </div>
     </template>

@@ -328,7 +328,7 @@ const setIcon = async (icon: string, base: BaseType) => {
               <a-menu>
                 <a-menu-item @click="enableEdit(i)">
                   <div class="nc-menu-item-wrapper">
-                    <GeneralIcon icon="edit" class="text-gray-700" />
+                    <GeneralIcon icon="rename" class="text-gray-700" />
                     {{ $t('general.rename') }} {{ $t('objects.project') }}
                   </div>
                 </a-menu-item>

@@ -3,9 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '~/lib'
 
-import UploadIcon from '~icons/nc-icons/upload'
-import DownloadIcon from '~icons/nc-icons/download'
-
 const props = defineProps<{
   view: ViewType
   table: TableType
@@ -167,13 +164,13 @@ const onDelete = async () => {
     <NcDivider />
     <template v-if="!view?.is_default">
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-        <GeneralIcon icon="edit" />
+        <GeneralIcon icon="rename" />
         {{ $t('activity.renameView') }}
       </NcMenuItem>
       <NcTooltip v-else>
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-          <GeneralIcon icon="edit" />
+          <GeneralIcon icon="rename" />
           {{ $t('activity.renameView') }}
         </NcMenuItem>
       </NcTooltip>
@@ -197,7 +194,7 @@ const onDelete = async () => {
               ]"
               class="nc-base-menu-item group"
             >
-              <UploadIcon class="w-4 h-4" />
+              <GeneralIcon icon="upload" />
               {{ $t('general.upload') }}
             </div>
           </template>
@@ -217,7 +214,7 @@ const onDelete = async () => {
                 class="nc-base-menu-item"
                 :class="{ disabled: lockType === LockType.Locked }"
               >
-                <component :is="iconMap.upload" />
+                <component :is="iconMap.cloudUpload" />
                 {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
               </div>
             </NcMenuItem>
@@ -235,7 +232,7 @@ const onDelete = async () => {
             ]"
             class="nc-base-menu-item group nc-view-context-download-option"
           >
-            <DownloadIcon class="w-4 h-4" />
+            <GeneralIcon type="download" />
             {{ $t('general.download') }}
           </div>
         </template>

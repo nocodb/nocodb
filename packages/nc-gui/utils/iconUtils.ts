@@ -115,6 +115,7 @@ import NcRename from '~icons/nc-icons/rename'
 import NcDuplicate from '~icons/nc-icons/duplicate'
 import NcEdit from '~icons/nc-icons/edit'
 import NcCopy from '~icons/nc-icons/copy'
+import NcPaste from '~icons/nc-icons/paste'
 import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
 import NcUpload from '~icons/nc-icons/upload'
@@ -470,7 +471,7 @@ export const iconMap = {
   role_no_access: NoAccess,
   commentHere: NcCommentHere,
   fileImage: FileImageIcon,
-  paste: h('span', { class: 'material-symbols' }, 'content_paste'),
+  paste: NcPaste,
   chevronDown: NcChevronDown,
   pencil: NcPencil,
   rename: NcRename,

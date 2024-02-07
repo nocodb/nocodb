@@ -111,6 +111,7 @@ import NcNotification from '~icons/material-symbols/notifications-outline'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
+import NcChevronDown from '~icons/nc-icons/chevron-down'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -462,6 +463,7 @@ export const iconMap = {
   commentHere: NcCommentHere,
   fileImage: FileImageIcon,
   paste: h('span', { class: 'material-symbols' }, 'content_paste'),
+  chevronDown: NcChevronDown,
 }
 
 export const getMdiIcon = (type: string): any => {

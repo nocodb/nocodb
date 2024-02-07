@@ -1060,18 +1060,24 @@ const parseConditionV2 = async (
           case 'isWithin': {
             let now = dayjs(new Date()).format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
+
+            // switch between arg based on customWhereClause(builder)
+            const [firstArg, rangeArg] = [
+              customWhereClause ? val : field,
+              customWhereClause ? field : val,
+            ];
             switch (filter.comparison_sub_op) {
               case 'pastWeek':
               case 'pastMonth':
               case 'pastYear':
               case 'pastNumberOfDays':
-                qb = qb.whereBetween(field, [val, now]);
+                qb = qb.whereBetween(firstArg, [rangeArg, now]);
                 break;
               case 'nextWeek':
               case 'nextMonth':
               case 'nextYear':
               case 'nextNumberOfDays':
-                qb = qb.whereBetween(field, [now, val]);
+                qb = qb.whereBetween(firstArg, [now, rangeArg]);
                 break;
             }
           }

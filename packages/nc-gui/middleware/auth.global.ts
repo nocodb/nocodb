@@ -173,7 +173,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
         {},
         {
           headers: {
-            'x-short-token': window.location.search.split('=')[1],
+            'xc-short-token': window.location.search.split('=')[1],
           } as any,
         },
       )

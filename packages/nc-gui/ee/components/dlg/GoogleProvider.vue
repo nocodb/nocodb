@@ -1,15 +1,12 @@
 <script lang="ts" setup>
 import type { RuleObject } from 'ant-design-vue/es/form'
+import type { GoogleClientConfigType, SSOClientType } from 'nocodb-sdk'
 import { computed, reactive, ref, useAuthentication, useCopy } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
   isEdit: boolean
-  google?: {
-    id: string
-    clientId: string
-    clientSecret: string
-  }
+  google?: SSOClientType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -19,8 +16,8 @@ const { t } = useI18n()
 const { addProvider, updateProvider, getRedirectUrl } = useAuthentication()
 
 const form = reactive<{ clientId: string; clientSecret: string }>({
-  clientId: props.google?.clientId ?? '',
-  clientSecret: props.google?.clientSecret ?? '',
+  clientId: (props.google?.config as GoogleClientConfigType)?.clientId ?? '',
+  clientSecret: (props.google?.config as GoogleClientConfigType)?.clientSecret ?? '',
 })
 
 const formRules = {

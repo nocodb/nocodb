@@ -6,7 +6,7 @@ import type {
   OpenIDClientConfigType,
   SAMLClientConfigType,
   SSOClientType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
@@ -129,7 +129,10 @@ export class SSOClientService {
 
     if (!param.client.config) return param.client.config;
 
-    const extractedConfig: SAMLClientConfigType | OpenIDClientConfigType | GoogleClientConfigType = {
+    const extractedConfig:
+      | SAMLClientConfigType
+      | OpenIDClientConfigType
+      | GoogleClientConfigType = {
       ...param.client.config,
     };
 

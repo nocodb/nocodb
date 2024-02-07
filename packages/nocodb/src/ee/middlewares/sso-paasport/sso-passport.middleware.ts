@@ -305,7 +305,6 @@ export class SSOPassportMiddleware implements NestMiddleware {
         callbackURL: req.ncSiteUrl + `/sso/${client.id}/redirect`,
         passReqToCallback: true,
         scope: ['profile', 'email'],
-        state: true,
       },
       (req, accessToken, refreshToken, profile, done) => {
         (async () => {

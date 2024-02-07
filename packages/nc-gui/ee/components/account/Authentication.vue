@@ -158,10 +158,11 @@ onMounted(async () => {
       <div
         class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
         data-test-id="nc-google-provider"
+        @click="enableEdit(googleProvider)"
       >
-        <div class="nc-google-enable">
+        <div class="nc-google-enable" @click.stop>
           <NcSwitch
-            :checked="googleProvider.enabled"
+            :checked="!!googleProvider.enabled"
             class="min-w-4"
             size="small"
             @change="updateProviderStatus(googleProvider)"
@@ -169,7 +170,7 @@ onMounted(async () => {
           <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title"> Google </span>
         </div>
 
-        <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
+        <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
           <NcButton
             class="!text-gray-500 !hover:text-gray-800 nc-google-more-option"
             data-test-id="nc-google-more-option"

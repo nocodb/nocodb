@@ -383,6 +383,15 @@ export class UtilsService {
       ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
       : null;
 
+    const samlAuthEnabled = !!(
+      process.env.NC_SAML_ISSUER &&
+      process.env.NC_SAML_ENTRY_POINT &&
+      process.env.NC_SAML_CERT
+    );
+    const samlProviderName = samlAuthEnabled
+      ? process.env.NC_SAML_PROVIDER_NAME ?? 'SAML'
+      : null;
+
     const result = {
       authType: 'jwt',
       baseHasAdmin,
@@ -422,6 +431,8 @@ export class UtilsService {
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
+      samlProviderName,
+      samlAuthEnabled,
     };
 
     return result;

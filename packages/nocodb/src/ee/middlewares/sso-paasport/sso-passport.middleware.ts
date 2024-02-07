@@ -7,11 +7,15 @@ import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
 import type { NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import type { OpenIDClientConfigType } from 'nocodb-sdk';
+import type {
+  GoogleClientConfigType,
+  OpenIDClientConfigType,
+} from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 
@@ -56,6 +60,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
       strategy = await this.getOIDCStrategy(client, req);
     } else if (client.type === 'saml') {
       strategy = await this.getSAMLStrategy(client, req);
+    } else if (client.type === 'google') {
+      strategy = await this.getGoogleStrategy(client, req);
     } else {
       return res.status(400).json({
         msg: `Client not supported`,
@@ -285,6 +291,57 @@ export class SSOPassportMiddleware implements NestMiddleware {
           .catch((err) => {
             return done(err);
           });
+      },
+    );
+  }
+
+  private async getGoogleStrategy(client: SSOClient, req: Request) {
+    const config = client.config as GoogleClientConfigType;
+
+    return new GoogleStrategy(
+      {
+        clientID: config.clientId,
+        clientSecret: config.clientSecret,
+        callbackURL: req.ncSiteUrl + `/sso/${client.id}/redirect`,
+        passReqToCallback: true,
+        scope: ['profile', 'email'],
+        state: true,
+      },
+      (req, accessToken, refreshToken, profile, done) => {
+        (async () => {
+          const email = profile.emails[0].value;
+          const user = await User.getByEmail(email);
+          if (user) {
+            // if base id defined extract base level roles
+            if (req.ncBaseId) {
+              return await BaseUser.get(req.ncBaseId, user.id).then(
+                async (baseUser) => {
+                  user.roles = baseUser?.roles || user.roles;
+                  return sanitiseUserObj(user);
+                },
+              );
+            } else {
+              return sanitiseUserObj(user);
+            }
+            // if user not found create new user if allowed
+            // or return error
+          } else {
+            const salt = await promisify(bcrypt.genSalt)(10);
+            const user = await this.usersService.registerNewUserIfAllowed({
+              email_verification_token: null,
+              avatar: profile.photos?.[0]?.value,
+              display_name: profile.displayName,
+              email: profile.emails[0].value,
+              user_name: profile.username,
+              password: '',
+              salt,
+              req: req as any,
+            });
+            return sanitiseUserObj(user);
+          }
+        })()
+          .then((res) => done(null, res))
+          .catch((err) => done(err));
       },
     );
   }

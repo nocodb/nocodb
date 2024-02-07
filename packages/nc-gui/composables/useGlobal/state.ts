@@ -96,6 +96,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     googleAuthEnabled: false,
     oidcAuthEnabled: false,
     oidcProviderName: null,
+    samlAuthEnabled: false,
+    samlProviderName: null,
     ncMin: false,
     oneClick: false,
     baseHasAdmin: false,

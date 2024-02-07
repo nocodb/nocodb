@@ -60,7 +60,13 @@ export class UsersService extends UsersServiceCE {
       settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
     } catch {}
 
-    if (settings?.invite_only_signup) {
+    // allow super user signup(first user) in non cloud mode(on-prem)
+    const isFirstUserAndSuperUserAllowed =
+      process.env.NC_CLOUD !== 'true' && (await User.isFirst());
+
+    if (isFirstUserAndSuperUserAllowed) {
+      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
+    } else if (settings?.invite_only_signup) {
       NcError.badRequest('Not allowed to signup, contact super admin.');
     } else {
       roles = OrgUserRoles.VIEWER;

@@ -35,6 +35,8 @@ export interface AppInfo {
   mainSubDomain?: string
   dashboardPath: string
   inviteOnlySignup: boolean
+  samlAuthEnabled: boolean
+  samlProviderName: string | null
 }
 
 export interface StoredState {

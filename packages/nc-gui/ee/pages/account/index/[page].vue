@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 const { appInfo } = useGlobal()
 </script>
 
@@ -8,5 +8,6 @@ const { appInfo } = useGlobal()
   <AccountToken v-else-if="$route.params.page === 'tokens'" />
   <AccountAppStore v-else-if="$route.params.page === 'apps' && !appInfo.isCloud" />
   <AccountLicense v-else-if="$route.params.page === 'license'" />
+  <AccountAuthentication v-else-if="$route.params.page === 'authentication'" />
   <span v-else></span>
 </template>

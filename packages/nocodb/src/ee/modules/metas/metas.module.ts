@@ -20,6 +20,8 @@ import { DocsPagesService } from '~/services/docs/docs-pages.service';
 import { DocsPagesUpdateService } from '~/services/docs/docs-page-update.service';
 import { DocsPublicController } from '~/controllers/docs/public/docs-public.controller';
 import { PublicDocsService } from '~/services/docs/public/public-docs.service';
+import { SSOClientService } from '~/services/sso-client.service';
+import { SsoClientController } from '~/controllers/sso-client.controller';
 // import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 
 // import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
@@ -45,6 +47,7 @@ import { PublicDocsService } from '~/services/docs/public/public-docs.service';
     WidgetsService,
     LayoutsService,
     LayoutFilterService,
+    SSOClientService,
     // ClickhouseService,
     // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
@@ -61,6 +64,7 @@ import { PublicDocsService } from '~/services/docs/public/public-docs.service';
           LayoutFilterController,
 
           TelemetryController,
+          SsoClientController,
         ]
       : []),
   ],

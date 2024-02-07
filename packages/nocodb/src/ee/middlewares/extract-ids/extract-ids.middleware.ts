@@ -40,6 +40,8 @@ import {
 } from '~/models';
 import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -286,7 +288,7 @@ function getUserRoleForScope(user: any, scope: string) {
 
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
   async intercept(
     context: ExecutionContext,
@@ -307,7 +309,18 @@ export class AclMiddleware implements NestInterceptor {
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
-    const _res = context.switchToHttp().getResponse();
+
+    // if user is not defined then run GlobalGuard
+    // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
+    // todo: later we can move guard part to this middleware or add where it's missing
+    if (!req.user) {
+      try {
+        const guard = new GlobalGuard(this.jwtStrategy);
+        await guard.canActivate(context);
+      } catch (e) {
+        console.log(e);
+      }
+    }
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');

@@ -1,3 +1,5 @@
+process.env[`NC_DASHBOARD_URL`] = '/';
+
 import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';

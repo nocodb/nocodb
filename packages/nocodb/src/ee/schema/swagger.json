@@ -2087,6 +2087,109 @@
           }
         ]
       }
+    },
+    "/api/v2/sso-client": {
+      "get": {
+        "summary": "Get SSO Client",
+        "tags": [
+          "SSO Client"
+        ],
+        "operationId": "sso-client-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClientList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create SSO Client",
+        "operationId": "sso-client-create",
+        "tags": [
+          "SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClient"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/sso-client/{clientId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "description": "Unique SSO Client ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update SSO Client",
+        "tags": [
+          "SSO Client"
+        ],
+        "operationId": "sso-client-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete SSO Client",
+        "operationId": "sso-client-delete",
+        "tags": [
+          "SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3453,6 +3556,148 @@
             ]
           }
         ]
+      },
+      "SSOClientReq": {
+        "$ref": "#/components/schemas/SSOClient",
+        "required": [
+          "title",
+          "type"
+        ]
+      },
+      "SSOClient": {
+        "description": "Model for SSO Client",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Name of the SSO Client"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the SSO Client is enabled"
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Whether the SSO Client is deleted or not"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of SSO Client",
+            "enum": [
+              "saml",
+              "oidc"
+            ]
+          },
+          "config": {
+            "description": "SSO Client Configuration",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SAMLClientConfig"
+              },
+              {
+                "$ref": "#/components/schemas/OpenIDClientConfig"
+              }
+            ]
+          }
+        }
+      },
+      "OpenIDClientConfig": {
+        "description": "OpenID Configuration",
+        "type": "object",
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "format": "uri"
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "authUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "clientSecret": {
+            "type": "string"
+          },
+          "tokenUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "userInfoUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "jwkUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userNameAttribute": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientId",
+          "authUrl",
+          "clientSecret",
+          "tokenUrl",
+          "scopes"
+        ]
+      },
+      "SAMLClientConfig": {
+        "description": "SAML Configuration",
+        "type": "object",
+        "properties": {
+          "entityId": {
+            "type": "string"
+          },
+          "metaDataUrl": {
+            "type": "string"
+          },
+          "xml": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "metaDataUrl"
+            ]
+          },
+          {
+            "required": [
+              "xml"
+            ]
+          }
+        ]
+      },
+
+      "SSOClientList": {
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/SSOClient"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "title": "Cowriter List",
+        "type": "object",
+        "x-stoplight": {
+          "id": "24eab7d1ead43"
+        }
       }
     },
     "responses": {
@@ -3477,3 +3722,4 @@
     }
   }
 }
+

@@ -2,6 +2,7 @@ packages/nocodb/src/ee
 packages/nocodb-sdk/src/ee
 packages/nc-gui/ee
 scripts/sync
+scripts/ee
 */node_modules
 node_modules
 */.nuxt

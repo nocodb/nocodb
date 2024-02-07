@@ -94,14 +94,14 @@ export class AuthController extends AuthControllerCE {
   @Post(['/api/v1/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Req() req: Request, @Res() res: Response): Promise<any> {
-    if (!(req as any).isAuthenticated()) {
-      NcError.forbidden('Not allowed');
-    }
-
     const result: Record<string, string> = await this.usersService.signOut({
       req,
       res,
     });
+
+    if (!(req as any).isAuthenticated?.() && !req.user?.['isAuthorized']) {
+      return res.json(result);
+    }
 
     // todo: check provider as well, if we have multiple ways of login mechanism
     if (process.env.NC_OIDC_LOGOUT_URL) {
@@ -149,5 +149,55 @@ export class AuthController extends AuthControllerCE {
       )),
       extra: { ...req.extra },
     });
+  }
+
+  @Get('/auth/saml')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
+  async samlLogin() {}
+
+  @Get('/auth/saml/logout')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
+  async samlLogout(@Req() req: Request & { extra: any }, @Res() res: Response) {
+    (req as any).logout(req, function (err, request) {
+      if (!err) {
+        //redirect to the IdP Logout URL
+        res.redirect(request);
+      }
+    });
+  }
+
+  @Post('/auth/saml/redirect')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('saml'))
+  async samlLoginCallback(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
+    const dashboardPath = this.config.get('dashboardPath', {
+      infer: true,
+    });
+
+    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
+
+    res.redirect(redirectUrl);
+  }
+
+  @Post('/auth/long-lived-token')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('short-lived-token'))
+  async longLivedTokenRefresh(
+    @Req() req: Request & { extra: any },
+    @Res() res: Response,
+  ) {
+    await this.setRefreshToken({ req, res });
+    const result = {
+      ...(await this.usersService.login(
+        {
+          ...req.user,
+        },
+        req,
+      )),
+      extra: { ...req.extra },
+    };
+
+    res.json(result);
   }
 }

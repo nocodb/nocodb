@@ -174,11 +174,43 @@ const queryToPass = computed(() =>
                   <MdiLogin />
 
                   <template v-if="!appInfo.disableEmailAuth">
-                    {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                    {{ $t('labels.signInWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
                   </template>
                   <template v-else>
                     {{ $t('general.signIn') }}
                   </template>
+                </span>
+              </button>
+            </a>
+          </div>
+
+          <div v-if="appInfo.samlAuthEnabled" class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+            <a :href="`${appInfo.ncSiteUrl}/auth/saml`" class="!text-primary !no-underline">
+              <button type="button" class="scaling-btn bg-opacity-100">
+                <span class="flex items-center gap-2">
+                  <MdiLogin />
+
+                  <template v-if="!appInfo.disableEmailAuth">
+                    {{ $t('labels.signInWithProvider', { provider: appInfo.samlProviderName || 'SAML' }) }}
+                  </template>
+                  <template v-else>
+                    {{ $t('general.signIn') }}
+                  </template>
+                </span>
+              </button>
+            </a>
+          </div>
+
+          <div
+            v-for="client of appInfo.ssoClients"
+            :key="client.id"
+            class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+          >
+            <a :href="client.url" class="!text-primary !no-underline">
+              <button type="button" class="scaling-btn bg-opacity-100">
+                <span class="flex items-center gap-2">
+                  <MdiLogin />
+                  {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
                 </span>
               </button>
             </a>

@@ -45,12 +45,12 @@ const logout = async () => {
             <div
               v-if="!$route.params.baseType"
               v-e="['c:navbar:home']"
-              data-testid="nc-noco-brand-icon"
               class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
+              data-testid="nc-noco-brand-icon"
               @click="navigateTo('/')"
             >
               <div class="flex flex-row gap-x-2 items-center h-8.5">
-                <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
+                <GeneralIcon class="-mt-0.1" icon="arrowLeft" />
                 <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
               </div>
             </div>
@@ -59,10 +59,10 @@ const logout = async () => {
 
             <NcMenuItem
               key="profile"
-              class="item"
               :class="{
                 active: $route.params.page === 'profile',
               }"
+              class="item"
               @click="navigateTo('/account/profile')"
             >
               <div class="flex items-center space-x-2">
@@ -74,10 +74,10 @@ const logout = async () => {
 
             <NcMenuItem
               key="tokens"
-              class="item"
               :class="{
                 active: $route.params.page === 'tokens',
               }"
+              class="item"
               @click="navigateTo('/account/tokens')"
             >
               <div class="flex items-center space-x-2">
@@ -89,16 +89,31 @@ const logout = async () => {
             <NcMenuItem
               v-if="isUIAllowed('appStore') && !appInfo.isCloud"
               key="apps"
-              class="item"
               :class="{
                 active: $route.params.page === 'apps',
               }"
+              class="item"
               @click="navigateTo('/account/apps')"
             >
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.appStore" />
 
                 <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="isUIAllowed('ssoSettings')"
+              key="authentication"
+              :class="{
+                active: $route.params.page === 'authentication',
+              }"
+              class="item"
+              @click="navigateTo('/account/authentication')"
+            >
+              <div class="flex items-center space-x-2">
+                <component :is="iconMap.lock" />
+
+                <div class="select-none text-sm">{{ $t('title.sso') }}</div>
               </div>
             </NcMenuItem>
 
@@ -115,20 +130,20 @@ const logout = async () => {
               <NcMenuItem
                 v-if="isUIAllowed('superAdminUserManagement')"
                 key="list"
-                class="text-xs item"
                 :class="{
                   active: $route.params.nestedPage === 'list',
                 }"
+                class="text-xs item"
                 @click="navigateTo('/account/users/list')"
               >
                 <span class="ml-4">{{ $t('title.userManagement') }}</span>
               </NcMenuItem>
               <NcMenuItem
                 key="password-reset"
-                class="text-xs item"
                 :class="{
                   active: $route.params.nestedPage === 'password-reset',
                 }"
+                class="text-xs item"
                 @click="navigateTo('/account/users/password-reset')"
               >
                 <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
@@ -136,10 +151,10 @@ const logout = async () => {
               <NcMenuItem
                 v-if="isUIAllowed('superAdminAppSettings')"
                 key="settings"
-                class="text-xs item"
                 :class="{
                   active: $route.params.nestedPage === 'settings',
                 }"
+                class="text-xs item"
                 @click="navigateTo('/account/users/settings')"
               >
                 <span class="ml-4">{{ $t('activity.settings') }}</span>
@@ -156,7 +171,7 @@ const logout = async () => {
 
             <LazyGeneralReleaseInfo />
 
-            <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
+            <a-tooltip v-if="!appInfo.ee" :mouse-enter-delay="1" placement="bottom">
               <template #title> Switch language</template>
 
               <div class="flex pr-4 items-center">
@@ -166,11 +181,11 @@ const logout = async () => {
 
             <template v-if="signedIn">
               <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-                <NcButton type="text" size="small">
+                <NcButton size="small" type="text">
                   <component
                     :is="iconMap.threeDotVertical"
-                    data-testid="nc-menu-accounts"
                     class="md:text-lg cursor-pointer hover:text-gray-800 nc-menu-accounts"
+                    data-testid="nc-menu-accounts"
                     @click.prevent
                   />
                 </NcButton>
@@ -192,10 +207,10 @@ const logout = async () => {
             </template>
           </div>
           <div
-            class="flex flex-col container mx-auto"
             :style="{
               height: 'calc(100vh - 3.5rem)',
             }"
+            class="flex flex-col container mx-auto"
           >
             <div class="mt-2 h-full">
               <NuxtPage />

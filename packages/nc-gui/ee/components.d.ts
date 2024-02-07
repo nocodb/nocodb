@@ -102,6 +102,7 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsDarkModeOutline: typeof import('~icons/material-symbols/dark-mode-outline')['default']
     MaterialSymbolsDeleteOutlineRounded: typeof import('~icons/material-symbols/delete-outline-rounded')['default']
     MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']
+    MaterialSymbolsHelpCircle: typeof import('~icons/material-symbols/help-circle')['default']
     MaterialSymbolsHistoryRounded: typeof import('~icons/material-symbols/history-rounded')['default']
     MaterialSymbolsKeyboardArrowDown: typeof import('~icons/material-symbols/keyboard-arrow-down')['default']
     MaterialSymbolsKeyboardArrowDownRounded: typeof import('~icons/material-symbols/keyboard-arrow-down-rounded')['default']

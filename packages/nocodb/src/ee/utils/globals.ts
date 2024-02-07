@@ -56,6 +56,7 @@ export enum MetaTable {
   NOTIFICATION = 'notification',
   MODEL_STAT = 'nc_model_stats_v2',
   DB_MUX = 'nc_sql_executor_v2',
+  SSO_CLIENT = 'nc_sso_client',
 }
 
 export const orderedMetaTables = [
@@ -102,6 +103,7 @@ export const orderedMetaTables = [
   MetaTable.WORKSPACE,
   MetaTable.COWRITER,
   MetaTable.FOLLOWER,
+  MetaTable.SSO_CLIENT,
 ];
 
 export enum CacheScope {
@@ -164,6 +166,8 @@ export enum CacheScope {
   PROJECT_ALIAS = 'baseAlias',
   MODEL_ALIAS = 'modelAlias',
   VIEW_ALIAS = 'viewAlias',
+  SSO_CLIENT = 'ssoClient',
+  SSO_CLIENT_PUBLIC_LIST = 'ssoClientPublicList',
 }
 
 export enum DbMuxStatus {

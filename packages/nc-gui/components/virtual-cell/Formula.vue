@@ -5,8 +5,10 @@ import type { Ref } from 'vue'
 import {
   CellValueInj,
   ColumnInj,
+  IsExpandedFormOpenInj,
   computed,
   inject,
+  ref,
   renderValue,
   replaceUrlsWithLink,
   useBase,
@@ -30,10 +32,14 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   useShowNotEditableWarning()
 
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 </script>
 
 <template>
-  <div class="w-full" :class="{ 'text-right': isNumber }">
+  <div class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>

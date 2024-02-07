@@ -271,7 +271,7 @@ watch(inputWrapperRef, () => {
         v-if="!isVisible"
         placement="bottom"
         class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block z-3"
-        :class=" isExpandedFormOpen || isForm ? 'top-1' : 'bottom-1'"
+        :class="isExpandedFormOpen || isForm ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

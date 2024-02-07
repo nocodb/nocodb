@@ -232,7 +232,7 @@ const onDelete = async () => {
             ]"
             class="nc-base-menu-item group nc-view-context-download-option"
           >
-            <GeneralIcon type="download" />
+            <GeneralIcon icon="download" />
             {{ $t('general.download') }}
           </div>
         </template>

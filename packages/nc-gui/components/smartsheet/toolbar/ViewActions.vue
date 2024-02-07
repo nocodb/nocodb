@@ -145,7 +145,7 @@ useMenuCloseOnEsc(open)
             <a-sub-menu key="download">
               <template #title>
                 <div v-e="['c:download']" class="nc-base-menu-item group">
-                  <GeneralIcon type="download" />
+                  <GeneralIcon icon="download" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 

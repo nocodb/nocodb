@@ -29,6 +29,15 @@ export class SAMLLoginPage extends BasePage {
 
     await signIn.locator(`#userName`).fill(email);
     await signIn.locator(`#email`).fill(email);
-    await signIn.locator(`#btn-sign-in`).click();
+    await Promise.all([
+      this.rootPage.waitForNavigation({ url: /localhost:8080/ }),
+      signIn.locator(`#btn-sign-in`).click(),
+    ]);
+
+    await this.rootPage.goto(`http://localhost:3000?` + this.rootPage.url().split('?')[1]);
+
+    await this.projectsPage.waitToBeRendered();
+
+    console.log('111');
   }
 }

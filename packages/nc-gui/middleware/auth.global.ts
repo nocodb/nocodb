@@ -167,9 +167,9 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
     try {
       // `extra` prop is used in our cloud implementation, so we are keeping it
       const {
-        data: { token, extra },
+        data,
       } = await api.instance.post(
-        `/auth/long-lived-token-refresh`,
+        `/auth/long-lived-token`,
         {},
         {
           headers: {
@@ -177,6 +177,11 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
           } as any,
         },
       )
+
+      console.log(data)
+      debugger
+      const { token, extra } = data
+
 
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}

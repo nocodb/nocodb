@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  getEquivalentUIType,
   isDateMonthFormat,
   isNumericCol,
   RelationTypes,
@@ -574,6 +575,9 @@ const parseConditionV2 = async (
             : 'YYYY-MM-DD HH:mm:ssZ';
 
         if (
+          (column.uidt === UITypes.Formula &&
+            getEquivalentUIType({ formulaColumn: column.colOptions }) ==
+              UITypes.DateTime) ||
           [
             UITypes.Date,
             UITypes.DateTime,
@@ -668,6 +672,9 @@ const parseConditionV2 = async (
           case 'eq':
             if (qb?.client?.config?.client === 'mysql2') {
               if (
+                (column.uidt === UITypes.Formula &&
+                  getEquivalentUIType({ formulaColumn: column.colOptions }) ==
+                    UITypes.DateTime) ||
                 [
                   UITypes.Duration,
                   UITypes.Currency,
@@ -692,6 +699,9 @@ const parseConditionV2 = async (
               }
             } else {
               if (
+                (column.uidt === UITypes.Formula &&
+                  getEquivalentUIType({ formulaColumn: column.colOptions }) ==
+                    UITypes.DateTime) ||
                 [
                   UITypes.DateTime,
                   UITypes.CreatedTime,

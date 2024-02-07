@@ -14,7 +14,8 @@ export class SAMLLoginPage extends BasePage {
   async goto(title = 'test') {
     // reload page to get latest app info
     await this.rootPage.reload();
-    await this.rootPage.goto('/?skipRestore=true#/signin/');
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.goto('/#/signin/');
     // click sign in with SAML
     await this.rootPage.locator(`button:has-text("Sign in with ${title}")`).click();
   }

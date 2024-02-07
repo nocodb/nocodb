@@ -301,6 +301,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "Docs",
     "forum": "Forum",
     "parameter": "Parameter",
@@ -417,6 +418,16 @@
     }
   },
   "labels": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "SAML",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -658,6 +669,8 @@
     }
   },
   "activity": {
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "Open in a new tab",
     "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
@@ -1070,6 +1083,8 @@
       }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",

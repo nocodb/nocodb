@@ -86,7 +86,7 @@ const onChange = (value: string) => {
   }
 
   .ant-select-selection-item {
-    @apply font-medium pr-3 bg-gray-200 text-gray-800 rounded-md;
+    @apply font-medium pr-3 rounded-md;
   }
 
   .ant-select-selection-placeholder {

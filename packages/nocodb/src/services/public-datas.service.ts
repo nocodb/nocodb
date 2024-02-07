@@ -75,7 +75,7 @@ export class PublicDatasService {
     let count = 0;
 
     let option = {};
-    if (view.type === ViewTypes.CALENDAR) {
+    if (view && view.type === ViewTypes.CALENDAR) {
       option = {
         ignorePagination: true,
       };

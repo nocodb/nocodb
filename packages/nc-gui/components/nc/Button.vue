@@ -111,7 +111,7 @@ useEventListener(NcButton, 'mousedown', () => {
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
         }"
-        class="flex flex-row items-center w-full"
+        class="flex flex-row items-center"
       >
         <slot v-if="loading && slots.loading" name="loading" />
 

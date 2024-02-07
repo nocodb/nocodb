@@ -213,6 +213,8 @@ const dragRecord = ref<Row>()
 const resizeDirection = ref<'right' | 'left' | null>()
 const resizeRecord = ref<Row | null>(null)
 
+const hoverRecord = ref<string | null>()
+
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
@@ -581,19 +583,22 @@ const dropEvent = (event: DragEvent) => {
   <div class="flex relative flex-col prevent-select" @drop="dropEvent">
     <div class="flex">
       <div
-        v-for="date in weekDates"
-        :key="date.toISOString()"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 border-b-1 border-r-1 bg-gray-50"
+        v-for="(date, weekIndex) in weekDates"
+        :key="weekIndex"
+        :class="{
+          '!border-brand-500 !border-b-gray-200': dayjs(date).isSame(selectedDate, 'day'),
+        }"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 border-l-gray-50 border-t-gray-50 last:border-r-0 border-1 bg-gray-50"
       >
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
     <div ref="container" class="flex h-[calc(100vh-11.6rem)]">
       <div
-        v-for="date in weekDates"
-        :key="date.toISOString()"
+        v-for="(date, dateIndex) in weekDates"
+        :key="dateIndex"
         :class="{
-          '!border-1 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
+          '!border-1 !border-t-0 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
         }"
         class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         @click="selectedDate = date"
@@ -613,9 +618,12 @@ const dropEvent = (event: DragEvent) => {
         }"
         class="absolute group draggable-record pointer-events-auto"
         @mousedown="dragStart($event, record)"
+        @mouseleave="hoverRecord = null"
+        @mouseover="hoverRecord = record.rowMeta.id"
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
+            :hover="hoverRecord === record.rowMeta.id"
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"

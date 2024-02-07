@@ -63,7 +63,7 @@ const emit = defineEmits(['resize-start'])
       :class="{
         '!block !border-2 !rounded-lg !border-brand-500': selected || hover,
       }"
-      class="mt-0.6 h-7.1 hidden -left-4 resize"
+      class="mt-0.1 h-7.1 absolute hidden -left-4 resize"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>
@@ -83,7 +83,7 @@ const emit = defineEmits(['resize-start'])
       :class="{
         '!block border-2 rounded-lg border-brand-500': selected || hover,
       }"
-      class="absolute mt-0.6 hidden h-7.1 -right-4 border-1 resize !group-hover:(border-brand-500 border-2 block rounded-lg)"
+      class="absolute mt-0.1 hidden h-7.1 -right-4 border-1 resize !group-hover:(border-brand-500 border-2 block rounded-lg)"
     >
       <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>

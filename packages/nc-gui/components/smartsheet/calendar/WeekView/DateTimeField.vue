@@ -115,7 +115,7 @@ const recordsAcrossAllRange = computed<{
         const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
         if (!startDate) return
         const dateKey = startDate?.format('YYYY-MM-DD')
-        const hourKey = startDate?.format('HH:mm')
+        const hourKey = startDate?.startOf('hour').format('HH:mm')
         const id = record.rowMeta.id ?? getRandomNumbers()
 
         let style: Partial<CSSStyleDeclaration> = {}
@@ -145,7 +145,10 @@ const recordsAcrossAllRange = computed<{
           dayIndex = 6
         }
 
-        const hourIndex = datesHours.value[dayIndex].findIndex((h) => h.format('HH:mm') === hourKey)
+        const hourIndex = Math.max(
+          datesHours.value[dayIndex].findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
+          0,
+        )
 
         style = {
           ...style,
@@ -731,7 +734,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-r-1 bg-gray-50"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
@@ -743,6 +746,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
           :key="hourIndex"
           :class="{
             'border-1 !border-brand-500': hour.isSame(selectedTime, 'hour'),
+            '!border-l-0': date[0].day() === selectedDateRange.start?.day(),
           }"
           class="text-center relative h-20 text-sm text-gray-500 w-full py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50 bg-gray-50"
           @click="selectedTime = hour"

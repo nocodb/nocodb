@@ -332,8 +332,8 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4
       '@types/validator':
-        specifier: ^13.11.8
-        version: 13.11.8
+        specifier: ^13.11.9
+        version: 13.11.9
       '@types/vue-barcode-reader':
         specifier: ^0.0.3
         version: 0.0.3
@@ -9132,8 +9132,8 @@ packages:
     resolution: {integrity: sha512-cputDpIbFgLUaGQn6Vqg3/YsJwxUwHLO13v3i5ouxT4lat0khip9AEWxtERujXV9wxIB1EyF97BSJFt6vpdI8g==}
     dev: true
 
-  /@types/validator@13.11.8:
-    resolution: {integrity: sha512-c/hzNDBh7eRF+KbCf+OoZxKbnkpaK/cKp9iLQWqB7muXtM+MtL9SUUH8vCFcLn6dH1Qm05jiexK0ofWY7TfOhQ==}
+  /@types/validator@13.11.9:
+    resolution: {integrity: sha512-FCTsikRozryfayPuiI46QzH3fnrOoctTjvOYZkho9BTFLCOZ2rgZJHMOVgCOfttjPJcgOx52EpkY0CMfy87MIw==}
     dev: true
 
   /@types/vue-barcode-reader@0.0.3:

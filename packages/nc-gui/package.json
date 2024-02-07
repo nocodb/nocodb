@@ -139,7 +139,7 @@
     "@types/splitpanes": "^2.2.6",
     "@types/tinycolor2": "^1.4.6",
     "@types/turndown": "^5.0.4",
-    "@types/validator": "^13.11.8",
+    "@types/validator": "^13.11.9",
     "@types/vue-barcode-reader": "^0.0.3",
     "@unocss/nuxt": "^0.51.13",
     "@vitest/ui": "^0.18.1",

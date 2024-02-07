@@ -663,7 +663,7 @@ const parseConditionV2 = async (
             genVal = genVal.format(dateFormat).toString();
             // keep YYYY-MM-DD only for date
             genVal =
-              column.uidt === UITypes.Date ? val.substring(0, 10) : genVal;
+              column.uidt === UITypes.Date ? genVal.substring(0, 10) : genVal;
           }
         }
 

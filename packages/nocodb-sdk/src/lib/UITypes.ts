@@ -196,10 +196,9 @@ export const getEquivalentUIType = ({
       return UITypes.Number;
     case FormulaDataTypes.DATE:
       return UITypes.DateTime;
-    // case FormulaDataTypes.LOGICAL:
-    // case FormulaDataTypes.BOOLEAN:
-    //   uidt = UITypes.Number;
-    //   break
+    case FormulaDataTypes.LOGICAL:
+    case FormulaDataTypes.BOOLEAN:
+      return UITypes.Checkbox;
   }
 };
 

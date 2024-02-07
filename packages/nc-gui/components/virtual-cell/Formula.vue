@@ -1,8 +1,17 @@
 <script lang="ts" setup>
-import { handleTZ } from 'nocodb-sdk'
+import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, computed, inject, renderValue, replaceUrlsWithLink, useBase } from '#imports'
+import {
+  CellValueInj,
+  ColumnInj,
+  computed,
+  inject,
+  renderValue,
+  replaceUrlsWithLink,
+  useBase,
+  useShowNotEditableWarning,
+} from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
@@ -19,10 +28,12 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
   useShowNotEditableWarning()
+
+const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 </script>
 
 <template>
-  <div>
+  <div class="w-full" :class="{ 'text-right': isNumber }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>

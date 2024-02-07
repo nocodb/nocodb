@@ -1,4 +1,5 @@
 import type {
+  GoogleClientConfigType,
   OpenIDClientConfigType,
   SAMLClientConfigType,
   SSOClientType,
@@ -12,10 +13,13 @@ import NocoCache from '~/cache/NocoCache';
 const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
 
 export default class SSOClient implements SSOClientType {
-  config: SAMLClientConfigType | OpenIDClientConfigType;
+  config:
+    | SAMLClientConfigType
+    | OpenIDClientConfigType
+    | GoogleClientConfigType;
   id: string;
   title: string;
-  type: 'saml' | 'oidc';
+  type: 'saml' | 'oidc' | 'google';
   enabled: boolean;
   deleted?: boolean;
   fk_user_id: string;

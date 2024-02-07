@@ -160,7 +160,6 @@ onMounted(async () => {
       <!-- Todo: remove eslint-disable comment once `v-if` no-constant-condition resolved -->
       <!-- eslint-disable vue/no-constant-condition  -->
       <div
-        v-if="false"
         class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
         data-test-id="nc-google-provider"
       >

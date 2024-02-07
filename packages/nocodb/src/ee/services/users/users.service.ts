@@ -293,27 +293,4 @@ export class UsersService extends UsersServiceCE {
       domain: process.env.NC_BASE_HOST_NAME || undefined,
     });
   }
-
-  async setRefreshToken({ res, req }) {
-    const userId = req.user?.id;
-
-    if (!userId) return;
-
-    const user = await User.get(userId);
-
-    if (!user) return;
-
-    const refreshToken = randomTokenString();
-
-    if (!user['token_version']) {
-      user['token_version'] = randomTokenString();
-    }
-
-    await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
-      token_version: user['token_version'],
-    });
-    setTokenCookie(res, refreshToken);
-  }
 }

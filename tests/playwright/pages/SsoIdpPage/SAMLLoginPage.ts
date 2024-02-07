@@ -30,14 +30,10 @@ export class SAMLLoginPage extends BasePage {
     await signIn.locator(`#userName`).fill(email);
     await signIn.locator(`#email`).fill(email);
     await Promise.all([
-      this.rootPage.waitForNavigation({ url: /localhost:8080/ }),
+      this.rootPage.waitForNavigation({ url: /localhost:3000/ }),
       signIn.locator(`#btn-sign-in`).click(),
     ]);
 
-    await this.rootPage.goto(`http://localhost:3000?` + this.rootPage.url().split('?')[1]);
-
-    await this.projectsPage.waitToBeRendered();
-
-    console.log('111');
+    await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]:has-text("${email.split('@')[0]}")`);
   }
 }

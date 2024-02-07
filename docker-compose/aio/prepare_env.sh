@@ -19,18 +19,17 @@ fi
 function acceptProperty(){
     local varDetail="$1"
     local promptUser="${2:-true}"
-    prompt=$(echo "$varDetail" | cut -d '|' -f1)    
-    prop=$(echo "$varDetail" | cut -d '|' -f2)
+    prompt=$(echo "$varDetail" | cut -d '|' -f2)    
+    prop=$(echo "$varDetail" | cut -d '|' -f1)
     key=$(echo "$prop" | cut -d'=' -f1)
     default_value="${prop#*=}"
     prev_value_or_default=${!key:-${default_value}}
     
-    # echo prompt: ${prompt}
+    echo promptUser: ${promptUser}
     # echo prop: ${prop}
     # echo key: ${key}
     # echo default_value: ${default_value}
-
-    if(${promptUser} == "true"); then
+    if [[ ${promptUser} == "true" ]]; then
         read -p " || Enter value for $key (default: ${prev_value_or_default}): " user_input
     fi
 
@@ -44,21 +43,18 @@ function acceptProperty(){
 for multi_property_array in basic_properties invite_only_signup_priorities google_login_properties email_properties s3_attachment_properties ; do
     array_name="$multi_property_array[@]"  # Name of the array to process
     array=("${!array_name}")  
-    for varDetail in "${array[@]}"; do
-        promptUser=true
-        promptMsg=$(echo "$varDetail" | cut -d '|' -f1)    
-        prop=$(echo "$varDetail" | cut -d '|' -f2)
-        if [[ ${promptMsg} == "main" ]]
+    promptUser="${1}"
+    for varDetail in "${array[@]}"; do        
+        promptMsg=$(echo "$varDetail" | cut -d '|' -f2)    
+        prop=$(echo "$varDetail" | cut -d '|' -f1)
+        if [[ ${promptUser} == "true" ]] && [[ ${prop} == "main" ]]
         then
-            echo $prop
-            if asksure; then 
-                continue
-            else
+            echo $promptMsg
+            if  ! asksure; then 
                 # set all defaults here          
-                promptUser=false      
-                # acceptProperty "${varDetail}" "${promptUser}"
-                break
+                promptUser=false                  
             fi
+            continue
         fi   
         acceptProperty "${varDetail}" "${promptUser}"
     done

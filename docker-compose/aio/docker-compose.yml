@@ -98,6 +98,7 @@ services:
           cpus: '1'
           memory: 1000M    
   certbot:
+    container_name: nocodb_certbot
     image: certbot/certbot:latest
     volumes:
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nginx/certbot/www:/var/www/certbot/:rw

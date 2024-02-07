@@ -22,16 +22,20 @@ if [[ ${PRE_REQ_SUCCESS} != 0 ]]
 then
   echo "** Few pre-requisites are failing. Recommend to resolve and proceed. However you could still proceed to install **" >&2
 else
-  echo "** All pre-requistites are taken care of. Proceed to install.. **" 
+  echo "** All pre-requistites are taken care of. Proceeding to install.. **" 
 fi  
 
+# ask do you want to proceed with all defaults,
+# if yes, then no prompts 
 if asksure; then
     echo "Preparing environment file before install.."
-    ${SCRIPT_DIR}/prepare_env.sh
+    promptUser=true
+    if asksure " | Press Y to continue with defaults or N to customise app properties (Y/N)"; then
+      promptUser=false      
+    fi
+    ${SCRIPT_DIR}/prepare_env.sh ${promptUser}
     echo "Installing docker containers"
     docker-compose -f ${SCRIPT_DIR}/docker-compose.yml up -d
   else
     echo "Exiting without install. You can install using docker-compose -f ${SCRIPT_DIR}/docker-compose.yml up -d "
 fi
-
-

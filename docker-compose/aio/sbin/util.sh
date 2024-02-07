@@ -4,7 +4,12 @@
 #
 
 asksure() {
-echo -n " | Press Y to continue or N to skip to next step (Y/N)? "
+local custom_msg="${@}"
+if [[ ${custom_msg} ]]; then
+  echo -n "${custom_msg}"
+else
+  echo -n " | Press Y to continue or N to skip (Y/N)? "
+fi
 while read -r -n 1 -s answer; do
   if [[ $answer = [YyNn] ]]; then
     [[ $answer = [Yy] ]] && retval=0

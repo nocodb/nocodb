@@ -160,7 +160,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
 }
 
 /**
- * If short-token present, try using it to generate log-living token before navigating to the next page
+ * If short-token present, try using it to generate long-living token before navigating to the next page
  */
 async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bshort-token=/.test(window.location.search)) {

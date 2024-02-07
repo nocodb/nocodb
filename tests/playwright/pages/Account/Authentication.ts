@@ -72,8 +72,12 @@ export class AccountAuthenticationPage extends BasePage {
     const samlModal = this.accountPage.rootPage.locator('.nc-saml-modal');
 
     if (setupRedirectUrlCbk) {
-      const redirectUrl = (await samlModal.locator('[data-test-id="nc-saml-redirect-url"]').textContent()).trim();
-      const audience = (await samlModal.locator('[data-test-id="nc-saml-issuer-url"]').textContent()).trim();
+      const redirectUrl = (
+        await samlModal.locator('[data-test-id="nc-saml-redirect-url"]:has-text("http://")').textContent()
+      ).trim();
+      const audience = (
+        await samlModal.locator('[data-test-id="nc-saml-issuer-url"]:has-text("http://")').textContent()
+      ).trim();
       await setupRedirectUrlCbk({ redirectUrl, audience });
     }
 
@@ -114,7 +118,9 @@ export class AccountAuthenticationPage extends BasePage {
     const oidcModal = this.accountPage.rootPage.locator('.nc-oidc-modal');
 
     if (setupRedirectUrlCbk) {
-      const redirectUrl = (await oidcModal.locator('[data-test-id="nc-openid-redirect-url"]').textContent()).trim();
+      const redirectUrl = (
+        await oidcModal.locator('[data-test-id="nc-openid-redirect-url"]:has-text("http://")').textContent()
+      ).trim();
       await setupRedirectUrlCbk({ redirectUrl });
     }
 

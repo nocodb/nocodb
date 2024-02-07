@@ -89,7 +89,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
           const email = profile.nameID;
 
           if (!isEmail(email)) {
-            callback(
+            return callback(
               new Error(
                 'NameID is not a valid email address and cannot be used as a user identifier. Please contact your administrator.',
               ),

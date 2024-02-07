@@ -99,6 +99,7 @@ import NcUnStar from '~icons/nc-icons/star-remove'
 import NcSearch from '~icons/nc-icons/search'
 import NcCreditCard from '~icons/nc-icons/credit-card'
 import NcLayers from '~icons/nc-icons/layers'
+import NcUser from '~icons/nc-icons/user'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
 import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
@@ -327,6 +328,7 @@ export const iconMap = {
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
   phUser: PhUser,
   phUsers: PhUsers,
+  user: NcUser,
   users: NcUsers,
   cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
   download: MsDownloadRounded,

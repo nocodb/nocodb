@@ -181,10 +181,10 @@ const onDelete = async () => {
         <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
         {{ $t('labels.duplicateView') }}
       </NcMenuItem>
-      <NcDivider />
     </template>
 
     <template v-if="view.type !== ViewTypes.FORM">
+      <NcDivider />
       <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
         <NcSubMenu key="upload">
           <template #title>

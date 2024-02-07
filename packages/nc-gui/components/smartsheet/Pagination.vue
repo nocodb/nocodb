@@ -100,7 +100,7 @@ const renderAltOrOptlKey = () => {
         'ml-8': alignLeft,
       }"
     >
-      <div v-if="isViewDataLoading" class="flex flex-row justify-center item-center min-h-10 min-w-42">
+      <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex flex-row justify-center item-center min-h-10 min-w-42">
         <a-skeleton :active="true" :title="true" :paragraph="false" class="-mt-1 max-w-60" />
       </div>
       <NcPagination

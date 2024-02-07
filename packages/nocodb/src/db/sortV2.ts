@@ -65,9 +65,11 @@ export default async function sortV2(
               (
                 await column.getColOptions<FormulaColumn>()
               ).formula,
-              alias,
+              null,
               model,
               column,
+              {},
+              alias
             )
           ).builder;
           qb.orderBy(builder, sort.direction || 'asc', nulls);

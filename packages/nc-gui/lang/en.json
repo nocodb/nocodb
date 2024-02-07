@@ -1249,6 +1249,13 @@
       "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Name Required",
       "nameMinLength": "Name must be at least 2 characters long",
       "nameMaxLength": "Name must be at most 60 characters long",
@@ -1279,6 +1286,7 @@
         "invalidEmails": "Invalid emails",
         "invalidEmail": "Invalid Email"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "Invalid URL",
       "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",

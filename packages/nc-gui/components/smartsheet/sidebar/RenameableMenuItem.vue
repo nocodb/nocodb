@@ -242,7 +242,7 @@ watch(rightSidebarState, () => {
           <template #overlay>
             <NcMenu :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
               <NcMenuItem size="small" :centered="false" @click.stop="onDblClick">
-                <GeneralIcon icon="edit" />
+                <GeneralIcon icon="rename" />
                 Rename
               </NcMenuItem>
               <NcMenuItem size="small" :centered="false" class="nc-view-copy-icon" @click.stop="onDuplicate">

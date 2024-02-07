@@ -158,8 +158,8 @@ const handleFileDelete = (i: number) => {
             <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
               <template #title> {{ $t('title.renameFile') }} </template>
 
-              <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">
-                <component :is="iconMap.edit" @click.stop="renameFile(item, i)" />
+              <div class="nc-attachment-rename group-hover:(opacity-100) mr-[35px]">
+                <component :is="iconMap.rename" @click.stop="renameFile(item, i)" />
               </div>
             </a-tooltip>
 
@@ -249,7 +249,8 @@ const handleFileDelete = (i: number) => {
     }
   }
 
-  .nc-attachment-download {
+  .nc-attachment-download,
+  .nc-attachment-rename {
     @apply bg-white absolute bottom-2 right-2;
     @apply transition-opacity duration-150 ease-in opacity-0 hover:ring;
     @apply cursor-pointer rounded shadow flex items-center p-1 border-1;

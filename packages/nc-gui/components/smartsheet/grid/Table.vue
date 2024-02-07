@@ -1712,7 +1712,7 @@ onKeyStroke('ArrowDown', onDown)
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.edit" />
+                <component :is="iconMap.ncEdit" />
                 {{ $t('title.updateSelectedRows') }}
               </div>
             </NcMenuItem>

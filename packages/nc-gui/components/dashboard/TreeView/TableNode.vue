@@ -268,7 +268,7 @@ const isTableOpened = computed(() => {
                   @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
                 >
                   <div v-e="['c:table:rename']" class="flex gap-2 items-center">
-                    <GeneralIcon icon="edit" class="text-gray-700" />
+                    <GeneralIcon icon="rename" class="text-gray-700" />
                     {{ $t('general.rename') }}
                   </div>
                 </NcMenuItem>

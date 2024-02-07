@@ -51,7 +51,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     await tryGoogleAuth(api, state.signIn)
   }
 
-  await tryShortTokenAuth(api, state.signIn)
+  if (!state.signedIn.value) await tryShortTokenAuth(api, state.signIn)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -166,9 +166,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
     let extraProps: any = {}
     try {
       // `extra` prop is used in our cloud implementation, so we are keeping it
-      const {
-        data,
-      } = await api.instance.post(
+      const { data } = await api.instance.post(
         `/auth/long-lived-token`,
         {},
         {
@@ -178,10 +176,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
         },
       )
 
-      console.log(data)
-      debugger
       const { token, extra } = data
-
 
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}

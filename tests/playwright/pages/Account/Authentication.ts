@@ -92,24 +92,35 @@ export class AccountAuthenticationPage extends BasePage {
     });
   }
 
-  async createOIDCProvider(p: {
-    title: string;
-    clientId: string;
-    clientSecret: string;
-    authUrl: string;
-    userInfoUrl: string;
-    tokenUrl: string;
-    jwkUrl: string;
-    scopes: Array<string>;
-    userAttributes: string;
-  }) {
+  async createOIDCProvider(
+    p: {
+      issuer: string;
+      title: string;
+      clientId: string;
+      clientSecret: string;
+      authUrl: string;
+      userInfoUrl: string;
+      tokenUrl: string;
+      jwkUrl: string;
+      scopes: Array<string>;
+      userAttributes: string;
+    },
+    setupRedirectUrlCbk?: ({ redirectUrl: string }) => Promise<void>
+  ) {
     const newOIDCBtn = this.get().locator('[data-test-id="nc-new-oidc-provider"]');
 
     await newOIDCBtn.click();
 
     const oidcModal = this.accountPage.rootPage.locator('.nc-oidc-modal');
 
+    if (setupRedirectUrlCbk) {
+      const redirectUrl = (await oidcModal.locator('[data-test-id="nc-openid-redirect-url"]').textContent()).trim();
+      await setupRedirectUrlCbk({ redirectUrl });
+    }
+
     await oidcModal.locator('[data-test-id="nc-oidc-title"]').fill(p.title);
+
+    await oidcModal.locator('[data-test-id="nc-oidc-issuer"]').fill(p.issuer);
 
     await oidcModal.locator('[data-test-id="nc-oidc-client-id"]').fill(p.clientId);
 

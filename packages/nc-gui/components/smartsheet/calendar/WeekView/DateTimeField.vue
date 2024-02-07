@@ -14,6 +14,7 @@ const {
   calendarRange,
   displayField,
   selectedTime,
+  selectedDate,
   updateRowProperty,
   sideBarFilterOption,
   showSideMenu,
@@ -749,7 +750,12 @@ const viewMore = (hour: dayjs.Dayjs) => {
             '!border-l-0': date[0].day() === selectedDateRange.start?.day(),
           }"
           class="text-center relative h-20 text-sm text-gray-500 w-full py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50 bg-gray-50"
-          @click="selectedTime = hour"
+          @click="
+            () => {
+              selectedTime = hour
+              selectedDate = hour
+            }
+          "
         >
           <span v-if="date[0].day() === selectedDateRange.start?.day()" class="absolute left-1">
             {{ hour.format('h A') }}

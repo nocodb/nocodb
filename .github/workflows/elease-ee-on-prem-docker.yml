@@ -131,11 +131,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      #      - name: Login to DockerHub
-      #        uses: docker/login-action@v2.1.0
-      #        with:
-      #          username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v3.2.0
@@ -143,10 +143,10 @@ jobs:
           dockerfile: packages/nocodb/src/ee-on-prem/Dockerfile-on-prem
           context: "./packages/nocodb"
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-          push: false
+          push: true
           tags: |
             nocodb/nocodb-ee:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
 

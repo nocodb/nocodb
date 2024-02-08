@@ -451,14 +451,14 @@ onMounted(async () => {
               </a-select-option>
             </NcSelect>
             <div
-              v-if="range.fk_to_column_id === null && isEeUI"
+              v-if="range.fk_to_column_id === null && isEeUI && false"
               class="cursor-pointer flex items-center text-gray-800 gap-1"
               @click="range.fk_to_column_id = undefined"
             >
               <component :is="iconMap.plus" class="h-4 w-4" />
               {{ $t('activity.addEndDate') }}
             </div>
-            <template v-else-if="isEeUI">
+            <template v-else-if="isEeUI && false">
               <span>
                 {{ $t('activity.withEndDate') }}
               </span>
@@ -508,7 +508,7 @@ onMounted(async () => {
               <component :is="iconMap.close" />
             </NcButton>
           </div>
-          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+          <NcButton v-if="false" class="mt-2" size="small" type="secondary" @click="addCalendarRange">
             <component :is="iconMap.plus" />
             Add another date field
           </NcButton>

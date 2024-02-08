@@ -26,9 +26,9 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex border-2 rounded-lg border-brand-500': selected || hover,
+        '!flex border-1 rounded-lg border-brand-500': selected || hover,
       }"
-      class="!group-hover:(border-brand-500) !border-2 cursor-ns-resize"
+      class="!group-hover:(border-brand-500) !border-1 cursor-ns-resize"
       size="xsmall"
       type="secondary"
       @mousedown.stop="emit('resize-start', 'left', $event, record)"
@@ -49,9 +49,9 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500)': resize,
-      '!border-brand-500 border-2': selected || hover,
+      '!border-brand-500 border-1': selected || hover,
     }"
-    class="relative h-full ml-0.25 border-2 border-gray-50"
+    class="relative h-full ml-0.25 border-1 border-gray-50"
   >
     <div class="h-full absolute py-2">
       <div
@@ -82,9 +82,9 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex border-2 rounded-lg z-1 cursor-ns-resize	border-brand-500': selected || hover,
+        '!flex border-1 rounded-lg z-1 cursor-ns-resize	border-brand-500': selected || hover,
       }"
-      class="!group-hover:(border-brand-500) !border-2"
+      class="!group-hover:(border-brand-500) !border-1"
       size="xsmall"
       type="secondary"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"

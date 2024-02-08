@@ -16,6 +16,7 @@ import {
   useBase,
   useBases,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useRoles,
   useRouter,
@@ -45,6 +46,8 @@ const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
 
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
+
+const { isMobileMode } = useGlobal()
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -259,7 +262,7 @@ watch(
       <div v-if="basesList?.length">
         <Draggable
           :model-value="basesList"
-          :disabled="!isUIAllowed('baseReorder') || basesList?.length < 2"
+          :disabled="isMobileMode || !isUIAllowed('baseReorder') || basesList?.length < 2"
           item-key="id"
           handle=".base-title-node"
           ghost-class="ghost"

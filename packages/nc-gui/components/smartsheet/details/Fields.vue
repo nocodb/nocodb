@@ -5,7 +5,6 @@ import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
-import { Icon } from '@iconify/vue'
 import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
 
 interface TableExplorerColumn extends ColumnType {
@@ -1054,7 +1053,8 @@ watch(
                               data-testid="nc-field-item-action-duplicate"
                               @click="duplicateField(field)"
                             >
-                              <Icon class="iconify text-gray-800" icon="lucide:copy" /><span>{{ $t('general.duplicate') }}</span>
+                              <GeneralIcon icon="duplicate" class="text-gray-800" />
+                              <span>{{ $t('general.duplicate') }}</span>
                             </NcMenuItem>
                             <NcMenuItem
                               v-if="!field.pv"
@@ -1062,18 +1062,16 @@ watch(
                               data-testid="nc-field-item-action-insert-above"
                               @click="addField(field, true)"
                             >
-                              <Icon class="iconify text-gray-800" icon="lucide:arrow-up" /><span>{{
-                                $t('general.insertAbove')
-                              }}</span>
+                              <GeneralIcon icon="ncArrowUp" class="text-gray-800" />
+                              <span>{{ $t('general.insertAbove') }}</span>
                             </NcMenuItem>
                             <NcMenuItem
                               key="table-explorer-insert-below"
                               data-testid="nc-field-item-action-insert-below"
                               @click="addField(field)"
                             >
-                              <Icon class="iconify text-gray-800" icon="lucide:arrow-down" /><span>{{
-                                $t('general.insertBelow')
-                              }}</span>
+                              <GeneralIcon icon="ncArrowDown" class="text-gray-800" />
+                              <span>{{ $t('general.insertBelow') }}</span>
                             </NcMenuItem>
 
                             <a-menu-divider class="my-1.5" />

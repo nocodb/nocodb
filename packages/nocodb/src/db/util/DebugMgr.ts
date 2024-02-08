@@ -89,10 +89,7 @@ export default class DebugMgr {
     }
   }
 
-  static disableAll(namespace) {
-    for (const key in levels) {
-      debug.disable(`${namespace}_${levels[key]}`);
-      this.refreshNamespace(namespace);
-    }
+  static disableAll() {
+    debug.disable();
   }
 }

@@ -9,10 +9,12 @@
       ],
       "~/*": [
         "./src/ee-on-prem/*",
+        "./src/ee/*",
         "./src/*"
       ],
       "@/*": [
         "./src/ee-on-prem/*",
+        "./src/ee/*",
         "./src/*"
       ]
     }

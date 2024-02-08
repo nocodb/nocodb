@@ -134,7 +134,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3.2.0
         with:
-          dockerfile: packages/nocodb/src/ee-on-prem/Dockerfile-on-prem
+          file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
           context: "./packages/nocodb"
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64

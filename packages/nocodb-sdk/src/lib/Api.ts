@@ -2063,6 +2063,12 @@ export interface ProjectUpdateReqType {
   status?: StringOrNullType;
   /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
+  /**
+   * The order of the list of projects.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
@@ -9905,6 +9911,25 @@ export class Api<
       >({
         path: `/api/v1/db/meta/cache`,
         method: 'DELETE',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get dynamic command palette suggestions based on scope
+     *
+     * @tags Utils
+     * @name CommandPalette
+     * @summary Get command palette suggestions
+     * @request POST:/api/v1/command_palette
+     * @response `200` `any` OK
+     */
+    commandPalette: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/command_palette`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

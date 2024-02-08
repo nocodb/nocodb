@@ -37,6 +37,19 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+      - name: Get Docker Repository
+        id: get-docker-repository
+        run: |
+          DOCKER_REPOSITORY=nocodb
+          DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
+          DOCKER_BUILD_LATEST_TAG=latest
+          echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_LATEST_TAG=${DOCKER_BUILD_LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
+          echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
+          echo DOCKER_BUILD_LATEST_TAG: ${DOCKER_BUILD_LATEST_TAG}
+
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies

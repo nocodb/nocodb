@@ -70,7 +70,7 @@ export class LicenseService implements OnModuleInit {
   }
 
   // verify license every day
-  @Cron('0 0 0 * * *')
+  @Cron('0 0 * * * *')
   async handleCron() {
     //  verify token and check if it's expired if it's trial
     const { valid, error } = await this.verifyLicense(

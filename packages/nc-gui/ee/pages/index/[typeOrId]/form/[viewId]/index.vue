@@ -122,6 +122,9 @@ p {
 
         &.nc-cell-longtext {
           @apply !p-0 pb-2px pr-2px;
+          & > div {
+            @apply w-full;
+          }
         }
 
         textarea {

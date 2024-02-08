@@ -56,7 +56,7 @@ const pagesList = computed(() => {
 </script>
 
 <template>
-  <div class="nc-pagination flex flex-row items-center gap-x-2">
+  <div v-if="totalPages > 1" class="nc-pagination flex flex-row items-center gap-x-2">
     <component :is="props.firstPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
       <template v-if="props.firstPageTooltip" #title>
         {{ props.firstPageTooltip }}

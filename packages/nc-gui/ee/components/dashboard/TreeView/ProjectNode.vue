@@ -498,7 +498,7 @@ const duplicateProject = (base: BaseType) => {
                 @click="isOptionsOpen = false"
               >
                 <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
-                  <GeneralIcon icon="edit" class="group-hover:text-black" />
+                  <GeneralIcon icon="rename" class="group-hover:text-black" />
                   {{ $t('general.rename') }}
                 </NcMenuItem>
 
@@ -765,7 +765,7 @@ const duplicateProject = (base: BaseType) => {
         <template v-else-if="contextMenuTarget.type === 'table'">
           <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div class="nc-base-option-item">
-              <GeneralIcon icon="edit" class="text-gray-700" />
+              <GeneralIcon icon="rename" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
           </NcMenuItem>

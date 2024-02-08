@@ -161,7 +161,7 @@ const onDelete = async () => {
         </NcButton>
       </div>
     </NcTooltip>
-    <NcDivider />
+    <NcDivider v-if="view.type !== ViewTypes.FORM" />
     <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
         <GeneralIcon icon="rename" />

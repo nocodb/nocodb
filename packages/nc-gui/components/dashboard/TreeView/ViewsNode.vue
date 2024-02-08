@@ -256,7 +256,7 @@ watch(isDropdownOpen, async () => {
       </NcTooltip>
       <div class="flex-1" />
 
-      <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">
+      <template v-if="!isEditing && !isLocked">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
             v-e="['c:view:option']"

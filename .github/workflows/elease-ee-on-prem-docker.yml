@@ -17,5 +17,133 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.14.0
-      - name: Dummy step
-        run: echo "Dummy step"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Get pnpm store directory
+        shell: bash
+        timeout-minutes: 1
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: Set outputs
+        id: vars
+        run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Create nc.txt version identifier file
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          date >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
+
+      ### main build and deploy starts here ###
+      - name: build nc-gui and copy to nocodb
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        env:
+          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
+          # generate static build of nc-gui
+          cd packages/nc-gui &&
+          pnpm run generate:ee &&
+
+          # delete sourcemaps
+          find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          find ./ee/dist/ -type f -name '*.css.map' -delete &&
+
+          # # delete sourcemaps refs - enable if needed
+          # find ./ee/dist/ -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +
+          # find ./ee/dist/ -type f -name '*.css' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.css\.map//g' {} +
+
+          # copy build to nocodb
+          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+
+      - name: build nocodb
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        run: |
+          # build nocodb ( pack nocodb-sdk and nc-gui )
+          cd packages/nocodb &&
+          EE=true pnpm exec webpack --config webpack.ee-on-prem.config.js &&
+          # remove nocodb-sdk since it's packed with the build
+          pnpm uninstall --save-prod nocodb-sdk
+
+      - name: Move files to release version folder
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+
+      - name: Deploy UI assets to CDN
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
+        with:
+          folder: packages/nc-gui/build/
+          bucket: ${{ secrets.CDN_BUCKET }}
+          dist-id: ${{ secrets.CDN_DIST_ID }}
+          invalidation: /${{ steps.vars.outputs.release_version }}/*
+
+
+
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2.2.1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      #      - name: Login to DockerHub
+      #        uses: docker/login-action@v2.1.0
+      #        with:
+      #          username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3.2.0
+        with:
+          dockerfile: packages/nocodb/src/ee-on-prem/Dockerfile-on-prem
+          context: ${{ env.working-directory }}
+          build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          push: false
+          tags: |
+            nocodb/nocodb-ee:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache

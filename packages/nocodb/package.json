@@ -22,6 +22,7 @@
   "scripts": {
     "build": "pnpm run docker:build",
     "build:obfuscate": "EE=true webpack  --config webpack.config.js",
+    "build:on-prem": "EE=true webpack  --config webpack.ee-on-prem.config.js",
     "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run watch:run",
@@ -226,7 +227,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-obfuscator": "^3.5.1"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -256,7 +256,7 @@ class BaseModelSqlv2 {
     model,
     filterArr,
   }: {
-    ranges: Partial<CalendarRangeType>[];
+    ranges: Partial<any>[];
     model: Model;
     filterArr?: Filter[];
   }) {
@@ -269,24 +269,32 @@ class BaseModelSqlv2 {
       if (range?.fk_from_column_id && range?.fk_to_column_id) {
         query = this.dbDriver(
           this.dbDriver.raw(
-            `SELECT generate_series(
+            `(SELECT generate_series(
               ??,
               ??,
               '1 day'
-            )::date AS date FROM ??`,
+            )::timestamptz AS date, ??::timestamptz, ??::timestamptz FROM ??) AS ??`,
             [
               columns.find((c) => c.id === range.fk_from_column_id).column_name,
               columns.find((c) => c.id === range.fk_to_column_id).column_name,
+              columns.find((c) => c.id === range.fk_from_column_id).column_name,
+              columns.find((c) => c.id === range.fk_to_column_id).column_name,
               this.tnPath,
+              range.id,
             ],
           ),
         );
       } else if (range.fk_from_column_id) {
         query = this.dbDriver(
-          this.dbDriver.raw(`SELECT ??::date AS date FROM ??`, [
-            columns.find((c) => c.id === range.fk_from_column_id).column_name,
-            this.tnPath,
-          ]),
+          this.dbDriver.raw(
+            `(SELECT ??::timestamptz AS date, ??::timestamptz  FROM ??) AS ?? `,
+            [
+              columns.find((c) => c.id === range.fk_from_column_id).column_name,
+              columns.find((c) => c.id === range.fk_from_column_id).column_name,
+              this.tnPath,
+              range.id,
+            ],
+          ),
         );
       }
 
@@ -304,15 +312,12 @@ class BaseModelSqlv2 {
       ),
     );
 
-    const qb = this.dbDriver(
-      this.dbDriver.raw(`(${unionQuery.toQuery()}) AS ??`, ['nc']),
-    )
+    const qb = this.dbDriver(this.dbDriver.raw(`(${unionQuery}) AS ??`, ['nc']))
       .select('date')
       .count('* as count')
       .groupBy('date')
       .orderBy('date');
 
-    console.log(qb.toQuery());
     return await this.execAndParse(qb);
   }
 

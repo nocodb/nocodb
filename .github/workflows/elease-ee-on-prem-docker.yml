@@ -147,8 +147,8 @@ jobs:
           context: packages/nocodb
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+#          cache-from: type=local,src=/tmp/.buildx-cache
+#          cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: false
           tags: |
             nocodb/nocodb-ee:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}

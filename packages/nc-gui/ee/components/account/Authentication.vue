@@ -13,7 +13,7 @@ const oidcProviders = computed(() => {
 })
 
 const googleProvider = computed(() => {
-  const provider = [...providers.value].filter((provider: SSOClientType) => provider.type === 'google')
+  const provider = [...providers.value].filter((provider: SSOClientType) => provider.type === 'google' && !provider.deleted)
   if (provider.length > 0) {
     return provider[0]
   } else {
@@ -116,7 +116,6 @@ const duplicateProvider = async (id: string) => {
 }
 
 const enableEdit = async (provider: SSOClientType) => {
-  debugger
   isEdit.value = true
   if (provider.type === 'saml') {
     providerProp.value = provider
@@ -125,7 +124,6 @@ const enableEdit = async (provider: SSOClientType) => {
     providerProp.value = provider
     oidcDialogShow.value = true
   } else if (provider.type === 'google') {
-    debugger
     googleDialogShow.value = true
     if (!provider.id) {
       providerProp.value = await getPrePopulatedProvider('google')
@@ -175,8 +173,7 @@ onMounted(async () => {
             size="small"
             @change="updateProviderStatus(googleProvider)"
           />
-          <span class="text-base font-bold ml-2 group-hover:text-black capitalize"
-                data-test-id="nc-saml-title"> Google </span>
+          <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title"> Google </span>
         </div>
 
         <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
@@ -196,6 +193,15 @@ onMounted(async () => {
                   <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                 </div>
               </NcMenuItem>
+              <template v-if="googleProvider.id">
+                <a-menu-divider class="my-1.5" />
+                <NcMenuItem data-test-id="nc-google-delete" @click="deleteProvider(googleProvider.id)">
+                  <div class="text-red-500">
+                    <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
+                    {{ $t('general.delete') }}
+                  </div>
+                </NcMenuItem>
+              </template>
             </NcMenu>
           </template>
         </NcDropdown>
@@ -298,8 +304,7 @@ onMounted(async () => {
           >
             <div :class="`nc-oidc-${oid.title}-enable`">
               <span @click.stop>
-                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)"
-                          @click.stop />
+                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" @click.stop />
               </span>
               <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-oidc-title">
                 {{ oid?.title }}
@@ -348,12 +353,9 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <DlgGoogleProvider v-if="googleDialogShow" v-model:model-value="googleDialogShow" :google="providerProp"
-                       :is-edit="isEdit" />
-    <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" :is-edit="isEdit"
-                     :saml="providerProp" />
-    <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" :is-edit="isEdit"
-                     :oidc="providerProp" />
+    <DlgGoogleProvider v-if="googleDialogShow" v-model:model-value="googleDialogShow" :google="providerProp" :is-edit="isEdit" />
+    <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" :is-edit="isEdit" :saml="providerProp" />
+    <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" :is-edit="isEdit" :oidc="providerProp" />
   </div>
 </template>
 

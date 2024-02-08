@@ -75,7 +75,7 @@ test.describe.serial('SSO', () => {
       await accountsPage.authentication.deleteProvider('oidc', 'oidc');
     });
 
-    test.only('Google Auth', async () => {
+    test('Google Auth', async () => {
       await accountsPage.authentication.goto();
 
       // Create OIDC provider
@@ -91,7 +91,7 @@ test.describe.serial('SSO', () => {
       await accountsPage.authentication.toggleProvider('google', 'google');
 
       // Delete OIDC provider
-      // await accountsPage.authentication.deleteProvider('google', 'google');
+      await accountsPage.authentication.deleteProvider('google', 'google');
     });
   });
 

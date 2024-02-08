@@ -100,7 +100,6 @@ jobs:
           mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
 
       - name: Deploy UI assets to CDN
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
         with:
           folder: packages/nc-gui/build/

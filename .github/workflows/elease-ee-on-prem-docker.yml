@@ -1,0 +1,21 @@
+name: "Enterprise : Docker build on-premise"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+jobs:
+  buildx:
+    runs-on: [self-hosted, aws]
+    env:
+      working-directory: ./packages/nocodb
+    steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.14.0
+      - name: Dummy step
+        run: echo "Dummy step"

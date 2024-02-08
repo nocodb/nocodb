@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -75,8 +75,20 @@ const availableColumns = computed(() => {
 })
 
 const getColumnUidtByID = (key?: string) => {
-  if (!key) return ''
-  return columnByID.value[key]?.uidt || ''
+  if (!key || !columnByID.value[key]) return ''
+
+  const column = columnByID.value[key]
+
+  let uidt = column.uidt
+
+  if (column.uidt === UITypes.Formula) {
+    uidt =
+      getEquivalentUIType({
+        formulaColumn: column,
+      }) || uidt
+  }
+
+  return uidt || ''
 }
 
 const open = ref(false)

@@ -34,6 +34,7 @@ const getAst = async ({
   },
   getHiddenColumn = query?.['getHiddenColumn'],
   throwErrorIfInvalidParams = false,
+  extractOnlyRangeFields = false,
 }: {
   query?: RequestQuery;
   extractOnlyPrimaries?: boolean;
@@ -43,6 +44,8 @@ const getAst = async ({
   dependencyFields?: DependantFields;
   getHiddenColumn?: boolean;
   throwErrorIfInvalidParams?: boolean;
+  // Used for calendar view
+  extractOnlyRangeFields?: boolean;
 }) => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
@@ -84,6 +87,26 @@ const getAst = async ({
     );
 
     await extractDependencies(model.displayValue, dependencyFields);
+
+    return { ast, dependencyFields, parsedQuery: dependencyFields };
+  }
+
+  if (extractOnlyRangeFields) {
+    const ast = {
+      ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
+        const col = model.columns.find((c) => c.id === f);
+        return { ...o, [col.title]: 1 };
+      }, {}),
+    };
+
+    await Promise.all(
+      (dependencyFieldsForCalenderView || []).map((f) =>
+        extractDependencies(
+          model.columns.find((c) => c.id === f),
+          dependencyFields,
+        ),
+      ),
+    );
 
     return { ast, dependencyFields, parsedQuery: dependencyFields };
   }

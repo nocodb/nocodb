@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  getEquivalentUIType,
   isDateMonthFormat,
   isNumericCol,
   RelationTypes,
@@ -568,12 +569,18 @@ const parseConditionV2 = async (
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
 
+        // based on custom where clause(builder), we need to change the field and val
+        // todo: refactor this to use a better approach to make it more readable and clean
+        let genVal = customWhereClause ? field : val;
         const dateFormat =
           qb?.client?.config?.client === 'mysql2'
             ? 'YYYY-MM-DD HH:mm:ss'
             : 'YYYY-MM-DD HH:mm:ssZ';
 
         if (
+          (column.uidt === UITypes.Formula &&
+            getEquivalentUIType({ formulaColumn: column }) ==
+              UITypes.DateTime) ||
           [
             UITypes.Date,
             UITypes.DateTime,
@@ -586,82 +593,91 @@ const parseConditionV2 = async (
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
             // reset to 1st
             now = dayjs(now).date(1);
-            if (val) val = dayjs(val).date(1);
+            if (val) genVal = dayjs(val).date(1);
           }
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':
-              val = now;
+              genVal = now;
               break;
             case 'tomorrow':
-              val = now.add(1, 'day');
+              genVal = now.add(1, 'day');
               break;
             case 'yesterday':
-              val = now.add(-1, 'day');
+              genVal = now.add(-1, 'day');
               break;
             case 'oneWeekAgo':
-              val = now.add(-1, 'week');
+              genVal = now.add(-1, 'week');
               break;
             case 'oneWeekFromNow':
-              val = now.add(1, 'week');
+              genVal = now.add(1, 'week');
               break;
             case 'oneMonthAgo':
-              val = now.add(-1, 'month');
+              genVal = now.add(-1, 'month');
               break;
             case 'oneMonthFromNow':
-              val = now.add(1, 'month');
+              genVal = now.add(1, 'month');
               break;
             case 'daysAgo':
               if (!val) return;
-              val = now.add(-val, 'day');
+              genVal = now.add(-genVal, 'day');
               break;
             case 'daysFromNow':
               if (!val) return;
-              val = now.add(val, 'day');
+              genVal = now.add(genVal, 'day');
               break;
             case 'exactDate':
-              if (!val) return;
+              if (!genVal) return;
               break;
             // sub-ops for `isWithin` comparison
             case 'pastWeek':
-              val = now.add(-1, 'week');
+              genVal = now.add(-1, 'week');
               break;
             case 'pastMonth':
-              val = now.add(-1, 'month');
+              genVal = now.add(-1, 'month');
               break;
             case 'pastYear':
-              val = now.add(-1, 'year');
+              genVal = now.add(-1, 'year');
               break;
             case 'nextWeek':
-              val = now.add(1, 'week');
+              genVal = now.add(1, 'week');
               break;
             case 'nextMonth':
-              val = now.add(1, 'month');
+              genVal = now.add(1, 'month');
               break;
             case 'nextYear':
-              val = now.add(1, 'year');
+              genVal = now.add(1, 'year');
               break;
             case 'pastNumberOfDays':
               if (!val) return;
-              val = now.add(-val, 'day');
+              genVal = now.add(-genVal, 'day');
               break;
             case 'nextNumberOfDays':
-              if (!val) return;
-              val = now.add(val, 'day');
+              if (!genVal) return;
+              genVal = now.add(genVal, 'day');
               break;
           }
 
-          if (dayjs.isDayjs(val)) {
+          if (dayjs.isDayjs(genVal)) {
             // turn `val` in dayjs object format to string
-            val = val.format(dateFormat).toString();
+            genVal = genVal.format(dateFormat).toString();
             // keep YYYY-MM-DD only for date
-            val = column.uidt === UITypes.Date ? val.substring(0, 10) : val;
+            genVal =
+              column.uidt === UITypes.Date ? genVal.substring(0, 10) : genVal;
           }
         }
 
-        if (isNumericCol(column.uidt) && typeof val === 'string') {
+        if (isNumericCol(column.uidt) && typeof genVal === 'string') {
           // convert to number
-          val = +val;
+          genVal = +genVal;
+        }
+
+        // if customWhereClause(builder) is provided, replace field with raw value
+        // or assign value to val
+        if (customWhereClause) {
+          field = knex.raw('?', [genVal]);
+        } else {
+          val = genVal;
         }
 
         switch (filter.comparison_op) {
@@ -681,6 +697,9 @@ const parseConditionV2 = async (
               ) {
                 qb = qb.where(field, val);
               } else if (
+                (column.uidt === UITypes.Formula &&
+                  getEquivalentUIType({ formulaColumn: column }) ==
+                    UITypes.DateTime) ||
                 column.ct === 'timestamp' ||
                 column.ct === 'date' ||
                 column.ct === 'datetime'
@@ -692,6 +711,9 @@ const parseConditionV2 = async (
               }
             } else {
               if (
+                (column.uidt === UITypes.Formula &&
+                  getEquivalentUIType({ formulaColumn: column }) ==
+                    UITypes.DateTime) ||
                 [
                   UITypes.DateTime,
                   UITypes.CreatedTime,
@@ -1038,18 +1060,24 @@ const parseConditionV2 = async (
           case 'isWithin': {
             let now = dayjs(new Date()).format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
+
+            // switch between arg based on customWhereClause(builder)
+            const [firstArg, rangeArg] = [
+              customWhereClause ? val : field,
+              customWhereClause ? field : val,
+            ];
             switch (filter.comparison_sub_op) {
               case 'pastWeek':
               case 'pastMonth':
               case 'pastYear':
               case 'pastNumberOfDays':
-                qb = qb.whereBetween(field, [val, now]);
+                qb = qb.whereBetween(firstArg, [rangeArg, now]);
                 break;
               case 'nextWeek':
               case 'nextMonth':
               case 'nextYear':
               case 'nextNumberOfDays':
-                qb = qb.whereBetween(field, [now, val]);
+                qb = qb.whereBetween(firstArg, [now, rangeArg]);
                 break;
             }
           }

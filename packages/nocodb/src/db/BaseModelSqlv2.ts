@@ -427,7 +427,6 @@ class BaseModelSqlv2 {
     const proto = await this.getProto();
 
     let data;
-
     try {
       data = await this.execAndParse(qb);
     } catch (e) {

@@ -248,42 +248,68 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
     })
   }
 })
+
+const height = ref(0)
+
+const heightListener = () => {
+  height.value = window.innerHeight
+}
+
+onMounted(() => {
+  window.addEventListener('resize', heightListener)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', heightListener)
+})
 </script>
 
 <template>
   <div
     :class="{
       'w-0': !props.visible,
-      'w-1/4 min-w-[22.1rem]': props.visible,
+      'w-1/6 min-w-[22.1rem]': props.visible,
     }"
     class="h-full border-l-1 border-gray-200 transition-all"
   >
-    <NcDateWeekSelector
-      v-if="activeCalendarView === ('day' as const)"
-      v-model:active-dates="activeDates"
-      v-model:page-date="pageDate"
-      v-model:selected-date="selectedDate"
-    />
-    <NcDateWeekSelector
-      v-else-if="activeCalendarView === ('week' as const)"
-      v-model:active-dates="activeDates"
-      v-model:page-date="pageDate"
-      v-model:selected-week="selectedDateRange"
-      week-picker
-    />
-    <NcMonthYearSelector
-      v-else-if="activeCalendarView === ('month' as const)"
-      v-model:page-date="pageDate"
-      v-model:selected-date="selectedMonth"
-    />
-    <NcMonthYearSelector
-      v-else-if="activeCalendarView === ('year' as const)"
-      v-model:page-date="pageDate"
-      v-model:selected-date="selectedDate"
-      year-picker
-    />
+    <div
+      :class="{
+        '!hidden': height < 918,
+      }"
+      class="flex flex-col items-center"
+    >
+      <NcDateWeekSelector
+        v-if="activeCalendarView === ('day' as const)"
+        v-model:active-dates="activeDates"
+        v-model:page-date="pageDate"
+        v-model:selected-date="selectedDate"
+      />
+      <NcDateWeekSelector
+        v-else-if="activeCalendarView === ('week' as const)"
+        v-model:active-dates="activeDates"
+        v-model:page-date="pageDate"
+        v-model:selected-week="selectedDateRange"
+        week-picker
+      />
+      <NcMonthYearSelector
+        v-else-if="activeCalendarView === ('month' as const)"
+        v-model:page-date="pageDate"
+        v-model:selected-date="selectedMonth"
+      />
+      <NcMonthYearSelector
+        v-else-if="activeCalendarView === ('year' as const)"
+        v-model:page-date="pageDate"
+        v-model:selected-date="selectedDate"
+        year-picker
+      />
+    </div>
 
-    <div class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-4">
+    <div
+      :class="{
+        '!border-t-0': height < 918,
+      }"
+      class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-4"
+    >
       <div class="flex items-center gap-2">
         <a-input
           v-model:value="searchQuery.value"
@@ -304,8 +330,9 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         v-if="calendarRange"
         :ref="sideBarListRef"
         :class="{
-        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
-        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const),
+          'h-[calc(100vh-10.5rem)]': height < 918,
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && height > 918,
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && height > 918,
       }"
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
         @scroll="sideBarListScrollHandle"

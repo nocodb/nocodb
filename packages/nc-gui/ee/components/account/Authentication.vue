@@ -47,6 +47,7 @@ const addOIDCProvider = async () => {
   providerProp.value = await getPrePopulatedProvider('oidc')
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const addGoogleProvider = async () => {
   googleDialogShow.value = true
   isEdit.value = true
@@ -156,6 +157,8 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Todo: remove eslint-disable comment once `v-if` no-constant-condition resolved -->
+      <!-- eslint-disable vue/no-constant-condition  -->
       <div
         v-if="false"
         class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"

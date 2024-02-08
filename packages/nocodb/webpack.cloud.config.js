@@ -3,7 +3,6 @@ const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const JavaScriptObfuscator = require('webpack-obfuscator');
 const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 
 module.exports = {
@@ -53,14 +52,6 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
-    new JavaScriptObfuscator(
-      {
-        rotateStringArray: true,
-        splitStrings: true,
-        splitStringsChunkLength: 6,
-      },
-      [],
-    ),
   ],
   target: 'node',
 };

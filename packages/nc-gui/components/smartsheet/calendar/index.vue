@@ -132,11 +132,11 @@ const headerText = computed(() => {
       return dayjs(selectedDate.value).format('D MMMM YYYY')
     case 'week':
       if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'month')) {
-        return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YYYY')}`
+        return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YY')}`
       } else if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'year')) {
-        return `${selectedDateRange.value.start.format('D MMM')} - ${selectedDateRange.value.end.format('D MMM YYYY')}`
+        return `${selectedDateRange.value.start.format('D MMM')} - ${selectedDateRange.value.end.format('D MMM YY')}`
       } else {
-        return `${selectedDateRange.value.start.format('D MMM YYYY')} - ${selectedDateRange.value.end.format('D MMM YYYY')}`
+        return `${selectedDateRange.value.start.format('D MMM YY')} - ${selectedDateRange.value.end.format('D MMM YY')}`
       }
     case 'month':
       return dayjs(selectedMonth.value).format('MMMM YYYY')
@@ -159,17 +159,8 @@ const headerText = computed(() => {
           </NcTooltip>
 
           <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
-            <NcButton
-              :class="{
-                'w-36': activeCalendarView === 'month',
-                'w-40': activeCalendarView === 'day',
-                'w-20': activeCalendarView === 'year',
-                'w-50': activeCalendarView === 'week',
-              }"
-              size="small"
-              type="secondary"
-            >
-              <div class="flex w-full px-3 py-1 items-center justify-between">
+            <NcButton :class="{ '!w-23': activeCalendarView === 'year' }" class="w-44" full-width size="small" type="secondary">
+              <div class="flex w-full px-3 py-1 w-full items-center justify-between">
                 <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
                 <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
               </div>

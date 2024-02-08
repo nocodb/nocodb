@@ -9,7 +9,7 @@ on:
         required: true
 jobs:
   buildx:
-    runs-on: [self-hosted, docker-build]
+    runs-on: [ self-hosted, docker-build ]
     env:
       working-directory: ./packages/nocodb
     steps:

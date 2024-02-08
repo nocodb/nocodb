@@ -301,6 +301,7 @@
     "isNotNull": "nav null"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "Docs",
     "forum": "Forum",
     "parameter": "Parameter",
@@ -417,6 +418,16 @@
     }
   },
   "labels": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "Security Assertion Markup Language (SAML)",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -513,6 +524,7 @@
     "databaseType": "Tips datubāzē",
     "lengthValue": "Garums/ Vērtība",
     "dbType": "Datubāzes tips",
+    "servername": "servername / hostAddr",
     "sqliteFile": "SQLite Datne",
     "hostAddress": "Saimniekdatora adrese",
     "port": "Porta numurs",
@@ -657,6 +669,9 @@
     }
   },
   "activity": {
+    "googleOAuth": "Google OAuth",
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "Open in a new tab",
     "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
@@ -1069,6 +1084,8 @@
       }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Aktīvajā šūnā netiek atbalstīta operācija \"ielīmēt\".",
@@ -1233,6 +1250,16 @@
       "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
+      "scopesRequired": "Scopes required",
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "issuerRequired": "Issuer is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Name Required",
       "nameMinLength": "Name must be at least 2 characters long",
       "nameMaxLength": "Name must be at most 60 characters long",
@@ -1263,6 +1290,7 @@
         "invalidEmails": "Invalid emails",
         "invalidEmail": "Invalid Email"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "Nederīgs URL",
       "invalidEmail": "Invalid Email",
       "internalError": "Notika kāda iekšēja kļūda",

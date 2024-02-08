@@ -1,11 +1,21 @@
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import {Injectable, Logger} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import type { OnModuleInit, OnModuleInit } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common';
 
 // todo: replace with actual public key and avoid readFileSync since it's blocking and not recommended
-const publicKey = fs.readFileSync('./public-key/public.pem');
+// const publicKey = fs.readFileSync('./public-key/public.pem');
+
+const publicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmvm9e3qSr4r4fgXdbJE6
+9Wkk7LQk/QVvpyCT8/kAWtSPRepeeih+CDlS3szWl2EahctBDPcuWjICIfPnaYXs
+G/KKTNV2Q5orzzYtIAxa7xqyK7/nGHQMHGsVdbAdlLH53DInzcI6oeRijRhMdTNn
+n/Hq1bLjqUQOuL6g8DvY7SV9UolzGtynbURnKpImMZ/N+HCbXX6fCIOxW8rGrTbv
+g51Rsk5P27TppQH0oYnyJDfOwvwlvCPN/SO0l7WbnqZTSRlPx3UsLls5RUIx91RL
+wgB8qNPFuz/58jGESPXWbWNE/uT34px+QDgoew0nk5ZlCc2Uy90u3UM9SFk9ctE2
+fwIDAQAB
+-----END PUBLIC KEY-----`;
 
 @Injectable()
 export class LicenseService implements OnModuleInit {
@@ -18,7 +28,7 @@ export class LicenseService implements OnModuleInit {
     siteUrl: string;
   };
 
-  async onModuleInit(): any {
+  async onModuleInit(): Promise<void> {
     const { valid, data, error } = await this.verifyLicense(
       process.env.NC_LICENSE_KEY,
     );
@@ -28,7 +38,7 @@ export class LicenseService implements OnModuleInit {
       process.exit(1);
     }
 
-    this.licenseData = data;
+    this.licenseData = data as any;
   }
 
   constructor() {}
@@ -44,14 +54,14 @@ export class LicenseService implements OnModuleInit {
 
       // todo: do any additional checks here
 
-      if (data.type === 'trial') {
-        const now = new Date();
-        const exp = new Date(data.exp * 1000);
-        if (now > exp) {
-          this.logger.error('Trial expired');
-          process.exit(1);
-        }
-      }
+      // if (decoded?.type === 'ENTERPRISE_TRIAL') {
+      //   const now = new Date();
+      //   const exp = new Date(decoded.exp * 1000);
+      //   if (now > exp) {
+      //     this.logger.error('Trial expired');
+      //     process.exit(1);
+      //   }
+      // }
 
       return { valid: true, data: decoded };
     } catch (error) {

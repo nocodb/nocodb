@@ -265,7 +265,9 @@ watch(
                       @click="copyWebhook(hook)"
                     >
                       <template #loading> {{ $t('general.duplicating') }} </template>
-                      <div class="flex items-center gap-x-1"><GeneralIcon icon="copy" /> {{ $t('general.duplicate') }}</div>
+                      <div class="flex items-center gap-x-1">
+                        <GeneralIcon icon="duplicate"></GeneralIcon> {{ $t('general.duplicate') }}
+                      </div>
                     </NcButton>
                     <NcButton type="text" class="w-full !rounded-md !px-2" :centered="false" @click="openDeleteModal(hook.id!)">
                       <div class="flex items-center justify-start gap-x-1 !text-red-500">

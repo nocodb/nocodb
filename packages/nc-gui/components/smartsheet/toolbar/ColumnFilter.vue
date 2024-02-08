@@ -76,6 +76,7 @@ const {
   isComparisonSubOpAllowed,
   loadBtLookupTypes,
   btLookupTypesMap,
+  types,
 } = useViewFilters(
   activeView,
   parentId?.value,
@@ -114,8 +115,9 @@ const isFilterDraft = (filter: Filter, col: ColumnType) => {
   }
 
   if (
-    comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((compOp) => compOp.value === filter.comparison_op)
-      ?.ignoreVal
+    comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find(
+      (compOp) => compOp.value === filter.comparison_op,
+    )?.ignoreVal
   ) {
     return false
   }
@@ -143,7 +145,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // hence remove the previous value
     filter.value = null
     filter.comparison_sub_op = null
-  } else if (isDateType(col.uidt as UITypes)) {
+  } else if (isDateType(types.value[col.id] as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
@@ -172,17 +174,6 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     comparison_sub_op: filter.comparison_sub_op,
   })
 }
-
-const types = computed(() => {
-  if (!meta.value?.columns?.length) {
-    return {}
-  }
-
-  return meta.value?.columns?.reduce((obj: any, col: any) => {
-    obj[col.id] = col.uidt
-    return obj
-  }, {})
-})
 
 watch(
   () => activeView.value?.id,
@@ -237,11 +228,11 @@ const selectFilterField = (filter: Filter, index: number) => {
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((compOp) =>
+  filter.comparison_op = comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find((compOp) =>
     isComparisonOpAllowed(filter, compOp),
   )?.value as FilterType['comparison_op']
 
-  if (isDateType(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
+  if (isDateType(types.value[col.id] as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
     } else {
@@ -319,8 +310,9 @@ const showFilterInput = (filter: Filter) => {
       (op) => op.value === filter.comparison_sub_op,
     )?.ignoreVal
   } else {
-    return !comparisonOpList(col?.uidt as UITypes, col?.meta?.date_format).find((op) => op.value === filter.comparison_op)
-      ?.ignoreVal
+    return !comparisonOpList(types.value[col?.id] as UITypes, col?.meta?.date_format).find(
+      (op) => op.value === filter.comparison_op,
+    )?.ignoreVal
   }
 }
 
@@ -462,7 +454,7 @@ function isDateType(uidt: UITypes) {
               @change="filterUpdateCondition(filter, i)"
             >
               <template
-                v-for="compOp of comparisonOpList(getColumn(filter)?.uidt, getColumn(filter)?.meta?.date_format)"
+                v-for="compOp of comparisonOpList(types[filter.fk_column_id], getColumn(filter)?.meta?.date_format)"
                 :key="compOp.value"
               >
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
@@ -481,7 +473,7 @@ function isDateType(uidt: UITypes) {
 
             <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
             <NcSelect
-              v-else-if="isDateType(getColumn(filter)?.uidt)"
+              v-else-if="isDateType(types[filter.fk_column_id])"
               v-model:value="filter.comparison_sub_op"
               v-e="['c:filter:sub-comparison-op:select']"
               :dropdown-match-select-width="false"
@@ -529,12 +521,12 @@ function isDateType(uidt: UITypes) {
             <SmartsheetToolbarFilterInput
               v-if="showFilterInput(filter)"
               class="nc-filter-value-select rounded-md min-w-34"
-              :column="getColumn(filter)"
+              :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
               :filter="filter"
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
-            <div v-else-if="!isDateType(getColumn(filter)?.uidt)" class="flex-grow"></div>
+            <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
 
             <NcButton
               v-if="!filter.readOnly"

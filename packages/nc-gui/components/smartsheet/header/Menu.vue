@@ -313,7 +313,7 @@ const isDuplicateAllowed = computed(() => {
       <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
         <NcMenuItem @click="onEditPress">
           <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.edit" class="text-gray-700" />
+            <component :is="iconMap.ncEdit" class="text-gray-700" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>

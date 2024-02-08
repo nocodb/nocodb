@@ -424,7 +424,7 @@
     "audience-entityId": "Audience/ Entity ID",
     "redirectUrl": "Redirect URL",
     "oidc": "OpenID Connect (OIDC)",
-    "saml": "SAML",
+    "saml": "Security Assertion Markup Language (SAML)",
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",

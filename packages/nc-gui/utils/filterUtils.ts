@@ -4,9 +4,15 @@ const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '='
   } else if (
-    [UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord, UITypes.Date, UITypes.DateTime].includes(
-      fieldUiType,
-    )
+    [
+      UITypes.SingleSelect,
+      UITypes.Collaborator,
+      UITypes.LinkToAnotherRecord,
+      UITypes.Date,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.DateTime,
+    ].includes(fieldUiType)
   ) {
     return 'is'
   }
@@ -17,9 +23,15 @@ const getNeqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '!='
   } else if (
-    [UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord, UITypes.Date, UITypes.DateTime].includes(
-      fieldUiType,
-    )
+    [
+      UITypes.SingleSelect,
+      UITypes.Collaborator,
+      UITypes.LinkToAnotherRecord,
+      UITypes.Date,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.DateTime,
+    ].includes(fieldUiType)
   ) {
     return 'is not'
   }
@@ -41,28 +53,28 @@ const getNotLikeText = (fieldUiType: UITypes) => {
 }
 
 const getGtText = (fieldUiType: UITypes) => {
-  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+  if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
     return 'is after'
   }
   return '>'
 }
 
 const getLtText = (fieldUiType: UITypes) => {
-  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+  if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
     return 'is before'
   }
   return '<'
 }
 
 const getGteText = (fieldUiType: UITypes) => {
-  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+  if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
     return 'is on or after'
   }
   return '>='
 }
 
 const getLteText = (fieldUiType: UITypes) => {
-  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+  if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
     return 'is on or before'
   }
   return '<='
@@ -131,6 +143,8 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
       UITypes.Time,
       ...numericUITypes,
     ],
@@ -149,6 +163,8 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
       UITypes.Time,
       ...numericUITypes,
     ],
@@ -170,6 +186,8 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
       UITypes.Time,
       ...numericUITypes,
     ],
@@ -191,6 +209,8 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
       UITypes.Time,
       ...numericUITypes,
     ],
@@ -213,6 +233,8 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
       UITypes.Time,
     ],
   },
@@ -234,6 +256,8 @@ export const comparisonOpList = (
       UITypes.Lookup,
       UITypes.Date,
       UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
       UITypes.Time,
     ],
   },
@@ -304,7 +328,14 @@ export const comparisonOpList = (
     text: getLteText(fieldUiType),
     value: 'lte',
     ignoreVal: false,
-    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime, UITypes.Time],
+    includedTypes: [
+      ...numericUITypes,
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.Time,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ],
   },
   {
     text: 'is within',

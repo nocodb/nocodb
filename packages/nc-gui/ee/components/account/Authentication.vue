@@ -19,7 +19,7 @@ const googleProvider = computed(() => {
   } else {
     return {
       enabled: false,
-      provider: 'google',
+      type: 'google',
     }
   }
 })
@@ -115,15 +115,23 @@ const duplicateProvider = async (id: string) => {
   }
 }
 
-const enableEdit = (provider: SSOClientType) => {
+const enableEdit = async (provider: SSOClientType) => {
+  debugger
   isEdit.value = true
-  providerProp.value = provider
   if (provider.type === 'saml') {
+    providerProp.value = provider
     samlDialogShow.value = true
   } else if (provider.type === 'oidc') {
+    providerProp.value = provider
     oidcDialogShow.value = true
   } else if (provider.type === 'google') {
+    debugger
     googleDialogShow.value = true
+    if (!provider.id) {
+      providerProp.value = await getPrePopulatedProvider('google')
+    } else {
+      providerProp.value = provider
+    }
   }
 }
 
@@ -160,14 +168,15 @@ onMounted(async () => {
         data-test-id="nc-google-provider"
         @click="enableEdit(googleProvider)"
       >
-        <div class="nc-google-enable" @click.stop>
+        <div class="nc-google-enable nc-google-google-enable" @click.stop>
           <NcSwitch
             :checked="!!googleProvider.enabled"
             class="min-w-4"
             size="small"
             @change="updateProviderStatus(googleProvider)"
           />
-          <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title"> Google </span>
+          <span class="text-base font-bold ml-2 group-hover:text-black capitalize"
+                data-test-id="nc-saml-title"> Google </span>
         </div>
 
         <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
@@ -289,7 +298,8 @@ onMounted(async () => {
           >
             <div :class="`nc-oidc-${oid.title}-enable`">
               <span @click.stop>
-                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" @click.stop />
+                <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)"
+                          @click.stop />
               </span>
               <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-oidc-title">
                 {{ oid?.title }}
@@ -338,9 +348,12 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <DlgGoogleProvider v-if="googleDialogShow" v-model:model-value="googleDialogShow" :google="providerProp" :is-edit="isEdit" />
-    <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" :is-edit="isEdit" :saml="providerProp" />
-    <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" :is-edit="isEdit" :oidc="providerProp" />
+    <DlgGoogleProvider v-if="googleDialogShow" v-model:model-value="googleDialogShow" :google="providerProp"
+                       :is-edit="isEdit" />
+    <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" :is-edit="isEdit"
+                     :saml="providerProp" />
+    <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" :is-edit="isEdit"
+                     :oidc="providerProp" />
   </div>
 </template>
 

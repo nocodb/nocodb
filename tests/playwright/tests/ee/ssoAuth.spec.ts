@@ -74,6 +74,25 @@ test.describe.serial('SSO', () => {
       // Delete OIDC provider
       await accountsPage.authentication.deleteProvider('oidc', 'oidc');
     });
+
+    test.only('Google Auth', async () => {
+      await accountsPage.authentication.goto();
+
+      // Create OIDC provider
+      await accountsPage.authentication.createGoogleProvider({
+        clientId: 'test',
+        clientSecret: 'test',
+      });
+
+      // Disable OIDC provider
+      await accountsPage.authentication.toggleProvider('google', 'google');
+      //
+      // // Enable OIDC provider
+      await accountsPage.authentication.toggleProvider('google', 'google');
+
+      // Delete OIDC provider
+      // await accountsPage.authentication.deleteProvider('google', 'google');
+    });
   });
 
   test.describe('OpenID Auth Flow', () => {

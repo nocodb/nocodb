@@ -94,7 +94,9 @@ const saveGoogleProvider = async () => {
               </NcTooltip>
             </div>
             <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-              <span class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
+              <span
+                data-test-id="nc-google-redirect-url"
+                class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow">
                 <!-- Get Redirect URL from Authentication Composable -->
                 {{ getRedirectUrl(google) }}
               </span>
@@ -106,15 +108,15 @@ const saveGoogleProvider = async () => {
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
           <a-form-item :rules="formRules.clientId" name="clientId">
-            <a-input v-model:value="form.clientId" data-test-id="nc-google-clientId" placeholder="Client ID" />
+            <a-input v-model:value="form.clientId" data-test-id="nc-google-client-id" placeholder="Client ID" />
           </a-form-item>
 
           <a-form-item :rules="formRules.clientSecret" name="clientSecret">
-            <a-input v-model:value="form.clientSecret" data-test-id="nc-google-clientSecret" placeholder="Client Secret" />
+            <a-input v-model:value="form.clientSecret" data-test-id="nc-google-client-secret" placeholder="Client Secret" />
           </a-form-item>
 
           <div class="flex justify-end gap-2 mt-8">
-            <NcButton data-test-id="nc-google-submit" size="medium" type="primary" @click="saveGoogleProvider">
+            <NcButton data-test-id="nc-google-save-btn" size="medium" type="primary" @click="saveGoogleProvider">
               {{ $t('labels.save') }}
             </NcButton>
           </div>

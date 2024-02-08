@@ -301,6 +301,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "문서",
     "forum": "포럼",
     "parameter": "매개 변수",
@@ -417,6 +418,16 @@
     }
   },
   "labels": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "Security Assertion Markup Language (SAML)",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -513,6 +524,7 @@
     "databaseType": "데이터베이스 입력",
     "lengthValue": "길이 / 값",
     "dbType": "데이터베이스 유형",
+    "servername": "servername / hostAddr",
     "sqliteFile": "SQLite 파일",
     "hostAddress": "호스트 주소",
     "port": "포트 번호",
@@ -657,6 +669,9 @@
     }
   },
   "activity": {
+    "googleOAuth": "Google OAuth",
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "새 탭에서 열기",
     "copyIFrameCode": "IFrame 코드 복사",
     "onCondition": "조건에 따라",
@@ -1069,6 +1084,8 @@
       }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "베이스가 마이그레이션되었습니다. 다시 시도하십시오.",
       "pasteNotSupported": "활성 셀에서는 붙여넣기 작업이 지원되지 않습니다.",
@@ -1233,6 +1250,16 @@
       "notAvailableAtTheMoment": "Not available at the moment"
     },
     "error": {
+      "scopesRequired": "Scopes required",
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "issuerRequired": "Issuer is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Name Required",
       "nameMinLength": "Name must be at least 2 characters long",
       "nameMaxLength": "Name must be at most 60 characters long",
@@ -1263,6 +1290,7 @@
         "invalidEmails": "Invalid emails",
         "invalidEmail": "Invalid Email"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "유효하지 않은 URL",
       "invalidEmail": "유효하지 않은 이메일",
       "internalError": "내부 오류",

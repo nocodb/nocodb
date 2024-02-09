@@ -83,6 +83,20 @@ const submitCurrency = () => {
   editEnabled.value = false
 }
 
+const onBlur = () => {
+  // triggered by events like forcus-out / pressing enter
+  // for non-firefox browsers only
+  submitCurrency()
+}
+
+const onKeydownEnter = () => {
+  // for firefox, onBlur is never executed
+  // we use keydown.enter to trigger submitCurrency
+  if (/Firefox/.test(navigator.userAgent)) {
+    submitCurrency()
+  }
+}
+
 onMounted(() => {
   lastSaved.value = vModel.value
 })
@@ -96,7 +110,8 @@ onMounted(() => {
     type="number"
     class="nc-cell-field w-full h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
-    @blur="submitCurrency"
+    @blur="onBlur"
+    @keydown.enter="onKeydownEnter"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop

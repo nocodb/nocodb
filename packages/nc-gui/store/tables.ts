@@ -214,19 +214,28 @@ export const useTablesStore = defineStore('tablesStore', () => {
     }
   }
 
-  const tableUrl = ({ table, completeUrl }: { table: TableType; completeUrl: boolean }) => {
-    const base = basesStore.bases.get(table.base_id!)
-    if (!base) return
+  const tableUrl = ({ table, completeUrl, isSharedBase }: { table: TableType; completeUrl: boolean; isSharedBase?: boolean }) => {
+    let base
+    if (!isSharedBase) {
+      base = basesStore.bases.get(table.base_id!)
+      if (!base) return
+    }
 
     const nuxtPageName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
 
     const url = router.resolve({
       name: nuxtPageName,
-      params: {
-        typeOrId: workspaceStore.activeWorkspaceId,
-        baseId: base.id,
-        viewId: table.id,
-      },
+      params: isSharedBase
+        ? {
+            typeOrId: route.value.params.typeOrId,
+            baseId: route.value.params.baseId,
+            viewId: route.value.params.viewId,
+          }
+        : {
+            typeOrId: workspaceStore.activeWorkspaceId,
+            baseId: base?.id,
+            viewId: table.id,
+          },
     })
 
     if (completeUrl) return `${window.location.origin}/${url.href}`

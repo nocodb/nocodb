@@ -161,8 +161,9 @@ const onDelete = async () => {
         </NcButton>
       </div>
     </NcTooltip>
-    <NcDivider />
-    <template v-if="!view?.is_default">
+
+    <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
+      <NcDivider />
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
         <GeneralIcon icon="rename" />
         {{ $t('activity.renameView') }}
@@ -283,7 +284,7 @@ const onDelete = async () => {
       </NcSubMenu>
     </template>
 
-    <template v-if="!view.is_default">
+    <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>

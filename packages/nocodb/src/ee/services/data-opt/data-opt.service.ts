@@ -17,6 +17,7 @@ export class DataOptService {
     params;
     throwErrorIfInvalidParams?: boolean;
     validateFormula?: boolean;
+    ignorePagination?: boolean;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 

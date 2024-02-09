@@ -951,6 +951,7 @@ export async function singleQueryList(ctx: {
   params;
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
+  ignorePagination?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
@@ -1110,7 +1111,7 @@ export async function singleQueryList(ctx: {
     validateFormula: ctx.validateFormula,
   });
 
-  if (ctx.view.type !== ViewTypes.CALENDAR) {
+  if (ctx.view.type !== ViewTypes.CALENDAR && !ctx.ignorePagination) {
     if (skipCache) {
       rootQb.limit(+listArgs.limit);
       rootQb.offset(+listArgs.offset);

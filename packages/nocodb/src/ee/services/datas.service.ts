@@ -19,7 +19,11 @@ export class DatasService extends DatasServiceCE {
   }
 
   async dataList(
-    param: PathParams & { query: any; disableOptimization?: boolean },
+    param: PathParams & {
+      query: any;
+      disableOptimization?: boolean;
+      ignorePagination?: boolean;
+    },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
@@ -38,6 +42,7 @@ export class DatasService extends DatasServiceCE {
         params: param.query,
         source,
         throwErrorIfInvalidParams: true,
+        ignorePagination: param.ignorePagination,
       });
     } else {
       responseData = await this.getDataList({
@@ -45,6 +50,7 @@ export class DatasService extends DatasServiceCE {
         view,
         query: param.query,
         throwErrorIfInvalidParams: true,
+        ignorePagination: param.ignorePagination,
       });
     }
 

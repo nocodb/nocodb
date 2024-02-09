@@ -56,7 +56,7 @@ export default function convertCellData(
       }
       return null
     case UITypes.Date: {
-      const parsedDate = dayjs(value)
+      const parsedDate = dayjs(value, column?.meta?.date_format ?? 'YYYY-MM-DD')
       if (!parsedDate.isValid()) {
         if (isMultiple) {
           return null

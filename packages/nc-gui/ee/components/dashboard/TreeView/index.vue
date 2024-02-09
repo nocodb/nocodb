@@ -14,6 +14,7 @@ import {
   useBase,
   useBases,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useRoles,
   useTablesStore,
@@ -44,6 +45,8 @@ const { isSharedBase } = storeToRefs(baseStore)
 const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { workspaceRoles } = useRoles()
+
+const { isMobileMode } = useGlobal()
 
 const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
@@ -240,7 +243,7 @@ const onMove = async (
         <div>
           <Draggable
             :model-value="starredProjectList"
-            :disabled="!isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+            :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
             item-key="starred-project"
             handle=".base-title-node"
             ghost-class="ghost"
@@ -262,7 +265,7 @@ const onMove = async (
       <div v-if="nonStarredProjectList?.length">
         <Draggable
           v-model="nonStarredProjectList"
-          :disabled="!isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
+          :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
           item-key="non-starred-project"
           handle=".base-title-node"
           ghost-class="ghost"

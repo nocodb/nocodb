@@ -515,7 +515,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             ...queryParams.value,
             ...{},
             ...{},
-            ...{ filterArrJson: JSON.stringify([...filterJSON.value, ...activeDateFilter]) },
+            ...{ filterArrJson: JSON.stringify([...activeDateFilter]) },
           })
         : await fetchSharedViewActiveDate({
             sortsArr: sorts.value,
@@ -726,6 +726,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           Object.assign(toUpdate.row, updatedRowData)
           Object.assign(toUpdate.oldRow, updatedRowData)
         }
+
+        await fetchActiveDates()
         return updatedRowData
       } catch (e: any) {
         message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
@@ -744,7 +746,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           await loadSidebarData()
         }
       } else {
-        await Promise.all([loadSidebarData()])
+        await Promise.all([loadSidebarData(), loadCalendarData()])
       }
 
       if (activeCalendarView.value === 'year' && value.year() !== oldValue.year()) {
@@ -812,6 +814,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     watch(pageDate, async () => {
       if (activeCalendarView.value === 'year') return
+      console.log('pageDate changed')
       await fetchActiveDates()
     })
 

@@ -148,7 +148,7 @@ export function useSharedView() {
       {
         headers: {
           'xc-password': password.value,
-          'xc-ignore-pagination': headers.ignorePagination ? 'true' : 'false',
+          'xc-ignore-pagination': headers?.ignorePagination ? 'true' : 'false',
         },
       },
     )

@@ -10,14 +10,18 @@ export const precisions = [
   { id: 8, title: '1.00000000' },
 ]
 
-export function renderPercent(value: any, precision?: number, withPercentSymbol: boolean = true) {
+export function renderPercent(value: any, precision?: number, withPercentSymbol: boolean = true, isInputField = false) {
   if (typeof value !== 'number' && !value) return value
   if (isNaN(Number(value))) return null
 
   value = Number(value) * 100
 
   if (precision !== undefined) {
-    value = value.toFixed(precision)
+    if (isInputField) {
+      value = value % 1 !== 0 ? value.toFixed(precision).replace(/\.?0+$/, '') : value.toString()
+    } else {
+      value = value.toFixed(precision)
+    }
   } else {
     value = value.toString()
   }

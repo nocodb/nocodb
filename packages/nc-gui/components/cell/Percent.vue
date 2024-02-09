@@ -53,13 +53,13 @@ const displayValue = computed(() => {
 
 const vModel = computed({
   get: () => {
-    return renderPercent(_vModel.value, undefined, false)
+    return renderPercent(_vModel.value, percentMeta.value.precision, false, true)
   },
   set: (value) => {
     if (value === '') {
       _vModel.value = null
     } else if (isValidPercent(value, percentMeta.value?.negative)) {
-      _vModel.value = value / 100
+      _vModel.value = +value / 100
     }
   },
 })
@@ -144,6 +144,28 @@ function onKeyDown(evt: KeyboardEvent) {
   if (!percentMeta.value?.negative) keysToPrevent.push('-')
   return keysToPrevent.includes(evt.key) && evt.preventDefault()
 }
+
+/*
+ * The vModel value is formatted using toFixed to a specific precision.
+ * When the cursor is at the second position after the decimal and the backspace key is pressed,
+ * it removes the last decimal and the decimal point.
+ * To prevent the cursor from moving to the first position,
+ * we remove the value in the backspace event and update the vModel value.
+ */
+function onBackspace(evt: KeyboardEvent) {
+  const input = evt.target as HTMLInputElement
+
+  // Check if the cursor is after a decimal point
+  if (evt.key === 'Backspace' && input.value[input.value.length - 2] === '.') {
+    evt.preventDefault()
+
+    // Remove the decimal point and the value after it
+    const newValue = input.value.slice(0, -2)
+
+    // update vModel value
+    vModel.value = +newValue
+  }
+}
 </script>
 
 <template>
@@ -160,7 +182,7 @@ function onKeyDown(evt: KeyboardEvent) {
       v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 py-1"
+      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 py-1 px-0 invalid:text-red-500"
       style="letter-spacing: 0.06rem"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
@@ -174,6 +196,7 @@ function onKeyDown(evt: KeyboardEvent) {
       @keydown.delete.stop
       @keydown.tab="onTabPress"
       @keydown="onKeyDown"
+      @keydown.backspace="onBackspace"
       @selectstart.capture.stop
       @mousedown.stop
     />

@@ -242,7 +242,7 @@ onUnmounted(() => {
         <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" />
         <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" />
         <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
-        <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" @save="emit('save')" />
+        <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
         <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
         <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
         <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />

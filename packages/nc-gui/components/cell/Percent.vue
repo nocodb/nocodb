@@ -19,7 +19,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'save'])
+const emits = defineEmits(['update:modelValue'])
 
 const { showNull } = useGlobal()
 
@@ -35,34 +35,31 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
 
-const percent = ref(_vModel.value)
-
 const percentMeta = computed(() => {
   return {
     is_progress: false,
+    precision: 2,
     ...parseProp(column.value?.meta),
   }
 })
 
-const percentStep = computed(() => getPercentStep(percentMeta.value.precision || 2))
+const percentStep = computed(() => getPercentStep(percentMeta.value.precision))
 
 const displayValue = computed(() => {
   if (_vModel.value === null || _vModel.value === undefined) return null
 
-  if (isNaN(Number(_vModel.value))) return null
-
-  return renderPercent((_vModel.value as number) / 100, percentMeta.value.precision ?? 2)
+  return renderPercent(_vModel.value, percentMeta.value.precision)
 })
 
 const vModel = computed({
   get: () => {
-    if (_vModel.value === null || _vModel.value === undefined || isNaN(Number(_vModel.value))) return null
     return renderPercent(_vModel.value, undefined, false)
   },
   set: (value) => {
-    if (value === '' || value === null) value = 0
-    if (isValidPercent(value, percentMeta.value?.negative)) {
-      percent.value = value / 100
+    if (value === '') {
+      _vModel.value = null
+    } else if (isValidPercent(value, percentMeta.value?.negative)) {
+      _vModel.value = value / 100
     }
   },
 })
@@ -79,12 +76,9 @@ const cellFocused = ref(false)
 const expandedEditEnabled = ref(false)
 
 const onBlur = () => {
-  if (_vModel.value !== percent.value) {
-    _vModel.value = percent.value ?? null
-
-    emits('save')
+  if (editEnabled) {
+    editEnabled.value = false
   }
-  editEnabled.value = false
 
   cellFocused.value = false
   expandedEditEnabled.value = false
@@ -146,9 +140,9 @@ const onTabPress = (e: KeyboardEvent) => {
 }
 
 function onKeyDown(evt: KeyboardEvent) {
-  const keys = ['e', 'E', '+']
-  if (!percentMeta.value?.negative) keys.push('-')
-  return keys.includes(evt.key) && evt.preventDefault()
+  const keysToPrevent = ['e', 'E', '+']
+  if (!percentMeta.value?.negative) keysToPrevent.push('-')
+  return keysToPrevent.includes(evt.key) && evt.preventDefault()
 }
 </script>
 

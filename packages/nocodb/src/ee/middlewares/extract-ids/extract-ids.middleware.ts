@@ -101,7 +101,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       params.formViewId ||
       params.gridViewId ||
       params.kanbanViewId ||
-      params.galleryViewId||
+      params.galleryViewId ||
       params.calendarViewId
     ) {
       const view = await View.get(

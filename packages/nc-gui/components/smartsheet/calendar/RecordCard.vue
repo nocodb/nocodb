@@ -68,7 +68,7 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="overflow-hidden ml-2 w-full h-8 absolute">
+    <div class="overflow-hidden ml-2 h-8 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
       <span class="text-sm !w-[80%] text-gray-800">
         <slot />

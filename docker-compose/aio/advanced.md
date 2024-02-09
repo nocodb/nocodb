@@ -3,7 +3,7 @@
 ## Restarting containers 
 There are atleast 4 main containers which are running as part of this installation through same docker-compose. The same docker-compose can be leveraged to restart any or all of these containers. 
 
-Use below command to restart all containers\ 
+Use [restart.sh](./bin/restart.sh) or Use below command to restart all containers
 ``` docker compose restart ```
 
 To restart individual containers with name ( names:  nocodb, nginx, postgres, redis)\
@@ -38,9 +38,5 @@ There are two main directories where nginx configurations are maintained
 - nocodb team managed configurations at [nginx/conf.d](./conf/nginx/conf.d).
 - self managed (you) [conf/nginx/conf.d](./conf/nginx/conf.d) 
 
-
-## Add Node 
-
-## Minio integration for resources
-
-## Enable scheduled backups to run nightly on all your instances.
+## postgres configurations 
+[postgres.conf](./data/postgres/postgresql.conf) and [pg_hba.conf](./data/postgres/pg_hba.conf) are created under ./data/postgres directory upon first postgres container creation. The configurations can be updated and restarted continer to take affect.

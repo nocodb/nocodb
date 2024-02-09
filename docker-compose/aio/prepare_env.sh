@@ -16,6 +16,11 @@ if [ -f ${ENV_FILE} ]; then
     cp ${ENV_FILE} ${bkp_file}
 fi
 
+function trim(){
+    local var="${@}"
+    echo "$(sed -e 's/[[:space:]]*$//' <<<${var})"
+}
+
 function acceptProperty(){
     local varDetail="$1"
     local promptUser="${2:-true}"
@@ -25,7 +30,7 @@ function acceptProperty(){
     default_value="${prop#*=}"
     prev_value_or_default=${!key:-${default_value}}
     
-    echo promptUser: ${promptUser}
+    # echo promptUser: ${promptUser}
     # echo prop: ${prop}
     # echo key: ${key}
     # echo default_value: ${default_value}
@@ -34,10 +39,12 @@ function acceptProperty(){
     fi
 
     # Use user input or default value if empty
-    value=${user_input:-$prev_value_or_default}
+    value=$(trim ${user_input:-$prev_value_or_default})
 
     # Store key-value pair in a variable
-    userValues="${userValues}${key}=${value}\n"
+    if [[ ${value} != "" ]]; then
+        userValues="${userValues}${key}=${value}\n"
+    fi
 }
 # Iterate over the properties array and prompt user for input
 for multi_property_array in basic_properties invite_only_signup_priorities google_login_properties email_properties s3_attachment_properties ; do
@@ -56,7 +63,9 @@ for multi_property_array in basic_properties invite_only_signup_priorities googl
             fi
             continue
         fi   
-        acceptProperty "${varDetail}" "${promptUser}"
+        if [[ ${prop} != "main" ]]; then
+            acceptProperty "${varDetail}" "${promptUser}"
+        fi
     done
 done
 

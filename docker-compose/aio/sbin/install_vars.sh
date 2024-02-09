@@ -10,7 +10,7 @@ basic_properties=(
 "POSTGRES_DB=nocodb | " 
 "NC_REDIS_URL=redis://redis:6379/4 | default to redis container" 
 'NC_DB=pg://postgres:5432?u=postgres&password=${POSTGRES_PASSWORD:-nocodb}&d=postgres | hide' 
-"NC_PUBLIC_URL=$(hostname) | Are you using custom DNS, configure NC_PUBLIC_URL to reflect in the invite emails?" 
+"NC_PUBLIC_URL=http://$(hostname) | Are you using custom DNS, configure NC_PUBLIC_URL to reflect in the invite emails?" 
 "NC_CONNECT_TO_EXTERNAL_DB_DISABLED=false | Disable connecting to external db?"
 )
 

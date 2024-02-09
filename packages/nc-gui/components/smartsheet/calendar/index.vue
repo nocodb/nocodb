@@ -147,13 +147,13 @@ const headerText = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-full flex-row">
+  <div class="flex h-full flex-row" data-testid="nc-calendar-wrapper">
     <div class="flex flex-col w-full">
-      <div class="flex justify-between p-3 items-center border-b-1 border-gray-200">
+      <div class="flex justify-between p-3 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
         <div class="flex justify-start gap-3 items-center">
           <NcTooltip>
             <template #title> Previous </template>
-            <NcButton size="small" type="secondary" @click="paginateCalendarView('prev')">
+            <NcButton data-testid="nc-calendar-prev-btn" size="small" type="secondary" @click="paginateCalendarView('prev')">
               <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
             </NcButton>
           </NcTooltip>
@@ -197,12 +197,13 @@ const headerText = computed(() => {
           </NcDropdown>
           <NcTooltip>
             <template #title> Next </template>
-            <NcButton size="small" type="secondary" @click="paginateCalendarView('next')">
+            <NcButton data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginateCalendarView('next')">
               <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
             </NcButton>
           </NcTooltip>
           <NcButton
             v-if="!isMobileMode"
+            data-testid="nc-calendar-today-btn"
             size="small"
             type="secondary"
             @click="
@@ -222,7 +223,13 @@ const headerText = computed(() => {
         </div>
         <NcTooltip>
           <template #title> Toggle Sidebar </template>
-          <NcButton v-if="!isMobileMode" size="small" type="secondary" @click="showSideMenu = !showSideMenu">
+          <NcButton
+            v-if="!isMobileMode"
+            data-testid="nc-calendar-side-bar-btn"
+            size="small"
+            type="secondary"
+            @click="showSideMenu = !showSideMenu"
+          >
             <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-700 transition-all" />
           </NcButton>
         </NcTooltip>

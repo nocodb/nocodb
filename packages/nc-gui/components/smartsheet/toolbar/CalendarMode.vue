@@ -35,12 +35,17 @@ watch(activeCalendarView, () => {
 </script>
 
 <template>
-  <div v-if="props.tab" class="flex flex-row relative p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab">
+  <div
+    v-if="props.tab"
+    class="flex flex-row relative p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+    data-testid="nc-calendar-view-mode"
+  >
     <div :style="highlightStyle" class="highlight"></div>
     <div
       v-for="mode in ['day', 'week', 'month', 'year']"
       :key="mode"
       :class="{ active: activeCalendarView === mode }"
+      :data-testid="`nc-calendar-view-mode-${mode}`"
       class="tab"
       @click="setActiveCalendarMode(mode, $event)"
     >

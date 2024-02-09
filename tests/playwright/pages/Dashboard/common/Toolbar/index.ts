@@ -17,6 +17,7 @@ import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { ToolbarGroupByPage } from './Groupby';
+import { ToolbarCalendarViewModePage } from './CalendarViewModel';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
@@ -30,6 +31,7 @@ export class ToolbarPage extends BasePage {
   readonly addEditStack: ToolbarAddEditStackPage;
   readonly searchData: ToolbarSearchDataPage;
   readonly rowHeight: RowHeight;
+  readonly calendarViewMode: ToolbarCalendarViewModePage;
 
   readonly btn_fields: Locator;
   readonly btn_sort: Locator;
@@ -50,6 +52,7 @@ export class ToolbarPage extends BasePage {
     this.addEditStack = new ToolbarAddEditStackPage(this);
     this.searchData = new ToolbarSearchDataPage(this);
     this.rowHeight = new RowHeight(this);
+    this.calendarViewMode = new ToolbarCalendarViewModePage(this);
 
     this.btn_fields = this.get().locator(`button.nc-fields-menu-btn`);
     this.btn_sort = this.get().locator(`button.nc-sort-menu-btn`);

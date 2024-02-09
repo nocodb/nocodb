@@ -43,6 +43,8 @@ const recordsAcrossAllRange = computed<{
     }
   }
 }>(() => {
+  if (!calendarRange.value || !formattedData.value) return { record: [], count: {} }
+
   const scheduleStart = dayjs(selectedDate.value).startOf('day')
   const scheduleEnd = dayjs(selectedDate.value).endOf('day')
 
@@ -55,8 +57,6 @@ const recordsAcrossAllRange = computed<{
   } = {}
 
   const perRecordHeight = 80
-
-  if (!calendarRange.value) return { record: [], count: {} }
 
   let recordsByRange: Array<Row> = []
 
@@ -170,7 +170,7 @@ const recordsAcrossAllRange = computed<{
         let _startDate = startDate.clone()
 
         while (_startDate.isBefore(endDate)) {
-          const timeKey = _startDate.format('HH:mm')
+          const timeKey = _startDate.startOf('hour').format('HH:mm')
 
           if (!overlaps[timeKey]) {
             overlaps[timeKey] = {
@@ -192,10 +192,10 @@ const recordsAcrossAllRange = computed<{
           _startDate = _startDate.add(15, 'minutes')
         }
 
-        const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
+        const topInPixels = (startDate.hour() + startDate.startOf('hour').minute() / 60) * 80
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
 
-        const finalTopInPixels = topInPixels + startHour
+        const finalTopInPixels = topInPixels + startHour * 2
 
         style = {
           ...style,
@@ -227,7 +227,7 @@ const recordsAcrossAllRange = computed<{
       }
     }
 
-    const spacing = 1
+    const spacing = 0.25
     const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps
     const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
 
@@ -282,7 +282,7 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const hour = Math.floor(percentY * 24)
+  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
 
   if (resizeDirection.value === 'right') {
     let newEndDate = dayjs(selectedDate.value).add(hour, 'hour')
@@ -377,9 +377,9 @@ const onDrag = (event: MouseEvent) => {
 
   if (!fromCol) return
 
-  const hour = Math.floor(percentY * 24)
+  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
 
-  const newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
+  const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour')
 
   if (!newStartDate) return
 
@@ -435,9 +435,9 @@ const stopDrag = (event: MouseEvent) => {
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
-  const hour = Math.floor(percentY * 24)
+  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
 
-  const newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
+  const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour')
   if (!newStartDate || !fromCol) return
 
   let endDate

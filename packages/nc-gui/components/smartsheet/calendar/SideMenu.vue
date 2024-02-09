@@ -209,6 +209,7 @@ const options = computed(() => {
         return [
           { label: 'In selected date', value: 'selectedDate' },
           { label: 'Without dates', value: 'withoutDates' },
+          { label: 'In selected week', value: 'week' },
           { label: 'All records', value: 'allRecords' },
         ]
       } else {
@@ -323,8 +324,8 @@ onUnmounted(() => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" class="min-w-36">
-          <a-select-option v-for="option in options" :key="option.value" :value="option.value">
+        <NcSelect v-model:value="sideBarFilterOption" class="min-w-36 !text-gray-800">
+          <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-800">
             <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
               <template #title>{{ option.label }}</template>
               {{ option.label }}

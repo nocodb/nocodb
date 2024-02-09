@@ -121,7 +121,7 @@ export function useSharedView() {
       nested?: any
       offset?: number
     },
-    headers: {
+    headers?: {
       ignorePagination?: boolean
     },
   ) => {

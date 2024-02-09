@@ -720,11 +720,11 @@ const isDateSelected = (date: dayjs.Dayjs) => {
           v-for="(day, dateIndex) in week"
           :key="`${weekIndex}-${dateIndex}`"
           :class="{
-            'border-brand-500 border-1 border-r-1 border-b-1':
+            'border-brand-500 border-1 !border-r-1 border-b-1':
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
-          class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           @click="selectDate(day)"
         >
           <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">

@@ -125,14 +125,20 @@ const removeRange = async (id: number) => {
       </a-button>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[35rem]" data-testid="nc-calendar-range-menu" @click.stop>
-        <div v-for="(range, id) in _calendar_ranges" :key="id" class="flex w-full gap-2 mb-2 items-center">
+      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[22rem]" data-testid="nc-calendar-range-menu" @click.stop>
+        <div
+          v-for="(range, id) in _calendar_ranges"
+          :key="id"
+          class="flex w-full gap-2 mb-2 items-center"
+          data-testid="nc-calendar-range-option"
+        >
           <span>
             {{ $t('labels.organiseBy') }}
           </span>
           <NcSelect
             v-model:value="range.fk_from_column_id"
             :placeholder="$t('placeholder.notSelected')"
+            data-testid="nc-calendar-range-from-field-select"
             @change="saveCalendarRanges"
           >
             <a-select-option
@@ -157,6 +163,7 @@ const removeRange = async (id: number) => {
           <div
             v-if="range.fk_to_column_id === null && isEeUI && false"
             class="flex cursor-pointer flex text-gray-800 items-center gap-1"
+            data-testid="nc-calendar-range-add-end-date"
             @click="
               () => {
                 range.fk_to_column_id = undefined
@@ -177,6 +184,7 @@ const removeRange = async (id: number) => {
                 :disabled="!range.fk_from_column_id"
                 :placeholder="$t('placeholder.notSelected')"
                 class="!rounded-r-none nc-to-select"
+                data-testid="nc-calendar-range-to-field-select"
                 @change="saveCalendarRanges"
               >
                 <a-select-option
@@ -215,7 +223,14 @@ const removeRange = async (id: number) => {
             <component :is="iconMap.close" />
           </NcButton>
         </div>
-        <NcButton v-if="false" class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+        <NcButton
+          v-if="false"
+          class="mt-2"
+          data-testid="nc-calendar-range-add-btn"
+          size="small"
+          type="secondary"
+          @click="addCalendarRange"
+        >
           <component :is="iconMap.plus" />
           Add another date field
         </NcButton>

@@ -28,6 +28,7 @@ import { WorkspaceSettingsObject } from './WorkspaceSettings';
 import { CmdJ } from './Command/CmdJPage';
 import { CmdK } from './Command/CmdKPage';
 import { CmdL } from './Command/CmdLPage';
+import { CalendarPage } from './Calendar';
 
 export class DashboardPage extends BasePage {
   readonly base: any;
@@ -38,6 +39,7 @@ export class DashboardPage extends BasePage {
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
   readonly gallery: GalleryPage;
+  readonly calendar: CalendarPage;
   readonly form: FormPage;
   readonly kanban: KanbanPage;
   readonly map: MapPage;
@@ -75,6 +77,7 @@ export class DashboardPage extends BasePage {
     this.treeView = new TreeViewPage(this, base);
     this.grid = new GridPage(this);
     this.gallery = new GalleryPage(this);
+    this.calendar = new CalendarPage(this);
     this.form = new FormPage(this);
     this.kanban = new KanbanPage(this);
     this.map = new MapPage(this);
@@ -162,22 +165,6 @@ export class DashboardPage extends BasePage {
     await expect(this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`)).not.toBeVisible();
   }
 
-  private async _waitForDocsTabRender({ title, mode }: { title: string; mode: string }) {
-    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
-
-    // wait active tab animation to finish
-    await expect
-      .poll(async () => {
-        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
-          return window.getComputedStyle(el).getPropertyValue('color');
-        });
-      })
-      .toBe('rgb(67, 81, 232)');
-
-    await this.rootPage.waitForTimeout(500);
-  }
-
-  // When a tab is opened, it is not always immediately visible.
   // Hence will wait till contents are visible
   async waitForTabRender({
     title,
@@ -188,6 +175,8 @@ export class DashboardPage extends BasePage {
     mode?: string;
     type?: ProjectTypes;
   }) {}
+
+  // When a tab is opened, it is not always immediately visible.
 
   async toggleMobileMode() {
     await this.baseMenuLink.click();
@@ -251,6 +240,16 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator('[data-testid="nc-loading"]').waitFor({ state: 'hidden' });
   }
 
+  async closeAllTabs() {
+    const tab = this.tabBar.locator(`.ant-tabs-tab`);
+    const tabCount = await tab.count();
+
+    for (let i = 0; i < tabCount; i++) {
+      await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
+      await this.rootPage.waitForTimeout(200);
+    }
+  }
+
   /*  async closeAllTabs() {
     await this.tabBar.locator(`.ant-tabs-tab`).waitFor({ state: 'visible' });
     const tab = await this.tabBar.locator(`.ant-tabs-tab`);
@@ -261,16 +260,6 @@ export class DashboardPage extends BasePage {
       await tab.nth(i).waitFor({ state: 'detached' });
     }
   }*/
-
-  async closeAllTabs() {
-    const tab = this.tabBar.locator(`.ant-tabs-tab`);
-    const tabCount = await tab.count();
-
-    for (let i = 0; i < tabCount; i++) {
-      await tab.nth(i).locator('button.ant-tabs-tab-remove').click();
-      await this.rootPage.waitForTimeout(200);
-    }
-  }
 
   async validateWorkspaceMenu(param: { role: string; mode?: string }) {
     await this.grid.workspaceMenu.toggle();
@@ -308,5 +297,20 @@ export class DashboardPage extends BasePage {
     }
 
     await this.grid.workspaceMenu.toggle();
+  }
+
+  private async _waitForDocsTabRender({ title, mode }: { title: string; mode: string }) {
+    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
+
+    // wait active tab animation to finish
+    await expect
+      .poll(async () => {
+        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
+          return window.getComputedStyle(el).getPropertyValue('color');
+        });
+      })
+      .toBe('rgb(67, 81, 232)');
+
+    await this.rootPage.waitForTimeout(500);
   }
 }

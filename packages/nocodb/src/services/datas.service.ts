@@ -33,7 +33,7 @@ export class DatasService {
       view,
       query: param.query,
       throwErrorIfInvalidParams: true,
-      ignoreViewFilterAndSort: param.ignorePagination,
+      ignorePagination: param.ignorePagination,
     });
   }
 

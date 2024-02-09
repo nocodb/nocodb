@@ -12,7 +12,7 @@ bkp_file=${ENV_FILE}-$(date +%s).bak
 # Source existing nc_envs.env file to get current values
 if [ -f ${ENV_FILE} ]; then
     source ${ENV_FILE}
-    echo "backing up previous ${ENV_FILE} file to ${bkp_file}"
+    echo "Backing up previous ${ENV_FILE} file to ${bkp_file}"
     cp ${ENV_FILE} ${bkp_file}
 fi
 

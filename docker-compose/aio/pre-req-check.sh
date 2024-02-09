@@ -24,7 +24,7 @@ echo " | Checking if required tools (docker, docker-compose, jq, lsof) are insta
 for tool in docker docker-compose lsof; do
   if ! command -v "$tool" &> /dev/null; then
     echo " | Error: $tool is not installed. Please install it before proceeding."
-    exit 1
+    PRE_REQ=1
   fi
 done
 

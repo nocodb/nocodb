@@ -1,5 +1,5 @@
 #!/bin/bash
-# docker-compse restart all containers utilty script
+# docker-compose restart all containers utilty script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 COMPONENT_DIR=${SCRIPT_DIR}/../

@@ -17,10 +17,12 @@ TIP: you could simply run [./pre-req-check.sh](./pre-req-check.sh) which perform
 
 ## Install 
 Run [install.sh](./install.sh), This script performs pre-requisite check, prompts you through required application properties and finally performs `docker-compose up -d`. 
-Note: For most cases where no external integration required. The defaults properties are just fine. 
+For most cases where no external integration required. The defaults properties are just fine. 
 ```
-./install.sh 
+sudo ./install.sh 
 ```
+Note: sudo is required for docker to run unless you have configured docker user to be part of sudoers. If sudo is not used then you will get error `('Connection aborted.', PermissionError(13, 'Permission denied'))`
+
 * At this point, your installation is completed and you should be able to access your nocodb instance *
 
 ### An example output will be like below. 

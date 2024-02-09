@@ -7273,6 +7273,83 @@
         "description": "List Shared View Grouped Data"
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/countByDate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Count of Records in Dates in Calendar View",
+        "operationId": "public-calendar-count",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {

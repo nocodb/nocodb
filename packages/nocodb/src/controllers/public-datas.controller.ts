@@ -35,6 +35,21 @@ export class PublicDatasController {
   }
 
   @Get([
+    '/api/v1/db/public/shared-view/:sharedViewUuid/countByDate',
+    '/api/v2/public/shared-view/:sharedViewUuid/countByDate',
+  ])
+  async countByDate(
+    @Req() req: Request,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    return await this.publicDatasService.getCalendarRecordCount({
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
+  }
+
+  @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/groupby',
     '/api/v2/public/shared-view/:sharedViewUuid/groupby',
   ])

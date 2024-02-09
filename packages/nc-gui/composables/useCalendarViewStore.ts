@@ -90,7 +90,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
-    const { sharedView, fetchSharedViewData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate } = useSharedView()
 
     const calendarMetaData = ref<CalendarType>({})
 
@@ -452,7 +452,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
       nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
-      fromDate = pageDate.value.format('YYYY-MM-DD HH:mm:ssZ')
+      fromDate = fromDate!.format('YYYY-MM-DD HH:mm:ssZ')
 
       const activeDateFilter: Array<any> = []
 
@@ -510,14 +510,21 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       })
 
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
-      const res = await api.dbViewRow.calendarCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
-        ...queryParams.value,
-        ...{},
-        ...{},
-        ...{ filterArrJson: JSON.stringify([...filterJSON.value, ...activeDateFilter]) },
-      })
+      const res = !isPublic.value
+        ? await api.dbViewRow.calendarCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+            ...queryParams.value,
+            ...{},
+            ...{},
+            ...{ filterArrJson: JSON.stringify([...filterJSON.value, ...activeDateFilter]) },
+          })
+        : await fetchSharedViewActiveDate({
+            sortsArr: sorts.value,
+            filtersArr: activeDateFilter,
+          })
       if (res) {
-        activeDates.value = res.map((dateObj: unknown) => dayjs(dateObj.date))
+        activeDates.value = res.map((dateObj: unknown) => dayjs(dateObj))
+      } else {
+        activeDates.value = []
       }
     }
 
@@ -730,8 +737,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         if (sideBarFilterOption.value === 'selectedDate') {
           await loadSidebarData()
         }
+      } else if (activeCalendarView.value === 'year') {
+        if (value.year() !== oldValue.year()) {
+          await Promise.all([loadCalendarData(), loadSidebarData(), await fetchActiveDates()])
+        } else if (sideBarFilterOption.value === 'selectedDate') {
+          await loadSidebarData()
+        }
       } else {
-        await Promise.all([loadCalendarData(), loadSidebarData()])
+        await Promise.all([loadSidebarData()])
       }
 
       if (activeCalendarView.value === 'year' && value.year() !== oldValue.year()) {
@@ -748,7 +761,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     watch(selectedMonth, async (value, oldValue) => {
       if (activeCalendarView.value !== 'month') return
       if (value.month() !== oldValue.month()) {
-        await Promise.all([loadCalendarData(), loadSidebarData()])
+        await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
       }
     })
 

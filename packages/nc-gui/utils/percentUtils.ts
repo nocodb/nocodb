@@ -10,9 +10,15 @@ export const precisions = [
   { id: 8, title: '1.00000000' },
 ]
 
-export function renderPercent(value: any, precision: number, withPercentSymbol = true) {
+export function renderPercent(value: any, precision?: number, withPercentSymbol: boolean = true) {
   if (!value) return value
-  value = (Number(value) * 100).toFixed(precision)
+  value = Number(value) * 100
+  if (precision !== undefined) {
+    value = value.toFixed(precision)
+  } else {
+    value = value.toString()
+  }
+
   if (withPercentSymbol) return padPercentSymbol(value)
   return value
 }

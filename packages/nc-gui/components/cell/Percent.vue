@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, inject, useVModel } from '#imports'
+import {
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  ReadonlyInj,
+  inject,
+  useVModel,
+  getPercentStep,
+  isValidPercent,
+  renderPercent,
+} from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -8,7 +19,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'save'])
 
 const { showNull } = useGlobal()
 
@@ -24,13 +35,34 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
 
+const percent = ref(_vModel.value)
+
+const percentMeta = computed(() => {
+  return {
+    is_progress: false,
+    ...parseProp(column.value?.meta),
+  }
+})
+
+const percentStep = computed(() => getPercentStep(percentMeta.value.precision || 2))
+
+const displayValue = computed(() => {
+  if (_vModel.value === null || _vModel.value === undefined) return null
+
+  if (isNaN(Number(_vModel.value))) return null
+
+  return renderPercent((_vModel.value as number) / 100, percentMeta.value.precision ?? 2)
+})
+
 const vModel = computed({
-  get: () => _vModel.value,
+  get: () => {
+    if (_vModel.value === null || _vModel.value === undefined || isNaN(Number(_vModel.value))) return null
+    return renderPercent(_vModel.value, undefined, false)
+  },
   set: (value) => {
-    if (value === '') {
-      _vModel.value = null
-    } else {
-      _vModel.value = value
+    if (value === '' || value === null) value = 0
+    if (isValidPercent(value, percentMeta.value?.negative)) {
+      percent.value = value / 100
     }
   },
 })
@@ -46,17 +78,14 @@ const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
 
-const percentMeta = computed(() => {
-  return {
-    is_progress: false,
-    ...parseProp(column.value?.meta),
-  }
-})
-
 const onBlur = () => {
-  if (editEnabled) {
-    editEnabled.value = false
+  if (_vModel.value !== percent.value) {
+    _vModel.value = percent.value ?? null
+
+    emits('save')
   }
+  editEnabled.value = false
+
   cellFocused.value = false
   expandedEditEnabled.value = false
 }
@@ -115,6 +144,12 @@ const onTabPress = (e: KeyboardEvent) => {
     }
   }
 }
+
+function onKeyDown(evt: KeyboardEvent) {
+  const keys = ['e', 'E', '+']
+  if (!percentMeta.value?.negative) keys.push('-')
+  return keys.includes(evt.key) && evt.preventDefault()
+}
 </script>
 
 <template>
@@ -134,6 +169,7 @@ const onTabPress = (e: KeyboardEvent) => {
       class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
+      :step="percentStep"
       @blur="onBlur"
       @focus="onFocus"
       @keydown.down.stop
@@ -142,6 +178,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @keydown.up.stop
       @keydown.delete.stop
       @keydown.tab="onTabPress"
+      @keydown="onKeyDown"
       @selectstart.capture.stop
       @mousedown.stop
     />
@@ -157,7 +194,7 @@ const onTabPress = (e: KeyboardEvent) => {
       />
     </div>
     <!-- nbsp to keep height even if vModel is zero length -->
-    <span v-else class="nc-cell-field">{{ vModel }}&nbsp;</span>
+    <span v-else class="nc-cell-field">{{ displayValue }}&nbsp;</span>
   </div>
 </template>
 

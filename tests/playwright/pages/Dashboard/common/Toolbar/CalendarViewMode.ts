@@ -8,12 +8,11 @@ export class ToolbarCalendarViewModePage extends BasePage {
     super(toolbar.rootPage);
     this.toolbar = toolbar;
   }
-
   get() {
     return this.rootPage.getByTestId('nc-calendar-view-mode');
   }
 
-  changeCalendarView({ title }: { title: string }) {
+  async changeCalendarView({ title }: { title: string }) {
     await this.get().getByTestId(`nc-calendar-view-mode-${title}`).click();
   }
 }

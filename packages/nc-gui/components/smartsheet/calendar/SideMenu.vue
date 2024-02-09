@@ -346,6 +346,7 @@ onUnmounted(() => {
       >
         <NcButton
           v-if="isUIAllowed('dataEdit') && props.visible"
+          v-e="['c:calendar:calendar-new-record-btn']"
           class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
           type="secondary"
           @click="emit('new-record', { row: {} })"

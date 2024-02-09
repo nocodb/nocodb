@@ -110,7 +110,12 @@ const removeRange = async (id: number) => {
 <template>
   <NcDropdown v-if="!IsPublic" v-model:visible="calendarRangeDropdown" :trigger="['click']" class="!xs:hidden">
     <div class="nc-calendar-btn">
-      <a-button v-e="['c:calendar:change-calendar-range']" :disabled="isLocked" class="nc-calendar-range-btn nc-toolbar-btn">
+      <a-button
+        v-e="['c:calendar:change-calendar-range']"
+        :disabled="isLocked"
+        class="nc-toolbar-btn"
+        data-testid="nc-calendar-range-btn"
+      >
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4" />
           <span class="text-capitalize !text-sm font-medium">
@@ -120,7 +125,7 @@ const removeRange = async (id: number) => {
       </a-button>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[35rem]" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[35rem]" data-testid="nc-calendar-range-menu" @click.stop>
         <div v-for="(range, id) in _calendar_ranges" :key="id" class="flex w-full gap-2 mb-2 items-center">
           <span>
             {{ $t('labels.organiseBy') }}

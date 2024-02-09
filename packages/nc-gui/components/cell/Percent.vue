@@ -11,6 +11,7 @@ import {
   getPercentStep,
   isValidPercent,
   renderPercent,
+  IsGroupByLabelInj,
 } from '#imports'
 
 interface Props {
@@ -30,6 +31,8 @@ const editEnabled = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
@@ -201,7 +204,7 @@ function onBackspace(evt: KeyboardEvent) {
       @mousedown.stop
     />
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">
+    <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined && !isGroupByLabel" class="px-2">
       <a-progress
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
         size="small"

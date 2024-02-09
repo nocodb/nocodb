@@ -11,7 +11,7 @@ export const precisions = [
 ]
 
 export function renderPercent(value: any, precision?: number, withPercentSymbol: boolean = true) {
-  if (!value) return value
+  if (typeof value !== 'number' && !value) return value
   if (isNaN(Number(value))) return null
 
   value = Number(value) * 100

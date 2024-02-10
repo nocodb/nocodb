@@ -1,12 +1,51 @@
 #!/bin/bash
 # set -x
 
-# Performs Initial setup and System Requirements Check
+# ******************************************************************************
+# *****************    HELPER FUNCTIONS START  *********************************
 
-## 1. validate system requirements
+# Function to URL encode special characters in a string
+urlencode() {
+  local string="$1"
+  local strlen=${#string}
+  local encoded=""
+  local pos c o
+
+  for (( pos=0 ; pos<strlen ; pos++ )); do
+    c=${string:$pos:1}
+    case "$c" in
+      [-_.~a-zA-Z0-9] ) o="$c" ;;
+      * )               printf -v o '%%%02X' "'$c"
+    esac
+    encoded+="$o"
+  done
+  echo "$encoded"
+}
+
+# function to print a message in a box
+print_box_message() {
+    message=("$@")  # Store all arguments in the array "message"
+    edge="======================================"
+    padding="  "
+
+    echo "$edge"
+    for element in "${message[@]}"; do
+        echo "${padding}${element}"
+    done
+    echo "$edge"
+}
+
+# *****************    HELPER FUNCTIONS END  ***********************************
+# ******************************************************************************
+
+
+
+# ******************************************************************************
+# ******************** SYSTEM REQUIREMENTS CHECK START  *************************
+
+# Check if the following requirements are met:
 # a. docker, docker-compose, jq installed
-# b. port mapping check
-#   - port 80,443 are free or being used by nginx container
+# b. port mapping check : 80,443 are free or being used by nginx container
 
 REQUIRED_PORTS=(80 443)
 
@@ -41,36 +80,6 @@ done
 
 echo "** System check completed successfully. **"
 
-# Function to URL encode special characters in a string
-urlencode() {
-  local string="$1"
-  local strlen=${#string}
-  local encoded=""
-  local pos c o
-
-  for (( pos=0 ; pos<strlen ; pos++ )); do
-    c=${string:$pos:1}
-    case "$c" in
-      [-_.~a-zA-Z0-9] ) o="$c" ;;
-      * )               printf -v o '%%%02X' "'$c"
-    esac
-    encoded+="$o"
-  done
-  echo "$encoded"
-}
-
-# function to print a message in a box
-print_box_message() {
-    message=("$@")  # Store all arguments in the array "message"
-    edge="======================================"
-    padding="  "
-
-    echo "$edge"
-    for element in "${message[@]}"; do
-        echo "${padding}${element}"
-    done
-    echo "$edge"
-}
 
 # Define an array to store the messages to be printed at the end
 message_arr=()
@@ -96,6 +105,13 @@ mkdir -p "$FOLDER_NAME"
 # Navigate into the folder
 cd "$FOLDER_NAME" || exit
 
+# ******************** SYSTEM REQUIREMENTS CHECK END  **************************
+# ******************************************************************************
+
+
+
+# ******************** INPUTS FROM USER START  ********************************
+# ******************************************************************************
 
 echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
 read EDITION
@@ -140,6 +156,14 @@ if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WAT
 else
     message_arr+=("Watchtower: Disabled")
 fi
+
+
+# ******************************************************************************
+# *********************** INPUTS FROM USER END  ********************************
+
+
+# ******************************************************************************
+# *************************** SETUP START  *************************************
 
 # Generate a strong random password for PostgreSQL
 #STRONG_PASSWORD=$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 20)
@@ -371,4 +395,5 @@ fi
 
 print_box_message "${message_arr[@]}"
 
-
+# *************************** SETUP END  *************************************
+# ******************************************************************************

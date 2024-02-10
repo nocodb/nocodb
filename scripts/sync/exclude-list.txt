@@ -1,4 +1,5 @@
 packages/nocodb/src/ee
+packages/nocodb/src/ee-on-prem
 packages/nocodb-sdk/src/ee
 packages/nc-gui/ee
 scripts/sync

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { NestMiddleware } from '@nestjs/common';
 import type { AppConfig } from '~/interface/config';
-import { LicenseService } from '~/service/license/license.service';
+import { LicenseService } from '../../service/license/license.service';
 
 @Injectable()
 export class GlobalMiddleware implements NestMiddleware {

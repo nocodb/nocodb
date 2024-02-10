@@ -17,7 +17,12 @@ fwIDAQAB
 
 @Injectable()
 export class LicenseService {
-  private logger = new Logger('LicenseService');
+  // private logger = new Logger('LicenseService');
+
+  private logger = {
+    error: console.error,
+    log: console.log,
+  };
 
   private licenseData: {
     type: 'ENTERPRISE' | 'ENTERPRISE_AIR_GAPPED' | 'ENTERPRISE_TRIAL';

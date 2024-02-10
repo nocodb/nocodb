@@ -1,7 +1,6 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
-import { GlobalModule } from '~/modules/global/global.module';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
@@ -86,7 +85,6 @@ export const metaModuleMetadata = {
         fieldSize: NC_ATTACHMENT_FIELD_SIZE,
       },
     }),
-    forwardRef(() => GlobalModule),
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

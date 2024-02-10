@@ -142,6 +142,11 @@ export function useGlobalActions(state: State): Actions {
   }
 
   const getBaseUrl = (workspaceId: string) => {
+    // if baseUrl is set in appInfo, use it (which is part of license data in on-prem version and included in appInfo API)
+    if (state.appInfo.value.baseUrl) {
+      return state.appInfo.value.baseUrl
+    }
+
     if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
       return `https://${workspaceId}.${state.appInfo.value.baseHostName}`
     }

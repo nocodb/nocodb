@@ -59,19 +59,46 @@ urlencode() {
   echo "$encoded"
 }
 
+# function to print a message in a box
+print_box_message() {
+    message=("$@")  # Store all arguments in the array "message"
+    edge="======================================"
+    padding="  "
+
+    echo "$edge"
+    for element in "${message[@]}"; do
+        echo "${padding}${element}"
+    done
+    echo "$edge"
+}
+
+# Wait for Nginx service to start using docker-compose ps
+wait_for_nginx() {
+    while true; do
+        nginx_status=$(docker-compose ps | grep nginx)
+
+        if [ -n "$nginx_status" ]; then
+            echo "Nginx is now running."
+            break
+        fi
+
+        echo "Waiting for Nginx to start..."
+        sleep 1
+    done
+}
+
+# Define an array to store the messages to be printed at the end
+message_arr=()
+
 # generate a folder for the docker-compose file which is not existing and do the setup within the folder
 # Define the folder name
-FOLDER_NAME="nocodb"
-
-# Check if the folder exists
-if [ -d "$FOLDER_NAME" ]; then
-    # If the folder exists, append current datetime to the folder name
-    FOLDER_NAME="${FOLDER_NAME}_$(date +"%Y%m%d_%H%M%S")"
-fi
+FOLDER_NAME="nocodb_$(date +"%Y%m%d_%H%M%S")"
 
 # prompt for custom folder name and if left empty skip
-echo "Enter a custom folder name or press Enter to use the default folder name ($FOLDER_NAME): "
-read CUSTOM_FOLDER_NAME
+#echo "Enter a custom folder name or press Enter to use the default folder name ($FOLDER_NAME): "
+#read CUSTOM_FOLDER_NAME
+
+message_arr+=("Setup folder: $FOLDER_NAME")
 
 if [ -n "$CUSTOM_FOLDER_NAME" ]; then
     FOLDER_NAME="$CUSTOM_FOLDER_NAME"
@@ -85,6 +112,9 @@ mkdir -p "$FOLDER_NAME"
 cd "$FOLDER_NAME" || exit
 
 
+echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
+read EDITION
+
 echo "Do you want to configure SSL [Y/N] (default: N): "
 read SSL_ENABLED
 
@@ -93,50 +123,50 @@ if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y"
     SSL_ENABLED='y'
     echo "Enter the domain name for the SSL certificate: "
     read DOMAIN_NAME
+    if [ -z "$DOMAIN_NAME" ]; then
+        echo "Domain name is required for SSL configuration"
+        exit 1
+    fi
+    message_arr+=("Domain: $DOMAIN_NAME")
+else
+#  prompt for ip address and if left empty use localhost
+    echo "Enter the IP address or domain name for the NocoDB instance (default: localhost): "
+    read DOMAIN_NAME
+    if [ -z "$DOMAIN_NAME" ]; then
+        DOMAIN_NAME="localhost"
+    fi
 fi
 
-echo "Enter the NocoDB license key if you have one, otherwise press Enter to continue without a license key: "
-read LICENSE_KEY
+if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
+    echo "Enter the NocoDB license key: "
+    read LICENSE_KEY
+    if [ -z "$LICENSE_KEY" ]; then
+        echo "License key is required for Enterprise Edition installation"
+        exit 1
+    fi
+    message_arr+=("License key: $LICENSE_KEY")
+fi
 
 echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
 read WATCHTOWER_ENABLED
 
-## Extract domain name from the siteUrl property if provided, otherwise extract from payload
-#if [ -n "$2" ]; then
-#    DOMAIN_NAME="$2"
-#else
-#    # Extract payload
-#    payload=$(echo "$LICENSE_KEY" | cut -d'.' -f2 | base64 --decode)
-#    DOMAIN_NAME=$(echo "$payload" | grep -Eo '"siteUrl"[^,]*' | sed -n 's/.*"siteUrl":"\([^"]*\).*/\1/p' | sed 's/^https\{0,1\}\:\/\/\([^/]*\).*/\1/')
-#fi
-
-## if domain name is not provided, exit
-#if [ -z "$DOMAIN_NAME" ]; then
-#    echo "Please provide a valid domain name or a valid license key"
-#    exit 1
-#fi
-echo ""
-echo "Domain name: ${DOMAIN_NAME}"
-echo "License key: $LICENSE_KEY"
-echo "SSL enabled: $SSL_ENABLED"
-echo ""
+if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then
+    message_arr+=("Watchtower: Enabled")
+else
+    message_arr+=("Watchtower: Disabled")
+fi
 
 # Generate a strong random password for PostgreSQL
 #STRONG_PASSWORD=$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 20)
 #STRONG_PASSWORD=$(openssl rand -base64 32)
 STRONG_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9!@#$%^&*()-_+=' | head -c 32)
 # Encode special characters in the password for JDBC URL usage
-
-# URL encode the password
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")
-
-
-
 
 IMAGE="nocodb/nocodb:latest";
 
-# Ternary expression to determine the message
-if [ -n "$LICENSE_KEY" ]; then
+# Determine the Docker image to use based on the edition
+if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
   echo "Using the NocoDB Enterprise Edition image"
   IMAGE="nocodb/nocodb-ee:latest"
   DATABASE_URL="DATABASE_URL=postgres://postgres:${ENCODED_PASSWORD}@db:5432/nocodb"
@@ -144,6 +174,9 @@ else
   # use NC_DB url until the issue with DATABASE_URL is resolved(encoding)
   DATABASE_URL="NC_DB=pg://db:5432?d=nocodb&user=postgres&password=${ENCODED_PASSWORD}"
 fi
+
+
+message_arr+=("Docker image: $IMAGE")
 
 # Write the Docker Compose file with the updated password
 cat <<EOF > docker-compose.yml
@@ -163,7 +196,7 @@ services:
     image: postgres:latest
     env_file: docker.env
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
   nginx:
@@ -197,8 +230,6 @@ if [ "$SSL_ENABLED" = 'y' ]; then
       - ./letsencrypt-lib:/var/lib/letsencrypt
       - ./webroot:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait \$\${!}; done;'"
-#    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot certonly --webroot --webroot-path=/var/www/certbot --no-eff-email -n --email contact@${DOMAIN_NAME} --agree-tos -d ${DOMAIN_NAME}; sleep 12h & wait \$\${!}; done;'"
-#    command: certonly --webroot --webroot-path=/var/www/certbot --email  contact@${DOMAIN_NAME} --agree-tos --no-eff-email --staging -d ${DOMAIN_NAME}
     depends_on:
       - nginx
     restart: unless-stopped
@@ -274,7 +305,9 @@ cat >> ./nginx/default.conf <<EOF
 EOF
 
 if [ "$SSL_ENABLED" = 'y' ]; then
+
 mkdir -p ./nginx-post-config
+
 # Create nginx config with the provided domain name
 cat > ./nginx-post-config/default.conf <<EOF
 server {
@@ -317,9 +350,9 @@ fi
 docker-compose up -d
 
 
-echo 'Waiting for NocoDB to start...';
+echo 'Waiting for Nginx to start...';
 
-sleep 5;
+wait_for_nginx
 
 if [ "$SSL_ENABLED" = 'y' ]; then
   echo 'Starting Letsencrypt certificate request...';
@@ -336,10 +369,15 @@ if [ "$SSL_ENABLED" = 'y' ]; then
   # Reload nginx to apply the new certificates
   docker-compose exec nginx nginx -s reload
 
-  echo "NocoDB is now available at https://$DOMAIN_NAME"
+
+  message_arr+=("NocoDB is now available at https://$DOMAIN_NAME")
 
 elif [ -n "$DOMAIN_NAME" ]; then
-  echo "NocoDB is now available at http://$DOMAIN_NAME"
+  message_arr+=("NocoDB is now available at http://$DOMAIN_NAME")
 else
-  echo "NocoDB is now available at http://localhost"
+  message_arr+=("NocoDB is now available at http://localhost")
 fi
+
+print_box_message "${message_arr[@]}"
+
+

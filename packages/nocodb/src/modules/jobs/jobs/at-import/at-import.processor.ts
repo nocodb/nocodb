@@ -2077,12 +2077,12 @@ export class AtImportProcessor {
             filter.operator = 'isNoneOf';
           }
 
-          for (let j = 0; j < filter.value.length; j++) {
-            filter.value[j] = await sMap.getNcNameFromAtId(filter.value[j]);
-          }
-
           // if array, break it down to multiple filters
           if (Array.isArray(filter.value)) {
+            for (let j = 0; j < filter.value.length; j++) {
+              filter.value[j] = await sMap.getNcNameFromAtId(filter.value[j]);
+            }
+
             const fx = {
               fk_column_id: columnId,
               logical_op: f.conjunction,

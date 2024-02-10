@@ -8,9 +8,11 @@ import { BASE_FALLBACK_URL, createEventHook, extractSdkResponseErrorMsg, ref, un
 export function createApiInstance<SecurityDataType = any>({
   baseURL: _baseUrl = BASE_FALLBACK_URL,
 }: CreateApiOptions = {}): Api<SecurityDataType> {
+  const { appInfo } = useGlobal()
   const config = useRuntimeConfig()
 
-  const baseURL = config.public.ncBackendUrl || _baseUrl
+  // `appInfo.value.baseUrl` refers to on-prem license siteUrl
+  const baseURL = appInfo.value.baseUrl || config.public.ncBackendUrl || _baseUrl
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
       baseURL,

@@ -63,7 +63,12 @@ export function extractImageSrcFromRawHtml(rawText: string) {
   }
 }
 
-export function populateUniqueFileName(fn: string, attachments: any[]) {
+export function populateUniqueFileName(fn: string, attachments: any[], mimeType: string) {
+  // If the image extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
+  if (!isImage(fn)) {
+    fn = `${fn}.${mimeType.split('/')[1]}`
+  }
+
   let c = 1
   while (attachments.some((att) => att?.title === fn || att?.fileName === fn)) {
     fn = fn.replace(/(.+?)(\.[^.]+)$/, `$1(${c++})$2`)

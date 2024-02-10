@@ -1243,7 +1243,11 @@ export function useMultiSelect(
       for (const uploadedFile of data) {
         newAttachments.push({
           ...uploadedFile,
-          title: populateUniqueFileName(uploadedFile?.title, [...handleParseAttachmentCellData(oldValue), ...newAttachments]),
+          title: populateUniqueFileName(
+            uploadedFile?.title,
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments],
+            uploadedFile?.mimetype,
+          ),
         })
       }
       return newAttachments

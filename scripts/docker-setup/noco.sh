@@ -72,21 +72,6 @@ print_box_message() {
     echo "$edge"
 }
 
-# Wait for Nginx service to start using docker-compose ps
-wait_for_nginx() {
-    while true; do
-        nginx_status=$(docker-compose ps | grep nginx)
-
-        if [ -n "$nginx_status" ]; then
-            echo "Nginx is now running."
-            break
-        fi
-
-        echo "Waiting for Nginx to start..."
-        sleep 1
-    done
-}
-
 # Define an array to store the messages to be printed at the end
 message_arr=()
 
@@ -358,7 +343,7 @@ docker-compose up -d
 
 echo 'Waiting for Nginx to start...';
 
-wait_for_nginx
+sleep 5
 
 if [ "$SSL_ENABLED" = 'y' ]; then
   echo 'Starting Letsencrypt certificate request...';

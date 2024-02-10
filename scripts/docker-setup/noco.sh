@@ -246,7 +246,7 @@ if [ "$SSL_ENABLED" = 'y' ]; then
 EOF
 fi
 
-if([ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }); then
+if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then
 cat <<EOF >> docker-compose.yml
   watchtower:
     image: containrrr/watchtower

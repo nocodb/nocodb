@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { AppModule as AppCeModule, ceModuleConfig } from 'src/app.module';
+import { AppModule as AppCEModule, ceModuleConfig } from 'src/app.module';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 as uuidv4 } from 'uuid';
 import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
@@ -84,7 +84,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
   ],
   exports: [NcLogger],
 })
-export class AppModule extends AppCeModule {
+export class AppModule extends AppCEModule {
   constructor() {
     super();
   }

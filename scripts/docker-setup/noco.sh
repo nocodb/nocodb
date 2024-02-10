@@ -205,13 +205,15 @@ services:
       - db
     restart: unless-stopped
     volumes:
-      - ./nc_data:/usr/app/data
+      - ./nocodb:/usr/app/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     $PLATFORM
   db:
     image: postgres:latest
     env_file: docker.env
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - ./postgres:/var/lib/postgresql/data
     restart: unless-stopped
 
   nginx:
@@ -222,9 +224,9 @@ EOF
 
 if [ "$SSL_ENABLED" = 'y' ]; then
     cat <<EOF >> docker-compose.yml
-      - ./webroot:/var/www/certbot
+      - webroot:/var/www/certbot
       - ./letsencrypt:/etc/letsencrypt
-      - ./letsencrypt-lib:/var/lib/letsencrypt
+      - letsencrypt-lib:/var/lib/letsencrypt
 EOF
 fi
 cat <<EOF >> docker-compose.yml
@@ -242,8 +244,8 @@ if [ "$SSL_ENABLED" = 'y' ]; then
     image: certbot/certbot
     volumes:
       - ./letsencrypt:/etc/letsencrypt
-      - ./letsencrypt-lib:/var/lib/letsencrypt
-      - ./webroot:/var/www/certbot
+      - letsencrypt-lib:/var/lib/letsencrypt
+      - webroot:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait \$\${!}; done;'"
     depends_on:
       - nginx
@@ -257,23 +259,18 @@ cat <<EOF >> docker-compose.yml
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300
+    command: --schedule "0 2 * * 6" --cleanup
     restart: unless-stopped
 EOF
 fi
 
-#cat <<EOF >> docker-compose.yml
-#volumes:
-#  postgres_data:
-#  nc_data:
-#EOF
-#if [ "$SSL_ENABLED" = 'y' ]; then
-#    cat <<EOF >> docker-compose.yml
-#  letsencrypt:
-#  letsencrypt-lib:
-#  webroot:
-#EOF
-#fi
+if [ "$SSL_ENABLED" = 'y' ]; then
+    cat <<EOF >> docker-compose.yml
+volumes:
+  letsencrypt-lib:
+  webroot:
+EOF
+fi
 
 # Write the docker.env file
 cat <<EOF > docker.env

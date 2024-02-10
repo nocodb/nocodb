@@ -178,6 +178,12 @@ fi
 
 message_arr+=("Docker image: $IMAGE")
 
+
+PLATFORM=''
+if [ "$host_arch" != "x86_64" ]; then
+  PLATFORM='platform: linux/x86_64'
+fi
+
 # Write the Docker Compose file with the updated password
 cat <<EOF > docker-compose.yml
 version: '3'
@@ -191,7 +197,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./nc_data:/usr/app/data
-
+    $PLATFORM
   db:
     image: postgres:latest
     env_file: docker.env

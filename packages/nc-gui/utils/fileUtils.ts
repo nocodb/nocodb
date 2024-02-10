@@ -4,11 +4,7 @@ const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-const isImageUrl = (url: string) => {
-  return imageExt.some((e) => url?.toLowerCase()?.endsWith(`.${e}`))
-}
-
-export { isImage, imageExt, isImageUrl }
+export { isImage, imageExt }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -49,5 +45,20 @@ function ieReadFile(filename: string) {
     return contents
   } catch (Exception) {
     return false
+  }
+}
+
+export function extractImageSrcFromRawHtml(rawText: string) {
+  // Parse the provided HTML string
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(rawText, 'text/html')
+
+  // Extract the img element
+  const imgElement = doc.querySelector('img')
+
+  // Check if the img element exists
+  if (imgElement) {
+    // Extract the src attribute
+    return imgElement.getAttribute('src')
   }
 }

@@ -201,6 +201,9 @@ importers:
       httpsnippet:
         specifier: ^2.0.0
         version: 2.0.0(mkdirp@2.1.6)
+      isomorphic-dompurify:
+        specifier: ^0.19.0
+        version: 0.19.0
       jsbarcode:
         specifier: ^3.11.6
         version: 3.11.6
@@ -4112,7 +4115,6 @@ packages:
 
   /@aws-sdk/types@3.515.0:
     resolution: {integrity: sha512-B3gUpiMlpT6ERaLvZZ61D0RyrQPsFYDkCncLPVkZOKkCOoFU46zi1o6T5JcYiz8vkx1q9RGloQ5exh79s5pU/w==}
-    engines: {node: '>=14.0.0'}
     dependencies:
       '@smithy/types': 2.9.1
       tslib: 2.6.2
@@ -8136,7 +8138,6 @@ packages:
 
   /@iconify-json/ri@1.1.19:
     resolution: {integrity: sha512-S9usTucQOY//J3LGIGZ+A6i8AYGCStDcLKjmWzI2UPnWJo+Xd5dESMQGkhOI5BlG3W4AtH6RmiXcpbPy3krmjQ==}
-    dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
@@ -11535,7 +11536,6 @@ packages:
 
   /@smithy/eventstream-codec@2.1.1:
     resolution: {integrity: sha512-E8KYBxBIuU4c+zrpR22VsVrOPoEDzk35bQR3E+xm4k6Pa6JqzkDOdMyf9Atac5GPNKHJBdVaQ4JtjdWX2rl/nw==}
-    dependencies:
       '@aws-crypto/crc32': 3.0.0
       '@smithy/types': 2.9.1
       '@smithy/util-hex-encoding': 2.1.1
@@ -12180,7 +12180,6 @@ packages:
 
   /@smithy/util-defaults-mode-node@2.2.0:
     resolution: {integrity: sha512-iFJp/N4EtkanFpBUtSrrIbtOIBf69KNuve03ic1afhJ9/korDxdM0c6cCH4Ehj/smI9pDCfVv+bqT3xZjF2WaA==}
-    engines: {node: '>= 10.0.0'}
     dependencies:
       '@smithy/config-resolver': 2.1.1
       '@smithy/credential-provider-imds': 2.2.1
@@ -13040,7 +13039,6 @@ packages:
 
   /@types/dompurify@3.0.5:
     resolution: {integrity: sha512-1Wg0g3BtQF7sSb27fJQAKck1HECM6zV1EB66j8JH9i3LCjYabJa0FSdiSgsD5K/RbrsR0SiraKacLB+T8ZVYAg==}
-    dependencies:
       '@types/trusted-types': 2.0.3
     dev: false
 
@@ -21786,7 +21784,6 @@ packages:
 
   /inquirer@8.2.6:
     resolution: {integrity: sha512-M1WuAmb7pn9zdFRtQYk26ZBoY043Sse0wVDdk4Bppr+JOXyQYybdtvK+l9wUibhtjdjvtoiNy8tk+EgsYIUqKg==}
-    engines: {node: '>=12.0.0'}
     dependencies:
       ansi-escapes: 4.3.2
       chalk: 4.1.2

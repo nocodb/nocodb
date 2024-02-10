@@ -1,8 +1,6 @@
-import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import type { OnModuleInit } from '@nestjs/common';
 
 // todo: replace with actual public key and avoid readFileSync since it's blocking and not recommended
 // const publicKey = fs.readFileSync('./public-key/public.pem');
@@ -18,7 +16,7 @@ fwIDAQAB
 -----END PUBLIC KEY-----`;
 
 @Injectable()
-export class LicenseService implements OnModuleInit {
+export class LicenseService {
   private logger = new Logger('LicenseService');
 
   private licenseData: {
@@ -28,7 +26,7 @@ export class LicenseService implements OnModuleInit {
     siteUrl: string;
   };
 
-  async onModuleInit(): Promise<void> {
+  async validateLicense(): Promise<void> {
     const { valid, data, error } = await this.verifyLicense(
       process.env.NC_LICENSE_KEY,
     );
@@ -43,7 +41,7 @@ export class LicenseService implements OnModuleInit {
 
   constructor() {}
 
-  async verifyLicense(licenseKey: string) {
+  private async verifyLicense(licenseKey: string) {
     if (!licenseKey) {
       return { valid: false, error: 'License key not found' };
     }

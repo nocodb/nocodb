@@ -8,12 +8,9 @@ import { ProducerProvider } from '~/services/producer';
 
 export const globalModuleMetadata = {
   ...globalModuleMetadataCE,
-  providers: [
-    ...globalModuleMetadataCE.providers,
-    ProducerProvider,
-  ],
+  providers: [...globalModuleMetadataCE.providers, ProducerProvider],
   exports: [...globalModuleMetadataCE.exports, Producer],
-}
+};
 
 @Global()
 @Module(globalModuleMetadata)

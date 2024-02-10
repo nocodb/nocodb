@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UtilsService as UtilsServiceEE } from 'src/ee/services/utils.service';
+import { LicenseService } from '../services/license/license.service';
 import type { AppConfig } from '~/interface/config';
-import { LicenseService } from '~/service/license/license.service';
 
 @Injectable()
 export class UtilsService extends UtilsServiceEE {

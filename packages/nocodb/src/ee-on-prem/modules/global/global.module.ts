@@ -3,7 +3,7 @@ import {
   GlobalModule as GlobalModuleEE,
   globalModuleMetadata as globalModuleMetadataEE,
 } from 'src/ee/modules/global/global.module';
-import { LicenseService } from '../../service/license/license.service';
+import { LicenseService } from '../../services/license/license.service';
 
 export const globalModuleMetadata = {
   ...globalModuleMetadataEE,

@@ -903,10 +903,29 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 column.uidt === UITypes.DateTime &&
-                qb.client.config.client === 'pg' &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
-                qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    gt_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    gt_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, gt_op, val);
+                }
               } else {
                 qb = qb.where(field, gt_op, val);
                 if (column.uidt === UITypes.Rating) {
@@ -926,10 +945,29 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 column.uidt === UITypes.DateTime &&
-                qb.client.config.client === 'pg' &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
-                qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    ge_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    ge_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, ge_op, val);
+                }
               } else {
                 qb = qb.where(field, ge_op, val);
                 if (column.uidt === UITypes.Rating) {
@@ -948,10 +986,29 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 column.uidt === UITypes.DateTime &&
-                qb.client.config.client === 'pg' &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
-                qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    lt_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    lt_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, lt_op, val);
+                }
               } else {
                 qb = qb.where(field, lt_op, val);
                 if (column.uidt === UITypes.Rating) {
@@ -972,10 +1029,29 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 column.uidt === UITypes.DateTime &&
-                qb.client.config.client === 'pg' &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
-                qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    le_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    le_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, le_op, val);
+                }
               } else {
                 qb = qb.where(field, le_op, val);
                 if (column.uidt === UITypes.Rating) {

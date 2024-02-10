@@ -88,6 +88,8 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
 
 const dragElement = ref<HTMLElement | null>(null)
 
+const hoverRecord = ref<string | null>(null)
+
 const dropEvent = (event: DragEvent) => {
   if (!isUIAllowed('dataEdit')) return
   event.preventDefault()
@@ -175,7 +177,14 @@ const dropEvent = (event: DragEvent) => {
     class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
     @drop="dropEvent"
   >
-    <div v-for="(record, rowIndex) in recordsAcrossAllRange" :key="rowIndex" :style="record.rowMeta.style" class="absolute mt-2">
+    <div
+      v-for="(record, rowIndex) in recordsAcrossAllRange"
+      :key="rowIndex"
+      :style="record.rowMeta.style"
+      class="absolute mt-2"
+      @mouseleave="hoverRecord = null"
+      @mouseover="hoverRecord = record.rowMeta.id"
+    >
       <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard
           :position="record.rowMeta.position"

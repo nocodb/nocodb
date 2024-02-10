@@ -327,7 +327,8 @@ const isPublicShared = computed(() => {
               (activeView.type === ViewTypes.GRID ||
                 activeView.type === ViewTypes.KANBAN ||
                 activeView.type === ViewTypes.GALLERY ||
-                activeView.type === ViewTypes.MAP)
+                activeView.type === ViewTypes.MAP ||
+                activeView.type === ViewTypes.CALENDAR)
             "
             class="flex flex-row justify-between"
           >

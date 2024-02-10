@@ -108,7 +108,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         ...parseProp(column?.value?.meta),
       }
 
-      const newAttachments = []
+      const newAttachments: AttachmentType[] = []
 
       const files: File[] = []
 
@@ -159,13 +159,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (selectedFiles.length) {
           files.push(file as File)
         } else {
-          let fileName = (file as AttachmentReqType).fileName ?? ''
-          let count = 1
-          while ([...attachments.value, ...imageUrls].some((el) => el.title === fileName)) {
-            fileName = fileName.replace(/(.+?)(\.[^.]+)$/, `$1(${count})$2`)
-            count++
-          }
-          imageUrls.push({ ...(file as AttachmentReqType), fileName })
+          const fileName = populateUniqueFileName((file as AttachmentReqType).fileName ?? '', [
+            ...attachments.value,
+            ...imageUrls,
+          ])
+
+          imageUrls.push({ ...(file as AttachmentReqType), fileName, title: fileName })
         }
       }
 
@@ -221,13 +220,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           )
           // add suffix in duplicate file title
           for (const uploadedFile of data) {
-            let fileName = uploadedFile?.title
-            let count = 1
-            while ([...attachments.value, ...newAttachments].some((el) => el.title === fileName)) {
-              fileName = fileName.replace(/(.+?)(\.[^.]+)$/, `$1(${count})$2`)
-              count++
-            }
-            newAttachments.push({ ...uploadedFile, title: fileName })
+            newAttachments.push({
+              ...uploadedFile,
+              title: populateUniqueFileName(uploadedFile?.title, [...attachments.value, ...newAttachments]),
+            })
           }
         } catch (e: any) {
           message.error(e.message || t('msg.error.internalError'))
@@ -283,7 +279,17 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         const imageData = imageUrl ? await getImageDataFromUrl(imageUrl) : ''
         if (imageData) {
-          await onFileSelect([], [{ ...imageData, url: imageUrl, fileName: `image.${imageData.mimetype?.split('/')[1]}` }])
+          await onFileSelect(
+            [],
+            [
+              {
+                ...imageData,
+                url: imageUrl,
+                fileName: `image.${imageData.mimetype?.split('/')[1]}`,
+                title: `image.${imageData.mimetype?.split('/')[1]}`,
+              },
+            ],
+          )
         }
       }
     }

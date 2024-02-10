@@ -1,7 +1,45 @@
 #!/bin/bash
+# set -x
 
+# Performs Initial setup and System Requirements Check
 
+## 1. validate system requirements
+# a. docker, docker-compose, jq installed
+# b. port mapping check
+#   - port 80,443 are free or being used by nginx container
 
+REQUIRED_PORTS=(80 443)
+
+echo "** Performing nocodb system check and setup. This step may require sudo permissions"
+PRE_REQ=0
+
+# d. Check if required tools are installed
+echo " | Checking if required tools (docker, docker-compose, jq, lsof) are installed..."
+for tool in docker docker-compose lsof; do
+  if ! command -v "$tool" &> /dev/null; then
+    echo " | Error: $tool is not installed. Please install it before proceeding."
+    PRE_REQ=1
+  fi
+done
+
+# e. Check if NocoDB is already installed and its expected version
+# echo "Checking if NocoDB is already installed and its expected version..."
+# Replace the following command with the actual command to check NocoDB installation and version
+# Example: nocodb_version=$(command_to_get_nocodb_version)
+# echo "NocoDB version: $nocodb_install_version"
+
+# f. Port mapping check
+echo " | Checking port accessibility..."
+for port in "${REQUIRED_PORTS[@]}"; do
+  if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null; then
+    echo " | WARNING: Port $port is in use. Please make sure it is free." >&2
+    PRE_REQ=1
+  else
+    echo " | Port $port is free."
+  fi
+done
+
+echo "** System check completed successfully. **"
 
 # Function to URL encode special characters in a string
 urlencode() {
@@ -14,12 +52,38 @@ urlencode() {
     c=${string:$pos:1}
     case "$c" in
       [-_.~a-zA-Z0-9] ) o="$c" ;;
-      * )               printf -v o '%%%02x' "'$c"
+      * )               printf -v o '%%%02X' "'$c"
     esac
     encoded+="$o"
   done
   echo "$encoded"
 }
+
+# generate a folder for the docker-compose file which is not existing and do the setup within the folder
+# Define the folder name
+FOLDER_NAME="nocodb"
+
+# Check if the folder exists
+if [ -d "$FOLDER_NAME" ]; then
+    # If the folder exists, append current datetime to the folder name
+    FOLDER_NAME="${FOLDER_NAME}_$(date +"%Y%m%d_%H%M%S")"
+fi
+
+# prompt for custom folder name and if left empty skip
+echo "Enter a custom folder name or press Enter to use the default folder name ($FOLDER_NAME): "
+read CUSTOM_FOLDER_NAME
+
+if [ -n "$CUSTOM_FOLDER_NAME" ]; then
+    FOLDER_NAME="$CUSTOM_FOLDER_NAME"
+fi
+
+
+# Create the folder
+mkdir -p "$FOLDER_NAME"
+
+# Navigate into the folder
+cd "$FOLDER_NAME" || exit
+
 
 echo "Do you want to configure SSL [Y/N] (default: N): "
 read SSL_ENABLED
@@ -33,6 +97,9 @@ fi
 
 echo "Enter the NocoDB license key if you have one, otherwise press Enter to continue without a license key: "
 read LICENSE_KEY
+
+echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
+read WATCHTOWER_ENABLED
 
 ## Extract domain name from the siteUrl property if provided, otherwise extract from payload
 #if [ -n "$2" ]; then
@@ -70,8 +137,12 @@ IMAGE="nocodb/nocodb:latest";
 
 # Ternary expression to determine the message
 if [ -n "$LICENSE_KEY" ]; then
-    echo "Using the NocoDB Enterprise Edition image"
-    IMAGE="nocodb/nocodb-ee:0.0.4"
+  echo "Using the NocoDB Enterprise Edition image"
+  IMAGE="nocodb/nocodb-ee:latest"
+  DATABASE_URL="DATABASE_URL=postgres://postgres:${ENCODED_PASSWORD}@db:5432/nocodb"
+else
+  # use NC_DB url until the issue with DATABASE_URL is resolved(encoding)
+  DATABASE_URL="NC_DB=pg://db:5432?d=nocodb&user=postgres&password=${ENCODED_PASSWORD}"
 fi
 
 # Write the Docker Compose file with the updated password
@@ -86,7 +157,7 @@ services:
       - db
     restart: unless-stopped
     volumes:
-      - nc_data:/usr/app/data
+      - ./nc_data:/usr/app/data
 
   db:
     image: postgres:latest
@@ -103,9 +174,9 @@ EOF
 
 if [ "$SSL_ENABLED" = 'y' ]; then
     cat <<EOF >> docker-compose.yml
-      - webroot:/var/www/certbot
-      - letsencrypt:/etc/letsencrypt
-      - letsencrypt-lib:/var/lib/letsencrypt
+      - ./webroot:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+      - ./letsencrypt-lib:/var/lib/letsencrypt
 EOF
 fi
 cat <<EOF >> docker-compose.yml
@@ -122,9 +193,9 @@ if [ "$SSL_ENABLED" = 'y' ]; then
   certbot:
     image: certbot/certbot
     volumes:
-      - letsencrypt:/etc/letsencrypt
-      - letsencrypt-lib:/var/lib/letsencrypt
-      - webroot:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+      - ./letsencrypt-lib:/var/lib/letsencrypt
+      - ./webroot:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait \$\${!}; done;'"
 #    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot certonly --webroot --webroot-path=/var/www/certbot --no-eff-email -n --email contact@${DOMAIN_NAME} --agree-tos -d ${DOMAIN_NAME}; sleep 12h & wait \$\${!}; done;'"
 #    command: certonly --webroot --webroot-path=/var/www/certbot --email  contact@${DOMAIN_NAME} --agree-tos --no-eff-email --staging -d ${DOMAIN_NAME}
@@ -133,32 +204,37 @@ if [ "$SSL_ENABLED" = 'y' ]; then
     restart: unless-stopped
 EOF
 fi
-cat <<EOF >> docker-compose.yml
 
+if([ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }); then
+cat <<EOF >> docker-compose.yml
   watchtower:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 300
     restart: unless-stopped
-volumes:
-  postgres_data:
-  nc_data:
-EOF
-if [ "$SSL_ENABLED" = 'y' ]; then
-    cat <<EOF >> docker-compose.yml
-  letsencrypt:
-  letsencrypt-lib:
-  webroot:
 EOF
 fi
+
+#cat <<EOF >> docker-compose.yml
+#volumes:
+#  postgres_data:
+#  nc_data:
+#EOF
+#if [ "$SSL_ENABLED" = 'y' ]; then
+#    cat <<EOF >> docker-compose.yml
+#  letsencrypt:
+#  letsencrypt-lib:
+#  webroot:
+#EOF
+#fi
 
 # Write the docker.env file
 cat <<EOF > docker.env
 POSTGRES_DB=nocodb
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD="${STRONG_PASSWORD}"
-DATABASE_URL=postgres://postgres:${ENCODED_PASSWORD}@db:5432/nocodb
+POSTGRES_PASSWORD=${STRONG_PASSWORD}
+$DATABASE_URL
 NC_LICENSE_KEY=${LICENSE_KEY}
 EOF
 
@@ -168,7 +244,15 @@ mkdir -p ./nginx
 cat > ./nginx/default.conf <<EOF
 server {
     listen 80;
+EOF
+
+if [ "$SSL_ENABLED" = 'y' ]; then
+cat >> ./nginx/default.conf <<EOF
     server_name $DOMAIN_NAME;
+EOF
+fi
+
+cat >> ./nginx/default.conf <<EOF
     location / {
         proxy_pass http://nocodb:8080;
         proxy_set_header Host \$host;
@@ -238,7 +322,7 @@ echo 'Waiting for NocoDB to start...';
 sleep 5;
 
 if [ "$SSL_ENABLED" = 'y' ]; then
-  echo 'Starting letsencrypt certificate request...';
+  echo 'Starting Letsencrypt certificate request...';
 
   # Initial Let's Encrypt certificate request
   docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"

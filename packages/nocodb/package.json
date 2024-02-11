@@ -63,7 +63,7 @@
     "@nestjs/platform-express": "^10.3.1",
     "@nestjs/platform-socket.io": "^10.3.1",
     "@nestjs/serve-static": "^4.0.1",
-    "@nestjs/throttler": "^4.2.1",
+    "@nestjs/throttler": "^5.0.0",
     "@nestjs/websockets": "^10.3.1",
     "@ntegral/nestjs-sentry": "^4.0.1",
     "@sentry/node": "^6.19.7",

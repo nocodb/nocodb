@@ -979,8 +979,8 @@ importers:
         specifier: ^4.18.1
         version: 4.18.1
       knex:
-        specifier: ^2.4.2
-        version: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)
+        specifier: ^2.5.1
+        version: 2.5.1(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)
       nocodb-sdk:
         specifier: workspace:^
         version: link:../../packages/nocodb-sdk
@@ -18651,8 +18651,8 @@ packages:
     engines: {node: '>= 8'}
     dev: true
 
-  /knex@2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6):
-    resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
+  /knex@2.5.1(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6):
+    resolution: {integrity: sha512-z78DgGKUr4SE/6cm7ku+jHvFT0X97aERh/f0MUKAKgFnwCYBEW4TFBqtHWFYiJFid7fMrtpZ/gxJthvz5mEByA==}
     engines: {node: '>=12'}
     hasBin: true
     peerDependencies:
@@ -18680,7 +18680,7 @@ packages:
         optional: true
     dependencies:
       colorette: 2.0.19
-      commander: 9.5.0
+      commander: 10.0.1
       debug: 4.3.4(supports-color@5.5.0)
       escalade: 3.1.1
       esm: 3.2.25
@@ -18690,7 +18690,7 @@ packages:
       lodash: 4.17.21
       mysql2: 3.2.0
       pg: 8.10.0
-      pg-connection-string: 2.5.0
+      pg-connection-string: 2.6.1
       rechoir: 0.8.0
       resolve-from: 5.0.0
       sqlite3: 5.1.6
@@ -21657,10 +21657,6 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
-
-  /pg-connection-string@2.5.0:
-    resolution: {integrity: sha512-r5o/V/ORTA6TmUnyWZR9nCj1klXCO2CEKNRlVuJptZe85QuhFayC7WeMic7ndayT5IRIR0S0xFxFi2ousartlQ==}
-    dev: false
 
   /pg-connection-string@2.6.1:
     resolution: {integrity: sha512-w6ZzNu6oMmIzEAYVw+RLK0+nqHPt8K3ZnknKi+g48Ak2pr3dtljJW3o+D/n2zzCG07Zoe9VOX3aiKpj+BN0pjg==}

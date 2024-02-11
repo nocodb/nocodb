@@ -8,7 +8,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
@@ -25,6 +25,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const readOnlyCell = inject(ReadonlyInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
 
 const turndownService = new TurndownService({})
 
@@ -199,7 +201,8 @@ watch(editorDom, () => {
         'mt-2.5 flex-grow': fullMode,
         'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
         'flex-grow': isExpandedFormOpen,
-        [`!overflow-hidden children:line-clamp-${rowHeight}`]: !fullMode && readOnly && rowHeight && !isExpandedFormOpen,
+        [`!overflow-hidden children:line-clamp-${rowHeight}`]:
+          !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
       }"
     />
   </div>

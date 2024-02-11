@@ -1,4 +1,5 @@
 import { ColumnReqType, ColumnType } from './Api';
+import { FormulaDataTypes } from './formulaHelpers';
 
 enum UITypes {
   ID = 'ID',
@@ -184,5 +185,21 @@ export function isLinksOrLTAR(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
   );
 }
+
+export const getEquivalentUIType = ({
+  formulaColumn,
+}: {
+  formulaColumn: ColumnType;
+}): void | UITypes => {
+  switch ((formulaColumn?.colOptions as any)?.parsed_tree?.dataType) {
+    case FormulaDataTypes.NUMERIC:
+      return UITypes.Number;
+    case FormulaDataTypes.DATE:
+      return UITypes.DateTime;
+    case FormulaDataTypes.LOGICAL:
+    case FormulaDataTypes.BOOLEAN:
+      return UITypes.Checkbox;
+  }
+};
 
 export default UITypes;

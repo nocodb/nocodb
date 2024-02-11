@@ -1,4 +1,11 @@
-import type { ColumnType, FilterType, LinkToAnotherRecordType, LookupType, ViewType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type FilterType,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  type ViewType,
+  getEquivalentUIType,
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
@@ -103,8 +110,15 @@ export function useViewFilters(
     }
 
     return meta.value?.columns?.reduce((obj: any, col: any) => {
+      if (col.uidt === UITypes.Formula) {
+        const formulaUIType = getEquivalentUIType({
+          formulaColumn: col,
+        })
+
+        obj[col.id] = formulaUIType || col.uidt
+      }
       // if column is a lookup column, then use the lookup type extracted from the column
-      if (btLookupTypesMap.value[col.id]) {
+      else if (btLookupTypesMap.value[col.id]) {
         obj[col.id] = btLookupTypesMap.value[col.id].uidt
       } else {
         obj[col.id] = col.uidt
@@ -137,9 +151,11 @@ export function useViewFilters(
     },
   ) => {
     const isNullOrEmptyOp = ['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)
+    const uidt = types.value[filter.fk_column_id]
+
     if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
-      if (filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])) {
+      if (filter.fk_column_id && compOp.includedTypes.includes(uidt)) {
         // for 'empty', 'notempty', 'null', 'notnull',
         // show them based on `showNullAndEmptyInFilter` in Base Settings
         return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
@@ -148,7 +164,7 @@ export function useViewFilters(
       }
     } else if (compOp.excludedTypes) {
       // include not allowed values only if selected column type not matches
-      if (filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])) {
+      if (filter.fk_column_id && !compOp.excludedTypes.includes(uidt)) {
         // for 'empty', 'notempty', 'null', 'notnull',
         // show them based on `showNullAndEmptyInFilter` in Base Settings
         return isNullOrEmptyOp ? baseMeta.value.showNullAndEmptyInFilter : true
@@ -170,12 +186,14 @@ export function useViewFilters(
       excludedTypes?: UITypes[]
     },
   ) => {
+    const uidt = types.value[filter.fk_column_id]
+
     if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
-      return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+      return filter.fk_column_id && compOp.includedTypes.includes(uidt)
     } else if (compOp.excludedTypes) {
       // include not allowed values only if selected column type not matches
-      return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
+      return filter.fk_column_id && !compOp.excludedTypes.includes(uidt)
     }
   }
 
@@ -479,5 +497,6 @@ export function useViewFilters(
     isComparisonSubOpAllowed,
     loadBtLookupTypes,
     btLookupTypesMap,
+    types,
   }
 }

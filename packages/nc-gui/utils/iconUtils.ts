@@ -21,17 +21,14 @@ import TablerColumnInsertRight from '~icons/tabler/column-insert-right'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MsGroup from '~icons/material-symbols/groups-outline-rounded'
 import MsAddBoxOutline from '~icons/nc-icons/add-box'
-import MsDownloadRounded from '~icons/nc-icons/download'
 import LogosAirtable from '~icons/logos/airtable'
 import MsSort from '~icons/material-symbols/sort'
 import MaterialSymbolsEdit from '~icons/material-symbols/edit-outline-rounded'
-import MaterialDuplicate from '~icons/material-symbols/file-copy-outline-rounded'
 import MaterialSymbolsWarningOutlineRounded from '~icons/material-symbols/warning-outline-rounded'
 import MaterialSymbolsDragIndicator from '~icons/ri/draggable'
 import PlusSquare from '~icons/nc-icons/plus-square'
 import MobileShare from '~icons/nc-icons/share'
 import PhLayout from '~icons/ph/layout'
-import Delete from '~icons/material-symbols/delete-outline-rounded'
 import Minus from '~icons/material-symbols/remove-rounded'
 import Code from '~icons/material-symbols/code-rounded'
 import Palette from '~icons/material-symbols/palette-outline'
@@ -99,6 +96,7 @@ import NcUnStar from '~icons/nc-icons/star-remove'
 import NcSearch from '~icons/nc-icons/search'
 import NcCreditCard from '~icons/nc-icons/credit-card'
 import NcLayers from '~icons/nc-icons/layers'
+import NcUser from '~icons/nc-icons/user'
 import NcUsers from '~icons/nc-icons/users'
 import NcCheck from '~icons/nc-icons/check'
 import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
@@ -110,6 +108,18 @@ import NcNotification from '~icons/material-symbols/notifications-outline'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
 import NcDatabaseIcon from '~icons/nc-icons/database'
+import NcChevronDown from '~icons/nc-icons/chevron-down'
+import NcTrash from '~icons/nc-icons/trash'
+import NcPencil from '~icons/nc-icons/pencil'
+import NcRename from '~icons/nc-icons/rename'
+import NcDuplicate from '~icons/nc-icons/duplicate'
+import NcEdit from '~icons/nc-icons/edit'
+import NcCopy from '~icons/nc-icons/copy'
+import NcPaste from '~icons/nc-icons/paste'
+import NcArrowUp from '~icons/nc-icons/arrow-up'
+import NcArrowDown from '~icons/nc-icons/arrow-down'
+import NcUpload from '~icons/nc-icons/upload'
+import NcDownload from '~icons/nc-icons/download'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -327,18 +337,20 @@ export const iconMap = {
   accountCircle: h('span', { class: 'material-symbols' }, 'account_circle'),
   phUser: PhUser,
   phUsers: PhUsers,
+  user: NcUser,
   users: NcUsers,
   cloudDownload: h('span', { class: 'material-symbols' }, 'cloud_download'),
-  download: MsDownloadRounded,
-  upload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
+  download: NcDownload,
+  cloudUpload: h('span', { class: 'material-symbols' }, 'cloud_upload'),
+  upload: NcUpload,
   hook: Phishing,
   erd: h('span', { class: 'material-symbols' }, 'account_tree'),
   plus: h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.3px' }, 'add'),
   plusSquare: PlusSquare,
   minus: Minus,
   help: h('span', { class: 'material-symbols' }, 'help'),
-  copy: h('span', { class: 'material-symbols' }, 'content_copy'),
-  duplicate: MaterialDuplicate,
+  copy: NcCopy,
+  duplicate: NcDuplicate,
   clipboard: h('span', { class: 'material-symbols' }, 'content_paste'),
   settings: h('span', { class: 'material-symbols' }, 'settings'),
   image: h('span', { class: 'material-symbols' }, 'image'),
@@ -361,7 +373,7 @@ export const iconMap = {
   csv: PhCsvThin, // h('span', { class: 'material-symbols' }, 'grid_on'),
   code: Code,
   palette: h(Palette, {}, () => 'palette'),
-  delete: Delete,
+  delete: NcTrash,
   deleteListItem: h('span', { class: 'material-symbols' }, 'delete'),
   import: h('span', { class: 'material-symbols' }, 'system_update_alt'),
   edit: MaterialSymbolsEdit,
@@ -459,7 +471,13 @@ export const iconMap = {
   role_no_access: NoAccess,
   commentHere: NcCommentHere,
   fileImage: FileImageIcon,
-  paste: h('span', { class: 'material-symbols' }, 'content_paste'),
+  paste: NcPaste,
+  chevronDown: NcChevronDown,
+  pencil: NcPencil,
+  rename: NcRename,
+  ncEdit: NcEdit,
+  ncArrowUp: NcArrowUp,
+  ncArrowDown: NcArrowDown,
 }
 
 export const getMdiIcon = (type: string): any => {

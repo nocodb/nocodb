@@ -54,7 +54,13 @@ export default class Base implements BaseType {
       'status',
       'meta',
       'color',
+      'order',
     ]);
+
+    if (!insertObj.order) {
+      // get order value
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.PROJECT, {});
+    }
 
     const { id: baseId } = await ncMeta.metaInsert2(
       null,
@@ -110,15 +116,31 @@ export default class Base implements BaseType {
             },
           ],
         },
+        orderBy: {
+          order: 'asc',
+        },
       });
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
-    baseList = baseList.filter(
-      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
-    );
-    const castedProjectList = baseList.map((m) => this.castType(m));
 
-    await Promise.all(castedProjectList.map((base) => base.getSources(ncMeta)));
+    const promises = [];
+
+    const castedProjectList = baseList
+      .filter(
+        (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
+      )
+      .sort(
+        (a, b) =>
+          (a.order != null ? a.order : Infinity) -
+          (b.order != null ? b.order : Infinity),
+      )
+      .map((p) => {
+        const base = this.castType(p);
+        promises.push(base.getSources(ncMeta));
+        return base;
+      });
+
+    await Promise.all(promises);
 
     return castedProjectList;
   }
@@ -253,6 +275,7 @@ export default class Base implements BaseType {
       'password',
       'roles',
     ]);
+
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

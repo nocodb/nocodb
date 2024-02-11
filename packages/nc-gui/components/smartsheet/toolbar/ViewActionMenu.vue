@@ -3,9 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '~/lib'
 
-import UploadIcon from '~icons/nc-icons/upload'
-import DownloadIcon from '~icons/nc-icons/download'
-
 const props = defineProps<{
   view: ViewType
   table: TableType
@@ -164,16 +161,17 @@ const onDelete = async () => {
         </NcButton>
       </div>
     </NcTooltip>
-    <NcDivider />
-    <template v-if="!view?.is_default">
+
+    <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
+      <NcDivider />
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-        <GeneralIcon icon="edit" />
+        <GeneralIcon icon="rename" />
         {{ $t('activity.renameView') }}
       </NcMenuItem>
       <NcTooltip v-else>
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-          <GeneralIcon icon="edit" />
+          <GeneralIcon icon="rename" />
           {{ $t('activity.renameView') }}
         </NcMenuItem>
       </NcTooltip>
@@ -181,10 +179,10 @@ const onDelete = async () => {
         <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
         {{ $t('labels.duplicateView') }}
       </NcMenuItem>
-      <NcDivider />
     </template>
 
     <template v-if="view.type !== ViewTypes.FORM">
+      <NcDivider />
       <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
         <NcSubMenu key="upload">
           <template #title>
@@ -197,7 +195,7 @@ const onDelete = async () => {
               ]"
               class="nc-base-menu-item group"
             >
-              <UploadIcon class="w-4 h-4" />
+              <GeneralIcon icon="upload" />
               {{ $t('general.upload') }}
             </div>
           </template>
@@ -217,7 +215,7 @@ const onDelete = async () => {
                 class="nc-base-menu-item"
                 :class="{ disabled: lockType === LockType.Locked }"
               >
-                <component :is="iconMap.upload" />
+                <component :is="iconMap.cloudUpload" />
                 {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
               </div>
             </NcMenuItem>
@@ -235,7 +233,7 @@ const onDelete = async () => {
             ]"
             class="nc-base-menu-item group nc-view-context-download-option"
           >
-            <DownloadIcon class="w-4 h-4" />
+            <GeneralIcon icon="download" />
             {{ $t('general.download') }}
           </div>
         </template>
@@ -286,7 +284,7 @@ const onDelete = async () => {
       </NcSubMenu>
     </template>
 
-    <template v-if="!view.is_default">
+    <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>

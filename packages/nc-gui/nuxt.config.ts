@@ -103,7 +103,7 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          src: '/js/typesense-docsearch.js',
+          src: './js/typesense-docsearch.js',
         },
       ],
     },

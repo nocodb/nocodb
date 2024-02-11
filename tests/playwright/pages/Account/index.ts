@@ -5,6 +5,7 @@ import { AccountTokenPage } from './Token';
 import { AccountUsersPage } from './Users';
 import { AccountAppStorePage } from './AppStore';
 import { AccountLicensePage } from './License';
+import { AccountAuthenticationPage } from './Authentication';
 
 export class AccountPage extends BasePage {
   readonly settings: AccountSettingsPage;
@@ -12,6 +13,7 @@ export class AccountPage extends BasePage {
   readonly users: AccountUsersPage;
   readonly appStore: AccountAppStorePage;
   readonly license: AccountLicensePage;
+  readonly authentication: AccountAuthenticationPage;
 
   constructor(page: Page) {
     super(page);
@@ -20,6 +22,7 @@ export class AccountPage extends BasePage {
     this.users = new AccountUsersPage(this);
     this.appStore = new AccountAppStorePage(this);
     this.license = new AccountLicensePage(this);
+    this.authentication = new AccountAuthenticationPage(this);
   }
 
   get() {

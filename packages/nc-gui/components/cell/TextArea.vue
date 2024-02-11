@@ -207,15 +207,15 @@ watch(inputWrapperRef, () => {
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
-        'h-full': isForm,
+        'h-full w-full': isForm,
       }"
     >
       <div
         v-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :style="{
-          maxHeight: isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
-          minHeight: isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
@@ -271,7 +271,7 @@ watch(inputWrapperRef, () => {
         v-if="!isVisible"
         placement="bottom"
         class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block z-3"
-        :class="isExpandedFormOpen || isForm || isRichMode ? 'top-1' : 'bottom-1'"
+        :class="isExpandedFormOpen || isForm ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">

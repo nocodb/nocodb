@@ -41,7 +41,9 @@ export default async function (forceReset = false, roles = 'editor') {
 
   const { token, user } = await createUser({ app: server }, { roles });
 
-  const extra: any = {};
+  const extra: {
+    fk_workspace_id?: string;
+  } = {};
 
   // create ws for ee
   if (process.env.EE === 'true') {

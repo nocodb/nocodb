@@ -301,6 +301,7 @@
     "isNotNull": "Nie jest null"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "Dokumentacja",
     "forum": "Forum",
     "parameter": "Parametr",
@@ -417,6 +418,16 @@
     }
   },
   "labels": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "Security Assertion Markup Language (SAML)",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
     "heading1": "Nagłówek 1",
     "heading2": "Nagłówek 2",
     "heading3": "Nagłówek 3",
@@ -513,6 +524,7 @@
     "databaseType": "Typ bazy danych",
     "lengthValue": "Długość / wartość",
     "dbType": "Typ bazy danych",
+    "servername": "servername / hostAddr",
     "sqliteFile": "Plik SQLite",
     "hostAddress": "Adres hosta",
     "port": "Port",
@@ -657,6 +669,9 @@
     }
   },
   "activity": {
+    "googleOAuth": "Google OAuth",
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "Otwórz w nowej karcie",
     "copyIFrameCode": "Kopiuj kod IFrame",
     "onCondition": "Pod warunkiem",
@@ -1069,6 +1084,8 @@
       }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Wyłączone, ponieważ widok jest zablokowany",
       "basesMigrated": "Bazy zostały przeniesione. Proszę spróbować ponownie.",
       "pasteNotSupported": "Operacja wklejania nie jest obsługiwana w aktywnej komórce",
@@ -1233,6 +1250,16 @@
       "notAvailableAtTheMoment": "Obecnie niedostępne"
     },
     "error": {
+      "scopesRequired": "Scopes required",
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "issuerRequired": "Issuer is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Wymagana nazwa",
       "nameMinLength": "Nazwa musi mieć co najmniej 2 znaki",
       "nameMaxLength": "Nazwa musi mieć maksymalnie 60 znaków",
@@ -1263,6 +1290,7 @@
         "invalidEmails": "Nieprawidłowe adresy email",
         "invalidEmail": "Nieprawidłowy adres email"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "Nieprawidłowy adres URL",
       "invalidEmail": "Nieprawidłowy e-mail",
       "internalError": "Wystąpił błąd wewnętrzny",

@@ -4,7 +4,7 @@ version: "3.5"
 # disabling default sql-mode set to only_full_group_by
 services:
   xc-mysql-sakila-db:
-     image: mysql:8.0
+     image: mysql:8.3.0
      command: mysqld --sql_mode=""
      restart: always
      ports:

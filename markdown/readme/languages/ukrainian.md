@@ -15,7 +15,7 @@ Nocodb перетворює будь-яку базу даних MySQL, PostgreSQ
 
 <div align="center">
 
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.14.0-brightgreen)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>

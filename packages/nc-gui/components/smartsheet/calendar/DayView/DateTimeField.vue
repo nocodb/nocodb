@@ -566,7 +566,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
   <div
     v-if="recordsAcrossAllRange.record.length"
     ref="container"
-    class="w-full relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full relative nc-calendar-day-view no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
   >
     <div
       v-for="(hour, index) in hours"
@@ -677,7 +677,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
       </NcButton>
     </div>
     <div class="absolute inset-0 pointer-events-none">
-      <div class="relative !ml-[60px]">
+      <div class="relative !ml-[60px]" data-testid="nc-calendar-day-record-container">
         <div
           v-for="(record, rowIndex) in recordsAcrossAllRange.record"
           :key="rowIndex"

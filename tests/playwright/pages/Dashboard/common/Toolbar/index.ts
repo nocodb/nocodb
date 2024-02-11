@@ -19,6 +19,7 @@ import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { ToolbarGroupByPage } from './Groupby';
 import { ToolbarCalendarViewModePage } from './CalendarViewMode';
 import { CalendarPage } from '../../Calendar';
+import { ToolbarCalendarRangePage } from './CalendarRange';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage;
@@ -33,12 +34,14 @@ export class ToolbarPage extends BasePage {
   readonly searchData: ToolbarSearchDataPage;
   readonly rowHeight: RowHeight;
   readonly calendarViewMode: ToolbarCalendarViewModePage;
+  readonly calendarRange: ToolbarCalendarRangePage;
 
   readonly btn_fields: Locator;
   readonly btn_sort: Locator;
   readonly btn_filter: Locator;
   readonly btn_rowHeight: Locator;
   readonly btn_groupBy: Locator;
+  readonly btn_calendarSettings: Locator;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
     super(parent.rootPage);
@@ -54,12 +57,14 @@ export class ToolbarPage extends BasePage {
     this.searchData = new ToolbarSearchDataPage(this);
     this.rowHeight = new RowHeight(this);
     this.calendarViewMode = new ToolbarCalendarViewModePage(this);
+    this.calendarRange = new ToolbarCalendarRangePage(this);
 
     this.btn_fields = this.get().locator(`button.nc-fields-menu-btn`);
     this.btn_sort = this.get().locator(`button.nc-sort-menu-btn`);
     this.btn_filter = this.get().locator(`button.nc-filter-menu-btn`);
     this.btn_rowHeight = this.get().locator(`button.nc-height-menu-btn`);
     this.btn_groupBy = this.get().locator(`button.nc-group-by-menu-btn`);
+    this.btn_calendarSettings = this.get().getByTestId('nc-calendar-range-btn');
   }
 
   get() {
@@ -73,6 +78,14 @@ export class ToolbarPage extends BasePage {
 
     // Wait for the menu to close
     if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
+  }
+
+  async clickCalendarViewSettings() {
+    const menuOpen = await this.calendarRange.get().isVisible();
+    await this.btn_calendarSettings.click();
+
+    // Wait for the menu to close
+    if (menuOpen) await this.calendarRange.get().waitFor({ state: 'hidden' });
   }
 
   async clickFields() {

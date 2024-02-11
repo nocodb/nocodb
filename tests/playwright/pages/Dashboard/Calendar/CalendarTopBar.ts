@@ -1,4 +1,4 @@
-import { Locator } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { CalendarPage } from './index';
 
@@ -26,6 +26,16 @@ export class CalendarTopbarPage extends BasePage {
     return this.rootPage.getByTestId('nc-calendar-topbar');
   }
 
+  async getActiveDate() {
+    return this.get().getByTestId('nc-calendar-active-date').textContent();
+  }
+
+  async verifyActiveCalendarView({ view }: { view: string }) {
+    const activeView = this.get().getByTestId('nc-active-calendar-view');
+
+    await expect(activeView).toContainText(view);
+  }
+
   async clickPrev() {
     await this.prev_btn.click();
   }
@@ -34,6 +44,16 @@ export class CalendarTopbarPage extends BasePage {
   }
   async clickToday() {
     await this.today_btn.click();
+  }
+
+  async moveToDate({ date, action }: { date: string; action: 'prev' | 'next' }) {
+    while ((await this.getActiveDate()) !== date) {
+      if (action === 'prev') {
+        await this.clickPrev();
+      } else {
+        await this.clickNext();
+      }
+    }
   }
 
   async toggleSideBar() {

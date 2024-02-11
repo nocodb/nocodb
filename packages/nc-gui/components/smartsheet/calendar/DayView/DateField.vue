@@ -180,6 +180,7 @@ const dropEvent = (event: DragEvent) => {
     <div
       v-for="(record, rowIndex) in recordsAcrossAllRange"
       :key="rowIndex"
+      :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
       :style="record.rowMeta.style"
       class="absolute mt-2"
       @mouseleave="hoverRecord = null"

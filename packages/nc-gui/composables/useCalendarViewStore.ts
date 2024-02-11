@@ -665,7 +665,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             ...{},
             ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: filterJSON.value })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: sideBarFilter.value })
 
       formattedSideBarData.value = formatData(res!.list)
       isSidebarLoading.value = false

@@ -180,6 +180,7 @@ const paginate = (action: 'next' | 'prev') => {
             'rounded-md bg-brand-50 text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
           }"
           class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
+          data-testid="nc-calendar-date"
           @click="handleSelectDate(date)"
         >
           <span v-if="isActiveDate(date)" class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>

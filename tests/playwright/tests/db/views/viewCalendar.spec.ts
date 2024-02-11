@@ -334,7 +334,7 @@ test.describe('View', () => {
     });*/
   });
 
-  test.only('Calendar shared view operations', async ({ page }) => {
+  test('Calendar shared view operations', async ({ page }) => {
     test.slow();
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',

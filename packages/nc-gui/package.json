@@ -1,11 +1,12 @@
 {
   "name": "nc-gui",
-  "description": "NocoDB Frontend",
   "private": true,
+  "description": "NocoDB Frontend",
   "author": {
     "name": "NocoDB",
     "url": "https://nocodb.com/"
   },
+  "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/nocodb/nocodb",
   "repository": {
     "type": "git",
@@ -17,14 +18,13 @@
   "engines": {
     "node": ">=18.19.0"
   },
-  "license": "AGPL-3.0-or-later",
   "web-types": "web-types.json",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "start": "node .output/server/index.mjs",
-    "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
+    "lint": "eslint . --fix",
     "test": "vitest -c test/vite.config.ts",
     "test:ui": "vitest -c test/vite.config.ts --ui",
     "coverage": "vitest -c test/vite.config.ts run --coverage",
@@ -103,7 +103,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.43.1",
+    "@antfu/eslint-config": "^2.6.4",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@iconify-json/ant-design": "^1.1.15",
     "@iconify-json/bi": "^1.1.23",

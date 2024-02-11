@@ -118,7 +118,7 @@
     "jsonfile": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
-    "knex": "2.5.1",
+    "knex": "2.4.2",
     "list-github-dir-content": "^3.0.0",
     "lodash": "^4.17.21",
     "lru-cache": "^6.0.0",

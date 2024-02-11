@@ -629,8 +629,8 @@ importers:
         specifier: ^2.2.4
         version: 2.2.4
       knex:
-        specifier: 2.5.1
-        version: 2.5.1(mysql2@3.9.1)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
+        specifier: 2.4.2
+        version: 2.4.2(mysql2@3.9.1)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
       list-github-dir-content:
         specifier: ^3.0.0
         version: 3.0.0
@@ -669,7 +669,7 @@ importers:
         version: 3.3.7
       nc-help:
         specifier: 0.3.1
-        version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.5.1)
+        version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
         specifier: 0.204.0
         version: 0.204.0
@@ -979,8 +979,8 @@ importers:
         specifier: ^4.18.1
         version: 4.18.1
       knex:
-        specifier: ^2.5.1
-        version: 2.5.1(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)
+        specifier: 2.4.2
+        version: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6)
       nocodb-sdk:
         specifier: workspace:^
         version: link:../../packages/nocodb-sdk
@@ -12763,6 +12763,7 @@ packages:
   /commander@10.0.1:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
     engines: {node: '>=14'}
+    dev: true
 
   /commander@11.0.0:
     resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
@@ -16739,7 +16740,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
-    dev: true
 
   /he@1.2.0:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
@@ -17367,12 +17367,12 @@ packages:
     resolution: {integrity: sha512-Z7dk6Qo8pOCp3l4tsX2C5ZVas4V+UxwQodwZhLopL91TX8UyyHEXafPcyoeeWuLrwzHcr3igO78wNLwHJHsMCQ==}
     dependencies:
       has: 1.0.3
+    dev: true
 
   /is-core-module@2.13.1:
     resolution: {integrity: sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==}
     dependencies:
       hasown: 2.0.0
-    dev: true
 
   /is-date-object@1.0.5:
     resolution: {integrity: sha512-9YQaSxsAiSwcvS33MBk3wTCVnWK+HhF8VZR2jRxehM16QcVOdHqPn4VPHmRK4lSr38n9JriurInLcP90xsYNfQ==}
@@ -18651,8 +18651,8 @@ packages:
     engines: {node: '>= 8'}
     dev: true
 
-  /knex@2.5.1(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6):
-    resolution: {integrity: sha512-z78DgGKUr4SE/6cm7ku+jHvFT0X97aERh/f0MUKAKgFnwCYBEW4TFBqtHWFYiJFid7fMrtpZ/gxJthvz5mEByA==}
+  /knex@2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6):
+    resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
     engines: {node: '>=12'}
     hasBin: true
     peerDependencies:
@@ -18680,7 +18680,7 @@ packages:
         optional: true
     dependencies:
       colorette: 2.0.19
-      commander: 10.0.1
+      commander: 9.5.0
       debug: 4.3.4(supports-color@5.5.0)
       escalade: 3.1.1
       esm: 3.2.25
@@ -18690,7 +18690,7 @@ packages:
       lodash: 4.17.21
       mysql2: 3.2.0
       pg: 8.10.0
-      pg-connection-string: 2.6.1
+      pg-connection-string: 2.5.0
       rechoir: 0.8.0
       resolve-from: 5.0.0
       sqlite3: 5.1.6
@@ -18700,8 +18700,8 @@ packages:
       - supports-color
     dev: false
 
-  /knex@2.5.1(mysql2@3.9.1)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1):
-    resolution: {integrity: sha512-z78DgGKUr4SE/6cm7ku+jHvFT0X97aERh/f0MUKAKgFnwCYBEW4TFBqtHWFYiJFid7fMrtpZ/gxJthvz5mEByA==}
+  /knex@2.4.2(mysql2@3.9.1)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1):
+    resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
     engines: {node: '>=12'}
     hasBin: true
     peerDependencies:
@@ -18729,7 +18729,7 @@ packages:
         optional: true
     dependencies:
       colorette: 2.0.19
-      commander: 10.0.1
+      commander: 9.5.0
       debug: 4.3.4(supports-color@5.5.0)
       escalade: 3.1.1
       esm: 3.2.25
@@ -18739,7 +18739,7 @@ packages:
       lodash: 4.17.21
       mysql2: 3.9.1
       pg: 8.11.3
-      pg-connection-string: 2.6.1
+      pg-connection-string: 2.5.0
       rechoir: 0.8.0
       resolve-from: 5.0.0
       sqlite3: 5.1.7
@@ -20141,7 +20141,7 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /nc-help@0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.5.1):
+  /nc-help@0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2):
     resolution: {integrity: sha512-ljOh2/6gwTx6BEaPjtdQFzmKL0cWnagGXWxonmqYLhEgkGj/UGvfcukTd5HVDNtu1iKg+0IR/ViNacpu/ClCGA==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -20150,7 +20150,7 @@ packages:
       axios: 0.27.2(debug@4.3.4)
       emittery: 0.13.1
       is-docker: 2.2.1
-      knex: 2.5.1(mysql2@3.9.1)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
+      knex: 2.4.2(mysql2@3.9.1)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
       lodash: 4.17.21
       posthog-node: 1.3.0(debug@4.3.4)
       snowflake-sdk: 1.8.0(asn1.js@5.4.1)
@@ -21658,8 +21658,8 @@ packages:
     dev: false
     optional: true
 
-  /pg-connection-string@2.6.1:
-    resolution: {integrity: sha512-w6ZzNu6oMmIzEAYVw+RLK0+nqHPt8K3ZnknKi+g48Ak2pr3dtljJW3o+D/n2zzCG07Zoe9VOX3aiKpj+BN0pjg==}
+  /pg-connection-string@2.5.0:
+    resolution: {integrity: sha512-r5o/V/ORTA6TmUnyWZR9nCj1klXCO2CEKNRlVuJptZe85QuhFayC7WeMic7ndayT5IRIR0S0xFxFi2ousartlQ==}
     dev: false
 
   /pg-connection-string@2.6.2:
@@ -23009,7 +23009,7 @@ packages:
     resolution: {integrity: sha512-PXNdCiPqDqeUou+w1C2eTQbNfxKSuMxqTCuvlmmMsk1NWHL5fRrhY6Pl0qEYYc6+QqGClco1Qj8XnjPego4wfg==}
     hasBin: true
     dependencies:
-      is-core-module: 2.13.0
+      is-core-module: 2.13.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 

@@ -43,7 +43,10 @@ const precentageColor = computed(() => {
       </div>
       <a-progress :percent="trialPercentage" :stroke-color="precentageColor" :show-info="false" />
 
-      <div>Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}</div>
+      <div class="text-[#374151]">
+        Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}<br>
+        Licensed to: {{ appInfo.licensedTo }}
+      </div>
       <a no-prefetch no-rel href="https://calendly.com/nocodb-meeting" target="_blank">
         <nc-button size="small" class="text-center w-full text-white">
           <div class="flex gap-2 items-center justify-center">

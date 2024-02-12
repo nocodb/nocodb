@@ -55,7 +55,9 @@ const _createWorkspace = async () => {
 
   try {
     const workspaceRes = await createWorkspace(workspace.value)
-    emit('success', workspaceRes)
+    if (workspaceRes) {
+      emit('success', workspaceRes)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

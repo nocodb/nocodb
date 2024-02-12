@@ -204,7 +204,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         return updateModelValue(attachments.value)
       } else if (isPublic.value && isForm.value) {
-        attachments.value = [...attachments.value, ...imageUrls.map((item) => ({ ...item, title: item.fileName }))]
+        attachments.value = [...attachments.value, ...imageUrls]
 
         return updateModelValue(attachments.value)
       }
@@ -289,7 +289,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             [
               {
                 ...imageData,
-                ...(isPublic.value && isForm.value ? {} : { url: imageUrl }),
+                url: imageUrl,
                 fileName: `image.${imageData?.mimetype?.split('/')[1]}`,
                 title: `image.${imageData?.mimetype?.split('/')[1]}`,
               },
@@ -319,26 +319,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       try {
         const response = await fetch(imageUrl)
         if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-          const res = {
+          return {
             mimetype: response.headers.get('content-type') || undefined,
             size: +(response.headers.get('content-length') || 0) || undefined,
-            data: undefined,
-          } as { minetype?: string; size?: number; data?: any }
-
-          if (isPublic.value && isForm.value) {
-            const blob = await response.blob()
-
-            res.data = await new Promise((resolve, reject) => {
-              const reader = new FileReader()
-              reader.onloadend = () => {
-                resolve(reader.result)
-              }
-              reader.onerror = reject
-              reader.readAsDataURL(blob)
-            })
-          }
-
-          return res
+          } as { minetype?: string; size?: number }
         }
         throw new Error('Field to parse image url')
       } catch (err) {

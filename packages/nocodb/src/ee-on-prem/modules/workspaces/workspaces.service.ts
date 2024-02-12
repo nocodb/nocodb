@@ -1,24 +1,24 @@
 import { WorkspacesService as WorkspacesServiceEE } from 'src/ee/modules/workspaces/workspaces.service';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { LicenseService } from '../../services/license/license.service';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import { TablesService } from '~/services/tables.service';
 import { BasesService } from '~/services/bases.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { LicenseService } from '~/ee-on-prem/services/license/license.service';
 import { NcError } from '~/helpers/catchError';
 import { Workspace } from '~/models';
 
 @Injectable()
 export class WorkspacesService extends WorkspacesServiceEE {
   constructor(
-    private appHooksService: AppHooksService,
-    private configService: ConfigService<AppConfig>,
-    private basesService: BasesService,
-    private tablesService: TablesService,
-    @Inject(forwardRef(() => 'JobsService')) private jobsService,
-    private licenseService: LicenseService,
+    protected appHooksService: AppHooksService,
+    protected configService: ConfigService<AppConfig>,
+    protected basesService: BasesService,
+    protected tablesService: TablesService,
+    @Inject(forwardRef(() => 'JobsService')) protected jobsService,
+    protected licenseService: LicenseService,
   ) {
     super(
       appHooksService,

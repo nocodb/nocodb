@@ -29,6 +29,8 @@ export class LicenseService {
     maxWorkspaces: number;
     maxUsersPerWorkspace: number;
     siteUrl: string;
+    exp: number;
+    iat: number;
   };
 
   async validateLicense(): Promise<void> {
@@ -51,7 +53,7 @@ export class LicenseService {
       return { valid: false, error: 'License key not found' };
     }
     try {
-      const decoded = jwt.verify(licenseKey, publicKey, {
+      const decoded: any = jwt.verify(licenseKey, publicKey, {
         algorithms: ['RS256'],
       });
 
@@ -94,5 +96,12 @@ export class LicenseService {
 
   getSiteUrl() {
     return this.getLicenseData().siteUrl;
+  }
+
+  getExpiry() {
+    return this.getLicenseData().exp;
+  }
+  getIssuedTime() {
+    return this.getLicenseData().iat;
   }
 }

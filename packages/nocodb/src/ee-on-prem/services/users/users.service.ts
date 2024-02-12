@@ -1,16 +1,16 @@
-import { UsersService as UsersServiceCE } from 'src/services/users/users.service';
+import { UsersService as UsersServiceEE } from 'src/ee/services/users/users.service';
 import { Injectable } from '@nestjs/common';
+import { LicenseService } from '../license/license.service';
 import type { NcRequest } from '~/interface/config';
+import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
-import { LicenseService } from '~/services/license/license.service';
 
 @Injectable()
-export class UsersService extends UsersServiceCE {
+export class UsersService extends UsersServiceEE {
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
@@ -18,7 +18,7 @@ export class UsersService extends UsersServiceCE {
     protected baseService: BasesService,
     protected licenseService: LicenseService,
   ) {
-    super(metaService, appHooksService, baseService);
+    super(metaService, appHooksService, workspaceService, baseService);
   }
 
   async registerNewUserIfAllowed({

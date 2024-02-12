@@ -26,8 +26,8 @@ export class LicenseService {
 
   private licenseData: {
     type: 'ENTERPRISE' | 'ENTERPRISE_AIR_GAPPED' | 'ENTERPRISE_TRIAL';
-    maxWorkspaces: number;
-    maxUsersPerWorkspace: number;
+    maxWorkspacesPerUser: number;
+    maxUsers: number;
     siteUrl: string;
     exp: number;
     iat: number;
@@ -101,7 +101,16 @@ export class LicenseService {
   getExpiry() {
     return this.getLicenseData().exp;
   }
+
   getIssuedTime() {
     return this.getLicenseData().iat;
+  }
+
+  getMaxWorkspacePerUser() {
+    return this.getLicenseData().maxWorkspacesPerUser || 1;
+  }
+
+  getMaxUsers() {
+    return this.getLicenseData().maxUsers || 4;
   }
 }

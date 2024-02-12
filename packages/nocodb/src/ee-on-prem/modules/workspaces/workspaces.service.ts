@@ -38,7 +38,10 @@ export class WorkspacesService extends WorkspacesServiceEE {
       fk_user_id: param.user.id,
     });
 
-    if (this.licenseService.isTrial() && userWorkspacesCount > 0) {
+    if (
+      this.licenseService.isTrial() &&
+      userWorkspacesCount >= this.licenseService.getMaxWorkspacePerUser()
+    ) {
       NcError.notAllowed(
         'Trial plan allows only 1 workspace. Please upgrade to create more workspaces.',
       );

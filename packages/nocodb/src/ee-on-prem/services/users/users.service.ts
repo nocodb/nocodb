@@ -42,8 +42,7 @@ export class UsersService extends UsersServiceEE {
   }) {
     if (this.licenseService.isTrial()) {
       const userCount = await User.count();
-      // todo: get count from payload
-      if (userCount >= 3) {
+      if (userCount >= this.licenseService.getMaxUsers()) {
         NcError.notAllowed('Trial limit reached');
       }
     }

@@ -233,7 +233,7 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
   db:
-    image: postgres:latest
+    image: postgres:16.1
     env_file: docker.env
     volumes:
       - ./postgres:/var/lib/postgresql/data
@@ -250,7 +250,7 @@ services:
       - ./nginx:/etc/nginx/conf.d
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
       - webroot:/var/www/certbot
       - ./letsencrypt:/etc/letsencrypt
@@ -266,7 +266,7 @@ cat <<EOF >> docker-compose.yml
     restart: unless-stopped
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
   certbot:
     image: certbot/certbot
@@ -292,7 +292,7 @@ cat <<EOF >> docker-compose.yml
 EOF
 fi
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
 volumes:
   letsencrypt-lib:
@@ -317,7 +317,7 @@ server {
     listen 80;
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 cat >> ./nginx/default.conf <<EOF
     server_name $DOMAIN_NAME;
 EOF
@@ -333,7 +333,7 @@ cat >> ./nginx/default.conf <<EOF
     }
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 cat >> ./nginx/default.conf <<EOF
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -344,7 +344,7 @@ cat >> ./nginx/default.conf <<EOF
 }
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 
 mkdir -p ./nginx-post-config
 
@@ -386,28 +386,37 @@ server {
 EOF
 fi
 
+# Generate the update.sh file for upgrading images
+cat > ./update.sh <<EOF
+docker-compose pull
+docker-compose up -d --force-recreate
+docker image prune -a -f
+EOF
+
+message_arr+=("Update script: update.sh")
+
 # Start the docker-compose setup
-docker-compose up -d
+sudo docker-compose up -d
 
 
 echo 'Waiting for Nginx to start...';
 
 sleep 5
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   echo 'Starting Letsencrypt certificate request...';
 
   # Initial Let's Encrypt certificate request
-  docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
+  sudo docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
 
   # Update the nginx config to use the new certificates
-  rm -rf ./nginx/default.conf
-  mv ./nginx-post-config/default.conf ./nginx/
-  rm -r ./nginx-post-config
+  sudo rm -rf ./nginx/default.conf
+  sudo mv ./nginx-post-config/default.conf ./nginx/
+  sudo rm -r ./nginx-post-config
 
   echo "Restarting nginx to apply the new certificates"
   # Reload nginx to apply the new certificates
-  docker-compose exec nginx nginx -s reload
+  sudo docker-compose exec nginx nginx -s reload
 
 
   message_arr+=("NocoDB is now available at https://$DOMAIN_NAME")

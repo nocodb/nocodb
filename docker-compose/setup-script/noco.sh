@@ -432,9 +432,9 @@ fi
 
 # Generate the update.sh file for upgrading images
 cat > ./update.sh <<EOF
-docker-compose pull
-docker-compose up -d --force-recreate
-docker image prune -a -f
+sudo docker-compose pull
+sudo docker-compose up -d --force-recreate
+sudo docker image prune -a -f
 EOF
 
 message_arr+=("Update script: update.sh")

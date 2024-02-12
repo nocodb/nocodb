@@ -1,10 +1,29 @@
-const imageExt = ['jpeg', 'gif', 'png', 'png', 'svg', 'bmp', 'ico', 'jpg', 'webp']
+const imageExt = [
+  'jpeg',
+  'gif',
+  'png',
+  'png',
+  'svg',
+  'bmp',
+  'ico',
+  'jpg',
+  'webp',
+  'avif',
+  'heif',
+  'heifs',
+  'heic',
+  'heic-sequence',
+]
 
 const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-export { isImage, imageExt }
+const isImageUrl = (url: string) => {
+  return imageExt.some((e) => url?.toLowerCase().endsWith(`.${e}`))
+}
+
+export { isImage, imageExt, isImageUrl }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

@@ -4,6 +4,8 @@ import * as Sentry from '@sentry/vue'
 import { defineNuxtPlugin } from 'nuxt/app'
 
 export default defineNuxtPlugin((nuxtApp) => {
+  if (process.env.NC_ON_PREM === 'true') return
+
   const { vueApp } = nuxtApp
 
   let env = process.env.NODE_ENV === 'production' ? 'production' : 'development'

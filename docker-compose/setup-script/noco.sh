@@ -205,7 +205,6 @@ IMAGE="nocodb/nocodb:latest";
 
 # Determine the Docker image to use based on the edition
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
-  echo "Using the NocoDB Enterprise Edition image"
   IMAGE="nocodb/nocodb-ee:latest"
   DATABASE_URL="DATABASE_URL=postgres://postgres:${ENCODED_PASSWORD}@db:5432/nocodb"
 
@@ -438,6 +437,9 @@ sudo docker image prune -a -f
 EOF
 
 message_arr+=("Update script: update.sh")
+
+# Pull latest images
+sudo docker-compose pull
 
 # Start the docker-compose setup
 sudo docker-compose up -d

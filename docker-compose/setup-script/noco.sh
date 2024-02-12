@@ -352,12 +352,9 @@ cat > ./nginx-post-config/default.conf <<EOF
 server {
     listen 80;
     server_name $DOMAIN_NAME;
+
     location / {
-        proxy_pass http://nocodb:8080;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        return 301 https://\$host\$request_uri;
     }
 
     location /.well-known/acme-challenge/ {

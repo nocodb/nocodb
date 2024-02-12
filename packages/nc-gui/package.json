@@ -156,12 +156,12 @@
     "nuxt": "^3.8.2",
     "nuxt-windicss": "^2.6.1",
     "prettier": "^2.8.8",
-    "sass": "^1.69.7",
-    "ts-loader": "^9.4.4",
-    "unplugin-icons": "^0.14.15",
-    "unplugin-vue-components": "^0.22.12",
+    "sass": "^1.70.0",
+    "ts-loader": "^9.5.1",
+    "unplugin-icons": "^0.18.3",
+    "unplugin-vue-components": "^0.26.0",
     "vite-plugin-monaco-editor": "^1.1.0",
-    "vite-plugin-purge-icons": "^0.9.2",
+    "vite-plugin-purge-icons": "^0.10.0",
     "vitest": "^1.2.2",
     "windicss": "^3.5.6"
   }

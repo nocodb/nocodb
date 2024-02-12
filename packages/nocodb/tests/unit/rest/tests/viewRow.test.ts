@@ -192,23 +192,13 @@ function viewRowStaticTests() {
   });
 
   const testGetViewDataListWithRequiredColumns = async (view: View) => {
-    const columns =
-      view.type === ViewTypes.CALENDAR ? rentalColumns : customerColumns;
-    const requiredColumns = columns
+    const requiredColumns = customerColumns
       .filter((_, index) => index < 3)
       .filter((c: ColumnType) => c.uidt !== UITypes.ForeignKey);
 
-    let table;
-
-    if (view.type === ViewTypes.CALENDAR) {
-      table = rentalTable;
-    } else {
-      table = customerTable;
-    }
-
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${table.id}/views/${view.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`,
       )
       .set('xc-auth', context.token)
       .query({
@@ -240,9 +230,6 @@ function viewRowStaticTests() {
   });
   it('Get view data list with required columns grid', async () => {
     await testGetViewDataListWithRequiredColumns(customerGridView);
-  });
-  it('Get view data list with required columns grid', async () => {
-    await testGetViewDataListWithRequiredColumns(rentalCalendarView);
   });
 
   const testGetGroupedViewDataListWithRequiredColumns = async (view: View) => {

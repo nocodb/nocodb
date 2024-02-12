@@ -16,6 +16,8 @@ const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
+const meta = inject(MetaInj, ref())
+
 const { t } = useI18n()
 
 const {
@@ -250,6 +252,24 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
   }
 })
 
+const newRecord = () => {
+  const row = {
+    ...rowDefaultData(meta.value?.columns),
+  }
+
+  if (activeCalendarView.value === 'day') {
+    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ')
+  } else if (activeCalendarView.value === 'week') {
+    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDateRange.value.start.format('YYYY-MM-DD HH:mm:ssZ')
+  } else if (activeCalendarView.value === 'month') {
+    row[calendarRange.value[0]!.fk_from_col!.title!] = (selectedDate.value ?? selectedMonth.value).format('YYYY-MM-DD HH:mm:ssZ')
+  } else if (activeCalendarView.value === 'year') {
+    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ')
+  }
+
+  emit('new-record', { row, oldRow: {}, rowMeta: { new: true } })
+}
+
 const height = ref(0)
 
 const heightListener = () => {
@@ -353,7 +373,7 @@ onUnmounted(() => {
           class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
           data-testid="nc-calendar-side-menu-new-btn"
           type="secondary"
-          @click="emit('new-record', { row: {} })"
+          @click="newRecord"
         >
           <div class="px-4 flex items-center gap-2 justify-center">
             <component :is="iconMap.plus" class="h-6 w-6 text-lg text-brand-500" />

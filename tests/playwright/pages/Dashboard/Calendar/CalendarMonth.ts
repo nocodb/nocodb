@@ -1,4 +1,3 @@
-import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { CalendarPage } from './index';
 

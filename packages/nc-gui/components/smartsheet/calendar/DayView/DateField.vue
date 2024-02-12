@@ -184,7 +184,7 @@ const dropEvent = (event: DragEvent) => {
       :style="record.rowMeta.style"
       class="absolute mt-2"
       @mouseleave="hoverRecord = null"
-      @mouseover="hoverRecord = record.rowMeta.id"
+      @mouseover="hoverRecord = record.rowMeta.id as string"
     >
       <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard

@@ -566,7 +566,8 @@ const viewMore = (hour: dayjs.Dayjs) => {
   <div
     v-if="recordsAcrossAllRange.record.length"
     ref="container"
-    class="w-full relative nc-calendar-day-view no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    data-testid="nc-calendar-day-view"
   >
     <div
       v-for="(hour, index) in hours"
@@ -575,6 +576,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
         '!border-brand-500': hour.isSame(selectedTime),
       }"
       class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+      data-testid="nc-calendar-day-hour"
       @click="selectedTime = hour"
     >
       <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
@@ -681,6 +683,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
         <div
           v-for="(record, rowIndex) in recordsAcrossAllRange.record"
           :key="rowIndex"
+          :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
           :data-unique-id="record.rowMeta.id"
           :style="record.rowMeta.style"
           class="absolute draggable-record group cursor-pointer pointer-events-auto"

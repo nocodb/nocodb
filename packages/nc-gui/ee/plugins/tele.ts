@@ -86,6 +86,10 @@ class EventBatcher {
   )
 
   private batchProcessor = async (events: any[]) => {
+    if (process.env.NC_ON_PREM === 'true') {
+      return
+    }
+
     if (!this.nuxtApp.$state.signedIn.value) return
     await this.nuxtApp.$api.instance.post('/api/v1/tele', {
       events,
@@ -96,10 +100,6 @@ class EventBatcher {
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
-  if (process.env.NC_ON_PREM === 'true') {
-    return
-  }
-
   const eventBatcher = new EventBatcher(nuxtApp)
 
   const router = useRouter()

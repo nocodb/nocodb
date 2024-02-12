@@ -606,6 +606,7 @@ const dropEvent = (event: DragEvent) => {
       <div
         v-for="(record, id) in calendarData"
         :key="id"
+        :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
         :data-unique-id="record.rowMeta.id"
         :style="{
           ...record.rowMeta.style,
@@ -614,8 +615,7 @@ const dropEvent = (event: DragEvent) => {
               ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
               : 'none',
         }"
-        class="absolute group draggable-record pointer-events-auto"
-        data-testid="nc-calendar-week-record-card"
+        class="absolute group draggable-record pointer-events-auto nc-calendar-week-record-card"
         @mousedown="dragStart($event, record)"
         @mouseleave="hoverRecord = null"
         @mouseover="hoverRecord = record.rowMeta.id"

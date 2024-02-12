@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
@@ -44,6 +44,23 @@ const dateRecords = [
 test.describe('View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage, calendarTopbar: CalendarTopbarPage;
   let context: any;
+
+  async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage }) {
+    const isMac = await dashboard.grid.isMacOs();
+
+    if (validateResponse) {
+      await dashboard.grid.waitForResponse({
+        uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+        httpMethodsToMatch: ['PATCH'],
+        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      });
+    } else {
+      await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
+
+      // allow time for undo to complete rendering
+      await page.waitForTimeout(500);
+    }
+  }
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
@@ -255,7 +272,7 @@ test.describe('View', () => {
     await dashboard.viewSidebar.deleteView({ title: 'Calendar' });
   });
 
-  test('Calendar Drag and Drop & Undo Redo Operations', async () => {
+  test.only('Calendar Drag and Drop & Undo Redo Operations', async () => {
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
     });
@@ -388,6 +405,7 @@ test.describe('View', () => {
       title: 'StartDate',
       type: 'Date',
       dateFormat: 'YYYY-MM-DD',
+      selectType: true,
     });
 
     await dashboard.grid.column.save({ isUpdated: true });
@@ -432,5 +450,18 @@ test.describe('View', () => {
     await calendar.calendarWeekDate.selectDay({ dayIndex: 1 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
+
+    await calendar.calendarWeekDate.dragAndDrop({
+      record: 'Team Catchup',
+      dayIndex: 2,
+    });
+
+    await calendar.calendarWeekDate.selectDay({ dayIndex: 3 });
+
+    await calendar.calendarWeekDate.selectDay({ dayIndex: 2 });
+
+    await calendar.sideMenu.updateFilter({ filter: 'In selected date' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
   });
 });

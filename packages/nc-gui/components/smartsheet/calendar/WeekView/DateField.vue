@@ -595,7 +595,8 @@ const dropEvent = (event: DragEvent) => {
           '!border-1 !border-t-0 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
         }"
         class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
-        @click="selectedDate = date"
+        data-testid="nc-calendar-week-day"
+        @click="selectedDate = dayjs(date)"
       ></div>
     </div>
     <div
@@ -605,7 +606,6 @@ const dropEvent = (event: DragEvent) => {
       <div
         v-for="(record, id) in calendarData"
         :key="id"
-        :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
         :data-unique-id="record.rowMeta.id"
         :style="{
           ...record.rowMeta.style,
@@ -615,6 +615,7 @@ const dropEvent = (event: DragEvent) => {
               : 'none',
         }"
         class="absolute group draggable-record pointer-events-auto"
+        data-testid="nc-calendar-week-record-card"
         @mousedown="dragStart($event, record)"
         @mouseleave="hoverRecord = null"
         @mouseover="hoverRecord = record.rowMeta.id"

@@ -339,6 +339,7 @@ onUnmounted(() => {
             '!border-brand-500': searchQuery.value.length > 0,
           }"
           class="!rounded-lg !h-8 !border-gray-200 !px-4"
+          data-testid="nc-calendar-sidebar-search"
           placeholder="Search records"
         >
           <template #prefix>

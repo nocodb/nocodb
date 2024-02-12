@@ -175,14 +175,15 @@ const dropEvent = (event: DragEvent) => {
     v-if="recordsAcrossAllRange.length"
     ref="container"
     class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    data-testid="nc-calendar-day-view"
     @drop="dropEvent"
   >
     <div
       v-for="(record, rowIndex) in recordsAcrossAllRange"
       :key="rowIndex"
-      :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
       :style="record.rowMeta.style"
       class="absolute mt-2"
+      data-testid="nc-calendar-day-record-card"
       @mouseleave="hoverRecord = null"
       @mouseover="hoverRecord = record.rowMeta.id as string"
     >

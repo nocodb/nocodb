@@ -20,13 +20,19 @@ export class CalendarMonthPage extends BasePage {
   async dragAndDrop({ record, to }: { record: string; to: { rowIndex: number; columnIndex: number } }) {
     const recordContainer = this.getRecordContainer();
     const recordCard = recordContainer.getByTestId(`nc-calendar-month-record-${record}`);
-    const toDay = this.get().getByTestId('nc-calendar-month-day').nth(to.columnIndex).nth(to.rowIndex);
+    const toDay = this.get()
+      .getByTestId('nc-calendar-month-week')
+      .nth(to.rowIndex)
+      .getByTestId('nc-calendar-month-day')
+      .nth(to.columnIndex);
     const cord = await toDay.boundingBox();
 
     await recordCard.hover();
-    await this.rootPage.mouse.down({ button: 'right' });
+    await this.rootPage.mouse.down();
 
-    await this.rootPage.mouse.move(cord.x + cord.width / 2, cord.y + cord.height / 2);
+    await this.rootPage.waitForTimeout(500);
+
+    await this.rootPage.mouse.move(cord.x + cord.width / 2, cord.y + cord.height / 2, { steps: 10 });
     await this.rootPage.mouse.up();
   }
 

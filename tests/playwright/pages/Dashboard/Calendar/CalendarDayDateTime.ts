@@ -23,9 +23,21 @@ export class CalendarDayDateTimePage extends BasePage {
     const toDay = this.get().getByTestId('nc-calendar-day-hour').nth(hourIndex);
     const cord = await toDay.boundingBox();
 
+    await recordCard.scrollIntoViewIfNeeded();
     await recordCard.hover();
-    await this.rootPage.mouse.down({ button: 'right' });
+    await this.rootPage.mouse.down();
+    await this.rootPage.waitForTimeout(500);
+
+    await toDay.scrollIntoViewIfNeeded();
+
+    // Bit Flaky
+    await this.rootPage.waitForTimeout(500);
+
     await this.rootPage.mouse.move(cord.x + cord.width / 2, cord.y + cord.height / 2);
+
+    // Bit Flaky
+    await this.rootPage.waitForTimeout(500);
+
     await this.rootPage.mouse.up();
   }
 

@@ -9,6 +9,8 @@ import { CalendarMonthPage } from './CalendarMonth';
 import { CalendarYearPage } from './CalendarYear';
 import { CalendarDayDateTimePage } from './CalendarDayDateTime';
 import { CalendarWeekDateTimePage } from './CalendarWeekDateTime';
+import { CalendarDayDatePage } from './CalendarDayDate';
+import { CalendarWeekDatePage } from './CalendarWeekDate';
 
 export class CalendarPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -20,6 +22,8 @@ export class CalendarPage extends BasePage {
   readonly calendarYear: CalendarYearPage;
   readonly calendarDayDateTime: CalendarDayDateTimePage;
   readonly calendarWeekDateTime: CalendarWeekDateTimePage;
+  readonly calendarDayDate: CalendarDayDatePage;
+  readonly calendarWeekDate: CalendarWeekDatePage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -32,6 +36,8 @@ export class CalendarPage extends BasePage {
     this.calendarYear = new CalendarYearPage(this);
     this.calendarDayDateTime = new CalendarDayDateTimePage(this);
     this.calendarWeekDateTime = new CalendarWeekDateTimePage(this);
+    this.calendarDayDate = new CalendarDayDatePage(this);
+    this.calendarWeekDate = new CalendarWeekDatePage(this);
   }
 
   get() {

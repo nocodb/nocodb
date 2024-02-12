@@ -602,57 +602,72 @@ const {
         return true
       }
     } else if (e.key === 'Tab') {
-      if (activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
+      if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0 && !paginationDataRef.value?.isFirstPage) {
         e.preventDefault()
         editEnabled.value = false
+        resetSelectedRange()
+        await changePage?.(paginationDataRef.value?.page! - 1)
+        await nextTick()
+        makeActive((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1)
+
+        return true
+      } else if (!e.shiftKey && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
+        e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
           addEmptyRow()
-          activeCell.row = dataRef.value.length - 1
-          activeCell.col = 0
+
           resetSelectedRange()
 
           await nextTick()
+          makeActive(dataRef.value.length - 1, 0)
           ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
             behavior: 'smooth',
           })
 
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
-          await changePageWithLoading(paginationDataRef.value?.page! + 1)
+          await changePage?.(paginationDataRef.value?.page! + 1)
 
           await nextTick()
 
-          activeCell.row = 0
-          activeCell.col = 0
-
+          makeActive(0, 0)
           return true
         }
       }
-    } else if (e.key === 'ArrowDown') {
+    } else if (!e.shiftKey && e.key === 'ArrowUp') {
+      if (activeCell.row === 0 && !paginationDataRef.value?.isFirstPage) {
+        e.preventDefault()
+
+        await changePage?.(paginationDataRef.value?.page! - 1)
+
+        await nextTick()
+
+        makeActive((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!)
+
+        return true
+      }
+    } else if (!e.shiftKey && e.key === 'ArrowDown') {
       if (activeCell.row === dataRef.value.length - 1) {
         e.preventDefault()
-        editEnabled.value = false
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
           addEmptyRow()
-          activeCell.row = dataRef.value.length - 1
-          activeCell.col = 0
           resetSelectedRange()
 
-          await nextTick()
+          makeActive(dataRef.value.length - 1, activeCell.col!)
+
+          // await nextTick()
           ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
             behavior: 'smooth',
           })
-
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
-          await changePageWithLoading(paginationDataRef.value?.page! + 1)
+          await changePage?.(paginationDataRef.value?.page! + 1)
 
           await nextTick()
 
-          activeCell.row = 0
-          activeCell.col = activeCell.col
+          makeActive(0, activeCell.col!)
 
           return true
         }

@@ -84,15 +84,15 @@ const submitCurrency = () => {
 }
 
 const onBlur = () => {
-  // triggered by events like forcus-out / pressing enter
+  // triggered by events like focus-out / pressing enter
   // for non-firefox browsers only
   submitCurrency()
 }
 
 const onKeydownEnter = () => {
-  // for firefox, onBlur is never executed
+  // onBlur is never executed for firefox & safari
   // we use keydown.enter to trigger submitCurrency
-  if (/Firefox/.test(navigator.userAgent)) {
+  if (/(Firefox|Safari)/.test(navigator.userAgent)) {
     submitCurrency()
   }
 }

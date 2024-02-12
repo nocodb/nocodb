@@ -42,11 +42,11 @@ command_exists() {
 
 # install package based on platform
 install_package() {
-  if command_exist yum; then
+  if command_exists yum; then
     sudo yum install -y "$1"
-  elif command_exist apt; then
+  elif command_exists apt; then
     sudo apt install -y "$1"
-  elif command_exist brew; then
+  elif command_exists brew; then
     brew install "$1"
   else
     echo "Package manager not found. Please install $1 manually."
@@ -70,7 +70,7 @@ REQUIRED_PORTS=(80 443)
 echo "** Performing nocodb system check and setup. This step may require sudo permissions"
 
 # pre install wget if not found
-if ! command_exist wget; then
+if ! command_exists wget; then
   echo "wget is not installed. Setting up for installation..."
   install_package wget
 fi
@@ -78,7 +78,7 @@ fi
 # d. Check if required tools are installed
 echo " | Checking if required tools (docker, docker-compose, lsof) are installed..."
 for tool in docker docker-compose lsof; do
-  if ! command_exist "$tool"; then
+  if ! command_exists "$tool"; then
     echo "$tool is not installed. Setting up for installation..."
     if [ "$tool" = "docker-compose" ]; then
       sudo -E curl -L https://github.com/docker/compose/releases/download/1.29.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose

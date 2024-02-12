@@ -35,6 +35,24 @@ print_box_message() {
     echo "$edge"
 }
 
+# check command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# install package based on platform
+install_package() {
+  if command_exist yum; then
+    sudo yum install -y "$1"
+  elif command_exist apt; then
+    sudo apt install -y "$1"
+  elif command_exist brew; then
+    brew install "$1"
+  else
+    echo "Package manager not found. Please install $1 manually."
+  fi
+}
+
 # *****************    HELPER FUNCTIONS END  ***********************************
 # ******************************************************************************
 
@@ -50,14 +68,26 @@ print_box_message() {
 REQUIRED_PORTS=(80 443)
 
 echo "** Performing nocodb system check and setup. This step may require sudo permissions"
-PRE_REQ=0
+
+# pre install wget if not found
+if ! command_exist wget; then
+  echo "wget is not installed. Setting up for installation..."
+  install_package wget
+fi
 
 # d. Check if required tools are installed
-echo " | Checking if required tools (docker, docker-compose, jq, lsof) are installed..."
+echo " | Checking if required tools (docker, docker-compose, lsof) are installed..."
 for tool in docker docker-compose lsof; do
-  if ! command -v "$tool" &> /dev/null; then
-    echo " | Error: $tool is not installed. Please install it before proceeding."
-    PRE_REQ=1
+  if ! command_exist "$tool"; then
+    echo "$tool is not installed. Setting up for installation..."
+    if [ "$tool" = "docker-compose" ]; then
+      sudo -E curl -L https://github.com/docker/compose/releases/download/1.29.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+    elif [ "$tool" = "docker" ]; then
+      wget -qO- https://get.docker.com/ | sh
+    elif [ "$tool" = "lsof" ]; then
+         install_package lsof
+    fi
   fi
 done
 
@@ -72,7 +102,6 @@ echo " | Checking port accessibility..."
 for port in "${REQUIRED_PORTS[@]}"; do
   if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null; then
     echo " | WARNING: Port $port is in use. Please make sure it is free." >&2
-    PRE_REQ=1
   else
     echo " | Port $port is free."
   fi
@@ -83,6 +112,9 @@ echo "** System check completed successfully. **"
 
 # Define an array to store the messages to be printed at the end
 message_arr=()
+
+# extract public ip address
+PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 # generate a folder for the docker-compose file which is not existing and do the setup within the folder
 # Define the folder name
@@ -130,11 +162,11 @@ if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y"
     fi
     message_arr+=("Domain: $DOMAIN_NAME")
 else
-#  prompt for ip address and if left empty use localhost
-    echo "Enter the IP address or domain name for the NocoDB instance (default: localhost): "
+    #  prompt for ip address and if left empty use extracted public ip
+    echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
     read DOMAIN_NAME
     if [ -z "$DOMAIN_NAME" ]; then
-        DOMAIN_NAME="localhost"
+        DOMAIN_NAME="$PUBLIC_IP"
     fi
 fi
 
@@ -208,6 +240,11 @@ services:
     volumes:
       - ./postgres:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test: "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
+      timeout: 2s
 
   nginx:
     image: nginx:latest

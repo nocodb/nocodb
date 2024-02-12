@@ -16,7 +16,8 @@ export class UtilsService extends UtilsServiceEE {
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const result: any = await super.appInfo(param);
 
-    result.baseUrl = this.licenseService.getLicenseData()?.siteUrl;
+    result.baseUrl = this.licenseService.getSiteUrl();
+    result.isTrial = this.licenseService.isTrial();
 
     return result;
   }

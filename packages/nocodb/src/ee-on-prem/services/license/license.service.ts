@@ -55,16 +55,10 @@ export class LicenseService {
         algorithms: ['RS256'],
       });
 
-      // todo: do any additional checks here
-
-      // if (decoded?.type === 'ENTERPRISE_TRIAL') {
-      //   const now = new Date();
-      //   const exp = new Date(decoded.exp * 1000);
-      //   if (now > exp) {
-      //     this.logger.error('Trial expired');
-      //     process.exit(1);
-      //   }
-      // }
+      // if any of the properties are missing, throw an error
+      if (!decoded || !decoded.type || !decoded.siteUrl) {
+        throw new Error('Invalid license key');
+      }
 
       return { valid: true, data: decoded };
     } catch (error) {
@@ -87,6 +81,18 @@ export class LicenseService {
   }
 
   getLicenseData() {
+    if (!this.licenseData) {
+      throw new Error('License not foundO');
+    }
+
     return this.licenseData;
+  }
+
+  isTrial() {
+    return this.getLicenseData().type === 'ENTERPRISE_TRIAL';
+  }
+
+  getSiteUrl() {
+    return this.getLicenseData().siteUrl;
   }
 }

@@ -35,6 +35,24 @@ print_box_message() {
     echo "$edge"
 }
 
+# check command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# install package based on platform
+install_package() {
+  if command_exists yum; then
+    sudo yum install -y "$1"
+  elif command_exists apt; then
+    sudo apt install -y "$1"
+  elif command_exists brew; then
+    brew install "$1"
+  else
+    echo "Package manager not found. Please install $1 manually."
+  fi
+}
+
 # *****************    HELPER FUNCTIONS END  ***********************************
 # ******************************************************************************
 
@@ -50,14 +68,26 @@ print_box_message() {
 REQUIRED_PORTS=(80 443)
 
 echo "** Performing nocodb system check and setup. This step may require sudo permissions"
-PRE_REQ=0
+
+# pre install wget if not found
+if ! command_exists wget; then
+  echo "wget is not installed. Setting up for installation..."
+  install_package wget
+fi
 
 # d. Check if required tools are installed
-echo " | Checking if required tools (docker, docker-compose, jq, lsof) are installed..."
-for tool in docker docker-compose lsof; do
-  if ! command -v "$tool" &> /dev/null; then
-    echo " | Error: $tool is not installed. Please install it before proceeding."
-    PRE_REQ=1
+echo " | Checking if required tools (docker, docker-compose, lsof) are installed..."
+for tool in docker docker-compose lsof openssl; do
+  if ! command_exists "$tool"; then
+    echo "$tool is not installed. Setting up for installation..."
+    if [ "$tool" = "docker-compose" ]; then
+      sudo -E curl -L https://github.com/docker/compose/releases/download/1.29.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+    elif [ "$tool" = "docker" ]; then
+      wget -qO- https://get.docker.com/ | sh
+    elif [ "$tool" = "lsof" ]; then
+         install_package lsof
+    fi
   fi
 done
 
@@ -72,7 +102,6 @@ echo " | Checking port accessibility..."
 for port in "${REQUIRED_PORTS[@]}"; do
   if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null; then
     echo " | WARNING: Port $port is in use. Please make sure it is free." >&2
-    PRE_REQ=1
   else
     echo " | Port $port is free."
   fi
@@ -83,6 +112,9 @@ echo "** System check completed successfully. **"
 
 # Define an array to store the messages to be printed at the end
 message_arr=()
+
+# extract public ip address
+PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
 # generate a folder for the docker-compose file which is not existing and do the setup within the folder
 # Define the folder name
@@ -130,11 +162,11 @@ if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y"
     fi
     message_arr+=("Domain: $DOMAIN_NAME")
 else
-#  prompt for ip address and if left empty use localhost
-    echo "Enter the IP address or domain name for the NocoDB instance (default: localhost): "
+    #  prompt for ip address and if left empty use extracted public ip
+    echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
     read DOMAIN_NAME
     if [ -z "$DOMAIN_NAME" ]; then
-        DOMAIN_NAME="localhost"
+        DOMAIN_NAME="$PUBLIC_IP"
     fi
 fi
 
@@ -166,8 +198,6 @@ fi
 # *************************** SETUP START  *************************************
 
 # Generate a strong random password for PostgreSQL
-#STRONG_PASSWORD=$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 20)
-#STRONG_PASSWORD=$(openssl rand -base64 32)
 STRONG_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9!@#$%^&*()-_+=' | head -c 32)
 # Encode special characters in the password for JDBC URL usage
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")
@@ -203,11 +233,16 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
   db:
-    image: postgres:latest
+    image: postgres:16.1
     env_file: docker.env
     volumes:
       - ./postgres:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test: "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
+      timeout: 2s
 
   nginx:
     image: nginx:latest
@@ -215,7 +250,7 @@ services:
       - ./nginx:/etc/nginx/conf.d
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
       - webroot:/var/www/certbot
       - ./letsencrypt:/etc/letsencrypt
@@ -231,7 +266,7 @@ cat <<EOF >> docker-compose.yml
     restart: unless-stopped
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
   certbot:
     image: certbot/certbot
@@ -257,7 +292,7 @@ cat <<EOF >> docker-compose.yml
 EOF
 fi
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
 volumes:
   letsencrypt-lib:
@@ -282,7 +317,7 @@ server {
     listen 80;
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 cat >> ./nginx/default.conf <<EOF
     server_name $DOMAIN_NAME;
 EOF
@@ -298,7 +333,7 @@ cat >> ./nginx/default.conf <<EOF
     }
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 cat >> ./nginx/default.conf <<EOF
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -309,7 +344,7 @@ cat >> ./nginx/default.conf <<EOF
 }
 EOF
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 
 mkdir -p ./nginx-post-config
 
@@ -351,28 +386,37 @@ server {
 EOF
 fi
 
+# Generate the update.sh file for upgrading images
+cat > ./update.sh <<EOF
+docker-compose pull
+docker-compose up -d --force-recreate
+docker image prune -a -f
+EOF
+
+message_arr+=("Update script: update.sh")
+
 # Start the docker-compose setup
-docker-compose up -d
+sudo docker-compose up -d
 
 
 echo 'Waiting for Nginx to start...';
 
 sleep 5
 
-if [ "$SSL_ENABLED" = 'y' ]; then
+if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   echo 'Starting Letsencrypt certificate request...';
 
   # Initial Let's Encrypt certificate request
-  docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
+  sudo docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
 
   # Update the nginx config to use the new certificates
-  rm -rf ./nginx/default.conf
-  mv ./nginx-post-config/default.conf ./nginx/
-  rm -r ./nginx-post-config
+  sudo rm -rf ./nginx/default.conf
+  sudo mv ./nginx-post-config/default.conf ./nginx/
+  sudo rm -r ./nginx-post-config
 
   echo "Restarting nginx to apply the new certificates"
   # Reload nginx to apply the new certificates
-  docker-compose exec nginx nginx -s reload
+  sudo docker-compose exec nginx nginx -s reload
 
 
   message_arr+=("NocoDB is now available at https://$DOMAIN_NAME")

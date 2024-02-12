@@ -77,7 +77,7 @@ fi
 
 # d. Check if required tools are installed
 echo " | Checking if required tools (docker, docker-compose, lsof) are installed..."
-for tool in docker docker-compose lsof; do
+for tool in docker docker-compose lsof openssl; do
   if ! command_exists "$tool"; then
     echo "$tool is not installed. Setting up for installation..."
     if [ "$tool" = "docker-compose" ]; then
@@ -198,8 +198,6 @@ fi
 # *************************** SETUP START  *************************************
 
 # Generate a strong random password for PostgreSQL
-#STRONG_PASSWORD=$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 20)
-#STRONG_PASSWORD=$(openssl rand -base64 32)
 STRONG_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9!@#$%^&*()-_+=' | head -c 32)
 # Encode special characters in the password for JDBC URL usage
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")

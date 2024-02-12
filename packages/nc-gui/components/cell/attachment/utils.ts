@@ -13,7 +13,6 @@ import {
   extractImageSrcFromRawHtml,
   inject,
   isImage,
-  isImageUrl,
   message,
   parseProp,
   ref,
@@ -332,7 +331,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               mimetype: response.headers.get('content-type') || undefined,
               size: +(response.headers.get('content-length') || 0) || undefined,
             } as { minetype?: string; size?: number }
-          } else if (isImageUrl(imageUrl)) {
+          } else if (imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase().length) {
             return {
               mimetype: `image/${imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase()}`,
               size: +(response.headers.get('content-length') || 0) || undefined,

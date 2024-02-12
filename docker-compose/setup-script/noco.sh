@@ -177,7 +177,6 @@ if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; the
         echo "License key is required for Enterprise Edition installation"
         exit 1
     fi
-    message_arr+=("License key: $LICENSE_KEY")
 fi
 
 echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "

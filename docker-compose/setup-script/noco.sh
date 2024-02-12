@@ -410,9 +410,9 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   sudo docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
 
   # Update the nginx config to use the new certificates
-  sudo rm -rf ./nginx/default.conf
-  sudo mv ./nginx-post-config/default.conf ./nginx/
-  sudo rm -r ./nginx-post-config
+  rm -rf ./nginx/default.conf
+  mv ./nginx-post-config/default.conf ./nginx/
+  rm -r ./nginx-post-config
 
   echo "Restarting nginx to apply the new certificates"
   # Reload nginx to apply the new certificates

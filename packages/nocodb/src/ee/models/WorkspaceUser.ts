@@ -383,7 +383,6 @@ export default class WorkspaceUser {
 
     // delete cache
     await NocoCache.deepDel(
-      CacheScope.WORKSPACE_USER,
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

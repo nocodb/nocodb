@@ -238,7 +238,6 @@ export default class Hook implements HookType {
     );
     for (const filter of filterList) {
       await NocoCache.deepDel(
-        CacheScope.FILTER_EXP,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -246,7 +245,6 @@ export default class Hook implements HookType {
     }
     // Delete Hook
     await NocoCache.deepDel(
-      CacheScope.HOOK,
       `${CacheScope.HOOK}:${hookId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

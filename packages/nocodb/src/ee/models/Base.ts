@@ -250,7 +250,6 @@ export default class Base extends BaseCE {
     }
 
     await NocoCache.deepDel(
-      CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -298,7 +297,6 @@ export default class Base extends BaseCE {
 
     // remove item in cache list
     await NocoCache.deepDel(
-      CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

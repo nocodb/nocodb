@@ -481,7 +481,6 @@ export default class Column<T = any> implements ColumnType {
 
   public static async clearList({ fk_model_id }) {
     await NocoCache.deepDel(
-      CacheScope.COLUMN,
       `${CacheScope.COLUMN}:${fk_model_id}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -822,7 +821,6 @@ export default class Column<T = any> implements ColumnType {
         fk_column_id: col.id,
       });
       await NocoCache.deepDel(
-        cacheScopeName,
         `${cacheScopeName}:${col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -838,7 +836,6 @@ export default class Column<T = any> implements ColumnType {
     );
     if (gridViewColumnId) {
       await NocoCache.deepDel(
-        CacheScope.GRID_VIEW_COLUMN,
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -854,7 +851,6 @@ export default class Column<T = any> implements ColumnType {
     );
     if (formViewColumnId) {
       await NocoCache.deepDel(
-        CacheScope.FORM_VIEW_COLUMN,
         `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -870,7 +866,6 @@ export default class Column<T = any> implements ColumnType {
     );
     if (kanbanViewColumnId) {
       await NocoCache.deepDel(
-        CacheScope.KANBAN_VIEW_COLUMN,
         `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -886,7 +881,6 @@ export default class Column<T = any> implements ColumnType {
     );
     if (galleryViewColumnId) {
       await NocoCache.deepDel(
-        CacheScope.GALLERY_VIEW_COLUMN,
         `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -917,7 +911,6 @@ export default class Column<T = any> implements ColumnType {
     // Columns
     await ncMeta.metaDelete(null, null, MetaTable.COLUMNS, col.id);
     await NocoCache.deepDel(
-      CacheScope.COLUMN,
       `${CacheScope.COLUMN}:${col.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -944,7 +937,6 @@ export default class Column<T = any> implements ColumnType {
           fk_column_id: colId,
         });
         await NocoCache.deepDel(
-          CacheScope.COL_LOOKUP,
           `${CacheScope.COL_LOOKUP}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -955,7 +947,6 @@ export default class Column<T = any> implements ColumnType {
           fk_column_id: colId,
         });
         await NocoCache.deepDel(
-          CacheScope.COL_ROLLUP,
           `${CacheScope.COL_ROLLUP}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -967,7 +958,6 @@ export default class Column<T = any> implements ColumnType {
           fk_column_id: colId,
         });
         await NocoCache.deepDel(
-          CacheScope.COL_RELATION,
           `${CacheScope.COL_RELATION}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -979,7 +969,6 @@ export default class Column<T = any> implements ColumnType {
         });
 
         await NocoCache.deepDel(
-          CacheScope.COL_FORMULA,
           `${CacheScope.COL_FORMULA}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -991,7 +980,6 @@ export default class Column<T = any> implements ColumnType {
         });
 
         await NocoCache.deepDel(
-          CacheScope.COL_QRCODE,
           `${CacheScope.COL_QRCODE}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -1004,7 +992,6 @@ export default class Column<T = any> implements ColumnType {
         });
 
         await NocoCache.deepDel(
-          CacheScope.COL_BARCODE,
           `${CacheScope.COL_BARCODE}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -1018,7 +1005,6 @@ export default class Column<T = any> implements ColumnType {
         });
 
         await NocoCache.deepDel(
-          CacheScope.COL_SELECT_OPTION,
           `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
           CacheDelDirection.PARENT_TO_CHILD,
         );

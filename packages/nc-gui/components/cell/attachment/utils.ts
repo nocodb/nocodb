@@ -330,12 +330,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             return {
               mimetype: response.headers.get('content-type') || undefined,
               size: +(response.headers.get('content-length') || 0) || undefined,
-            } as { minetype?: string; size?: number }
+            } as { mimetype?: string; size?: number }
           } else if (imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase().length) {
             return {
               mimetype: `image/${imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase()}`,
               size: +(response.headers.get('content-length') || 0) || undefined,
-            } as { minetype?: string; size?: number }
+            } as { mimetype?: string; size?: number }
           }
         }
       } catch (err) {

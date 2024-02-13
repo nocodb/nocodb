@@ -349,9 +349,10 @@ export default abstract class CacheMgr {
     // timestamp for list
     const timestamp = Date.now();
 
-    // fetch existing list
-    const listOfGetKeys =
-      (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
+    // remove existing list
+    await this.deepDel(listKey, CacheDelDirection.PARENT_TO_CHILD);
+    const listOfGetKeys = [];
+
     for (const o of list) {
       // construct key for Get
       let getKey = `${this.prefix}:${scope}:${o.id}`;

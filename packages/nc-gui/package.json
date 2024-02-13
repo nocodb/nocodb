@@ -27,7 +27,7 @@
     "generate": "nuxt generate",
     "generate:ee": "EE=true nuxt generate ./ee",
     "start": "node .output/server/index.mjs",
-    "start:ee": "EE=true node ee/.output/server/index.mjs ",
+    "start:ee": "EE=true node ee/.output/server/index.mjs",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "test": "vitest -c test/vite.config.ts",
     "test:ui": "vitest -c test/vite.config.ts --ui",

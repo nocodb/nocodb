@@ -208,7 +208,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
   gridWrapper,
 })
 
-const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
+const { onLeft, onRight, onUp, onDown, changePageWithLoading } = usePaginationShortcuts({
   paginationDataRef,
   changePage: changePage as any,
 })
@@ -558,7 +558,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
-  (e: KeyboardEvent) => {
+  async (e: KeyboardEvent) => {
     // ignore navigating if picker(Date, Time, DateTime, Year)
     // or single/multi select options is open
     const activePickerOrDropdownEl = document.querySelector(
@@ -600,6 +600,62 @@ const {
       if (editEnabled.value) {
         editEnabled.value = false
         return true
+      }
+    } else if (e.key === 'Tab') {
+      if (activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
+        e.preventDefault()
+        editEnabled.value = false
+
+        if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          addEmptyRow()
+          activeCell.row = dataRef.value.length - 1
+          activeCell.col = 0
+          resetSelectedRange()
+
+          await nextTick()
+          ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+            behavior: 'smooth',
+          })
+
+          return true
+        } else if (!paginationDataRef.value?.isLastPage) {
+          await changePageWithLoading(paginationDataRef.value?.page! + 1)
+
+          await nextTick()
+
+          activeCell.row = 0
+          activeCell.col = 0
+
+          return true
+        }
+      }
+    } else if (e.key === 'ArrowDown') {
+      if (activeCell.row === dataRef.value.length - 1) {
+        e.preventDefault()
+        editEnabled.value = false
+
+        if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          addEmptyRow()
+          activeCell.row = dataRef.value.length - 1
+          activeCell.col = 0
+          resetSelectedRange()
+
+          await nextTick()
+          ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+            behavior: 'smooth',
+          })
+
+          return true
+        } else if (!paginationDataRef.value?.isLastPage) {
+          await changePageWithLoading(paginationDataRef.value?.page! + 1)
+
+          await nextTick()
+
+          activeCell.row = 0
+          activeCell.col = activeCell.col
+
+          return true
+        }
       }
     }
 

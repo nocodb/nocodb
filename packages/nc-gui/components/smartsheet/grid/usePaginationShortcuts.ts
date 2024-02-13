@@ -75,6 +75,7 @@ const usePaginationShortcuts = ({
     onRight,
     onUp,
     onDown,
+    changePageWithLoading,
   }
 }
 

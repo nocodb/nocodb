@@ -19,7 +19,7 @@ const trialPercentage = computed(() => {
 
   const timeDiff = trialEndDate - today.getTime()
   const timeDiffTotal = trialEndDate.getTime() - trialStartDate.getTime()
-  return Math.ceil((timeDiff / timeDiffTotal) * 100)
+  return Math.max(0, Math.min(100, Math.ceil((timeDiff / timeDiffTotal) * 100)))
 })
 
 // color of the progress bar based on the percentage
@@ -44,7 +44,8 @@ const precentageColor = computed(() => {
       <a-progress :percent="trialPercentage" :stroke-color="precentageColor" :show-info="false" />
 
       <div class="text-[#374151]">
-        Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}<br />
+        <span v-if="numberOfDaysLeft >= 0">Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}</span
+        ><span v-else>License expired</span><br />
         Licensed to: {{ appInfo.licensedTo }}
       </div>
       <a no-prefetch no-rel href="https://calendly.com/nocodb-meeting" target="_blank">

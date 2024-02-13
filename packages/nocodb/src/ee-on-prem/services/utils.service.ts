@@ -19,6 +19,7 @@ export class UtilsService extends UtilsServiceEE {
     result.baseUrl = this.licenseService.getSiteUrl();
     result.licensedTo = this.licenseService.getSiteUrl();
     result.isTrial = this.licenseService.isTrial();
+    result.isTrialExpired = this.licenseService.isExpired;
     result.licenseExpiryTime = this.licenseService.getExpiry();
     result.licenseIssuedTime = this.licenseService.getIssuedTime();
 

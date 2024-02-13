@@ -33,6 +33,12 @@ export class LicenseService {
     iat: number;
   };
 
+  private _isExpired: boolean = false;
+
+  get isExpired() {
+    return this._isExpired;
+  }
+
   async validateLicense(): Promise<void> {
     const { valid, data, error } = await this.verifyLicense(
       process.env.NC_LICENSE_KEY,
@@ -53,17 +59,23 @@ export class LicenseService {
       return { valid: false, error: 'License key not found' };
     }
     try {
-      const decoded: any = jwt.verify(licenseKey, publicKey, {
+      const data: any = jwt.verify(licenseKey, publicKey, {
         algorithms: ['RS256'],
       });
 
       // if any of the properties are missing, throw an error
-      if (!decoded || !decoded.type || !decoded.siteUrl) {
+      if (!data || !data.type || !data.siteUrl) {
         throw new Error('Invalid license key');
       }
 
-      return { valid: true, data: decoded };
+      return { valid: true, data };
     } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        const data = jwt.decode(licenseKey, { json: true });
+        this._isExpired = true;
+        return { valid: true, data };
+      }
+
       return { valid: false, error: 'Invalid license key' };
     }
   }

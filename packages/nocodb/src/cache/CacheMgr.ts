@@ -17,8 +17,8 @@ const logger = new Logger('CacheMgr');
   - getRaw returns the whole cache object with metadata
 */
 
-const NC_REDIS_TTL = 60 * 60 * 24 * 3; // 3 days
-const NC_REDIS_GRACE_TTL = 60 * 60 * 24 * 1; // 1 day
+const NC_REDIS_TTL = +process.env.NC_REDIS_TTL || 60 * 60 * 24 * 3; // 3 days
+const NC_REDIS_GRACE_TTL = +process.env.NC_REDIS_GRACE_TTL || 60 * 60 * 24 * 1; // 1 day
 
 export default abstract class CacheMgr {
   client: IORedis;

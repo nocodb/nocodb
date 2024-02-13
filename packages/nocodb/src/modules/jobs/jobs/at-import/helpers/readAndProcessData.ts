@@ -414,8 +414,9 @@ export async function importLTARData({
                     [assocMeta.refCol.title]: id,
                   });
 
+                  // links can be [] & hence assocTableDta[assocMeta.modelMeta.id] can be [].
                   if (
-                    assocTableData[assocMeta.modelMeta.id].length >=
+                    assocTableData[assocMeta.modelMeta.id]?.length >=
                     BULK_LINK_BATCH_COUNT
                   ) {
                     let insertArray = assocTableData[
@@ -469,7 +470,7 @@ export async function importLTARData({
 
         for (const assocMeta of assocTableMetas) {
           // insert remaining data
-          if (assocTableData[assocMeta.modelMeta.id].length >= 0) {
+          if (assocTableData[assocMeta.modelMeta.id]?.length >= 0) {
             logBasic(
               `:: Importing '${table.title}' LTAR data :: ${importedCount} - ${
                 importedCount + assocTableData[assocMeta.modelMeta.id].length

@@ -560,7 +560,7 @@ export default {
             <NcButton
               v-if="!isNew && rowId"
               type="secondary"
-              class="!xs:hidden text-gray-700"
+              class="!hidden lg:!block text-gray-700"
               :disabled="isLoading"
               @click="copyRecordUrl()"
             >
@@ -580,6 +580,18 @@ export default {
                     <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                       <component :is="iconMap.reload" class="cursor-pointer" />
                       {{ $t('general.reload') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem
+                    v-if="!isNew && rowId"
+                    type="secondary"
+                    class="lg:!hidden text-gray-700"
+                    :disabled="isLoading"
+                    @click="copyRecordUrl()"
+                  >
+                    <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                      <component :is="iconMap.link" class="cursor-pointer" />
+                      {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">

@@ -158,8 +158,8 @@ const onClickAudit = () => {
           @click="tab = 'comments'"
         >
           <div class="tab-title nc-tab">
-            <MdiMessageOutline class="h-4 w-4" />
-            Comments
+            <MdiMessageOutline class="h-4 w-4 flex-none" />
+            <span class="hidden lg:inline">Comments</span>
           </div>
         </div>
         <NcTooltip v-if="appInfo.ee" class="tab flex-1">
@@ -173,7 +173,7 @@ const onClickAudit = () => {
           >
             <div class="tab-title nc-tab select-none">
               <MdiFileDocumentOutline class="h-4 w-4" />
-              Audits
+              <span class="hidden lg:inline">Audits</span>
             </div>
           </div>
         </NcTooltip>
@@ -188,7 +188,7 @@ const onClickAudit = () => {
         >
           <div class="tab-title nc-tab">
             <MdiFileDocumentOutline class="h-4 w-4" />
-            Audits
+            <span class="hidden lg:inline">Audits</span>
           </div>
         </div>
       </div>

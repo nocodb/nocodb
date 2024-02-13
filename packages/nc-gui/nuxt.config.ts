@@ -215,6 +215,9 @@ export default defineNuxtConfig({
         // Enable esbuild polyfill plugins
         plugins: [NodeModulesPolyfillPlugin()],
       },
+      // noDiscovery: true,
+      // include: undefined,
+      // disabled: process.env.NUXT_PAGE_TRANSITION_DISABLE ? true : 'build',
     },
   },
 

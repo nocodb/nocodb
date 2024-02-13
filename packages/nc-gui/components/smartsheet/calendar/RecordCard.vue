@@ -21,6 +21,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['resize-start'])
+
 </script>
 
 <template>

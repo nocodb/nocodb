@@ -246,12 +246,17 @@ const recordsAcrossAllRange = computed<{
 })
 
 const dragRecord = ref<Row | null>(null)
+
 const isDragging = ref(false)
+
 const draggingId = ref<string | null>(null)
+
 const dragElement = ref<HTMLElement | null>(null)
 
 const resizeDirection = ref<'right' | 'left' | null>()
+
 const resizeInProgress = ref(false)
+
 const resizeRecord = ref<Row | null>()
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
@@ -349,6 +354,7 @@ const onResizeEnd = () => {
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
 }
+
 const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
@@ -560,6 +566,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
   selectedTime.value = hour
   showSideMenu.value = true
 }
+
 </script>
 
 <template>

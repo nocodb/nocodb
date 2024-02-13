@@ -159,11 +159,11 @@ async function onOpenModal({
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" />
-              <div>Calendar</div>
+              <div>{{$t('objects.viewType.calendar')}}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
+            <GeneralIcon v-else class="text-brand-400" icon="plus" />
           </div>
         </NcMenuItem>
       </NcMenu>

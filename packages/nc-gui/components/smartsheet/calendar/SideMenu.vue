@@ -311,7 +311,7 @@ onUnmounted(() => {
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-week="selectedDateRange"
-        week-picker
+        is-week-picker
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"
@@ -322,7 +322,7 @@ onUnmounted(() => {
         v-else-if="activeCalendarView === ('year' as const)"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
-        year-picker
+        is-year-picker
       />
     </div>
 

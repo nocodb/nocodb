@@ -202,9 +202,11 @@ const resizeInProgress = ref(false)
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const isDragging = ref(false)
+
 const dragRecord = ref<Row>()
 
 const resizeDirection = ref<'right' | 'left' | null>()
+
 const resizeRecord = ref<Row | null>(null)
 
 const hoverRecord = ref<string | null>()

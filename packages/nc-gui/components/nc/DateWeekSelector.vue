@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+
 interface Props {
   selectedDate?: dayjs.Dayjs | null
   isDisabled?: boolean
   pageDate?: dayjs.Dayjs
   activeDates?: Array<dayjs.Dayjs>
   isMondayFirst?: boolean
-  weekPicker?: boolean
+  isWeekPicker?: boolean
   disablePagination?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
@@ -19,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   isDisabled: false,
   isMondayFirst: true,
   pageDate: dayjs(),
-  weekPicker: false,
+  isWeekPicker: false,
   disablePagination: false,
   activeDates: [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
@@ -27,8 +28,11 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['change', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
+
 const selectedDate = useVModel(props, 'selectedDate', emit)
+
 const activeDates = useVModel(props, 'activeDates', emit)
+
 const selectedWeek = useVModel(props, 'selectedWeek', emit)
 
 const days = computed(() => {
@@ -40,13 +44,12 @@ const days = computed(() => {
 })
 
 // Used to display the current month and year
-const currentMonth = computed(() => {
+const currentMonthYear = computed(() => {
   return dayjs(pageDate.value).format('MMMM YYYY')
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
-  if (!date) return
-  const dayOffset = props.isMondayFirst ? 1 : 0
+  const dayOffset = +props.isMondayFirst
   const dayOfWeek = (date.day() - dayOffset + 7) % 7
   const startDate = date.subtract(dayOfWeek, 'day')
   selectedWeek.value = {
@@ -59,7 +62,7 @@ const selectWeek = (date: dayjs.Dayjs) => {
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
   const startOfMonth = dayjs(pageDate.value).startOf('month')
-  const dayOffset = props.isMondayFirst ? 1 : 0
+  const dayOffset = +props.isMondayFirst
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')
 
@@ -96,7 +99,7 @@ const isDayInPagedMonth = (date: dayjs.Dayjs) => {
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
 const handleSelectDate = (date: dayjs.Dayjs) => {
-  if (props.weekPicker) {
+  if (props.isWeekPicker) {
     selectWeek(date)
   } else {
     if (!isDayInPagedMonth(date)) {
@@ -122,9 +125,9 @@ const isActiveDate = (date: dayjs.Dayjs) => {
 const paginate = (action: 'next' | 'prev') => {
   let newDate = dayjs(pageDate.value)
   if (action === 'next') {
-    newDate = newDate.add(1, 'month').clone()
+    newDate = newDate.add(1, 'month')
   } else {
-    newDate = newDate.subtract(1, 'month').clone()
+    newDate = newDate.subtract(1, 'month')
   }
   pageDate.value = newDate
   emit('update:pageDate', newDate)
@@ -149,7 +152,7 @@ const paginate = (action: 'next' | 'prev') => {
         </template>
       </NcTooltip>
 
-      <span class="font-bold text-gray-700">{{ currentMonth }}</span>
+      <span class="font-bold text-gray-700">{{ currentMonthYear }}</span>
       <NcTooltip>
         <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
@@ -170,10 +173,10 @@ const paginate = (action: 'next' | 'prev') => {
           v-for="(date, index) in dates"
           :key="index"
           :class="{
-            'rounded-lg': !weekPicker,
-            'bg-brand-50 border-1 !border-brand-500': isSelectedDate(date) && !weekPicker && isDayInPagedMonth(date),
-            'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !weekPicker,
-            'nc-selected-week z-1': isDateInSelectedWeek(date) && weekPicker,
+            'rounded-lg': !isWeekPicker,
+            'bg-brand-50 border-1 !border-brand-500': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
+            'nc-selected-week z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),

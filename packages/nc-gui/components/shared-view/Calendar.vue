@@ -29,6 +29,7 @@ provide(IsPublicInj, ref(true))
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
 useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+
 useProvideKanbanViewStore(meta, sharedView)
 
 useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)

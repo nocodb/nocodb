@@ -5,18 +5,20 @@ interface Props {
   selectedDate?: dayjs.Dayjs | null
   isDisabled?: boolean
   pageDate?: dayjs.Dayjs
-  yearPicker?: boolean
+  isYearPicker?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
   isDisabled: false,
   pageDate: dayjs(),
-  yearPicker: false,
+  isYearPicker: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
-const pageDate = useVModel<dayjs.Dayjs>(props, 'pageDate', emit)
-const selectedDate = useVModel<dayjs.Dayjs>(props, 'selectedDate', emit)
+
+const pageDate = useVModel(props, 'pageDate', emit)
+
+const selectedDate = useVModel(props, 'selectedDate', emit)
 
 const years = computed(() => {
   const date = pageDate.value
@@ -60,16 +62,16 @@ const paginateMonth = (action: 'next' | 'prev') => {
 const paginateYear = (action: 'next' | 'prev') => {
   let date = dayjs(pageDate.value)
   if (action === 'next') {
-    date = date.add(12, 'year').clone()
+    date = date.add(12, 'year')
   } else {
-    date = date.subtract(12, 'year').clone()
+    date = date.subtract(12, 'year')
   }
   pageDate.value = date
   emit('update:pageDate', date)
 }
 
 const paginate = (action: 'next' | 'prev') => {
-  if (props.yearPicker) {
+  if (props.isYearPicker) {
     paginateYear(action)
   } else {
     paginateMonth(action)
@@ -93,7 +95,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
           <span>{{ $t('labels.previous') }}</span>
         </template>
       </NcTooltip>
-      <span class="font-bold text-gray-700">{{ yearPicker ? 'Select Year' : pageDate.year() }}</span>
+      <span class="font-bold text-gray-700">{{ isYearPicker ? $t('labels.selectYear') : pageDate.year() }}</span>
       <NcTooltip>
         <NcButton size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
@@ -105,12 +107,12 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     </div>
     <div class="rounded-y-xl max-w-[350px]">
       <div class="grid grid-cols-4 gap-2 p-2">
-        <template v-if="!yearPicker">
+        <template v-if="!isYearPicker">
           <span
             v-for="(month, id) in months"
             :key="id"
             :class="{
-              '!bg-brand-50 !border-1 !border-brand-500': isMonthSelected(month),
+              '!bg-brand-50 border-1 !border-brand-500': isMonthSelected(month),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
             @click="selectedDate = month"

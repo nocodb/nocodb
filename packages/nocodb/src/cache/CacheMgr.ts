@@ -5,6 +5,21 @@ import { CacheDelDirection, CacheGetType } from '~/utils/globals';
 
 const log = debug('nc:cache');
 const logger = new Logger('CacheMgr');
+
+/*
+  - keys are stored as following:
+    - simple key: nc:<orgs>:<scope>:<model_id_1>
+      - value: { value: { ... }, parentKeys: [ "nc:<orgs>:<scope>:<model_id_1>:list" ], timestamp: 1234567890 }
+      - stored as stringified JSON
+    - list key: nc:<orgs>:<scope>:<model_id_1>:list
+      - stored as SET
+  - get returns `value` only
+  - getRaw returns the whole cache object with metadata
+*/
+
+const NC_REDIS_TTL = 60 * 60 * 24 * 3; // 3 days
+const NC_REDIS_GRACE_TTL = 60 * 60 * 24 * 1; // 1 day
+
 export default abstract class CacheMgr {
   client: IORedis;
   prefix: string;
@@ -37,7 +52,11 @@ export default abstract class CacheMgr {
   }
 
   // @ts-ignore
-  private async getRaw(key: string, type?: string): Promise<any> {
+  private async getRaw(
+    key: string,
+    type?: string,
+    skipTTL = false,
+  ): Promise<any> {
     log(`${this.context}::getRaw: getting key ${key} with type ${type}`);
     if (type === CacheGetType.TYPE_ARRAY) {
       return this.client.smembers(key);
@@ -54,6 +73,14 @@ export default abstract class CacheMgr {
             ) {
               log(`${this.context}::get: object is empty!`);
             }
+
+            if (!skipTTL && o.timestamp) {
+              const diff = Date.now() - o.timestamp;
+              if (diff > NC_REDIS_GRACE_TTL * 1000) {
+                await this.refreshTTL(key);
+              }
+            }
+
             return Promise.resolve(o);
           }
         } catch (e) {
@@ -93,8 +120,23 @@ export default abstract class CacheMgr {
     if (typeof value !== 'undefined' && value) {
       log(`${this.context}::set: setting key ${key} with value ${value}`);
 
+      // if provided value is an array store it as a set
       if (Array.isArray(value) && value.length) {
-        return this.client.sadd(key, value);
+        return new Promise((resolve) => {
+          this.client
+            .pipeline()
+            .sadd(key, value)
+            // - 60 seconds to avoid expiring list before any of its children
+            .expire(key, NC_REDIS_TTL - 60)
+            .exec((err) => {
+              if (err) {
+                logger.error(
+                  `${this.context}::set: error setting key ${key} with value ${value}`,
+                );
+              }
+              resolve(true);
+            });
+        });
       }
 
       if (!skipPrepare) {
@@ -111,6 +153,8 @@ export default abstract class CacheMgr {
       return this.client.set(
         key,
         JSON.stringify(value, this.getCircularReplacer()),
+        'EX',
+        NC_REDIS_TTL,
       );
     } else {
       log(`${this.context}::set: value is empty for ${key}. Skipping ...`);
@@ -140,7 +184,20 @@ export default abstract class CacheMgr {
       );
 
       if (Array.isArray(value) && value.length) {
-        return this.client.sadd(key, value);
+        return new Promise((resolve) => {
+          this.client
+            .pipeline()
+            .sadd(key, value)
+            .expire(key, seconds)
+            .exec((err) => {
+              if (err) {
+                logger.error(
+                  `${this.context}::set: error setting key ${key} with value ${value}`,
+                );
+              }
+              resolve(true);
+            });
+        });
       }
 
       if (!skipPrepare) {
@@ -220,6 +277,22 @@ export default abstract class CacheMgr {
         list: [],
         isNoneList,
       });
+    }
+
+    if (values.length) {
+      try {
+        const o = JSON.parse(values[0]);
+        if (typeof o === 'object') {
+          const diff = Date.now() - o.timestamp;
+          if (diff > NC_REDIS_GRACE_TTL * 1000) {
+            await this.refreshTTL(key);
+          }
+        }
+      } catch (e) {
+        logger.error(
+          `${this.context}::getList: Bad value stored for key ${arr[0]} : ${values[0]}`,
+        );
+      }
     }
 
     return {
@@ -404,7 +477,10 @@ export default abstract class CacheMgr {
     });
 
     list.push(key);
-    return this.set(listKey, list);
+    return this.set(listKey, list).then(async (res) => {
+      await this.refreshTTL(listKey);
+      return res;
+    });
   }
 
   // wrap value with metadata
@@ -439,6 +515,60 @@ export default abstract class CacheMgr {
         `${this.context}::getParents: parentKeys not found ${rawValue}`,
       );
       return [];
+    }
+  }
+
+  async refreshTTL(key: string, timestamp?: number): Promise<void> {
+    log(`${this.context}::refreshTTL: refreshing TTL for ${key}`);
+    const isParent = /:list$/.test(key);
+    timestamp = timestamp || Date.now();
+    if (isParent) {
+      const list =
+        (await this.getRaw(key, CacheGetType.TYPE_ARRAY, true)) || [];
+      if (list && list.length) {
+        const listValues = await this.client.mget(list);
+        const pipeline = this.client.pipeline();
+        for (const [i, v] of listValues.entries()) {
+          const key = list[i];
+          if (v) {
+            try {
+              const o = JSON.parse(v);
+              if (typeof o === 'object') {
+                o.timestamp = timestamp;
+                pipeline.set(
+                  key,
+                  JSON.stringify(o, this.getCircularReplacer()),
+                  'EX',
+                  NC_REDIS_TTL,
+                );
+              }
+            } catch (e) {
+              logger.error(
+                `${this.context}::refreshTTL: Bad value stored for key ${key} : ${v}`,
+              );
+            }
+          }
+        }
+        pipeline.expire(key, NC_REDIS_TTL - 60);
+        await pipeline.exec();
+      }
+    } else {
+      const rawValue = await this.getRaw(key, null, true);
+      if (rawValue) {
+        if (rawValue.parentKeys && rawValue.parentKeys.length) {
+          for (const parent of rawValue.parentKeys) {
+            await this.refreshTTL(parent, timestamp);
+          }
+        } else {
+          rawValue.timestamp = timestamp;
+          await this.client.set(
+            key,
+            JSON.stringify(rawValue, this.getCircularReplacer()),
+            'EX',
+            NC_REDIS_TTL,
+          );
+        }
+      }
     }
   }
 

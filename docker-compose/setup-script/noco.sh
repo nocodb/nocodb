@@ -125,6 +125,11 @@ message_arr=()
 # extract public ip address
 PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
 
+# Check if the public IP address is not empty, if empty then use the localhost
+if [ -z "$PUBLIC_IP" ]; then
+    PUBLIC_IP="localhost"
+fi
+
 # generate a folder for the docker-compose file which is not existing and do the setup within the folder
 # Define the folder name
 FOLDER_NAME="nocodb_$(date +"%Y%m%d_%H%M%S")"

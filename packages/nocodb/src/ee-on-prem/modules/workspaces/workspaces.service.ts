@@ -43,7 +43,9 @@ export class WorkspacesService extends WorkspacesServiceEE {
       userWorkspacesCount >= this.licenseService.getMaxWorkspacePerUser()
     ) {
       NcError.notAllowed(
-        'Trial plan allows only 1 workspace. Please upgrade to create more workspaces.',
+        `Trial license allows only ${this.licenseService.getMaxWorkspacePerUser()} workspace${
+          this.licenseService.getMaxWorkspacePerUser() > 1 ? 's' : ''
+        } per user. Please upgrade to create more workspaces.`,
       );
     }
 

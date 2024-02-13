@@ -5,6 +5,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheListProp,
+  CacheMetaSplitter,
 } from '~/utils/globals';
 
 const log = debug('nc:cache');
@@ -76,34 +77,55 @@ export default class RedisCacheMgr extends CacheMgr {
           }
           return Promise.resolve(o);
         }
-      } catch (e) {
-        return Promise.resolve(res);
-      }
-      return Promise.resolve(res);
+      } catch (e) {}
+      const valueHelper = res.split(CacheMetaSplitter);
+      return Promise.resolve(valueHelper[0]);
     } else if (type === CacheGetType.TYPE_STRING) {
-      return await this.client.get(key);
+      return this.client.get(key).then((res) => {
+        if (!res) {
+          return res;
+        }
+        const valueHelper = res.split(CacheMetaSplitter);
+        return valueHelper[0];
+      });
     }
     log(`Invalid CacheGetType: ${type}`);
     return Promise.resolve(false);
   }
 
   // @ts-ignore
-  async set(key: string, value: any): Promise<any> {
+  async set(key: string, value: any, skipPrepare = false): Promise<any> {
     if (typeof value !== 'undefined' && value) {
       log(`RedisCacheMgr::set: setting key ${key} with value ${value}`);
+
       if (typeof value === 'object') {
         if (Array.isArray(value) && value.length) {
           return this.client.sadd(key, value);
         }
-        const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
-        if (keyValue) {
+
+        if (!skipPrepare) {
+          // try to get old key value
+          const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
+          // prepare new key value
           value = await this.prepareValue(value, this.getParents(keyValue));
         }
+
         return this.client.set(
           key,
           JSON.stringify(value, this.getCircularReplacer()),
         );
       }
+
+      if (!skipPrepare) {
+        // try to get old key value
+        const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
+        // prepare new key value
+        value = await this.prepareValue(
+          value.toString(),
+          this.getParents(keyValue),
+        );
+      }
+
       return this.client.set(key, value);
     } else {
       log(`RedisCacheMgr::set: value is empty for ${key}. Skipping ...`);
@@ -248,7 +270,11 @@ export default class RedisCacheMgr extends CacheMgr {
       }
       // set Get Key
       log(`RedisCacheMgr::setList: setting key ${getKey}`);
-      await this.set(getKey, JSON.stringify(value, this.getCircularReplacer()));
+      await this.set(
+        getKey,
+        JSON.stringify(value, this.getCircularReplacer()),
+        true,
+      );
       // push Get Key to List
       listOfGetKeys.push(getKey);
     }
@@ -355,6 +381,7 @@ export default class RedisCacheMgr extends CacheMgr {
     await this.set(
       key,
       JSON.stringify(preparedValue, this.getCircularReplacer()),
+      true,
     );
 
     list.push(key);
@@ -369,17 +396,36 @@ export default class RedisCacheMgr extends CacheMgr {
     if (value && typeof value === 'object') {
       value[CacheListProp] = listKeys;
     } else if (value && typeof value === 'string') {
-      const keyHelper = value.split(CacheListProp);
-      if (listKeys.length) {
-        value = `${keyHelper[0]}${CacheListProp}${listKeys.join(',')}`;
+      const metaHelper = value.split(CacheMetaSplitter);
+      if (metaHelper.length > 1) {
+        const keyVal = metaHelper[0];
+        const keyMeta = metaHelper[1];
+        try {
+          const meta = JSON.parse(keyMeta);
+          meta[CacheListProp] = listKeys;
+          value = `${keyVal}${CacheMetaSplitter}${JSON.stringify(meta)}`;
+        } catch (e) {
+          console.error(
+            `RedisCacheMgr::prepareValue: keyValue meta is not JSON`,
+            keyMeta,
+          );
+          throw new Error(
+            `RedisCacheMgr::prepareValue: keyValue meta is not JSON`,
+          );
+        }
+      } else {
+        const meta = {
+          [CacheListProp]: listKeys,
+        };
+        value = `${value}${CacheMetaSplitter}${JSON.stringify(meta)}`;
       }
     } else if (value) {
       console.error(
-        `RedisCacheMgr::prepareListKey: keyValue is not object or string`,
+        `RedisCacheMgr::prepareValue: keyValue is not object or string`,
         value,
       );
       throw new Error(
-        `RedisCacheMgr::prepareListKey: keyValue is not object or string`,
+        `RedisCacheMgr::prepareValue: keyValue is not object or string`,
       );
     }
     return value;

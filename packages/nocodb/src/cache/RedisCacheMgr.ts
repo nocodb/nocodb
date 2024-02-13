@@ -6,6 +6,7 @@ import {
   CacheGetType,
   CacheListProp,
   CacheMetaSplitter,
+  CacheTimestampProp,
 } from '~/utils/globals';
 
 const log = debug('nc:cache');
@@ -94,7 +95,18 @@ export default class RedisCacheMgr extends CacheMgr {
   }
 
   // @ts-ignore
-  async set(key: string, value: any, skipPrepare = false): Promise<any> {
+  async set(
+    key: string,
+    value: any,
+    options: {
+      skipPrepare?: boolean;
+      timestamp?: number;
+    } = {
+      skipPrepare: false,
+    },
+  ): Promise<any> {
+    const { skipPrepare, timestamp } = options;
+
     if (typeof value !== 'undefined' && value) {
       log(`RedisCacheMgr::set: setting key ${key} with value ${value}`);
 
@@ -107,7 +119,10 @@ export default class RedisCacheMgr extends CacheMgr {
           // try to get old key value
           const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
           // prepare new key value
-          value = await this.prepareValue(value, this.getParents(keyValue));
+          value = this.prepareValue(value, {
+            parentKeys: this.getParents(keyValue),
+            timestamp,
+          });
         }
 
         return this.client.set(
@@ -120,10 +135,10 @@ export default class RedisCacheMgr extends CacheMgr {
         // try to get old key value
         const keyValue = await this.get(key, CacheGetType.TYPE_OBJECT);
         // prepare new key value
-        value = await this.prepareValue(
-          value.toString(),
-          this.getParents(keyValue),
-        );
+        value = this.prepareValue(value.toString(), {
+          parentKeys: this.getParents(keyValue),
+          timestamp,
+        });
       }
 
       return this.client.set(key, value);
@@ -247,6 +262,10 @@ export default class RedisCacheMgr extends CacheMgr {
       // Set NONE here so that it won't hit the DB on each page load
       return this.set(listKey, ['NONE']);
     }
+
+    // timestamp for list
+    const timestamp = Date.now();
+
     // fetch existing list
     const listOfGetKeys =
       (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
@@ -259,26 +278,35 @@ export default class RedisCacheMgr extends CacheMgr {
         getKey = `${this.prefix}:${scope}:${propValues.join(':')}`;
       }
       log(`RedisCacheMgr::setList: get key ${getKey}`);
-      // get Get Key
+      // get key
       let value = await this.get(getKey, CacheGetType.TYPE_OBJECT);
       if (value) {
         log(`RedisCacheMgr::setList: preparing key ${getKey}`);
-        // prepare Get Key
-        value = await this.prepareValue(o, this.getParents(value), listKey);
+        // prepare key
+        value = this.prepareValue(o, {
+          parentKeys: this.getParents(value).concat(listKey),
+          timestamp,
+        });
       } else {
-        value = await this.prepareValue(o, [], listKey);
+        value = this.prepareValue(o, {
+          parentKeys: [listKey],
+          timestamp,
+        });
       }
-      // set Get Key
+      // set key
       log(`RedisCacheMgr::setList: setting key ${getKey}`);
       await this.set(
         getKey,
         JSON.stringify(value, this.getCircularReplacer()),
-        true,
+        {
+          skipPrepare: true,
+          timestamp,
+        },
       );
-      // push Get Key to List
+      // push key to list
       listOfGetKeys.push(getKey);
     }
-    // set List Key
+    // set list
     log(`RedisCacheMgr::setList: setting list with key ${listKey}`);
     return this.set(listKey, listOfGetKeys);
   }
@@ -371,30 +399,40 @@ export default class RedisCacheMgr extends CacheMgr {
       return false;
     }
     // prepare Get Key
-    const preparedValue = await this.prepareValue(
-      value,
-      this.getParents(value),
-      listKey,
-    );
+    const preparedValue = this.prepareValue(value, {
+      parentKeys: this.getParents(value).concat(listKey),
+    });
     // set Get Key
     log(`RedisCacheMgr::appendToList: setting key ${key}`);
     await this.set(
       key,
       JSON.stringify(preparedValue, this.getCircularReplacer()),
-      true,
+      {
+        skipPrepare: true,
+      },
     );
 
     list.push(key);
     return this.set(listKey, list);
   }
 
-  prepareValue(value, listKeys = [], newParent?) {
-    if (newParent) {
-      listKeys.push(newParent);
-    }
+  prepareValue(
+    value,
+    options: {
+      parentKeys: string[];
+      timestamp?: number;
+    },
+  ) {
+    const { parentKeys, timestamp } = options;
 
     if (value && typeof value === 'object') {
-      value[CacheListProp] = listKeys;
+      value[CacheListProp] = parentKeys;
+
+      if (timestamp) {
+        value[CacheTimestampProp] = timestamp;
+      } else {
+        value[CacheTimestampProp] = Date.now();
+      }
     } else if (value && typeof value === 'string') {
       const metaHelper = value.split(CacheMetaSplitter);
       if (metaHelper.length > 1) {
@@ -402,7 +440,8 @@ export default class RedisCacheMgr extends CacheMgr {
         const keyMeta = metaHelper[1];
         try {
           const meta = JSON.parse(keyMeta);
-          meta[CacheListProp] = listKeys;
+          meta[CacheListProp] = parentKeys;
+          meta[CacheTimestampProp] = timestamp || Date.now();
           value = `${keyVal}${CacheMetaSplitter}${JSON.stringify(meta)}`;
         } catch (e) {
           console.error(
@@ -415,7 +454,8 @@ export default class RedisCacheMgr extends CacheMgr {
         }
       } else {
         const meta = {
-          [CacheListProp]: listKeys,
+          [CacheListProp]: parentKeys,
+          [CacheTimestampProp]: timestamp || Date.now(),
         };
         value = `${value}${CacheMetaSplitter}${JSON.stringify(meta)}`;
       }
@@ -429,6 +469,25 @@ export default class RedisCacheMgr extends CacheMgr {
       );
     }
     return value;
+  }
+
+  async refreshTTL(key: string): Promise<void> {
+    log(`RedisCacheMgr::refreshTTL: refreshing key ${key}`);
+    const value = await this.get(key, CacheGetType.TYPE_OBJECT);
+    if (value) {
+      const parents = this.getParents(value);
+      if (parents.length) {
+        for (const p of parents) {
+          const childList = await this.get(p, CacheGetType.TYPE_ARRAY);
+          for (const c of childList) {
+            const childValue = await this.get(c, CacheGetType.TYPE_OBJECT);
+            await this.set(c, childValue, { timestamp: Date.now() });
+          }
+        }
+      } else {
+        await this.set(key, value, { timestamp: Date.now() });
+      }
+    }
   }
 
   getParents(value) {

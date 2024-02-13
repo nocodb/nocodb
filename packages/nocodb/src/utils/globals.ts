@@ -180,7 +180,7 @@ export const CacheMetaSplitter = '__nc_meta__';
 
 export const CacheListProp = '__nc_list__';
 
-export const CacheTimeProp = '__nc_time__';
+export const CacheTimestampProp = '__nc_timestamp__';
 
 export const GROUPBY_COMPARISON_OPS = <const>[
   // these are used for groupby

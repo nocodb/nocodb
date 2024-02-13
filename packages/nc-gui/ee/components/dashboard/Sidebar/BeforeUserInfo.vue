@@ -4,7 +4,7 @@ const { appInfo } = useGlobal()
 </script>
 
 <template>
-  <div class="p-2" v-if="appInfo.isTrial">
+  <div v-if="appInfo.isTrial" class="p-2">
     <DashboardSidebarTrial />
   </div>
 </template>

@@ -176,12 +176,6 @@ export enum CacheDelDirection {
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
 
-export const CacheMetaSplitter = '__nc_meta__';
-
-export const CacheListProp = '__nc_list__';
-
-export const CacheTimestampProp = '__nc_timestamp__';
-
 export const GROUPBY_COMPARISON_OPS = <const>[
   // these are used for groupby
   'gb_eq',

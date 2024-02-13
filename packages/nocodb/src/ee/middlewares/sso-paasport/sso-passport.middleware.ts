@@ -339,7 +339,25 @@ export class SSOPassportMiddleware implements NestMiddleware {
             return sanitiseUserObj(user);
           }
         })()
-          .then((res) => done(null, res))
+          .then((user) => {
+            const config = this.metaService.config;
+
+            const options = {
+              secretOrKey: config.auth.jwt.secret,
+              ...config.auth.jwt.options,
+            };
+
+            // Here, you can generate a JWT token using profile information
+            const token = jwt.sign(
+              { id: user.id, email: user.email, provider: 'google' },
+              options.secretOrKey,
+              {
+                expiresIn: '1m',
+              },
+            );
+
+            done(null, { ...user, token });
+          })
           .catch((err) => done(err));
       },
     );

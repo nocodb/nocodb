@@ -150,12 +150,17 @@ export default abstract class CacheMgr {
         });
       }
 
-      return this.client.set(
-        key,
-        JSON.stringify(value, this.getCircularReplacer()),
-        'EX',
-        NC_REDIS_TTL,
-      );
+      return this.client
+        .set(
+          key,
+          JSON.stringify(value, this.getCircularReplacer()),
+          'EX',
+          NC_REDIS_TTL,
+        )
+        .then(async () => {
+          await this.refreshTTL(key, timestamp);
+          return true;
+        });
     } else {
       log(`${this.context}::set: value is empty for ${key}. Skipping ...`);
       return Promise.resolve(true);
@@ -534,13 +539,15 @@ export default abstract class CacheMgr {
             try {
               const o = JSON.parse(v);
               if (typeof o === 'object') {
-                o.timestamp = timestamp;
-                pipeline.set(
-                  key,
-                  JSON.stringify(o, this.getCircularReplacer()),
-                  'EX',
-                  NC_REDIS_TTL,
-                );
+                if (o.timestamp !== timestamp) {
+                  o.timestamp = timestamp;
+                  pipeline.set(
+                    key,
+                    JSON.stringify(o, this.getCircularReplacer()),
+                    'EX',
+                    NC_REDIS_TTL,
+                  );
+                }
               }
             } catch (e) {
               logger.error(
@@ -560,13 +567,15 @@ export default abstract class CacheMgr {
             await this.refreshTTL(parent, timestamp);
           }
         } else {
-          rawValue.timestamp = timestamp;
-          await this.client.set(
-            key,
-            JSON.stringify(rawValue, this.getCircularReplacer()),
-            'EX',
-            NC_REDIS_TTL,
-          );
+          if (rawValue.timestamp !== timestamp) {
+            rawValue.timestamp = timestamp;
+            await this.client.set(
+              key,
+              JSON.stringify(rawValue, this.getCircularReplacer()),
+              'EX',
+              NC_REDIS_TTL,
+            );
+          }
         }
       }
     }

@@ -216,42 +216,6 @@ IMAGE="nocodb/nocodb:latest";
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
   IMAGE="nocodb/nocodb-ee:latest"
   DATABASE_URL="DATABASE_URL=postgres://postgres:${ENCODED_PASSWORD}@db:5432/nocodb"
-
-  # read SMTP details
-  echo "Enter the SMTP from email address: "
-  read NC_SMTP_FROM
-
-  echo "Enter the SMTP host: "
-  read NC_SMTP_HOST
-
-  echo "Enter the SMTP port: "
-  read NC_SMTP_PORT
-
-  echo "Enter the SMTP username: "
-  read NC_SMTP_USERNAME
-
-  echo "Enter the SMTP password: "
-  read NC_SMTP_PASSWORD
-
-  echo "Enter the SMTP secure [Y/N] (default: N):"
-  read NC_SMTP_SECURE
-
-  echo "Enter the SMTP ignoreTLS [Y/N] (default: N):"
-  read NC_SMTP_IGNORE_TLS
-
-  # if yes then convert it to true
-  if [ -n "$NC_SMTP_SECURE" ] && { [ "$NC_SMTP_SECURE" = "Y" ] || [ "$NC_SMTP_SECURE" = "y" ]; }; then
-    NC_SMTP_SECURE='true'
-  else
-    NC_SMTP_SECURE='false'
-  fi
-
-  if [ -n "$NC_SMTP_IGNORE_TLS" ] && { [ "$NC_SMTP_IGNORE_TLS" = "Y" ] || [ "$NC_SMTP_IGNORE_TLS" = "y" ]; }; then
-    NC_SMTP_IGNORE_TLS='true'
-  else
-    NC_SMTP_IGNORE_TLS='false'
-  fi
-
 else
   # use NC_DB url until the issue with DATABASE_URL is resolved(encoding)
   DATABASE_URL="NC_DB=pg://db:5432?d=nocodb&user=postgres&password=${ENCODED_PASSWORD}"
@@ -351,18 +315,6 @@ POSTGRES_PASSWORD=${STRONG_PASSWORD}
 $DATABASE_URL
 NC_LICENSE_KEY=${LICENSE_KEY}
 EOF
-
-# if EE then add the SMTP configuration
-if [ "$EDITION" = 'ee' ] || [ "$EDITION" = 'EE' ]; then
-  cat <<EOF >> docker.env
-NC_SMTP_HOST=${NC_SMTP_HOST}
-NC_SMTP_PORT=${NC_SMTP_PORT}
-NC_SMTP_USERNAME=${NC_SMTP_USERNAME}
-NC_SMTP_PASSWORD=${NC_SMTP_PASSWORD}
-NC_SMTP_SECURE=${NC_SMTP_SECURE}
-NC_SMTP_IGNORE_TLS=${NC_SMTP_IGNORE_TLS}
-EOF
-fi
 
 mkdir -p ./nginx
 

@@ -604,71 +604,36 @@ const {
     } else if (e.key === 'Tab') {
       if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0 && !paginationDataRef.value?.isFirstPage) {
         e.preventDefault()
-        editEnabled.value = false
-        resetSelectedRange()
-        await changePage?.(paginationDataRef.value?.page! - 1)
-        await nextTick()
-        makeActive((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1)
-
+        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1, -1)
         return true
       } else if (!e.shiftKey && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
         e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
           addEmptyRow()
-
-          resetSelectedRange()
-
-          await nextTick()
-          makeActive(dataRef.value.length - 1, 0)
-          ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
-            behavior: 'smooth',
-          })
-
+          await resetAndChangePage(dataRef.value.length - 1, 0)
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
-          await changePage?.(paginationDataRef.value?.page! + 1)
-
-          await nextTick()
-
-          makeActive(0, 0)
+          await resetAndChangePage(0, 0, 1)
           return true
         }
       }
-    } else if (!e.shiftKey && e.key === 'ArrowUp') {
+    } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowUp') {
       if (activeCell.row === 0 && !paginationDataRef.value?.isFirstPage) {
         e.preventDefault()
-
-        await changePage?.(paginationDataRef.value?.page! - 1)
-
-        await nextTick()
-
-        makeActive((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!)
-
+        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!, -1)
         return true
       }
-    } else if (!e.shiftKey && e.key === 'ArrowDown') {
+    } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowDown') {
       if (activeCell.row === dataRef.value.length - 1) {
         e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
           addEmptyRow()
-          resetSelectedRange()
-
-          makeActive(dataRef.value.length - 1, activeCell.col!)
-
-          // await nextTick()
-          ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
-            behavior: 'smooth',
-          })
+          await resetAndChangePage(dataRef.value.length - 1, activeCell.col!)
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
-          await changePage?.(paginationDataRef.value?.page! + 1)
-
-          await nextTick()
-
-          makeActive(0, activeCell.col!)
-
+          await resetAndChangePage(0, activeCell.col!, 1)
           return true
         }
       }
@@ -1007,6 +972,21 @@ function scrollToCell(row?: number | null, col?: number | null) {
       behavior: 'smooth',
     })
   }
+}
+
+async function resetAndChangePage(row: number, col: number, pageChange?: number) {
+  clearSelectedRange()
+
+  if (pageChange !== undefined) {
+    await changePage?.(paginationDataRef.value?.page! + pageChange)
+    await nextTick()
+    makeActive(row, col)
+  } else {
+    makeActive(row, col)
+    await nextTick()
+  }
+
+  scrollToCell?.()
 }
 
 const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {

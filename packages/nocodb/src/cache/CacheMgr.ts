@@ -268,7 +268,18 @@ export default abstract class CacheMgr {
       const allParents = [];
       // get all parents from children
       values.forEach((v) => {
-        allParents.push(...this.getParents(v));
+        if (v) {
+          try {
+            const o = JSON.parse(v);
+            if (typeof o === 'object') {
+              allParents.push(...this.getParents(o));
+            }
+          } catch (e) {
+            logger.error(
+              `${this.context}::getList: Bad value stored for key ${arr[0]} : ${v}`,
+            );
+          }
+        }
       });
       // remove duplicates
       const uniqueParents = [...new Set(allParents)];
@@ -351,18 +362,18 @@ export default abstract class CacheMgr {
       }
       log(`${this.context}::setList: get key ${getKey}`);
       // get key
-      let value = await this.getRaw(getKey, CacheGetType.TYPE_OBJECT);
-      if (value) {
+      let rawValue = await this.getRaw(getKey, CacheGetType.TYPE_OBJECT);
+      if (rawValue) {
         log(`${this.context}::setList: preparing key ${getKey}`);
         // prepare key
-        value = this.prepareValue({
+        rawValue = this.prepareValue({
           value: o,
-          parentKeys: this.getParents(value),
+          parentKeys: this.getParents(rawValue),
           newKey: listKey,
           timestamp,
         });
       } else {
-        value = this.prepareValue({
+        rawValue = this.prepareValue({
           value: o,
           parentKeys: [listKey],
           timestamp,
@@ -370,7 +381,7 @@ export default abstract class CacheMgr {
       }
       // set key
       log(`${this.context}::setList: setting key ${getKey}`);
-      await this.set(getKey, value, {
+      await this.set(getKey, rawValue, {
         skipPrepare: true,
         timestamp,
       });
@@ -385,7 +396,7 @@ export default abstract class CacheMgr {
   async deepDel(key: string, direction: string): Promise<boolean> {
     log(`${this.context}::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
-      const childKey = await this.get(key, CacheGetType.TYPE_OBJECT);
+      const childKey = await this.getRaw(key, CacheGetType.TYPE_OBJECT);
       // given a child key, delete all keys in corresponding parent lists
       const scopeList = this.getParents(childKey);
       for (const listKey of scopeList) {
@@ -447,9 +458,9 @@ export default abstract class CacheMgr {
 
     log(`${this.context}::appendToList: get key ${key}`);
     // get Get Key
-    const value = await this.get(key, CacheGetType.TYPE_OBJECT);
+    const rawValue = await this.getRaw(key, CacheGetType.TYPE_OBJECT);
     log(`${this.context}::appendToList: preparing key ${key}`);
-    if (!value) {
+    if (!rawValue) {
       // FALLBACK: this is to get rid of all keys that would be effected by this (should never happen)
       logger.error(`${this.context}::appendToList: value is empty for ${key}`);
       const allParents = [];
@@ -471,8 +482,8 @@ export default abstract class CacheMgr {
     }
     // prepare Get Key
     const preparedValue = this.prepareValue({
-      value,
-      parentKeys: this.getParents(value),
+      value: rawValue.value ?? rawValue,
+      parentKeys: this.getParents(rawValue),
       newKey: listKey,
     });
     // set Get Key
@@ -517,7 +528,9 @@ export default abstract class CacheMgr {
       return [];
     } else {
       logger.error(
-        `${this.context}::getParents: parentKeys not found ${rawValue}`,
+        `${this.context}::getParents: parentKeys not found ${JSON.stringify(
+          rawValue,
+        )}`,
       );
       return [];
     }

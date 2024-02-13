@@ -208,7 +208,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
   gridWrapper,
 })
 
-const { onLeft, onRight, onUp, onDown, changePageWithLoading } = usePaginationShortcuts({
+const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   paginationDataRef,
   changePage: changePage as any,
 })
@@ -977,8 +977,8 @@ function scrollToCell(row?: number | null, col?: number | null) {
 async function resetAndChangePage(row: number, col: number, pageChange?: number) {
   clearSelectedRange()
 
-  if (pageChange !== undefined) {
-    await changePage?.(paginationDataRef.value?.page! + pageChange)
+  if (pageChange !== undefined && paginationDataRef.value?.page) {
+    await changePage?.(paginationDataRef.value.page + pageChange)
     await nextTick()
     makeActive(row, col)
   } else {

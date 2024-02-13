@@ -1554,6 +1554,61 @@ function viewRowTests() {
     await testViewRowNotExists(ViewTypes.CALENDAR);
   });
 
+  const testCountDatesByRange = async (viewType: ViewTypes) => {
+    let calendar_range = {};
+    let expectStatus = 400;
+
+    if (viewType === ViewTypes.CALENDAR) {
+      calendar_range = {
+        fk_from_column_id: rentalColumns.find((c) => c.title === 'RentalDate')
+          .id,
+      };
+      expectStatus = 200;
+    }
+
+    const view = await createView(context, {
+      title: 'View',
+      table: rentalTable,
+      type: viewType,
+      range: calendar_range,
+    });
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}/countByDate/`,
+      )
+      .set('xc-auth', context.token)
+      .expect(expectStatus);
+
+    if (expectStatus === 200 && response.body.length !== 25) {
+      throw new Error('Wrong count');
+    } else if (
+      expectStatus === 400 &&
+      response.body.msg !== 'View is not a calendar view'
+    ) {
+      throw new Error('Wrong error message');
+    }
+  };
+
+  it('Count dates by range Calendar', async () => {
+    await testCountDatesByRange(ViewTypes.CALENDAR);
+  });
+
+  it('Count dates by range GRID', async () => {
+    await testCountDatesByRange(ViewTypes.GRID);
+  });
+
+  it('Count dates by range KANBAN', async () => {
+    await testCountDatesByRange(ViewTypes.KANBAN);
+  });
+  it('Count dates by range FORM', async () => {
+    await testCountDatesByRange(ViewTypes.FORM);
+  });
+
+  it('Count dates by range GALLERY', async () => {
+    await testCountDatesByRange(ViewTypes.GALLERY);
+  });
+
   it('Export csv GRID', async function () {
     const view = await createView(context, {
       title: 'View',

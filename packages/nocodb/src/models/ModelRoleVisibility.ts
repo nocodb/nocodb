@@ -124,7 +124,6 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       },
     );
     await NocoCache.deepDel(
-      CacheScope.MODEL_ROLE_VISIBILITY,
       `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

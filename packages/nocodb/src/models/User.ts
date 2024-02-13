@@ -75,7 +75,6 @@ export default class User implements UserType {
     const bases = await Base.list({}, ncMeta);
     for (const base of bases) {
       await NocoCache.deepDel(
-        CacheScope.BASE_USER,
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -299,7 +298,6 @@ export default class User implements UserType {
 
     for (const base of bases) {
       await NocoCache.deepDel(
-        CacheScope.BASE_USER,
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );

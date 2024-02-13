@@ -1139,17 +1139,14 @@ export default class View implements ViewType {
     });
     await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
     await NocoCache.deepDel(
-      tableScope,
       `${tableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.deepDel(
-      columnTableScope,
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.deepDel(
-      CacheScope.VIEW,
       `${CacheScope.VIEW}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

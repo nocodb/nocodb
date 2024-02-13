@@ -182,7 +182,7 @@ export default class RedisCacheMgr extends CacheMgr {
       // delete all parents and children
       await Promise.all(
         uniqueParents.map(async (p) => {
-          await this.deepDel(scope, p, CacheDelDirection.PARENT_TO_CHILD);
+          await this.deepDel(p, CacheDelDirection.PARENT_TO_CHILD);
         }),
       );
       return Promise.resolve({
@@ -257,11 +257,7 @@ export default class RedisCacheMgr extends CacheMgr {
     return this.set(listKey, listOfGetKeys);
   }
 
-  async deepDel(
-    scope: string,
-    key: string,
-    direction: string,
-  ): Promise<boolean> {
+  async deepDel(key: string, direction: string): Promise<boolean> {
     log(`RedisCacheMgr::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
       const childKey = await this.get(key, CacheGetType.TYPE_OBJECT);
@@ -343,7 +339,7 @@ export default class RedisCacheMgr extends CacheMgr {
       // delete all parents and children
       await Promise.all(
         uniqueParents.map(async (p) => {
-          await this.deepDel(scope, p, CacheDelDirection.PARENT_TO_CHILD);
+          await this.deepDel(p, CacheDelDirection.PARENT_TO_CHILD);
         }),
       );
       return false;

@@ -132,15 +132,15 @@ export default class SSOClient implements SSOClientType {
   }
 
   static async getPublicList(param: { ncSiteUrl: string }) {
-    let filteredList: any[] = await NocoCache.get(
+    const cacheData: { list: any[] } = await NocoCache.get(
       PUBLIC_LIST_KEY,
       CacheGetType.TYPE_OBJECT,
     );
-    if (filteredList) return filteredList;
+    if (cacheData?.list) return cacheData?.list;
 
     const list = await this.list({});
 
-    filteredList = list
+    const filteredList = list
       .filter((client) => client.enabled && !client.deleted)
       .map((client) => {
         return {
@@ -151,7 +151,7 @@ export default class SSOClient implements SSOClientType {
         };
       });
 
-    await NocoCache.set(PUBLIC_LIST_KEY, filteredList);
+    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
 
     return filteredList;
   }

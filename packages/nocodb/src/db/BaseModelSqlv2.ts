@@ -2864,6 +2864,22 @@ class BaseModelSqlv2 {
           : response?.[ai.id];
       }
 
+      // handle if composite primary key is used along with ai or ag
+      if ((ai || ag) && this.model.primaryKeys?.length > 1) {
+        // generate object with ai column and rest of the primary keys
+        const pkObj = {};
+        for (const pk of this.model.primaryKeys) {
+          if (ai && pk.id === ai.id) {
+            pkObj[pk.id] = rowId;
+          } else if (ag && pk.id === ag.id) {
+            pkObj[pk.id] = rowId;
+          } else {
+            pkObj[pk.id] = insertObj[pk.column_name] ?? null;
+          }
+        }
+        rowId = pkObj;
+      }
+
       await Promise.all(postInsertOps.map((f) => f(rowId)));
 
       if (rowId !== null && rowId !== undefined) {
@@ -3886,12 +3902,22 @@ class BaseModelSqlv2 {
   // todo: handle composite primary key
   protected _extractPksValues(data: any) {
     // data can be still inserted without PK
-    // TODO: return a meaningful value
-    if (!this.model.primaryKey) return 'N/A';
-    return (
-      data[this.model.primaryKey.title] ||
-      data[this.model.primaryKey.column_name]
-    );
+
+    // if composite primary key return an object with all the primary keys
+    if (this.model.primaryKeys.length > 1) {
+      const pkValues = {};
+      for (const pk of this.model.primaryKeys) {
+        pkValues[pk.title] = data[pk.title] || data[pk.column_name];
+      }
+      return pkValues;
+    } else if (this.model.primaryKey) {
+      return (
+        data[this.model.primaryKey.title] ||
+        data[this.model.primaryKey.column_name]
+      );
+    } else {
+      return 'N/A';
+    }
   }
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}

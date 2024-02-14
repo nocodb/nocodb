@@ -369,7 +369,7 @@ if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED
 #  check ssl enabled
   if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
-  cache:
+  redis:
 EOF
   else
     cat <<EOF >> docker-compose.yml

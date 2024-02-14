@@ -41,7 +41,6 @@ export default class CalendarRange implements CalendarRangeType {
 
     for (const fk of uniqueFks) {
       await NocoCache.deepDel(
-        CacheScope.CALENDAR_VIEW_RANGE,
         `${CacheScope.CALENDAR_VIEW_RANGE}:${fk}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );

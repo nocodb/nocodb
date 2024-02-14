@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { Row } from '#imports'
 import InboxIcon from '~icons/nc-icons/inbox'
@@ -62,6 +63,15 @@ const {
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
+const colTitle = computed(() => injectedColumn.value?.title || '')
+
+const isDataExist = computed<boolean>(() => {
+  return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
+})
+
+const filterQueryFocus: VNodeRef = (el) =>
+  vModel.value && (isPublic.value || readOnly.value ? isDataExist.value : true) && (el as HTMLInputElement)?.focus()
+
 watch(
   [vModel, isForm],
   (nextVal) => {
@@ -92,8 +102,6 @@ const attachmentCol = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
 })
 
-const isFocused = ref(false)
-
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
@@ -103,8 +111,6 @@ const fields = computedInject(FieldsInj, (_fields) => {
 const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref({})
-
-const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
   if (readOnly.value) return
@@ -160,10 +166,6 @@ const totalItemsToShow = computed(() => {
   return childrenListCount.value
 })
 
-const isDataExist = computed<boolean>(() => {
-  return childrenList.value?.pageInfo?.totalRows || (isNew.value && state.value?.[colTitle.value]?.length)
-})
-
 const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
   if (isSharedBase.value) return
   if (readOnly.value) return
@@ -198,20 +200,15 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       :display-value="headerDisplayValue"
     />
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
-      <div
-        class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
-        :class="{ '!border-primary': childrenListPagination.query.length !== 0 || isFocused }"
-      >
-        <MdiMagnify class="w-5 h-5 ml-2" />
+      <div class="flex items-center border-1 p-1 rounded-md w-full border-gray-200 focus-within:!border-primary">
+        <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
-          ref="filterQueryRef"
+          :ref="filterQueryFocus"
           v-model:value="childrenListPagination.query"
           :placeholder="`Search in ${relatedTableMeta?.title}`"
           class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
           :bordered="false"
-          @focus="isFocused = true"
-          @blur="isFocused = false"
           @keydown.capture.stop
           @change="childrenListPagination.page = 1"
         >

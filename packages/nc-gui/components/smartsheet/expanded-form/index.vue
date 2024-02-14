@@ -520,7 +520,7 @@ export default {
     <div class="h-[85vh] xs:(max-h-full) max-h-215 flex flex-col p-6">
       <div class="flex h-9.5 flex-shrink-0 w-full items-center nc-expanded-form-header relative mb-4 justify-between">
         <template v-if="!isMobileMode">
-          <div class="flex gap-3 w-100">
+          <div class="flex gap-3 w-100 <lg:max-w-64">
             <div class="flex gap-2">
               <NcButton
                 v-if="props.showNextPrevIcons"
@@ -560,7 +560,7 @@ export default {
             <NcButton
               v-if="!isNew && rowId"
               type="secondary"
-              class="!hidden lg:!block text-gray-700"
+              class="!<lg:hidden text-gray-700"
               :disabled="isLoading"
               @click="copyRecordUrl()"
             >
@@ -585,13 +585,13 @@ export default {
                   <NcMenuItem
                     v-if="!isNew && rowId"
                     type="secondary"
-                    class="lg:!hidden text-gray-700"
+                    class="!lg:hidden text-gray-700"
                     :disabled="isLoading"
                     @click="copyRecordUrl()"
                   >
                     <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
                       <component :is="iconMap.link" class="cursor-pointer" />
-                      {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
+                      {{ $t('labels.copyRecordURL') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuItem v-if="isUIAllowed('dataEdit')" class="text-gray-700" @click="!isNew ? onDuplicateRow() : () => {}">
@@ -676,13 +676,13 @@ export default {
               v-for="(col, i) of fields"
               v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
-              class="nc-expanded-form-row mt-2 py-2 xs:w-full"
+              class="nc-expanded-form-row mt-2 py-2 <lg:w-full"
               :class="`nc-expand-col-${col.title}`"
               :col-id="col.id"
               :data-testid="`nc-expand-col-${col.title}`"
             >
-              <div class="flex items-start flex-row sm:(gap-x-6) xs:(flex-col w-full) nc-expanded-cell min-h-10">
-                <div class="w-48 xs:(w-full) mt-0.25 !h-[35px]">
+              <div class="flex items-start flex-row sm:(gap-x-6) <lg:(flex-col w-full) nc-expanded-cell min-h-10">
+                <div class="w-48 <lg:(w-full) mt-0.25 !h-[35px]">
                   <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(col)"
                     class="nc-expanded-cell-header h-full"
@@ -708,7 +708,7 @@ export default {
                   <SmartsheetDivDataCell
                     v-if="col.title"
                     :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="bg-white w-80 xs:w-full px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                    class="bg-white w-80 <lg:w-full px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     :class="{
                       '!bg-gray-50 !select-text nc-system-field': isReadOnlyVirtualCell(col),
                     }"
@@ -737,12 +737,12 @@ export default {
                 </template>
               </div>
             </div>
-            <div v-if="hiddenFields.length > 0" class="flex w-full sm:px-12 xs:(px-1 mt-2) items-center py-3">
+            <div v-if="hiddenFields.length > 0" class="flex w-full lg:px-12 <lg:(px-1 mt-2) items-center py-3">
               <div class="flex-grow h-px mr-1 bg-gray-100"></div>
               <NcButton
                 type="secondary"
                 :size="isMobileMode ? 'medium' : 'small'"
-                class="flex-shrink-1 !text-sm"
+                class="flex-shrink !text-sm overflow-hidden"
                 @click="toggleHiddenFields"
               >
                 {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
@@ -756,12 +756,12 @@ export default {
                 v-for="(col, i) of hiddenFields"
                 v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
                 :key="col.title"
-                class="sm:(mt-2) py-2 xs:w-full"
+                class="sm:(mt-2) py-2 <lg:w-full"
                 :class="`nc-expand-col-${col.title}`"
                 :data-testid="`nc-expand-col-${col.title}`"
               >
-                <div class="sm:gap-x-6 flex sm:flex-row xs:(flex-col) items-start min-h-10">
-                  <div class="sm:w-48 xs:w-full scale-110 !h-[35px]">
+                <div class="sm:gap-x-6 flex sm:flex-row <lg:(flex-col w-full) items-start min-h-10">
+                  <div class="sm:w-48 <lg:w-full scale-110 !h-[35px]">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" class="nc-expanded-cell-header" />
 
                     <LazySmartsheetHeaderCell v-else class="nc-expanded-cell-header" :column="col" />
@@ -783,7 +783,7 @@ export default {
                     <LazySmartsheetDivDataCell
                       v-if="col.title"
                       :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                      class="bg-white rounded-lg w-80 border-1 overflow-hidden border-gray-200 px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
+                      class="bg-white rounded-lg w-80 <lg:w-full border-1 overflow-hidden border-gray-200 px-1 sm:min-h-[35px] xs:min-h-13 flex items-center relative"
                     >
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(col)"
@@ -874,7 +874,7 @@ export default {
         </div>
         <div
           v-if="showRightSections"
-          class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-0 overflow-hidden h-full xs:hidden"
+          class="nc-comments-drawer border-1 relative border-gray-200 w-1/3 max-w-125 bg-gray-50 rounded-xl min-w-50 overflow-hidden h-full xs:hidden"
           :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
         >
           <SmartsheetExpandedFormComments :loading="isLoading" />

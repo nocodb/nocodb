@@ -193,6 +193,17 @@ if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; the
     fi
 fi
 
+
+echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
+read REDIS_ENABLED
+
+if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+    message_arr+=("Redis: Enabled")
+else
+    message_arr+=("Redis: Disabled")
+fi
+
+
 echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
 read WATCHTOWER_ENABLED
 
@@ -201,6 +212,7 @@ if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WAT
 else
     message_arr+=("Watchtower: Disabled")
 fi
+
 
 
 # ******************************************************************************
@@ -212,6 +224,7 @@ fi
 
 # Generate a strong random password for PostgreSQL
 STRONG_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9!@#$%^&*()-_+=' | head -c 32)
+REDIS_PASSWORD=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 24)
 # Encode special characters in the password for JDBC URL usage
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")
 
@@ -229,6 +242,15 @@ fi
 
 message_arr+=("Docker image: $IMAGE")
 
+
+DEPENDS_ON=""
+
+# Add Redis service if enabled
+if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+  DEPENDS_ON="- redis"
+fi
+
+
 # Write the Docker Compose file with the updated password
 cat <<EOF > docker-compose.yml
 version: '3'
@@ -239,11 +261,14 @@ services:
     env_file: docker.env
     depends_on:
       - db
+      ${DEPENDS_ON}
     restart: unless-stopped
     volumes:
       - ./nocodb:/usr/app/data
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - nocodb-network
   db:
     image: postgres:16.1
     env_file: docker.env
@@ -253,8 +278,10 @@ services:
     healthcheck:
       interval: 10s
       retries: 10
-      test: "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
+      test: "pg_isready -U \"\$\$POSTGRES_USER\" -d \"\$\$POSTGRES_DB\""
       timeout: 2s
+    networks:
+      - nocodb-network
 
   nginx:
     image: nginx:latest
@@ -276,6 +303,8 @@ cat <<EOF >> docker-compose.yml
     depends_on:
       - nocodb
     restart: unless-stopped
+    networks:
+      - nocodb-network
 EOF
 
 if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
@@ -290,6 +319,27 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
     depends_on:
       - nginx
     restart: unless-stopped
+    networks:
+      - nocodb-network
+EOF
+fi
+
+if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+cat <<EOF >> docker-compose.yml
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    env_file: docker.env
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "\$\${REDIS_PASSWORD}"
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "\$\${REDIS_PASSWORD}", "--raw", "incr", "ping" ]
+    networks:
+      - nocodb-network
 EOF
 fi
 
@@ -301,6 +351,8 @@ cat <<EOF >> docker-compose.yml
       - /var/run/docker.sock:/var/run/docker.sock
     command: --schedule "0 2 * * 6" --cleanup
     restart: unless-stopped
+    networks:
+      - nocodb-network
 EOF
 fi
 
@@ -312,6 +364,28 @@ volumes:
 EOF
 fi
 
+# add the cache volume
+if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+#  check ssl enabled
+  if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
+    cat <<EOF >> docker-compose.yml
+  cache:
+EOF
+  else
+    cat <<EOF >> docker-compose.yml
+volumes:
+  redis:
+EOF
+  fi
+fi
+
+# Create the network
+cat <<EOF >> docker-compose.yml
+networks:
+  nocodb-network:
+    driver: bridge
+EOF
+
 # Write the docker.env file
 cat <<EOF > docker.env
 POSTGRES_DB=nocodb
@@ -320,6 +394,14 @@ POSTGRES_PASSWORD=${STRONG_PASSWORD}
 $DATABASE_URL
 NC_LICENSE_KEY=${LICENSE_KEY}
 EOF
+
+# add redis env if enabled
+if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+  cat <<EOF >> docker.env
+REDIS_PASSWORD=${REDIS_PASSWORD}
+NC_REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+EOF
+fi
 
 mkdir -p ./nginx
 
@@ -463,7 +545,7 @@ else
   message_arr+=("NocoDB is now available at http://localhost")
 fi
 
-print_box_message "${message_arr[@]}"
+print_box_message "${mecdessage_arr[@]}"
 
 # *************************** SETUP END  *************************************
 # ******************************************************************************

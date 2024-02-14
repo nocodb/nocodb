@@ -89,6 +89,11 @@ export class SSOPassportMiddleware implements NestMiddleware {
         // disable assertion signing in some providers
         // it's(response signing) disabled by default in most of the providers ( Azure AD and Auth0 )
         wantAuthnResponseSigned: false,
+        authnContext: [
+          'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport',
+          'urn:oasis:names:tc:SAML:2.0:ac:classes:Password',
+          'urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified',
+        ],
       },
       async (req, profile, callback) => {
         try {

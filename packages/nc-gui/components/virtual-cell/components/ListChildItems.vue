@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import type { Row } from '#imports'
+import { type Row } from '#imports'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 import {
@@ -271,6 +271,7 @@ watch([filterQueryRef, isDataExist], () => {
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
               @expand="onClick(refRow)"
+              @keydown.space.prevent="linkOrUnLink(refRow, id)"
               @click="linkOrUnLink(refRow, id)"
             />
           </template>

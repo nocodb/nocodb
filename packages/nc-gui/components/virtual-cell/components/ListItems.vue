@@ -27,7 +27,7 @@ const injectedColumn = inject(ColumnInj)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const filterQueryRef = ref()
+const filterQueryRef = ref<HTMLInputElement>()
 
 const { t } = useI18n()
 
@@ -251,7 +251,13 @@ const onCreatedRecord = (record: any) => {
           class="w-full !rounded-md nc-excluded-search xs:min-h-8"
           size="small"
           :bordered="false"
-          @keydown.capture.stop
+          @keydown.capture.stop="
+            (e) => {
+              if (e.key === 'Escape') {
+                filterQueryRef?.blur()
+              }
+            }
+          "
           @change="childrenExcludedListPagination.page = 1"
         >
         </a-input>

@@ -483,7 +483,8 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-:global(html, body) {
+:global(html),
+:global(body) {
   @apply overscroll-x-none;
 }
 

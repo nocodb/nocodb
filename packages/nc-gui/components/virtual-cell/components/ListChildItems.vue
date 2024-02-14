@@ -129,10 +129,6 @@ watch(expandedFormDlg, () => {
   }
 })
 
-watch(filterQueryRef, () => {
-  filterQueryRef.value?.focus()
-})
-
 onKeyStroke('Escape', () => {
   vModel.value = false
 })
@@ -179,6 +175,12 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
     linkRow(rowRef, parseInt(id))
   }
 }
+
+watch([filterQueryRef, isDataExist], () => {
+  if (readOnly.value || isPublic.value ? isDataExist.value : true) {
+    filterQueryRef.value?.focus()
+  }
+})
 </script>
 
 <template>

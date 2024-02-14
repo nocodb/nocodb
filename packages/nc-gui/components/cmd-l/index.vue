@@ -132,10 +132,12 @@ const hide = () => {
 }
 
 onClickOutside(modalEl, () => {
+  search.value = ''
   if (vOpen.value) hide()
 })
 
-const onKeyDown = (e: KeyboardEvent) => {
+useEventListener('keydown', (e: KeyboardEvent) => {
+  console.log(e.key)
   if (e.key === 'Escape') {
     hide()
   } else if (e.key === 'Enter') {
@@ -152,14 +154,16 @@ const onKeyDown = (e: KeyboardEvent) => {
     moveDown()
   } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'l') {
     if (!user.value) return
-    e.preventDefault()
-    if (!vOpen.value) vOpen.value = true
-    moveUp()
+    if (!vOpen.value) {
+      vOpen.value = true
+    } else {
+      moveUp()
+    }
   } else if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
     if (!user.value) return
-    e.preventDefault()
-    if (!vOpen.value) vOpen.value = true
-    moveDown()
+    if (!vOpen.value) {
+      vOpen.value = true
+    } else moveDown()
   } else if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     hide()
   } else if ((e.ctrlKey || e.metaKey) && e.key === 'j') {
@@ -167,7 +171,7 @@ const onKeyDown = (e: KeyboardEvent) => {
   } else if (vOpen.value) {
     cmdInputEl.value?.focus()
   }
-}
+})
 
 onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
@@ -180,8 +184,6 @@ onMounted(() => {
   } else {
     selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
   }
-
-  window.addEventListener('keydown', onKeyDown)
 })
 </script>
 

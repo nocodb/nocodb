@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 import {
   ColumnInj,
@@ -8,7 +8,6 @@ import {
   SaveRowInj,
   computed,
   inject,
-  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -173,10 +172,6 @@ watch(filterQueryRef, () => {
   filterQueryRef.value?.focus()
 })
 
-onKeyStroke('Escape', () => {
-  vModel.value = false
-})
-
 const onClick = (refRow: any, id: string) => {
   if (isSharedBase.value) return
   if (isChildrenExcludedListLinked.value[Number.parseInt(id)]) {
@@ -221,6 +216,24 @@ const onCreatedRecord = (record: any) => {
 
   message.success(msgVNode)
 }
+
+const linkedShortcuts = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    vModel.value = false
+  } else if (e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+    try {
+      filterQueryRef.value?.focus()
+    } catch (e) {}
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', linkedShortcuts)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', linkedShortcuts)
+})
 </script>
 
 <template>
@@ -329,6 +342,7 @@ const onCreatedRecord = (record: any) => {
               }
             "
             @keydown.space.prevent="() => onClick(refRow, id)"
+            @keydown.enter.prevent="() => onClick(refRow, id)"
             @click="() => onClick(refRow, id)"
           />
         </template>

@@ -670,8 +670,7 @@ const parseConditionV2 = async (
         if (
           isNumericCol(column.uidt) &&
           typeof genVal === 'string' &&
-          !genVal.startsWith('%') &&
-          !genVal.endsWith('%')
+          !isNaN(+genVal)
         ) {
           // convert to number
           genVal = +genVal;

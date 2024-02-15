@@ -5,7 +5,9 @@ export default {
 </script>
 
 <template>
-  <NuxtLayout name="default">
-    <slot name="sidebar" />
-  </NuxtLayout>
+  <div>
+    <NuxtLayout name="default">
+      <slot name="sidebar" />
+    </NuxtLayout>
+  </div>
 </template>

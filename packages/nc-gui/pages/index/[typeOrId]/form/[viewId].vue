@@ -62,38 +62,40 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout>
-    <NuxtPage v-if="!passwordDlg" />
+  <div>
+    <NuxtLayout>
+      <NuxtPage v-if="!passwordDlg" />
 
-    <a-modal
-      v-model:visible="passwordDlg"
-      :class="{ active: passwordDlg }"
-      :closable="false"
-      width="min(100%, 450px)"
-      centered
-      :footer="null"
-      :mask-closable="false"
-      wrap-class-name="nc-modal-shared-form-password-dlg"
-      @close="passwordDlg = false"
-    >
-      <div class="w-full flex flex-col gap-4">
-        <h2 class="text-xl font-semibold">{{ $t('msg.thisSharedViewIsProtected') }}</h2>
+      <a-modal
+        v-model:visible="passwordDlg"
+        :class="{ active: passwordDlg }"
+        :closable="false"
+        width="min(100%, 450px)"
+        centered
+        :footer="null"
+        :mask-closable="false"
+        wrap-class-name="nc-modal-shared-form-password-dlg"
+        @close="passwordDlg = false"
+      >
+        <div class="w-full flex flex-col gap-4">
+          <h2 class="text-xl font-semibold">{{ $t('msg.thisSharedViewIsProtected') }}</h2>
 
-        <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">
-          <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
-            <a-input-password v-model:value="form.password" size="large" :placeholder="$t('msg.enterPassword')" />
-          </a-form-item>
+          <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">
+            <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
+              <a-input-password v-model:value="form.password" size="large" :placeholder="$t('msg.enterPassword')" />
+            </a-form-item>
 
-          <Transition name="layout">
-            <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>
-          </Transition>
+            <Transition name="layout">
+              <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>
+            </Transition>
 
-          <!-- Unlock -->
-          <button type="submit" class="mt-4 scaling-btn bg-opacity-100">{{ $t('general.unlock') }}</button>
-        </a-form>
-      </div>
-    </a-modal>
-  </NuxtLayout>
+            <!-- Unlock -->
+            <button type="submit" class="mt-4 scaling-btn bg-opacity-100">{{ $t('general.unlock') }}</button>
+          </a-form>
+        </div>
+      </a-modal>
+    </NuxtLayout>
+  </div>
 </template>
 
 <style lang="scss" scoped>

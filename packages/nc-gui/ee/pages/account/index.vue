@@ -29,197 +29,199 @@ const logout = async () => {
 </script>
 
 <template>
-  <NuxtLayout name="empty">
-    <div class="mx-auto h-full">
-      <div class="h-full overflow-y-auto flex">
-        <!-- Side tabs -->
+  <div>
+    <NuxtLayout name="empty">
+      <div class="mx-auto h-full">
+        <div class="h-full overflow-y-auto flex">
+          <!-- Side tabs -->
 
-        <div class="h-full bg-white nc-user-sidebar">
-          <NcMenu
-            v-model:openKeys="openKeys"
-            v-model:selectedKeys="selectedKeys"
-            :inline-indent="16"
-            class="tabs-menu h-full"
-            mode="inline"
-          >
-            <div
-              v-if="!$route.params.baseType"
-              v-e="['c:navbar:home']"
-              class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
-              data-testid="nc-noco-brand-icon"
-              @click="navigateTo('/')"
+          <div class="h-full bg-white nc-user-sidebar">
+            <NcMenu
+              v-model:openKeys="openKeys"
+              v-model:selectedKeys="selectedKeys"
+              :inline-indent="16"
+              class="tabs-menu h-full"
+              mode="inline"
             >
-              <div class="flex flex-row gap-x-2 items-center h-8.5">
-                <GeneralIcon class="-mt-0.1" icon="arrowLeft" />
-                <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
+              <div
+                v-if="!$route.params.baseType"
+                v-e="['c:navbar:home']"
+                class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
+                data-testid="nc-noco-brand-icon"
+                @click="navigateTo('/')"
+              >
+                <div class="flex flex-row gap-x-2 items-center h-8.5">
+                  <GeneralIcon class="-mt-0.1" icon="arrowLeft" />
+                  <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
+                </div>
               </div>
-            </div>
 
-            <div class="text-xs text-gray-600 ml-4 py-1.5 mt-3">{{ $t('labels.account') }}</div>
-
-            <NcMenuItem
-              key="profile"
-              :class="{
-                active: $route.params.page === 'profile',
-              }"
-              class="item"
-              @click="navigateTo('/account/profile')"
-            >
-              <div class="flex items-center space-x-2">
-                <GeneralIcon icon="user" class="!h-3.5 !w-3.5" />
-
-                <div class="select-none">{{ $t('labels.profile') }}</div>
-              </div>
-            </NcMenuItem>
-
-            <NcMenuItem
-              key="tokens"
-              :class="{
-                active: $route.params.page === 'tokens',
-              }"
-              class="item"
-              @click="navigateTo('/account/tokens')"
-            >
-              <div class="flex items-center space-x-2">
-                <MdiShieldKeyOutline />
-
-                <div class="select-none">{{ $t('title.tokens') }}</div>
-              </div>
-            </NcMenuItem>
-            <NcMenuItem
-              v-if="isUIAllowed('appStore') && !appInfo.isCloud"
-              key="apps"
-              :class="{
-                active: $route.params.page === 'apps',
-              }"
-              class="item"
-              @click="navigateTo('/account/apps')"
-            >
-              <div class="flex items-center space-x-2">
-                <component :is="iconMap.appStore" />
-
-                <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
-              </div>
-            </NcMenuItem>
-            <NcMenuItem
-              v-if="isUIAllowed('ssoSettings')"
-              key="authentication"
-              :class="{
-                active: $route.params.page === 'authentication',
-              }"
-              class="item"
-              @click="navigateTo('/account/authentication')"
-            >
-              <div class="flex items-center space-x-2">
-                <component :is="iconMap.lock" />
-
-                <div class="select-none text-sm">{{ $t('title.sso') }}</div>
-              </div>
-            </NcMenuItem>
-
-            <a-sub-menu
-              v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
-              key="users"
-              class="!bg-white !my-0"
-            >
-              <template #icon>
-                <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              </template>
-              <template #title>{{ $t('objects.users') }}</template>
+              <div class="text-xs text-gray-600 ml-4 py-1.5 mt-3">{{ $t('labels.account') }}</div>
 
               <NcMenuItem
-                v-if="isUIAllowed('superAdminUserManagement')"
-                key="list"
+                key="profile"
                 :class="{
-                  active: $route.params.nestedPage === 'list',
+                  active: $route.params.page === 'profile',
                 }"
-                class="text-xs item"
-                @click="navigateTo('/account/users/list')"
+                class="item"
+                @click="navigateTo('/account/profile')"
               >
-                <span class="ml-4">{{ $t('title.userManagement') }}</span>
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="user" class="!h-3.5 !w-3.5" />
+
+                  <div class="select-none">{{ $t('labels.profile') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                key="tokens"
+                :class="{
+                  active: $route.params.page === 'tokens',
+                }"
+                class="item"
+                @click="navigateTo('/account/tokens')"
+              >
+                <div class="flex items-center space-x-2">
+                  <MdiShieldKeyOutline />
+
+                  <div class="select-none">{{ $t('title.tokens') }}</div>
+                </div>
               </NcMenuItem>
               <NcMenuItem
-                key="password-reset"
+                v-if="isUIAllowed('appStore') && !appInfo.isCloud"
+                key="apps"
                 :class="{
-                  active: $route.params.nestedPage === 'password-reset',
+                  active: $route.params.page === 'apps',
                 }"
-                class="text-xs item"
-                @click="navigateTo('/account/users/password-reset')"
+                class="item"
+                @click="navigateTo('/account/apps')"
               >
-                <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
+                <div class="flex items-center space-x-2">
+                  <component :is="iconMap.appStore" />
+
+                  <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+                </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('superAdminAppSettings')"
-                key="settings"
+                v-if="isUIAllowed('ssoSettings')"
+                key="authentication"
                 :class="{
-                  active: $route.params.nestedPage === 'settings',
+                  active: $route.params.page === 'authentication',
                 }"
-                class="text-xs item"
-                @click="navigateTo('/account/users/settings')"
+                class="item"
+                @click="navigateTo('/account/authentication')"
               >
-                <span class="ml-4">{{ $t('activity.settings') }}</span>
+                <div class="flex items-center space-x-2">
+                  <component :is="iconMap.lock" />
+
+                  <div class="select-none text-sm">{{ $t('title.sso') }}</div>
+                </div>
               </NcMenuItem>
-            </a-sub-menu>
-          </NcMenu>
-        </div>
 
-        <!-- Sub Tabs -->
+              <a-sub-menu
+                v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
+                key="users"
+                class="!bg-white !my-0"
+              >
+                <template #icon>
+                  <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+                </template>
+                <template #title>{{ $t('objects.users') }}</template>
 
-        <div class="flex flex-col w-full">
-          <div class="flex flex-row p-3 items-center h-14">
-            <div class="flex-1" />
+                <NcMenuItem
+                  v-if="isUIAllowed('superAdminUserManagement')"
+                  key="list"
+                  :class="{
+                    active: $route.params.nestedPage === 'list',
+                  }"
+                  class="text-xs item"
+                  @click="navigateTo('/account/users/list')"
+                >
+                  <span class="ml-4">{{ $t('title.userManagement') }}</span>
+                </NcMenuItem>
+                <NcMenuItem
+                  key="password-reset"
+                  :class="{
+                    active: $route.params.nestedPage === 'password-reset',
+                  }"
+                  class="text-xs item"
+                  @click="navigateTo('/account/users/password-reset')"
+                >
+                  <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
+                </NcMenuItem>
+                <NcMenuItem
+                  v-if="isUIAllowed('superAdminAppSettings')"
+                  key="settings"
+                  :class="{
+                    active: $route.params.nestedPage === 'settings',
+                  }"
+                  class="text-xs item"
+                  @click="navigateTo('/account/users/settings')"
+                >
+                  <span class="ml-4">{{ $t('activity.settings') }}</span>
+                </NcMenuItem>
+              </a-sub-menu>
+            </NcMenu>
+          </div>
 
-            <LazyGeneralReleaseInfo />
+          <!-- Sub Tabs -->
 
-            <a-tooltip v-if="!appInfo.ee" :mouse-enter-delay="1" placement="bottom">
-              <template #title> Switch language</template>
+          <div class="flex flex-col w-full">
+            <div class="flex flex-row p-3 items-center h-14">
+              <div class="flex-1" />
 
-              <div class="flex pr-4 items-center">
-                <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
-              </div>
-            </a-tooltip>
+              <LazyGeneralReleaseInfo />
 
-            <template v-if="signedIn">
-              <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-                <NcButton size="small" type="text">
-                  <component
-                    :is="iconMap.threeDotVertical"
-                    class="md:text-lg cursor-pointer hover:text-gray-800 nc-menu-accounts"
-                    data-testid="nc-menu-accounts"
-                    @click.prevent
-                  />
-                </NcButton>
+              <a-tooltip v-if="!appInfo.ee" :mouse-enter-delay="1" placement="bottom">
+                <template #title> Switch language</template>
 
-                <template #overlay>
-                  <div class="!py-1 !rounded-md bg-white overflow-hidden">
-                    <div class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                      <div v-e="['a:navbar:user:sign-out']" class="nc-account-dropdown-item group" @click="logout">
-                        <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
+                <div class="flex pr-4 items-center">
+                  <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
+                </div>
+              </a-tooltip>
 
-                        <span class="prose group-hover:text-primary">
-                          {{ $t('general.signOut') }}
-                        </span>
+              <template v-if="signedIn">
+                <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
+                  <NcButton size="small" type="text">
+                    <component
+                      :is="iconMap.threeDotVertical"
+                      class="md:text-lg cursor-pointer hover:text-gray-800 nc-menu-accounts"
+                      data-testid="nc-menu-accounts"
+                      @click.prevent
+                    />
+                  </NcButton>
+
+                  <template #overlay>
+                    <div class="!py-1 !rounded-md bg-white overflow-hidden">
+                      <div class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
+                        <div v-e="['a:navbar:user:sign-out']" class="nc-account-dropdown-item group" @click="logout">
+                          <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
+
+                          <span class="prose group-hover:text-primary">
+                            {{ $t('general.signOut') }}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </template>
-              </NcDropdown>
-            </template>
-          </div>
-          <div
-            :style="{
-              height: 'calc(100vh - 3.5rem)',
-            }"
-            class="flex flex-col container mx-auto"
-          >
-            <div class="mt-2 h-full">
-              <NuxtPage />
+                  </template>
+                </NcDropdown>
+              </template>
+            </div>
+            <div
+              :style="{
+                height: 'calc(100vh - 3.5rem)',
+              }"
+              class="flex flex-col container mx-auto"
+            >
+              <div class="mt-2 h-full">
+                <NuxtPage />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </NuxtLayout>
+    </NuxtLayout>
+  </div>
 </template>
 
 <style lang="scss" scoped>

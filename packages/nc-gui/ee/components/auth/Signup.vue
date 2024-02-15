@@ -118,167 +118,169 @@ const subDomain = location.host?.split('.')[0]
 </script>
 
 <template>
-  <NuxtLayout>
-    <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
-      <div
-        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-      >
-        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
+  <div>
+    <NuxtLayout>
+      <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
+        <div
+          class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        >
+          <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
-        <h1 class="prose-2xl font-bold self-center my-4">
-          {{ $t('general.signUp') }}
-          {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
-          {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
-        </h1>
+          <h1 class="prose-2xl font-bold self-center my-4">
+            {{ $t('general.signUp') }}
+            {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
+            {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
+          </h1>
 
-        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
-          <template v-if="!appInfo.disableEmailAuth">
-            <Transition name="layout">
-              <div
-                v-if="error"
-                class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
-                data-testid="nc-signup-error"
-              >
-                <div class="flex items-center gap-2 justify-center">
-                  <MaterialSymbolsWarning />
-                  <div class="break-words">{{ error }}</div>
-                </div>
-              </div>
-            </Transition>
-
-            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-              <a-input
-                v-model:value="form.email"
-                type="email"
-                autocomplete="email"
-                size="large"
-                :placeholder="$t('msg.info.signUp.workEmail')"
-                @focus="resetError"
-              />
-            </a-form-item>
-
-            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
-              <a-input-password
-                v-model:value="form.password"
-                autocomplete="new-password"
-                size="large"
-                class="password"
-                :placeholder="$t('msg.info.signUp.enterPassword')"
-                @focus="resetError"
-              />
-            </a-form-item>
-          </template>
-          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
+          <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
             <template v-if="!appInfo.disableEmailAuth">
-              <button class="scaling-btn bg-opacity-100" type="submit">
-                <span class="flex items-center gap-2">
-                  <MaterialSymbolsRocketLaunchOutline />
+              <Transition name="layout">
+                <div
+                  v-if="error"
+                  class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
+                  data-testid="nc-signup-error"
+                >
+                  <div class="flex items-center gap-2 justify-center">
+                    <MaterialSymbolsWarning />
+                    <div class="break-words">{{ error }}</div>
+                  </div>
+                </div>
+              </Transition>
 
-                  {{ $t('general.signUp') }}
-                </span>
-              </button>
+              <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+                <a-input
+                  v-model:value="form.email"
+                  type="email"
+                  autocomplete="email"
+                  size="large"
+                  :placeholder="$t('msg.info.signUp.workEmail')"
+                  @focus="resetError"
+                />
+              </a-form-item>
+
+              <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
+                <a-input-password
+                  v-model:value="form.password"
+                  autocomplete="new-password"
+                  size="large"
+                  class="password"
+                  :placeholder="$t('msg.info.signUp.enterPassword')"
+                  @focus="resetError"
+                />
+              </a-form-item>
             </template>
-            <a
-              v-if="appInfo.googleAuthEnabled"
-              :href="`${appInfo.ncSiteUrl}/auth/google`"
-              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
-            >
-              <span class="flex items-center gap-2">
-                <LogosGoogleGmail />
-
-                {{ $t('labels.signUpWithProvider', { provider: 'Google' }) }}
-              </span>
-            </a>
-
-            <div
-              v-if="appInfo.oidcAuthEnabled"
-              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
-            >
-              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
-                <button type="button" class="scaling-btn bg-opacity-100">
+            <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
+              <template v-if="!appInfo.disableEmailAuth">
+                <button class="scaling-btn bg-opacity-100" type="submit">
                   <span class="flex items-center gap-2">
-                    <MdiLogin />
-                    <template v-if="!appInfo.disableEmailAuth">
-                      {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
-                    </template>
-                    <template v-else>
-                      {{ $t('general.signUp') }}
-                    </template>
+                    <MaterialSymbolsRocketLaunchOutline />
+
+                    {{ $t('general.signUp') }}
                   </span>
                 </button>
-              </a>
-            </div>
-
-            <div
-              v-if="appInfo.samlAuthEnabled"
-              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
-            >
-              <a :href="`${appInfo.ncSiteUrl}/auth/saml`" class="!text-primary !no-underline">
-                <button type="button" class="scaling-btn bg-opacity-100">
-                  <span class="flex items-center gap-2">
-                    <MdiLogin />
-
-                    <template v-if="!appInfo.disableEmailAuth">
-                      {{ $t('labels.signUpWithProvider', { provider: appInfo.samlProviderName || 'SAML' }) }}
-                    </template>
-                    <template v-else>
-                      {{ $t('general.signIn') }}
-                    </template>
-                  </span>
-                </button>
-              </a>
-            </div>
-
-            <div
-              v-for="client of appInfo.ssoClients || []"
-              :key="client.id"
-              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
-            >
+              </template>
               <a
-                v-if="client.type === 'google'"
-                :href="client.url"
+                v-if="appInfo.googleAuthEnabled"
+                :href="`${appInfo.ncSiteUrl}/auth/google`"
                 class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
               >
                 <span class="flex items-center gap-2">
                   <LogosGoogleGmail />
 
-                  {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
+                  {{ $t('labels.signUpWithProvider', { provider: 'Google' }) }}
                 </span>
               </a>
-              <a :href="client.url" class="!text-primary !no-underline">
-                <button type="button" class="scaling-btn bg-opacity-100">
+
+              <div
+                v-if="appInfo.oidcAuthEnabled"
+                class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+              >
+                <a :href="`${appInfo.ncSiteUrl}/auth/oidc?workspaceId=${subDomain}`" class="!text-primary !no-underline">
+                  <button type="button" class="scaling-btn bg-opacity-100">
+                    <span class="flex items-center gap-2">
+                      <MdiLogin />
+                      <template v-if="!appInfo.disableEmailAuth">
+                        {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                      </template>
+                      <template v-else>
+                        {{ $t('general.signUp') }}
+                      </template>
+                    </span>
+                  </button>
+                </a>
+              </div>
+
+              <div
+                v-if="appInfo.samlAuthEnabled"
+                class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+              >
+                <a :href="`${appInfo.ncSiteUrl}/auth/saml`" class="!text-primary !no-underline">
+                  <button type="button" class="scaling-btn bg-opacity-100">
+                    <span class="flex items-center gap-2">
+                      <MdiLogin />
+
+                      <template v-if="!appInfo.disableEmailAuth">
+                        {{ $t('labels.signUpWithProvider', { provider: appInfo.samlProviderName || 'SAML' }) }}
+                      </template>
+                      <template v-else>
+                        {{ $t('general.signIn') }}
+                      </template>
+                    </span>
+                  </button>
+                </a>
+              </div>
+
+              <div
+                v-for="client of appInfo.ssoClients || []"
+                :key="client.id"
+                class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+              >
+                <a
+                  v-if="client.type === 'google'"
+                  :href="client.url"
+                  class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+                >
                   <span class="flex items-center gap-2">
-                    <MdiLogin />
-                    {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
+                    <LogosGoogleGmail />
+
+                    {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
                   </span>
-                </button>
-              </a>
-            </div>
+                </a>
+                <a :href="client.url" class="!text-primary !no-underline">
+                  <button type="button" class="scaling-btn bg-opacity-100">
+                    <span class="flex items-center gap-2">
+                      <MdiLogin />
+                      {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
+                    </span>
+                  </button>
+                </a>
+              </div>
 
-            <div v-if="!appInfo.disableEmailAuth" class="flex items-center gap-2">
-              <a-switch
-                v-model:checked="subscribe"
-                size="small"
-                class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
-              />
-              <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
-            </div>
+              <div v-if="!appInfo.disableEmailAuth" class="flex items-center gap-2">
+                <a-switch
+                  v-model:checked="subscribe"
+                  size="small"
+                  class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
+                />
+                <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
+              </div>
 
-            <div class="text-end prose-sm">
-              {{ $t('msg.info.signUp.alreadyHaveAccount') }}
+              <div class="text-end prose-sm">
+                {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
-              <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
+                <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
+              </div>
             </div>
-          </div>
-        </a-form>
+          </a-form>
+        </div>
+
+        <div class="prose-sm mt-4 text-gray-500">
+          By signing up, you agree to the
+          <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener"
+            >Terms of Service</a
+          >
+        </div>
       </div>
-
-      <div class="prose-sm mt-4 text-gray-500">
-        By signing up, you agree to the
-        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener"
-          >Terms of Service</a
-        >
-      </div>
-    </div>
-  </NuxtLayout>
+    </NuxtLayout>
+  </div>
 </template>

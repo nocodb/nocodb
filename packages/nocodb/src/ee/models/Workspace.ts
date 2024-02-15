@@ -217,7 +217,6 @@ export default class Workspace implements WorkspaceType {
     });
 
     await NocoCache.deepDel(
-      CacheScope.WORKSPACE_USER,
       `${CacheScope.WORKSPACE_USER}:${id}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );

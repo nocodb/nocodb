@@ -463,7 +463,6 @@ export default class Model implements TableType {
           fk_column_id: col.id,
         });
         await NocoCache.deepDel(
-          cacheScopeName,
           `${cacheScopeName}:${col.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -484,7 +483,6 @@ export default class Model implements TableType {
 
       for (const col of leftOverColumns) {
         await NocoCache.deepDel(
-          CacheScope.COL_RELATION,
           `${CacheScope.COL_RELATION}:${col.fk_column_id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -496,7 +494,6 @@ export default class Model implements TableType {
     }
 
     await NocoCache.deepDel(
-      CacheScope.COLUMN,
       `${CacheScope.COLUMN}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -505,7 +502,6 @@ export default class Model implements TableType {
     });
 
     await NocoCache.deepDel(
-      CacheScope.MODEL,
       `${CacheScope.MODEL}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

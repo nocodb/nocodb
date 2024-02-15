@@ -121,6 +121,8 @@ const onCreateBaseClick = () => {
         </div>
       </component>
     </div>
+    <template v-if="activeTables.length">
+    
     <div class="flex flex-row w-full text-gray-400 border-b-1 border-gray-50 py-3 px-2.5">
       <div class="w-2/5">{{ $t('objects.table') }}</div>
       <div class="w-1/5">{{ $t('general.source') }}</div>
@@ -159,6 +161,8 @@ const onCreateBaseClick = () => {
         </div>
       </div>
     </div>
+  </template>
+<template v-else>fdas</template>
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" />
   </div>

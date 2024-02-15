@@ -16759,6 +16759,7 @@
         ],
         "oneOf": [
           {
+            "maxLength": 8192,
             "type": "string"
           },
           {

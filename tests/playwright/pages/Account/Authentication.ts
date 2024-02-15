@@ -35,8 +35,10 @@ export class AccountAuthenticationPage extends BasePage {
     return this.rootPage.locator(`[data-test-id="nc-${provider}-provider-${title}"]`);
   }
 
-  async deleteProvider(provider: 'saml' | 'oidc', title: string) {
-    await this.rootPage.locator(`.nc-${provider}-${title}-more-option`).click();
+  async deleteProvider(provider: 'saml' | 'oidc' | 'google', title: string) {
+    await this.rootPage
+      .locator(provider === 'google' ? '.nc-google-more-option' : `.nc-${provider}-${title}-more-option`)
+      .click();
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator(`[data-test-id="nc-${provider}-delete"]`).click(),
       httpMethodsToMatch: ['DELETE'],

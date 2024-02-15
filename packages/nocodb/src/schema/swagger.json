@@ -18193,7 +18193,7 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Banner Image URL. Not in use currently."
           },
           "columns": {
@@ -18236,7 +18236,7 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Logo URL. Not in use currently."
           },
           "meta": {
@@ -18248,7 +18248,7 @@
             "description": "The numbers of seconds to redirect after form submission"
           },
           "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
           },
           "show_blank_form": {
@@ -18256,7 +18256,7 @@
             "description": "Show `Blank Form` after 5 seconds"
           },
           "subheading": {
-            "type": "string",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "The subheading of the form",
             "example": "My Form Subheading"
           },
@@ -18265,7 +18265,7 @@
             "description": "Show `Submit Another Form` button"
           },
           "success_msg": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Custom message after the form is successfully submitted"
           },
           "title": {
@@ -18299,7 +18299,7 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Banner Image URL. Not in use currently."
           },
           "email": {
@@ -18313,7 +18313,7 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Logo URL. Not in use currently."
           },
           "meta": {
@@ -18325,7 +18325,7 @@
             "description": "The numbers of seconds to redirect after form submission"
           },
           "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
           },
           "show_blank_form": {
@@ -18333,15 +18333,16 @@
             "description": "Show `Blank Form` after 5 seconds"
           },
           "subheading": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "The subheading of the form"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "The subheading of the form",
+            "example": "My Form Subheading"
           },
           "submit_another_form": {
             "$ref": "#/components/schemas/Bool",
             "description": "Show `Submit Another Form` button"
           },
           "success_msg": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Custom message after the form is successfully submitted"
           }
         },
@@ -18393,8 +18394,8 @@
             "description": "Unique ID"
           },
           "description": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Description (Not in use)"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
@@ -18405,11 +18406,11 @@
             "description": "Foreign Key to View"
           },
           "help": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Help Text"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
           },
           "label": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Form Column Label"
           },
           "meta": {
@@ -18478,15 +18479,15 @@
         },
         "properties": {
           "description": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Description (Not in use)"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
           },
           "help": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Help Text"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
           },
           "label": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Form Column Label"
           },
           "meta": {
@@ -22006,6 +22007,22 @@
         "x-stoplight": {
           "id": "8v8qzwm3w4v11"
         }
+      },
+      "TextOrNull": {
+        "description": "Model for TextOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [
+          {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "TextOrNull Model"
       },
       "StringOrNull": {
         "description": "Model for StringOrNull",

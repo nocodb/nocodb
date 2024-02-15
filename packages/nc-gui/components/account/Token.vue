@@ -337,15 +337,15 @@ const handleCancel = () => {
                     @click="hideOrShowToken(el.token as string)"
                   />
                 </NcTooltip>
-                <NcTooltip placement="top" class="h-4">
+                <NcTooltip placement="top">
                   <template #title>{{ $t('general.copy') }}</template>
                   <component
                     :is="iconMap.copy"
-                    class="hover::cursor-pointer w-4 h-4 text-gray-600 mt-0.25"
+                    class="hover::cursor-pointer w-4 h-4 text-gray-600"
                     @click="copyToken(el.token)"
                   />
                 </NcTooltip>
-                <NcTooltip placement="top" class="mb-0.5">
+                <NcTooltip placement="top">
                   <template #title>{{ $t('general.delete') }}</template>
                   <component
                     :is="iconMap.delete"

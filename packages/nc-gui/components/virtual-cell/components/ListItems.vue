@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
@@ -26,8 +27,6 @@ const { isMobileMode } = useGlobal()
 const injectedColumn = inject(ColumnInj)
 
 const { isSharedBase } = storeToRefs(useBase())
-
-const filterQueryRef = ref()
 
 const { t } = useI18n()
 
@@ -64,7 +63,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const saveRow = inject(SaveRowInj, () => {})
 
-const isFocused = ref(false)
+const filterQueryFocus: VNodeRef = (el) => vModel.value && (el as HTMLInputElement)?.focus()
 
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
@@ -240,20 +239,15 @@ const onCreatedRecord = (record: any) => {
       :header="$t('activity.addNewLink')"
     />
     <div class="flex mt-2 mb-2 items-center gap-2">
-      <div
-        class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
-        :class="{ '!border-primary': childrenExcludedListPagination.query.length !== 0 || isFocused }"
-      >
+      <div class="flex items-center border-1 p-1 rounded-md w-full border-gray-200 focus-within:!border-primary">
         <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
-          ref="filterQueryRef"
+          :ref="filterQueryFocus"
           v-model:value="childrenExcludedListPagination.query"
           :placeholder="`${$t('general.searchIn')} ${relatedTableMeta?.title}`"
           class="w-full !rounded-md nc-excluded-search xs:min-h-8"
           size="small"
           :bordered="false"
-          @focus="isFocused = true"
-          @blur="isFocused = false"
           @keydown.capture.stop
           @change="childrenExcludedListPagination.page = 1"
         >

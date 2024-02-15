@@ -179,6 +179,16 @@ watch([filterQueryRef, isDataExist], () => {
 const linkedShortcuts = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     vModel.value = false
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    try {
+      e.target?.nextElementSibling?.focus()
+    } catch (e) {}
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    try {
+      e.target?.previousElementSibling?.focus()
+    } catch (e) {}
   } else if (e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
     try {
       filterQueryRef.value?.focus()

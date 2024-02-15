@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import { type ColumnReqType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
   ViewTypes,
@@ -756,6 +756,8 @@ const {
   bulkUpdateRows,
   fillHandle,
   view,
+  paginationDataRef,
+  changePage,
 )
 
 function scrollToRow(row?: number) {

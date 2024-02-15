@@ -197,10 +197,11 @@ watch(
       </NcButton>
     </div>
     <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col h-full w-full items-center">
-      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full justify-center items-center gap-y-6">
-        <GeneralIcon icon="webhook" class="flex text-5xl h-10" style="-webkit-text-stroke: 0.5px" />
-        <div class="flex text-gray-600 font-medium text-lg">{{ $t('msg.createWebhookMsg1') }}</div>
-        <div class="flex flex-col items-center">
+      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full items-center gap-y-6 text-center">
+        <img src="~assets/img/placeholder/webhooks.png" class="!w-[24rem] flex-none" />
+
+        <div class="flex text-gray-700 font-bold text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
+        <div class="flex flex-col items-center ext-gray-700">
           <div class="flex">{{ $t('msg.createWebhookMsg2') }}</div>
           <div class="flex">{{ $t('msg.createWebhookMsg3') }}</div>
         </div>

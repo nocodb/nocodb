@@ -398,6 +398,7 @@
     "findRowByScanningCode": "Find record by scanning a QR or Barcode",
     "tokenManagement": "Token Management",
     "addNewToken": "Add new token",
+    "createNewToken": "Create new token",
     "accountSettings": "Account Settings",
     "resetPasswordMenu": "Reset Password",
     "tokens": "Tokens",
@@ -961,7 +962,9 @@
     "value": "Value",
     "key": "Key",
     "createTable": "Create your First Table!",
-    "createTableLabel": "From scratch or import or connect to external database"
+    "createTableLabel": "From scratch or import or connect to external database",
+    "noTokenCreated":"No API Tokens created",
+    "noTokenCreatedLabel" :"Looks like you haven’t generated any API tokens yet."
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",

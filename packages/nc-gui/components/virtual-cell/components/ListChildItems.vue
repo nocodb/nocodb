@@ -1,22 +1,20 @@
 <script lang="ts" setup>
 import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import type { Row } from '#imports'
-import InboxIcon from '~icons/nc-icons/inbox'
-
 import {
   ColumnInj,
   IsFormInj,
   IsPublicInj,
   ReadonlyInj,
+  type Row,
   computed,
   inject,
   isPrimary,
-  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
+import InboxIcon from '~icons/nc-icons/inbox'
 
 interface Prop {
   modelValue?: boolean
@@ -129,10 +127,6 @@ watch(expandedFormDlg, () => {
   }
 })
 
-onKeyStroke('Escape', () => {
-  vModel.value = false
-})
-
 /*
    to render same number of skeleton as the number of cards
    displayed
@@ -180,6 +174,34 @@ watch([filterQueryRef, isDataExist], () => {
   if (readOnly.value || isPublic.value ? isDataExist.value : true) {
     filterQueryRef.value?.focus()
   }
+})
+
+const linkedShortcuts = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    vModel.value = false
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    try {
+      e.target?.nextElementSibling?.focus()
+    } catch (e) {}
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    try {
+      e.target?.previousElementSibling?.focus()
+    } catch (e) {}
+  } else if (e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+    try {
+      filterQueryRef.value?.focus()
+    } catch (e) {}
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', linkedShortcuts)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', linkedShortcuts)
 })
 </script>
 
@@ -271,6 +293,8 @@ watch([filterQueryRef, isDataExist], () => {
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
               @expand="onClick(refRow)"
+              @keydown.space.prevent="linkOrUnLink(refRow, id)"
+              @keydown.enter.prevent="() => onClick(refRow, id)"
               @click="linkOrUnLink(refRow, id)"
             />
           </template>

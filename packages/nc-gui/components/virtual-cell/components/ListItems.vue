@@ -27,7 +27,7 @@ const injectedColumn = inject(ColumnInj)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const filterQueryRef = ref()
+const filterQueryRef = ref<HTMLInputElement>()
 
 const { t } = useI18n()
 
@@ -63,8 +63,6 @@ isChildrenExcludedLoading.value = true
 const isForm = inject(IsFormInj, ref(false))
 
 const saveRow = inject(SaveRowInj, () => {})
-
-const isFocused = ref(false)
 
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
@@ -171,6 +169,10 @@ watch(expandedFormDlg, () => {
   }
 })
 
+watch(filterQueryRef, () => {
+  filterQueryRef.value?.focus()
+})
+
 onKeyStroke('Escape', () => {
   vModel.value = false
 })
@@ -240,10 +242,7 @@ const onCreatedRecord = (record: any) => {
       :header="$t('activity.addNewLink')"
     />
     <div class="flex mt-2 mb-2 items-center gap-2">
-      <div
-        class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
-        :class="{ '!border-primary': childrenExcludedListPagination.query.length !== 0 || isFocused }"
-      >
+      <div class="flex items-center border-1 p-1 rounded-md w-full border-gray-200 !focus-within:border-primary">
         <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
           ref="filterQueryRef"
@@ -252,9 +251,13 @@ const onCreatedRecord = (record: any) => {
           class="w-full !rounded-md nc-excluded-search xs:min-h-8"
           size="small"
           :bordered="false"
-          @focus="isFocused = true"
-          @blur="isFocused = false"
-          @keydown.capture.stop
+          @keydown.capture.stop="
+            (e) => {
+              if (e.key === 'Escape') {
+                filterQueryRef?.blur()
+              }
+            }
+          "
           @change="childrenExcludedListPagination.page = 1"
         >
         </a-input>

@@ -41,7 +41,7 @@ const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const filterQueryRef = ref()
+const filterQueryRef = ref<HTMLInputElement>()
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -213,7 +213,13 @@ watch([filterQueryRef, isDataExist], () => {
           class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
           :bordered="false"
-          @keydown.capture.stop
+          @keydown.capture.stop="
+            (e) => {
+              if (e.key === 'Escape') {
+                filterQueryRef?.blur()
+              }
+            }
+          "
           @change="childrenListPagination.page = 1"
         >
         </a-input>

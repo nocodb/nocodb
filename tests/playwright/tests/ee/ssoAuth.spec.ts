@@ -7,7 +7,7 @@ import { startOpenIDIdp, startSAMLIdp, stopOpenIDIdp, stopSAMLIpd } from './util
 import { GoogleLoginPage } from '../../pages/SsoIdpPage/GoogleLoginPage';
 
 test.describe.serial('SSO', () => {
-  test.describe('CRUD', () => {
+  test.describe.serial('CRUD', () => {
     let accountsPage: AccountPage;
     let context: any;
 

@@ -659,12 +659,12 @@
     "newFormLoaded": "Новая форма будет загружена после",
     "webhook": "Вебхук",
     "multiField": {
-      "newField": "New field",
-      "saveChanges": "Save changes",
-      "updatedField": "Updated field",
-      "deletedField": "Deleted field",
+      "newField": "Новое поле",
+      "saveChanges": "Сохранить изменения",
+      "updatedField": "Обновить поле",
+      "deletedField": "Удалить поле",
       "incompleteConfiguration": "Incomplete configuration",
-      "selectField": "Select a field",
+      "selectField": "Выбрать поле",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     }
   },
@@ -917,10 +917,10 @@
     "clientCA": "Выберите файл CA"
   },
   "placeholder": {
-    "selectSlackChannels": "Select Slack channels",
-    "selectTeamsChannels": "Select Microsoft Teams channels",
-    "selectDiscordChannels": "Select Discord channels",
-    "selectMattermostChannels": "Select Mattermost channels",
+    "selectSlackChannels": "Выберите каналы Slack",
+    "selectTeamsChannels": "Выберите каналы Microsoft Teams",
+    "selectDiscordChannels": "Выберите каналы Discord",
+    "selectMattermostChannels": "Выберите каналы Mattermost",
     "webhookTitle": "Webhook Title",
     "barcodeColumn": "Select a field for the Barcode value",
     "notFoundContent": "No valid field Type can be found.",
@@ -938,7 +938,7 @@
       "confirm": "Подтвердите новый пароль"
     },
     "selectAColumnForTheQRCodeValue": "Select a field for the QR code value",
-    "allowNegativeNumbers": "Allow negative numbers",
+    "allowNegativeNumbers": "Разрешить отрицательные числа",
     "searchProjectTree": "Искать таблицы",
     "searchFields": "Поиск полей",
     "searchColumn": "Поиск {поиск} столбец",

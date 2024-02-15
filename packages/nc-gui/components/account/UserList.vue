@@ -273,9 +273,9 @@ const openDeleteModal = (user: UserType) => {
                       class="w-4 h-4 text-primary"
                     />
                   </div>
-                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
+                  <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgCreator') }}
-                  </span>
+                  </div>
                 </a-select-option>
 
                 <a-select-option
@@ -292,9 +292,9 @@ const openDeleteModal = (user: UserType) => {
                       class="w-4 h-4 text-primary"
                     />
                   </div>
-                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
+                  <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgViewer') }}
-                  </span>
+                  </div>
                 </a-select-option>
               </NcSelect>
               <div v-else class="font-weight-bold" data-rec="true">
@@ -344,6 +344,18 @@ const openDeleteModal = (user: UserType) => {
                 </NcDropdown>
               </div>
             </span>
+          </div>
+          <div
+            v-if="sortedUsers.length === 1"
+            class="user pt-12 pb-4 flex flex-col items-center gap-6 text-center border-b-1 border-l-1 border-r-1"
+          >
+            <div class="text-2xl text-gray-800 font-bold">
+              {{ $t('placeholder.inviteYourTeam') }}
+            </div>
+            <div class="text-sm text-gray-700">
+              {{ $t('placeholder.inviteYourTeamLabel') }}
+            </div>
+            <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
           </div>
         </section>
       </div>

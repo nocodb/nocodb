@@ -152,7 +152,7 @@ onMounted(async () => {
               </NcDropdown>
             </div>
           </div>
-          <div class="pt-12 pb-4 flex flex-col items-center gap-6 text-center">
+          <div v-if="sortedCollaborators.length === 1" class="pt-12 pb-4 flex flex-col items-center gap-6 text-center">
             <div class="text-2xl text-gray-800 font-bold">
               {{ $t('placeholder.inviteYourTeam') }}
             </div>

@@ -134,7 +134,13 @@ onMounted(() => {
               <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
             </NcMenuItem>
           </a>
-          <a v-e="['c:nocodb:twitter']" href="https://twitter.com/nocodb" target="_blank" class="!underline-transparent">
+          <a
+            v-e="['c:nocodb:twitter']"
+            href="https://twitter.com/nocodb"
+            target="_blank"
+            class="!underline-transparent"
+            rel="noopener noreferrer"
+          >
             <NcMenuItem class="social-icon-wrapper group">
               <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
               <span class="menu-btn"> {{ $t('labels.twitter') }} </span>

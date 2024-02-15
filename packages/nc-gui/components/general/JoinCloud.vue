@@ -28,7 +28,7 @@
             </div>
             <div class="self-stretch text-gray-500 text-base leading-normal">/ month / workspace</div>
 
-            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline">
+            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline" rel="noopener">
               <NcButton class="text-gray-700 text-base font-semibold leading-tight py-4 w-full">Start for Free</NcButton>
             </a>
             <div class="self-stretch text-center text-gray-500 text-xs font-medium leading-none mb-4">

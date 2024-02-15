@@ -1,11 +1,11 @@
 import { ViewTypes } from 'nocodb-sdk'
-import type { Language } from '../lib'
 import { iconMap } from './iconUtils'
+import type { Language } from '~/lib'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
   [ViewTypes.GRID]: { icon: iconMap.grid, color: '#36BFFF' },
   [ViewTypes.FORM]: { icon: iconMap.form, color: '#7D26CD' },
-  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: 'purple' },
+  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: '#B33771' },
   [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#FC3AC6' },
   [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
   [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#FF9052' },

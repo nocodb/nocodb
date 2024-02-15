@@ -21,7 +21,6 @@ withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['resize-start'])
-
 </script>
 
 <template>
@@ -42,7 +41,7 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500 border-1)': resize,
       '!border-brand-500 border-1': selected || hover,
     }"
-    class="relative flex items-center px-1 group border-1 border-transparent"
+    class="relative transition-all flex items-center px-1 group border-1 border-transparent"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -57,14 +56,16 @@ const emit = defineEmits(['resize-start'])
       class="block h-full min-h-5 w-1 rounded"
     ></div>
 
-    <div
-      v-if="(position === 'leftRounded' || position === 'rounded') && resize"
-      :class="{
-        '!block !border-1 !rounded-lg !border-brand-500': selected || hover,
-      }"
-      class="mt-0.1 h-7.1 absolute hidden -left-4 resize"
-    >
-      <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
+    <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.1 h-7.1 absolute -left-4 resize">
+      <NcButton
+        :class="{
+          '!block z-1 !border-brand-500': selected || hover,
+          '!hidden': !selected && !hover,
+        }"
+        size="xsmall"
+        type="secondary"
+        @mousedown.stop="emit('resize-start', 'left', $event, record)"
+      >
         <component :is="iconMap.drag" class="text-gray-400"></component>
       </NcButton>
     </div>
@@ -77,14 +78,16 @@ const emit = defineEmits(['resize-start'])
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
 
-    <div
-      v-if="(position === 'rightRounded' || position === 'rounded') && resize"
-      :class="{
-        '!block border-1 rounded-lg border-brand-500': selected || hover,
-      }"
-      class="absolute mt-0.1 hidden h-7.1 -right-4 border-1 resize !group-hover:(border-brand-500 border-1 block rounded-lg)"
-    >
-      <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
+    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.1 z-1 -right-4 resize">
+      <NcButton
+        :class="{
+          '!block !border-brand-500': selected || hover,
+          '!hidden': !selected && !hover,
+        }"
+        size="xsmall"
+        type="secondary"
+        @mousedown.stop="emit('resize-start', 'right', $event, record)"
+      >
         <component :is="iconMap.drag" class="text-gray-400"></component>
       </NcButton>
     </div>

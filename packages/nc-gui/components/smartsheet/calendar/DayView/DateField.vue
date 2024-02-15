@@ -15,6 +15,8 @@ const { isUIAllowed } = useRoles()
 const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, displayField } =
   useCalendarViewStoreOrThrow()
 
+// We loop through all the records and calculate the position of each record based on the range
+// We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
   let dayRecordCount = 0
   const perRecordHeight = 40
@@ -38,6 +40,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           width: '100%',
         }
 
+        // This property is used to determine which side the record should be rounded. It can be left, right, both or none
         let position = 'none'
         const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(selectedDate.value, 'day')
         const isBeforeSelectedDay = (date: dayjs.Dayjs) => date.isBefore(selectedDate.value, 'day')
@@ -91,6 +94,7 @@ const dragElement = ref<HTMLElement | null>(null)
 
 const hoverRecord = ref<string | null>(null)
 
+// We support drag and drop from the sidebar to the day view of the date field
 const dropEvent = (event: DragEvent) => {
   if (!isUIAllowed('dataEdit')) return
   event.preventDefault()
@@ -142,28 +146,22 @@ const dropEvent = (event: DragEvent) => {
 
     if (!newRow) return
 
+    const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
+
     if (dragElement.value) {
       formattedData.value = formattedData.value.map((r) => {
         const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-        if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-          return newRow
-        }
-        return r
+        return pk === newPk ? newRow : r
       })
     } else {
       formattedData.value = [...formattedData.value, newRow]
       formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
-        const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-        return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
+        return extractPkFromRow(r.row, meta.value!.columns!) !== newPk
       })
     }
 
     if (dragElement.value) {
       dragElement.value.style.boxShadow = 'none'
-      dragElement.value.classList.remove('hide')
-
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)

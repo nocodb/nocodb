@@ -8,7 +8,7 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const emit = defineEmits(['expand-record', 'new-record'])
+const emit = defineEmits(['expand-record', 'newRecord'])
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
@@ -55,7 +55,6 @@ const dragElement = ref<HTMLElement | null>(null)
 const dragStart = (event: DragEvent, record: Row) => {
   dragElement.value = event.target as HTMLElement
 
-  dragElement.value.classList.add('hide')
   dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
   const eventRect = dragElement.value.getBoundingClientRect()
 
@@ -267,7 +266,7 @@ const newRecord = () => {
     row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ')
   }
 
-  emit('new-record', { row, oldRow: {}, rowMeta: { new: true } })
+  emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
 }
 
 const height = ref(0)
@@ -390,7 +389,7 @@ onUnmounted(() => {
         <template v-else-if="renderData.length > 0">
           <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
             <LazySmartsheetCalendarSideRecordCard
-              :draggable="sideBarFilterOption === 'withoutDates'"
+              :draggable="sideBarFilterOption === 'withoutDates' && activeCalendarView !== 'year'"
               :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date

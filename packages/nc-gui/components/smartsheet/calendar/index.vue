@@ -131,6 +131,16 @@ reloadViewDataHook?.on(async () => {
   await Promise.all([loadCalendarData(), loadSidebarData()])
 })
 
+const goToToday = () => {
+  selectedDate.value = dayjs()
+  pageDate.value = dayjs()
+  selectedMonth.value = dayjs()
+  selectedDateRange.value = {
+    start: dayjs().startOf('week'),
+    end: dayjs().endOf('week'),
+  }
+}
+
 const headerText = computed(() => {
   switch (activeCalendarView.value) {
     case 'day':
@@ -157,7 +167,7 @@ const headerText = computed(() => {
       <div class="flex justify-between p-3 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
         <div class="flex justify-start gap-3 items-center">
           <NcTooltip>
-            <template #title> Previous </template>
+            <template #title> {{ $t('labels.previous') }}</template>
             <NcButton
               v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
               data-testid="nc-calendar-prev-btn"
@@ -207,7 +217,7 @@ const headerText = computed(() => {
             </template>
           </NcDropdown>
           <NcTooltip>
-            <template #title> Next </template>
+            <template #title> {{ $t('labels.next') }}</template>
             <NcButton
               v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
               data-testid="nc-calendar-next-btn"
@@ -224,26 +234,16 @@ const headerText = computed(() => {
             data-testid="nc-calendar-today-btn"
             size="small"
             type="secondary"
-            @click="
-              () => {
-                selectedDate = dayjs()
-                pageDate = dayjs()
-                selectedMonth = dayjs()
-                selectedDateRange = {
-                  start: dayjs().startOf('week'),
-                  end: dayjs().endOf('week'),
-                }
-              }
-            "
+            @click="goToToday"
           >
-            Go to Today
+            {{ $t('activity.goToToday') }}
           </NcButton>
           <span class="opacity-0" data-testid="nc-active-calendar-view">
             {{ activeCalendarView }}
           </span>
         </div>
         <NcTooltip>
-          <template #title> Toggle Sidebar </template>
+          <template #title> {{ $t('activity.toggleSidebar') }}</template>
           <NcButton
             v-if="!isMobileMode"
             v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"

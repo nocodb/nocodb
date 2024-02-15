@@ -212,7 +212,6 @@
     "page": "Page",
     "pages": "Pages",
     "record": "record",
-    "Records": "Records",
     "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
@@ -688,6 +687,8 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
     "withEndDate": "with end date",
     "calendar": "Calendar",

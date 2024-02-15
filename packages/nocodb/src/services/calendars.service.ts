@@ -27,7 +27,7 @@ export class CalendarsService {
     user: UserType;
     req: NcRequest;
   }) {
-    -validatePayload(
+    validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.calendar,
     );

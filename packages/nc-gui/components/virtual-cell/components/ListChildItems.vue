@@ -41,6 +41,8 @@ const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const filterQueryRef = ref<HTMLInputElement>()
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const {
@@ -91,8 +93,6 @@ const linkRow = async (row: Record<string, any>, id: number) => {
 const attachmentCol = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
 })
-
-const isFocused = ref(false)
 
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
@@ -175,6 +175,12 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
     linkRow(rowRef, parseInt(id))
   }
 }
+
+watch([filterQueryRef, isDataExist], () => {
+  if (readOnly.value || isPublic.value ? isDataExist.value : true) {
+    filterQueryRef.value?.focus()
+  }
+})
 </script>
 
 <template>
@@ -198,11 +204,8 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       :display-value="headerDisplayValue"
     />
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
-      <div
-        class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
-        :class="{ '!border-primary': childrenListPagination.query.length !== 0 || isFocused }"
-      >
-        <MdiMagnify class="w-5 h-5 ml-2" />
+      <div class="flex items-center border-1 p-1 rounded-md w-full border-gray-200 !focus-within:border-primary">
+        <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
           ref="filterQueryRef"
           v-model:value="childrenListPagination.query"
@@ -210,9 +213,13 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
           class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
           :bordered="false"
-          @focus="isFocused = true"
-          @blur="isFocused = false"
-          @keydown.capture.stop
+          @keydown.capture.stop="
+            (e) => {
+              if (e.key === 'Escape') {
+                filterQueryRef?.blur()
+              }
+            }
+          "
           @change="childrenListPagination.page = 1"
         >
         </a-input>

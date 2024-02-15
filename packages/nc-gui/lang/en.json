@@ -959,7 +959,9 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "Value",
-    "key": "Key"
+    "key": "Key",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "From scratch or import or connect to external database"
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",

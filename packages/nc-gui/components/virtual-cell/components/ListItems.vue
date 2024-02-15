@@ -328,6 +328,7 @@ const onCreatedRecord = (record: any) => {
                 expandedFormDlg = true
               }
             "
+            @keydown.space.prevent="() => onClick(refRow, id)"
             @click="() => onClick(refRow, id)"
           />
         </template>

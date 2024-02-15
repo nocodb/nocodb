@@ -965,7 +965,9 @@
     "createTable": "Create your First Table!",
     "createTableLabel": "From scratch or import or connect to external database",
     "noTokenCreated":"No API Tokens created",
-    "noTokenCreatedLabel" :"Looks like you haven’t generated any API tokens yet."
+    "noTokenCreatedLabel" :"Looks like you haven’t generated any API tokens yet.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!"
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",

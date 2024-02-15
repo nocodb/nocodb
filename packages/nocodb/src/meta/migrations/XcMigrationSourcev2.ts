@@ -25,6 +25,7 @@ import * as nc_035_add_username_to_users from '~/meta/migrations/v2/nc_035_add_u
 import * as nc_036_base_deleted from '~/meta/migrations/v2/nc_036_base_deleted';
 import * as nc_037_rename_project_and_base from '~/meta/migrations/v2/nc_037_rename_project_and_base';
 import * as nc_038_formula_parsed_tree_column from '~/meta/migrations/v2/nc_038_formula_parsed_tree_column';
+import * as nc_039_sqlite_alter_column_types from '~/meta/migrations/v2/nc_039_sqlite_alter_column_types';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -61,6 +62,7 @@ export default class XcMigrationSourcev2 {
       'nc_036_base_deleted',
       'nc_037_rename_project_and_base',
       'nc_038_formula_parsed_tree_column',
+      'nc_039_sqlite_alter_column_types',
     ]);
   }
 
@@ -124,6 +126,8 @@ export default class XcMigrationSourcev2 {
         return nc_037_rename_project_and_base;
       case 'nc_038_formula_parsed_tree_column':
         return nc_038_formula_parsed_tree_column;
+      case 'nc_039_sqlite_alter_column_types':
+        return nc_039_sqlite_alter_column_types;
     }
   }
 }

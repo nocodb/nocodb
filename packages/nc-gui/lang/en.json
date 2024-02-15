@@ -435,7 +435,6 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
-    "organizeRecordsBy": "Organize records by",
     "organizeBy": "Organize by",
     "previous": "Previous",
     "nextMonth": "Next Month",
@@ -1097,7 +1096,7 @@
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
-      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
       "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
       "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",

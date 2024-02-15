@@ -1,5 +1,6 @@
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
+import { expect } from '@playwright/test';
 
 export class CmdL extends BasePage {
   readonly dashboardPage: DashboardPage;
@@ -14,17 +15,15 @@ export class CmdL extends BasePage {
   }
 
   async openCmdL() {
-    await this.dashboardPage.rootPage.keyboard.press(this.isMacOs() ? 'Meta+L' : 'Control+L');
+    await this.dashboardPage.rootPage.keyboard.press((await this.isMacOs()) ? 'Meta+l' : 'Control+l');
   }
 
   async isCmdLVisible() {
-    const isVisible = this.get();
-    return await isVisible.count();
+    await expect(this.get()).toBeVisible();
   }
 
   async isCmdLNotVisible() {
-    const isNotVisible = this.get();
-    return await isNotVisible.count();
+    await expect(this.get()).toBeHidden();
   }
 
   async moveDown() {

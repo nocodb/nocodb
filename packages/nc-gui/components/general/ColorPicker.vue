@@ -58,13 +58,12 @@ watch(picked, (n, _o) => {
       >
         {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
-      <button
-        class="h-6 w-6 mt-2.7 ml-1 border-1 border-[grey] rounded-md flex items-center justify-center"
-        @click="isPickerOn = !isPickerOn"
-      >
+      <button class="h-6 w-6 mt-2.7 ml-1 border-1 border-[grey] rounded-md" @click="isPickerOn = !isPickerOn">
         <GeneralTooltip>
           <template #title>{{ $t('activity.moreColors') }}</template>
-          <GeneralIcon class="mt-1.5" :icon="isPickerOn ? 'minus' : 'plus'" />
+          <div class="flex items-center justify-center">
+            <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4"/>
+          </div>
         </GeneralTooltip>
       </button>
     </div>

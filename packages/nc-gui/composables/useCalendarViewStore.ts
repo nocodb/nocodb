@@ -440,10 +440,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       let fromDate: dayjs.Dayjs | string | null = null
 
       if (activeCalendarView.value === 'week' || activeCalendarView.value === 'day' || activeCalendarView.value === 'month') {
-        prevDate = pageDate.value.startOf('month').subtract(1, 'day').endOf('day')
-        fromDate = pageDate.value.startOf('month')
+        const startOfMonth = pageDate.value.startOf('month')
+        const endOfMonth = pageDate.value.endOf('month')
 
-        nextDate = pageDate.value.endOf('month').add(1, 'day').startOf('day')
+        const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
+        fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day')
+        const toDate = fromDate.add(daysToDisplay, 'day')
+        prevDate = fromDate.subtract(1, 'day').endOf('day')
+        nextDate = toDate.add(1, 'day').startOf('day')
       } else if (activeCalendarView.value === 'year') {
         fromDate = selectedDate.value.startOf('year')
         prevDate = selectedDate.value.startOf('year').subtract(1, 'day').endOf('day')

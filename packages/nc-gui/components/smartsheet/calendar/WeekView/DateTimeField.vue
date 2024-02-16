@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { computed, ref } from '#imports'
-import { generateRandomNumber, getScrollbarWidth, isRowEmpty } from '~/utils'
+import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
 
@@ -166,8 +166,8 @@ const recordsAcrossAllRange = computed<{
 
         style = {
           ...style,
-          top: `${hourIndex * perHeight - hourIndex + 5}px`,
-          height: `${perHeight - 7}px`,
+          top: `${hourIndex * perHeight - hourIndex + 6}px`,
+          height: `${perHeight - 10}px`,
         }
 
         recordsToDisplay.push({
@@ -666,9 +666,8 @@ const viewMore = (hour: dayjs.Dayjs) => {
           :key="date[0].toISOString()"
           :class="{
             'text-brand-500': date[0].isSame(dayjs(), 'date'),
-            'last:mr-2.75': getScrollbarWidth() > 0,
           }"
-          class="w-1/7 text-center text-sm text-gray-500 z-1 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 bg-gray-50"
+          class="w-1/7 text-center text-sm text-gray-500 z-1 w-full py-1 border-gray-200 last:border-r-0 border-b-0 border-l-1 border-r-0 bg-gray-50"
         >
           {{ dayjs(date[0]).format('DD ddd') }}
         </div>
@@ -677,9 +676,9 @@ const viewMore = (hour: dayjs.Dayjs) => {
         <div
           v-for="(hour, index) in datesHours[0]"
           :key="index"
-          class="h-20 first:mt-0 first:pt-0 pt-7.1 text-center text-sm text-gray-500 py-1"
+          class="h-20 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
         >
-          {{ hour.format('HH:mm') }}
+          {{ hour.format('h A') }}
         </div>
       </div>
       <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
@@ -690,7 +689,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
             :class="{
               'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             }"
-            class="text-center relative first:mt-7.1 h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50"
+            class="text-center relative first:mt-7.1 h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-200 border-t-gray-200"
             data-testid="nc-calendar-week-hour"
             @click="
               () => {

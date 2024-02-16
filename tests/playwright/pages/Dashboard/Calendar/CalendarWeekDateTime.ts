@@ -51,8 +51,8 @@ export class CalendarWeekDateTimePage extends BasePage {
     await hour.click({
       force: true,
       position: {
-        x: 1,
-        y: 0,
+        x: -1,
+        y: -1,
       },
     });
   }

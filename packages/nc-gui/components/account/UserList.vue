@@ -347,7 +347,7 @@ const openDeleteModal = (user: UserType) => {
           </div>
           <div
             v-if="sortedUsers.length === 1"
-            class="user pt-12 pb-4 flex flex-col items-center gap-6 text-center border-b-1 border-l-1 border-r-1"
+            class="user pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center border-b-1 border-l-1 border-r-1"
           >
             <div class="text-2xl text-gray-800 font-bold">
               {{ $t('placeholder.inviteYourTeam') }}

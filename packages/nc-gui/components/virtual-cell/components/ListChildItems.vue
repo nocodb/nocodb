@@ -299,16 +299,11 @@ onUnmounted(() => {
           </template>
         </div>
       </div>
-      <div v-else class="pt-1 flex flex-col gap-4 my-auto items-center justify-center text-gray-500">
+      <div v-else class="pt-1 flex flex-col gap-4 my-auto items-center justify-center text-gray-500 text-center">
         <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
-        <div class="text-2xl text-gray-700 font-bold text-center">{{ $t('msg.noLinkedRecords') }}</div>
-        <div class="text-center text-gray-700">
-          <div>
-            {{ $t('msg.noRecordsHaveBeenLinkedYetFromTable', { tableName: relatedTableMeta?.title }) }}
-          </div>
-          <div>
-            {{ $t('msg.clickLinkRecordsToAddLink') }}
-          </div>
+        <div class="text-2xl text-gray-700 font-bold">{{ $t('msg.noLinkedRecords') }}</div>
+        <div class="text-gray-700">
+          {{ $t('msg.clickLinkRecordsToAddLinkFromTable', { tableName: relatedTableMeta?.title }) }}
         </div>
 
         <NcButton

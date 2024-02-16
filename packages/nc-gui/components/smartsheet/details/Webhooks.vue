@@ -199,11 +199,8 @@ watch(
     <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col h-full w-full items-center">
       <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full items-center gap-y-6 text-center">
         <img src="~assets/img/placeholder/webhooks.png" class="!w-[24rem] flex-none" />
-        <div class="flex text-gray-700 font-bold text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
-        <div class="flex flex-col items-center ext-gray-700">
-          <div class="flex">{{ $t('msg.createWebhookMsg2') }}</div>
-          <div class="flex">{{ $t('msg.createWebhookMsg3') }}</div>
-        </div>
+        <div class="text-gray-700 font-bold text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
+        <div class="text-gray-700 max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
         <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" @click="createWebhook()">
           <div class="flex flex-row items-center justify-between w-full">
             <span class="ml-1">{{ $t('activity.newWebhook') }}</span>

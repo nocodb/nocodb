@@ -159,15 +159,18 @@ const recordsAcrossAllRange = computed<{
         }
 
         // We calculate the index of the hour in the day and set the top and height of the record
-        const hourIndex = Math.max(
-          datesHours.value[dayIndex].findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
-          0,
+        const hourIndex = Math.min(
+          Math.max(
+            datesHours.value[dayIndex].findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
+            0,
+          ),
+          23,
         )
 
         style = {
           ...style,
-          top: `${hourIndex * perHeight - hourIndex + 6}px`,
-          height: `${perHeight - 10}px`,
+          top: `${hourIndex * perHeight - hourIndex - hourIndex * 0.15}px`,
+          height: `${perHeight - 2}px`,
         }
 
         recordsToDisplay.push({
@@ -489,8 +492,6 @@ const calculateNewRow = (
   const day = Math.max(0, Math.min(6, Math.floor(percentX * 7)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
-  console.log('day', day, 'hour', hour)
-
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
   if (!newStartDate) return { newRow: null, updatedProperty: [] }
 
@@ -658,110 +659,115 @@ const viewMore = (hour: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div class="w-full relative prevent-select" data-testid="nc-calendar-week-view" @drop="dropEvent">
-    <div ref="scrollContainer" class="h-[calc(100vh-9.9rem)] relative flex w-full overflow-y-auto nc-scrollbar-md">
-      <div class="flex sticky h-7.1 z-1 top-0 pl-16 bg-gray-50 w-full top-0">
+  <div
+    ref="scrollContainer"
+    class="h-[calc(100vh-9.9rem)] prevent-select relative flex w-full overflow-y-auto nc-scrollbar-md"
+    data-testid="nc-calendar-week-view"
+    @drop="dropEvent"
+  >
+    <div class="flex sticky h-7.1 z-1 top-0 pl-16 bg-gray-50 w-full">
+      <div
+        v-for="date in datesHours"
+        :key="date[0].toISOString()"
+        :class="{
+          'text-brand-500': date[0].isSame(dayjs(), 'date'),
+        }"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-0 border-l-1 border-r-0 bg-gray-50"
+      >
+        {{ dayjs(date[0]).format('DD ddd') }}
+      </div>
+    </div>
+    <div class="absolute bg-white w-16 z-1">
+      <div
+        v-for="(hour, index) in datesHours[0]"
+        :key="index"
+        class="h-20 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
+      >
+        {{ hour.format('h A') }}
+      </div>
+    </div>
+    <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
+      <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7" data-testid="nc-calendar-week-day">
         <div
-          v-for="date in datesHours"
-          :key="date[0].toISOString()"
+          v-for="(hour, hourIndex) in date"
+          :key="hourIndex"
           :class="{
-            'text-brand-500': date[0].isSame(dayjs(), 'date'),
+            'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
           }"
-          class="w-1/7 text-center text-sm text-gray-500 z-1 w-full py-1 border-gray-200 last:border-r-0 border-b-0 border-l-1 border-r-0 bg-gray-50"
+          class="text-center relative first:mt-7.1 h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-200 border-t-gray-200"
+          data-testid="nc-calendar-week-hour"
+          @click="
+            () => {
+              selectedTime = hour
+              selectedDate = hour
+            }
+          "
         >
-          {{ dayjs(date[0]).format('DD ddd') }}
-        </div>
-      </div>
-      <div class="absolute bg-white w-16 z-1">
-        <div
-          v-for="(hour, index) in datesHours[0]"
-          :key="index"
-          class="h-20 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
-        >
-          {{ hour.format('h A') }}
-        </div>
-      </div>
-      <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
-        <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7" data-testid="nc-calendar-week-day">
-          <div
-            v-for="(hour, hourIndex) in date"
-            :key="hourIndex"
-            :class="{
-              'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
-            }"
-            class="text-center relative first:mt-7.1 h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-200 border-t-gray-200"
-            data-testid="nc-calendar-week-hour"
-            @click="
-              () => {
-                selectedTime = hour
-                selectedDate = hour
-              }
-            "
+          <NcButton
+            v-if="recordsAcrossAllRange?.count?.[hour.format('YYYY-MM-DD')]?.[hour.format('HH:mm')]?.overflow"
+            class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
+            size="xxsmall"
+            type="secondary"
+            @click="viewMore(hour)"
           >
-            <NcButton
-              v-if="recordsAcrossAllRange?.count?.[hour.format('YYYY-MM-DD')]?.[hour.format('HH:mm')]?.overflow"
-              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
-              size="xxsmall"
-              type="secondary"
-              @click="viewMore(hour)"
-            >
-              <span class="text-xs">
-                +
-                {{ recordsAcrossAllRange?.count[hour.format('YYYY-MM-DD')][hour.format('HH:mm')]?.overflowCount }}
-                more
-              </span>
-            </NcButton>
-          </div>
+            <span class="text-xs">
+              +
+              {{ recordsAcrossAllRange?.count[hour.format('YYYY-MM-DD')][hour.format('HH:mm')]?.overflowCount }}
+              more
+            </span>
+          </NcButton>
         </div>
+      </div>
 
-        <div class="absolute pointer-events-none inset-0 !mt-[25px]" data-testid="nc-calendar-week-record-container">
-          <div
-            v-for="(record, rowIndex) in recordsAcrossAllRange.records"
-            :key="rowIndex"
-            :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
-            :data-unique-id="record.rowMeta!.id"
-            :style="record.rowMeta!.style "
-            class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
-            @mousedown="dragStart($event, record)"
-            @mouseleave="hoverRecord = null"
-            @mouseover="hoverRecord = record.rowMeta.id"
-            @dragover.prevent
-          >
-            <LazySmartsheetRow :row="record">
-              <LazySmartsheetCalendarVRecordCard
-                :hover="hoverRecord === record.rowMeta.id"
-                :position="record.rowMeta!.position"
-                :record="record"
-                :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-                color="blue"
-                @resize-start="onResizeStart"
-              >
-                <template v-if="!isRowEmpty(record, displayField)">
-                  <div
-                    :class="{
+      <div
+        class="absolute pointer-events-none inset-0 overflow-hidden !mt-[29px]"
+        data-testid="nc-calendar-week-record-container"
+      >
+        <div
+          v-for="(record, rowIndex) in recordsAcrossAllRange.records"
+          :key="rowIndex"
+          :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
+          :data-unique-id="record.rowMeta!.id"
+          :style="record.rowMeta!.style "
+          class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
+          @mousedown="dragStart($event, record)"
+          @mouseleave="hoverRecord = null"
+          @mouseover="hoverRecord = record.rowMeta.id"
+          @dragover.prevent
+        >
+          <LazySmartsheetRow :row="record">
+            <LazySmartsheetCalendarVRecordCard
+              :hover="hoverRecord === record.rowMeta.id"
+              :position="record.rowMeta!.position"
+              :record="record"
+              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              color="blue"
+            >
+              <template v-if="!isRowEmpty(record, displayField)">
+                <div
+                  :class="{
                       '!mt-2': displayField!.uidt === UITypes.SingleLineText,
                       '!mt-1': displayField!.uidt === UITypes.MultiSelect || displayField!.uidt === UITypes.SingleSelect,
                     }"
-                  >
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(displayField!)"
-                      v-model="record.row[displayField!.title!]"
-                      :column="displayField"
-                      :row="record"
-                    />
+                >
+                  <LazySmartsheetVirtualCell
+                    v-if="isVirtualCol(displayField!)"
+                    v-model="record.row[displayField!.title!]"
+                    :column="displayField"
+                    :row="record"
+                  />
 
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="record.row[displayField!.title!]"
-                      :column="displayField"
-                      :edit-enabled="false"
-                      :read-only="true"
-                    />
-                  </div>
-                </template>
-              </LazySmartsheetCalendarVRecordCard>
-            </LazySmartsheetRow>
-          </div>
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="record.row[displayField!.title!]"
+                    :column="displayField"
+                    :edit-enabled="false"
+                    :read-only="true"
+                  />
+                </div>
+              </template>
+            </LazySmartsheetCalendarVRecordCard>
+          </LazySmartsheetRow>
         </div>
       </div>
     </div>
@@ -769,10 +775,6 @@ const viewMore = (hour: dayjs.Dayjs) => {
 </template>
 
 <style lang="scss" scoped>
-.hide {
-  transition: 0.01s;
-  transform: translateX(-9999px);
-}
 .prevent-select {
   -webkit-user-select: none;
   -ms-user-select: none;

@@ -277,8 +277,6 @@ test.describe('Calendar View', () => {
 
     await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
 
-    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
-
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });

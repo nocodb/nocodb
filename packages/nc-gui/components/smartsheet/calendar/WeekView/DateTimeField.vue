@@ -166,8 +166,8 @@ const recordsAcrossAllRange = computed<{
 
         style = {
           ...style,
-          top: `${hourIndex * perHeight - hourIndex + 3}px`,
-          height: `${perHeight - 4}px`,
+          top: `${hourIndex * perHeight - hourIndex + 5}px`,
+          height: `${perHeight - 7}px`,
         }
 
         recordsToDisplay.push({

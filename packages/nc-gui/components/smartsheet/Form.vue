@@ -28,6 +28,7 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   watch,
+  parseProp,
 } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -56,6 +57,8 @@ const formRef = ref()
 const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
+
+const { appInfo } = useGlobal()
 
 const formState = reactive({})
 
@@ -213,10 +216,10 @@ function onMove(event: any, isVisibleFormFields = false) {
   $e('a:form-view:reorder')
 }
 
-function showOrHideColumn(column: Record<string, any>, show: boolean) {
+function showOrHideColumn(column: Record<string, any>, show: boolean, isSidePannel = false) {
   if (shouldSkipColumn(column)) {
     // Required field can't be moved
-    message.info(t('msg.info.requriedFieldsCantBeMoved'))
+    !isSidePannel && message.info(t('msg.info.requriedFieldsCantBeMoved'))
     return
   }
 
@@ -226,7 +229,7 @@ function showOrHideColumn(column: Record<string, any>, show: boolean) {
     saveOrUpdate(
       {
         ...column,
-        show: show,
+        show,
       },
       fieldIndex,
     )
@@ -288,6 +291,11 @@ function setFormData() {
     ...formViewData.value,
     submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
+    meta: {
+      hide_branding: false,
+      theme_color: '#F9F9FA',
+      ...(parseProp(formViewData.value?.meta) ?? {}),
+    },
   }
 
   // email me
@@ -443,9 +451,21 @@ const onFormItemClick = (element: any) => {
       </a-row>
 
       <a-row v-else class="h-full flex" data-testid="nc-form-wrapper">
-        <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto nc-form-scrollbar p-6 bg-gray-50">
+        <a-col
+          v-if="formViewData"
+          :span="isEditable ? 16 : 24"
+          class="h-full overflow-auto nc-form-scrollbar p-6 bg-gray-50"
+          :style="{background:(formViewData?.meta as Record<string,any>).theme_color}"
+        >
           <div class="h-[160px] bg-primary bg-opacity-75 border-gray-200 rounded-3xl">
             <!-- for future implementation of cover image -->
+            <LazyNuxtImg
+              class="h-full"
+              :src="`${appInfo.ncSiteUrl}/dltemp/KQahh21IPmhTKhVB/1708109400000/noco/pr5u10r2vcqirf2/mua2zr4vlyv3524/cvncb31si72grpm/X3yt8PX8ZFQEM5mluk.png`"
+              alt="form-banner'"
+              placeholder
+              quality="75"
+            />
           </div>
 
           <a-card
@@ -744,19 +764,20 @@ const onFormItemClick = (element: any) => {
               </div>
             </a-form>
 
-            <a-divider v-if="!isLocked" class="!my-8" />
-
-            <!-- Nocodb Branding  -->
-            <div class="flex items-center gap-3">
-              <!-- Todo: add new NocoDB icon -->
-              <img src="~assets/img/icons/64x64.png" alt="NocoDB" class="w-6" />
-              <div class="text-sm text-gray-700">NocoDB Forms</div>
-            </div>
+            <template v-if="!parseProp(formViewData?.meta).hide_branding">
+              <a-divider v-if="!isLocked" class="!my-8" />
+              <!-- Nocodb Branding  -->
+              <div class="flex items-center gap-3">
+                <!-- Todo: add new NocoDB icon -->
+                <img src="~assets/img/icons/64x64.png" alt="NocoDB" class="w-6" />
+                <div class="text-sm text-gray-700">NocoDB Forms</div>
+              </div>
+            </template>
           </a-card>
         </a-col>
         <a-col v-if="isEditable" :span="8" class="h-full nc-form-left-drawer border-l border-gray-200">
           <Splitpanes horizontal class="w-full nc-form-right-splitpane">
-            <Pane min-size="25" size="50" class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4">
+            <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4 !min-h-200px">
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <div class="flex gap-3">
                   <div class="text-base font-bold text-gray-900">
@@ -803,7 +824,7 @@ const onFormItemClick = (element: any) => {
                   v-model:value="searchQuery"
                   data-testid="nc-form-field-search-input"
                   class="!h-9 !px-3 !py-1 !rounded-lg"
-                  :placeholder="$t('placeholder.searchFields') + '...'"
+                  :placeholder="`${$t('placeholder.searchFields')}...`"
                 >
                   <template #prefix>
                     <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
@@ -823,142 +844,174 @@ const onFormItemClick = (element: any) => {
                 <div v-if="!localColumns.length" class="px-0.5 py-2 text-gray-500 text-center">
                   {{ $t('title.noFieldsFound') }}
                 </div>
-                <Draggable
-                  v-if="localColumns"
-                  v-model="localColumns"
-                  item-key="id"
-                  @change="onMove($event)"
-                  :style="{ height: 'calc(100% - 64px)' }"
-                >
-                  <template #item="{ element: field }">
-                    <div
-                      v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase())"
-                      :key="field.id"
-                      class="p-2 flex flex-row items-center border-b-1 last:border-none first:rounded-t-lg border-gray-200"
-                      :data-testid="`nc-form-field-item-${field.title}`"
-                    >
-                      <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
-                      <div
-                        class="flex-1 flex items-center justify-between cursor-pointer"
-                        @click="showOrHideColumn(field, !field.show)"
-                      >
-                        <div class="flex-1 flex items-center">
-                          <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
-                          <SmartsheetHeaderCellIcon v-else :column-meta="field" />
-
-                          <NcTooltip class="truncate flex-1 ml-1" show-on-truncate-only>
-                            <template #title> {{ field.title }} </template>
-                            <span data-testid="nc-field-title">
-                              {{ field.title }}
-                            </span>
-                            <span v-if="field.required" class="text-red-500">&nbsp;*</span>
-                          </NcTooltip>
-                        </div>
-
-                        <NcSwitch :checked="field.show" :disabled="field.required" />
-                      </div>
-                    </div>
-                  </template>
-                  <template #header>
-                    <div
-                      key="nc-form-show-all-fields"
-                      class="w-full p-2 flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
-                      data-testid="nc-form-show-all-fields"
-                      @click.stop
-                    >
-                      <div class="w-4 h-4 flex-none mr-2"></div>
-                      <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
-                        <div class="flex-1 font-base">Select all fields</div>
-                        <NcSwitch
-                          :checked="visibleColumns.length === localColumns.length"
-                          @change="handleAddOrRemoveAllColumns"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                  <template
-                    #footer
-                    v-if="!localColumns?.filter((el) => el.title.toLowerCase().includes(searchQuery.toLowerCase())).length"
+                <template v-if="localColumns.length">
+                  <div
+                    key="nc-form-show-all-fields"
+                    class="w-full p-2 flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
+                    data-testid="nc-form-show-all-fields"
+                    @click.stop
                   >
-                    <div class="px-0.5 py-2 text-gray-500 text-center">
-                      {{ $t('title.noFieldsFound') }} for title `{{ searchQuery }}`
+                    <div class="w-4 h-4 flex-none mr-2"></div>
+                    <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
+                      <div class="flex-1 font-base">Select all fields</div>
+                      <NcSwitch :checked="visibleColumns.length === localColumns.length" @change="handleAddOrRemoveAllColumns" />
                     </div>
-                  </template>
-                </Draggable>
+                  </div>
+                  <Draggable
+                    v-model="localColumns"
+                    item-key="id"
+                    class=""
+                    :style="{ height: 'calc(100% - 64px)' }"
+                    @change="onMove($event)"
+                  >
+                    <template #item="{ element: field }">
+                      <div
+                        v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase())"
+                        :key="field.id"
+                        class="p-2 flex flex-row items-center border-b-1 last:border-none border-gray-200 hover:bg-gray-50"
+                        :data-testid="`nc-form-field-item-${field.title}`"
+                      >
+                        <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
+                        <div
+                          class="flex-1 flex items-center justify-between cursor-pointer"
+                          @click="showOrHideColumn(field, !field.show, true)"
+                        >
+                          <div class="flex-1 flex items-center">
+                            <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
+                            <SmartsheetHeaderCellIcon v-else :column-meta="field" />
+
+                            <NcTooltip class="truncate flex-1 ml-1" show-on-truncate-only>
+                              <template #title> {{ field.title }} </template>
+                              <span data-testid="nc-field-title">
+                                {{ field.title }}
+                              </span>
+                              <span v-if="field.required" class="text-red-500">&nbsp;*</span>
+                            </NcTooltip>
+                          </div>
+
+                          <NcSwitch :checked="!!field.show" :disabled="field.required" />
+                        </div>
+                      </div>
+                    </template>
+                    <template
+                      v-if="!localColumns?.filter((el) => el.title.toLowerCase().includes(searchQuery.toLowerCase())).length"
+                      #footer
+                    >
+                      <div class="px-0.5 py-2 text-gray-500 text-center">
+                        {{ $t('title.noFieldsFound') }} for title `{{ searchQuery }}`
+                      </div>
+                    </template>
+                  </Draggable>
+                </template>
               </div>
             </Pane>
             <Pane
               v-if="isEditable && !isLocked && formViewData"
               min-size="20"
-              size="35"
-              class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4 !overflow-y-auto nc-form-scrollbar"
+              size="50"
+              class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar"
             >
-              <!-- After form is submitted -->
-              <div class="text-base font-bold text-gray-900">
-                Post Form Submission Settings
-                <!-- {{ $t('msg.info.afterFormSubmitted') }} -->
-              </div>
+              <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
+                <!-- Appearance Settings -->
+                <div class="text-base font-bold text-gray-900">Appearance Settings</div>
 
-              <!-- Show this message -->
-              <div>
-                <div class="text-gray-800 mb-2">
-                  Display Message
-                  <!-- {{ $t('msg.info.showMessage') }} -->
+                <div>
+                  <div class="text-gray-800 mb-2">Form Theme</div>
+                  <div class="flex justify-start">
+                    <LazyGeneralColorPicker
+                      v-model="(formViewData.meta as Record<string,any>).theme_color"
+                      :colors="['#FFFFF', '#FFDBD9', '#FEE6D6', '#FFF0D1', '#D4F7E0', '#D7F2FF', '#FFCFE6', '#E5D4F5']"
+                      class="nc-form-theme-color-picker !p-0 !-ml-1"
+                      @input="(el:string)=>{
+                        (formViewData?.meta as Record<string,any>).theme_color = el
+                        updateView()
+                      }"
+                    />
+                  </div>
                 </div>
-                <a-textarea
-                  v-model:value="formViewData.success_msg as string"
-                  :rows="3"
-                  hide-details
-                  class="nc-form-after-submit-msg !rounded-lg !px-3 !py-1"
-                  data-testid="nc-form-after-submit-msg"
-                  @change="updateView"
-                />
-              </div>
 
-              <!-- Other options -->
-              <div class="flex flex-col gap-3">
                 <div class="flex items-center">
-                  <!-- Show "Submit Another Form" button -->
+                  <!-- Hide NocoDB Branding -->
                   <a-switch
-                    v-model:checked="formViewData.submit_another_form as boolean"
+                    v-model:checked="(formViewData.meta as Record<string,any>).hide_branding"
                     v-e="[`a:form-view:submit-another-form`]"
                     size="small"
                     class="nc-form-checkbox-submit-another-form"
                     data-testid="nc-form-checkbox-submit-another-form"
                     @change="updateView"
                   />
-                  <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
+                  <span class="ml-4">Hide NocoDB Branding</span>
+                </div>
+              </div>
+
+              <div class="p-4 flex flex-col space-y-4">
+                <!-- Post Form Submission Settings -->
+                <div class="text-base font-bold text-gray-900">
+                  Post Form Submission Settings
+                  <!-- {{ $t('msg.info.afterFormSubmitted') }} -->
                 </div>
 
-                <div class="flex items-center">
-                  <!-- Show a blank form after 5 seconds -->
-                  <a-switch
-                    v-model:checked="formViewData.show_blank_form  as boolean"
-                    v-e="[`a:form-view:show-blank-form`]"
-                    size="small"
-                    class="nc-form-checkbox-show-blank-form"
-                    data-testid="nc-form-checkbox-show-blank-form"
+                <!-- Show this message -->
+                <div>
+                  <div class="text-gray-800 mb-2">
+                    Display Message
+                    <!-- {{ $t('msg.info.showMessage') }} -->
+                  </div>
+                  <a-textarea
+                    v-model:value="formViewData.success_msg as string"
+                    :rows="3"
+                    hide-details
+                    class="nc-form-after-submit-msg !rounded-lg !px-3 !py-1"
+                    data-testid="nc-form-after-submit-msg"
                     @change="updateView"
                   />
-
-                  <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
                 </div>
 
-                <div class="mb-12 flex items-center">
-                  <a-switch
-                    v-model:checked="emailMe"
-                    v-e="[`a:form-view:email-me`]"
-                    size="small"
-                    class="nc-form-checkbox-send-email"
-                    data-testid="nc-form-checkbox-send-email"
-                    @change="onEmailChange"
-                  />
+                <!-- Other options -->
+                <div class="flex flex-col gap-3">
+                  <div class="flex items-center">
+                    <!-- Show "Submit Another Form" button -->
+                    <a-switch
+                      v-model:checked="formViewData.submit_another_form as boolean"
+                      v-e="[`a:form-view:submit-another-form`]"
+                      size="small"
+                      class="nc-form-checkbox-submit-another-form"
+                      data-testid="nc-form-checkbox-submit-another-form"
+                      @change="updateView"
+                    />
+                    <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
+                  </div>
 
-                  <!-- Email me at <email> -->
-                  <span class="ml-4">
-                    {{ $t('msg.info.emailForm') }}
-                    <span class="text-bold text-gray-600">{{ user?.email }}</span>
-                  </span>
+                  <div class="flex items-center">
+                    <!-- Show a blank form after 5 seconds -->
+                    <a-switch
+                      v-model:checked="formViewData.show_blank_form  as boolean"
+                      v-e="[`a:form-view:show-blank-form`]"
+                      size="small"
+                      class="nc-form-checkbox-show-blank-form"
+                      data-testid="nc-form-checkbox-show-blank-form"
+                      @change="updateView"
+                    />
+
+                    <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
+                  </div>
+
+                  <div class="mb-12 flex items-center">
+                    <a-switch
+                      v-model:checked="emailMe"
+                      v-e="[`a:form-view:email-me`]"
+                      size="small"
+                      class="nc-form-checkbox-send-email"
+                      data-testid="nc-form-checkbox-send-email"
+                      @change="onEmailChange"
+                    />
+
+                    <!-- Email me at <email> -->
+                    <span class="ml-4">
+                      {{ $t('msg.info.emailForm') }}
+                      <span class="text-bold text-gray-600">{{ user?.email }}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </Pane>
@@ -1031,10 +1084,10 @@ const onFormItemClick = (element: any) => {
 }
 
 :deep(.nc-form-right-splitpane .splitpanes__splitter) {
-  @apply !border-b-1 !border-gray-200;
+  @apply !border-t-1 !border-gray-200 relative;
 
-  ::after {
-    content: 'e945';
+  &::before {
+    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-gray-800 border-1 border-gray-200 rounded bg-white absolute -top-2.5 z-100 left-[calc(50%_-_16px)];
   }
 }
 .nc-form-fields-list {
@@ -1044,5 +1097,8 @@ const onFormItemClick = (element: any) => {
   &::-webkit-scrollbar-thumb:hover {
     @apply !scrollbar-thumb-gray-300;
   }
+}
+:deep(.nc-form-theme-color-picker .color-selector) {
+  @apply !text-white;
 }
 </style>

@@ -12,7 +12,7 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 
 
 
-FROM node:18.12.1-alpine as builder
+FROM node:18.19.0-alpine as builder
 WORKDIR /usr/src/app
 
 # install pnpm
@@ -37,7 +37,7 @@ RUN rm -rf ./node_modules/sqlite3/deps
 RUN tar -czf ../appEntry/app.tar.gz ./*
 RUN chmod +x /usr/src/appEntry/start.sh
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 #ENV AWS_ACCESS_KEY_ID=
 #ENV AWS_SECRET_ACCESS_KEY=

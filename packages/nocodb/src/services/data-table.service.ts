@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { Column, Model, Source, View } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Column, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -18,6 +18,7 @@ export class DataTableService {
     modelId: string;
     query: any;
     viewId?: string;
+    ignorePagination?: boolean;
   }) {
     const { model, view } = await this.getModelAndView(param);
 
@@ -26,6 +27,7 @@ export class DataTableService {
       view,
       query: param.query,
       throwErrorIfInvalidParams: true,
+      ignorePagination: param.ignorePagination,
     });
   }
 

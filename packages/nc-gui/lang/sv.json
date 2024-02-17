@@ -301,7 +301,7 @@
     "isNotNull": "är inte noll"
   },
   "title": {
-    "sso": "Authentication (SSO)",
+    "sso": "Autentisering (SSO)",
     "docs": "Docs",
     "forum": "Forum",
     "parameter": "Parameter",

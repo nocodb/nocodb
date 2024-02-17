@@ -502,7 +502,7 @@ const onFormItemClick = (element: any) => {
             >
               <a-form ref="formRef" :model="formState" class="nc-form" no-style>
                 <!-- form header -->
-                <div class="flex flex-col gap-4 px-8 lg:px-12">
+                <div class="flex flex-col gap-4 px-8 lg:px-12 mb-6">
                   <!-- Form logo  -->
                   <!-- <div v-if="isEditable">
                     <div class="inline-block rounded-xl bg-gray-100 p-3">
@@ -565,7 +565,7 @@ const onFormItemClick = (element: any) => {
                     />
                   </a-form-item>
 
-                  <div v-else class="px-4 ml-3 w-full text-bold text-md">
+                  <div v-else class="w-full text-bold text-base">
                     {{ formViewData.subheading || '---' }}
                   </div>
                 </div>
@@ -1089,7 +1089,7 @@ const onFormItemClick = (element: any) => {
 }
 
 .nc-input {
-  @apply appearance-none w-full !bg-white rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
+  @apply appearance-none w-full !bg-white rounded-lg px-2 py-2 border-solid border-1 border-gray-200 focus-within:border-brand-500;
 
   &.nc-cell-rating,
   &.nc-cell-geodata {

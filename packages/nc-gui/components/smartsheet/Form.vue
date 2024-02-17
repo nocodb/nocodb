@@ -105,8 +105,6 @@ const systemFieldsIds = ref<Record<string, any>[]>([])
 
 const showColumnDropdown = ref(false)
 
-const moved = ref(false)
-
 const drag = ref(false)
 
 const emailMe = ref(false)
@@ -199,7 +197,8 @@ function onMoveCallback(event: any) {
 
 // Todo: reorder visible form fields
 function onMove(event: any, isVisibleFormFields = false) {
-  let { newIndex, element, oldIndex } = event.moved
+  const { oldIndex } = event.moved
+  let { newIndex, element } = event.moved
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
@@ -740,6 +739,7 @@ const onFormItemClick = (element: any) => {
                       </div>
 
                       <!-- Field Settings  -->
+                      <!-- eslint-disable vue/no-constant-condition -->
                       <div
                         v-if="activeRow === element.title && false"
                         class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6"

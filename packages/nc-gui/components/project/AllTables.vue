@@ -185,7 +185,7 @@ const onCreateBaseClick = () => {
   }
 
   .label {
-    @apply text-base font-medium break-normal;
+    @apply text-base font-medium;
   }
 }
 

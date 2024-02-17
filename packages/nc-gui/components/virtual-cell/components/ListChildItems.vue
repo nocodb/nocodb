@@ -14,7 +14,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
-import InboxIcon from '~icons/nc-icons/inbox'
 
 interface Prop {
   modelValue?: boolean
@@ -300,19 +299,25 @@ onUnmounted(() => {
           </template>
         </div>
       </div>
-      <div v-else class="pt-1 flex flex-col gap-3 my-auto items-center justify-center text-gray-500">
-        <InboxIcon class="w-16 h-16 mx-auto" />
-        <p>
-          {{ $t('msg.noRecordsAreLinkedFromTable') }}
-          {{ relatedTableMeta?.title }}
-        </p>
+      <div v-else class="pt-1 flex flex-col gap-4 my-auto items-center justify-center text-gray-500">
+        <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
+        <div class="text-2xl text-gray-700 font-bold text-center">{{ $t('msg.noLinkedRecords') }}</div>
+        <div class="text-center text-gray-700">
+          <div>
+            {{ $t('msg.noRecordsHaveBeenLinkedYetFromTable', { tableName: relatedTableMeta?.title }) }}
+          </div>
+          <div>
+            {{ $t('msg.clickLinkRecordsToAddLink') }}
+          </div>
+        </div>
+
         <NcButton
           v-if="!readOnly && childrenListCount < 1"
           v-e="['c:links:link']"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"
         >
-          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
+          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkRecords') }}</div>
         </NcButton>
       </div>
     </div>

@@ -332,6 +332,7 @@
     "virtualRelation": "Virtual Relation",
     "linkMore": "Link More",
     "linkMoreRecords": "Link more records",
+    "linkRecords": "Link Records",
     "downloadFile": "Download File",
     "renameTable": "Rename Table",
     "renamingTable": "Renaming Table",
@@ -398,6 +399,7 @@
     "findRowByScanningCode": "Find row by scanning a QR or Barcode",
     "tokenManagement": "Token Management",
     "addNewToken": "Add new token",
+    "createNewToken": "Create new token",
     "accountSettings": "Account Settings",
     "resetPasswordMenu": "Reset Password",
     "tokens": "Tokenak",
@@ -665,7 +667,7 @@
       "deletedField": "Deleted field",
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
-      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
     }
   },
   "activity": {
@@ -959,7 +961,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "Value",
-    "key": "Key"
+    "key": "Key",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",
@@ -1044,8 +1052,9 @@
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a single record from table "
     },
-    "noRecordsAreLinkedFromTable": "No records are linked from table",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "No records linked",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",
     "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
@@ -1053,8 +1062,7 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
-    "createWebhookMsg2": "Create web-hooks to power you automations,",
-    "createWebhookMsg3": "Get notified as soon as there are changes in your data",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",

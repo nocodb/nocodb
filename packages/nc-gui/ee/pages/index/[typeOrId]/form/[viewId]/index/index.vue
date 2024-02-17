@@ -69,27 +69,35 @@ const onDecode = async (scannedCodeValue: string) => {
 
 <template>
   <div class="h-full flex flex-col items-center">
+    <GeneralFormBanner
+      v-if="sharedFormView"
+      :banner-image-url="sharedFormView.banner_image_url"
+      class="flex-none dark:border-none"
+    />
+
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
     >
       <template v-if="sharedFormView">
-        <h1 class="prose-2xl font-bold self-center my-4" style="word-break: break-all">
-          {{ sharedFormView.heading }}
-        </h1>
+        <div>
+          <h1 class="prose-2xl font-bold mb-4" style="word-break: break-all">
+            {{ sharedFormView.heading }}
+          </h1>
 
-        <h2
-          v-if="sharedFormView.subheading"
-          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
-          style="word-break: break-all"
-        >
-          {{ sharedFormView.subheading }}
-        </h2>
+          <h2
+            v-if="sharedFormView.subheading"
+            class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6"
+            style="word-break: break-all"
+          >
+            {{ sharedFormView.subheading }}
+          </h2>
+        </div>
 
         <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
-            <div v-if="sharedFormView" class="min-w-350px mt-3">
+            <div v-if="sharedFormView" class="w-full max-w-350px mt-3">
               <a-alert
                 type="success"
                 class="my-4 text-center"
@@ -131,22 +139,16 @@ const onDecode = async (scannedCodeValue: string) => {
 
           <div class="nc-form-wrapper">
             <div class="nc-form h-full">
-              <div class="flex flex-col gap-6">
+              <div class="flex flex-col gap-3 md:gap-6">
                 <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
                   <div class="flex nc-form-column-label">
-                    <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(field)"
-                      :column="{ ...field, title: field.label || field.title }"
-                      :required="isRequired(field, field.required)"
-                      :hide-menu="true"
-                    />
-
-                    <LazySmartsheetHeaderCell
-                      v-else
-                      :column="{ ...field, title: field.label || field.title }"
-                      :required="isRequired(field, field.required)"
-                      :hide-menu="true"
-                    />
+                    <span>
+                      {{ field.label || field.title }}
+                    </span>
+                    <span v-if="field.required" class="text-red-500">&nbsp;*</span>
+                  </div>
+                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
+                    {{ field?.description }}
                   </div>
 
                   <div>
@@ -188,14 +190,15 @@ const onDecode = async (scannedCodeValue: string) => {
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}
                       </div>
-
-                      {{ field.description }}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="text-center mt-4">
+              <div class="flex justify-center items-center mt-6">
+                <!-- <button type="reset" :disabled="isLoading" class="nc-form-clear" data-testid="shared-form-clear-button">
+                  Crear Form
+                </button> -->
                 <button
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
@@ -207,13 +210,16 @@ const onDecode = async (scannedCodeValue: string) => {
               </div>
             </div>
           </div>
+          <div v-if="!parseProp(sharedFormView?.meta).hide_branding">
+            <a-divider class="!my-6 !md:my-8" />
+            <div class="inline-block">
+              <GeneralFormBranding />
+            </div>
+          </div>
         </template>
       </template>
     </div>
-
-    <div class="flex items-end">
-      <GeneralPoweredBy />
-    </div>
+    <div>&nbsp;</div>
   </div>
 </template>
 

@@ -15,6 +15,7 @@ import {
   extractSdkResponseErrorMsg,
   iconMap,
   inject,
+  isEeUI,
   message,
   onClickOutside,
   parseProp,
@@ -57,8 +58,6 @@ const formRef = ref()
 const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
-
-const { appInfo } = useGlobal()
 
 let formState = reactive({})
 
@@ -387,18 +386,6 @@ watch(submitted, (v) => {
   }
 })
 
-function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
-  if (isLocked.value) return
-
-  if (!moved.value) {
-    const index = localColumns.value.length
-    col.order = (index ? localColumns.value[index - 1].order : 0) + 1
-    col.show = true
-
-    saveOrUpdate(col, index)
-  }
-}
-
 const columnSupportsScanning = (elementType: UITypes) =>
   betaFeatureToggleState.show &&
   [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
@@ -471,30 +458,12 @@ const onFormItemClick = (element: any) => {
           :style="{background:(formViewData?.meta as Record<string,any>).theme_color}"
         >
           <div :class="isEditable ? 'min-w-[616px] overflow-x-auto nc-form-scrollbar' : ''">
-            <div class="h-[160px] bg-white border-gray-200 rounded-3xl overflow-hidden">
-              <!-- for future implementation of cover image -->
-              <!-- Todo: cover image uploader and image cropper to crop image in fixed aspect ratio  -->
-              <LazyNuxtImg
-                v-if="formViewData.banner_image_url"
-                class="h-full"
-                :src="formViewData.banner_image_url"
-                alt="form-banner'"
-                placeholder
-                quality="75"
-              />
-              <div v-else class="h-full flex items-stretch justify-between">
-                <img class="" src="~assets/img/form-banner-left.png" alt="form-banner-left'" />
-
-                <div class="w-[91px] grid place-items-center">
-                  <img class="w-full" src="~assets/img/icons/256x256.png" alt="form-banner-logo'" />
-                </div>
-
-                <img class="" src="~assets/img/form-banner-right.png" alt="form-banner-left'" />
-              </div>
-            </div>
+            <!-- for future implementation of cover image -->
+            <!-- Todo: cover image uploader and image cropper to crop image in fixed aspect ratio  -->
+            <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
 
             <a-card
-              class="!py-8 !lg:py-12 border-gray-200 !rounded-3xl !mt-6 max-w-[688px] !mx-auto"
+              class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 max-w-[688px] !mx-auto"
               :body-style="{
                 margin: '0 auto',
                 padding: '0px !important',
@@ -826,10 +795,8 @@ const onFormItemClick = (element: any) => {
               <div v-if="!parseProp(formViewData?.meta).hide_branding" class="px-8 lg:px-12">
                 <a-divider v-if="!isLocked" class="!my-8" />
                 <!-- Nocodb Branding  -->
-                <div class="flex items-center gap-3">
-                  <!-- Todo: add new NocoDB icon -->
-                  <img src="~assets/img/icons/64x64.png" alt="NocoDB" class="w-6" />
-                  <div class="text-sm text-gray-700">NocoDB Forms</div>
+                <div class="inline-block">
+                  <GeneralFormBranding />
                 </div>
               </div>
             </a-card>
@@ -992,13 +959,20 @@ const onFormItemClick = (element: any) => {
                 <div class="flex items-center">
                   <!-- Hide NocoDB Branding -->
                   <a-switch
-                    v-model:checked="(formViewData.meta as Record<string,any>).hide_branding"
+                    v-if="isEeUI"
                     v-e="[`a:form-view:submit-another-form`]"
+                    :checked="parseProp(formViewData.meta)?.hide_branding"
                     size="small"
-                    class="nc-form-checkbox-submit-another-form"
-                    data-testid="nc-form-checkbox-submit-another-form"
-                    @change="updateView"
+                    class="nc-form-hide-branding"
+                    data-testid="nc-form-hide-branding"
+                    @change="
+                      (value) => {
+                        (formViewData!.meta as Record<string,any>).hide_branding = value
+                        updateView()
+                      }
+                    "
                   />
+                  <a-switch v-else :checked="false" size="small" :disabled="true" />
                   <span class="ml-4">Hide NocoDB Branding</span>
                 </div>
               </div>

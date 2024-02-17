@@ -152,6 +152,15 @@ onMounted(async () => {
               </NcDropdown>
             </div>
           </div>
+          <div v-if="sortedCollaborators.length === 1" class="pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+            <div class="text-2xl text-gray-800 font-bold">
+              {{ $t('placeholder.inviteYourTeam') }}
+            </div>
+            <div class="text-sm text-gray-700">
+              {{ $t('placeholder.inviteYourTeamLabel') }}
+            </div>
+            <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
+          </div>
         </div>
       </div>
     </div>

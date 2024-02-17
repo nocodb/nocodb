@@ -252,7 +252,7 @@ onUnmounted(() => {
         <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
         <LazyCellText v-else v-model="vModel" />
         <div
-          v-if="(isPublic && readOnly && !isForm) || (isSystemColumn(column) && !isAttachment(column) && !isTextArea(column))"
+          v-if="((isPublic && readOnly && !isForm) || (isSystemColumn(column) && !isAttachment(column))) && !isTextArea(column)"
           class="nc-locked-overlay"
         />
       </template>

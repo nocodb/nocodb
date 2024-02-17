@@ -332,6 +332,7 @@
     "virtualRelation": "虚拟关系",
     "linkMore": "链接更多",
     "linkMoreRecords": "链接更多记录",
+    "linkRecords": "Link Records",
     "downloadFile": "下载文件",
     "renameTable": "重命名表格",
     "renamingTable": "重新命名表格",
@@ -398,6 +399,7 @@
     "findRowByScanningCode": "通过扫描二维码或条码查找行",
     "tokenManagement": "Token 管理",
     "addNewToken": "添加新令牌（Token）",
+    "createNewToken": "Create new token",
     "accountSettings": "账户设置",
     "resetPasswordMenu": "密码重置",
     "tokens": "令牌",
@@ -665,7 +667,7 @@
       "deletedField": "已删除的字段",
       "incompleteConfiguration": "配置不完整",
       "selectField": "请设置需要查询的字段",
-      "selectFieldLabel": "从列表中选择一个字段来更改字段属性"
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
     }
   },
   "activity": {
@@ -959,7 +961,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "值",
-    "key": "键"
+    "key": "键",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "点击复制字段ID",
@@ -1044,8 +1052,9 @@
       "tooltip_desc": "表中的一条记录 ",
       "tooltip_desc2": " 可以从表中链接到单条记录 "
     },
-    "noRecordsAreLinkedFromTable": "表中没有链接记录",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "没有链接记录",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "链接的记录",
     "acceptOnlyValid": "仅接受",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
@@ -1053,8 +1062,7 @@
     "selectFieldToGroup": "选择要分组的字段",
     "thereAreNoRecordsInTable": "表中没有记录",
     "createWebhookMsg1": "开始使用Web Hooks！",
-    "createWebhookMsg2": "创建Web Hooks来实现自动化",
-    "createWebhookMsg3": "一旦您的数据发生变化，您将立即收到通知",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "您确定要删除以下内容",
     "areYouSureUWantToDeleteLabel": "您确定要 {deleteLabel} 以下内容吗？",
     "idColumnRequired": "ID 字段是必填字段，如果需要，您可以稍后重新命名。",

@@ -667,7 +667,7 @@
       "deletedField": "Deleted field",
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
-      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
+      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     }
   },
   "activity": {
@@ -963,11 +963,11 @@
     "value": "Value",
     "key": "Key",
     "createTable": "Create your First Table!",
-    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
-    "noTokenCreated":"No API Tokens created",
-    "noTokenCreatedLabel" :"Begin by creating API tokens to unlock advanced functionalities.",
+    "createTableLabel": "From scratch or import or connect to external database",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Looks like you haven’t generated any API tokens yet.",
     "inviteYourTeam": "Invite your team",
-    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
+    "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!"
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",
@@ -1062,7 +1062,7 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
-    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
+    "createWebhookMsg2": "Power you automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",

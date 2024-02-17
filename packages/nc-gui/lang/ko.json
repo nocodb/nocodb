@@ -332,6 +332,7 @@
     "virtualRelation": "가상 관계",
     "linkMore": "링크 더 보기",
     "linkMoreRecords": "더 많은 레코드 연결",
+    "linkRecords": "Link Records",
     "downloadFile": "파일 다운로드",
     "renameTable": "테이블 이름 변경",
     "renamingTable": "테이블 이름 바꾸기",
@@ -398,6 +399,7 @@
     "findRowByScanningCode": "QR 또는 바코드를 스캔하여 행 찾기",
     "tokenManagement": "토큰 관리",
     "addNewToken": "새 토큰 추가",
+    "createNewToken": "Create new token",
     "accountSettings": "계정 설정",
     "resetPasswordMenu": "비밀번호 재설정",
     "tokens": "토큰",
@@ -665,7 +667,7 @@
       "deletedField": "Deleted field",
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
-      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
     }
   },
   "activity": {
@@ -959,7 +961,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "값",
-    "key": "키"
+    "key": "키",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "클릭하여 필드 ID 복사",
@@ -1044,8 +1052,9 @@
       "tooltip_desc": "테이블의 단일 레코드 ",
       "tooltip_desc2": " 테이블의 단일 레코드와 연결될 수 있습니다."
     },
-    "noRecordsAreLinkedFromTable": "테이블에 연결된 레코드가 없습니다.",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "레코드가 연결되지 않았습니다.",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "레코드가 연결되었습니다.",
     "acceptOnlyValid": "유효한 값만 허용",
     "apiTokenCreate": "새 API 토큰 생성",
@@ -1053,8 +1062,7 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "테이블에 레코드가 없습니다.",
     "createWebhookMsg1": "웹훅을 생성하여 자동화를 구동하고,",
-    "createWebhookMsg2": "자동화를 지원하는 웹 후크를 만들고,",
-    "createWebhookMsg3": "데이터에 변경 사항이 있는 경우 즉시 알림 받기",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "삭제하시겠습니까?",
     "areYouSureUWantToDeleteLabel": "{deleteLabel}을 삭제하시겠습니까?",
     "idColumnRequired": "ID 필드가 필요합니다. 필요한 경우 나중에 이름을 변경할 수 있습니다.",

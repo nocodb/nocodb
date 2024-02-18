@@ -942,11 +942,33 @@ const onFormItemClick = (element: any) => {
                 <div class="text-base font-bold text-gray-900">Appearance Settings</div>
 
                 <div>
-                  <div class="text-gray-800 mb-2">Form Theme</div>
+                  <div class="text-gray-800">Form Theme</div>
                   <div class="flex justify-start">
                     <LazyGeneralColorPicker
                       v-model="(formViewData.meta as Record<string,any>).theme_color"
-                      :colors="['#FFFFF', '#FFDBD9', '#FEE6D6', '#FFF0D1', '#D4F7E0', '#D7F2FF', '#FFCFE6', '#E5D4F5']"
+                      :colors="[
+                        '#FFFFFF',
+                        '#FFDBD9',
+                        '#FEE6D6',
+                        '#FFF0D1',
+                        '#D4F7E0',
+                        '#D7F2FF',
+                        '#FED8F4',
+                        '#E5D4F5',
+                        '#FFCFE6',
+                      ]"
+                      :borders="[
+                        '#6A7184',
+                        '#FF4A3F',
+                        '#FA8231',
+                        '#FCBE3A',
+                        '#27D665',
+                        '#36BFFF',
+                        '#FC3AC6',
+                        '#7D26CD',
+                        '#B33771',
+                      ]"
+                      :is-new-design="true"
                       class="nc-form-theme-color-picker !p-0 !-ml-1"
                       @input="(el:string)=>{
                         (formViewData?.meta as Record<string,any>).theme_color = el

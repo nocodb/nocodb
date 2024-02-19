@@ -329,7 +329,7 @@ onUnmounted(() => {
       :class="{
         '!border-t-0': height < 918,
       }"
-      class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-4"
+      class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
     >
       <div class="flex items-center gap-2">
         <a-input

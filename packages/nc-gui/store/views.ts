@@ -11,6 +11,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     tableID: string
     isDefault: boolean
     baseName: string
+    tableName: string
     workspaceId: string
     baseId: string
   }
@@ -293,6 +294,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewName: view.is_default ? (tableName as string) : view.title,
         viewType: view.type,
         workspaceId: activeWorkspaceId.value,
+        tableName: tableName as string,
         baseName: baseName as string,
       },
       ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),

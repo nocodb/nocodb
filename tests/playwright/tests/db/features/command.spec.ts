@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { DashboardPage } from '../../pages/Dashboard';
-import setup, { unsetup } from '../../setup';
+import { DashboardPage } from '../../../pages/Dashboard';
+import setup, { unsetup } from '../../../setup';
 
 test.describe('Command Shortcuts', () => {
   let dashboard: DashboardPage;
@@ -27,7 +27,7 @@ test.describe('Command Shortcuts', () => {
 
     await dashboard.signOut();
 
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
 
     await dashboard.cmdJ.openCmdJ();
     await expect(dashboard.cmdJ.get()).toBeHidden();
@@ -58,12 +58,14 @@ test.describe('Command Shortcuts', () => {
 
   test('Verify Command L Recent Switch', async ({ page }) => {
     await page.waitForTimeout(1000);
+
     await dashboard.cmdL.openCmdL();
 
-    await expect(dashboard.cmdL.get()).toBeVisible();
+    await dashboard.cmdL.isCmdLVisible();
 
     await page.keyboard.press('Escape');
-    await expect(dashboard.cmdL.get()).toBeHidden();
+
+    await dashboard.cmdL.isCmdLNotVisible();
 
     await dashboard.treeView.openTable({ title: 'Actor' });
     await dashboard.treeView.openTable({ title: 'Address' });
@@ -91,6 +93,6 @@ test.describe('Command Shortcuts', () => {
     await dashboard.signOut();
 
     await dashboard.cmdL.openCmdL();
-    await expect(dashboard.cmdL.get()).toBeHidden();
+    await dashboard.cmdL.isCmdLNotVisible();
   });
 });

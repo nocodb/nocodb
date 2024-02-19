@@ -1,7 +1,7 @@
 import type { ColumnType, SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { UndoRedoAction } from '~/lib'
 import type { EventHook } from '@vueuse/core'
+import type { UndoRedoAction } from '~/lib'
 import {
   IsPublicInj,
   ReloadViewDataHookInj,

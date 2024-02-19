@@ -5168,6 +5168,7 @@ class BaseModelSqlv2 {
                   ]),
                 );
               });
+
             if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {

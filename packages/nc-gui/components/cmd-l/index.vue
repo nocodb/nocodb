@@ -137,7 +137,6 @@ onClickOutside(modalEl, () => {
 })
 
 useEventListener('keydown', (e: KeyboardEvent) => {
-  console.log(e.key)
   if (e.key === 'Escape') {
     hide()
   } else if (e.key === 'Enter') {
@@ -152,21 +151,21 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     if (!vOpen.value) return
     e.preventDefault()
     moveDown()
-  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'l') {
+  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
     if (!user.value) return
     if (!vOpen.value) {
       vOpen.value = true
     } else {
       moveUp()
     }
-  } else if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
+  } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
     if (!user.value) return
     if (!vOpen.value) {
       vOpen.value = true
     } else moveDown()
-  } else if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key === 'j') {
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
     hide()
   } else if (vOpen.value) {
     cmdInputEl.value?.focus()

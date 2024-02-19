@@ -16330,6 +16330,105 @@
         ]
       }
     },
+    "/api/v2/tables/{tableId}/links/{columnId}/records": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID"
+        }
+      ],
+      "post": {
+        "summary": "Copy paste or deleteAll nested link",
+        "operationId": "db-data-table-row-nested-list-copy-paste-or-deleteAll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "examples": {
+                "Example 1" : {
+                  "value": {
+                    "link": [
+                      {"Id": 1},
+                      {"Id": 2},
+                      {"Id": 3},
+                      {"Id": 5},
+                      {"Id": 6}
+                    ],
+                    "unlink": [
+                      {"Id": 4}
+                    ]
+                }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["DB Data Table Row"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/nestedListCopyPasteOrDeleteAllReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "operation": "copy",
+                      "rowId": "1",
+                      "columnId": "ca2ppiy8raidc09",
+                      "fk_related_model_id": "m797s6vbrqvo2pv"
+                    },
+                    {
+                      "operation": "paste",
+                      "rowId": "2",
+                      "columnId": "ca2ppiy8raidc09",
+                      "fk_related_model_id": "m797s6vbrqvo2pv"
+                    }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "operation": "deleteAll",
+                      "rowId": "1",
+                      "columnId": "ca2ppiy8raidc09",
+                      "fk_related_model_id": "m797s6vbrqvo2pv"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/command_palette": {
       "parameters": [],
       "post": {
@@ -23944,6 +24043,30 @@
             "type": "boolean",
             "required": false
           }
+        }
+      },
+      "nestedListCopyPasteOrDeleteAllReq": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "items": {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "enum": ["copy", "paste", "deleteAll"]
+            },
+            "rowId": {
+              "type": "string"
+            },
+            "columnId":{
+              "type": "string"
+            },
+            "fk_related_model_id":{
+              "type": "string"
+            }
+          },
+          "required": ["operation", "rowId", "columnId", "fk_related_model_id"]
         }
       }
     },

@@ -2876,6 +2876,22 @@ class BaseModelSqlv2 {
       }
       rowId = this.extractCompositePK({ ai, ag, rowId, insertObj });
 
+      // handle if composite primary key is used along with ai or ag
+      if ((ai || ag) && this.model.primaryKeys?.length > 1) {
+        // generate object with ai column and rest of the primary keys
+        const pkObj = {};
+        for (const pk of this.model.primaryKeys) {
+          if (ai && pk.id === ai.id) {
+            pkObj[pk.id] = rowId;
+          } else if (ag && pk.id === ag.id) {
+            pkObj[pk.id] = rowId;
+          } else {
+            pkObj[pk.id] = insertObj[pk.column_name] ?? null;
+          }
+        }
+        rowId = pkObj;
+      }
+
       await Promise.all(postInsertOps.map((f) => f(rowId)));
 
       if (rowId !== null && rowId !== undefined) {

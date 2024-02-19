@@ -214,9 +214,9 @@ onMounted(() => {
               @click="changeView({ viewId: cmdOption.viewId!, tableId: cmdOption.tableID, baseId: cmdOption.baseId })"
             >
               <div class="cmdk-action-content">
-                <div class="flex w-1/2 flex-grow-1 items-center">
+                <div class="flex w-1/2 items-center">
                   <div class="flex gap-2">
-                    <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
+                    <GeneralViewIcon :meta="{ type: cmdOption.viewType }" class="mt-0.5" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ cmdOption.viewName }}
@@ -227,25 +227,25 @@ onMounted(() => {
                     </a-tooltip>
                   </div>
                 </div>
-                <div class="flex w-1/2 text-gray-600">
+                <div class="flex w-1/2 justify-end text-gray-600">
                   <div class="flex gap-2 px-2 py-1 rounded-md bg-gray-100 items-center">
-                    <component :is="iconMap.projectGray" class="w-4 h-4 text-transparent" />
+                    <component :is="iconMap.projectGray" class="w-3 h-3 text-transparent" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ cmdOption.baseName }}
                       </template>
-                      <span class="max-w-32 truncate capitalize">
+                      <span class="max-w-32 text-xs truncate capitalize">
                         {{ cmdOption.baseName }}
                       </span>
                     </a-tooltip>
                     <span class="text-bold"> / </span>
 
-                    <component :is="iconMap.table" class="w-4 h-4 text-transparent" />
+                    <component :is="iconMap.table" class="w-3 h-3 text-transparent" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ cmdOption.tableName }}
                       </template>
-                      <span class="max-w-28 truncate capitalize">
+                      <span class="max-w-28 text-xs truncate capitalize">
                         {{ cmdOption.tableName }}
                       </span>
                     </a-tooltip>

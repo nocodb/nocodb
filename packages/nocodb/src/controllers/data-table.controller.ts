@@ -194,6 +194,7 @@ export class DataTableController {
     });
   }
 
+  // todo: naming
   @Post(['/api/v2/tables/:modelId/links/:columnId/records'])
   @Acl('nestedDataLinkUnlink')
   async nestedLinkUnlink(
@@ -205,10 +206,9 @@ export class DataTableController {
     data: {
       operation: 'copy' | 'paste';
       rowId: string;
+      fk_related_model_id: string;
     }[],
   ) {
-    console.log('data', data);
-
     return await this.dataTableService.nestedLinkUnlink({
       modelId,
       query: req.query,

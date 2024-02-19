@@ -50,6 +50,7 @@ import {
   useViewColumnsOrThrow,
   useViewsStore,
   watch,
+  useApi
 } from '#imports'
 import type { CellRange, Row } from '#imports'
 
@@ -97,6 +98,8 @@ const paginationDataRef = toRef(props, 'paginationData')
 const dataRef = toRef(props, 'data')
 
 const paginationStyleRef = toRef(props, 'pagination')
+
+const { api } = useApi()
 
 const {
   loadData,
@@ -263,17 +266,19 @@ provide(JsonExpandInj, isJsonExpand)
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
-  if (fields.value[ctx.col]?.uidt === UITypes.Links) {
-    return message.info(t('msg.linkColumnClearNotSupportedYet'))
-  }
-
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    let mmClearResult
+
+    if (isMm(columnObj) && rowRefs.value) {
+      mmClearResult = await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+    }
+
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult: any[]) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -286,11 +291,17 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
               columnObj.id === col.id
             ) {
-              rowObj.row[columnObj.title] = row.row[columnObj.title]
 
               if (rowRefs.value) {
-                await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
-                await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
+                if (isBt(columnObj)) {
+                  rowObj.row[columnObj.title] = row.row[columnObj.title]
+
+                  await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+                  await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
+                } else if (isMm(columnObj)) {
+                  await api.dbDataTableRow.nestedLink(meta.value?.id as string, columnObj.id as string, encodeURIComponent(rowId as string), mmClearResult)
+                  rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                }
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -305,10 +316,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult:any[]) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -318,7 +329,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             const columnObj = fields.value[ctx.col]
             if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
               if (rowRefs.value) {
-                await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+                if (isBt(columnObj)) {
+                  await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+                } else if (isMm(columnObj)){
+                  await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+                }
               }
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
@@ -332,11 +347,12 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if (rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+    if (isBt(columnObj) && rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+
     return
   }
 

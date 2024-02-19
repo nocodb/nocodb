@@ -196,8 +196,8 @@ export class DataTableController {
 
   // todo: naming
   @Post(['/api/v2/tables/:modelId/links/:columnId/records'])
-  @Acl('nestedDataListCopyPaste')
-  async nestedListCopyPaste(
+  @Acl('nestedDataListCopyPasteOrDeleteAll')
+  async nestedListCopyPasteOrDeleteAll(
     @Req() req: Request,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
@@ -210,7 +210,7 @@ export class DataTableController {
       fk_related_model_id: string;
     }[],
   ) {
-    return await this.dataTableService.nestedListCopyPaste({
+    return await this.dataTableService.nestedListCopyPasteOrDeleteAll({
       modelId,
       query: req.query,
       viewId,

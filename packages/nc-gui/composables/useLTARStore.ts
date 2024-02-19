@@ -8,6 +8,7 @@ import {
   dateFormats,
   parseStringDateTime,
   timeFormats,
+  RelationTypes,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -230,7 +231,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
-            colOptions.value.type as 'mm' | 'hm',
+            colOptions.value.type as RelationTypes,
             column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
@@ -284,7 +285,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
             encodeURIComponent(rowId.value),
-            colOptions.value.type as 'mm' | 'hm',
+            colOptions.value.type as RelationTypes,
             column.value.id,
             {
               limit: String(childrenListPagination.size),
@@ -304,7 +305,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
             meta.value.id,
             encodeURIComponent(rowId.value),
-            colOptions.value.type as 'mm' | 'hm',
+            colOptions.value.type as RelationTypes,
             column?.value?.id,
             {
               limit: String(childrenListPagination.size),
@@ -395,7 +396,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           base.value.id as string,
           metaValue.id!,
           encodeURIComponent(rowId.value),
-          colOptions.value.type as 'mm' | 'hm',
+          colOptions.value.type as RelationTypes,
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string),
         )
@@ -461,7 +462,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           base.value.id as string,
           metaValue.id as string,
           encodeURIComponent(rowId.value),
-          colOptions.value.type as 'mm' | 'hm',
+          colOptions.value.type as RelationTypes,
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string) as string,
         )

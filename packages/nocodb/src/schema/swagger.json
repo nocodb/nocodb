@@ -16351,8 +16351,8 @@
         }
       ],
       "post": {
-        "summary": "Copy paste nested link",
-        "operationId": "db-data-table-row-nested-list-copy-paste",
+        "summary": "Copy paste or deleteAll nested link",
+        "operationId": "db-data-table-row-nested-list-copy-paste-or-deleteAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -16388,7 +16388,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/nestedListCopyPasteReq"
+                "$ref": "#/components/schemas/nestedListCopyPasteOrDeleteAllReq"
               },
               "examples": {
                 "Example 1": {
@@ -16406,12 +16406,22 @@
                       "fk_related_model_id": "m797s6vbrqvo2pv"
                     }
                   ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "operation": "deleteAll",
+                      "rowId": "1",
+                      "columnId": "ca2ppiy8raidc09",
+                      "fk_related_model_id": "m797s6vbrqvo2pv"
+                    }
+                  ]
                 }
               }
             }
           }
         },
-        "description": "Copy links from the one cell and paste them into another cell",
+        "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -24035,16 +24045,16 @@
           }
         }
       },
-      "nestedListCopyPasteReq": {
+      "nestedListCopyPasteOrDeleteAllReq": {
         "type": "array",
-        "minItems": 2,
+        "minItems": 1,
         "maxItems": 2,
         "items": {
           "type": "object",
           "properties": {
             "operation": {
               "type": "string",
-              "enum": ["copy", "paste"]
+              "enum": ["copy", "paste", "deleteAll"]
             },
             "rowId": {
               "type": "string"

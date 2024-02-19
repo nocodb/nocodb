@@ -445,31 +445,23 @@ export class DataTableService {
   }
 
   // todo: naming & optimizing
-  async nestedListCopyPaste(param: {
+  async nestedListCopyPasteOrDeleteAll(param: {
     cookie: any;
     viewId: string;
     modelId: string;
     columnId: string;
     query: any;
     data: {
-      operation: 'copy' | 'paste';
+      operation: 'copy' | 'paste' | 'deleteAll';
       rowId: string;
       columnId: string;
       fk_related_model_id: string;
     }[];
   }) {
     validatePayload(
-      'swagger.json#/components/schemas/nestedListCopyPasteReq',
+      'swagger.json#/components/schemas/nestedListCopyPasteOrDeleteAllReq',
       param.data,
     );
-
-    if (
-      param.data[0]?.fk_related_model_id !== param.data[1]?.fk_related_model_id
-    ) {
-      throw new Error(
-        'The operation is not supported on different fk_related_model_id',
-      );
-    }
 
     const operationMap = param.data.reduce(
       (map, p) => {
@@ -477,15 +469,25 @@ export class DataTableService {
         return map;
       },
       {} as Record<
-        'copy' | 'paste',
+        'copy' | 'paste' | 'deleteAll',
         {
-          operation: 'copy' | 'paste';
+          operation: 'copy' | 'paste' | 'deleteAll';
           rowId: string;
           columnId: string;
           fk_related_model_id: string;
         }
       >,
     );
+
+    if (
+      !operationMap.deleteAll &&
+      operationMap.copy.fk_related_model_id !==
+        operationMap.paste.fk_related_model_id
+    ) {
+      throw new Error(
+        'The operation is not supported on different fk_related_model_id',
+      );
+    }
 
     const { model, view } = await this.getModelAndView(param);
 
@@ -497,21 +499,32 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const [existsCopyRow, existsPasteRow] = await Promise.all([
-      baseModel.exist(operationMap.copy.rowId),
-      baseModel.exist(operationMap.paste.rowId),
-    ]);
+    if (
+      operationMap.deleteAll &&
+      !(await baseModel.exist(operationMap.deleteAll.rowId))
+    ) {
+      NcError.notFound(
+        `Record with id '${operationMap.deleteAll.rowId}' not found`,
+      );
+    } else if (operationMap.copy && operationMap.paste) {
+      const [existsCopyRow, existsPasteRow] = await Promise.all([
+        baseModel.exist(operationMap.copy.rowId),
+        baseModel.exist(operationMap.paste.rowId),
+      ]);
 
-    if (!existsCopyRow && !existsPasteRow) {
-      NcError.notFound(
-        `Record with id '${operationMap.copy.rowId}' and '${operationMap.paste.rowId}' not found`,
-      );
-    } else if (!existsCopyRow) {
-      NcError.notFound(`Record with id '${operationMap.copy.rowId}' not found`);
-    } else if (!existsPasteRow) {
-      NcError.notFound(
-        `Record with id '${operationMap.paste.rowId}' not found`,
-      );
+      if (!existsCopyRow && !existsPasteRow) {
+        NcError.notFound(
+          `Record with id '${operationMap.copy.rowId}' and '${operationMap.paste.rowId}' not found`,
+        );
+      } else if (!existsCopyRow) {
+        NcError.notFound(
+          `Record with id '${operationMap.copy.rowId}' not found`,
+        );
+      } else if (!existsPasteRow) {
+        NcError.notFound(
+          `Record with id '${operationMap.paste.rowId}' not found`,
+        );
+      }
     }
 
     const column = await this.getColumn(param);
@@ -537,55 +550,88 @@ export class DataTableService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    const [copiedCellNestedList, pasteCellNestedList] = await Promise.all([
-      baseModel.mmList(
+    if (operationMap.deleteAll) {
+      let deleteCellNestedList = await baseModel.mmList(
         {
-          colId: operationMap.copy.columnId,
-          parentId: operationMap.copy.rowId,
+          colId: column.id,
+          parentId: operationMap.deleteAll.rowId,
         },
         listArgs as any,
         true,
-      ),
-      baseModel.mmList(
-        {
+      );
+
+      if (deleteCellNestedList && Array.isArray(deleteCellNestedList)) {
+        await baseModel.removeLinks({
           colId: column.id,
-          parentId: operationMap.paste.rowId,
-        },
-        listArgs as any,
-        true,
-      ),
-    ]);
-
-    const filteredRowsToLink = this.filterAndMapRows(
-      copiedCellNestedList,
-      pasteCellNestedList,
-      relatedModel.primaryKeys,
-    );
-
-    const filteredRowsToUnlink = this.filterAndMapRows(
-      pasteCellNestedList,
-      copiedCellNestedList,
-      relatedModel.primaryKeys,
-    );
-
-    await Promise.all([
-      filteredRowsToLink.length &&
-        baseModel.addLinks({
-          colId: column.id,
-          childIds: filteredRowsToLink,
-          rowId: operationMap.paste.rowId,
+          childIds: deleteCellNestedList,
+          rowId: operationMap.deleteAll.rowId,
           cookie: param.cookie,
-        }),
-      filteredRowsToUnlink.length &&
-        baseModel.removeLinks({
-          colId: column.id,
-          childIds: filteredRowsToUnlink,
-          rowId: operationMap.paste.rowId,
-          cookie: param.cookie,
-        }),
-    ]);
+        });
 
-    return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
+        // extract only pk row data
+        deleteCellNestedList = deleteCellNestedList.map((nestedList) => {
+          return relatedModel.primaryKeys.reduce((acc, col) => {
+            acc[col.title || col.column_name] =
+              nestedList[col.title || col.column_name];
+            return acc;
+          }, {});
+        });
+      } else {
+        deleteCellNestedList = [];
+      }
+
+      return { link: [], unlink: deleteCellNestedList };
+    } else if (operationMap.copy && operationMap.paste) {
+      const [copiedCellNestedList, pasteCellNestedList] = await Promise.all([
+        baseModel.mmList(
+          {
+            colId: operationMap.copy.columnId,
+            parentId: operationMap.copy.rowId,
+          },
+          listArgs as any,
+          true,
+        ),
+        baseModel.mmList(
+          {
+            colId: column.id,
+            parentId: operationMap.paste.rowId,
+          },
+          listArgs as any,
+          true,
+        ),
+      ]);
+
+      const filteredRowsToLink = this.filterAndMapRows(
+        copiedCellNestedList,
+        pasteCellNestedList,
+        relatedModel.primaryKeys,
+      );
+
+      const filteredRowsToUnlink = this.filterAndMapRows(
+        pasteCellNestedList,
+        copiedCellNestedList,
+        relatedModel.primaryKeys,
+      );
+
+      await Promise.all([
+        filteredRowsToLink.length &&
+          baseModel.addLinks({
+            colId: column.id,
+            childIds: filteredRowsToLink,
+            rowId: operationMap.paste.rowId,
+            cookie: param.cookie,
+          }),
+        filteredRowsToUnlink.length &&
+          baseModel.removeLinks({
+            colId: column.id,
+            childIds: filteredRowsToUnlink,
+            rowId: operationMap.paste.rowId,
+            cookie: param.cookie,
+          }),
+      ]);
+
+      return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
+    }
   }
 
   private validateIds(rowIds: any[] | any) {

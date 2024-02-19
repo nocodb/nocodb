@@ -1255,7 +1255,9 @@
       "thankYou": "谢谢你！",
       "submittedFormData": "您已成功提交表单数据。",
       "editingSystemKeyNotSupported": "不支持编辑系统密钥",
-      "notAvailableAtTheMoment": "当前不可用。"
+      "notAvailableAtTheMoment": "当前不可用。",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
     },
     "error": {
       "scopesRequired": "Scopes required",

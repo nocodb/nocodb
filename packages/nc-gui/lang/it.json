@@ -1255,7 +1255,9 @@
       "thankYou": "Grazie!",
       "submittedFormData": "Ha inviato con successo i dati del form.",
       "editingSystemKeyNotSupported": "La modifica della chiave di sistema non è supportata",
-      "notAvailableAtTheMoment": "Non disponibile al momento"
+      "notAvailableAtTheMoment": "Non disponibile al momento",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
     },
     "error": {
       "scopesRequired": "Scopes required",

@@ -2450,11 +2450,7 @@ class BaseModelSqlv2 {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
           this.extractCompositePK({
-            rowId: this.extractCompositePK({
-              rowId: insertObj[ag.column_name],
-              insertObj,
-              ag,
-            }),
+            rowId: insertObj[ag.column_name],
             insertObj,
             ag,
           }),

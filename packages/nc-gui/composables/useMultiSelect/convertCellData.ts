@@ -271,7 +271,7 @@ export default function convertCellData(
             typeof parsedVal === 'object' &&
             !Array.isArray(parsedVal) &&
             // eslint-disable-next-line no-prototype-builtins
-            ['rowId', 'fk_related_model_id', 'value'].every((key) => (parsedVal as Object).hasOwnProperty(key))
+            ['rowId', 'columnId', 'fk_related_model_id', 'value'].every((key) => (parsedVal as Object).hasOwnProperty(key))
           ) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType).fk_related_model_id
         ) {

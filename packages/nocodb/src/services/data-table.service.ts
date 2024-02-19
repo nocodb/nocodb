@@ -454,6 +454,7 @@ export class DataTableService {
     data: {
       operation: 'copy' | 'paste';
       rowId: string;
+      columnId: string;
       fk_related_model_id: string;
     }[];
   }) {
@@ -480,6 +481,7 @@ export class DataTableService {
         {
           operation: 'copy' | 'paste';
           rowId: string;
+          columnId: string;
           fk_related_model_id: string;
         }
       >,
@@ -538,7 +540,7 @@ export class DataTableService {
     const [copiedCellNestedList, pasteCellNestedList] = await Promise.all([
       baseModel.mmList(
         {
-          colId: column.id,
+          colId: operationMap.copy.columnId,
           parentId: operationMap.copy.rowId,
         },
         listArgs as any,
@@ -567,18 +569,20 @@ export class DataTableService {
     );
 
     await Promise.all([
-      baseModel.addLinks({
-        colId: column.id,
-        childIds: filteredRowsToLink,
-        rowId: operationMap.paste.rowId,
-        cookie: param.cookie,
-      }),
-      baseModel.removeLinks({
-        colId: column.id,
-        childIds: filteredRowsToUnlink,
-        rowId: operationMap.paste.rowId,
-        cookie: param.cookie,
-      }),
+      filteredRowsToLink.length &&
+        baseModel.addLinks({
+          colId: column.id,
+          childIds: filteredRowsToLink,
+          rowId: operationMap.paste.rowId,
+          cookie: param.cookie,
+        }),
+      filteredRowsToUnlink.length &&
+        baseModel.removeLinks({
+          colId: column.id,
+          childIds: filteredRowsToUnlink,
+          rowId: operationMap.paste.rowId,
+          cookie: param.cookie,
+        }),
     ]);
 
     return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };

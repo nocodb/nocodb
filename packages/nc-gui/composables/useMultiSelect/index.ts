@@ -113,6 +113,8 @@ export function useMultiSelect(
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
     let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
 
+    console.log('rowObj, columnObj', rowObj, columnObj)
+
     if (columnObj.uidt === UITypes.Checkbox) {
       textToCopy = !!textToCopy
     }
@@ -216,6 +218,18 @@ export function useMultiSelect(
 
     if (columnObj.uidt === UITypes.LongText) {
       textToCopy = `"${textToCopy.replace(/"/g, '\\"')}"`
+    }
+
+    if (
+      columnObj.uidt === UITypes.Links &&
+      (columnObj.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY
+    ) {
+      return JSON.stringify({
+        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+        columnId: columnObj.id,
+        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
+        value: !isNaN(+textToCopy) ? +textToCopy : 0,
+      })
     }
 
     return textToCopy
@@ -877,6 +891,99 @@ export function useMultiSelect(
             rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext, (relatedTableMeta as any)!.columns!)
 
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+          }
+
+          if (
+            columnObj.uidt === UITypes.Links &&
+            (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY
+          ) {
+            const clipboardContext = JSON.parse(clipboardData)
+            if (clipboardContext?.fk_related_model_id !== (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id) {
+              throw new Error('Invalid paste data for MM LTAR cell')
+              return
+            }
+
+            let pasteVal = convertCellData(
+              {
+                value: clipboardContext,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+              },
+              isMysql(meta.value?.source_id),
+            )
+
+            console.log('paste data', clipboardContext, pasteVal)
+            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+            const extractedPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+            if (!extractedPk) return
+
+            const [copiedCellchildrenList, pasteCellchildrenList] = await Promise.all([
+              api.dbDataTableRow.nestedList(
+                meta.value?.id as string,
+                columnObj.id as string,
+                encodeURIComponent((clipboardContext.rowId as string) || ''),
+              ),
+              api.dbDataTableRow.nestedList(
+                meta.value?.id as string,
+                columnObj.id as string,
+                encodeURIComponent(extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) || ''),
+              ),
+            ])
+
+            const relatedTablePrimaryKeys = (extractPk(relatedTableMeta?.columns as ColumnType[]) || '').split('__')
+
+            function filterAndMapRows(
+              sourceList: Record<string, any>[],
+              targetList: Record<string, any>[],
+              primaryKeys: string[] = relatedTablePrimaryKeys,
+            ): Record<string, any>[] {
+              return sourceList
+                .filter(
+                  (sourceRow: Record<string, any>) =>
+                    !targetList.some((targetRow: Record<string, any>) =>
+                      primaryKeys.every((key) => sourceRow[key] === targetRow[key]),
+                    ),
+                )
+                .map((item: Record<string, any>) =>
+                  primaryKeys.reduce((acc, key) => {
+                    acc[key] = item[key]
+                    return acc
+                  }, {} as Record<string, any>),
+                )
+            }
+
+            const filteredRowsToLink = filterAndMapRows(copiedCellchildrenList.list, pasteCellchildrenList.list)
+
+            const filteredRowsToUnlink = filterAndMapRows(pasteCellchildrenList.list, copiedCellchildrenList.list)
+
+            console.log('copied cell child list', copiedCellchildrenList)
+            console.log('paste cell child list', pasteCellchildrenList)
+            console.log('filtered', filteredRowsToLink, filteredRowsToUnlink)
+
+            rowObj.row[columnObj.title!] = clipboardContext.value
+
+            const result = await Promise.all([
+              filteredRowsToLink.length &&
+                api.dbDataTableRow.nestedLink(
+                  meta.value?.id as string,
+                  columnObj.id as string,
+                  encodeURIComponent(extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) || ''),
+                  filteredRowsToLink,
+                ),
+              filteredRowsToUnlink.length &&
+                api.dbDataTableRow.nestedUnlink(
+                  meta.value?.id as string,
+                  columnObj.id as string,
+                  encodeURIComponent(extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) || ''),
+                  filteredRowsToUnlink,
+                ),
+            ])
+
+            console.log('result', result)
+            await syncCellData?.(activeCell)
+            return
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {

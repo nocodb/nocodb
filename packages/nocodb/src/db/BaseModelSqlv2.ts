@@ -2450,8 +2450,11 @@ class BaseModelSqlv2 {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
           this.extractCompositePK({
-            rowId:
-              this.extractCompositePK({ rowId: insertObj[ag.column_name], insertObj, ag }),
+            rowId: this.extractCompositePK({
+              rowId: insertObj[ag.column_name],
+              insertObj,
+              ag,
+            }),
             insertObj,
             ag,
           }),
@@ -2900,14 +2903,16 @@ class BaseModelSqlv2 {
     ag,
     rowId,
     insertObj,
+    force = false,
   }: {
     ai?: Column<any>;
     ag?: Column<any>;
     rowId;
     insertObj: Record<string, any>;
+    force?: boolean;
   }) {
     // handle if composite primary key is used along with ai or ag
-    if ((ai || ag) && this.model.primaryKeys?.length > 1) {
+    if ((ai || ag) && (force || this.model.primaryKeys?.length > 1)) {
       // generate object with ai column and rest of the primary keys
       const pkObj = {};
       for (const pk of this.model.primaryKeys) {
@@ -3239,6 +3244,7 @@ class BaseModelSqlv2 {
               ai: aiPkCol,
               ag: agPkCol,
               insertObj: insertData,
+              force: true,
             }) || insertData,
           );
         }

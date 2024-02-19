@@ -14,7 +14,7 @@ export class CmdJ extends BasePage {
   }
 
   async openCmdJ() {
-    await this.dashboardPage.rootPage.keyboard.press(this.isMacOs() ? 'Meta+J' : 'Control+J');
+    await this.dashboardPage.rootPage.keyboard.press((await this.isMacOs()) ? 'Meta+J' : 'Control+J');
     // await this.dashboardPage.rootPage.waitForSelector('.DocSearch-Input');
   }
 

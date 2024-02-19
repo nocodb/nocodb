@@ -33,7 +33,7 @@ function openKeyboardShortcutDialog() {
         <nuxt-link
           v-e="['e:docs']"
           no-prefetch
-          no-rel
+          rel="noopener"
           class="text-primary !no-underline !text-current"
           target="_blank"
           to="https://docs.nocodb.com/"
@@ -49,7 +49,7 @@ function openKeyboardShortcutDialog() {
         <nuxt-link
           v-e="['e:api-docs']"
           no-prefetch
-          no-rel
+          rel="noopener"
           class="text-primary !no-underline !text-current"
           target="_blank"
           to="https://apis.nocodb.com/"
@@ -152,7 +152,7 @@ function openKeyboardShortcutDialog() {
         <nuxt-link
           v-e="['e:hiring']"
           no-prefetch
-          no-rel
+          rel="noopener"
           class="!no-underline !text-current"
           target="_blank"
           to="http://careers.nocodb.com"

@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
-import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
-import { parseProp } from '#imports'
+import { isBt, isMm, parseProp } from '#imports'
 
 export default function convertCellData(
   args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
@@ -56,7 +56,7 @@ export default function convertCellData(
       }
       return null
     case UITypes.Date: {
-      const parsedDate = dayjs(value, column?.meta?.date_format ?? 'YYYY-MM-DD')
+      const parsedDate = dayjs(value, parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD')
       if (!parsedDate.isValid()) {
         if (isMultiple) {
           return null
@@ -67,7 +67,10 @@ export default function convertCellData(
       return parsedDate.format('YYYY-MM-DD')
     }
     case UITypes.DateTime: {
-      const parsedDateTime = dayjs(value)
+      const parsedDateTime = dayjs(
+        value,
+        `${parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD'} ${parseProp(column?.meta)?.time_format ?? 'HH:mm'}`,
+      )
       if (!parsedDateTime.isValid()) {
         if (isMultiple) {
           return null
@@ -246,7 +249,52 @@ export default function convertCellData(
 
       return parsedVal || value
     }
-    case UITypes.LinkToAnotherRecord:
+    case UITypes.LinkToAnotherRecord: {
+      if (isMultiple) {
+        return undefined
+      }
+
+      if (isBt(column)) {
+        const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+
+        if (
+          !(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal)) ||
+          parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+        ) {
+          throw new Error(`Unsupported conversion for ${to}`)
+        }
+
+        return parsedVal
+      } else {
+        throw new Error(`Unsupported conversion for ${to}`)
+      }
+    }
+    case UITypes.Links: {
+      if (isMultiple) {
+        return undefined
+      }
+
+      if (isMm(column)) {
+        const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+
+        if (
+          !(
+            parsedVal &&
+            typeof parsedVal === 'object' &&
+            !Array.isArray(parsedVal) &&
+            // eslint-disable-next-line no-prototype-builtins
+            ['rowId', 'columnId', 'fk_related_model_id', 'value'].every((key) => (parsedVal as Object).hasOwnProperty(key))
+          ) ||
+          parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType).fk_related_model_id
+        ) {
+          throw new Error(`Unsupported conversion for ${to}`)
+        }
+
+        return parsedVal
+      } else {
+        throw new Error(`Unsupported conversion for ${to}`)
+      }
+    }
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:

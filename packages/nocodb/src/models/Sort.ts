@@ -27,7 +27,6 @@ export default class Sort {
 
   public static async deleteAll(viewId: string, ncMeta = Noco.ncMeta) {
     await NocoCache.deepDel(
-      CacheScope.SORT,
       `${CacheScope.SORT}:${viewId}`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -187,7 +186,6 @@ export default class Sort {
     await ncMeta.metaDelete(null, null, MetaTable.SORT, sortId);
 
     await NocoCache.deepDel(
-      CacheScope.SORT,
       `${CacheScope.SORT}:${sortId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

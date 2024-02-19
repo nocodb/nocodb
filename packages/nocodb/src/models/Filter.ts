@@ -276,7 +276,6 @@ export default class Filter implements FilterType {
         await deleteRecursively(f);
       await ncMeta.metaDelete(null, null, MetaTable.FILTER_EXP, filter.id);
       await NocoCache.deepDel(
-        CacheScope.FILTER_EXP,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -435,7 +434,6 @@ export default class Filter implements FilterType {
       if (filter.id) {
         await ncMeta.metaDelete(null, null, MetaTable.FILTER_EXP, filter.id);
         await NocoCache.deepDel(
-          CacheScope.FILTER_EXP,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -459,7 +457,6 @@ export default class Filter implements FilterType {
       if (filter.id) {
         await ncMeta.metaDelete(null, null, MetaTable.FILTER_EXP, filter.id);
         await NocoCache.deepDel(
-          CacheScope.FILTER_EXP,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );

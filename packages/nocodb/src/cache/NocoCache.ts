@@ -85,12 +85,11 @@ export default class NocoCache {
   }
 
   public static async deepDel(
-    scope: string,
     key: string,
     direction: string,
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
-    return this.client.deepDel(scope, `${this.prefix}:${key}`, direction);
+    return this.client.deepDel(`${this.prefix}:${key}`, direction);
   }
 
   public static async appendToList(

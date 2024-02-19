@@ -69,7 +69,7 @@ export default async function sortV2(
               model,
               column,
               {},
-              alias
+              alias,
             )
           ).builder;
           qb.orderBy(builder, sort.direction || 'asc', nulls);

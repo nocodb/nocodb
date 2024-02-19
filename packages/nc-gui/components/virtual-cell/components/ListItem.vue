@@ -89,7 +89,8 @@ const displayValue = computed(() => {
 
 <template>
   <a-card
-    class="nc-list-item !border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
+    tabindex="0"
+    class="nc-list-item !outline-brand-500 !border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
     :class="{
       '!bg-white': isLoading,
       '!border-1': isLinked && !isLoading,

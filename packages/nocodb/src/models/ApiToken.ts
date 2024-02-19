@@ -56,7 +56,6 @@ export default class ApiToken implements ApiTokenType {
 
   static async delete(token, ncMeta = Noco.ncMeta) {
     await NocoCache.deepDel(
-      CacheScope.API_TOKEN,
       `${CacheScope.API_TOKEN}:${token}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

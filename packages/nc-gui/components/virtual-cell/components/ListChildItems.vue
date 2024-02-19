@@ -1,17 +1,14 @@
 <script lang="ts" setup>
 import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import type { Row } from '#imports'
-import InboxIcon from '~icons/nc-icons/inbox'
-
 import {
   ColumnInj,
   IsFormInj,
   IsPublicInj,
   ReadonlyInj,
+  type Row,
   computed,
   inject,
   isPrimary,
-  onKeyStroke,
   ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -40,6 +37,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const filterQueryRef = ref<HTMLInputElement>()
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -92,8 +91,6 @@ const attachmentCol = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
 })
 
-const isFocused = ref(false)
-
 const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
@@ -127,10 +124,6 @@ watch(expandedFormDlg, () => {
   if (!expandedFormDlg.value) {
     loadChildrenList()
   }
-})
-
-onKeyStroke('Escape', () => {
-  vModel.value = false
 })
 
 /*
@@ -175,6 +168,40 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
     linkRow(rowRef, parseInt(id))
   }
 }
+
+watch([filterQueryRef, isDataExist], () => {
+  if (readOnly.value || isPublic.value ? isDataExist.value : true) {
+    filterQueryRef.value?.focus()
+  }
+})
+
+const linkedShortcuts = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    vModel.value = false
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    try {
+      e.target?.nextElementSibling?.focus()
+    } catch (e) {}
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    try {
+      e.target?.previousElementSibling?.focus()
+    } catch (e) {}
+  } else if (e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+    try {
+      filterQueryRef.value?.focus()
+    } catch (e) {}
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', linkedShortcuts)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', linkedShortcuts)
+})
 </script>
 
 <template>
@@ -198,11 +225,8 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
       :display-value="headerDisplayValue"
     />
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
-      <div
-        class="flex items-center border-1 p-1 rounded-md w-full border-gray-200"
-        :class="{ '!border-primary': childrenListPagination.query.length !== 0 || isFocused }"
-      >
-        <MdiMagnify class="w-5 h-5 ml-2" />
+      <div class="flex items-center border-1 p-1 rounded-md w-full border-gray-200 !focus-within:border-primary">
+        <MdiMagnify class="w-5 h-5 ml-2 text-gray-500" />
         <a-input
           ref="filterQueryRef"
           v-model:value="childrenListPagination.query"
@@ -210,9 +234,13 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
           class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
           :bordered="false"
-          @focus="isFocused = true"
-          @blur="isFocused = false"
-          @keydown.capture.stop
+          @keydown.capture.stop="
+            (e) => {
+              if (e.key === 'Escape') {
+                filterQueryRef?.blur()
+              }
+            }
+          "
           @change="childrenListPagination.page = 1"
         >
         </a-input>
@@ -264,24 +292,27 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
               @expand="onClick(refRow)"
+              @keydown.space.prevent="linkOrUnLink(refRow, id)"
+              @keydown.enter.prevent="() => onClick(refRow, id)"
               @click="linkOrUnLink(refRow, id)"
             />
           </template>
         </div>
       </div>
-      <div v-else class="pt-1 flex flex-col gap-3 my-auto items-center justify-center text-gray-500">
-        <InboxIcon class="w-16 h-16 mx-auto" />
-        <p>
-          {{ $t('msg.noRecordsAreLinkedFromTable') }}
-          {{ relatedTableMeta?.title }}
-        </p>
+      <div v-else class="pt-1 flex flex-col gap-4 my-auto items-center justify-center text-gray-500 text-center">
+        <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
+        <div class="text-2xl text-gray-700 font-bold">{{ $t('msg.noLinkedRecords') }}</div>
+        <div class="text-gray-700">
+          {{ $t('msg.clickLinkRecordsToAddLinkFromTable', { tableName: relatedTableMeta?.title }) }}
+        </div>
+
         <NcButton
           v-if="!readOnly && childrenListCount < 1"
           v-e="['c:links:link']"
           data-testid="nc-child-list-button-link-to"
           @click="emit('attachRecord')"
         >
-          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkMoreRecords') }}</div>
+          <div class="flex items-center gap-1"><MdiPlus /> {{ $t('title.linkRecords') }}</div>
         </NcButton>
       </div>
     </div>

@@ -46,7 +46,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
-      - name: pnpm Setup and Publish with 18.14.0
+      - name: pnpm Setup and Publish with 18.19.0
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:

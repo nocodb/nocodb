@@ -414,7 +414,6 @@ export default class Source implements SourceType {
         fk_column_id: relCol.col.id,
       });
       await NocoCache.deepDel(
-        relCol.cacheScopeName,
         `${relCol.cacheScopeName}:${relCol.col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -434,7 +433,6 @@ export default class Source implements SourceType {
     const res = await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
 
     await NocoCache.deepDel(
-      CacheScope.BASE,
       `${CacheScope.BASE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -460,7 +458,6 @@ export default class Source implements SourceType {
     );
 
     await NocoCache.deepDel(
-      CacheScope.BASE,
       `${CacheScope.BASE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

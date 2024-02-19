@@ -158,8 +158,8 @@ const onClickAudit = () => {
           @click="tab = 'comments'"
         >
           <div class="tab-title nc-tab">
-            <MdiMessageOutline class="h-4 w-4" />
-            Comments
+            <MdiMessageOutline class="h-4 w-4 flex-none" />
+            <span class="<lg:hidden">Comments</span>
           </div>
         </div>
         <NcTooltip v-if="appInfo.ee" class="tab flex-1">
@@ -173,7 +173,7 @@ const onClickAudit = () => {
           >
             <div class="tab-title nc-tab select-none">
               <MdiFileDocumentOutline class="h-4 w-4" />
-              Audits
+              <span class="<lg:hidden">Audits</span>
             </div>
           </div>
         </NcTooltip>
@@ -188,7 +188,7 @@ const onClickAudit = () => {
         >
           <div class="tab-title nc-tab">
             <MdiFileDocumentOutline class="h-4 w-4" />
-            Audits
+            <span class="<lg:hidden">Audits</span>
           </div>
         </div>
       </div>
@@ -211,13 +211,13 @@ const onClickAudit = () => {
         </div>
         <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
-            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
+            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200 overflow-hidden">
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex items-center gap-2">
                     <GeneralUserIcon size="base" :name="log.display_name" :email="log.user" />
 
-                    <div class="flex flex-col">
+                    <div class="flex flex-col <lg:max-w-22">
                       <NcTooltip class="truncate max-w-42" show-on-truncate-only>
                         <template #title>
                           {{ log.display_name?.trim() || log.user || 'Shared source' }}

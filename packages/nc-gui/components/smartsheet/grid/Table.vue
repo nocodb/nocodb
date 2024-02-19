@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import { type ColumnReqType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
   ViewTypes,
@@ -29,15 +29,18 @@ import {
   getEnumColorByIndex,
   iconMap,
   inject,
+  isBt,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
   isEeUI,
   isMac,
+  isMm,
   message,
   onClickOutside,
   onMounted,
   provide,
   ref,
+  useApi,
   useEventListener,
   useI18n,
   useMultiSelect,
@@ -97,6 +100,8 @@ const paginationDataRef = toRef(props, 'paginationData')
 const dataRef = toRef(props, 'data')
 
 const paginationStyleRef = toRef(props, 'pagination')
+
+const { api } = useApi()
 
 const {
   loadData,
@@ -263,17 +268,19 @@ provide(JsonExpandInj, isJsonExpand)
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
-  if (fields.value[ctx.col]?.uidt === UITypes.Links) {
-    return message.info(t('msg.linkColumnClearNotSupportedYet'))
-  }
-
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    let mmClearResult
+
+    if (isMm(columnObj) && rowRefs.value) {
+      mmClearResult = await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+    }
+
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult: any[]) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -286,11 +293,21 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
               columnObj.id === col.id
             ) {
-              rowObj.row[columnObj.title] = row.row[columnObj.title]
-
               if (rowRefs.value) {
-                await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
-                await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
+                if (isBt(columnObj)) {
+                  rowObj.row[columnObj.title] = row.row[columnObj.title]
+
+                  await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+                  await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
+                } else if (isMm(columnObj)) {
+                  await api.dbDataTableRow.nestedLink(
+                    meta.value?.id as string,
+                    columnObj.id as string,
+                    encodeURIComponent(rowId as string),
+                    mmClearResult,
+                  )
+                  rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                }
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -305,7 +322,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
       },
       redo: {
         fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
@@ -318,7 +335,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             const columnObj = fields.value[ctx.col]
             if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
               if (rowRefs.value) {
-                await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+                if (isBt(columnObj)) {
+                  await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+                } else if (isMm(columnObj)) {
+                  await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+                }
               }
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
@@ -336,7 +357,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if (rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+    if (isBt(columnObj) && rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+
     return
   }
 
@@ -558,7 +580,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
-  (e: KeyboardEvent) => {
+  async (e: KeyboardEvent) => {
     // ignore navigating if picker(Date, Time, DateTime, Year)
     // or single/multi select options is open
     const activePickerOrDropdownEl = document.querySelector(
@@ -600,6 +622,42 @@ const {
       if (editEnabled.value) {
         editEnabled.value = false
         return true
+      }
+    } else if (e.key === 'Tab') {
+      if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0 && !paginationDataRef.value?.isFirstPage) {
+        e.preventDefault()
+        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1, -1)
+        return true
+      } else if (!e.shiftKey && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
+        e.preventDefault()
+
+        if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          addEmptyRow()
+          await resetAndChangePage(dataRef.value.length - 1, 0)
+          return true
+        } else if (!paginationDataRef.value?.isLastPage) {
+          await resetAndChangePage(0, 0, 1)
+          return true
+        }
+      }
+    } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowUp') {
+      if (activeCell.row === 0 && !paginationDataRef.value?.isFirstPage) {
+        e.preventDefault()
+        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!, -1)
+        return true
+      }
+    } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowDown') {
+      if (activeCell.row === dataRef.value.length - 1) {
+        e.preventDefault()
+
+        if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          addEmptyRow()
+          await resetAndChangePage(dataRef.value.length - 1, activeCell.col!)
+          return true
+        } else if (!paginationDataRef.value?.isLastPage) {
+          await resetAndChangePage(0, activeCell.col!, 1)
+          return true
+        }
       }
     }
 
@@ -697,6 +755,9 @@ const {
   },
   bulkUpdateRows,
   fillHandle,
+  view,
+  paginationDataRef,
+  changePage,
 )
 
 function scrollToRow(row?: number) {
@@ -859,13 +920,20 @@ async function clearSelectedRangeOfCells() {
   const cols = fields.value.slice(startCol, endCol + 1)
   const rows = dataRef.value.slice(startRow, endRow + 1)
   const props = []
+  let isInfoShown = false
 
   for (const row of rows) {
     for (const col of cols) {
       if (!row || !col || !col.title) continue
 
       // TODO handle LinkToAnotherRecord
-      if (isVirtualCol(col)) continue
+      if (isVirtualCol(col)) {
+        if ((isBt(col) || isMm(col)) && !isInfoShown) {
+          message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
+          isInfoShown = true
+        }
+        continue
+      }
 
       row.row[col.title] = null
       props.push(col.title)
@@ -936,6 +1004,21 @@ function scrollToCell(row?: number | null, col?: number | null) {
       behavior: 'smooth',
     })
   }
+}
+
+async function resetAndChangePage(row: number, col: number, pageChange?: number) {
+  clearSelectedRange()
+
+  if (pageChange !== undefined && paginationDataRef.value?.page) {
+    await changePage?.(paginationDataRef.value.page + pageChange)
+    await nextTick()
+    makeActive(row, col)
+  } else {
+    makeActive(row, col)
+    await nextTick()
+  }
+
+  scrollToCell?.()
 }
 
 const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {

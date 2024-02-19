@@ -1254,7 +1254,7 @@ watch(
                 @add="onFieldAdd"
               />
               <div v-else class="w-[25rem] flex flex-col justify-center p-4 items-center">
-                <img src="~assets/img/fieldPlaceholder.svg" class="!w-[18rem]" />
+                <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]" />
                 <div class="text-2xl text-gray-600 font-bold text-center pt-6">{{ $t('labels.multiField.selectField') }}</div>
                 <div class="text-center text-sm px-2 text-gray-500 pt-6">
                   {{ $t('labels.multiField.selectFieldLabel') }}

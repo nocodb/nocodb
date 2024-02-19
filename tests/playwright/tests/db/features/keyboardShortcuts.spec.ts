@@ -137,6 +137,61 @@ test.describe('Verify shortcuts', () => {
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+Enter' : 'Control+Enter');
     await page.reload();
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
+
+    // Tab:
+    // If current page is not last page and and current cell is last column of last row and user press `Tab` then current page will be incremented by 1
+    await grid.cell.click({ index: 24, columnHeader: 'Cities' });
+    await page.keyboard.press('Tab');
+    await grid.verifyActivePage({ pageNumber: '2' });
+    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
+
+    // If current page is last page and and current cell is last column of last row and user press `Tab` then new empty row will be added
+    await grid.clickPagination({ type: 'last-page' });
+    await grid.cell.click({ index: 8, columnHeader: 'Cities' });
+    await page.keyboard.press('Tab');
+    await grid.verifyRowCount({ count: 10 });
+    await grid.cell.verifyCellActiveSelected({ index: 9, columnHeader: 'Country' });
+
+    // If current page is not first page and and current cell is first column of first row and user press `Shift+Tab` then current page will be decremented by 1
+    await grid.cell.click({ index: 0, columnHeader: 'Country' });
+    await page.keyboard.press('Shift+Tab');
+    await grid.verifyActivePage({ pageNumber: '4' });
+    await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Cities' });
+
+    // If current page is first page and and current cell is first column of first row and user press `Shift+Tab` then current page will not change
+    await grid.clickPagination({ type: 'first-page' });
+    await grid.cell.click({ index: 0, columnHeader: 'Country' });
+    await page.keyboard.press('Shift+Tab');
+    await grid.verifyActivePage({ pageNumber: '1' });
+    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
+
+    // ArrowDown:
+    // If current page is not last page and and current cell is in last row and user press `ArrowDown` then current page will be incremented by 1
+    await grid.cell.click({ index: 24, columnHeader: 'Cities' });
+    await page.keyboard.press('ArrowDown');
+    await grid.verifyActivePage({ pageNumber: '2' });
+    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Cities' });
+
+    // If current page is last page and and current cell is in last row and user press `ArrowDown` then new empty row will be added
+    await grid.clickPagination({ type: 'last-page' });
+    await grid.cell.click({ index: 8, columnHeader: 'Cities' });
+    await page.keyboard.press('ArrowDown');
+    await grid.verifyRowCount({ count: 10 });
+    await grid.cell.verifyCellActiveSelected({ index: 9, columnHeader: 'Country' });
+
+    // ArrowUp:
+    // If current page is not first page and and current cell is in first row and user press `ArrwoUp` then current page will be decremented by 1
+    await grid.cell.click({ index: 0, columnHeader: 'Cities' });
+    await page.keyboard.press('ArrowUp');
+    await grid.verifyActivePage({ pageNumber: '4' });
+    await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Cities' });
+
+    // If current page is first page and and current cell is in first row and user press `ArrwoUp` then current page will not change
+    await grid.clickPagination({ type: 'first-page' });
+    await grid.cell.click({ index: 0, columnHeader: 'Cities' });
+    await page.keyboard.press('ArrowUp');
+    await grid.verifyActivePage({ pageNumber: '1' });
+    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Cities' });
   });
 });
 

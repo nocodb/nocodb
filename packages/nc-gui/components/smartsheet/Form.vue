@@ -119,10 +119,6 @@ const { betaFeatureToggleState } = useBetaFeatureToggle()
 
 const updateView = useDebounceFn(
   () => {
-    if ((formViewData.value?.subheading?.length || 0) > 255) {
-      return message.error(t('msg.error.formDescriptionTooLong'))
-    }
-
     updateFormView(formViewData.value)
   },
   300,

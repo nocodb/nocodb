@@ -36,15 +36,15 @@ const newView = ref<
 >()
 
 const filteredViews = computed(() => {
-  const filteredList = recentViews.value.filter((v) => {
-    if (!v.viewName || !v.tableName || !v.baseName) return false
+  if (!recentViews.value) return []
+  const filtered = recentViews.value.filter((v) => {
+    if (search.value === '') return true
     return v.viewName.toLowerCase().includes(search.value.toLowerCase())
   })
-
-  if (filteredList.find((v) => v.tableID + v.viewName === selected.value) && filteredList.length) {
-    selected.value = filteredList[0].tableID + filteredList[0].viewName
+  if (filtered[0]) {
+    selected.value = filtered[0]?.tableID + filtered[0]?.viewName
   }
-  return filteredList
+  return filtered
 })
 
 const changeView = useDebounceFn(
@@ -130,6 +130,7 @@ const moveDown = () => {
 
 const hide = () => {
   vOpen.value = false
+  search.value = ''
 }
 
 onClickOutside(modalEl, () => {
@@ -177,11 +178,12 @@ onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
   if (!activeView.value || !filteredViews.value.length) return
   const index = filteredViews.value.findIndex(
-    (v) => v.viewName === filteredViews.value?.title && v.tableID === filteredViews.value?.fk_model_id,
+    (v) => v.viewName === activeView.value?.title && v.tableID === activeView.value?.fk_model_id,
   )
   if (index + 1 > filteredViews.value.length) {
     selected.value = filteredViews.value[0].tableID + filteredViews.value[0].viewName
   } else {
+    if (!filteredViews.value[index + 1]) return
     selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
   }
 })
@@ -192,7 +194,7 @@ onMounted(() => {
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
       <div class="cmdk-input-wrapper">
         <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
-        <input ref="cmdInputEl" v-model="search" class="cmdk-input" type="text" />
+        <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text" />
       </div>
       <div class="flex items-center bg-white w-full z-[50]">
         <div class="text-sm px-4 py-2 text-gray-500">Recent Views</div>

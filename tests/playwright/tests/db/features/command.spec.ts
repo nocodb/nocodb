@@ -88,7 +88,7 @@ test.describe('Command Shortcuts', () => {
 
     expect(await dashboard.cmdL.getActiveViewTitle()).toBe('Default View');
 
-    expect(await dashboard.cmdL.getActiveTableTitle()).toBe('Address');
+    expect(await dashboard.cmdL.getActiveTableTitle()).toBe('City');
 
     await dashboard.signOut();
 

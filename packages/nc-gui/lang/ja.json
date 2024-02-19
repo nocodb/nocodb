@@ -937,7 +937,7 @@
       "current": "現在のパスワード",
       "new": "新しいパスワード",
       "save": "パスワードを保存",
-      "confirm": "もう一度新しいパスワードを入力してください"
+      "confirm": "新しいパスワードの確認"
     },
     "selectAColumnForTheQRCodeValue": "Select a field for the QR code value",
     "allowNegativeNumbers": "Allow negative numbers",
@@ -1255,7 +1255,9 @@
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
       "editingSystemKeyNotSupported": "Editing system key not supported",
-      "notAvailableAtTheMoment": "Not available at the moment"
+      "notAvailableAtTheMoment": "Not available at the moment",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
     },
     "error": {
       "scopesRequired": "Scopes required",

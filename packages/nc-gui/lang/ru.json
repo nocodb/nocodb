@@ -332,6 +332,7 @@
     "virtualRelation": "Виртуальные отношения",
     "linkMore": "Ссылка Подробнее",
     "linkMoreRecords": "Связать больше записей",
+    "linkRecords": "Link Records",
     "downloadFile": "Скачать файл",
     "renameTable": "Переименовать таблицу",
     "renamingTable": "Переименование таблицы",
@@ -398,6 +399,7 @@
     "findRowByScanningCode": "Найти строку путем сканирования QR или штрих-кода",
     "tokenManagement": "Управление токенами",
     "addNewToken": "Добавить новый токен",
+    "createNewToken": "Create new token",
     "accountSettings": "Настройки аккаунта",
     "resetPasswordMenu": "Сбросить пароль",
     "tokens": "Токены",
@@ -659,13 +661,13 @@
     "newFormLoaded": "Новая форма будет загружена после",
     "webhook": "Вебхук",
     "multiField": {
-      "newField": "New field",
-      "saveChanges": "Save changes",
-      "updatedField": "Updated field",
-      "deletedField": "Deleted field",
+      "newField": "Новое поле",
+      "saveChanges": "Сохранить изменения",
+      "updatedField": "Обновить поле",
+      "deletedField": "Удалить поле",
       "incompleteConfiguration": "Incomplete configuration",
-      "selectField": "Select a field",
-      "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
+      "selectField": "Выбрать поле",
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
     }
   },
   "activity": {
@@ -917,10 +919,10 @@
     "clientCA": "Выберите файл CA"
   },
   "placeholder": {
-    "selectSlackChannels": "Select Slack channels",
-    "selectTeamsChannels": "Select Microsoft Teams channels",
-    "selectDiscordChannels": "Select Discord channels",
-    "selectMattermostChannels": "Select Mattermost channels",
+    "selectSlackChannels": "Выберите каналы Slack",
+    "selectTeamsChannels": "Выберите каналы Microsoft Teams",
+    "selectDiscordChannels": "Выберите каналы Discord",
+    "selectMattermostChannels": "Выберите каналы Mattermost",
     "webhookTitle": "Webhook Title",
     "barcodeColumn": "Select a field for the Barcode value",
     "notFoundContent": "No valid field Type can be found.",
@@ -938,7 +940,7 @@
       "confirm": "Подтвердите новый пароль"
     },
     "selectAColumnForTheQRCodeValue": "Select a field for the QR code value",
-    "allowNegativeNumbers": "Allow negative numbers",
+    "allowNegativeNumbers": "Разрешить отрицательные числа",
     "searchProjectTree": "Искать таблицы",
     "searchFields": "Поиск полей",
     "searchColumn": "Поиск {поиск} столбец",
@@ -959,7 +961,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "Значение",
-    "key": "Ключ"
+    "key": "Ключ",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",
@@ -1044,8 +1052,9 @@
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a single record from table "
     },
-    "noRecordsAreLinkedFromTable": "No records are linked from table",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "No records linked",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",
     "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
@@ -1053,8 +1062,7 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
-    "createWebhookMsg2": "Create web-hooks to power you automations,",
-    "createWebhookMsg3": "Get notified as soon as there are changes in your data",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",

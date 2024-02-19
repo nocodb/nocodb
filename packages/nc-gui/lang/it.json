@@ -332,6 +332,7 @@
     "virtualRelation": "Relazione Virtuale",
     "linkMore": "Collega Altro",
     "linkMoreRecords": "Collega più righe",
+    "linkRecords": "Link Records",
     "downloadFile": "Scarica File",
     "renameTable": "Rinomina Tabella",
     "renamingTable": "Rinominamento tabella",
@@ -398,6 +399,7 @@
     "findRowByScanningCode": "Find row by scanning a QR or Barcode",
     "tokenManagement": "Gestione Token",
     "addNewToken": "Aggiungi un nuovo token",
+    "createNewToken": "Create new token",
     "accountSettings": "Impostazioni account",
     "resetPasswordMenu": "Reimposta Password",
     "tokens": "Token",
@@ -665,7 +667,7 @@
       "deletedField": "Cancella campo",
       "incompleteConfiguration": "Configurazione incompleta",
       "selectField": "Seleziona un campo",
-      "selectFieldLabel": "Modifichi le proprietà del campo selezionando un campo dall'elenco"
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
     }
   },
   "activity": {
@@ -959,7 +961,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "Valore",
-    "key": "Chiave"
+    "key": "Chiave",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "Fare clic per copiare l'Id del campo",
@@ -1044,8 +1052,9 @@
       "tooltip_desc": "Una singola riga dalla tabella ",
       "tooltip_desc2": " può essere collegato con una riga della tabella "
     },
-    "noRecordsAreLinkedFromTable": "Nessuna riga è collegata dalla tabella",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "Nessun record collegato",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "record collegati",
     "acceptOnlyValid": "Accetta solo",
     "apiTokenCreate": "Creare token API personali da utilizzare nell'automazione o in applicazioni esterne.",
@@ -1053,8 +1062,7 @@
     "selectFieldToGroup": "Selezionare il campo da raggruppare",
     "thereAreNoRecordsInTable": "Non ci sono record nella tabella",
     "createWebhookMsg1": "Inizi con i web-hook!",
-    "createWebhookMsg2": "Crei dei web-hook per alimentare le sue automazioni,",
-    "createWebhookMsg3": "Ricevi una notifica non appena ci sono modifiche nei tuoi dati",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Sei sicuro di voler eliminare quanto segue",
     "areYouSureUWantToDeleteLabel": "Sei sicuro di voler {deleteLabel} quanto segue",
     "idColumnRequired": "Il campo ID è obbligatorio, può rinominarlo in seguito, se necessario.",

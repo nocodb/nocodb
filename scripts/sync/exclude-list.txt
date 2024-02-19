@@ -20,6 +20,7 @@ packages/nc-gui/help
 packages/nocodb/nc
 packages/nocodb/nocodb.db
 packages/nocodb/webpack.cloud.config.js
+packages/nocodb/webpack.ee-on-prem.config.js
 .idea
 .github/workflows/*-cloud-*.yml
 */.nuxt
@@ -35,6 +36,7 @@ package.json
 package-lock.json
 .run
 packages/nocodb/tsconfig.ee.json
+packages/nocodb/tsconfig.ee-on-prem.json
 packages/nocodb/docker
 components.d.ts
 pnpm-lock.yaml

@@ -13,13 +13,13 @@ const oidcProviders = computed(() => {
 })
 
 const googleProvider = computed(() => {
-  const provider = [...providers.value].filter((provider: SSOClientType) => provider.type === 'google')
+  const provider = [...providers.value].filter((provider: SSOClientType) => provider.type === 'google' && !provider.deleted)
   if (provider.length > 0) {
     return provider[0]
   } else {
     return {
       enabled: false,
-      provider: 'google',
+      type: 'google',
     }
   }
 })
@@ -47,13 +47,6 @@ const addOIDCProvider = async () => {
   providerProp.value = await getPrePopulatedProvider('oidc')
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const addGoogleProvider = async () => {
-  googleDialogShow.value = true
-  isEdit.value = true
-  providerProp.value = await getPrePopulatedProvider('google')
-}
-
 const { copy } = useCopy()
 
 const copyRedirectUrl = async () => {
@@ -62,7 +55,12 @@ const copyRedirectUrl = async () => {
 }
 
 const updateProviderStatus = async (client: { enabled: boolean; id: string }) => {
-  if (!client.id) return
+  if (!client.id) {
+    googleDialogShow.value = true
+    isEdit.value = true
+    providerProp.value = await getPrePopulatedProvider('google')
+    return
+  }
   client.enabled = !client.enabled
   await updateProvider(client.id, { enabled: client.enabled })
 }
@@ -117,15 +115,21 @@ const duplicateProvider = async (id: string) => {
   }
 }
 
-const enableEdit = (provider: SSOClientType) => {
+const enableEdit = async (provider: SSOClientType) => {
   isEdit.value = true
-  providerProp.value = provider
   if (provider.type === 'saml') {
+    providerProp.value = provider
     samlDialogShow.value = true
   } else if (provider.type === 'oidc') {
+    providerProp.value = provider
     oidcDialogShow.value = true
   } else if (provider.type === 'google') {
     googleDialogShow.value = true
+    if (!provider.id) {
+      providerProp.value = await getPrePopulatedProvider('google')
+    } else {
+      providerProp.value = provider
+    }
   }
 }
 
@@ -157,16 +161,14 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Todo: remove eslint-disable comment once `v-if` no-constant-condition resolved -->
-      <!-- eslint-disable vue/no-constant-condition  -->
       <div
-        v-if="false"
         class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
         data-test-id="nc-google-provider"
+        @click="enableEdit(googleProvider)"
       >
-        <div class="nc-google-enable">
+        <div class="nc-google-enable nc-google-google-enable" @click.stop>
           <NcSwitch
-            :checked="googleProvider.enabled"
+            :checked="!!googleProvider.enabled"
             class="min-w-4"
             size="small"
             @change="updateProviderStatus(googleProvider)"
@@ -174,7 +176,7 @@ onMounted(async () => {
           <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title"> Google </span>
         </div>
 
-        <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md">
+        <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
           <NcButton
             class="!text-gray-500 !hover:text-gray-800 nc-google-more-option"
             data-test-id="nc-google-more-option"
@@ -191,6 +193,15 @@ onMounted(async () => {
                   <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                 </div>
               </NcMenuItem>
+              <template v-if="googleProvider.id">
+                <a-menu-divider class="my-1.5" />
+                <NcMenuItem data-test-id="nc-google-delete" @click="deleteProvider(googleProvider.id)">
+                  <div class="text-red-500">
+                    <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
+                    {{ $t('general.delete') }}
+                  </div>
+                </NcMenuItem>
+              </template>
             </NcMenu>
           </template>
         </NcDropdown>

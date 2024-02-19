@@ -4,9 +4,10 @@ import { AccountPage } from '../../pages/Account';
 import { OpenIDLoginPage } from '../../pages/SsoIdpPage/OpenIDLoginPage';
 import { SAMLLoginPage } from '../../pages/SsoIdpPage/SAMLLoginPage';
 import { startOpenIDIdp, startSAMLIdp, stopOpenIDIdp, stopSAMLIpd } from './utils/sso';
+import { GoogleLoginPage } from '../../pages/SsoIdpPage/GoogleLoginPage';
 
 test.describe.serial('SSO', () => {
-  test.describe('CRUD', () => {
+  test.describe.serial('CRUD', () => {
     let accountsPage: AccountPage;
     let context: any;
 
@@ -73,6 +74,25 @@ test.describe.serial('SSO', () => {
 
       // Delete OIDC provider
       await accountsPage.authentication.deleteProvider('oidc', 'oidc');
+    });
+
+    test('Google Auth', async () => {
+      await accountsPage.authentication.goto();
+
+      // Create OIDC provider
+      await accountsPage.authentication.createGoogleProvider({
+        clientId: 'test',
+        clientSecret: 'test',
+      });
+
+      // Disable OIDC provider
+      await accountsPage.authentication.toggleProvider('google', 'google');
+      //
+      // // Enable OIDC provider
+      await accountsPage.authentication.toggleProvider('google', 'google');
+
+      // Delete OIDC provider
+      await accountsPage.authentication.deleteProvider('google', 'google');
     });
   });
 
@@ -175,6 +195,46 @@ test.describe.serial('SSO', () => {
       await samlLoginPage.goto('test');
 
       await samlLoginPage.signIn({
+        email: 'test@nocodb.com',
+      });
+    });
+  });
+
+  test.describe('Google Auth Flow', () => {
+    let accountsPage: AccountPage;
+    let googleLoginPage: GoogleLoginPage;
+    let context: any;
+
+    test.beforeEach(async ({ page }) => {
+      context = await setup({ page, isEmptyProject: true, isSuperUser: true });
+
+      accountsPage = new AccountPage(page);
+      await accountsPage.authentication.goto();
+
+      // Create SAML provider
+      await accountsPage.authentication.createGoogleProvider(
+        {
+          clientId: 'test',
+          clientSecret: 'test',
+        },
+        async ({ redirectUrl, audience }) => {}
+      );
+
+      // Verify SAML provider count
+
+      googleLoginPage = new GoogleLoginPage(page);
+    });
+
+    test.afterEach(async () => {
+      await unsetup(context);
+    });
+
+    test('Google Provider', async () => {
+      await accountsPage.signOut();
+
+      await googleLoginPage.goto('test');
+
+      await googleLoginPage.signIn({
         email: 'test@nocodb.com',
       });
     });

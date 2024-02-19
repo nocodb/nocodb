@@ -3589,7 +3589,8 @@
             "description": "Type of SSO Client",
             "enum": [
               "saml",
-              "oidc"
+              "oidc",
+              "google"
             ]
           },
           "config": {
@@ -3600,6 +3601,9 @@
               },
               {
                 "$ref": "#/components/schemas/OpenIDClientConfig"
+              },
+              {
+                "$ref": "#/components/schemas/GoogleClientConfig"
               }
             ]
           }
@@ -3680,7 +3684,22 @@
           }
         ]
       },
-
+      "GoogleClientConfig": {
+        "description": "Google Auth Configuration",
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "clientSecret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientId",
+          "clientSecret"
+        ]
+      },
       "SSOClientList": {
         "properties": {
           "list": {

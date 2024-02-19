@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 import type {
+  GoogleClientConfigType,
   OpenIDClientConfigType,
   SAMLClientConfigType,
   SSOClientType,
@@ -128,7 +129,10 @@ export class SSOClientService {
 
     if (!param.client.config) return param.client.config;
 
-    const extractedConfig: SAMLClientConfigType | OpenIDClientConfigType = {
+    const extractedConfig:
+      | SAMLClientConfigType
+      | OpenIDClientConfigType
+      | GoogleClientConfigType = {
       ...param.client.config,
     };
 
@@ -169,6 +173,14 @@ export class SSOClientService {
         {
           validatePayload(
             'swagger.json#/components/schemas/OpenIDClientConfig',
+            param.client.config,
+          );
+        }
+        break;
+      case 'google':
+        {
+          validatePayload(
+            'swagger.json#/components/schemas/GoogleClientConfig',
             param.client.config,
           );
         }

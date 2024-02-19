@@ -52,6 +52,15 @@ const validOpenIDPayload = {
   } as OpenIDClientConfigType,
 };
 
+const validGooglePayload = {
+  type: 'google',
+  title: 'test',
+  config: {
+    clientId: 'kbyuFDidLLm280LIwVFiazOqjO3ty8KH',
+    clientSecret: 'secret',
+  } as OpenIDClientConfigType,
+};
+
 function ssoTests() {
   let context: Awaited<ReturnType<typeof init>>;
 
@@ -101,6 +110,24 @@ function ssoTests() {
       .post('/api/v2/sso-client')
       .set('xc-auth', context.token)
       .send(validOpenIDPayload)
+      .expect(200);
+
+    expect(res.body).to.have.property('id');
+  });
+
+  it('Create a new client - Google - with invalid and valid payloads', async () => {
+    //  with invalid payload
+    await request(context.app)
+      .post('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .send({ type: 'google', config: {} })
+      .expect(400);
+
+    // with valid payload
+    const res = await request(context.app)
+      .post('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .send(validGooglePayload)
       .expect(200);
 
     expect(res.body).to.have.property('id');
@@ -200,8 +227,60 @@ function ssoTests() {
     expect(client).to.have.property('enabled').to.be.equal(false);
   });
 
-  it('Remove client - OpenID/SAML', async () => {
-    for (const payload of [validOpenIDPayload, validSAMLPayload]) {
+  it('Update client - Google - with invalid and valid payloads', async () => {
+    // create saml client
+    const res = await request(context.app)
+      .post('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .send(validGooglePayload)
+      .expect(200);
+
+    expect(res.body).to.have.property('id');
+
+    const id = res.body.id;
+
+    // update with invalid payload
+    await request(context.app)
+      .patch(`/api/v2/sso-client/${id}`)
+      .set('xc-auth', context.token)
+      .send({
+        config: {
+          clientId: 123,
+        },
+      })
+      .expect(400);
+
+    // update with valid payload ( disable )
+    await request(context.app)
+      .patch(`/api/v2/sso-client/${id}`)
+      .set('xc-auth', context.token)
+      .send({
+        enabled: false,
+      })
+      .expect(200);
+
+    // get the client list and verify
+    const response = await request(context.app)
+      .get('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(response.body).to.have.keys(['list']);
+    expect(response.body.list).to.have.length(1);
+
+    const client = response.body.list[0];
+
+    expect(client).to.have.property('id').to.be.equal(id);
+    expect(client).to.have.property('type').to.be.equal('google');
+    expect(client).to.have.property('enabled').to.be.equal(false);
+  });
+
+  it('Remove client - OpenID/SAML/Google', async () => {
+    for (const payload of [
+      validOpenIDPayload,
+      validSAMLPayload,
+      validGooglePayload,
+    ]) {
       // create client
       const res = await request(context.app)
         .post('/api/v2/sso-client')
@@ -308,6 +387,42 @@ function ssoTests() {
       .get(loginUrl.pathname)
       .set('xc-auth', context.token)
       .expect('Location', /https:\/\/samples.auth0.com\/authorize/);
+  });
+
+  it('Get login urls(utils api) and verify - Google', async () => {
+    // create saml client
+    const res = await request(context.app)
+      .post('/api/v2/sso-client')
+      .set('xc-auth', context.token)
+      .send(validGooglePayload)
+      .expect(200);
+
+    expect(res.body).to.have.property('id');
+
+    const appInfoRes = await request(context.app)
+      .get('/api/v2/meta/nocodb/info')
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(appInfoRes.body)
+      .to.have.property('ssoClients')
+      .is.an('array')
+      .length(1);
+
+    const client = appInfoRes.body.ssoClients[0];
+
+    expect(client).to.have.property('id').to.be.equal(res.body.id);
+    expect(client).to.have.property('url').is.a('string');
+
+    const loginUrl = new URL(client.url);
+
+    await request(context.app)
+      .get(loginUrl.pathname)
+      .set('xc-auth', context.token)
+      .expect(
+        'Location',
+        /https:\/\/accounts\.google\.com\/o\/oauth2\/v2\/auth/,
+      );
   });
 }
 

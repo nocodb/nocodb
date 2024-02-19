@@ -202,11 +202,23 @@ const queryToPass = computed(() =>
           </div>
 
           <div
-            v-for="client of appInfo.ssoClients"
+            v-for="client of appInfo.ssoClients || []"
             :key="client.id"
             class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
           >
-            <a :href="client.url" class="!text-primary !no-underline">
+            <a
+              v-if="client.type === 'google'"
+              :href="client.url"
+              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+            >
+              <span class="flex items-center gap-2">
+                <LogosGoogleGmail />
+
+                {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
+              </span>
+            </a>
+
+            <a v-else :href="client.url" class="!text-primary !no-underline">
               <button type="button" class="scaling-btn bg-opacity-100">
                 <span class="flex items-center gap-2">
                   <MdiLogin />

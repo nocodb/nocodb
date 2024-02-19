@@ -1,4 +1,5 @@
 import type {
+  GoogleClientConfigType,
   OpenIDClientConfigType,
   SAMLClientConfigType,
   SSOClientType,
@@ -12,10 +13,13 @@ import NocoCache from '~/cache/NocoCache';
 const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
 
 export default class SSOClient implements SSOClientType {
-  config: SAMLClientConfigType | OpenIDClientConfigType;
+  config:
+    | SAMLClientConfigType
+    | OpenIDClientConfigType
+    | GoogleClientConfigType;
   id: string;
   title: string;
-  type: 'saml' | 'oidc';
+  type: 'saml' | 'oidc' | 'google';
   enabled: boolean;
   deleted?: boolean;
   fk_user_id: string;
@@ -128,15 +132,15 @@ export default class SSOClient implements SSOClientType {
   }
 
   static async getPublicList(param: { ncSiteUrl: string }) {
-    let filteredList: any[] = await NocoCache.get(
+    const cacheData: { list: any[] } = await NocoCache.get(
       PUBLIC_LIST_KEY,
       CacheGetType.TYPE_OBJECT,
     );
-    if (filteredList) return filteredList;
+    if (cacheData?.list) return cacheData?.list;
 
     const list = await this.list({});
 
-    filteredList = list
+    const filteredList = list
       .filter((client) => client.enabled && !client.deleted)
       .map((client) => {
         return {
@@ -147,7 +151,7 @@ export default class SSOClient implements SSOClientType {
         };
       });
 
-    await NocoCache.set(PUBLIC_LIST_KEY, filteredList);
+    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
 
     return filteredList;
   }

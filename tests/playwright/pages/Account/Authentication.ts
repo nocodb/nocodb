@@ -35,8 +35,10 @@ export class AccountAuthenticationPage extends BasePage {
     return this.rootPage.locator(`[data-test-id="nc-${provider}-provider-${title}"]`);
   }
 
-  async deleteProvider(provider: 'saml' | 'oidc', title: string) {
-    await this.rootPage.locator(`.nc-${provider}-${title}-more-option`).click();
+  async deleteProvider(provider: 'saml' | 'oidc' | 'google', title: string) {
+    await this.rootPage
+      .locator(provider === 'google' ? '.nc-google-more-option' : `.nc-${provider}-${title}-more-option`)
+      .click();
     await this.waitForResponse({
       uiAction: () => this.rootPage.locator(`[data-test-id="nc-${provider}-delete"]`).click(),
       httpMethodsToMatch: ['DELETE'],
@@ -44,7 +46,7 @@ export class AccountAuthenticationPage extends BasePage {
     });
   }
 
-  async toggleProvider(provider: 'saml' | 'oidc', title: string) {
+  async toggleProvider(provider: 'saml' | 'oidc' | 'google', title: string) {
     await this.waitForResponse({
       uiAction: () => this.get().locator(`.nc-${provider}-${title}-enable .nc-switch`).click(),
       httpMethodsToMatch: ['PATCH'],
@@ -159,4 +161,25 @@ export class AccountAuthenticationPage extends BasePage {
       requestUrlPathToMatch: '/api/v2/sso-client',
     });
   }
+
+  async createGoogleProvider(p: { clientId: string; clientSecret: string }) {
+    await this.rootPage.locator(`.nc-google-more-option`).click();
+    await this.rootPage.locator(`[data-test-id="nc-google-edit"]`).click();
+
+    const googleModal = this.accountPage.rootPage.locator('.nc-google-modal');
+    // wait until redirect url is generated
+    await googleModal.locator('[data-test-id="nc-google-redirect-url"]:has-text("http://")').waitFor();
+
+    await googleModal.locator('[data-test-id="nc-google-client-id"]').fill(p.clientId);
+
+    await googleModal.locator('[data-test-id="nc-google-client-secret"]').fill(p.clientSecret);
+
+    await this.waitForResponse({
+      uiAction: () => googleModal.locator('[data-test-id="nc-google-save-btn"]').click(),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: '/api/v2/sso-client',
+    });
+  }
+
+  async verifyGoogleProviderCount(param: { count: number }) {}
 }

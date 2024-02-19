@@ -1091,6 +1091,7 @@
     "length59Required": "The length exceeds the max 59 characters",
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",

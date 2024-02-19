@@ -547,8 +547,12 @@ a {
   @apply p-4;
 }
 
-.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-  @apply bg-primary bg-opacity-20;
+.ant-select-item-option:hover{
+  @apply !bg-gray-100;
+}
+
+.ant-select-item-option-selected{
+  @apply !bg-white;
 }
 
 /* Hide the element with id nc-selected-item-icon */

@@ -40,16 +40,20 @@ export class UsersService extends UsersServiceEE {
     email_verification_token;
     req: NcRequest;
   }) {
-    const userCount = await User.count();
-    if (userCount >= this.licenseService.getMaxUsers()) {
-      if (this.licenseService.isTrial())
-        NcError.notAllowed(
-          'No of users exceeded for trial. Please upgrade your license.',
-        );
-      else
-        NcError.notAllowed(
-          'Number of users allowed in your license exceeded. Please upgrade your license.',
-        );
+    if (this.licenseService.isTrial()) {
+      const userCount = await User.count();
+      if (userCount >= this.licenseService.getMaxUsers()) {
+        if (this.licenseService.isTrial())
+          NcError.notAllowed(
+            'No of users exceeded for trial. Please upgrade your license.',
+          );
+        // never going to hit this else block at the moment
+        // keeping it for future
+        else
+          NcError.notAllowed(
+            'Number of users allowed in your license exceeded. Please upgrade your license.',
+          );
+      }
     }
     return super.registerNewUserIfAllowed({
       avatar,

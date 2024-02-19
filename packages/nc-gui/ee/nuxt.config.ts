@@ -232,6 +232,11 @@ export default defineNuxtConfig({
     },
   },
 
+  // experimental props destructuring
+  vue: {
+    propsDestructure: true,
+  },
+
   image: {
     dir: 'assets/',
   },

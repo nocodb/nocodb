@@ -246,7 +246,6 @@ export default function convertCellData(
 
       return parsedVal || value
     }
-    case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:

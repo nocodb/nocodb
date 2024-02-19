@@ -27,6 +27,7 @@ import {
   useEventListener,
   useGlobal,
   useI18n,
+  useMetas,
   useUndoRedo,
 } from '#imports'
 
@@ -57,6 +58,8 @@ export function useMultiSelect(
   const { t } = useI18n()
 
   const { copy } = useCopy()
+
+  const { getMeta } = useMetas()
 
   const { appInfo } = useGlobal()
 
@@ -139,7 +142,6 @@ export function useMultiSelect(
     ) {
       // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
       textToCopy = {
-        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
         fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
         value: textToCopy || null,
       }
@@ -898,9 +900,13 @@ export function useMultiSelect(
 
             if (!foreignKeyColumn) return
 
+            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
             rowObj.row[columnObj.title!] = pasteVal?.value
 
-            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value ? pasteVal.rowId : null
+            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
+              ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
+              : null
 
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }

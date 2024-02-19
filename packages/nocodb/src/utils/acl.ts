@@ -120,7 +120,7 @@ const permissionScopes = {
     'nestedDataList',
     'nestedDataLink',
     'nestedDataUnlink',
-    'nestedDataLinkUnlink',
+    'nestedListCopyPaste',
     'baseUserList',
 
     // Base API Tokens
@@ -228,7 +228,7 @@ const rolePermissions:
 
       nestedDataLink: true,
       nestedDataUnlink: true,
-      nestedDataLinkUnlink: true,
+      nestedListCopyPaste: true,
       // TODO add ACL with base scope
       // upload: true,
       // uploadViaURL: true,

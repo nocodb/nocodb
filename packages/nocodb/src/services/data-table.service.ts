@@ -445,7 +445,7 @@ export class DataTableService {
   }
 
   // todo: naming & optimizing
-  async nestedLinkUnlink(param: {
+  async nestedListCopyPaste(param: {
     cookie: any;
     viewId: string;
     modelId: string;
@@ -459,7 +459,7 @@ export class DataTableService {
     }[];
   }) {
     validatePayload(
-      'swagger.json#/components/schemas/NestedLinkUnlinkReq',
+      'swagger.json#/components/schemas/nestedListCopyPasteReq',
       param.data,
     );
 

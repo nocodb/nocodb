@@ -584,7 +584,7 @@ const onFormItemClick = (element: any) => {
                     >
                       <div v-if="activeRow !== element.title">
                         <div>
-                          <span data-testid="nc-form-field-title">
+                          <span data-testid="nc-form-input-label">
                             {{ element.label || element.title }}
                           </span>
                           <span v-if="element.required" class="text-red-500">&nbsp;*</span>
@@ -607,7 +607,7 @@ const onFormItemClick = (element: any) => {
 
                           <NcTooltip class="truncate" show-on-truncate-only>
                             <template #title> {{ element.label || element.title }} </template>
-                            <span data-testid="nc-form-field-title">
+                            <span data-testid="nc-form-input-label">
                               {{ element.label || element.title }}
                             </span>
                           </NcTooltip>

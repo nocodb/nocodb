@@ -2449,7 +2449,11 @@ class BaseModelSqlv2 {
       if (ag) {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
-          insertObj[ag.column_name],
+          this.extractCompositePK({
+            rowId: insertObj[ag.column_name],
+            insertObj,
+            ag,
+          }),
           false,
           {},
           { ignoreView: true, getHiddenColumn: true },
@@ -2492,7 +2496,7 @@ class BaseModelSqlv2 {
             ).id;
           }
           response = await this.readByPk(
-            id,
+            this.extractCompositePK({ rowId: id, insertObj, ag }),
             false,
             {},
             { ignoreView: true, getHiddenColumn: true },
@@ -2505,7 +2509,7 @@ class BaseModelSqlv2 {
           ? response?.[0]?.[ai.id]
           : response?.[ai.id];
         response = await this.readByPk(
-          id,
+          this.extractCompositePK({ rowId: id, insertObj, ag }),
           false,
           {},
           { ignoreView: true, getHiddenColumn: true },
@@ -2869,6 +2873,7 @@ class BaseModelSqlv2 {
           ? response?.[0]?.[ai.id]
           : response?.[ai.id];
       }
+      rowId = this.extractCompositePK({ ai, ag, rowId, insertObj });
 
       await Promise.all(postInsertOps.map((f) => f(rowId)));
 
@@ -2889,7 +2894,39 @@ class BaseModelSqlv2 {
     }
   }
 
-  private async prepareNestedLinkQb({
+  protected extractCompositePK({
+    ai,
+    ag,
+    rowId,
+    insertObj,
+    force = false,
+  }: {
+    ai?: Column<any>;
+    ag?: Column<any>;
+    rowId;
+    insertObj: Record<string, any>;
+    force?: boolean;
+  }) {
+    // handle if composite primary key is used along with ai or ag
+    if ((ai || ag) && (force || this.model.primaryKeys?.length > 1)) {
+      // generate object with ai column and rest of the primary keys
+      const pkObj = {};
+      for (const pk of this.model.primaryKeys) {
+        const key = pk.title;
+        if (ai && pk.id === ai.id) {
+          pkObj[key] = rowId;
+        } else if (ag && pk.id === ag.id) {
+          pkObj[key] = rowId;
+        } else {
+          pkObj[key] = insertObj[pk.column_name] ?? null;
+        }
+      }
+      rowId = pkObj;
+    }
+    return rowId;
+  }
+
+  protected async prepareNestedLinkQb({
     nestedCols,
     data,
     insertObj,
@@ -3182,27 +3219,44 @@ class BaseModelSqlv2 {
 
       let responses;
 
+      const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+      const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
+
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
         // sqlite and mysql doesn't support returning, so insert one by one and return ids
         responses = [];
 
-        const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
-
         for (const insertData of insertDatas) {
           const query = trx(this.tnPath).insert(insertData);
-          const id = (await query)[0];
-          responses.push(aiPkCol ? { [aiPkCol.title]: id } : id);
+          let id = (await query)[0];
+
+          if (agPkCol) {
+            id = insertData[agPkCol.column_name];
+          }
+
+          responses.push(
+            this.extractCompositePK({
+              rowId: id,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertData,
+              force: true,
+            }) || insertData,
+          );
         }
       } else {
+        const returningArr: string[] = [];
+
+        for (const col of this.model.primaryKeys) {
+          returningArr.push(col.column_name);
+        }
+
         responses =
           !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
-                .returning({
-                  [this.model.primaryKey?.title]:
-                    this.model.primaryKey?.column_name,
-                })
+                .returning(this.model.primaryKeys?.length ? returningArr : '*')
             : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
       }
 
@@ -3216,7 +3270,17 @@ class BaseModelSqlv2 {
 
       // insert nested link data for single record insertion
       if (isSingleRecordInsertion) {
-        const rowId = responses[0][this.model.primaryKey?.title];
+        let rowId = responses[0][this.model.primaryKey?.title];
+
+        if (aiPkCol || agPkCol) {
+          rowId = this.extractCompositePK({
+            rowId,
+            ai: aiPkCol,
+            ag: agPkCol,
+            insertObj: insertDatas[0],
+          });
+        }
+
         await Promise.all(postInsertOps.map((f) => f(rowId, trx)));
       }
 
@@ -3892,12 +3956,22 @@ class BaseModelSqlv2 {
   // todo: handle composite primary key
   protected _extractPksValues(data: any) {
     // data can be still inserted without PK
-    // TODO: return a meaningful value
-    if (!this.model.primaryKey) return 'N/A';
-    return (
-      data[this.model.primaryKey.title] ||
-      data[this.model.primaryKey.column_name]
-    );
+
+    // if composite primary key return an object with all the primary keys
+    if (this.model.primaryKeys.length > 1) {
+      const pkValues = {};
+      for (const pk of this.model.primaryKeys) {
+        pkValues[pk.title] = data[pk.title] || data[pk.column_name];
+      }
+      return pkValues;
+    } else if (this.model.primaryKey) {
+      return (
+        data[this.model.primaryKey.title] ||
+        data[this.model.primaryKey.column_name]
+      );
+    } else {
+      return 'N/A';
+    }
   }
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}
@@ -3954,7 +4028,7 @@ class BaseModelSqlv2 {
   }
 
   // method for validating otpions if column is single/multi select
-  private async validateOptions(
+  protected async validateOptions(
     column: Column<any>,
     insertOrUpdateObject: Record<string, any>,
   ) {

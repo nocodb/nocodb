@@ -480,7 +480,7 @@ export function useData(args: {
         base.value.title as string,
         metaValue?.title as string,
         encodeURIComponent(rowId),
-        type as 'mm' | 'hm',
+        type as RelationTypes,
         column.title as string,
         encodeURIComponent(relatedRowId),
       )

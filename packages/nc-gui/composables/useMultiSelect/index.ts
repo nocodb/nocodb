@@ -982,8 +982,7 @@ export function useMultiSelect(
             ])
 
             console.log('result', result)
-            await syncCellData?.(activeCell)
-            return
+            return await syncCellData?.(activeCell)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {

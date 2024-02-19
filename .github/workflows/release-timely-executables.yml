@@ -64,7 +64,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 18.19.0
 
       - name: Update nocodb-timely
         env:

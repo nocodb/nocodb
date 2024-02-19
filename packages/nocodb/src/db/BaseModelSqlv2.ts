@@ -2924,7 +2924,7 @@ class BaseModelSqlv2 {
     return rowId;
   }
 
-  private async prepareNestedLinkQb({
+  protected async prepareNestedLinkQb({
     nestedCols,
     data,
     insertObj,
@@ -3243,17 +3243,17 @@ class BaseModelSqlv2 {
           );
         }
       } else {
-        const returningObj: Record<string, string> = {};
+        const returningArr: string[] = [];
 
         for (const col of this.model.primaryKeys) {
-          returningObj[col.title] = col.column_name;
+          returningArr.push(col.column_name);
         }
 
         responses =
           !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
-                .returning(returningObj)
+                .returning(this.model.primaryKeys?.length ? returningArr : '*')
             : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
       }
 
@@ -4025,7 +4025,7 @@ class BaseModelSqlv2 {
   }
 
   // method for validating otpions if column is single/multi select
-  private async validateOptions(
+  protected async validateOptions(
     column: Column<any>,
     insertOrUpdateObject: Record<string, any>,
   ) {

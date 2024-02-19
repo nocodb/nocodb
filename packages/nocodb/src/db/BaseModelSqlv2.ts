@@ -2450,8 +2450,7 @@ class BaseModelSqlv2 {
         if (!response) await this.execAndParse(query);
         response = await this.readByPk(
           this.extractCompositePK({
-            rowId:
-              this.extractCompositePK({ rowId: insertObj[ag.column_name], insertObj, ag }),
+            rowId: insertObj[ag.column_name],
             insertObj,
             ag,
           }),
@@ -2876,22 +2875,6 @@ class BaseModelSqlv2 {
       }
       rowId = this.extractCompositePK({ ai, ag, rowId, insertObj });
 
-      // handle if composite primary key is used along with ai or ag
-      if ((ai || ag) && this.model.primaryKeys?.length > 1) {
-        // generate object with ai column and rest of the primary keys
-        const pkObj = {};
-        for (const pk of this.model.primaryKeys) {
-          if (ai && pk.id === ai.id) {
-            pkObj[pk.id] = rowId;
-          } else if (ag && pk.id === ag.id) {
-            pkObj[pk.id] = rowId;
-          } else {
-            pkObj[pk.id] = insertObj[pk.column_name] ?? null;
-          }
-        }
-        rowId = pkObj;
-      }
-
       await Promise.all(postInsertOps.map((f) => f(rowId)));
 
       if (rowId !== null && rowId !== undefined) {
@@ -2911,7 +2894,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  protected extractCompositePK({
+  private extractCompositePK({
     ai,
     ag,
     rowId,
@@ -2940,7 +2923,7 @@ class BaseModelSqlv2 {
     return rowId;
   }
 
-  protected async prepareNestedLinkQb({
+  private async prepareNestedLinkQb({
     nestedCols,
     data,
     insertObj,
@@ -3259,17 +3242,17 @@ class BaseModelSqlv2 {
           );
         }
       } else {
-        const returningArr: string[] = [];
+        const returningObj: Record<string, string> = {};
 
         for (const col of this.model.primaryKeys) {
-          returningArr.push(col.column_name);
+          returningObj[col.title] = col.column_name;
         }
 
         responses =
           !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
-                .returning(this.model.primaryKeys?.length ? returningArr : '*')
+                .returning(returningObj)
             : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
       }
 

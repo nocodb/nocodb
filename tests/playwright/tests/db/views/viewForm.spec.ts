@@ -183,7 +183,7 @@ test.describe('Form view', () => {
     await dashboard.verifyToast({
       message: 'Please activate SMTP plugin in App store for enabling email notification',
     });
-    const url = dashboard.rootPage.url();
+    // const url = dashboard.rootPage.url();
 
     // activate SMTP plugin
     // await accountAppStorePage.goto();
@@ -255,7 +255,6 @@ test.describe('Form view with LTAR', () => {
 
   let dashboard: DashboardPage;
   let loginPage: LoginPage;
-  let wsPage: WorkspacePage;
   let context: any;
   let api: Api<any>;
 

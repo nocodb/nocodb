@@ -900,6 +900,12 @@ export function useMultiSelect(
 
             const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
 
+            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+            rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
+            rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
+              ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
+              : null
+
             rowObj.row[columnObj.title!] = pasteVal?.value
 
             rowObj.row[foreignKeyColumn.title!] = pasteVal?.value

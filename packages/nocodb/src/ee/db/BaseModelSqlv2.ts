@@ -240,6 +240,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   async insert(data, trx?, cookie?, disableOptimization = false) {
     try {
+      const columns = await this.model.getColumns();
+
+      // exclude auto increment columns in body
+      for (const col of columns) {
+        if (col.ai) {
+          const keyName =
+            data?.[col.column_name] !== undefined ? col.column_name : col.title;
+
+          if (data[keyName]) {
+            delete data[keyName];
+          }
+        }
+      }
+
       await populatePk(this.model, data);
 
       // todo: filter based on view
@@ -257,7 +271,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.prepareNocoData(insertObj, true, cookie);
 
-      await this.model.getColumns();
       let response;
       // const driver = trx ? trx : this.dbDriver;
 

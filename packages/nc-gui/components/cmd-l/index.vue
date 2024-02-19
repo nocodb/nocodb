@@ -64,14 +64,7 @@ onKeyUp('Enter', async () => {
 
 function scrollToTarget() {
   const element = document.querySelector('.cmdk-action.selected')
-  const headerOffset = 45
-  const elementPosition = element?.getBoundingClientRect().top
-  const offsetPosition = elementPosition! + window.pageYOffset - headerOffset
-
-  window.scrollTo({
-    top: offsetPosition,
-    behavior: 'smooth',
-  })
+  element?.scrollIntoView()
 }
 
 const moveUp = () => {
@@ -91,13 +84,13 @@ const moveUp = () => {
   } else {
     selected.value = filteredViews.value[index - 1].tableID + filteredViews.value[index - 1].viewName
     const cmdOption = filteredViews.value[index - 1]
-    scrollToTarget()
 
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
       baseId: cmdOption.baseId,
     }
+    nextTick(() => scrollToTarget())
   }
 }
 
@@ -118,13 +111,12 @@ const moveDown = () => {
     selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
     const cmdOption = filteredViews.value[index + 1]
 
-    scrollToTarget()
-
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
       baseId: cmdOption.baseId,
     }
+    nextTick(() => scrollToTarget())
   }
 }
 
@@ -134,8 +126,7 @@ const hide = () => {
 }
 
 onClickOutside(modalEl, () => {
-  search.value = ''
-  if (vOpen.value) hide()
+  hide()
 })
 
 useEventListener('keydown', (e: KeyboardEvent) => {
@@ -200,9 +191,9 @@ onMounted(() => {
         <div class="text-sm px-4 py-2 text-gray-500">Recent Views</div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
-        <div class="scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
+        <div class="scroll-smooth actions overflow-auto nc-scrollbar-md mb-10 relative mx-0 px-0 py-2">
           <div v-if="filteredViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
-          <div v-else class="flex mb-10 flex-col cmdOpt-list w-full">
+          <div v-else class="flex flex-col cmdOpt-list w-full">
             <div
               v-for="cmdOption of filteredViews"
               :key="cmdOption.tableID + cmdOption.viewName"
@@ -228,7 +219,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="flex w-1/2 justify-end text-gray-600">
-                  <div class="flex gap-2 px-2 py-1 rounded-md bg-gray-100 items-center">
+                  <div class="flex gap-2 px-2 py-1 rounded-md items-center">
                     <component :is="iconMap.projectGray" class="w-3 h-3 text-transparent" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>

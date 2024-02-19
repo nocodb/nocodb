@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onKeyUp, useDebounceFn, useVModel } from '@vueuse/core'
-import { onClickOutside } from '#imports'
+import { iconMap, onClickOutside } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 
 const props = defineProps<{
@@ -12,7 +12,11 @@ const emits = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emits)
 
+const search = ref('')
+
 const modalEl = ref<HTMLElement>()
+
+const cmdInputEl = ref<HTMLInputElement>()
 
 const { user } = useGlobal()
 
@@ -31,6 +35,17 @@ const newView: Ref<
   | undefined
 > = ref()
 
+const filteredViews = computed(() => {
+  const filteredList = recentViews.value.filter((v) => {
+    return v.viewName.toLowerCase().includes(search.value.toLowerCase())
+  })
+
+  if (!filteredList.find((v) => v.tableID + v.viewName === selected.value) && filteredList.length) {
+    selected.value = filteredList[0].tableID + filteredList[0].viewName
+  }
+  return filteredList
+})
+
 const changeView = useDebounceFn(
   async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
     await viewStore.changeView({ viewId, tableId, baseId })
@@ -41,6 +56,7 @@ const changeView = useDebounceFn(
 
 onKeyUp('Enter', async () => {
   if (vOpen.value && newView.value) {
+    search.value = ''
     await changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, baseId: newView.value.baseId })
   }
 })
@@ -58,13 +74,13 @@ function scrollToTarget() {
 }
 
 const moveUp = () => {
-  if (!recentViews.value.length) return
-  const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
+  if (!filteredViews.value.length) return
+  const index = filteredViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
   if (index === 0) {
     selected.value =
-      recentViews.value[recentViews.value.length - 1].tableID + recentViews.value[recentViews.value.length - 1].viewName
+      filteredViews.value[filteredViews.value.length - 1].tableID + filteredViews.value[filteredViews.value.length - 1].viewName
 
-    const cmdOption = recentViews.value[recentViews.value.length - 1]
+    const cmdOption = filteredViews.value[filteredViews.value.length - 1]
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
@@ -72,8 +88,8 @@ const moveUp = () => {
     }
     document.querySelector('.actions')?.scrollTo({ top: 99999, behavior: 'smooth' })
   } else {
-    selected.value = recentViews.value[index - 1].tableID + recentViews.value[index - 1].viewName
-    const cmdOption = recentViews.value[index - 1]
+    selected.value = filteredViews.value[index - 1].tableID + filteredViews.value[index - 1].viewName
+    const cmdOption = filteredViews.value[index - 1]
     scrollToTarget()
 
     newView.value = {
@@ -85,12 +101,12 @@ const moveUp = () => {
 }
 
 const moveDown = () => {
-  if (!recentViews.value.length) return
-  const index = recentViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
-  if (index === recentViews.value.length - 1) {
-    selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName
+  if (!filteredViews.value.length) return
+  const index = filteredViews.value.findIndex((v) => v.tableID + v.viewName === selected.value)
+  if (index === filteredViews.value.length - 1) {
+    selected.value = filteredViews.value[0].tableID + filteredViews.value[0].viewName
 
-    const cmdOption = recentViews.value[0]
+    const cmdOption = filteredViews.value[0]
     newView.value = {
       viewId: cmdOption.viewId ?? null,
       tableId: cmdOption.tableID,
@@ -98,8 +114,8 @@ const moveDown = () => {
     }
     document.querySelector('.actions')?.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
-    selected.value = recentViews.value[index + 1].tableID + recentViews.value[index + 1].viewName
-    const cmdOption = recentViews.value[index + 1]
+    selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
+    const cmdOption = filteredViews.value[index + 1]
 
     scrollToTarget()
 
@@ -148,19 +164,21 @@ const onKeyDown = (e: KeyboardEvent) => {
     hide()
   } else if ((e.ctrlKey || e.metaKey) && e.key === 'j') {
     hide()
+  } else if (vOpen.value) {
+    cmdInputEl.value?.focus()
   }
 }
 
 onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
   if (!activeView.value) return
-  const index = recentViews.value.findIndex(
-    (v) => v.viewName === activeView.value?.title && v.tableID === activeView.value?.fk_model_id,
+  const index = filteredViews.value.findIndex(
+    (v) => v.viewName === filteredViews.value?.title && v.tableID === filteredViews.value?.fk_model_id,
   )
-  if (index + 1 > recentViews.value.length) {
-    selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName
+  if (index + 1 > filteredViews.value.length) {
+    selected.value = filteredViews.value[0].tableID + filteredViews.value[0].viewName
   } else {
-    selected.value = recentViews.value[index + 1].tableID + recentViews.value[index + 1].viewName
+    selected.value = filteredViews.value[index + 1].tableID + filteredViews.value[index + 1].viewName
   }
 
   window.addEventListener('keydown', onKeyDown)
@@ -170,15 +188,19 @@ onMounted(() => {
 <template>
   <div v-if="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
+      <div class="cmdk-input-wrapper">
+        <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
+        <input ref="cmdInputEl" v-model="search" class="cmdk-input" type="text" />
+      </div>
       <div class="flex items-center bg-white w-full z-[50]">
-        <div class="text-sm p-4 text-gray-500">Recent Views</div>
+        <div class="text-sm px-4 py-2 text-gray-500">Recent Views</div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md relative m-0 px-0 py-2">
-          <div v-if="recentViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
+          <div v-if="filteredViews.length < 1" class="flex flex-col p-4 items-start justify-center text-md">No recent views</div>
           <div v-else class="flex mb-10 flex-col cmdOpt-list w-full">
             <div
-              v-for="cmdOption of recentViews"
+              v-for="cmdOption of filteredViews"
               :key="cmdOption.tableID + cmdOption.viewName"
               v-e="['a:cmdL:changeView']"
               :class="{

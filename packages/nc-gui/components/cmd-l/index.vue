@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onKeyUp, useDebounceFn, useMagicKeys, useVModel, whenever } from '@vueuse/core'
+import { onKeyUp, useDebounceFn, useVModel } from '@vueuse/core'
 import { onClickOutside } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 
@@ -38,10 +38,6 @@ const changeView = useDebounceFn(
   },
   200,
 )
-
-const keys = useMagicKeys()
-
-const { current } = keys
 
 onKeyUp('Enter', async () => {
   if (vOpen.value && newView.value) {
@@ -115,79 +111,59 @@ const moveDown = () => {
   }
 }
 
-whenever(keys['Ctrl+Shift+L'], async () => {
-  if (!user.value) return
-  vOpen.value = true
-  moveUp()
-})
-
-whenever(keys['Meta+Shift+L'], async () => {
-  if (!user.value) return
-  vOpen.value = true
-  moveUp()
-})
-
-whenever(keys.ctrl_l, async () => {
-  if (!user.value) return
-  if (current.has('shift')) return
-  vOpen.value = true
-  moveDown()
-})
-
-whenever(keys.meta_l, async () => {
-  if (!user.value) return
-  if (current.has('shift')) return
-  vOpen.value = true
-  moveDown()
-})
-
-whenever(keys.arrowup, () => {
-  if (vOpen.value) moveUp()
-})
-
-whenever(keys.arrowdown, () => {
-  if (vOpen.value) moveDown()
-})
-
 const hide = () => {
   vOpen.value = false
 }
-
-whenever(keys.Escape, () => {
-  if (vOpen.value) hide()
-})
-
-whenever(keys.ctrl_k, () => {
-  if (vOpen.value) hide()
-})
-
-whenever(keys.meta_k, () => {
-  if (vOpen.value) hide()
-})
-
-whenever(keys.ctrl_j, () => {
-  if (vOpen.value) hide()
-})
-
-whenever(keys.meta_j, () => {
-  if (vOpen.value) hide()
-})
 
 onClickOutside(modalEl, () => {
   if (vOpen.value) hide()
 })
 
+const onKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    hide()
+  } else if (e.key === 'Enter') {
+    if (newView.value) {
+      changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, baseId: newView.value.baseId })
+    }
+  } else if (e.key === 'ArrowUp') {
+    if (!vOpen.value) return
+    e.preventDefault()
+    moveUp()
+  } else if (e.key === 'ArrowDown') {
+    if (!vOpen.value) return
+    e.preventDefault()
+    moveDown()
+  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'l') {
+    if (!user.value) return
+    e.preventDefault()
+    if (!vOpen.value) vOpen.value = true
+    moveUp()
+  } else if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
+    if (!user.value) return
+    e.preventDefault()
+    if (!vOpen.value) vOpen.value = true
+    moveDown()
+  } else if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    hide()
+  } else if ((e.ctrlKey || e.metaKey) && e.key === 'j') {
+    hide()
+  }
+}
+
 onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
   if (!activeView.value) return
   const index = recentViews.value.findIndex(
-    (v) => v.viewName === activeView.value?.name && v.tableID === activeView.value?.tableId,
+    (v) => v.viewName === activeView.value?.title && v.tableID === activeView.value?.fk_model_id,
   )
   if (index + 1 > recentViews.value.length) {
     selected.value = recentViews.value[0].tableID + recentViews.value[0].viewName
   } else {
     selected.value = recentViews.value[index + 1].tableID + recentViews.value[index + 1].viewName
   }
+
+  window.addEventListener('keydown', onKeyDown)
 })
 </script>
 
@@ -209,30 +185,45 @@ onMounted(() => {
                 selected: selected === cmdOption.tableID + cmdOption.viewName,
               }"
               class="cmdk-action"
-              @click="changeView({ viewId: cmdOption.viewId, tableId: cmdOption.tableID, baseId: cmdOption.baseId })"
+              @click="changeView({ viewId: cmdOption.viewId!, tableId: cmdOption.tableID, baseId: cmdOption.baseId })"
             >
-              <div class="cmdk-action-content !flex w-full">
-                <div class="flex gap-2 w-full flex-grow-1 items-center">
-                  <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
-                  <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
-                    <template #title>
-                      {{ cmdOption.isDefault ? $t('title.defaultView') : cmdOption.viewName }}
-                    </template>
-                    <span class="max-w- truncate capitalize">
-                      {{ cmdOption.isDefault ? $t('title.defaultView') : cmdOption.viewName }}
-                    </span>
-                  </a-tooltip>
+              <div class="cmdk-action-content">
+                <div class="flex w-1/2 flex-grow-1 items-center">
+                  <div class="flex gap-2">
+                    <GeneralViewIcon :meta="{ type: cmdOption.viewType }" />
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                      <template #title>
+                        {{ cmdOption.viewName }}
+                      </template>
+                      <span class="truncate max-w-56 capitalize">
+                        {{ cmdOption.viewName }}
+                      </span>
+                    </a-tooltip>
+                  </div>
                 </div>
-                <div class="flex gap-2 bg-gray-100 px-2 py-1 rounded-md text-gray-600 items-center">
-                  <component :is="iconMap.project" class="w-4 h-4 text-transparent" />
-                  <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
-                    <template #title>
-                      {{ cmdOption.baseName }}
-                    </template>
-                    <span class="max-w-32 truncate capitalize">
-                      {{ cmdOption.baseName }}
-                    </span>
-                  </a-tooltip>
+                <div class="flex w-1/2 text-gray-600">
+                  <div class="flex gap-2 px-2 py-1 rounded-md bg-gray-100 items-center">
+                    <component :is="iconMap.projectGray" class="w-4 h-4 text-transparent" />
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                      <template #title>
+                        {{ cmdOption.baseName }}
+                      </template>
+                      <span class="max-w-32 truncate capitalize">
+                        {{ cmdOption.baseName }}
+                      </span>
+                    </a-tooltip>
+                    <span class="text-bold"> / </span>
+
+                    <component :is="iconMap.table" class="w-4 h-4 text-transparent" />
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                      <template #title>
+                        {{ cmdOption.tableName }}
+                      </template>
+                      <span class="max-w-28 truncate capitalize">
+                        {{ cmdOption.tableName }}
+                      </span>
+                    </a-tooltip>
+                  </div>
                 </div>
               </div>
             </div>

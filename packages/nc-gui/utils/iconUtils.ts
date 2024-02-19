@@ -120,6 +120,7 @@ import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
+import NcProjectGray from '~icons/nc-icons/project-gray'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -269,6 +270,7 @@ import NcDownload from '~icons/nc-icons/download'
 } as const */
 
 export const iconMap = {
+  projectGray: NcProjectGray,
   sort: Sort,
   group: Group,
   filter: Filter,

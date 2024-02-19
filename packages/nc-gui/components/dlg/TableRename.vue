@@ -162,8 +162,10 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
 
     // update recent views if default view is renamed
     allRecentViews.value = allRecentViews.value.map((v) => {
-      if (v.tableID === tableMeta.id && v.isDefault) {
-        v.viewName = formState.title
+      if (v.tableID === tableMeta.id) {
+        if (v.isDefault) v.viewName = formState.title
+
+        v.tableName = formState.title
       }
       return v
     })

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
+import { validatePayload } from 'src/helpers';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
@@ -8,7 +9,6 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Column, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { validatePayload } from 'src/helpers';
 
 @Injectable()
 export class DataTableService {
@@ -495,8 +495,10 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const existsCopyRow = await baseModel.exist(operationMap.copy.rowId);
-    const existsPasteRow = await baseModel.exist(operationMap.paste.rowId);
+    const [existsCopyRow, existsPasteRow] = await Promise.all([
+      baseModel.exist(operationMap.copy.rowId),
+      baseModel.exist(operationMap.paste.rowId),
+    ]);
 
     if (!existsCopyRow && !existsPasteRow) {
       NcError.notFound(
@@ -517,7 +519,7 @@ export class DataTableService {
 
     if (colOptions.type !== RelationTypes.MANY_TO_MANY) return;
 
-    const { ast, dependencyFields } = await getAst({
+    const { dependencyFields } = await getAst({
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),

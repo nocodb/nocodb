@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
-import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { parseProp } from '#imports'
 
@@ -246,17 +246,42 @@ export default function convertCellData(
 
       return parsedVal || value
     }
-    case UITypes.LinkToAnotherRecord:
-    case UITypes.Links: {
-      const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
-      if (!(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal))) {
-        throw new Error('Invalid LTAR data')
-      }
-
+    case UITypes.LinkToAnotherRecord: {
       if (isMultiple) {
         return undefined
       }
+
+      const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+      if (!(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal))) {
+        throw new Error(`Unsupported conversion for ${to}`)
+      }
+
       return parsedVal
+    }
+    case UITypes.Links: {
+      if (isMultiple) {
+        return undefined
+      }
+
+      if ((column.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY) {
+        const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
+        if (
+          !(
+            parsedVal &&
+            typeof parsedVal === 'object' &&
+            !Array.isArray(parsedVal) &&
+            // eslint-disable-next-line no-prototype-builtins
+            ['rowId', 'fk_related_model_id', 'value'].every((key) => (parsedVal as Object).hasOwnProperty(key))
+          ) ||
+          parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType).fk_related_model_id
+        ) {
+          throw new Error(`Unsupported conversion for ${to}`)
+        }
+
+        return parsedVal
+      } else {
+        throw new Error(`Unsupported conversion for ${to}`)
+      }
     }
     case UITypes.Lookup:
     case UITypes.Rollup:

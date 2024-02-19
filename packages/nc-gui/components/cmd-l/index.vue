@@ -26,21 +26,22 @@ const { recentViews, activeView } = storeToRefs(viewStore)
 
 const selected: Ref<string> = ref('')
 
-const newView: Ref<
+const newView = ref<
   | {
       viewId: string | null
       tableId: string
       baseId: string
     }
   | undefined
-> = ref()
+>()
 
 const filteredViews = computed(() => {
   const filteredList = recentViews.value.filter((v) => {
+    if (!v.viewName || !v.tableName || !v.baseName) return false
     return v.viewName.toLowerCase().includes(search.value.toLowerCase())
   })
 
-  if (!filteredList.find((v) => v.tableID + v.viewName === selected.value) && filteredList.length) {
+  if (filteredList.find((v) => v.tableID + v.viewName === selected.value) && filteredList.length) {
     selected.value = filteredList[0].tableID + filteredList[0].viewName
   }
   return filteredList
@@ -174,7 +175,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 onMounted(() => {
   document.querySelector('.cmdOpt-list')?.focus()
-  if (!activeView.value) return
+  if (!activeView.value || !filteredViews.value.length) return
   const index = filteredViews.value.findIndex(
     (v) => v.viewName === filteredViews.value?.title && v.tableID === filteredViews.value?.fk_model_id,
   )

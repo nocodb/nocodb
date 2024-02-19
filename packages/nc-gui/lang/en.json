@@ -1258,7 +1258,6 @@
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
       "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
-
     },
     "error": {
       "scopesRequired": "Scopes required",

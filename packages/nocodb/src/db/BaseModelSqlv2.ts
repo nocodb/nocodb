@@ -2912,7 +2912,7 @@ class BaseModelSqlv2 {
       // generate object with ai column and rest of the primary keys
       const pkObj = {};
       for (const pk of this.model.primaryKeys) {
-        const key = pk.id;
+        const key = pk.title;
         if (ai && pk.id === ai.id) {
           pkObj[key] = rowId;
         } else if (ag && pk.id === ag.id) {

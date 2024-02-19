@@ -56,7 +56,7 @@ export default function convertCellData(
       }
       return null
     case UITypes.Date: {
-      const parsedDate = dayjs(value, column?.meta?.date_format ?? 'YYYY-MM-DD')
+      const parsedDate = dayjs(value, parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD')
       if (!parsedDate.isValid()) {
         if (isMultiple) {
           return null
@@ -67,7 +67,10 @@ export default function convertCellData(
       return parsedDate.format('YYYY-MM-DD')
     }
     case UITypes.DateTime: {
-      const parsedDateTime = dayjs(value)
+      const parsedDateTime = dayjs(
+        value,
+        `${parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD'} ${parseProp(column?.meta)?.time_format ?? 'HH:mm'}`,
+      )
       if (!parsedDateTime.isValid()) {
         if (isMultiple) {
           return null

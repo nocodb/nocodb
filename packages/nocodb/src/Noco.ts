@@ -2,7 +2,6 @@ import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
-import NcToolGui from 'nc-lib-gui';
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
@@ -126,7 +125,6 @@ export default class Noco {
     await nestApp.init();
 
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
-    server.use(NcToolGui.expressMiddleware(dashboardPath));
     server.use(express.static(path.join(__dirname, 'public')));
 
     if (dashboardPath !== '/' && dashboardPath !== '') {

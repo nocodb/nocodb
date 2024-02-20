@@ -1,4 +1,19 @@
-const imageExt = ['jpeg', 'gif', 'png', 'png', 'svg', 'bmp', 'ico', 'jpg', 'webp']
+const imageExt = [
+  'jpeg',
+  'gif',
+  'png',
+  'png',
+  'svg',
+  'bmp',
+  'ico',
+  'jpg',
+  'webp',
+  'avif',
+  'heif',
+  'heifs',
+  'heic',
+  'heic-sequence',
+]
 
 const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
@@ -46,4 +61,34 @@ function ieReadFile(filename: string) {
   } catch (Exception) {
     return false
   }
+}
+
+export function extractImageSrcFromRawHtml(rawText: string) {
+  // Parse the provided HTML string
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(rawText, 'text/html')
+
+  // Extract the img element
+  const imgElement = doc.querySelector('img')
+
+  // Check if the img element exists
+  if (imgElement) {
+    // Extract the src attribute
+    return imgElement.getAttribute('src')
+  }
+}
+
+export function populateUniqueFileName(fn: string, attachments: any[], mimeType: string) {
+  if (!mimeType) return fn
+
+  // If the image extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
+  if (!fn?.endsWith(mimeType.split('/')[1])) {
+    fn = `${fn}.${mimeType.split('/')[1]}`
+  }
+
+  let c = 1
+  while (attachments.some((att) => att?.title === fn || att?.fileName === fn)) {
+    fn = fn.replace(/(.+?)(\.[^.]+)$/, `$1(${c++})$2`)
+  }
+  return fn
 }

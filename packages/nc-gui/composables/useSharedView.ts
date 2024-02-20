@@ -110,16 +110,21 @@ export function useSharedView() {
     }
   }
 
-  const fetchSharedViewData = async (param: {
-    sortsArr: SortType[]
-    filtersArr: FilterType[]
-    fields?: any[]
-    sort?: any[]
-    where?: string
-    /** Query params for nested data */
-    nested?: any
-    offset?: number
-  }) => {
+  const fetchSharedViewData = async (
+    param: {
+      sortsArr: SortType[]
+      filtersArr: FilterType[]
+      fields?: any[]
+      sort?: any[]
+      where?: string
+      /** Query params for nested data */
+      nested?: any
+      offset?: number
+    },
+    headers: {
+      ignorePagination?: boolean
+    },
+  ) => {
     if (!sharedView.value)
       return {
         list: [],
@@ -143,6 +148,7 @@ export function useSharedView() {
       {
         headers: {
           'xc-password': password.value,
+          'xc-ignore-pagination': headers.ignorePagination ? 'true' : 'false',
         },
       },
     )

@@ -20,7 +20,11 @@ export class DatasService {
   constructor() {}
 
   async dataList(
-    param: PathParams & { query: any; disableOptimization?: boolean },
+    param: PathParams & {
+      query: any;
+      disableOptimization?: boolean;
+      ignorePagination?: boolean;
+    },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
@@ -29,6 +33,7 @@ export class DatasService {
       view,
       query: param.query,
       throwErrorIfInvalidParams: true,
+      ignoreViewFilterAndSort: param.ignorePagination,
     });
   }
 
@@ -137,6 +142,7 @@ export class DatasService {
     baseModel?: BaseModelSqlv2;
     throwErrorIfInvalidParams?: boolean;
     ignoreViewFilterAndSort?: boolean;
+    ignorePagination?: boolean;
   }) {
     const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
@@ -167,7 +173,7 @@ export class DatasService {
 
     let options = {};
 
-    if (view && view.type === ViewTypes.CALENDAR) {
+    if (view && view.type === ViewTypes.CALENDAR && param.ignorePagination) {
       {
         options = {
           ignorePagination: true,

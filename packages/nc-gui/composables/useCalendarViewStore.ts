@@ -567,13 +567,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !filterJSON.value) && !isPublic?.value) return
       isCalendarDataLoading.value = true
       const res = !isPublic.value
-        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            ...queryParams.value,
-            ...(isUIAllowed('filterSync')
-              ? { filterArrJson: JSON.stringify([...filterJSON.value]) }
-              : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
-            where: where?.value ?? '',
-          })
+        ? await api.dbViewRow.list(
+            'noco',
+            base.value.id!,
+            meta.value!.id!,
+            viewMeta.value!.id!,
+            {
+              ...queryParams.value,
+              ...(isUIAllowed('filterSync')
+                ? { filterArrJson: JSON.stringify([...filterJSON.value]) }
+                : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
+              where: where?.value ?? '',
+            },
+            {
+              headers: {
+                'xc-ignore-pagination': true,
+              },
+            },
+          )
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: filterJSON.value })
       formattedData.value = formatData(res!.list)
       isCalendarDataLoading.value = false

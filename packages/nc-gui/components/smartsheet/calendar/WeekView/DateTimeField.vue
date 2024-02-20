@@ -150,7 +150,7 @@ const recordsAcrossAllRange = computed<{
         style = {
           ...style,
           top: `${hourIndex * perHeight}px`,
-          height: `${perHeight / 2 - 30}px`,
+          height: `${perHeight / 1.5}px`,
         }
 
         recordsToDisplay.push({
@@ -319,6 +319,8 @@ const draggingId = ref<string | null>(null)
 const resizeInProgress = ref(false)
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hoverRecord = ref<string | null>()
 
 const resizeDirection = ref<'right' | 'left' | null>()
 const resizeRecord = ref<Row | null>()
@@ -764,7 +766,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
         </div>
       </div>
 
-      <div class="absolute pointer-events-none inset-0 !mt-[20px]">
+      <div class="absolute pointer-events-none inset-0 !mt-[25px]">
         <div
           v-for="(record, rowIndex) in recordsAcrossAllRange.records"
           :key="rowIndex"
@@ -772,10 +774,13 @@ const viewMore = (hour: dayjs.Dayjs) => {
           :style="record.rowMeta!.style"
           class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
           @mousedown="dragStart($event, record)"
+          @mouseleave="hoverRecord = null"
+          @mouseover="hoverRecord = record.rowMeta.id"
           @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
+              :hover="hoverRecord === record.rowMeta.id"
               :position="record.rowMeta!.position"
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"

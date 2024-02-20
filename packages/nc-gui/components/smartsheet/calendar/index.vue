@@ -146,7 +146,41 @@ const headerText = computed(() => {
           <NcButton size="small" type="secondary" @click="paginateCalendarView('prev')">
             <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
           </NcButton>
-          <span class="font-bold text-center text-gray-700">{{ headerText }}</span>
+          <NcDropdown :auto-close="false">
+            <NcButton size="small" type="secondary">
+              <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
+              <component :is="iconMap.downArrow" class="h-4 w-4" />
+            </NcButton>
+
+            <template #overlay>
+              <div class="min-w-[22.1rem]">
+                <NcDateWeekSelector
+                  v-if="activeCalendarView === ('day' as const)"
+                  v-model:active-dates="activeDates"
+                  v-model:page-date="pageDate"
+                  v-model:selected-date="selectedDate"
+                />
+                <NcDateWeekSelector
+                  v-else-if="activeCalendarView === ('week' as const)"
+                  v-model:active-dates="activeDates"
+                  v-model:page-date="pageDate"
+                  v-model:selected-week="selectedDateRange"
+                  week-picker
+                />
+                <NcMonthYearSelector
+                  v-else-if="activeCalendarView === ('month' as const)"
+                  v-model:page-date="pageDate"
+                  v-model:selected-date="selectedDate"
+                />
+                <NcMonthYearSelector
+                  v-else-if="activeCalendarView === ('year' as const)"
+                  v-model:page-date="pageDate"
+                  v-model:selected-date="selectedDate"
+                  year-picker
+                />
+              </div>
+            </template>
+          </NcDropdown>
           <NcButton size="small" type="secondary" @click="paginateCalendarView('next')">
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
           </NcButton>

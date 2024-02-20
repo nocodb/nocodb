@@ -141,7 +141,7 @@ const removeRange = async (id: number) => {
             >
               <div class="flex items-center">
                 <SmartsheetHeaderIcon :column="option" />
-                <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
+                <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
                   {{ option.label }}
                 </NcTooltip>
@@ -184,7 +184,7 @@ const removeRange = async (id: number) => {
                 >
                   <div class="flex items-center">
                     <SmartsheetHeaderIcon :column="option" />
-                    <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
+                    <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
                       <template #title>{{ option.label }}</template>
                       {{ option.label }}
                     </NcTooltip>

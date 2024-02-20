@@ -322,7 +322,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (isSidebarLoading.value) return
 
       const response = !isPublic.value
-        ? await api.dbTableRow.list('noco', base.value.id!, meta.value!.id!, {
+        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
             ...params,
             ...{},
             ...{},
@@ -615,7 +615,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const loadSidebarData = async () => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
       isSidebarLoading.value = true
-      const res = await api.dbTableRow.list('noco', base.value.id!, meta.value!.id!, {
+      const res = await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
         ...queryParams.value,
         ...{},
         ...{},

@@ -19,11 +19,7 @@ const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 
-const isImageUrl = (url: string) => {
-  return imageExt.some((e) => url?.toLowerCase().endsWith(`.${e}`))
-}
-
-export { isImage, imageExt, isImageUrl }
+export { isImage, imageExt }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -83,6 +79,8 @@ export function extractImageSrcFromRawHtml(rawText: string) {
 }
 
 export function populateUniqueFileName(fn: string, attachments: any[], mimeType: string) {
+  if (!mimeType) return fn
+
   // If the image extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
   if (!fn?.endsWith(mimeType.split('/')[1])) {
     fn = `${fn}.${mimeType.split('/')[1]}`

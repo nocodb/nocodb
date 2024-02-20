@@ -143,7 +143,7 @@ const onDecode = async (scannedCodeValue: string) => {
                     </span>
                     <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
                   </div>
-                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
+                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-[13px]">
                     {{ field?.description }}
                   </div>
 

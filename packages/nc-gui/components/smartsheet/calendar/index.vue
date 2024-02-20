@@ -46,6 +46,7 @@ const {
   loadCalendarData,
   isCalendarDataLoading,
   selectedDate,
+  pageDate,
   selectedDateRange,
   activeCalendarView,
   paginateCalendarView,
@@ -148,6 +149,23 @@ const headerText = computed(() => {
           <span class="font-bold text-center text-gray-700">{{ headerText }}</span>
           <NcButton size="small" type="secondary" @click="paginateCalendarView('next')">
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+          </NcButton>
+          <NcButton
+            v-if="!isMobileMode"
+            size="small"
+            type="secondary"
+            @click="
+              () => {
+                selectedDate = new Date()
+                pageDate = new Date()
+                selectedDateRange = {
+                  start: dayjs(new Date()).startOf('week').toDate(),
+                  end: dayjs(new Date()).endOf('week').toDate(),
+                }
+              }
+            "
+          >
+            Go to Today
           </NcButton>
         </div>
         <NcButton v-if="!isMobileMode" size="small" type="secondary" @click="showSideMenu = !showSideMenu">

@@ -266,18 +266,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       if (displayField.value && searchQuery.value) {
         if (combinedFilters.length > 0) {
-          combinedFilters.push({
-            is_group: true,
-            logical_op: 'and',
-            children: [
-              ...combinedFilters,
-              {
-                fk_column_id: displayField.value.id,
-                comparison_op: 'like',
-                value: searchQuery.value,
-              },
-            ],
-          })
+          combinedFilters = [
+            {
+              is_group: true,
+              logical_op: 'and',
+              children: [
+                ...combinedFilters,
+                {
+                  fk_column_id: displayField.value.id,
+                  comparison_op: 'like',
+                  value: searchQuery.value,
+                },
+              ],
+            },
+          ]
         } else {
           combinedFilters.push({
             fk_column_id: displayField.value.id,
@@ -293,25 +295,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       if (isSidebarLoading.value) return
-      const response = !isPublic.value
-        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
-            ...params,
-            offset: params.offset,
-            ...{},
-            ...{},
-            ...(isUIAllowed('filterSync')
-              ? { filterArrJson: JSON.stringify([...sideBarFilter.value]) }
-              : { filterArrJson: JSON.stringify([nestedFilters.value, ...sideBarFilter.value]) }),
-          })
-        : await fetchSharedViewData({
-            ...params,
-            sortsArr: sorts.value,
-            filtersArr: [nestedFilters.value, ...sideBarFilter.value],
-            offset: params.offset,
-            where: where?.value ?? '',
-          })
-
-      formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
+      try {
+        const response = !isPublic.value
+          ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+              ...params,
+              offset: params.offset,
+              ...{},
+              ...{},
+              ...(isUIAllowed('filterSync')
+                ? { filterArrJson: JSON.stringify([...sideBarFilter.value]) }
+                : { filterArrJson: JSON.stringify([nestedFilters.value, ...sideBarFilter.value]) }),
+            })
+          : await fetchSharedViewData({
+              ...params,
+              sortsArr: sorts.value,
+              filtersArr: [nestedFilters.value, ...sideBarFilter.value],
+              offset: params.offset,
+              where: where?.value ?? '',
+            })
+        formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
+      } catch (e) {
+        console.log(e)
+      }
     }
 
     const filterJSON = computed(() => {
@@ -324,19 +329,25 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       let fromDate: dayjs.Dayjs | null | string = null
       let toDate: dayjs.Dayjs | null | string = null
 
-      if (activeCalendarView.value === 'week') {
-        fromDate = dayjs(selectedDateRange.value.start).startOf('day')
-        toDate = dayjs(selectedDateRange.value.end).endOf('day')
-      } else if (activeCalendarView.value === 'day') {
-        fromDate = dayjs(selectedDate.value).startOf('day')
-        toDate = dayjs(selectedDate.value).endOf('day')
-      } else if (activeCalendarView.value === 'month') {
-        fromDate = dayjs(selectedMonth.value).startOf('month')
-        toDate = dayjs(selectedMonth.value).endOf('month')
-      } else if (activeCalendarView.value === 'year') {
-        fromDate = dayjs(selectedDate.value).startOf('year')
-        toDate = dayjs(selectedDate.value).endOf('year')
+      switch (activeCalendarView.value) {
+        case 'week':
+          fromDate = dayjs(selectedDateRange.value.start).startOf('day')
+          toDate = dayjs(selectedDateRange.value.end).endOf('day')
+          break
+        case 'month':
+          fromDate = dayjs(selectedMonth.value).startOf('month')
+          toDate = dayjs(selectedMonth.value).endOf('month')
+          break
+        case 'year':
+          fromDate = dayjs(selectedDate.value).startOf('year')
+          toDate = dayjs(selectedDate.value).endOf('year')
+          break
+        case 'day':
+          fromDate = dayjs(selectedDate.value).startOf('day')
+          toDate = dayjs(selectedDate.value).endOf('day')
+          break
       }
+
       if (calDataType.value === UITypes.Date) {
         fromDate = dayjs(fromDate).format('YYYY-MM-DD')
         toDate = dayjs(toDate).format('YYYY-MM-DD')
@@ -361,7 +372,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   logical_op: 'or',
                   children: [
                     {
-                      // Check for overlap or within range
                       is_group: true,
                       logical_op: 'and',
                       children: [
@@ -432,28 +442,30 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (!formattedData.value || !calendarRange.value) return []
       const dates = new Set<Date>()
 
-      formattedData.value.forEach((row) => {
-        const start = row.row[calendarRange.value[0].fk_from_col?.title ?? '']
-        let end
-        if (calendarRange.value[0].fk_to_col) {
-          end = row.row[calendarRange.value[0].fk_to_col.title ?? '']
-        }
-        if (start && end) {
-          const startDate = dayjs(start)
-          let endDate = dayjs(end)
-          let currentDate = startDate
-          // We have to check whether the start is after the end date, if so, loop through the end date
-          if (startDate.isAfter(endDate)) {
-            endDate = startDate
-            currentDate = endDate
+      calendarRange.value.forEach((range) => {
+        formattedData.value.forEach((row) => {
+          const start = row.row[range.fk_from_col?.title ?? '']
+          let end
+          if (range.fk_to_col) {
+            end = row.row[range.fk_to_col.title ?? '']
           }
-          while (currentDate.isSameOrBefore(endDate)) {
-            dates.add(currentDate.toDate())
-            currentDate = currentDate.add(1, 'day')
+          if (start && end) {
+            const startDate = dayjs(start)
+            let endDate = dayjs(end)
+            let currentDate = startDate
+            // We have to check whether the start is after the end date, if so, loop through the end date
+            if (startDate.isAfter(endDate)) {
+              endDate = startDate
+              currentDate = endDate
+            }
+            while (currentDate.isSameOrBefore(endDate)) {
+              dates.add(currentDate.toDate())
+              currentDate = currentDate.add(1, 'day')
+            }
+          } else if (start) {
+            dates.add(new Date(start))
           }
-        } else if (start) {
-          dates.add(new Date(start))
-        }
+        })
       })
 
       return Array.from(dates)

@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { computed, ref } from '#imports'
+import { type Row, computed, ref } from '#imports'
 
 const props = defineProps<{
   visible: boolean
@@ -34,6 +34,124 @@ const {
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
+
+const pushToArray = (arr: Array<Row>, record: Row, range) => {
+  arr.push({
+    ...record,
+    rowMeta: {
+      ...record.rowMeta,
+      range,
+    },
+  })
+}
+
+const renderData = computed<Array<Row>>(() => {
+  if (!calendarRange.value) return []
+
+  const rangedData: Array<Row> = []
+
+  calendarRange.value.forEach((range) => {
+    const fromCol = range.fk_from_col
+    const toCol = range.fk_to_col
+    formattedSideBarData.value.forEach((record) => {
+      if (fromCol && toCol) {
+        const from = dayjs(record.row[fromCol.title!])
+        const to = dayjs(record.row[toCol.title!])
+        if (sideBarFilterOption.value === 'withoutDates') {
+          if (!from.isValid() || !to.isValid()) {
+            pushToArray(rangedData, record, range)
+          }
+        } else if (sideBarFilterOption.value === 'allRecords') {
+          pushToArray(rangedData, record, range)
+        } else if (
+          sideBarFilterOption.value === 'month' ||
+          sideBarFilterOption.value === 'year' ||
+          sideBarFilterOption.value === 'selectedDate' ||
+          sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === 'day'
+        ) {
+          let fromDate: dayjs.Dayjs | null = null
+          let toDate: dayjs.Dayjs | null = null
+
+          switch (sideBarFilterOption.value) {
+            case 'month':
+              fromDate = dayjs(selectedMonth.value).startOf('month')
+              toDate = dayjs(selectedMonth.value).endOf('month')
+              break
+            case 'year':
+              fromDate = dayjs(selectedDate.value).startOf('year')
+              toDate = dayjs(selectedDate.value).endOf('year')
+              break
+            case 'selectedDate':
+              fromDate = dayjs(selectedDate.value).startOf('day')
+              toDate = dayjs(selectedDate.value).endOf('day')
+              break
+            case 'week':
+              fromDate = dayjs(selectedDateRange.value.start).startOf('week')
+              toDate = dayjs(selectedDateRange.value.end).endOf('week')
+              break
+            case 'day':
+              fromDate = dayjs(selectedDate.value).startOf('day')
+              toDate = dayjs(selectedDate.value).endOf('day')
+              break
+          }
+
+          if (from && to) {
+            if (
+              (from.isSameOrAfter(fromDate) && to.isSameOrBefore(toDate)) ||
+              (from.isSameOrBefore(fromDate) && to.isSameOrAfter(toDate)) ||
+              (from.isSameOrBefore(fromDate) && to.isSameOrAfter(fromDate)) ||
+              (from.isSameOrBefore(toDate) && to.isSameOrAfter(toDate))
+            ) {
+              pushToArray(rangedData, record, range)
+            }
+          }
+        }
+      } else if (fromCol) {
+        const from = dayjs(record.row[fromCol.title!])
+        if (sideBarFilterOption.value === 'withoutDates') {
+          if (!from.isValid()) {
+            pushToArray(rangedData, record, range)
+          }
+        } else if (sideBarFilterOption.value === 'allRecords') {
+          pushToArray(rangedData, record, range)
+        } else if (sideBarFilterOption.value === 'selectedDate' || sideBarFilterOption.value === 'day') {
+          if (from.isSame(selectedDate.value, 'day')) {
+            pushToArray(rangedData, record, range)
+          }
+        } else if (
+          sideBarFilterOption.value === 'week' ||
+          sideBarFilterOption.value === 'month' ||
+          sideBarFilterOption.value === 'year'
+        ) {
+          let fromDate: dayjs.Dayjs
+          let toDate: dayjs.Dayjs
+
+          switch (sideBarFilterOption.value) {
+            case 'week':
+              fromDate = dayjs(selectedDateRange.value.start).startOf('week')
+              toDate = dayjs(selectedDateRange.value.end).endOf('week')
+              break
+            case 'month':
+              fromDate = dayjs(selectedMonth.value).startOf('month')
+              toDate = dayjs(selectedMonth.value).endOf('month')
+              break
+            case 'year':
+              fromDate = dayjs(selectedDate.value).startOf('year')
+              toDate = dayjs(selectedDate.value).endOf('year')
+              break
+          }
+
+          if (from.isSameOrAfter(fromDate) && from.isSameOrBefore(toDate)) {
+            pushToArray(rangedData, record, range)
+          }
+        }
+      }
+    })
+  })
+
+  return rangedData
+})
 
 const options = computed(() => {
   switch (activeCalendarView.value) {
@@ -81,6 +199,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
   if (target.clientHeight + target.scrollTop + INFINITY_SCROLL_THRESHOLD >= target.scrollHeight) {
     const pageSize = appInfo.value?.defaultLimit ?? 25
     const page = Math.ceil(formattedSideBarData.value.length / pageSize)
+
     await loadMoreSidebarData({
       offset: page * pageSize,
     })
@@ -154,28 +273,39 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
         @scroll="sideBarListScrollHandle"
       >
-        <div v-if="formattedSideBarData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
+        <div v-if="renderData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
           <GeneralLoader v-if="isSidebarLoading" size="large" />
 
           <div v-else class="text-gray-500">
             {{ t('msg.noRecordsFound') }}
           </div>
         </div>
-        <template v-else-if="formattedSideBarData.length > 0">
-          <LazySmartsheetRow v-for="(record, rowIndex) in formattedSideBarData" :key="rowIndex" :row="record">
+        <template v-else-if="renderData.length > 0">
+          <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
             <LazySmartsheetCalendarSideRecordCard
-              :date="
-                calDataType === UITypes.DateTime
-                  ? dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('DD-MM-YYYY HH:mm')
-                  : dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('DD-MM-YYYY')
+              :from-date="
+                record.rowMeta.range?.fk_from_col
+                  ? calDataType === UITypes.Date
+                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM')
+                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM•HH:MM A')
+                  : null
               "
               :invalid="
-                dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).isAfter(
-                  dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_to_col.title : '']),
+                record.rowMeta.range!.fk_to_col &&
+                dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
+                  dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]),
                 )
               "
-              :name="record.row[displayField.title]"
+              :name="record.row[displayField!.title!]"
+              :to-date="
+                record.rowMeta.range!.fk_to_col
+                  ? calDataType === UITypes.Date
+                    ? dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
+                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM•HH:MM A')
+                  : null
+              "
               color="blue"
+              draggable="true"
               @click="emit('expand-record', record)"
             />
           </LazySmartsheetRow>

@@ -81,7 +81,16 @@ const calendarData = computed(() => {
         }
 
         const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-        const spanDays = Math.max(Math.min(endDate.diff(startDate, 'day'), 6) + 1, 1)
+
+        let spanDays = Math.max(Math.min(endDate.diff(startDate, 'day'), 6) + 1, 1)
+
+        if (endDate.isAfter(startDate, 'month')) {
+          spanDays = 7 - startDaysDiff
+        }
+
+        if (startDaysDiff > 0) {
+          spanDays = Math.min(spanDays, 7 - startDaysDiff)
+        }
         const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
 
         let suitableColumn = -1
@@ -103,7 +112,7 @@ const calendarData = computed(() => {
           recordsInDay[dayIndex][suitableColumn] = true
         }
 
-        let position = ''
+        let position = 'none'
 
         const isStartInRange =
           ogStartDate && ogStartDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
@@ -198,11 +207,6 @@ const calendarData = computed(() => {
       <div
         v-for="(record, id) in calendarData"
         :key="id"
-        :class="{
-          'ml-3': record.rowMeta.position === 'leftRounded',
-          'mr-3': record.rowMeta.position === 'rightRounded',
-          '': record.rowMeta.position === 'rounded',
-        }"
         :style="record.rowMeta.style"
         class="absolute pointer-events-auto"
         draggable="true"

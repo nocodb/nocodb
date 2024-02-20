@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 interface Props {
+  record: Record<string, string>
   name: string
   date?: string
   color?: string

@@ -67,7 +67,11 @@ const calendarData = computed(() => {
     const fromCol = range.fk_from_col
     const toCol = range.fk_to_col
     if (fromCol && toCol) {
-      for (const record of formattedData.value) {
+      for (const record of [...formattedData.value].filter((r) => {
+        const startDate = dayjs(r.row[fromCol.title])
+        const endDate = dayjs(r.row[toCol.title])
+        return !endDate.isBefore(startDate)
+      })) {
         let startDate = dayjs(record.row[fromCol.title])
         const ogStartDate = startDate.clone()
         const endDate = dayjs(record.row[toCol.title])
@@ -213,6 +217,7 @@ const calendarData = computed(() => {
             "
             :name="record.row[displayField.title]"
             :position="record.rowMeta.position"
+            :record="record"
             color="blue"
             @click="emits('expand-record', record)"
           />

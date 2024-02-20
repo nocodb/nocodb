@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import type { ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { isBt, isMm, parseProp } from '#imports'
@@ -191,16 +191,6 @@ export default function convertCellData(
             continue
           }
         }
-        // this prevent file with same names
-        const isFileNameAlreadyExist = oldAttachments.some((el) => el.title === (attachment?.title || attachment?.name))
-        if (isFileNameAlreadyExist) {
-          if (isMultiple) {
-            message.error(`File with name ${attachment?.title || attachment?.name} already attached`)
-            continue
-          } else {
-            throw new Error(`File with name ${attachment?.title || attachment?.name} already attached`)
-          }
-        }
 
         attachments.push(attachment)
       }
@@ -208,7 +198,12 @@ export default function convertCellData(
       if (oldAttachments.length && !attachments.length) {
         return undefined
       } else if (value && attachments.length) {
-        return JSON.stringify([...oldAttachments, ...attachments])
+        const newAttachments: AttachmentType[] = []
+
+        for (const att of attachments) {
+          newAttachments.push({ ...att, title: populateUniqueFileName(att?.title, [...oldAttachments, ...newAttachments]) })
+        }
+        return JSON.stringify([...oldAttachments, ...newAttachments])
       } else if (files.length && attachments.length) {
         return attachments
       } else {

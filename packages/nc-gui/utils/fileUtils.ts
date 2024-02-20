@@ -62,3 +62,11 @@ export function extractImageSrcFromRawHtml(rawText: string) {
     return imgElement.getAttribute('src')
   }
 }
+
+export function populateUniqueFileName(fn: string, attachments: any[]) {
+  let c = 1
+  while (attachments.some((att) => att?.title === fn || att?.fileName === fn)) {
+    fn = fn.replace(/(.+?)(\.[^.]+)$/, `$1(${c++})$2`)
+  }
+  return fn
+}

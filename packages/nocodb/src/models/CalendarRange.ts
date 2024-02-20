@@ -19,32 +19,6 @@ export default class CalendarRange implements CalendarRangeType {
     Object.assign(this, data);
   }
 
-  public static async insert(
-    data: Partial<CalendarRange>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const insertObj = extractProps(data, [
-      'fk_from_column_id',
-      'fk_to_column_id',
-      'fk_view_id',
-    ]);
-
-    const { id } = await ncMeta.metaInsert2(
-      null,
-      null,
-      MetaTable.CALENDAR_VIEW_RANGE,
-      insertObj,
-    );
-
-    await NocoCache.appendToList(
-      CacheScope.CALENDAR_VIEW_RANGE,
-      [data.fk_view_id],
-      `${CacheScope.CALENDAR_VIEW_RANGE}:${id}`,
-    );
-
-    return this.get(id, ncMeta);
-  }
-
   public static async bulkInsert(
     data: Partial<CalendarRange>[],
     ncMeta = Noco.ncMeta,
@@ -92,31 +66,6 @@ export default class CalendarRange implements CalendarRangeType {
     }
 
     return true;
-  }
-
-  public static async get(
-    calendarRangeId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<CalendarRange> {
-    let data =
-      calendarRangeId &&
-      (await NocoCache.get(
-        `${CacheScope.CALENDAR_VIEW_RANGE}:${calendarRangeId}`,
-        CacheGetType.TYPE_OBJECT,
-      ));
-    if (!data) {
-      data = await ncMeta.metaGet2(
-        null,
-        null,
-        MetaTable.CALENDAR_VIEW_RANGE,
-        calendarRangeId,
-      );
-      await NocoCache.set(
-        `${CacheScope.CALENDAR_VIEW_RANGE}:${calendarRangeId}`,
-        data,
-      );
-    }
-    return data && new CalendarRange(data);
   }
 
   public static async read(fk_view_id: string, ncMeta = Noco.ncMeta) {

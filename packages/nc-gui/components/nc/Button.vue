@@ -73,10 +73,6 @@ useEventListener(NcButton, 'mousedown', () => {
 <template>
   <a-button
     ref="NcButton"
-    :disabled="props.disabled"
-    :loading="loading"
-    :type="type"
-    class="nc-button"
     :class="{
       small: size === 'small',
       medium: size === 'medium',
@@ -84,34 +80,38 @@ useEventListener(NcButton, 'mousedown', () => {
       xxsmall: size === 'xxsmall',
       focused: isFocused,
     }"
+    :disabled="props.disabled"
+    :loading="loading"
     :tabindex="props.disabled ? -1 : 0"
-    @focus="onFocus"
+    :type="type"
+    class="nc-button"
     @blur="onBlur"
+    @focus="onFocus"
   >
     <div
-      class="flex flex-row gap-x-2.5 w-full"
       :class="{
         'justify-center': props.centered,
         'justify-start': !props.centered,
       }"
+      class="flex flex-row gap-x-2.5 w-full"
     >
       <GeneralLoader
         v-if="loading"
-        size="medium"
-        class="flex !bg-inherit"
         :class="{
           '!text-white': type === 'primary' || type === 'danger',
           '!text-gray-800': type !== 'primary' && type !== 'danger',
         }"
+        class="flex !bg-inherit"
+        size="medium"
       />
 
       <slot v-else name="icon" />
       <div
         v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
-        class="flex flex-row items-center"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
         }"
+        class="flex flex-row items-center w-full"
       >
         <slot v-if="loading && slots.loading" name="loading" />
 

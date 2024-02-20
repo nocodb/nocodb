@@ -2,7 +2,15 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
-import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType, UserFieldRecordType, ViewType } from 'nocodb-sdk'
+import type {
+  AttachmentType,
+  ColumnType,
+  LinkToAnotherRecordType,
+  PaginatedType,
+  TableType,
+  UserFieldRecordType,
+  ViewType,
+} from 'nocodb-sdk'
 import { UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
@@ -984,7 +992,7 @@ export function useMultiSelect(
                   ) => {
                     if (paginationDataRef.value?.pageSize === pg?.pageSize) {
                       if (paginationDataRef.value?.page !== pg?.page) {
-                        await changePage?.(pg?.page!)
+                        await changePage?.(pg?.page)
                       }
                       const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                       const rowObj = unref(data)[activeCell.row]
@@ -1115,12 +1123,9 @@ export function useMultiSelect(
           )
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const uploadedFiles = await handleFileUpload(pasteValue, columnObj.id!)
+            const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
 
-            rowObj.row[columnObj.title!] =
-              Array.isArray(uploadedFiles) && uploadedFiles.length
-                ? JSON.stringify([...handleParseAttachmentCellData(rowObj.row[columnObj.title!]), ...uploadedFiles])
-                : null
+            rowObj.row[columnObj.title!] = newAttachments ? JSON.stringify(newAttachments) : null
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
@@ -1177,12 +1182,9 @@ export function useMultiSelect(
                   )
 
                   if (fileUploadPayload?.length) {
-                    const uploadedFiles = await handleFileUpload(fileUploadPayload, col.id!)
+                    const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
 
-                    pasteValue =
-                      Array.isArray(uploadedFiles) && uploadedFiles.length
-                        ? JSON.stringify([...handleParseAttachmentCellData(row.row[col.title]), ...uploadedFiles])
-                        : null
+                    pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
                   }
                 }
               } else {
@@ -1232,7 +1234,9 @@ export function useMultiSelect(
     event.preventDefault()
   }
 
-  async function handleFileUpload(files: File[], columnId: string) {
+  async function handleFileUploadAndGetCellValue(files: File[], columnId: string, oldValue: AttachmentType[]) {
+    const newAttachments: AttachmentType[] = []
+
     try {
       const data = await api.storage.upload(
         {
@@ -1242,19 +1246,31 @@ export function useMultiSelect(
           files,
         },
       )
-      return data
+
+      // add suffix in duplicate file title
+      for (const uploadedFile of data) {
+        newAttachments.push({
+          ...uploadedFile,
+          title: populateUniqueFileName(
+            uploadedFile?.title,
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments],
+            uploadedFile?.mimetype,
+          ),
+        })
+      }
+      return newAttachments
     } catch (e: any) {
       message.error(e.message || t('msg.error.internalError'))
     }
   }
 
-  function handleParseAttachmentCellData(value: string | null) {
+  function handleParseAttachmentCellData<T>(value: T): T {
     const parsedVal = parseProp(value)
 
     if (parsedVal && Array.isArray(parsedVal)) {
-      return parsedVal
+      return parsedVal as T
     } else {
-      return []
+      return [] as T
     }
   }
 

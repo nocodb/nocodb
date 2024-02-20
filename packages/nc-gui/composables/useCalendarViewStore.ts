@@ -37,7 +37,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const displayField = ref<ColumnType>()
+    const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
     const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
 
@@ -530,7 +530,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           fk_to_col: range.fk_to_column_id ? meta.value?.columns!.find((col) => col.id === range.fk_to_column_id) : null,
         }
       }) as any
-      displayField.value = meta.value.columns.find((col) => col.pv)
     }
 
     async function loadCalendarData() {

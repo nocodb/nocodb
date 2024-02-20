@@ -97,6 +97,7 @@ const headerText = computed(() => {
           }" class="h-4 w-4 transition-all"/>
         </NcButton>
       </div>
+      <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
     </div>
     <LazySmartsheetCalendarSideMenu v-if="!isMobileMode" :visible="showSideMenu" @expand-record="expandRecord"/>
   </div>

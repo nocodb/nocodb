@@ -5,6 +5,7 @@ import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup, { unsetup } from '../../../setup';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 import { CalendarTopbarPage } from '../../../pages/Dashboard/Calendar/CalendarTopBar';
+import { isEE } from '../../../setup/db';
 
 const dateRecords = [
   {
@@ -77,9 +78,11 @@ test.describe('View', () => {
     topbar = dashboard.calendar.topbar;
     calendarTopbar = dashboard.calendar.calendarTopbar;
 
+    const base = isEE() ? 'Getting Started' : 'pgExtREST0';
+
     await dashboard.treeView.createTable({
       title: 'Social Media Calendar',
-      baseTitle: 'Getting Started',
+      baseTitle: base,
     });
 
     await dashboard.treeView.openTable({ title: 'Social Media Calendar' });

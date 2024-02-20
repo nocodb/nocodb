@@ -450,7 +450,7 @@ const onDrag = (event: MouseEvent) => {
   if (!fromCol) return
 
   const day = Math.floor(percentX * 7)
-  const hour = Math.floor(percentY * 24)
+  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
 
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
   if (!newStartDate) return
@@ -510,7 +510,7 @@ const stopDrag = (event: MouseEvent) => {
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
   const day = Math.floor(percentX * 7)
-  const hour = Math.floor(percentY * 24)
+  const hour = Math.max(Math.min(Math.floor(percentY * 24), 24), 0)
 
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
   if (!newStartDate || !fromCol) return
@@ -729,6 +729,9 @@ const viewMore = (hour: dayjs.Dayjs) => {
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
+        :class="{
+          'text-brand-500': date[0].isSame(dayjs(), 'date'),
+        }"
         class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
@@ -740,10 +743,10 @@ const viewMore = (hour: dayjs.Dayjs) => {
           v-for="(hour, hourIndex) in date"
           :key="hourIndex"
           :class="{
-            'border-1 !border-brand-500': hour.isSame(selectedTime, 'hour'),
+            'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!border-l-0': date[0].day() === selectedDateRange.start?.day(),
           }"
-          class="text-center relative h-20 text-sm text-gray-500 w-full py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50 bg-gray-50"
+          class="text-center relative h-20 text-sm text-gray-500 w-full py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50"
           @click="
             () => {
               selectedTime = hour
@@ -751,7 +754,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
             }
           "
         >
-          <span v-if="date[0].day() === selectedDateRange.start?.day()" class="absolute left-1">
+          <span v-if="date[0].day() === selectedDateRange.start?.day()" class="absolute text-xs left-1">
             {{ hour.format('h A') }}
           </span>
           <NcButton

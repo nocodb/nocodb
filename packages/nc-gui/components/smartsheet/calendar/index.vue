@@ -165,7 +165,7 @@ const headerText = computed(() => {
           </NcTooltip>
 
           <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
-            <NcButton :class="{ '!w-23': activeCalendarView === 'year' }" class="w-44" full-width size="small" type="secondary">
+            <NcButton :class="{ '!w-24': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
               <div class="flex w-full px-3 py-1 w-full items-center justify-between">
                 <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
                 <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />

@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
+import { type CalendarRangeType } from '~/lib'
+
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -40,8 +42,8 @@ watch(
   { immediate: true },
 )
 
-const calendarRange = computed<{ fk_from_column_id: string; fk_to_column_id: string | null }[]>(() => {
-  const tempCalendarRange: { fk_from_column_id: string; fk_to_column_id: string | null }[] = []
+const calendarRange = computed<CalendarRangeType[]>(() => {
+  const tempCalendarRange: CalendarRangeType[] = []
 
   if (!activeView.value || !activeView.value.view) return tempCalendarRange
   activeView.value.view.calendar_range?.forEach((range) => {
@@ -54,7 +56,7 @@ const calendarRange = computed<{ fk_from_column_id: string; fk_to_column_id: str
 })
 
 // We keep the calendar range here and update it when the user selects a new range
-const _calendar_ranges = ref<{ fk_from_column_id: string; fk_to_column_id: string | null }[]>(calendarRange.value)
+const _calendar_ranges = ref<CalendarRangeType[]>(calendarRange.value)
 
 const saveCalendarRanges = async () => {
   if (activeView.value) {
@@ -66,7 +68,7 @@ const saveCalendarRanges = async () => {
           fk_to_column_id: range.fk_to_column_id,
         }))
       await $api.dbView.calendarUpdate(activeView.value?.id as string, {
-        calendar_range: calRanges as { fk_from_column_id: string; fk_to_column_id: string | null }[],
+        calendar_range: calRanges as CalendarRangeType[],
       })
       await loadCalendarMeta()
       await Promise.all([loadCalendarData(), loadSidebarData()])

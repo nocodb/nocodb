@@ -21,6 +21,7 @@ const {
 const container = ref<null | HTMLElement>(null)
 
 const { isUIAllowed } = useRoles()
+
 const meta = inject(MetaInj, ref())
 
 const hours = computed(() => {
@@ -48,6 +49,11 @@ const recordsAcrossAllRange = computed<{
   const scheduleStart = dayjs(selectedDate.value).startOf('day')
   const scheduleEnd = dayjs(selectedDate.value).endOf('day')
 
+  // We use this object to keep track of the number of records that overlap at a given time, and if the number of records exceeds 4, we hide the record
+  // and show a button to view more records
+  // The key is the time in HH:mm format
+  // id is the id of the record generated below
+
   const overlaps: {
     [key: string]: {
       id: string[]
@@ -64,6 +70,8 @@ const recordsAcrossAllRange = computed<{
     const fromCol = range.fk_from_col
     const endCol = range.fk_to_col
 
+    // We fetch all the records that match the calendar ranges in a single time.
+    // But not all fetched records are valid for the certain range, so we filter them out & sort them
     const sortedFormattedData = [...formattedData.value].filter((record) => {
       const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
 
@@ -78,27 +86,39 @@ const recordsAcrossAllRange = computed<{
       return false
     })
 
+    // If there is a start and end column, we calculate the top and height of the record based on the start and end date
     if (fromCol && endCol) {
       for (const record of sortedFormattedData) {
+        // We use this id during the drag and drop operation and to keep track of the number of records that overlap at a given time
         const id = generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         let endDate = dayjs(record.row[endCol.title!])
 
+        // If no start date is provided or startDate is after the endDate, we skip the record
         if (!startDate.isValid() || startDate.isAfter(endDate)) continue
 
+        // If there is no end date, we add 30 minutes to the start date and use that as the end date
         if (!endDate.isValid()) {
           endDate = startDate.clone().add(30, 'minutes')
         }
 
+        // If the start date is before the opened date, we use the schedule start as the start date
+        // This is to ensure the generated style of the record is not outside the bounds of the calendar
         if (startDate.isBefore(scheduleStart, 'minutes')) {
           startDate = scheduleStart
         }
 
+        // If the end date is after the schedule end, we use the schedule end as the end date
+        // This is to ensure the generated style of the record is not outside the bounds of the calendar
         if (endDate.isAfter(scheduleEnd, 'minutes')) {
           endDate = scheduleEnd
         }
 
+        // The top of the record is calculated based on the start hour and minute
         const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
+
+        // A minimum height of 80px is set for each record
+        // The height of the record is calculated based on the difference between the start and end date
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
 
         const startHour = startDate.hour()
@@ -110,6 +130,8 @@ const recordsAcrossAllRange = computed<{
           top: `${topInPixels + 5 + startHour * 2}px`,
         }
 
+        // We loop through every 15 minutes between the start and end date and keep track of the number of records that overlap at a given time
+        // If the number of records exceeds 4, we hide the record and show a button to view more records
         while (_startDate.isBefore(endDate)) {
           const timeKey = _startDate.format('HH:mm')
           if (!overlaps[timeKey]) {
@@ -121,6 +143,7 @@ const recordsAcrossAllRange = computed<{
           }
           overlaps[timeKey].id.push(id)
 
+          // If the number of records exceeds 4, we hide the record mark the time as overflow
           if (overlaps[timeKey].id.length > 4) {
             overlaps[timeKey].overflow = true
             style.display = 'none'
@@ -129,6 +152,8 @@ const recordsAcrossAllRange = computed<{
           _startDate = _startDate.add(15, 'minutes')
         }
 
+        // This property is used to determine which side the record should be rounded. It can be top, bottom, both or none
+        // We use the start and end date to determine the position of the record
         let position = 'none'
         const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(selectedDate.value, 'day')
         const isBeforeSelectedDay = (date: dayjs.Dayjs) => date.isBefore(selectedDate.value, 'day')
@@ -139,9 +164,9 @@ const recordsAcrossAllRange = computed<{
         } else if (isBeforeSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
           position = 'none'
         } else if (isSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
-          position = 'leftRounded'
+          position = 'topRounded'
         } else if (isBeforeSelectedDay(startDate) && isSelectedDay(endDate)) {
-          position = 'rightRounded'
+          position = 'bottomRounded'
         } else {
           position = 'none'
         }
@@ -169,6 +194,7 @@ const recordsAcrossAllRange = computed<{
         let style: Partial<CSSStyleDeclaration> = {}
         let _startDate = startDate.clone()
 
+        // We loop through every 15 minutes between the start and end date and keep track of the number of records that overlap at a given time
         while (_startDate.isBefore(endDate)) {
           const timeKey = _startDate.startOf('hour').format('HH:mm')
 
@@ -181,6 +207,7 @@ const recordsAcrossAllRange = computed<{
           }
           overlaps[timeKey].id.push(id)
 
+          // If the number of records exceeds 8, we hide the record and mark it as overflow
           if (overlaps[timeKey].id.length > 8) {
             overlaps[timeKey].overflow = true
             overlaps[timeKey].overflowCount += 1
@@ -193,6 +220,8 @@ const recordsAcrossAllRange = computed<{
         }
 
         const topInPixels = (startDate.hour() + startDate.startOf('hour').minute() / 60) * 80
+
+        // A minimum height of 80px is set for each record
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
 
         const finalTopInPixels = topInPixels + startHour * 2
@@ -217,7 +246,11 @@ const recordsAcrossAllRange = computed<{
     }
   })
 
+  // We can't calculate the width & left of the records without knowing the number of records that overlap at a given time
+  // So we loop through the records again and calculate the width & left of the records based on the number of records that overlap at a given time
   recordsByRange = recordsByRange.map((record) => {
+    // MaxOverlaps is the number of records that overlap at a given time
+    // overlapIndex is the index of the record in the list of records that overlap at a given time
     let maxOverlaps = 1
     let overlapIndex = 0
     for (const minutes in overlaps) {
@@ -229,6 +262,7 @@ const recordsAcrossAllRange = computed<{
 
     const spacing = 0.25
     const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps
+
     const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
 
     record.rowMeta.style = {
@@ -249,13 +283,9 @@ const dragRecord = ref<Row | null>(null)
 
 const isDragging = ref(false)
 
-const draggingId = ref<string | null>(null)
-
 const dragElement = ref<HTMLElement | null>(null)
 
 const resizeDirection = ref<'right' | 'left' | null>()
-
-const resizeInProgress = ref(false)
 
 const resizeRecord = ref<Row | null>()
 
@@ -267,186 +297,25 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
 
-const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (!container.value || !resizeRecord.value) return
-  const { top, bottom } = container.value.getBoundingClientRect()
-
-  const { scrollHeight } = container.value
-
-  if (event.clientY > bottom - 20) {
-    container.value.scrollTop += 10
-  } else if (event.clientY < top + 20) {
-    container.value.scrollTop -= 10
-  }
-
-  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
-
-  const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
-  const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
-  if (!fromCol || !toCol) return
-
-  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
-  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
-
-  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
-
-  if (resizeDirection.value === 'right') {
-    let newEndDate = dayjs(selectedDate.value).add(hour, 'hour')
-    const updateProperty = [toCol.title!]
-
-    if (dayjs(newEndDate).isBefore(ogStartDate, 'day')) {
-      newEndDate = ogStartDate.clone()
-    }
-
-    if (!newEndDate.isValid()) return
-
-    const newRow = {
-      ...resizeRecord.value,
-      row: {
-        ...resizeRecord.value.row,
-        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
-      },
-    }
-
-    formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-        return newRow
-      }
-      return r
-    })
-    useDebouncedRowUpdate(newRow, updateProperty, false)
-  } else if (resizeDirection.value === 'left') {
-    let newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
-    const updateProperty = [fromCol.title!]
-
-    if (dayjs(newStartDate).isAfter(ogEndDate)) {
-      newStartDate = dayjs(dayjs(ogEndDate)).clone()
-    }
-    if (!newStartDate) return
-
-    const newRow = {
-      ...resizeRecord.value,
-      row: {
-        ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
-      },
-    }
-
-    formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-        return newRow
-      }
-      return r
-    })
-    useDebouncedRowUpdate(newRow, updateProperty, false)
-  }
-}
-
-const onResizeEnd = () => {
-  resizeInProgress.value = false
-  resizeDirection.value = null
-  resizeRecord.value = null
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', onResizeEnd)
-}
-
-const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit')) return
-  resizeInProgress.value = true
-  resizeDirection.value = direction
-  resizeRecord.value = record
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', onResizeEnd)
-}
-
-const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (!container.value || !dragRecord.value) return
-
-  const { top, bottom } = container.value.getBoundingClientRect()
-
-  if (event.clientY > bottom - 20) {
-    container.value.scrollTop += 10
-  } else if (event.clientY < top + 20) {
-    container.value.scrollTop -= 10
-  }
-
-  const { scrollHeight } = container.value
-
-  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
-
-  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
-  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
-
-  if (!fromCol) return
-
-  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
-
-  const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour')
-
-  if (!newStartDate) return
-
-  let endDate
-
-  const newRow = {
-    ...dragRecord.value,
-    row: {
-      ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
-    },
-  }
-
-  if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
-
-    if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'hour'), 'hour')
-    } else if (fromDate && !toDate) {
-      endDate = dayjs(newStartDate).endOf('hour')
-    } else if (!fromDate && toDate) {
-      endDate = dayjs(newStartDate).endOf('hour')
-    } else {
-      endDate = newStartDate.clone()
-    }
-
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
-  }
-
-  formattedData.value = formattedData.value.map((r) => {
-    const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-    if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-      return newRow
-    }
-    return r
-  })
-}
-
-const stopDrag = (event: MouseEvent) => {
-  event.preventDefault()
-  clearTimeout(dragTimeout.value!)
-  if (!isUIAllowed('dataEdit')) return
-  if (!isDragging.value || !container.value || !dragRecord.value) return
-
+// When the user is dragging a record, we calculate the new start and end date based on the mouse position
+const calculateNewRow = (event: MouseEvent) => {
   const { top } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
 
+  // We calculate the percentage of the mouse position in the scroll container
   const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
-  const hour = Math.max(Math.min(Math.floor(percentY * 24), 23), 0)
+  // We calculate the hour based on the percentage of the mouse position in the scroll container
+  // It can be between 0 and 23 (inclusive)
+  const hour = Math.max(Math.floor(percentY * 23), 0)
 
+  // We calculate the new startDate by adding the hour to the start of the selected date
   const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour')
-  if (!newStartDate || !fromCol) return
+  if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
   let endDate
 
@@ -464,11 +333,14 @@ const stopDrag = (event: MouseEvent) => {
     const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 
+    // If there is an end date, we calculate the new end date based on the new start date and add the difference between the start and end date to the new start date
     if (fromDate && toDate) {
       endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'hour'), 'hour')
     } else if (fromDate && !toDate) {
+      // If there is no end date, we set the end date to the end of the day
       endDate = dayjs(newStartDate).endOf('hour')
     } else if (!fromDate && toDate) {
+      // If there is no start date, we set the end date to the end of the day
       endDate = dayjs(newStartDate).endOf('hour')
     } else {
       endDate = newStartDate.clone()
@@ -479,25 +351,149 @@ const stopDrag = (event: MouseEvent) => {
     updateProperty.push(toCol.title!)
   }
 
-  if (!newRow) return
+  if (!newRow) {
+    return { newRow: null, updateProperty: [] }
+  }
 
+  // We use the primary key of the new row to find the old row in the formattedData array
+  // If the old row is found, we replace it with the new row in the formattedData array
+  const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
   if (dragElement.value) {
     formattedData.value = formattedData.value.map((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
+      if (pk === newPk) {
         return newRow
       }
       return r
     })
   } else {
+    // If the old row is not found, we add the new row to the formattedData array and remove the old row from the formattedSideBarData array
     formattedData.value = [...formattedData.value, newRow]
     formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
+      return pk !== newPk
     })
   }
+  return { newRow, updateProperty }
+}
+
+const onResize = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (!container.value || !resizeRecord.value) return
+  const { top, bottom } = container.value.getBoundingClientRect()
+
+  const { scrollHeight } = container.value
+
+  // If the mouse position is near the top or bottom of the scroll container, we scroll the container
+  if (event.clientY > bottom - 20) {
+    container.value.scrollTop += 10
+  } else if (event.clientY < top + 20) {
+    container.value.scrollTop -= 10
+  }
+
+  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
+
+  const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
+  const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
+  if (!fromCol || !toCol) return
+
+  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
+  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
+
+  const hour = Math.max(Math.floor(percentY * 23), 0)
+
+  let newRow
+  let updateProperty: string[] = []
+
+  if (resizeDirection.value === 'right') {
+    // If the user is resizing the record to the right, we calculate the new end date based on the mouse position
+    let newEndDate = dayjs(selectedDate.value).add(hour, 'hour')
+
+    updateProperty = [toCol.title!]
+
+    // If the new end date is before the start date, we set the new end date to the start date
+    // This is to ensure the end date is always same or after the start date
+    if (dayjs(newEndDate).isBefore(ogStartDate, 'day')) {
+      newEndDate = ogStartDate.clone()
+    }
+
+    if (!newEndDate.isValid()) return
+
+    newRow = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
+      },
+    }
+  } else if (resizeDirection.value === 'left') {
+    let newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
+
+    updateProperty = [fromCol.title!]
+
+    // If the new start date is after the end date, we set the new start date to the end date
+    // This is to ensure the start date is always before or same the end date
+    if (dayjs(newStartDate).isAfter(ogEndDate)) {
+      newStartDate = dayjs(dayjs(ogEndDate)).clone()
+    }
+    if (!newStartDate) return
+
+    newRow = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      },
+    }
+  }
+
+  const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
+  formattedData.value = formattedData.value.map((r) => {
+    const pk = extractPkFromRow(r.row, meta.value!.columns!)
+    if (pk === newPk) {
+      return newRow
+    }
+    return r
+  })
+  useDebouncedRowUpdate(newRow, updateProperty, false)
+}
+
+const onResizeEnd = () => {
+  resizeDirection.value = null
+  resizeRecord.value = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+}
+
+const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
+  resizeDirection.value = direction
+  resizeRecord.value = record
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
+const onDrag = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (!container.value || !dragRecord.value) return
+
+  const { top, bottom } = container.value.getBoundingClientRect()
+
+  if (event.clientY > bottom - 20) {
+    container.value.scrollTop += 10
+  } else if (event.clientY < top + 20) {
+    container.value.scrollTop -= 10
+  }
+  calculateNewRow(event)
+}
+
+const stopDrag = (event: MouseEvent) => {
+  event.preventDefault()
+  clearTimeout(dragTimeout.value!)
+  if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
+
+  const { newRow, updateProperty } = calculateNewRow(event)
+  if (!newRow && !updateProperty) return
 
   const allRecords = document.querySelectorAll('.draggable-record')
   allRecords.forEach((el) => {
@@ -507,9 +503,6 @@ const stopDrag = (event: MouseEvent) => {
 
   if (dragElement.value) {
     dragElement.value.style.boxShadow = 'none'
-    dragElement.value.classList.remove('hide')
-    //  isDragging.value = false
-    draggingId.value = null
     dragElement.value = null
   }
 
@@ -525,12 +518,14 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   isDragging.value = false
 
+  // We use a timeout to determine if the user is dragging or clicking on the record
   dragTimeout.value = setTimeout(() => {
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
     }
 
+    // When the user starts dragging a record, we reduce opacity of all other records
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
@@ -541,9 +536,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     dragRecord.value = record
 
-    isDragging.value = true
     dragElement.value = target
-    draggingId.value = record.rowMeta.id!
     dragRecord.value = record
 
     document.addEventListener('mousemove', onDrag)
@@ -566,7 +559,6 @@ const viewMore = (hour: dayjs.Dayjs) => {
   selectedTime.value = hour
   showSideMenu.value = true
 }
-
 </script>
 
 <template>

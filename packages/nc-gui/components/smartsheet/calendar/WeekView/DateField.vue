@@ -18,6 +18,7 @@ const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 
+// Calculate the dates of the week
 const weekDates = computed(() => {
   const startOfWeek = new Date(selectedDateRange.value.start!)
   const endOfWeek = new Date(selectedDateRange.value.end!)
@@ -29,30 +30,40 @@ const weekDates = computed(() => {
   return datesArray
 })
 
-const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
-  let column = 0
+// This function is used to find the first suitable row for a record
+// It takes the recordsInDay object, the start day index and the span of the record in days
+// It returns the first suitable row for the entire span of the record
+const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
+  let row = 0
   while (true) {
-    let isColumnSuitable = true
+    let isRowSuitable = true
+    // Check if the row is suitable for the entire span
     for (let i = 0; i < spanDays; i++) {
       const dayIndex = startDayIndex + i
       if (!recordsInDay[dayIndex]) {
         recordsInDay[dayIndex] = {}
       }
-      if (recordsInDay[dayIndex][column]) {
-        isColumnSuitable = false
+      // If the row is occupied, the entire span is not suitable
+      if (recordsInDay[dayIndex][row]) {
+        isRowSuitable = false
         break
       }
     }
-
-    if (isColumnSuitable) {
-      return column
+    // If the row is suitable, return it
+    if (isRowSuitable) {
+      return row
     }
-    column++
+    row++
   }
 }
 
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
+
+  // We use the recordsInDay object to keep track of which columns are occupied for each day
+  // This is used to calculate the position of the records in the calendar
+  // The key is the day index (0-6) and the value is an object with the row index as the key and a boolean as the value
+  // Since no hours are considered, the rowIndex will be sufficient to calculate the position
   const recordsInDay: {
     [key: number]: {
       [key: number]: boolean
@@ -74,25 +85,32 @@ const calendarData = computed(() => {
     const fromCol = range.fk_from_col
     const toCol = range.fk_to_col
     if (fromCol && toCol) {
+      // Filter out records that have an invalid date range
+      // i.e. the end date is before the start date
+
       for (const record of [...formattedData.value].filter((r) => {
         const startDate = dayjs(r.row[fromCol.title!])
         const endDate = dayjs(r.row[toCol.title!])
         if (!startDate.isValid() || !endDate.isValid()) return false
         return !endDate.isBefore(startDate)
       })) {
+        // Generate a unique id for the record if it doesn't have one
         const id = record.row.id ?? generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         const ogStartDate = startDate.clone()
         const endDate = dayjs(record.row[toCol.title!])
 
+        // If the start date is before the selected date range, we need to adjust the start date
         if (startDate.isBefore(selectedDateRange.value.start)) {
           startDate = dayjs(selectedDateRange.value.start)
         }
 
         const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
 
+        // Calculate the span of the record in days
         let spanDays = Math.max(Math.min(endDate.diff(startDate, 'day'), 6) + 1, 1)
 
+        // If the end date is after the month of the selected date range, we need to adjust the span
         if (endDate.isAfter(startDate, 'month')) {
           spanDays = 7 - startDaysDiff
         }
@@ -102,7 +120,8 @@ const calendarData = computed(() => {
         }
         const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
 
-        let suitableColumn = -1
+        let suitableRow = -1
+        // Find the first suitable row for the entire span
         for (let i = 0; i < spanDays; i++) {
           const dayIndex = startDaysDiff + i
 
@@ -110,15 +129,15 @@ const calendarData = computed(() => {
             recordsInDay[dayIndex] = {}
           }
 
-          if (suitableColumn === -1) {
-            suitableColumn = findFirstSuitableColumn(recordsInDay, dayIndex, spanDays)
+          if (suitableRow === -1) {
+            suitableRow = findFirstSuitableRow(recordsInDay, dayIndex, spanDays)
           }
         }
 
         // Mark the suitable column as occupied for the entire span
         for (let i = 0; i < spanDays; i++) {
           const dayIndex = startDaysDiff + i
-          recordsInDay[dayIndex][suitableColumn] = true
+          recordsInDay[dayIndex][suitableRow] = true
         }
 
         let position = 'none'
@@ -127,6 +146,9 @@ const calendarData = computed(() => {
           ogStartDate && ogStartDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
         const isEndInRange = endDate && endDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
 
+        // Calculate the position of the record in the calendar based on the start and end date
+        // The position can be 'none', 'leftRounded', 'rightRounded', 'rounded'
+        // This is used to assign the rounded corners to the records
         if (isStartInRange && isEndInRange) {
           position = 'rounded'
         } else if (
@@ -158,7 +180,7 @@ const calendarData = computed(() => {
             style: {
               width: widthStyle,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableColumn * 40}px`,
+              top: `${suitableRow * 40}px`,
             },
           },
         })
@@ -169,8 +191,10 @@ const calendarData = computed(() => {
 
         const startDate = dayjs(record.row[fromCol.title!])
         const startDaysDiff = Math.max(startDate.diff(selectedDateRange.value.start, 'day'), 0)
-        const suitableColumn = findFirstSuitableColumn(recordsInDay, startDaysDiff, 1)
-        recordsInDay[startDaysDiff][suitableColumn] = true
+
+        // Find the first suitable row for record. Here since the span is 1, we can use the findFirstSuitableRow function
+        const suitableRow = findFirstSuitableRow(recordsInDay, startDaysDiff, 1)
+        recordsInDay[startDaysDiff][suitableRow] = true
 
         recordsInRange.push({
           ...record,
@@ -182,7 +206,7 @@ const calendarData = computed(() => {
             style: {
               width: `calc(${perDayWidth}px)`,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableColumn * 40}px`,
+              top: `${suitableRow * 40}px`,
             },
           },
         })
@@ -194,8 +218,6 @@ const calendarData = computed(() => {
 })
 
 const dragElement = ref<HTMLElement | null>(null)
-
-const draggingId = ref<string | null>(null)
 
 const resizeInProgress = ref(false)
 
@@ -215,11 +237,13 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
 
+// This function is used to calculate the new start and end date of a record when resizing
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (!container.value || !resizeRecord.value) return
+  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+
   const { width, left } = container.value.getBoundingClientRect()
 
+  // Calculate the percentage of the width based on the mouse position
   const percentX = (event.clientX - left - window.scrollX) / width
 
   const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
@@ -229,62 +253,58 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const day = Math.min(Math.floor(percentX * 7), 6)
+  const day = Math.floor(percentX * 7)
+
+  let updateProperty: string[] = []
+  let updateRecord: Row
 
   if (resizeDirection.value === 'right') {
+    // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
     let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day')
-    const updateProperty = [toCol.title!]
+    updateProperty = [toCol.title!]
 
+    // If the new end date is before the start date, we need to adjust the end date to the start date
     if (dayjs(newEndDate).isBefore(ogStartDate, 'day')) {
       newEndDate = ogStartDate.clone()
     }
 
     if (!newEndDate.isValid()) return
 
-    const newRow = {
+    updateRecord = {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title!]: newEndDate.format('YYYY-MM-DD'),
+        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
-
-    formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-        return newRow
-      }
-      return r
-    })
-    useDebouncedRowUpdate(newRow, updateProperty, false)
   } else if (resizeDirection.value === 'left') {
+    // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
     let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
-    const updateProperty = [fromCol.title!]
+    updateProperty = [fromCol.title!]
 
+    // If the new start date is after the end date, we need to adjust the start date to the end date
     if (dayjs(newStartDate).isAfter(ogEndDate)) {
       newStartDate = dayjs(dayjs(ogEndDate)).clone()
     }
     if (!newStartDate) return
 
-    const newRow = {
+    updateRecord = {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
-
-    formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-        return newRow
-      }
-      return r
-    })
-    useDebouncedRowUpdate(newRow, updateProperty, false)
   }
+
+  // Update the record in the store
+  const newPk = extractPkFromRow(updateRecord.row, meta.value!.columns!)
+  formattedData.value = formattedData.value.map((r) => {
+    const pk = extractPkFromRow(r.row, meta.value!.columns!)
+
+    return pk === newPk ? updateRecord : r
+  })
+  useDebouncedRowUpdate(updateRecord, updateProperty, false)
 }
 
 const onResizeEnd = () => {
@@ -304,78 +324,26 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
   document.addEventListener('mouseup', onResizeEnd)
 }
 
-const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (!container.value || !dragRecord.value) return
+// This method is used to calculate the new start and end date of a record when dragging and dropping
+const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   const { width, left } = container.value.getBoundingClientRect()
 
+  // Calculate the percentage of the width based on the mouse position
+  // This is used to calculate the day index
   const percentX = (event.clientX - left - window.scrollX) / width
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
-  if (!fromCol) return
+  if (!fromCol) return { updatedProperty: [], newRow: null }
 
-  const day = Math.min(Math.floor(percentX * 7), 6)
-
-  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
-  if (!newStartDate) return
-
-  let endDate
-
-  const newRow = {
-    ...dragRecord.value,
-    row: {
-      ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
-    },
-  }
-
-  if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
-
-    if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-    } else if (fromDate && !toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
-    } else {
-      endDate = newStartDate.clone()
-    }
-
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
-  }
-
-  formattedData.value = formattedData.value.map((r) => {
-    const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-    if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-      return newRow
-    }
-    return r
-  })
-}
-
-const stopDrag = (event: MouseEvent) => {
-  event.preventDefault()
-  clearTimeout(dragTimeout.value!)
-
-  if (!isUIAllowed('dataEdit')) return
-  if (!isDragging.value || !container.value || !dragRecord.value) return
-
-  const { width, left } = container.value.getBoundingClientRect()
-
-  const percentX = (event.clientX - left - window.scrollX) / width
-
-  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
-  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
-
+  // Calculate the day index based on the percentage of the width
+  // The day index is a number between 0 and 6
   const day = Math.floor(percentX * 7)
 
+  // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
-  if (!newStartDate || !fromCol) return
+  if (!newStartDate) return { updatedProperty: [], newRow: null }
 
   let endDate
 
@@ -383,7 +351,7 @@ const stopDrag = (event: MouseEvent) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -393,6 +361,10 @@ const stopDrag = (event: MouseEvent) => {
     const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 
+    // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
+    // If the record has an end date, we need to calculate the new end date based on the difference between the start and end date
+    // If the record doesn't have an end date, we need to calculate the new end date based on the start date
+    // If the record has an end date and no start Date, we set the end date to the start date
     if (fromDate && toDate) {
       endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
     } else if (fromDate && !toDate) {
@@ -403,31 +375,48 @@ const stopDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
-
+    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
     updateProperty.push(toCol.title!)
   }
 
-  if (!newRow) return
-
-  if (dragElement.value) {
-    formattedData.value = formattedData.value.map((r) => {
-      const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-        return newRow
-      }
-      return r
-    })
-  } else {
+  const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
+  if (updateSideBarData) {
+    // If the record is being dragged from the sidebar, we need to remove the record from the sidebar data
+    // and add the new record to the calendar data
     formattedData.value = [...formattedData.value, newRow]
     formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-      return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
+      return pk !== newPk
+    })
+  } else {
+    // If the record is being dragged within the calendar, we need to update the record in the calendar data
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
+      return pk === newPk ? newRow : r
     })
   }
 
+  return { updateProperty, newRow }
+}
+
+const onDrag = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (!container.value || !dragRecord.value) return
+  calculateNewRow(event)
+}
+
+const stopDrag = (event: MouseEvent) => {
+  event.preventDefault()
+  clearTimeout(dragTimeout.value!)
+
+  if (!isUIAllowed('dataEdit')) return
+  if (!isDragging.value || !container.value || !dragRecord.value) return
+
+  const { updateProperty, newRow } = calculateNewRow(event)
+
+  if (!newRow) return
+
+  // Open drop the record, we reset the opacity of the other records
   const allRecords = document.querySelectorAll('.draggable-record')
   allRecords.forEach((el) => {
     el.style.visibility = ''
@@ -436,9 +425,6 @@ const stopDrag = (event: MouseEvent) => {
 
   if (dragElement.value) {
     dragElement.value.style.boxShadow = 'none'
-    dragElement.value.classList.remove('hide')
-    // isDragging.value = false
-    draggingId.value = null
     dragElement.value = null
   }
 
@@ -464,7 +450,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        // el.style.visibility = 'hidden'
         el.style.opacity = '30%'
       }
     })
@@ -473,7 +458,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     isDragging.value = true
     dragElement.value = target
-    draggingId.value = record.rowMeta.id!
     dragRecord.value = record
 
     document.addEventListener('mousemove', onDrag)
@@ -502,75 +486,18 @@ const dropEvent = (event: DragEvent) => {
     }: {
       record: Row
     } = JSON.parse(data)
-    const { width, left } = container.value.getBoundingClientRect()
 
-    const percentX = (event.clientX - left - window.scrollX) / width
+    dragRecord.value = record
 
-    const fromCol = record.rowMeta.range?.fk_from_col
-    const toCol = record.rowMeta.range?.fk_to_col
-
-    if (!fromCol) return
-
-    const day = Math.floor(percentX * 7)
-
-    const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
-
-    let endDate
-
-    const newRow = {
-      ...record,
-      row: {
-        ...record.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
-      },
-    }
-
-    const updateProperty = [fromCol.title!]
-
-    if (toCol) {
-      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
-      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
-
-      if (fromDate && toDate) {
-        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-      } else if (fromDate && !toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
-      } else if (!fromDate && toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
-      } else {
-        endDate = newStartDate.clone()
-      }
-      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
-      updateProperty.push(toCol.title!)
-    }
-
-    if (!newRow) return
-
-    if (dragElement.value) {
-      formattedData.value = formattedData.value.map((r) => {
-        const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-        if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
-          return newRow
-        }
-        return r
-      })
-    } else {
-      formattedData.value = [...formattedData.value, newRow]
-      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
-        const pk = extractPkFromRow(r.row, meta.value!.columns!)
-
-        return pk !== extractPkFromRow(newRow.row, meta.value!.columns!)
-      })
-    }
+    const { updateProperty, newRow } = calculateNewRow(event, true)
 
     if (dragElement.value) {
       dragElement.value.style.boxShadow = 'none'
-      dragElement.value.classList.remove('hide')
-
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+
+    dragRecord.value = null
   }
 }
 </script>
@@ -613,7 +540,7 @@ const dropEvent = (event: DragEvent) => {
         :style="{
           ...record.rowMeta.style,
           boxShadow:
-            record.rowMeta.id === draggingId
+            record.rowMeta.id === dragElement?.getAttribute('data-unique-id')
               ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
               : 'none',
         }"
@@ -627,6 +554,13 @@ const dropEvent = (event: DragEvent) => {
             :hover="hoverRecord === record.rowMeta.id"
             :position="record.rowMeta.position"
             :record="record"
+            :selected="
+              dragRecord
+                ? dragRecord.rowMeta.id === record.rowMeta.id
+                : resizeRecord
+                ? resizeRecord.rowMeta.id === record.rowMeta.id
+                : false
+            "
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             color="blue"
             @dblclick="emits('expand-record', record)"
@@ -635,8 +569,8 @@ const dropEvent = (event: DragEvent) => {
             <template v-if="!isRowEmpty(record, displayField)">
               <div
                 :class="{
-                  '!mt-2': displayField.uidt === UITypes.SingleLineText,
-                  '!mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
+                  'mt-2': displayField.uidt === UITypes.SingleLineText,
+                  'mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
                 }"
               >
                 <LazySmartsheetVirtualCell
@@ -663,13 +597,9 @@ const dropEvent = (event: DragEvent) => {
 </template>
 
 <style lang="scss" scoped>
-.hide {
-  transition: 0.01s;
-  transform: translateX(-9999px);
-}
 .prevent-select {
-  -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* IE 10 and IE 11 */
-  user-select: none; /* Standard syntax */
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 </style>

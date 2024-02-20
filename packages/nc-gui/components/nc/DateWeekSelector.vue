@@ -45,7 +45,7 @@ const currentMonth = computed(() => {
 });
 
 const selectWeek = (date: Date) => {
-  if(!date) return;
+  if (!date) return;
   const dayOffset = props.isMondayFirst ? 1 : 0;
   const dayOfWeek = (date.getDay() - dayOffset + 7) % 7;
   const startDate = new Date(date);
@@ -101,7 +101,7 @@ const isDateInCurrentMonth = (date: Date) => {
 
 // Used to check if two dates are the same
 const isSameDate = (date1: Date, date2: Date) => {
-  if(!date1 || !date2) return false;
+  if (!date1 || !date2) return false;
   return date1.getDate() === date2.getDate() &&
       date1.getMonth() === date2.getMonth() &&
       date1.getFullYear() === date2.getFullYear();
@@ -154,7 +154,8 @@ const paginate = (action: 'next' | 'prev') => {
         }" class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
               @click="handleSelectDate(date)"
         >
-          <span v-if="isActiveDate(date)" class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
+          <span v-if="isActiveDate(date)"
+                class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
           <span class="z-2">
           {{ date.getDate() }}
           </span>
@@ -179,11 +180,11 @@ const paginate = (action: 'next' | 'prev') => {
   height: 100%;
 }
 
-.nc-selected-week-start:before{
+.nc-selected-week-start:before {
   @apply !border-l-2 !rounded-l-lg;
 }
 
-.nc-selected-week-end:before{
+.nc-selected-week-end:before {
   width: 100%;
   @apply !border-r-2 !rounded-r-lg;
 }

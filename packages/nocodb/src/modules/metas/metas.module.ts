@@ -180,6 +180,7 @@ export const metaModuleMetadata = {
     ViewsService,
     ViewColumnsService,
     GridsService,
+    CalendarsService,
     GridColumnsService,
     FormsService,
     FormColumnsService,

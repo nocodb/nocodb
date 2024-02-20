@@ -320,7 +320,19 @@ export class PublicDatasService {
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
-        const originalName = utf8ify(file.originalname);
+        let originalName = utf8ify(file.originalname);
+
+        let c = 1;
+        while (
+          path.extname(originalName) &&
+          attachments[fieldName].some((att) => att?.title === originalName)
+        ) {
+          originalName = originalName.replace(
+            /(.+?)(\.[^.]+)$/,
+            `$1(${c++})$2`,
+          );
+        }
+
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
@@ -345,6 +357,65 @@ export class PublicDatasService {
           icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         });
       }
+    }
+
+    // filter the uploadByUrl attachments
+    const uploadByUrlAttachments = [];
+    for (const [column, data] of Object.entries(insertObject)) {
+      if (fields[column].uidt === UITypes.Attachment && Array.isArray(data)) {
+        data.forEach((file, uploadIndex) => {
+          if (file?.url && !file?.file) {
+            uploadByUrlAttachments.push({
+              ...file,
+              fieldName: column,
+              uploadIndex,
+            });
+          }
+        });
+      }
+    }
+
+    for (const file of uploadByUrlAttachments) {
+      const filePath = sanitizeUrlPath([
+        'noco',
+        base.title,
+        model.title,
+        file.fieldName,
+      ]);
+
+      attachments[file.fieldName] = attachments[file.fieldName] || [];
+
+      const fileName = `${nanoid(18)}${path.extname(
+        file?.fileName || file.url.split('/').pop(),
+      )}`;
+
+      const attachmentUrl: string | null = await storageAdapter.fileCreateByUrl(
+        slash(path.join('nc', 'uploads', ...filePath, fileName)),
+        file.url,
+      );
+
+      let attachmentPath: string | undefined;
+
+      // if `attachmentUrl` is null, then it is local attachment
+      if (!attachmentUrl) {
+        // then store the attachment path only
+        // url will be constructed in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
+      }
+
+      // add attachement in uploaded order
+      attachments[file.fieldName].splice(
+        file.uploadIndex ?? attachments[file.fieldName].length,
+        0,
+        {
+          ...(attachmentUrl ? { url: attachmentUrl } : {}),
+          ...(attachmentPath ? { path: attachmentPath } : {}),
+          title: file.fileName,
+          mimetype: file.mimetype,
+          size: file.size,
+          icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+        },
+      );
     }
 
     for (const [column, data] of Object.entries(attachments)) {

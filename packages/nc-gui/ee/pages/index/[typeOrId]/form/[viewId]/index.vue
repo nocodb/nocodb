@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
+import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedViewMeta } = useSharedFormStoreOrThrow()
 
 const isDark = useDark()
 
-const { setTheme } = useTheme()
-
 const route = useRoute()
 
 const router = useRouter()
 
-watch(
-  () => sharedViewMeta.value.withTheme,
-  (hasTheme) => {
-    if (hasTheme && sharedViewMeta.value.theme) setTheme(sharedViewMeta.value.theme)
-  },
-  { immediate: true },
-)
+// For now dark theme is disabled
+// const onClick = () => {
+//   isDark.value = !isDark.value
+// }
 
-const onClick = () => {
-  isDark.value = !isDark.value
-}
+onMounted(() => {
+  isDark.value = false
+})
 
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
@@ -42,7 +37,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
   >
     <NuxtPage />
 
-    <div
+    <!-- <div
       class="color-transition flex items-center justify-center cursor-pointer absolute top-4 md:top-15 right-4 md:right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"
       @click="onClick"
     >
@@ -50,7 +45,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
         <MaterialSymbolsDarkModeOutline v-if="isDark" />
         <MaterialSymbolsLightModeOutline v-else />
       </Transition>
-    </div>
+    </div> -->
   </div>
 </template>
 

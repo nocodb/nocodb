@@ -1,8 +1,11 @@
 <script lang="ts" setup>
+import type { Row } from '~/lib'
+
 interface Props {
   color?: string
   resize?: boolean
   hover?: boolean
+  record?: Row
   selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'

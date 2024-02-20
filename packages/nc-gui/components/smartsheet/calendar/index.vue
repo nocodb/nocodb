@@ -219,23 +219,20 @@ const headerText = computed(() => {
           </NcButton>
         </NcTooltip>
       </div>
-      <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />
+      <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
       <template v-if="!isCalendarDataLoading">
         <LazySmartsheetCalendarMonthView
           v-if="activeCalendarView === 'month'"
-          class="flex-grow-1"
           @expand-record="expandRecord"
           @new-record="newRecord"
         />
         <LazySmartsheetCalendarWeekView
           v-else-if="activeCalendarView === 'week'"
-          class="flex-grow-1"
           @expand-record="expandRecord"
           @new-record="newRecord"
         />
         <LazySmartsheetCalendarDayView
           v-else-if="activeCalendarView === 'day'"
-          class="flex-grow-1"
           @expand-record="expandRecord"
           @new-record="newRecord"
         />

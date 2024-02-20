@@ -437,15 +437,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value) return
       let prevDate: dayjs.Dayjs | string | null = null
       let nextDate: dayjs.Dayjs | string | null = null
+      let fromDate: dayjs.Dayjs | string | null = null
 
       if (activeCalendarView.value === 'week' || activeCalendarView.value === 'day' || activeCalendarView.value === 'month') {
-        prevDate = pageDate.value.subtract(1, 'day').endOf('day')
+        prevDate = pageDate.value.startOf('month').subtract(1, 'day').endOf('day')
+        fromDate = pageDate.value.startOf('month')
 
-        nextDate = pageDate.value.add(1, 'day').startOf('day')
+        nextDate = pageDate.value.endOf('month').add(1, 'day').startOf('day')
       } else if (activeCalendarView.value === 'year') {
+        fromDate = selectedDate.value.startOf('year')
         prevDate = selectedDate.value.startOf('year').subtract(1, 'day').endOf('day')
         nextDate = selectedDate.value.endOf('year').add(1, 'day').startOf('day')
       }
+
+      prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
+      nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
+      fromDate = pageDate.value.format('YYYY-MM-DD HH:mm:ssZ')
 
       const activeDateFilter: Array<any> = []
 
@@ -473,6 +480,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   value: prevDate,
                 },
               ],
+            },
+            {
+              fk_column_id: fromCol.id,
+              comparison_op: 'eq',
+              logical_op: 'or',
+              comparison_sub_op: 'exactDate',
+              value: fromDate,
             },
           ]
         } else if (fromCol) {

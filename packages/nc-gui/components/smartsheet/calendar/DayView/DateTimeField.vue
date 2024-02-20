@@ -197,7 +197,111 @@ const isDragging = ref(false)
 const draggingId = ref<string | null>(null)
 const dragElement = ref<HTMLElement | null>(null)
 
+const resizeDirection = ref<'right' | 'left' | null>()
+const resizeInProgress = ref(false)
+const resizeRecord = ref<Row | null>()
+
 const dragTimeout = ref(null)
+
+const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
+  updateRowProperty(row, updateProperty, isDelete)
+}, 500)
+
+const onResize = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (!container.value || !resizeRecord.value) return
+  const { width, left, top, bottom } = container.value.getBoundingClientRect()
+
+  const { scrollHeight } = container.value
+
+  if (event.clientY > bottom - 20) {
+    container.value.scrollTop += 10
+  } else if (event.clientY < top + 20) {
+    container.value.scrollTop -= 10
+  }
+
+  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
+
+  const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
+  const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
+  if (!fromCol || !toCol) return
+
+  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
+  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
+
+  const hour = Math.floor(percentY * 24)
+
+  if (resizeDirection.value === 'right') {
+    let newEndDate = dayjs(selectedDate.value).add(hour, 'hour')
+    const updateProperty = [toCol.title!]
+
+    if (dayjs(newEndDate).isBefore(ogStartDate, 'day')) {
+      newEndDate = ogStartDate.clone()
+    }
+
+    if (!newEndDate.isValid()) return
+
+    const newRow = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
+      },
+    }
+
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
+        return newRow
+      }
+      return r
+    })
+    useDebouncedRowUpdate(newRow, updateProperty, false)
+  } else if (resizeDirection.value === 'left') {
+    let newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
+    const updateProperty = [fromCol.title!]
+
+    if (dayjs(newStartDate).isAfter(ogEndDate)) {
+      newStartDate = dayjs(dayjs(ogEndDate)).clone()
+    }
+    if (!newStartDate) return
+
+    const newRow = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      },
+    }
+
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value!.columns!)) {
+        return newRow
+      }
+      return r
+    })
+    useDebouncedRowUpdate(newRow, updateProperty, false)
+  }
+}
+
+const onResizeEnd = () => {
+  resizeInProgress.value = false
+  resizeDirection.value = null
+  resizeRecord.value = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+}
+const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
+  resizeInProgress.value = true
+  resizeDirection.value = direction
+  resizeRecord.value = record
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', onResizeEnd)
+}
 
 const onDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
@@ -517,6 +621,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
               :resize="true"
               color="blue"
               size="auto"
+              @resize-start="onResizeStart"
             />
           </LazySmartsheetRow>
         </div>

@@ -113,11 +113,7 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
       </a-button>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="flex flex-col w-full p-6 w-[40rem]" @click.stop>
-        <div>
-          <span class="font-bold"> {{ $t('activity.calendar') + $t('activity.viewSettings') }}</span>
-          <a-divider class="!my-2" />
-        </div>
+      <div v-if="calendarRangeDropdown" class="flex flex-col w-full p-6 w-[35rem]" @click.stop>
         <div v-for="(range, id) in _calendar_ranges" :key="id" class="flex w-full gap-2 items-center">
           <span>
             {{ $t('labels.organiseBy') }}

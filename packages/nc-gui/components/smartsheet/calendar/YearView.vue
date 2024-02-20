@@ -11,7 +11,7 @@ const months = computed(() => {
 </script>
 
 <template>
-  <div class="grid justify-items-center gap-6 grid-cols-3 overflow-auto nc-scrollbar-md">
+  <div class="flex flex-wrap gap-6 items-center justify-center overflow-auto nc-scrollbar-md">
     <NcDateWeekSelector
       v-for="(month, index) in months"
       :key="month"

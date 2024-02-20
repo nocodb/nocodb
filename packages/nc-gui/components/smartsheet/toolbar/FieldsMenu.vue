@@ -319,13 +319,7 @@ useMenuCloseOnEsc(open)
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
-            <template
-              v-if="
-                activeView?.type === ViewTypes.KANBAN ||
-                activeView?.type === ViewTypes.GALLERY ||
-                activeView?.type === ViewTypes.CALENDAR
-              "
-            >
+            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
               {{ $t('title.editCards') }}
             </template>
             <template v-else>
@@ -342,13 +336,7 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
-          v-if="
-            !filterQuery &&
-            !isPublic &&
-            (activeView?.type === ViewTypes.GALLERY ||
-              activeView?.type === ViewTypes.KANBAN ||
-              activeView?.type === ViewTypes.CALENDAR)
-          "
+          v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 pr-4 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>

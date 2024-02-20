@@ -17,6 +17,7 @@ const { t } = useI18n()
 
 const {
   pageDate,
+  displayField,
   selectedDate,
   calendarRange,
   selectedDateRange,
@@ -30,13 +31,7 @@ const {
   sideBarFilterOption,
 } = useCalendarViewStoreOrThrow()
 
-const meta = inject(MetaInj, ref())
-
-const fields = inject(FieldsInj, ref([]))
-
 const sideBarListRef = ref<VNodeRef | null>(null)
-
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const options = computed(() => {
   switch (activeCalendarView.value) {
@@ -69,11 +64,6 @@ const options = computed(() => {
         { label: 'in selected date', value: 'selectedDate' },
       ]
   }
-})
-
-watch(displayField, () => {
-  if (!displayField) return
-  searchQuery.field = displayField.value?.title ?? ''
 })
 
 const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
@@ -145,7 +135,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
       </div>
 
       <div
-        v-if="displayField && calendarRange"
+        v-if="calendarRange"
         :ref="sideBarListRef"
         :class="{
         'h-[calc(100vh-40rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),

@@ -376,6 +376,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
       calendarMetaData.value = res
       activeCalendarView.value = typeof res.meta === 'string' ? JSON.parse(res.meta)?.active_view : res.meta?.active_view
+      if (!activeCalendarView.value) activeCalendarView.value = 'month'
       displayField.value = meta.value.columns.find((col) => col.pv)
     }
 

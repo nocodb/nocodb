@@ -93,10 +93,23 @@ const handleScroll = (event) => {
     pageDate.value.setMonth(pageDate.value.getMonth() - 1)
   }
 }
+
+const eventsByDate = computed(() => {
+  if (!formattedData.value) return {}
+  const events = {}
+  formattedData.value.forEach((record) => {
+    const date = record.row[calendarRange.value[0].fk_from_col.title]
+    if (!events[new Date().getDate()]) {
+      events[date] = []
+    }
+    events[date].push(record)
+  })
+  return events
+})
 </script>
 
 <template>
-  <div class="h-full" @scroll="handleScroll">
+  <div v-if="calendarRange && calendarRange[0] && calendarRange[0].fk_from_col" class="h-full" @scroll="handleScroll">
     <div class="grid grid-cols-7">
       <div
         v-for="(day, index) in days"
@@ -106,15 +119,15 @@ const handleScroll = (event) => {
         {{ day }}
       </div>
     </div>
-    <div v-if="dates" class="grid relative grid-cols-7 h-full">
+    <div class="grid relative grid-cols-7 h-full">
       <div
-        v-for="date in dates"
-        :key="date.toISOString()"
+        v-for="(date, id) in dates"
+        :key="id"
         :class="{
           'border-brand-500': isDateSelected(date),
-          '!bg-gray-50 !text-gray-400': !isDayInPagedMonth(date),
+          '!text-gray-400': !isDayInPagedMonth(date),
         }"
-        class="text-right !h-[100%] group grid-cell py-1 text-sm border-1 bg-white last:border-r-0 border-gray-200 font-semibold text-gray-800"
+        class="text-right !h-[100%] group grid-cell py-1 text-sm hover:bg-gray-50 border-1 bg-white last:border-r-0 border-gray-200 font-semibold text-gray-800"
         @click="selectDate(date)"
       >
         <div class="h-full">
@@ -140,9 +153,19 @@ const handleScroll = (event) => {
             </NcButton>
             <span class="px-1 py-2">{{ date.getDate() }}</span>
           </div>
+          <pre></pre>
+          <LazySmartsheetRow v-for="(record, recordId) in eventsByDate[date.getDate()]" :key="recordId" :row="record">
+            <LazySmartsheetCalendarRecordCard
+              v-if="calendarRange && calendarRange[0]"
+              :date="record.row[calendarRange[0].fk_from_col.title]"
+              :name="record.row[displayField.title]"
+              color="blue"
+              @click="emit('expand-record', record)"
+            />
+          </LazySmartsheetRow>
         </div>
       </div>
-      <LazySmartsheetRow
+      <!--      <LazySmartsheetRow
         v-for="(record, recordId) in formattedData"
         :key="recordId"
         :class="[
@@ -161,7 +184,7 @@ const handleScroll = (event) => {
           color="blue"
           @click="emit('expand-record', record)"
         />
-      </LazySmartsheetRow>
+      </LazySmartsheetRow> -->
     </div>
   </div>
 </template>

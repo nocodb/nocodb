@@ -166,7 +166,7 @@ export class DatasService {
 
     let options = {};
 
-    if (view.type === ViewTypes.CALENDAR) {
+    if (view && view.type === ViewTypes.CALENDAR) {
       {
         options = {
           ignorePagination: true,

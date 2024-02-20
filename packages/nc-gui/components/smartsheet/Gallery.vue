@@ -6,6 +6,7 @@ import {
   FieldsInj,
   IsFormInj,
   IsGalleryInj,
+  IsCalendarInj,
   IsGridInj,
   MetaInj,
   NavigateDir,
@@ -57,6 +58,7 @@ const {
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
+provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, ref(1 as const))
 

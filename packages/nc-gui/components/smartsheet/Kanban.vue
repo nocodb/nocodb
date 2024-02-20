@@ -7,6 +7,7 @@ import {
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
+  IsCalendarInj,
   IsKanbanInj,
   IsLockedInj,
   IsPublicInj,
@@ -103,6 +104,8 @@ provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
+
+provide(IsCalendarInj, ref(false))
 
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 

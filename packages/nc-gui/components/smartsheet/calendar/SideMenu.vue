@@ -202,22 +202,21 @@ const options = computed(() => {
           { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
           { label: 'In selected hours', value: 'selectedHours' },
-          { label: 'In selected date', value: 'selectedDate' },
         ]
       }
     case 'week' as const:
       if (calDataType.value === UITypes.Date) {
         return [
-          { label: 'In this day', value: 'day' },
+          { label: 'In selected date', value: 'selectedDate' },
           { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
         ]
       } else {
         return [
-          { label: 'In this day', value: 'day' },
           { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
           { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'In selected week', value: 'week' },
           { label: 'In selected date', value: 'selectedDate' },
         ]
       }

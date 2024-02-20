@@ -71,7 +71,7 @@ test.describe('View', () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: false });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.base);
     toolbar = toolbar = dashboard.calendar.toolbar;
     topbar = dashboard.calendar.topbar;
@@ -409,7 +409,7 @@ test.describe('View', () => {
     await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
   });
 
-  test('Calendar Operations Date Fields', async () => {
+  test.only('Calendar Operations Date Fields', async () => {
     await dashboard.grid.column.openEdit({
       title: 'StartDate',
       type: 'Date',

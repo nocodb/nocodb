@@ -345,7 +345,7 @@ onUnmounted(() => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" class="min-w-36 !text-gray-800" data-testid="nc-calendar-sidebar-filter">
+        <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-800" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-800">
             <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
               <template #title>{{ option.label }}</template>

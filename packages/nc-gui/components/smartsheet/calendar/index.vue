@@ -19,6 +19,8 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const { isMobileMode } = useGlobal()
+
 const {t} = useI18n()
 
 provide(IsFormInj, ref(false))
@@ -60,14 +62,14 @@ const expandRecord = (id: string) => {
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4"/>
           </NcButton>
         </div>
-        <NcButton size="small" type="secondary" @click="showSideMenu = !showSideMenu">
+        <NcButton v-if="!isMobileMode" size="small" type="secondary" @click="showSideMenu = !showSideMenu">
           <component :is="iconMap.sidebarMinimise" :class="{
             'transform rotate-180': showSideMenu,
           }" class="h-4 w-4 transition-all"/>
         </NcButton>
       </div>
     </div>
-    <LazySmartsheetCalendarSideMenu :visible="showSideMenu" @expand-record="expandRecord"/>
+    <LazySmartsheetCalendarSideMenu v-if="!isMobileMode" :visible="showSideMenu" @expand-record="expandRecord"/>
   </div>
 
   <LazySmartsheetExpandedForm v-model="isExpanded" :view="view" :row="{

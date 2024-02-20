@@ -121,6 +121,7 @@ import NcArrowDown from '~icons/nc-icons/arrow-down'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
 import NcProjectGray from '~icons/nc-icons/project-gray'
+import NcPhoneCall from '~icons/nc-icons/phone-call'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -270,7 +271,6 @@ import NcProjectGray from '~icons/nc-icons/project-gray'
 } as const */
 
 export const iconMap = {
-  projectGray: NcProjectGray,
   sort: Sort,
   group: Group,
   filter: Filter,
@@ -480,6 +480,7 @@ export const iconMap = {
   ncEdit: NcEdit,
   ncArrowUp: NcArrowUp,
   ncArrowDown: NcArrowDown,
+  phoneCall: NcPhoneCall,
 }
 
 export const getMdiIcon = (type: string): any => {

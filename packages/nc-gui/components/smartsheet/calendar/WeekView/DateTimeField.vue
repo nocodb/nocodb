@@ -436,11 +436,11 @@ const onDrag = (event: MouseEvent) => {
 }
 
 const stopDrag = (event: MouseEvent) => {
-  event.preventDefault()
-  clearTimeout(dragTimeout.value!)
-
   if (!isUIAllowed('dataEdit')) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
+
+  event.preventDefault()
+  clearTimeout(dragTimeout.value!)
 
   const { width, left, top } = container.value.getBoundingClientRect()
 

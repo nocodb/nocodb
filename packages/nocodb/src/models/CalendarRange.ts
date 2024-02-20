@@ -2,7 +2,12 @@ import type { CalendarRangeType } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 
 export default class CalendarRange implements CalendarRangeType {
   id?: string;
@@ -61,19 +66,29 @@ export default class CalendarRange implements CalendarRangeType {
       MetaTable.CALENDAR_VIEW_RANGE,
       insertObj,
     );
-    // clear cache
-    const uniqueFks = [...new Set(bulkData.map((d) => d.fk_view_id))];
+    const uniqueFks: string[] = [
+      ...new Set(bulkData.map((d) => d.fk_view_id)),
+    ] as string[];
+
     for (const fk of uniqueFks) {
-      await NocoCache.delAll(CacheScope.CALENDAR_VIEW_RANGE, `${fk}:*`);
+      await NocoCache.deepDel(
+        CacheScope.CALENDAR_VIEW_RANGE,
+        fk,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
     }
 
     for (const d of bulkData) {
+      await NocoCache.set(
+        `${CacheScope.CALENDAR_VIEW_RANGE}:${d.fk_view_id}`,
+        d,
+      );
+
       await NocoCache.appendToList(
         CacheScope.CALENDAR_VIEW_RANGE,
         [d.fk_view_id],
         `${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`,
       );
-      await NocoCache.set(`${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`, d);
     }
 
     return true;

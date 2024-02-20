@@ -272,9 +272,18 @@ const dragRecord = ref<Row>()
 const onDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
-  const { width, left } = container.value.getBoundingClientRect()
+  const { width, left, top, bottom } = container.value.getBoundingClientRect()
+
+  if (event.clientY > bottom - 20) {
+    container.value.scrollTop += 10
+  } else if (event.clientY < top + 20) {
+    container.value.scrollTop -= 10
+  }
+
+  const { scrollHeight } = container.value
 
   const percentX = (event.clientX - left - window.scrollX) / width
+  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
@@ -282,8 +291,9 @@ const onDrag = (event: MouseEvent) => {
   if (!fromCol) return
 
   const day = Math.floor(percentX * 7)
+  const hour = Math.floor(percentY * 24)
 
-  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
   if (!newStartDate) return
 
   let endDate
@@ -292,7 +302,7 @@ const onDrag = (event: MouseEvent) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -301,7 +311,7 @@ const onDrag = (event: MouseEvent) => {
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day').add(toDate.diff(fromDate, 'hour'), 'hour')
     } else if (fromDate && !toDate) {
       endDate = dayjs(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {
@@ -310,7 +320,7 @@ const onDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
   }
 
   formattedData.value = formattedData.value.map((r) => {
@@ -330,7 +340,11 @@ const stopDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
-  const { width, left } = container.value.getBoundingClientRect()
+  const { width, left, top } = container.value.getBoundingClientRect()
+
+  const { scrollHeight } = container.value
+
+  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
 
   const percentX = (event.clientX - left - window.scrollX) / width
 
@@ -338,8 +352,9 @@ const stopDrag = (event: MouseEvent) => {
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
   const day = Math.floor(percentX * 7)
+  const hour = Math.floor(percentY * 24)
 
-  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
   if (!newStartDate || !fromCol) return
 
   let endDate
@@ -348,7 +363,7 @@ const stopDrag = (event: MouseEvent) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
 
@@ -359,7 +374,7 @@ const stopDrag = (event: MouseEvent) => {
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day').add(toDate.diff(fromDate, 'hour'), 'hour')
     } else if (fromDate && !toDate) {
       endDate = dayjs(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {
@@ -368,7 +383,7 @@ const stopDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
 
     updateProperty.push(toCol.title!)
   }
@@ -467,9 +482,11 @@ const dropEvent = (event: DragEvent) => {
     }: {
       record: Row
     } = JSON.parse(data)
-    const { width, left } = container.value.getBoundingClientRect()
+    const { width, left, top } = container.value.getBoundingClientRect()
+    const { scrollHeight } = container.value
 
     const percentX = (event.clientX - left - window.scrollX) / width
+    const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
@@ -477,8 +494,9 @@ const dropEvent = (event: DragEvent) => {
     if (!fromCol) return
 
     const day = Math.floor(percentX * 7)
+    const hour = Math.floor(percentY * 24)
 
-    const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+    const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
 
     let endDate
 
@@ -486,7 +504,7 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD'),
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
@@ -497,7 +515,7 @@ const dropEvent = (event: DragEvent) => {
       const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
 
       if (fromDate && toDate) {
-        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day').add(toDate.diff(fromDate, 'hour'), 'hour')
       } else if (fromDate && !toDate) {
         endDate = dayjs(newStartDate).endOf('day')
       } else if (!fromDate && toDate) {
@@ -505,7 +523,7 @@ const dropEvent = (event: DragEvent) => {
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD')
+      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
       updateProperty.push(toCol.title!)
     }
 
@@ -586,7 +604,6 @@ const dropEvent = (event: DragEvent) => {
               :record="record"
               :resize="true"
               color="blue"
-              size="auto"
             />
           </LazySmartsheetRow>
         </div>

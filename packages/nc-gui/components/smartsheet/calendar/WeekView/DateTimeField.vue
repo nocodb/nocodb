@@ -198,8 +198,14 @@ const recordsAcrossAllRange = computed<{
 
         while (currentStartDate.isSameOrBefore(endDate!, 'day')) {
           const currentEndDate = currentStartDate.clone().endOf('day')
-          const recordStart = currentEndDate.isSameOrBefore(startDate, 'day') ? startDate : currentStartDate
-          const recordEnd = currentEndDate.isAfter(endDate, 'day') ? endDate : currentEndDate
+          const recordStart = currentEndDate.isSame(startDate, 'day') ? startDate : currentStartDate
+          const recordEnd = currentEndDate.isSame(endDate, 'day') ? endDate : currentEndDate
+
+          console.log(
+            record.row[displayField.value.title],
+            recordStart.format('YYYY-MM-DD HH:mm'),
+            recordEnd.format('YYYY-MM-DD HH:mm'),
+          )
 
           const dateKey = recordStart.format('YYYY-MM-DD')
 
@@ -222,7 +228,8 @@ const recordsAcrossAllRange = computed<{
             hour = hour.add(1, 'hour')
           }
 
-          const dayIndex = dayjs(dateKey).day() - 1
+          const dayIndex = dayjs(dateKey).day()
+          console.log('dayIndex', record.row[displayField.value.title], dayIndex)
 
           let maxRecordCount = 0
 
@@ -233,20 +240,22 @@ const recordsAcrossAllRange = computed<{
             }
           }
 
-          const startHourIndex = (datesHours.value[dayIndex] ?? []).findIndex(
-            (h) => h.format('HH:mm') === recordStart.format('HH:mm'),
+          const startHourIndex = Math.max(
+            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordStart.format('HH:mm')),
+            0,
           )
 
-          const endHourIndex = (datesHours.value[dayIndex] ?? []).findIndex(
-            (h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm'),
+          const endHourIndex = Math.max(
+            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm')),
+            0,
           )
 
           const spanHours = endHourIndex - startHourIndex + 1
 
-          console.log(record.row[displayField.value.title], startHourIndex, endHourIndex)
+          console.log(record.row[displayField.value.title], dayIndex)
 
           const style: Partial<CSSStyleDeclaration> = {
-            left: `${dayIndex * perWidth}px`,
+            left: `${(dayIndex - 1) * perWidth}px`,
             top: `${startHourIndex * perHeight}px`,
             height: `${(endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5}px`,
           }
@@ -261,7 +270,7 @@ const recordsAcrossAllRange = computed<{
             },
           })
 
-          currentStartDate = currentStartDate.add(1, 'day')
+          currentStartDate = currentStartDate.add(1, 'day').hour(0).minute(0)
         }
       }
     })

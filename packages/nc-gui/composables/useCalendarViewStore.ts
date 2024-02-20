@@ -456,7 +456,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     watch(selectedDate, async () => {
-      await Promise.all([loadCalendarData(), loadSidebarData()])
+      if (activeCalendarView.value === 'month' || activeCalendarView.value === 'week') {
+        await loadSidebarData()
+      } else {
+        await Promise.all([loadCalendarData(), loadSidebarData()])
+      }
     })
 
     watch(selectedDateRange, async () => {

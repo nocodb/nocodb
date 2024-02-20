@@ -523,7 +523,7 @@ const onFormItemClick = (element: any) => {
                         'max-height': '250px',
                         'resize': 'vertical',
                       }"
-                      autosize
+                      auto-size
                       size="large"
                       hide-details
                       :disabled="isLocked"
@@ -551,7 +551,7 @@ const onFormItemClick = (element: any) => {
                         'resize': 'vertical',
                       }"
                       size="large"
-                      autosize
+                      auto-size
                       hide-details
                       :placeholder="$t('msg.info.formDesc')"
                       :bordered="false"
@@ -693,21 +693,24 @@ const onFormItemClick = (element: any) => {
                           </a-form-item>
 
                           <a-form-item class="my-0 !mb-2">
-                            <a-input
+                            <a-textarea
                               v-model:value="element.label"
-                              type="text"
+                              :rows="1"
+                              auto-size
+                              hide-details
                               class="form-meta-input nc-form-input-label"
                               data-testid="nc-form-input-label"
                               :placeholder="$t('msg.info.formInput')"
                               @change="updateColMeta(element)"
-                            >
-                            </a-input>
+                            />
                           </a-form-item>
 
                           <a-form-item class="!my-0 !mb-3">
-                            <a-input
+                            <a-textarea
                               v-model:value="element.description"
-                              type="text"
+                              :rows="1"
+                              auto-size
+                              hide-details
                               class="form-meta-input text-sm nc-form-input-help-text"
                               data-testid="nc-form-input-help-text"
                               :placeholder="$t('msg.info.formHelpText')"
@@ -1137,7 +1140,7 @@ const onFormItemClick = (element: any) => {
   @apply !px-4 !py-2;
 }
 .nc-form-input-help-text {
-  @apply !px-3 !py-1;
+  @apply !px-4 !py-1;
 }
 
 .nc-form-help-text,

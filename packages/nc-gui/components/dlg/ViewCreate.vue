@@ -227,7 +227,7 @@ async function onSubmit() {
 
 const addCalendarRange = async () => {
   form.calendarRange.push({
-    fk_from_column_id: viewSelectFieldOptions.value[0],
+    fk_from_column_id: viewSelectFieldOptions.value[0].value,
     fk_to_column_id: null,
   })
 }

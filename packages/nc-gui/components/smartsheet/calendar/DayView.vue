@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
   data: null,
 })
 
-const emit = defineEmits(['expand-record'])
+const emit = defineEmits(['expand-record', 'new-record'])
 const meta = inject(MetaInj, ref())
 const fields = inject(FieldsInj, ref([]))
 
@@ -21,8 +21,7 @@ const data = toRefs(props).data
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const { pageDate, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
-
+const { pageDate, selectedTime, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
 const getRecordPosition = (record: Row) => {
   if (!calendarRange.value || !calendarRange.value[0]) return ''
   const startCol = calendarRange.value[0].fk_from_col
@@ -46,10 +45,19 @@ const getRecordPosition = (record: Row) => {
   }
 }
 
-const hours = computed(() => {
+const hours = computed<dayjs.Dayjs>(() => {
   const hours = []
   for (let i = 0; i < 24; i++) {
-    hours.push(i)
+    hours.push(
+      dayjs()
+        .hour(i)
+        .minute(0)
+        .second(0)
+        .millisecond(0)
+        .year(selectedDate.value.getFullYear())
+        .month(selectedDate.value.getMonth())
+        .date(selectedDate.value.getDate()),
+    )
   }
   return hours
 })
@@ -90,8 +98,35 @@ const renderData = computed(() => {
         'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
         'border-r-1 h-full border-gray-200 ': props.isEmbed,
       }"
-      class="flex flex-col mt-3 gap-2 w-full px-1"
-    ></div>
+      class="flex flex-col w-full"
+    >
+      <div
+        v-for="hour in hours"
+        :key="hour"
+        :class="{
+          '!border-brand-500': dayjs(hour).isSame(selectedTime),
+        }"
+        class="flex w-full relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+        @click="selectedTime = dayjs(hour).toDate()"
+      >
+        <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
+          {{ dayjs(hour).format('H A') }}
+        </div>
+        <div></div>
+        <NcButton
+          :class="{
+            '!block': dayjs(hour).isSame(selectedTime),
+            '!hidden': !dayjs(hour).isSame(selectedTime),
+          }"
+          class="mr-4 my-auto ml-auto top-0 bottom-0 !group-hover:block absolute"
+          size="xsmall"
+          type="secondary"
+          @click="emit('new-record')"
+        >
+          <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
+        </NcButton>
+      </div>
+    </div>
   </template>
   <div v-else-if="!data" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">
     No Records in this day

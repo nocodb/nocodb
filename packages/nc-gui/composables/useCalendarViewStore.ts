@@ -255,17 +255,39 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               },
               {
                 is_group: true,
-                logical_op: 'and',
+                logical_op: 'or',
                 children: [
                   {
-                    fk_column_id: fromCol.id,
-                    comparison_op: 'lte',
-                    value: dayjs(fromDate).format('YYYY-MM-DD'),
+                    is_group: true,
+                    logical_op: 'and',
+                    children: [
+                      {
+                        fk_column_id: fromCol.id,
+                        comparison_op: 'lte',
+                        value: `${dayjs(fromDate).format('YYYY-MM-DD')}`,
+                      },
+                      {
+                        fk_column_id: toCol.id,
+                        comparison_op: 'gte',
+                        value: `${dayjs(toDate).format('YYYY-MM-DD')}`,
+                      },
+                    ],
                   },
                   {
-                    fk_column_id: toCol.id,
-                    comparison_op: 'gte',
-                    value: dayjs(toDate).format('YYYY-MM-DD'),
+                    is_group: true,
+                    logical_op: 'and',
+                    children: [
+                      {
+                        fk_column_id: fromCol.id,
+                        comparison_op: 'gte',
+                        value: `${dayjs(fromDate).format('YYYY-MM-DD')}`,
+                      },
+                      {
+                        fk_column_id: toCol.id,
+                        comparison_op: 'lte',
+                        value: `${dayjs(toDate).format('YYYY-MM-DD')}`,
+                      },
+                    ],
                   },
                 ],
               },

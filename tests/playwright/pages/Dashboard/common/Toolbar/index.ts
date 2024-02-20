@@ -17,7 +17,7 @@ import { RowHeight } from './RowHeight';
 import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { ToolbarGroupByPage } from './Groupby';
-import { ToolbarCalendarViewModePage } from './CalendarViewModel';
+import { ToolbarCalendarViewModePage } from './CalendarViewMode';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;

@@ -153,7 +153,13 @@ const headerText = computed(() => {
         <div class="flex justify-start gap-3 items-center">
           <NcTooltip>
             <template #title> Previous </template>
-            <NcButton data-testid="nc-calendar-prev-btn" size="small" type="secondary" @click="paginateCalendarView('prev')">
+            <NcButton
+              v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
+              data-testid="nc-calendar-prev-btn"
+              size="small"
+              type="secondary"
+              @click="paginateCalendarView('prev')"
+            >
               <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
             </NcButton>
           </NcTooltip>
@@ -197,12 +203,19 @@ const headerText = computed(() => {
           </NcDropdown>
           <NcTooltip>
             <template #title> Next </template>
-            <NcButton data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginateCalendarView('next')">
+            <NcButton
+              v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
+              data-testid="nc-calendar-next-btn"
+              size="small"
+              type="secondary"
+              @click="paginateCalendarView('next')"
+            >
               <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
             </NcButton>
           </NcTooltip>
           <NcButton
             v-if="!isMobileMode"
+            v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
             data-testid="nc-calendar-today-btn"
             size="small"
             type="secondary"
@@ -225,6 +238,7 @@ const headerText = computed(() => {
           <template #title> Toggle Sidebar </template>
           <NcButton
             v-if="!isMobileMode"
+            v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"
             data-testid="nc-calendar-side-bar-btn"
             size="small"
             type="secondary"

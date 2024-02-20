@@ -44,6 +44,7 @@ watch(activeCalendarView, () => {
     <div
       v-for="mode in ['day', 'week', 'month', 'year']"
       :key="mode"
+      v-e="`['c:calendar:change-calendar-range-${mode}']`"
       :class="{ active: activeCalendarView === mode }"
       :data-testid="`nc-calendar-view-mode-${mode}`"
       class="tab"
@@ -60,7 +61,12 @@ watch(activeCalendarView, () => {
       </NcButton>
       <template #overlay>
         <NcMenu>
-          <NcMenuItem v-for="mode in ['day', 'week', 'month', 'year']" :key="mode" @click="changeCalendarView(mode)">
+          <NcMenuItem
+            v-for="mode in ['day', 'week', 'month', 'year']"
+            :key="mode"
+            v-e="`['c:calendar:change-calendar-range-${mode}']`"
+            @click="changeCalendarView(mode)"
+          >
             {{ $t(`objects.${mode}`) }}
           </NcMenuItem>
         </NcMenu>

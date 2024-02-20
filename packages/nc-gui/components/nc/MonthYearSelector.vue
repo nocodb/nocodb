@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
+
 interface Props {
   selectedDate?: Date | null
   isDisabled?: boolean
@@ -12,20 +14,16 @@ const props = withDefaults(defineProps<Props>(), {
   pageDate: new Date(),
   yearPicker: false,
 })
-const emit = defineEmits(['update:selected-date', 'update:page-date'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
 const pageDate = useVModel(props, 'pageDate', emit)
 const selectedDate = useVModel(props, 'selectedDate', emit)
 
 const years = computed(() => {
-  const date = new Date(pageDate.value)
-  const startYear = date.getFullYear()
-  const endYear = date.getFullYear() + 11
-  const years = []
-  for (let i = startYear; i <= endYear; i++) {
-    years.push({
-      label: i,
-      value: new Date(i, 0, 1),
-    })
+  const date = dayjs(pageDate.value)
+  const startOfYear = date.startOf('year')
+  const years: dayjs.Dayjs[] = []
+  for (let i = 0; i < 12; i++) {
+    years.push(dayjs(startOfYear).add(i, 'year'))
   }
   return years
 })
@@ -35,87 +33,45 @@ const currentYear = computed(() => {
 })
 
 const months = computed(() => {
-  const date = new Date(pageDate.value)
-  return [
-    {
-      label: 'January',
-      value: new Date(date.getFullYear(), 0, 1),
-    },
-    {
-      label: 'February',
-      value: new Date(date.getFullYear(), 1, 1),
-    },
-    {
-      label: 'March',
-      value: new Date(date.getFullYear(), 2, 1),
-    },
-    {
-      label: 'April',
-      value: new Date(date.getFullYear(), 3, 1),
-    },
-    {
-      label: 'May',
-      value: new Date(date.getFullYear(), 4, 1),
-    },
-    {
-      label: 'June',
-      value: new Date(date.getFullYear(), 5, 1),
-    },
-    {
-      label: 'July',
-      value: new Date(date.getFullYear(), 6, 1),
-    },
-    {
-      label: 'August',
-      value: new Date(date.getFullYear(), 7, 1),
-    },
-    {
-      label: 'September',
-      value: new Date(date.getFullYear(), 8, 1),
-    },
-    {
-      label: 'October',
-      value: new Date(date.getFullYear(), 9, 1),
-    },
-    {
-      label: 'November',
-      value: new Date(date.getFullYear(), 10, 1),
-    },
-    {
-      label: 'December',
-      value: new Date(date.getFullYear(), 11, 1),
-    },
-  ]
+  const date = dayjs(pageDate.value)
+
+  const months: dayjs.Dayjs[] = []
+  for (let i = 0; i < 12; i++) {
+    months.push(date.add(i, 'month'))
+  }
+  return months
 })
 
-const compareDates = (date1: Date, date2: Date) => {
+const compareDates = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
-  return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth()
+  return date1.isSame(date2, 'month') && date1.isSame(date2, 'year')
 }
 
-const isMonthSelected = (date: Date) => {
+const isMonthSelected = (date: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
-  return compareDates(date, selectedDate.value)
+  return compareDates(date, dayjs(selectedDate.value))
 }
 
 const paginateMonth = (action: 'next' | 'prev') => {
-  const date = new Date(pageDate.value)
+  const date = dayjs(pageDate.value)
   if (action === 'next') {
-    date.setFullYear(date.getFullYear() + 1)
+    date.add(1, 'month')
   } else {
-    date.setFullYear(date.getFullYear() - 1)
+    date.subtract(1, 'month')
   }
-  pageDate.value = date
+  pageDate.value = date.toDate()
+  emit('update:pageDate', date.toDate())
 }
 
 const paginateYear = (action: 'next' | 'prev') => {
-  const date = new Date(pageDate.value)
+  let date = dayjs(pageDate.value)
   if (action === 'next') {
-    date.setFullYear(date.getFullYear() + 12)
+    date = date.add(1, 'year').clone()
   } else {
-    date.setFullYear(date.getFullYear() - 12)
+    date = date.subtract(1, 'year').clone()
   }
-  pageDate.value = date
+  pageDate.value = date.toDate()
+  emit('update:pageDate', date.toDate())
 }
 
 const paginate = (action: 'next' | 'prev') => {
@@ -126,9 +82,9 @@ const paginate = (action: 'next' | 'prev') => {
   }
 }
 
-const compareYear = (date1: Date, date2: Date) => {
+const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
-  return date1.getFullYear() === date2.getFullYear()
+  return date1.isSame(date2, 'year')
 }
 </script>
 
@@ -147,28 +103,28 @@ const compareYear = (date1: Date, date2: Date) => {
       <div class="grid grid-cols-4 gap-2 p-2">
         <template v-if="!yearPicker">
           <span
-            v-for="month in months"
-            :key="month.value"
+            v-for="(month, id) in months"
+            :key="id"
             :class="{
-              '!bg-brand-50 !border-2 !border-brand-500': isMonthSelected(month.value),
+              '!bg-brand-50 !border-2 !border-brand-500': isMonthSelected(month),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
-            @click="selectedDate = month.value"
+            @click="selectedDate = month.toDate()"
           >
-            {{ month.label.slice(0, 3) }}
+            {{ month.format('MMM') }}
           </span>
         </template>
         <template v-else>
           <span
-            v-for="year in years"
-            :key="year"
+            v-for="(year, id) in years"
+            :key="id"
             :class="{
-              '!bg-brand-50 !border-2 !border-brand-500': compareYear(year.value, selectedDate),
+              '!bg-brand-50 !border-2 !border-brand-500': compareYear(year, dayjs(selectedDate)),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
-            @click="selectedDate = year.value"
+            @click="selectedDate = year.toDate()"
           >
-            {{ year.label }}
+            {{ year.format('YYYY') }}
           </span>
         </template>
       </div>

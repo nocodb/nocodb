@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
 interface Props {
   selectedDate?: Date | null
   isDisabled?: boolean
@@ -43,92 +44,90 @@ const currentMonth = computed(() => {
   return `${pageDate.value.toLocaleString('default', { month: 'long' })} ${pageDate.value.getFullYear()}`
 })
 
-const selectWeek = (date: Date) => {
+const selectWeek = (date: dayjs.Dayjs) => {
   if (!date) return
   const dayOffset = props.isMondayFirst ? 1 : 0
-  const dayOfWeek = (date.getDay() - dayOffset + 7) % 7
-  const startDate = new Date(date)
-  startDate.setDate(date.getDate() - dayOfWeek)
+  const dayOfWeek = (date.get('day') - dayOffset + 7) % 7
+  const startDate = date.subtract(dayOfWeek, 'day')
   selectedWeek.value = {
-    start: startDate,
-    end: new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 6),
+    start: startDate.toDate(),
+    end: startDate.endOf('week').toDate(),
   }
 }
 
 // Generates all dates should be displayed in the calendar
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
-  const startOfMonth = new Date(pageDate.value.getFullYear(), pageDate.value.getMonth(), 1)
+  const startOfMonth = dayjs(pageDate.value).startOf('month')
   const dayOffset = props.isMondayFirst ? 1 : 0
-  const dayOfWeek = (startOfMonth.getDay() - dayOffset + 7) % 7
-  startOfMonth.setDate(startOfMonth.getDate() - dayOfWeek)
+  const firstDayOfWeek = startOfMonth.day()
+  const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')
+
   const datesArray = []
-  while (datesArray.length < 42) {
-    datesArray.push(new Date(startOfMonth))
-    startOfMonth.setDate(startOfMonth.getDate() + 1)
+  for (let i = 0; i < 42; i++) {
+    datesArray.push(startDay.add(i, 'day'))
   }
+
   return datesArray
 })
 
 // Check if the date is in the selected week
-const isDateInSelectedWeek = (date: Date) => {
+const isDateInSelectedWeek = (date: dayjs.Dayjs) => {
   if (!selectedWeek.value) return false
-  return date >= selectedWeek.value.start && date <= selectedWeek.value.end
+  return date.isBetween(selectedWeek.value.start, selectedWeek.value.end, 'day', '[]')
 }
 
 // Used to check if two dates are the same
-const isSameDate = (date1: Date, date2: Date) => {
+const isSameDate = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
-  return (
-    date1.getDate() === date2.getDate() && date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear()
-  )
+  return date1.isSame(date2, 'day')
 }
 
 // Used in DatePicker for checking if the date is currently selected
-const isSelectedDate = (dObj: Date) => {
+const isSelectedDate = (dObj: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
-  const propDate = new Date(selectedDate.value)
+  const propDate = dayjs(selectedDate.value)
   return props.selectedDate ? isSameDate(propDate, dObj) : false
 }
 
-const isDayInPagedMonth = (date: Date) => {
-  return date.getMonth() === pageDate.value.getMonth()
+const isDayInPagedMonth = (date: dayjs.Dayjs) => {
+  return date.month() === pageDate.value.getMonth()
 }
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
-const handleSelectDate = (date: Date) => {
+const handleSelectDate = (date: dayjs.Dayjs) => {
   if (props.weekPicker) {
     selectWeek(date)
   } else {
     if (!isDayInPagedMonth(date)) {
-      pageDate.value = new Date(date)
-      emit('update:pageDate', date)
+      pageDate.value = date.toDate()
+      emit('update:pageDate', date.toDate())
     }
-    selectedDate.value = date
-    emit('update:selectedDate', date)
+    selectedDate.value = date.toDate()
+    emit('update:selectedDate', date.toDate())
   }
 }
 
 // Used to check if a date is in the current month
-const isDateInCurrentMonth = (date: Date) => {
-  return date.getMonth() === pageDate.value.getMonth()
+const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
+  return date.month() === pageDate.value.getMonth()
 }
 
 // Used to Check if an event is in the date
-const isActiveDate = (date: Date) => {
-  return activeDates.value.some((d) => isSameDate(d, date))
+const isActiveDate = (date: dayjs.Dayjs) => {
+  return activeDates.value.some((d) => isSameDate(dayjs(d), date))
 }
 
 // Paginate the calendar
 const paginate = (action: 'next' | 'prev') => {
-  const newDate = new Date(pageDate.value)
+  let newDate = dayjs(pageDate.value)
   if (action === 'next') {
-    newDate.setMonth(newDate.getMonth() + 1)
+    newDate = newDate.add(1, 'month').clone()
   } else {
-    newDate.setMonth(newDate.getMonth() - 1)
+    newDate = newDate.subtract(1, 'month').clone()
   }
-  pageDate.value = newDate
-  emit('update:pageDate', newDate)
+  pageDate.value = newDate.toDate()
+  emit('update:pageDate', newDate.toDate())
 }
 </script>
 
@@ -163,15 +162,15 @@ const paginate = (action: 'next' | 'prev') => {
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !weekPicker,
             'nc-selected-week z-1': isDateInSelectedWeek(date) && weekPicker,
             'text-gray-400': !isDateInCurrentMonth(date),
-            'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
-            'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
+            'nc-selected-week-start': isSameDate(date, dayjs(selectedWeek?.start)),
+            'nc-selected-week-end': isSameDate(date, dayjs(selectedWeek?.end)),
           }"
           class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
           @click="handleSelectDate(date)"
         >
           <span v-if="isActiveDate(date)" class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
           <span class="z-2">
-            {{ date.getDate() }}
+            {{ date.get('date') }}
           </span>
         </span>
       </div>

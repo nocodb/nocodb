@@ -178,11 +178,13 @@ const headerText = computed(() => {
           v-if="activeCalendarView === 'month'"
           class="flex-grow-1"
           @expand-record="expandRecord"
+          @new-record="newRecord"
         />
         <LazySmartsheetCalendarWeekView
           v-else-if="activeCalendarView === 'week'"
           class="flex-grow-1"
           @expand-record="expandRecord"
+          @new-record="newRecord"
         />
         <LazySmartsheetCalendarDayView
           v-else-if="activeCalendarView === 'day'"

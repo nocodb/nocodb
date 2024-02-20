@@ -58,8 +58,6 @@ const recordsAcrossAllRange = computed(() => {
   const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
   const scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
 
-  const perRecordHeight = 40
-
   const overlaps: {
     [key: string]: {
       [key: string]: Array<string>
@@ -126,6 +124,7 @@ const recordsAcrossAllRange = computed(() => {
             id,
             style,
             range,
+            dayIndex,
           },
         })
       } else if (fromCol && toCol) {
@@ -151,21 +150,6 @@ const recordsAcrossAllRange = computed(() => {
           const recordEnd = currentEndDate.isSame(endDate, 'day') ? endDate : currentEndDate
 
           const dateKey = recordStart.format('YYYY-MM-DD')
-
-          let hour = recordStart?.clone().startOf('hour')
-
-          while (hour.isSameOrBefore(recordEnd, 'hour')) {
-            const hourKey = hour.format('HH:mm')
-
-            if (!overlaps[dateKey]) {
-              overlaps[dateKey] = {}
-            }
-            if (!overlaps[dateKey][hourKey]) {
-              overlaps[dateKey][hourKey] = []
-            }
-            overlaps[dateKey][hourKey].push(id)
-            hour = hour.add(1, 'hour')
-          }
 
           let dayIndex = recordStart.day() - 1
 
@@ -198,7 +182,7 @@ const recordsAcrossAllRange = computed(() => {
 
           const spanHours = endHourIndex - startHourIndex + 1
 
-          const top = startHourIndex * perRecordHeight
+          const top = startHourIndex * perHeight
 
           const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
 
@@ -214,6 +198,7 @@ const recordsAcrossAllRange = computed(() => {
               id,
               style,
               range,
+              dayIndex,
             },
           })
 
@@ -229,20 +214,15 @@ const recordsAcrossAllRange = computed(() => {
         for (const hours in overlaps[days]) {
           if (overlaps[days][hours].includes(record.rowMeta.id!)) {
             maxOverlaps = Math.max(maxOverlaps, overlaps[days][hours].length)
-            overlapIndex = Math.max(overlaps[days][hours].indexOf(record.rowMeta.id!), overlapIndex)
+            overlapIndex = Math.max(overlapIndex, overlaps[days][hours].indexOf(record.rowMeta.id!))
           }
         }
       }
 
-      let dayIndex = dayjs(record.row![record.rowMeta!.range!.fk_from_col.title!]).day() - 1
-
-      if (dayIndex === -1) {
-        dayIndex = 6
-      }
-
+      const dayIndex = record.rowMeta.dayIndex
       const spacing = 1
       const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps / 7
-      const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
+      const leftPerRecord = widthPerRecord * overlapIndex
 
       record.rowMeta.style = {
         ...record.rowMeta.style,
@@ -251,8 +231,6 @@ const recordsAcrossAllRange = computed(() => {
       }
       return record
     })
-
-    console.log(overlaps)
   })
 
   return recordsToDisplay
@@ -311,7 +289,7 @@ const onDrag = (event: MouseEvent) => {
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day').add(toDate.diff(fromDate, 'hour'), 'hour')
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
     } else if (fromDate && !toDate) {
       endDate = dayjs(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {
@@ -374,7 +352,7 @@ const stopDrag = (event: MouseEvent) => {
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day').add(toDate.diff(fromDate, 'hour'), 'hour')
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
     } else if (fromDate && !toDate) {
       endDate = dayjs(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {

@@ -1,16 +1,17 @@
-import { Injectable, Optional } from '@nestjs/common';
-import { customAlphabet } from 'nanoid';
+import {Injectable, Optional} from '@nestjs/common';
+import {customAlphabet} from 'nanoid';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import type { Knex } from 'knex';
 import type * as knex from 'knex';
+import type {Knex} from 'knex';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
-import { XKnex } from '~/db/CustomKnex';
-import { NcConfig } from '~/utils/nc-config';
-import { MetaTable } from '~/utils/globals';
+import {XKnex} from '~/db/CustomKnex';
+import {NcConfig} from '~/utils/nc-config';
+import {MetaTable} from '~/utils/globals';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -214,6 +215,15 @@ export class MetaService {
         break;
       case MetaTable.KANBAN_VIEW_COLUMNS:
         prefix = 'kvc';
+        break;
+      case MetaTable.CALENDAR_VIEW:
+        prefix = 'cv';
+        break;
+      case MetaTable.CALENDAR_VIEW_COLUMNS:
+        prefix = 'cvc';
+        break;
+      case MetaTable.CALENDAR_VIEW_RANGE:
+        prefix = 'cvr';
         break;
       case MetaTable.USERS:
         prefix = 'us';

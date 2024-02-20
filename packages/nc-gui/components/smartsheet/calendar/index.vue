@@ -9,6 +9,11 @@ import {
   IsGridInj,
   IsKanbanInj,
   MetaInj,
+  ReloadViewDataHookInj,
+  ReloadViewMetaHookInj,
+  type Row as RowType,
+  computed,
+  extractPkFromRow,
   inject,
   provide,
   ref,
@@ -18,6 +23,9 @@ import {
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
+
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const { isMobileMode } = useGlobal()
 
@@ -36,6 +44,8 @@ provide(IsCalendarInj, ref(true))
 const {
   formattedData,
   loadCalendarMeta,
+  loadCalendarData,
+  isCalendarDataLoading,
   updateCalendarMeta,
   calendarMetaData,
   selectedDate,
@@ -50,14 +60,57 @@ provide(CalendarViewTypeInj, activeCalendarView)
 
 const showSideMenu = ref(true)
 
-const isExpanded = ref(false)
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
 
-const expandedRecordId = ref<string | null>(null)
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<RowType>()
+const expandedFormRowState = ref<Record<string, any>>()
 
-const expandRecord = (id: string) => {
-  isExpanded.value = true
-  expandedRecordId.value = id
+const router = useRouter()
+const route = useRoute()
+
+const expandRecord = (row: RowType) => {
+  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+  }
 }
+
+onMounted(async () => {
+  await loadCalendarMeta()
+  await loadCalendarData()
+})
+
+reloadViewMetaHook?.on(async () => {
+  await loadCalendarMeta()
+  await loadCalendarData()
+})
+reloadViewDataHook?.on(async () => {
+  await loadCalendarData()
+})
 
 const headerText = computed(() => {
   switch (activeCalendarView.value) {
@@ -83,7 +136,7 @@ const headerText = computed(() => {
           <NcButton size="small" type="secondary" @click="paginateCalendarView('prev')">
             <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
           </NcButton>
-          <span class="font-bold text-gray-700">{{ headerText }}</span>
+          <span class="font-bold text-center text-gray-700">{{ headerText }}</span>
           <NcButton size="small" type="secondary" @click="paginateCalendarView('next')">
             <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
           </NcButton>
@@ -98,22 +151,39 @@ const headerText = computed(() => {
           />
         </NcButton>
       </div>
-      <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />
-      <LazySmartsheetCalendarMonthView v-else-if="activeCalendarView === 'month'" class="flex-grow-1" />
-      <LazySmartsheetCalendarDayView v-else-if="activeCalendarView === 'day'" class="flex-grow-1" />
+      <template v-if="!isCalendarDataLoading">
+        <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />
+        <LazySmartsheetCalendarMonthView
+          v-else-if="activeCalendarView === 'month'"
+          class="flex-grow-1"
+          @expand-record="expandRecord"
+        />
+        <LazySmartsheetCalendarWeekView
+          v-else-if="activeCalendarView === 'week'"
+          class="flex-grow-1"
+          @expand-record="expandRecord"
+        />
+        <LazySmartsheetCalendarDayView
+          v-else-if="activeCalendarView === 'day'"
+          class="flex-grow-1"
+          @expand-record="expandRecord"
+        />
+      </template>
+      <div v-if="isCalendarDataLoading" class="flex w-full items-center h-full justify-center">
+        <GeneralLoader size="xlarge" />
+      </div>
     </div>
     <LazySmartsheetCalendarSideMenu v-if="!isMobileMode" :visible="showSideMenu" @expand-record="expandRecord" />
   </div>
 
-  <LazySmartsheetExpandedForm
-    v-model="isExpanded"
-    :view="view"
-    :row="{
-      row: {},
-      rowMeta: {
-        new: !expandedRecordId,
-      },
-    }"
-    :meta="meta"
-  />
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      v-model="expandedFormOnRowIdDlg"
+      :meta="meta"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :row-id="route.query.rowId"
+      :view="view"
+    />
+  </Suspense>
 </template>

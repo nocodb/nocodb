@@ -285,6 +285,7 @@ onMounted(async () => {
             return {
               value: field.id,
               label: field.title,
+              uidt: field.uidt,
             }
           })
 
@@ -461,7 +462,11 @@ onMounted(async () => {
                 v-model:value="range.fk_to_column_id"
                 :disabled="isMetaLoading"
                 :loading="isMetaLoading"
-                :options="viewSelectFieldOptions"
+                :options="
+                  viewSelectFieldOptions.filter(
+                    (el) => el.uidt === viewSelectFieldOptions.find((el) => el.id === range.fk_from_column_id),
+                  )
+                "
                 :placeholder="$t('placeholder.notSelected')"
                 class="w-full"
               />

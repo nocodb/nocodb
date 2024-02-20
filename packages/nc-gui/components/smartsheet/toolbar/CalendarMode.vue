@@ -10,11 +10,18 @@ const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: M
   const tabElement = event.target as HTMLElement
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
 }
+
+onMounted(() => {
+  const activeTab = document.querySelector('.nc-calendar-mode-tab .tab.active') as HTMLElement
+  if (activeTab) {
+    highlightStyle.value.left = `${activeTab.offsetLeft}px`
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-row relative p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab">
-    <div class="highlight" :style="highlightStyle"></div>
+    <div :style="highlightStyle" class="highlight"></div>
     <div
       v-for="mode in ['day', 'week', 'month', 'year']"
       :key="mode"

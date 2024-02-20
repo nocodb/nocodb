@@ -73,7 +73,7 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="ml-3 mt-2 text-ellipsis overflow-hidden w-full h-6 absolute">
+    <div class="ml-3 mt-2 pr-3 text-ellipsis overflow-hidden w-full h-6 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
       <span class="text-sm text-gray-800">{{ name }}</span>
       <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>

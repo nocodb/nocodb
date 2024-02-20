@@ -189,7 +189,7 @@ const selectDate = (day: number) => {
         <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
       </NcButton>
     </div>
-    <div class="border-1 border-gray-200 rounded-t-xl max-w-[320px]">
+    <div class="border-1 border-gray-200 rounded-y-xl max-w-[320px]">
       <div class="flex flex-row bg-gray-100 gap-2 rounded-t-xl justify-between p-2">
         <span v-for="day in days" class="h-9 flex items-center justify-center  w-9 text-gray-500">{{ day }}</span>
       </div>

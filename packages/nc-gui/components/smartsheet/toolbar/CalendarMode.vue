@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { useCalendarViewStoreOrThrow } from '#imports'
 
+const props = defineProps<{
+  tab?: boolean
+}>()
+
 const { changeCalendarView, activeCalendarView } = useCalendarViewStoreOrThrow()
 
 const highlightStyle = ref({ left: '0px' })
@@ -20,7 +24,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-row relative p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab">
+  <div v-if="props.tab" class="flex flex-row relative p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab">
     <div :style="highlightStyle" class="highlight"></div>
     <div
       v-for="mode in ['day', 'week', 'month', 'year']"
@@ -31,6 +35,21 @@ onMounted(() => {
     >
       <div class="tab-title nc-tab">{{ $t(`objects.${mode}`) }}</div>
     </div>
+  </div>
+  <div v-else>
+    <NcDropdown trigger="click">
+      <NcButton size="small" type="secondary">
+        {{ $t(`objects.${activeCalendarView}`) }}
+        <component :is="iconMap.arrowDown" />
+      </NcButton>
+      <template #overlay>
+        <NcMenu>
+          <NcMenuItem v-for="mode in ['day', 'week', 'month', 'year']" :key="mode" @click="changeCalendarView(mode)">
+            {{ $t(`objects.${mode}`) }}
+          </NcMenuItem>
+        </NcMenu>
+      </template>
+    </NcDropdown>
   </div>
 </template>
 

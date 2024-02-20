@@ -18,12 +18,29 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = useGlobal()
 
+const containerRef = ref<HTMLElement>()
+
+const isTab = ref(true)
+
+const handleResize = () => {
+  isTab.value = containerRef.value.offsetWidth > 810
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
 const { allowCSVDownload } = useSharedView()
 </script>
 
 <template>
   <div
     v-if="!isMobileMode || !isCalendar"
+    ref="containerRef"
     class="nc-table-toolbar relative py-1 px-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] z-7"
   >
     <template v-if="isViewsLoading">
@@ -46,11 +63,10 @@ const { allowCSVDownload } = useSharedView()
 
       <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isCalendar" />
 
-      <div v-if="isCalendar" class="flex-1" />
+      <div v-if="isCalendar && isTab" class="flex-1" />
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar" v-model:tab="isTab" />
 
       <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarCalendarMode v-if="isCalendar" />
-
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->

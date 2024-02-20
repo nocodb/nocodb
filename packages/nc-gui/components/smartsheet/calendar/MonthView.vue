@@ -42,19 +42,23 @@ const isDayInPagedMonth = (date: dayjs.Dayjs) => {
 }
 
 const dragElement = ref<HTMLElement | null>(null)
+
 const draggingId = ref<string | null>(null)
 
 const resizeInProgress = ref(false)
 
 const isDragging = ref(false)
+
 const dragRecord = ref<Row>()
 
 const hoverRecord = ref<string | null>()
+
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const focusedDate = ref<dayjs.Dayjs | null>(null)
 
 const resizeDirection = ref<'right' | 'left'>()
+
 const resizeRecord = ref<Row>()
 
 const dates = computed(() => {

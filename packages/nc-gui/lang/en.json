@@ -425,6 +425,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",

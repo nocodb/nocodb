@@ -5,6 +5,7 @@ import { type Row, computed, ref } from '#imports'
 import { isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expand-record', 'new-record'])
+
 const meta = inject(MetaInj, ref())
 
 const container = ref()

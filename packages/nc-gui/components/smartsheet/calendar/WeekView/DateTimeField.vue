@@ -321,9 +321,11 @@ const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 const hoverRecord = ref<string | null>()
 
 const resizeDirection = ref<'right' | 'left' | null>()
+
 const resizeRecord = ref<Row | null>()
 
 const isDragging = ref(false)
+
 const dragRecord = ref<Row>()
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {

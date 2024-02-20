@@ -25,6 +25,7 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const { isMobileMode } = useGlobal()
@@ -58,6 +59,7 @@ const {
 const calendarRangeDropdown = ref(false)
 
 const router = useRouter()
+
 const route = useRoute()
 
 const expandedFormOnRowIdDlg = computed({
@@ -76,7 +78,9 @@ const expandedFormOnRowIdDlg = computed({
 })
 
 const expandedFormDlg = ref(false)
+
 const expandedFormRow = ref<RowType>()
+
 const expandedFormRowState = ref<Record<string, any>>()
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
@@ -122,6 +126,7 @@ onMounted(async () => {
 reloadViewMetaHook?.on(async () => {
   await loadCalendarMeta()
 })
+
 reloadViewDataHook?.on(async () => {
   await Promise.all([loadCalendarData(), loadSidebarData()])
 })
@@ -185,7 +190,7 @@ const headerText = computed(() => {
                   v-model:active-dates="activeDates"
                   v-model:page-date="pageDate"
                   v-model:selected-week="selectedDateRange"
-                  week-picker
+                  is-week-picker
                 />
                 <NcMonthYearSelector
                   v-else-if="activeCalendarView === ('month' as const)"
@@ -196,7 +201,7 @@ const headerText = computed(() => {
                   v-else-if="activeCalendarView === ('year' as const)"
                   v-model:page-date="pageDate"
                   v-model:selected-date="selectedDate"
-                  year-picker
+                  is-year-picker
                 />
               </div>
             </template>

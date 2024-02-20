@@ -100,6 +100,8 @@ export class SidebarPage extends BasePage {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-kanban');
     } else if (type === ViewTypes.GALLERY) {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-gallery');
+    } else if (type === ViewTypes.CALENDAR) {
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-calendar');
     }
 
     await this.rootPage.waitForTimeout(750);

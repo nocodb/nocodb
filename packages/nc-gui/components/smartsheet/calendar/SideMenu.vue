@@ -269,9 +269,10 @@ onUnmounted(() => {
   <div
     :class="{
       'w-0': !props.visible,
-      'w-1/6 min-w-[22.1rem]': props.visible,
+      'w-1/6 min-w-[22.1rem] nc-calendar-side-menu-open': props.visible,
     }"
     class="h-full border-l-1 border-gray-200 transition-all"
+    data-testid="nc-calendar-side-menu"
   >
     <div
       :class="{
@@ -324,7 +325,7 @@ onUnmounted(() => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" class="min-w-36 !text-gray-800">
+        <NcSelect v-model:value="sideBarFilterOption" class="min-w-36 !text-gray-800" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-800">
             <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
               <template #title>{{ option.label }}</template>
@@ -343,12 +344,14 @@ onUnmounted(() => {
         'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && height > 918,
       }"
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
+        data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >
         <NcButton
           v-if="isUIAllowed('dataEdit') && props.visible"
           v-e="['c:calendar:calendar-new-record-btn']"
           class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
+          data-testid="nc-calendar-side-menu-new-btn"
           type="secondary"
           @click="emit('new-record', { row: {} })"
         >
@@ -389,6 +392,7 @@ onUnmounted(() => {
                   : null
               "
               color="blue"
+              data-testid="nc-sidebar-record-card"
               @click="emit('expand-record', record)"
               @dragstart="dragStart($event, record)"
               @dragover.prevent

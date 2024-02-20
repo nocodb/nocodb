@@ -11,7 +11,10 @@ const months = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-6 pb-4 items-center justify-center overflow-auto nc-scrollbar-md">
+  <div
+    class="flex flex-wrap gap-6 pb-4 items-center justify-center overflow-auto nc-scrollbar-md"
+    data-testid="nc-calendar-year-view"
+  >
     <NcDateWeekSelector
       v-for="(_, index) in months"
       :key="index"
@@ -19,6 +22,7 @@ const months = computed(() => {
       v-model:page-date="months[index]"
       v-model:selected-date="selectedDate"
       class="max-w-[350px]"
+      data-testid="nc-calendar-year-view-month-selector"
       disable-pagination
     />
   </div>

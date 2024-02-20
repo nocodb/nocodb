@@ -167,7 +167,7 @@ const headerText = computed(() => {
           <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
             <NcButton :class="{ '!w-24': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
               <div class="flex w-full px-3 py-1 w-full items-center justify-between">
-                <span class="font-bold text-center text-brand-500">{{ headerText }}</span>
+                <span class="font-bold text-center text-brand-500" data-testid="nc-calendar-active-date">{{ headerText }}</span>
                 <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
               </div>
             </NcButton>
@@ -233,6 +233,9 @@ const headerText = computed(() => {
           >
             Go to Today
           </NcButton>
+          <span class="opacity-0" data-testid="nc-active-calendar-view">
+            {{ activeCalendarView }}
+          </span>
         </div>
         <NcTooltip>
           <template #title> Toggle Sidebar </template>

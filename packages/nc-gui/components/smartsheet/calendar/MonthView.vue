@@ -695,7 +695,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div v-if="calendarRange" class="h-full prevent-select relative">
+  <div v-if="calendarRange" class="h-full prevent-select relative" data-testid="nc-calendar-month-view">
     <div class="grid grid-cols-7">
       <div
         v-for="(day, index) in days"
@@ -715,7 +715,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
       class="grid h-full pb-7.5"
       @drop="dropEvent"
     >
-      <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow">
+      <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow" data-testid="nc-calendar-month-week">
         <div
           v-for="(day, dateIndex) in week"
           :key="`${weekIndex}-${dateIndex}`"
@@ -725,6 +725,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
           class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
         >
           <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
@@ -822,10 +823,11 @@ const isDateSelected = (date: dayjs.Dayjs) => {
         </div>
       </div>
     </div>
-    <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5">
+    <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
       <div
         v-for="(record, recordIndex) in recordsToDisplay.records"
         :key="recordIndex"
+        :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"
         :data-unique-id="record.rowMeta.id"
         :style="{
           ...record.rowMeta.style,

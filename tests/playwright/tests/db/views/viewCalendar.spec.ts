@@ -3,11 +3,43 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun, isPg, isSqlite } from '../../../setup/db';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 import { CalendarTopbarPage } from '../../../pages/Dashboard/Calendar/CalendarTopBar';
 
-const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
+const dateRecords = [
+  {
+    Title: 'Team Catchup',
+    StartDate: '2024-01-01 09:00',
+    EndDate: '2024-01-01 10:00',
+  },
+  {
+    Title: 'Lunch with John',
+    StartDate: '2024-01-01 12:00',
+    EndDate: '2024-01-01 13:00',
+  },
+
+  {
+    Title: 'Meeting with Client',
+    StartDate: '2024-01-01 14:00',
+    EndDate: '2024-01-01 15:00',
+  },
+  {
+    Title: 'Meeting with Team',
+    StartDate: '2024-01-01 16:00',
+    EndDate: '2024-01-01 17:00',
+  },
+
+  {
+    Title: 'Meeting with Manager',
+    StartDate: '2024-01-01 18:00',
+    EndDate: '2024-01-01 19:00',
+  },
+  {
+    Title: 'Meeting with HR',
+    StartDate: '2024-01-01 20:00',
+    EndDate: '2024-01-01 21:00',
+  },
+];
 
 test.describe('View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage, calendarTopbar: CalendarTopbarPage;
@@ -20,7 +52,52 @@ test.describe('View', () => {
     topbar = dashboard.calendar.topbar;
     calendarTopbar = dashboard.calendar.calendarTopbar;
 
-    // await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.createTable({
+      title: 'Social Media Calendar',
+      baseTitle: 'Getting Started',
+    });
+
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+
+    await dashboard.grid.column.create({
+      title: 'StartDate',
+      type: 'DateTime',
+      dateFormat: 'YYYY-MM-DD',
+      timeFormat: 'HH:mm',
+    });
+
+    await dashboard.grid.column.create({
+      title: 'EndDate',
+      type: 'DateTime',
+      dateFormat: 'YYYY-MM-DD',
+      timeFormat: 'HH:mm',
+    });
+
+    for (let i = 0; i < dateRecords.length; i++) {
+      await dashboard.grid.addNewRow({
+        index: i,
+        columnHeader: 'Title',
+        value: dateRecords[i].Title,
+        networkValidation: false,
+      });
+    }
+
+    for (let i = 0; i < dateRecords.length; i++) {
+      await dashboard.grid.cell.dateTime.setDateTime({
+        index: i,
+        columnHeader: 'StartDate',
+        dateTime: dateRecords[i].StartDate,
+      });
+    }
+    for (let i = 0; i < dateRecords.length; i++) {
+      await dashboard.grid.cell.dateTime.setDateTime({
+        index: i,
+        columnHeader: 'EndDate',
+        dateTime: dateRecords[i].EndDate,
+      });
+    }
+
+    await dashboard.rootPage.waitForTimeout(5000);
   });
 
   test.afterEach(async () => {
@@ -28,142 +105,107 @@ test.describe('View', () => {
   });
 
   test('Calendar', async () => {
-    /*await dashboard.viewSidebar.createKanbanView({
-      title: 'Film Kanban',
+    await dashboard.viewSidebar.createCalendarView({
+      title: 'Calendar',
     });
+
     await dashboard.viewSidebar.verifyView({
-      title: 'Film Kanban',
+      title: 'Calendar',
       index: 0,
     });
 
-    // configure stack-by field
-    await toolbar.clickStackByField();
-    await toolbar.stackBy.click({ title: 'Rating' });
+    await dashboard.viewSidebar.openView({ title: 'Calendar' });
 
-    // menu overlaps the stack-by field; use escape key to close instead of clicking it explicitly
-    // click again to close menu
-    // await toolbar.clickStackByField();
-    await toolbar.rootPage.keyboard.press('Escape');
+    await toolbar.clickCalendarViewSettings();
 
-    const kanban = dashboard.kanban;
-    await kanban.verifyStackCount({ count: 6 });
-    await kanban.verifyStackOrder({
-      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17'],
-    });
-    await kanban.verifyStackFooter({
-      count: [0, 178, 194, 223, 195, 210],
-    });
-    await kanban.verifyCardCount({
-      count: [0, 25, 25, 25, 25, 25],
+    await toolbar.calendarRange.newCalendarRange({
+      fromTitle: 'EndDate',
     });
 
-    // hide fields
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggle({ title: 'Title' });
-    await kanban.verifyCardCount({
-      count: [0, 25, 25, 25, 25, 25],
+    await toolbar.clickCalendarViewSettings();
+
+    const calendar = dashboard.calendar;
+
+    await calendar.verifySideBarOpen();
+
+    await calendarTopbar.toggleSideBar();
+
+    await calendar.verifySideBarClosed();
+
+    await calendarTopbar.toggleSideBar();
+
+    await calendar.verifySideBarOpen();
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'year' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
+
+    await calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+
+    await calendar.sideMenu.updateFilter({
+      filter: 'Without dates',
     });
 
-    // verify card order
-    const order = [
-      ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
-      ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
-      ['AIRPLANE SIERRA', 'ALABAMA DEVIL', 'ALTER VICTORY'],
-      ['AIRPORT POLLOCK', 'ALONE TRIP', 'AMELIE HELLFIGHTERS'],
-      ['ADAPTATION HOLES', 'ALADDIN CALENDAR', 'ALICE FANTASIA'],
-    ];
-    for (let i = 1; i <= order.length; i++)
-      await kanban.verifyCardOrder({
-        stackIndex: i,
-        order: order[i - 1],
-      });
+    await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
 
-    // // verify inter stack drag-drop
-    // await kanban.dragDropCard({
-    //   from: "ACE GOLDFINGER",
-    //   to: "ACADEMY DINOSAUR",
-    // });
-
-    // verify drag drop stack
-    await kanban.dragDropStack({
-      from: 1, // G
-      to: 2, // PG
-    });
-    await kanban.verifyStackOrder({
-      order: ['Uncategorized', 'PG', 'G', 'PG-13', 'R', 'NC-17'],
-    });
-    // verify drag drop stack
-    await kanban.dragDropStack({
-      from: 2, // G
-      to: 1, // PG
-    });
-    await kanban.verifyStackOrder({
-      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17'],
+    await calendar.sideMenu.updateFilter({
+      filter: 'All records',
     });
 
-    // verify sort
-    await toolbar.sort.add({
-      title: 'Title',
-      ascending: false,
-      locallySaved: false,
+    await calendar.sideMenu.verifySideBarRecords({
+      records: [...dateRecords.map(r => r.Title), ...Array(12).fill('')],
     });
-    // verify card order
-    const order2 = [
-      ['YOUNG LANGUAGE', 'WEST LION'],
-      ['WORST BANGER', 'WORDS HUNTER'],
-    ];
-    for (let i = 1; i <= order2.length; i++)
-      await kanban.verifyCardOrder({
-        stackIndex: i,
-        order: order2[i - 1],
-      });
-    await toolbar.sort.reset();
-    // verify card order
-    const order3 = [
-      ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
-      ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
-    ];
-    for (let i = 1; i <= order3.length; i++)
-      await kanban.verifyCardOrder({
-        stackIndex: i,
-        order: order3[i - 1],
-      });
 
-    // verify filter
-    await toolbar.clickFilter({
-      networkValidation: true,
+    await calendar.sideMenu.updateFilter({
+      filter: 'In selected date',
     });
-    await toolbar.filter.add({
-      title: 'Title',
-      operation: 'is like',
-      value: 'BA',
-      locallySaved: false,
-    });
-    await toolbar.clickFilter();
 
-    // verify card order
-    const order4 = [
-      ['BAKED CLEOPATRA', 'BALLROOM MOCKINGBIRD'],
-      ['ARIZONA BANG', 'EGYPT TENENBAUMS'],
-    ];
-    for (let i = 1; i <= order4.length; i++)
-      await kanban.verifyCardOrder({
-        stackIndex: i,
-        order: order4[i - 1],
-      });
-    await toolbar.filter.reset();
-    const order5 = [
-      ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
-      ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
-    ];
-    for (let i = 1; i <= order5.length; i++)
-      await kanban.verifyCardOrder({
-        stackIndex: i,
-        order: order5[i - 1],
-      });
+    await calendar.calendarMonth.selectDate({ rowIndex: 0, columnIndex: 0 });
 
-    await dashboard.rootPage.waitForTimeout(1000);*/
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+
+    await calendar.calendarMonth.selectDate({ rowIndex: 0, columnIndex: 3 });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: [] });
+
+    /* await calendar.calendarMonth.dragAndDrop({
+      record: dateRecords[0].Title,
+      to: { rowIndex: 0, columnIndex: 3 },
+    });*/
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
+
+    await calendar.calendarYear.selectDate({ monthIndex: 0, dayIndex: 0 });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+
+    await calendar.sideMenu.updateFilter({ filter: 'In selected date' });
+
+    await calendar.calendarYear.selectDate({ monthIndex: 0, dayIndex: 3 });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: [] });
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
+
+    await dashboard.rootPage.waitForTimeout(10000);
   });
 
   test('Calendar view operations', async () => {
@@ -292,29 +334,59 @@ test.describe('View', () => {
     });*/
   });
 
-  test.skip('Calendar shared view operations', async ({ page }) => {
+  test.only('Calendar shared view operations', async ({ page }) => {
     test.slow();
-    /*
-    await dashboard.viewSidebar.createKanbanView({
-      title: 'Film Kanban',
+    await dashboard.viewSidebar.createCalendarView({
+      title: 'Calendar',
     });
+
     await dashboard.viewSidebar.verifyView({
-      title: 'Film Kanban',
+      title: 'Calendar',
       index: 0,
     });
 
+    await dashboard.rootPage.waitForTimeout(12000);
+
     // Share view
-    await toolbar.fields.toggle({ title: 'Rating' });
     const sharedLink = await topbar.getSharedViewUrl();
-    // await toolbar.shareView.close();
 
     // sign-out
     await dashboard.signOut();
 
-    // Open shared view & verify stack count
+    // Open shared view & verify Data
     await page.goto(sharedLink);
     await page.reload();
-    const kanban = dashboard.kanban;
-    await kanban.verifyStackCount({ count: 6 });*/
+
+    const calendar = dashboard.calendar;
+
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
+
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
+
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
+
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
+
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'year' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
+
+    await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+
+    await calendar.sideMenu.updateFilter({
+      filter: 'Without dates',
+    });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
   });
 });

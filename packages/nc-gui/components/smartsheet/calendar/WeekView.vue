@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import type { Row } from '~/lib'
+
+const emits = defineEmits(['expand-record'])
 
 const { selectedDateRange, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
 
@@ -28,14 +31,23 @@ const getData = (date: Date) => {
       <div
         v-for="date in weekDates"
         :key="date.toISOString()"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 !last:mr-2.5 border-gray-200 border-b-1 border-r-1 bg-gray-50"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 border-b-1 border-r-1 bg-gray-50"
       >
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
     <div class="flex overflow-auto nc-scrollbar-md h-[calc(100vh-12rem)]">
       <div v-for="date in weekDates" :key="date.toISOString()" class="flex flex-col items-center w-1/7">
-        <LazySmartsheetCalendarDayView :data="getData(date)" :is-embed="true" />
+        <LazySmartsheetCalendarDayView
+          :data="getData(date)"
+          :is-embed="true"
+          :render-date="date"
+          @expand-record="
+            (record:Row) => {
+              emits('expand-record', record)
+            }
+          "
+        />
       </div>
     </div>
   </div>

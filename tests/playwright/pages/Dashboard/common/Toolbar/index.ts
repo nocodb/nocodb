@@ -18,9 +18,10 @@ import { MapPage } from '../../Map';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { ToolbarGroupByPage } from './Groupby';
 import { ToolbarCalendarViewModePage } from './CalendarViewMode';
+import { CalendarPage } from '../../Calendar';
 
 export class ToolbarPage extends BasePage {
-  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
@@ -39,7 +40,7 @@ export class ToolbarPage extends BasePage {
   readonly btn_rowHeight: Locator;
   readonly btn_groupBy: Locator;
 
-  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage) {
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
     super(parent.rootPage);
     this.parent = parent;
     this.fields = new ToolbarFieldsPage(this);

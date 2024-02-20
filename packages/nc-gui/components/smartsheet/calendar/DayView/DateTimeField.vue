@@ -199,8 +199,8 @@ const recordsAcrossAllRange = computed<{
 
         style = {
           ...style,
-          top: `${finalTopInPixels}px`,
-          height: `${heightInPixels}px`,
+          top: `${finalTopInPixels + 2}px`,
+          height: `${heightInPixels - 2}px`,
         }
 
         recordsByRange.push({
@@ -233,7 +233,7 @@ const recordsAcrossAllRange = computed<{
 
     record.rowMeta.style = {
       ...record.rowMeta.style,
-      left: `${leftPerRecord}%`,
+      left: `${leftPerRecord - 0.08}%`,
       width: `calc(${widthPerRecord}%)`,
     }
     return record
@@ -255,6 +255,8 @@ const resizeInProgress = ref(false)
 const resizeRecord = ref<Row | null>()
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hoverRecord = ref<string | null>(null)
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
@@ -683,10 +685,13 @@ const viewMore = (hour: dayjs.Dayjs) => {
           :style="record.rowMeta.style"
           class="absolute draggable-record group cursor-pointer pointer-events-auto"
           @mousedown="dragStart($event, record)"
+          @mouseleave="hoverRecord = null"
+          @mouseover="hoverRecord = record.rowMeta.id"
           @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
+              :hover="hoverRecord === record.rowMeta.id"
               :position="record.rowMeta!.position"
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"

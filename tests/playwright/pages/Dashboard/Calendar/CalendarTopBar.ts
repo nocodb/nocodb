@@ -1,11 +1,9 @@
 import { Locator } from '@playwright/test';
-import BasePage from '../../../Base';
-import { TopbarSharePage } from './Share';
+import BasePage from '../../Base';
 import { CalendarPage } from './index';
 
 export class CalendarTopbarPage extends BasePage {
   readonly parent: CalendarPage;
-  readonly share: TopbarSharePage;
 
   readonly today_btn: Locator;
   readonly prev_btn: Locator;

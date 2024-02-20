@@ -1,11 +1,14 @@
-import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import type {BoolType, ColumnReqType, ViewType} from 'nocodb-sdk';
+import {isSystemColumn, UITypes, ViewTypes} from 'nocodb-sdk';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
 import GridView from '~/models/GridView';
 import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
+import CalendarView from "~/models/CalendarView";
 import GridViewColumn from '~/models/GridViewColumn';
+import CalendarViewColumn from '~/models/CalendarViewColumn';
+import CalendarRange from "~/models/CalendarRange";
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -14,16 +17,11 @@ import KanbanViewColumn from '~/models/KanbanViewColumn';
 import Column from '~/models/Column';
 import MapView from '~/models/MapView';
 import MapViewColumn from '~/models/MapViewColumn';
-import { extractProps } from '~/helpers/extractProps';
+import {extractProps} from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import {CacheDelDirection, CacheGetType, CacheScope, MetaTable,} from '~/utils/globals';
 import Noco from '~/Noco';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {parseMetaProp, stringifyMetaProp} from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -33,6 +31,7 @@ type ViewColumn =
   | FormViewColumn
   | GalleryViewColumn
   | KanbanViewColumn
+  | CalendarViewColumn
   | MapViewColumn;
 
 type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
@@ -55,13 +54,14 @@ export default class View implements ViewType {
 
   fk_model_id: string;
   model?: Model;
-  view?: FormView | GridView | KanbanView | GalleryView | MapView;
+  view?: FormView | GridView | KanbanView | GalleryView | MapView | CalendarView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
     | GalleryViewColumn
     | KanbanViewColumn
     | MapViewColumn
+      | CalendarViewColumn
   >;
 
   sorts: Sort[];
@@ -106,6 +106,9 @@ export default class View implements ViewType {
       case ViewTypes.FORM:
         this.view = await FormView.get(this.id);
         break;
+      case ViewTypes.CALENDAR:
+        this.view = await CalendarView.get(this.id);
+        break;
     }
     return <T>this.view;
   }
@@ -128,6 +131,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.FORM:
         this.view = await FormView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.CALENDAR:
+        this.view = await CalendarView.get(this.id, ncMeta);
         break;
     }
     return this.view;
@@ -271,9 +277,10 @@ export default class View implements ViewType {
 
   static async insert(
     view: Partial<View> &
-      Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
+        Partial<FormView | GridView | GalleryView | KanbanView | MapView | CalendarView> & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
+      calendar_range?: Partial<CalendarRange>[];
       },
     ncMeta = Noco.ncMeta,
   ) {
@@ -378,6 +385,21 @@ export default class View implements ViewType {
           ncMeta,
         );
         break;
+      case ViewTypes.CALENDAR:
+        const obj = extractProps(view, ["calendar_range"])
+        if (!obj.calendar_range) break;
+        const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
+        calendarRange.forEach((range) => {
+          range.fk_view_id = view_id;
+        })
+
+        await CalendarView.insert({
+          ...(copyFromView?.view || {}),
+          ...view,
+          fk_view_id: view_id,
+        }, ncMeta,)
+
+        await CalendarRange.bulkInsert(calendarRange, ncMeta);
     }
 
     if (copyFromView) {
@@ -429,6 +451,20 @@ export default class View implements ViewType {
       let order = 1;
       let galleryShowLimit = 0;
       let kanbanShowLimit = 0;
+      let calendarRanges: Array<string> | null = null;
+
+      if (view.type === ViewTypes.CALENDAR) {
+        const calRange = await CalendarRange.read(view_id, ncMeta);
+        if (calRange) {
+          const calIds: Set<string> = new Set()
+          calRange.ranges.forEach((range) => {
+            calIds.add(range.fk_from_column_id);
+            if (!range.fk_to_column_id) return;
+            calIds.add(range.fk_to_column_id);
+          })
+          calendarRanges = Array.from(calIds) as Array<string>;
+        }
+      }
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
         // sort by display value & attachment first, then by singleLineText & Number
@@ -455,6 +491,9 @@ export default class View implements ViewType {
 
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
+        let underline = false;
+        let bold = false;
+        let italic = false;
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(view_id, ncMeta);
@@ -485,6 +524,12 @@ export default class View implements ViewType {
             // other columns will be hidden
             show = false;
           }
+        } else if (view.type === ViewTypes.CALENDAR && !copyFromView) {
+          const calendarView = await CalendarView.get(view_id, ncMeta);
+          if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            show = true;
+          } else show = vCol.id === calendarView?.fk_cover_image_col_id;
+          // Show all Fields in Ranges
         } else if (view.type === ViewTypes.MAP && !copyFromView) {
           const mapView = await MapView.get(view_id, ncMeta);
           if (vCol.id === mapView?.fk_geo_data_col_id) {
@@ -506,6 +551,9 @@ export default class View implements ViewType {
             view_id,
             fk_column_id: vCol.fk_column_id || vCol.id,
             show,
+            underline,
+            bold,
+            italic,
             id: null,
           },
           ncMeta,
@@ -591,9 +639,12 @@ export default class View implements ViewType {
       view_id: any;
       order;
       show;
+      underline?;
+      bold?;
+      italic?;
       fk_column_id;
       id?: string;
-    } & Partial<FormViewColumn>,
+    } & Partial<FormViewColumn> & Partial<CalendarViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(param.view_id, ncMeta);
@@ -655,6 +706,16 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.CALENDAR: {
+        col = await CalendarViewColumn.insert(
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
     }
 
     return col;
@@ -678,6 +739,7 @@ export default class View implements ViewType {
       | GalleryViewColumn
       | KanbanViewColumn
       | MapViewColumn
+        | CalendarViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -699,6 +761,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.KANBAN:
         columns = await KanbanViewColumn.list(viewId, ncMeta);
+        break;
+      case ViewTypes.CALENDAR:
+        columns = await CalendarViewColumn.list(viewId, ncMeta);
         break;
     }
 
@@ -748,6 +813,11 @@ export default class View implements ViewType {
       case ViewTypes.KANBAN:
         tableName = MetaTable.KANBAN_VIEW_COLUMNS;
         cacheScope = CacheScope.KANBAN_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.CALENDAR:
+        tableName = MetaTable.CALENDAR_VIEW_COLUMNS;
+        cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
 
         break;
     }
@@ -800,6 +870,9 @@ export default class View implements ViewType {
         table = MetaTable.FORM_VIEW_COLUMNS;
         cacheScope = CacheScope.FORM_VIEW_COLUMN;
         break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW_COLUMNS;
+        cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
     }
     const updateObj = extractProps(colData, ['order', 'show']);
 

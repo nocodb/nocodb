@@ -3,6 +3,8 @@ export { default as Audit } from './Audit';
 export { default as BarcodeColumn } from './BarcodeColumn';
 export { default as Source } from './Source';
 export { default as Column } from './Column';
+export { default as CalendarView } from './CalendarView';
+export { default as CalendarViewColumn } from './CalendarViewColumn';
 export { default as Filter } from './Filter';
 export { default as FormulaColumn } from './FormulaColumn';
 export { default as FormView } from './FormView';

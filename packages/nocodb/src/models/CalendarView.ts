@@ -1,10 +1,10 @@
-import type { MetaType } from 'nocodb-sdk';
-import type { CalendarType } from 'nocodb-sdk';
+import type {CalendarType} from 'nocodb-sdk';
+import {BoolType, MetaType} from 'nocodb-sdk';
 import View from '~/models/View';
-import { extractProps } from '~/helpers/extractProps';
+import {extractProps} from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {CacheGetType, CacheScope, MetaTable} from '~/utils/globals';
 
 export default class CalendarView implements CalendarType {
     fk_view_id: string;
@@ -13,12 +13,13 @@ export default class CalendarView implements CalendarType {
     source_id?: string;
     meta?: MetaType;
 
+    fk_cover_image_col_id?: string;
     // below fields are not in use at this moment
     // keep them for time being
-    show?: boolean;
-    public?: boolean;
+    show?: BoolType;
+    public?: BoolType;
     password?: string;
-    show_all_fields?: boolean;
+    show_all_fields?: BoolType;
 
     constructor(data: CalendarView) {
         Object.assign(this, data);

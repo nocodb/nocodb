@@ -1,13 +1,10 @@
-import type {
-    BoolType,
-    MetaType,
-} from 'nocodb-sdk';
+import type {BoolType, MetaType,} from 'nocodb-sdk';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { extractProps } from '~/helpers/extractProps';
-import { deserializeJSON, serializeJSON } from '~/utils/serialize';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {extractProps} from '~/helpers/extractProps';
+import {deserializeJSON} from '~/utils/serialize';
+import {CacheGetType, CacheScope, MetaTable} from '~/utils/globals';
 
 export default class CalendarViewColumn {
     id?: string;
@@ -63,7 +60,6 @@ export default class CalendarViewColumn {
             'underline',
             'bold',
             'italic',
-            'meta',
         ]);
 
         insertObj.order = await ncMeta.metaGetNextOrder(
@@ -72,10 +68,6 @@ export default class CalendarViewColumn {
                 fk_view_id: insertObj.fk_view_id,
             },
         );
-
-        if (insertObj.meta) {
-            insertObj.meta = serializeJSON(insertObj.meta);
-        }
 
         if (!(insertObj.base_id && insertObj.source_id)) {
             const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
@@ -156,7 +148,6 @@ export default class CalendarViewColumn {
         const updateObj = extractProps(body, [
             'show',
             'order',
-            'meta',
             'underline',
             'bold',
             'italic',
@@ -170,11 +161,6 @@ export default class CalendarViewColumn {
             // set cache
             await NocoCache.set(key, o);
         }
-
-        if (updateObj.meta) {
-            updateObj.meta = serializeJSON(updateObj.meta);
-        }
-
         // update meta
         return await ncMeta.metaUpdate(
             null,

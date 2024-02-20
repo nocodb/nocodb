@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
+
 const emit = defineEmits(['new-record', 'expand-record'])
 
 const { pageDate, selectedDate, formattedData, displayField, calendarRange } = useCalendarViewStoreOrThrow()
@@ -86,30 +88,23 @@ const isDateSelected = (date: Date) => {
   return isSameDate(propDate, date)
 }
 
-const handleScroll = (event) => {
-  if (event.deltaY > 0) {
-    pageDate.value.setMonth(pageDate.value.getMonth() + 1)
-  } else {
-    pageDate.value.setMonth(pageDate.value.getMonth() - 1)
-  }
-}
-
 const eventsByDate = computed(() => {
   if (!formattedData.value) return {}
   const events = {}
   formattedData.value.forEach((record) => {
     const date = record.row[calendarRange.value[0].fk_from_col.title]
-    if (!events[new Date().getDate()]) {
-      events[date] = []
+    const dateObj = dayjs(date).format('MM/DD/YYYY')
+    if (!events[dateObj]) {
+      events[dateObj] = []
     }
-    events[date].push(record)
+    events[dateObj].push(record)
   })
   return events
 })
 </script>
 
 <template>
-  <div v-if="calendarRange && calendarRange[0] && calendarRange[0].fk_from_col" class="h-full" @scroll="handleScroll">
+  <div v-if="calendarRange && calendarRange[0] && calendarRange[0].fk_from_col" class="h-full">
     <div class="grid grid-cols-7">
       <div
         v-for="(day, index) in days"
@@ -119,7 +114,7 @@ const eventsByDate = computed(() => {
         {{ day }}
       </div>
     </div>
-    <div class="grid relative grid-cols-7 h-full">
+    <div class="grid relative auto-rows-fr grid-cols-7 h-full">
       <div
         v-for="(date, id) in dates"
         :key="id"
@@ -130,39 +125,45 @@ const eventsByDate = computed(() => {
         class="text-right !h-[100%] group grid-cell py-1 text-sm hover:bg-gray-50 border-1 bg-white last:border-r-0 border-gray-200 font-semibold text-gray-800"
         @click="selectDate(date)"
       >
-        <div class="h-full">
-          <div class="flex justify-between p-1">
-            <span
-              :class="{
-                block: !isDateSelected(date),
-                hidden: isDateSelected(date),
-              }"
-              class="group-hover:hidden"
-            ></span>
-            <NcButton
-              :class="{
-                '!block': isDateSelected(date),
-                '!hidden': !isDateSelected(date),
-              }"
-              class="!group-hover:block"
-              size="small"
-              type="secondary"
-              @click="emit('new-record')"
-            >
-              <component :is="iconMap.plus" class="h-4 w-4" />
-            </NcButton>
-            <span class="px-1 py-2">{{ date.getDate() }}</span>
-          </div>
-          <pre></pre>
-          <LazySmartsheetRow v-for="(record, recordId) in eventsByDate[date.getDate()]" :key="recordId" :row="record">
+        <div class="flex justify-between p-1">
+          <span
+            :class="{
+              block: !isDateSelected(date),
+              hidden: isDateSelected(date),
+            }"
+            class="group-hover:hidden"
+          ></span>
+          <NcButton
+            :class="{
+              '!block': isDateSelected(date),
+              '!hidden': !isDateSelected(date),
+            }"
+            class="!group-hover:block"
+            size="small"
+            type="secondary"
+            @click="emit('new-record')"
+          >
+            <component :is="iconMap.plus" class="h-4 w-4" />
+          </NcButton>
+          <span class="px-1 py-2">{{ date.getDate() }}</span>
+        </div>
+        <div class="flex flex-col justify-center gap-1">
+          <LazySmartsheetRow
+            v-for="(record, recordId) in (eventsByDate[dayjs(date).format('MM/DD/YYYY')] ?? []).slice(0, 2)"
+            :key="recordId"
+            :row="record"
+          >
             <LazySmartsheetCalendarRecordCard
               v-if="calendarRange && calendarRange[0]"
-              :date="record.row[calendarRange[0].fk_from_col.title]"
+              :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('MM/DD/YYYY HH:mm')"
               :name="record.row[displayField.title]"
               color="blue"
               @click="emit('expand-record', record)"
             />
           </LazySmartsheetRow>
+          <div v-if="eventsByDate[dayjs(date).format('MM/DD/YYYY')]?.length > 2" class="text-xs text-center text-gray-500">
+            +{{ eventsByDate[dayjs(date).format('MM/DD/YYYY')].length - 2 }} more
+          </div>
         </div>
       </div>
       <!--      <LazySmartsheetRow

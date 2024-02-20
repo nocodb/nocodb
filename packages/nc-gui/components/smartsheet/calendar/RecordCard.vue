@@ -21,9 +21,9 @@ withDefaults(defineProps<Props>(), {
 <template>
   <div
     :class="{
-      'h-8': size === 'small',
-      'h-10': size === 'medium',
-      'h-12': size === 'large',
+      'min-h-9': size === 'small',
+      'min-h-10': size === 'medium',
+      'min-h-12': size === 'large',
       'rounded-l-lg ml-3': position === 'leftRounded',
       'rounded-r-lg mr-3': position === 'rightRounded',
       'rounded-lg mx-3': position === 'rounded',

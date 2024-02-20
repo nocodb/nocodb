@@ -659,6 +659,12 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const selectDate = (date: Date) => {
+  dragRecord.value = undefined
+  draggingId.value = null
+  resizeRecord.value = undefined
+  resizeInProgress.value = false
+  resizeDirection.value = undefined
+  focusedDate.value = null
   selectedDate.value = date
 }
 
@@ -702,7 +708,8 @@ onBeforeUnmount(() => {
           v-for="(day, dateIndex) in week"
           :key="`${weekIndex}-${dateIndex}`"
           :class="{
-            'border-brand-500 border-2 border-r-2 border-b-2': isDateSelected(day) || dayjs(day).isSame(focusedDate, 'day'),
+            'border-brand-500 border-2 border-r-2 border-b-2':
+              isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
           class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-semibold hover:bg-gray-50 text-gray-800 bg-white"

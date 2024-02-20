@@ -654,7 +654,6 @@ export default {
             <NcButton
               v-if="props.showNextPrevIcons && !islastRow"
               v-e="['c:row-expand:next']"
-              type="secondary"
               class="nc-next-arrow !w-10"
               type="secondary"
               @click="onNext"

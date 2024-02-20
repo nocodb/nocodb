@@ -54,13 +54,7 @@ const getRecordPosition = (record: Row) => {
     // StartDate is before selectedDateRange start and EndDate is after selectedDateRange end -> Spanning Both
     // StartDate is after selectedDateRange end and EndDate is before selectedDateRange start -> Spanning Both
 
-    if (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isSameOrBefore(selectedDateRange.value.end)) {
-      return 'rounded'
-    } else if (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isSameOrBefore(selectedDateRange.value.end)) {
-      return 'rounded'
-    } else if ((startDate && !endDate) || (endDate && !startDate)) {
-      return 'rounded'
-    } else if (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) {
+    if (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) {
       return 'leftRounded'
     } else if (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isAfter(selectedDateRange.value.end)) {
       return 'leftRounded'
@@ -71,6 +65,12 @@ const getRecordPosition = (record: Row) => {
     } else if (startDate.isBefore(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) {
       return 'rounded'
     } else if (startDate.isAfter(selectedDateRange.value.end) && endDate.isBefore(selectedDateRange.value.start)) {
+      return 'rounded'
+    } else if (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isSameOrBefore(selectedDateRange.value.end)) {
+      return 'rounded'
+    } else if (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isSameOrBefore(selectedDateRange.value.end)) {
+      return 'rounded'
+    } else if ((startDate && !endDate) || (endDate && !startDate)) {
       return 'rounded'
     }
   }
@@ -193,8 +193,6 @@ const calendarData = computed(() => {
       }
     }
   })
-
-  console.log(recordsInDay)
 
   return recordsInRange
 })

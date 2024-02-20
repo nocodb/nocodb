@@ -64,6 +64,7 @@ interface Row {
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
     range?: {
       fk_from_col: ColumnType
       fk_to_col: ColumnType | null

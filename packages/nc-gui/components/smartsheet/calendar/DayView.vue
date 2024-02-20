@@ -121,12 +121,12 @@ const getRecordPosition = (record: Row) => {
     // EndDate and no StartDate -> Same Day No Spanning - none
     if (startDate.isSame(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day')) {
       return 'rounded'
+    } else if (startDate.isBefore(selectedDate.value, 'day') && endDate.isAfter(selectedDate.value, 'day')) {
+      return 'none'
     } else if (startDate.isSame(selectedDate.value, 'day') && endDate.isAfter(selectedDate.value, 'day')) {
       return 'leftRounded'
     } else if (startDate.isBefore(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day')) {
       return 'rightRounded'
-    } else if (startDate.isBefore(selectedDate.value, 'day') && endDate.isAfter(selectedDate.value, 'day')) {
-      return 'rounded'
     } else if (startDate.isSame(selectedDate.value, 'day') && endDate.isBefore(selectedDate.value, 'day')) {
       return 'rightRounded'
     } else if (startDate.isAfter(selectedDate.value, 'day') && endDate.isSame(selectedDate.value, 'day')) {

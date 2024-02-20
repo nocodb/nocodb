@@ -501,23 +501,23 @@ const dragStart = (event: MouseEvent, record: Row) => {
       </NcButton>
     </div>
     <div class="absolute inset-0 pointer-events-none">
-      <div class="relative !ml-[50px]">
+      <div class="relative !ml-[60px]">
         <div
           v-for="(record, rowIndex) in recordsAcrossAllRange"
           :key="rowIndex"
           :data-unique-id="record.rowMeta.id"
           :style="record.rowMeta.style"
-          class="absolute draggable-record cursor-pointer pointer-events-auto"
+          class="absolute draggable-record group cursor-pointer pointer-events-auto"
           @mousedown="dragStart($event, record)"
           @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
-            <LazySmartsheetCalendarRecordCard
-              :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('HH:mm')"
-              :name="record.row[displayField!.title!]"
-              :position="record.rowMeta.position"
+            <LazySmartsheetCalendarVRecordCard
+              :date="dayjs(record.row![record.rowMeta!.range!.fk_from_col.title!]).format('HH:mm')"
+              :name="record.row![displayField!.title!]"
+              :position="record.rowMeta!.position"
               :record="record"
-              :resize="false"
+              :resize="true"
               color="blue"
               size="auto"
             />

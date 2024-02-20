@@ -30,9 +30,9 @@ const datesHours = computed(() => {
           .minute(0)
           .second(0)
           .millisecond(0)
-          .year(startOfWeek.getFullYear() || dayjs().year())
-          .month(startOfWeek.getMonth() || dayjs().month())
-          .date(startOfWeek.getDate() || dayjs().date()),
+          .year(startOfWeek.getFullYear())
+          .month(startOfWeek.getMonth())
+          .date(startOfWeek.getDate()),
       )
     }
     datesHours.push(hours)
@@ -47,40 +47,7 @@ function getRandomNumbers() {
   return randomValues.join('')
 }
 
-const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
-  let column = 0
-  while (true) {
-    let isColumnSuitable = true
-    for (let i = 0; i < spanDays; i++) {
-      const dayIndex = startDayIndex + i
-      if (!recordsInDay[dayIndex]) {
-        recordsInDay[dayIndex] = {}
-      }
-      if (recordsInDay[dayIndex][column]) {
-        isColumnSuitable = false
-        break
-      }
-    }
-
-    if (isColumnSuitable) {
-      return column
-    }
-    column++
-  }
-}
-
-const recordsAcrossAllRange = computed<{
-  records: Array<Row>
-  count: {
-    [key: string]: {
-      [key: string]: {
-        overflow: boolean
-        count: number
-        overflowCount: number
-      }
-    }
-  }
-}>(() => {
+const recordsAcrossAllRange = computed(() => {
   if (!formattedData.value || !calendarRange.value || !container.value) return []
 
   const { scrollHeight } = container.value
@@ -93,28 +60,22 @@ const recordsAcrossAllRange = computed<{
 
   const perRecordHeight = 40
 
-  const spaceBetweenRecords = 5
-
-  const recordsInDayHour: {
+  const overlaps: {
     [key: string]: {
-      [key: string]: {
-        overflow: boolean
-        count: number
-        overflowCount: number
-      }
+      [key: string]: Array<string>
     }
   } = {}
 
   if (!calendarRange.value) return []
 
-  const recordsToDisplay: Array<Row> = []
+  let recordsToDisplay: Array<Row> = []
 
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
     const toCol = range.fk_to_col
 
     const sortedFormattedData = [...formattedData.value].filter((record) => {
-      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+      const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
 
       if (fromCol && toCol) {
         const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
@@ -133,45 +94,31 @@ const recordsAcrossAllRange = computed<{
         if (!startDate) return
         const dateKey = startDate?.format('YYYY-MM-DD')
         const hourKey = startDate?.format('HH:mm')
-
-        if (dateKey && hourKey) {
-          if (!recordsInDayHour[dateKey]) {
-            recordsInDayHour[dateKey] = {}
-          }
-          if (!recordsInDayHour[dateKey][hourKey]) {
-            recordsInDayHour[dateKey][hourKey] = {
-              overflow: false,
-              count: 0,
-              overflowCount: 0,
-            }
-          }
-          recordsInDayHour[dateKey][hourKey].count++
-        }
-
         const id = record.rowMeta.id ?? getRandomNumbers()
 
-        const dayIndex = dayjs(dateKey).day() - 1
+        if (dateKey && hourKey) {
+          if (!overlaps[dateKey]) {
+            overlaps[dateKey] = {}
+          }
+          if (!overlaps[dateKey][hourKey]) {
+            overlaps[dateKey][hourKey] = []
+          }
+          overlaps[dateKey][hourKey].push(id)
+        }
+
+        let dayIndex = dayjs(dateKey).day() - 1
+
+        if (dayIndex === -1) {
+          dayIndex = 6
+        }
+
         const hourIndex = datesHours.value[dayIndex].findIndex((h) => h.format('HH:mm') === hourKey)
 
         const style: Partial<CSSStyleDeclaration> = {
-          left: `${dayIndex * perWidth}px`,
           top: `${hourIndex * perHeight}px`,
+          height: `${perHeight - 30}px`,
         }
 
-        const recordIndex = recordsInDayHour[dateKey][hourKey].count
-
-        const top = hourIndex * perHeight + (recordIndex - 1) * (perRecordHeight + spaceBetweenRecords)
-
-        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords
-
-        if (heightRequired + 20 > perHeight) {
-          style.display = 'none'
-          recordsInDayHour[dateKey][hourKey].overflow = true
-          recordsInDayHour[dateKey][hourKey].overflowCount++
-        } else {
-          style.height = `${perRecordHeight}px`
-          style.top = `${top}px`
-        }
         recordsToDisplay.push({
           ...record,
           rowMeta: {
@@ -210,65 +157,52 @@ const recordsAcrossAllRange = computed<{
           while (hour.isSameOrBefore(recordEnd, 'hour')) {
             const hourKey = hour.format('HH:mm')
 
-            if (!recordsInDayHour[dateKey]) {
-              recordsInDayHour[dateKey] = {}
+            if (!overlaps[dateKey]) {
+              overlaps[dateKey] = {}
             }
-            if (!recordsInDayHour[dateKey][hourKey]) {
-              recordsInDayHour[dateKey][hourKey] = {
-                overflow: false,
-                count: 0,
-                overflowCount: 0,
-              }
+            if (!overlaps[dateKey][hourKey]) {
+              overlaps[dateKey][hourKey] = []
             }
-            recordsInDayHour[dateKey][hourKey].count++
+            overlaps[dateKey][hourKey].push(id)
             hour = hour.add(1, 'hour')
           }
 
-          let dayIndex = recordStart.day()
+          let dayIndex = recordStart.day() - 1
 
           if (dayIndex === -1) {
-            dayIndex = 7
-          }
-
-          let maxRecordCount = 0
-
-          for (let i = 0; i < (datesHours.value[dayIndex - 1] ?? []).length; i++) {
-            const hourKey = datesHours.value[dayIndex - 1][i].format('HH:mm')
-            if (recordsInDayHour[dateKey]?.[hourKey]?.count > maxRecordCount) {
-              maxRecordCount = recordsInDayHour[dateKey][hourKey].count
-            }
+            dayIndex = 6
           }
 
           const startHourIndex = Math.max(
-            (datesHours.value[dayIndex - 1] ?? []).findIndex((h) => h.format('HH:mm') === recordStart.format('HH:mm')),
+            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordStart.format('HH:mm')),
             0,
           )
-
           const endHourIndex = Math.max(
-            (datesHours.value[dayIndex - 1] ?? []).findIndex(
-              (h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm'),
-            ),
+            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm')),
             0,
           )
 
-          console.log(
-            record.row[displayField.value.title],
-            recordEnd?.startOf('hour').format('HH:mm'),
-            (datesHours.value[dayIndex - 1] ?? []).findIndex(
-              (h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm'),
-            ),
-          )
+          let _startHourIndex = startHourIndex
+
+          while (_startHourIndex <= endHourIndex) {
+            const hourKey = datesHours.value[dayIndex][_startHourIndex].format('HH:mm')
+            if (!overlaps[dateKey]) {
+              overlaps[dateKey] = {}
+            }
+            if (!overlaps[dateKey][hourKey]) {
+              overlaps[dateKey][hourKey] = []
+            }
+            overlaps[dateKey][hourKey].push(id)
+            _startHourIndex++
+          }
 
           const spanHours = endHourIndex - startHourIndex + 1
-
-          const left = (dayIndex - 1) * perWidth
 
           const top = startHourIndex * perRecordHeight
 
           const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
 
           const style: Partial<CSSStyleDeclaration> = {
-            left: `${left}px`,
             top: `${top}px`,
             height: `${height}px`,
           }
@@ -288,13 +222,40 @@ const recordsAcrossAllRange = computed<{
       }
     })
 
-    console.log(recordsInDayHour)
+    recordsToDisplay = recordsToDisplay.map((record) => {
+      let maxOverlaps = 1
+      let overlapIndex = 0
+      for (const days in overlaps) {
+        for (const hours in overlaps[days]) {
+          if (overlaps[days][hours].includes(record.rowMeta.id!)) {
+            maxOverlaps = Math.max(maxOverlaps, overlaps[days][hours].length)
+            overlapIndex = Math.max(overlaps[days][hours].indexOf(record.rowMeta.id!), overlapIndex)
+          }
+        }
+      }
+
+      let dayIndex = dayjs(record.row![record.rowMeta!.range!.fk_from_col.title!]).day() - 1
+
+      if (dayIndex === -1) {
+        dayIndex = 6
+      }
+
+      const spacing = 1
+      const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps / 7
+      const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
+
+      record.rowMeta.style = {
+        ...record.rowMeta.style,
+        left: `calc(${dayIndex * perWidth}px + ${leftPerRecord}%)`,
+        width: `calc(${widthPerRecord}%)`,
+      }
+      return record
+    })
+
+    console.log(overlaps)
   })
 
-  return {
-    records: recordsToDisplay,
-    count: recordsInDayHour,
-  }
+  return recordsToDisplay
 })
 
 const dragElement = ref<HTMLElement | null>(null)
@@ -604,34 +565,26 @@ const dropEvent = (event: DragEvent) => {
           <span v-if="date[0].day() === selectedDateRange.start?.getDay()" class="absolute left-1">
             {{ hour.format('h A') }}
           </span>
-          <div
-            v-if="recordsAcrossAllRange.count?.[dayjs(hour).format('YYYY-MM-DD')]?.[dayjs(hour).format('HH:mm')]?.overflow"
-            class="text-xs absolute bottom-2 text-center inset-x-0 !z-[90] text-gray-500"
-          >
-            +
-            {{ recordsAcrossAllRange.count[dayjs(hour).format('YYYY-MM-DD')]?.[dayjs(hour).format('HH:mm')]?.overflowCount }}
-            more
-          </div>
         </div>
       </div>
 
       <div class="absolute pointer-events-none inset-0 !mt-[20px]">
         <div
-          v-for="(record, rowIndex) in recordsAcrossAllRange.records"
+          v-for="(record, rowIndex) in recordsAcrossAllRange"
           :key="rowIndex"
           :data-unique-id="record.rowMeta!.id"
           :style="record.rowMeta!.style"
-          class="absolute draggable-record w-1/7 cursor-pointer pointer-events-auto"
+          class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
           @mousedown="dragStart($event, record)"
           @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
-            <LazySmartsheetCalendarRecordCard
+            <LazySmartsheetCalendarVRecordCard
               :date="dayjs(record.row![record.rowMeta!.range!.fk_from_col.title!]).format('HH:mm')"
               :name="record.row![displayField!.title!]"
               :position="record.rowMeta!.position"
               :record="record"
-              :resize="false"
+              :resize="true"
               color="blue"
               size="auto"
             />

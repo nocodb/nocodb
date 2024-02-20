@@ -45,6 +45,28 @@ const pushToArray = (arr: Array<Row>, record: Row, range) => {
   })
 }
 
+const dragElement = ref<HTMLElement | null>(null)
+
+const dragStart = (event: DragEvent, record: Row) => {
+  dragElement.value = event.target as HTMLElement
+
+  dragElement.value.classList.add('hide')
+  dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
+  const eventRect = dragElement.value.getBoundingClientRect()
+
+  const initialClickOffsetX = event.clientX - eventRect.left
+  const initialClickOffsetY = event.clientY - eventRect.top
+
+  event.dataTransfer?.setData(
+    'text/plain',
+    JSON.stringify({
+      record,
+      initialClickOffsetY,
+      initialClickOffsetX,
+    }),
+  )
+}
+
 const renderData = computed<Array<Row>>(() => {
   if (!calendarRange.value) return []
 
@@ -281,8 +303,9 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
           </div>
         </div>
         <template v-else-if="renderData.length > 0">
-          <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
+          <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex">
             <LazySmartsheetCalendarSideRecordCard
+              :draggable="sideBarFilterOption === 'withoutDates'"
               :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
@@ -297,6 +320,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
                 )
               "
               :name="record.row[displayField!.title!]"
+              :row="record"
               :to-date="
                 record.rowMeta.range!.fk_to_col
                   ? calDataType === UITypes.Date
@@ -305,8 +329,9 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
                   : null
               "
               color="blue"
-              draggable="true"
               @click="emit('expand-record', record)"
+              @dragstart="dragStart($event, record)"
+              @dragover.prevent
             />
           </LazySmartsheetRow>
         </template>

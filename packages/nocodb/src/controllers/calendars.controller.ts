@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -55,15 +65,6 @@ export class CalendarsController {
       calendarViewId,
       calendar: body,
       req,
-    });
-  }
-
-
-  @Get('/api/v1/db/data/calendars/:calendarViewId/count')
-  async calendarRecordCountGet(@Param('calendarViewId') calendarViewId: string, @Req() req: Request) {
-    return await this.calendarsService.calendarRecordCountGet({
-      calendarViewId,
-      req
     });
   }
 }

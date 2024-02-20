@@ -6,8 +6,16 @@ import type { Row } from '#imports'
 
 const emit = defineEmits(['new-record', 'expandRecord'])
 
-const { selectedDate, selectedMonth, formattedData, formattedSideBarData, displayField, calendarRange, updateRowProperty } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDate,
+  selectedMonth,
+  formattedData,
+  formattedSideBarData,
+  sideBarFilterOption,
+  displayField,
+  calendarRange,
+  updateRowProperty,
+} = useCalendarViewStoreOrThrow()
 
 const isMondayFirst = ref(true)
 
@@ -668,6 +676,11 @@ const selectDate = (date: Date) => {
   selectedDate.value = date
 }
 
+const viewMore = (date: Date) => {
+  sideBarFilterOption.value = 'selectedDate' as const
+  selectedDate.value = date
+}
+
 const isDateSelected = (date: Date) => {
   if (!selectedDate.value) return false
   return dayjs(date).isSame(selectedDate.value, 'day')
@@ -794,16 +807,19 @@ onBeforeUnmount(() => {
           </div>
           <div v-if="!isUIAllowed('dataEdit')" class="p-3">{{ dayjs(day).format('DD') }}</div>
 
-          <div
+          <NcButton
             v-if="
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
               !draggingId
             "
-            class="text-xs absolute bottom-1 text-center inset-x-0 !z-[90] text-gray-500"
+            class="!absolute bottom-1 text-center w-13 mx-auto inset-x-0 z-3 text-gray-500"
+            size="xxsmall"
+            type="secondary"
+            @click="viewMore(day)"
           >
-            + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more
-          </div>
+            <span class="text-xs"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more </span>
+          </NcButton>
         </div>
       </div>
     </div>

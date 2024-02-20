@@ -151,8 +151,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         switch (sideBarFilterOption.value) {
           case 'day':
-            fromDate = dayjs(selectedDate.value)
-            toDate = dayjs(selectedDate.value)
+            fromDate = dayjs(selectedDate.value).startOf('day')
+            toDate = dayjs(selectedDate.value).endOf('day')
             break
           case 'week':
             fromDate = dayjs(selectedDateRange.value.start).startOf('day')
@@ -164,7 +164,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
             const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
             fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
-            toDate = fromDate.add(daysToDisplay, 'day')
+            toDate = fromDate.add(daysToDisplay, 'day').endOf('day')
             break
           }
           case 'year':

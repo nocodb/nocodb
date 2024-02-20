@@ -5,11 +5,13 @@ import { type Row, computed, ref } from '#imports'
 
 interface Props {
   isEmbed?: boolean
+  renderDate?: Date | null
   data?: Row[] | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isEmbed: false,
+  renderDate: null,
   data: null,
 })
 
@@ -37,6 +39,9 @@ const getRecordPosition = (record: Row) => {
   const endCol = calendarRange.value[0].fk_to_col
   if (!endCol && startCol) {
     const startDate = dayjs(record.row[startCol.title])
+    if (props.isEmbed) {
+      return startDate.isSame(props.renderDate, 'day') ? 'rounded' : ''
+    }
     return startDate.isSame(selectedDate.value, 'day') ? 'rounded' : ''
   } else if (endCol && startCol) {
     const startDate = dayjs(record.row[startCol.title])
@@ -243,14 +248,22 @@ const dropEvent = (event: DragEvent) => {
 </script>
 
 <template>
-  <template v-if="renderData && renderData.length && displayField.title && calendarRange[0].fk_from_col">
+  <template v-if="((renderData && renderData.length) || isEmbed) && displayField.title && calendarRange[0].fk_from_col">
     <div
       v-if="calDataType === UITypes.Date"
       :class="{
         'h-calc(100vh-10.8rem) overflow-y-auto nc-scrollbar-md': !props.isEmbed,
         'border-r-1 h-full border-gray-200 hover:bg-gray-50 ': props.isEmbed,
+        'bg-gray-50': props.isEmbed && dayjs(selectedDate).isSame(props.renderDate, 'day'),
       }"
       class="flex flex-col pt-3 !gap-2 h-full w-full"
+      @click="
+        () => {
+          if (props.renderDate) {
+            selectedDate = props.renderDate
+          }
+        }
+      "
     >
       <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
         <LazySmartsheetCalendarRecordCard
@@ -263,6 +276,7 @@ const dropEvent = (event: DragEvent) => {
           @click="emit('expand-record', record)"
         />
       </LazySmartsheetRow>
+      <div class="h-full"></div>
     </div>
     <div
       v-else-if="calDataType === UITypes.DateTime"

@@ -578,7 +578,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
         '!border-brand-500': hour.isSame(selectedTime),
       }"
       class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
-      @click="selectedTime = hour.toDate()"
+      @click="selectedTime = hour"
     >
       <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
         {{ dayjs(hour).format('H A') }}

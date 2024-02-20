@@ -473,6 +473,8 @@
     "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
+    "selectDateField": "Select a date field",
+    "selectEndDateField": "Select end date field",
     "optional": "(Optional)",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
@@ -515,7 +517,9 @@
     "duplicateFormView": "Duplicate Form View",
     "createFormView": "Create Form View",
     "duplicateKanbanView": "Duplicate Kanban View",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Create Kanban View",
+    "createCalendarView": "Create Calendar View",
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Field Name",
@@ -931,6 +935,7 @@
     "selectGroupField": "Select a Grouping Field",
     "selectGroupFieldNotFound": "No Single Select Field can be found. Please create one first.",
     "selectGeoField": "Select a GeoData Field",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",
     "password": {
       "enter": "Enter the password",
@@ -1074,6 +1079,9 @@
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"

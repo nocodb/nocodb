@@ -149,6 +149,17 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" />
+              <div>Calendar</div>
+            </div>
+
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
+          </div>
+        </NcMenuItem>
       </NcMenu>
     </template>
   </NcDropdown>

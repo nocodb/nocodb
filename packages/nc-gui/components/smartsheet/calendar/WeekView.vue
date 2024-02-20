@@ -16,6 +16,7 @@ const weekDates = computed(() => {
 
 const getData = (date: Date) => {
   const range = calendarRange.value[0]
+  if (!range) return []
   if (!filteredData.value) return []
   return filteredData.value.filter((record) => dayjs(date).isSame(dayjs(record.row[range.fk_from_col.title])))
 }
@@ -26,14 +27,14 @@ const getData = (date: Date) => {
     <div class="flex">
       <div
         v-for="date in weekDates"
-        :key="date"
+        :key="date.toISOString()"
         class="w-1/7 text-center text-sm text-gray-500 w-full py-1 !last:mr-2.5 border-gray-200 border-b-1 border-r-1 bg-gray-50"
       >
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
     <div class="flex overflow-auto nc-scrollbar-md h-[calc(100vh-12rem)]">
-      <div v-for="date in weekDates" :key="date" class="flex flex-col items-center w-1/7">
+      <div v-for="date in weekDates" :key="date.toISOString()" class="flex flex-col items-center w-1/7">
         <LazySmartsheetCalendarDayView :data="getData(date)" :is-embed="true" />
       </div>
     </div>

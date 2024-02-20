@@ -91,13 +91,23 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 <template>
   <div class="p-4 flex flex-col gap-4">
     <div class="flex justify-between items-center">
-      <NcButton size="small" type="secondary" @click="paginate('prev')">
-        <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton size="small" type="secondary" @click="paginate('prev')">
+          <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
+        </NcButton>
+        <template #title>
+          <span>{{ $t('labels.previousYear') }}</span>
+        </template>
+      </NcTooltip>
       <span class="font-bold text-gray-700">{{ yearPicker ? 'Select Year' : currentYear }}</span>
-      <NcButton size="small" type="secondary" @click="paginate('next')">
-        <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton size="small" type="secondary" @click="paginate('next')">
+          <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+        </NcButton>
+        <template #title>
+          <span>{{ $t('labels.nextYear') }}</span>
+        </template>
+      </NcTooltip>
     </div>
     <div class="border-1 border-gray-200 rounded-y-xl max-w-[350px]">
       <div class="grid grid-cols-4 gap-2 p-2">

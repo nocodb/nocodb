@@ -66,7 +66,7 @@ const dates = computed(() => {
   let numberOfRows = Math.ceil(daysToDisplay / 7)
   numberOfRows = Math.max(numberOfRows, 5)
 
-  const weeksArray: Array<Array<Date>> = []
+  const weeksArray: Array<Array<dayjs.Dayjs>> = []
   let currentDay = firstDayToDisplay
   for (let week = 0; week < numberOfRows; week++) {
     const weekArray = []
@@ -86,7 +86,10 @@ function getRandomNumbers() {
   return randomValues.join('')
 }
 
-const recordsToDisplay = computed(() => {
+const recordsToDisplay = computed<{
+  records: Row[]
+  count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
+}>(() => {
   if (!dates.value || !calendarRange.value) return []
 
   const perWidth = gridContainerWidth.value / 7
@@ -174,7 +177,10 @@ const recordsToDisplay = computed(() => {
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? getRandomNumbers()
-        while (currentWeekStart.isBefore(endDate)) {
+        while (
+          currentWeekStart.isSameOrBefore(endDate, 'day') &&
+          currentWeekStart.isBefore(dates.value[dates.value.length - 1][6])
+        ) {
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
@@ -245,7 +251,9 @@ const recordsToDisplay = computed(() => {
             position = 'rounded'
           } else if (startDate.isSame(recordStart, 'week')) {
             if (isStartMonthBeforeCurrentWeek) {
-              position = 'rightRounded'
+              if (endDate.isSame(currentWeekEnd, 'week')) {
+                position = 'rounded'
+              } else position = 'leftRounded'
             } else position = 'leftRounded'
           } else if (endDate.isSame(currentWeekEnd, 'week')) {
             position = 'rightRounded'
@@ -278,17 +286,16 @@ const recordsToDisplay = computed(() => {
               id,
             },
           })
-          currentWeekStart = currentWeekStart.add(1, 'week').endOf('week')
+          currentWeekStart = currentWeekStart.add(1, 'week')
         }
       }
     })
   })
 
-  const result: { records: Row[]; count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } } } = {
+  return {
     records: recordsToDisplay,
     count: recordsInDay,
   }
-  return result
 })
 
 const onDrag = (event: MouseEvent) => {
@@ -566,7 +573,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     isDragging.value = true
     dragElement.value = target
-    draggingId.value = record.rowMeta.id
+    draggingId.value = record.rowMeta!.id!
     dragRecord.value = record
 
     document.addEventListener('mousemove', onDrag)
@@ -717,11 +724,11 @@ const isDateSelected = (date: dayjs.Dayjs) => {
           v-for="(day, dateIndex) in week"
           :key="`${weekIndex}-${dateIndex}`"
           :class="{
-            'border-brand-500 border-2 border-r-2 border-b-2':
+            'border-brand-500 border-1 border-r-1 border-b-1':
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
-            '!text-gray-400': !isDayInPagedMonth(day),
+            '!text-gray-200': !isDayInPagedMonth(day),
           }"
-          class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-semibold hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           @click="selectDate(day)"
         >
           <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
@@ -794,7 +801,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
             </NcButton>
             <span
               :class="{
-                'bg-brand-50  text-brand-500': day.isSame(dayjs(), 'date'),
+                'bg-brand-50 text-brand-500': day.isSame(dayjs(), 'date'),
               }"
               class="px-1.5 rounded-lg py-1 my-1"
             >
@@ -809,7 +816,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
               !draggingId
             "
-            class="!absolute bottom-1 text-center w-13 mx-auto inset-x-0 z-3 text-gray-500"
+            class="!absolute bottom-1 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
             size="xxsmall"
             type="secondary"
             @click="viewMore(day)"

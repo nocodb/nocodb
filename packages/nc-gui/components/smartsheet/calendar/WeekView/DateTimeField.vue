@@ -5,8 +5,17 @@ import { computed, ref } from '#imports'
 
 const emits = defineEmits(['expandRecord'])
 
-const { selectedDateRange, formattedData, formattedSideBarData, calendarRange, displayField, selectedTime, updateRowProperty } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDateRange,
+  formattedData,
+  formattedSideBarData,
+  calendarRange,
+  displayField,
+  selectedTime,
+  updateRowProperty,
+  sideBarFilterOption,
+  showSideMenu,
+} = useCalendarViewStoreOrThrow()
 
 const container = ref<null | HTMLElement>(null)
 
@@ -47,8 +56,19 @@ function getRandomNumbers() {
   return randomValues.join('')
 }
 
-const recordsAcrossAllRange = computed(() => {
-  if (!formattedData.value || !calendarRange.value || !container.value) return []
+const recordsAcrossAllRange = computed<{
+  records: Array<Row>
+  count: {
+    [key: string]: {
+      [key: string]: {
+        id: Array<string>
+        overflow: boolean
+        overflowCount: number
+      }
+    }
+  }
+}>(() => {
+  if (!formattedData.value || !calendarRange.value || !container.value) return { records: [], count: {} }
 
   const { scrollHeight } = container.value
 
@@ -60,11 +80,13 @@ const recordsAcrossAllRange = computed(() => {
 
   const overlaps: {
     [key: string]: {
-      [key: string]: Array<string>
+      [key: string]: {
+        id: Array<string>
+        overflow: boolean
+        overflowCount: number
+      }
     }
   } = {}
-
-  if (!calendarRange.value) return []
 
   let recordsToDisplay: Array<Row> = []
 
@@ -94,14 +116,25 @@ const recordsAcrossAllRange = computed(() => {
         const hourKey = startDate?.format('HH:mm')
         const id = record.rowMeta.id ?? getRandomNumbers()
 
+        let style: Partial<CSSStyleDeclaration> = {}
+
         if (dateKey && hourKey) {
           if (!overlaps[dateKey]) {
             overlaps[dateKey] = {}
           }
           if (!overlaps[dateKey][hourKey]) {
-            overlaps[dateKey][hourKey] = []
+            overlaps[dateKey][hourKey] = {
+              id: [],
+              overflow: false,
+              overflowCount: 0,
+            }
           }
-          overlaps[dateKey][hourKey].push(id)
+          overlaps[dateKey][hourKey].id.push(id)
+        }
+        if (overlaps[dateKey][hourKey].id.length > 4) {
+          overlaps[dateKey][hourKey].overflow = true
+          style.display = 'none'
+          overlaps[dateKey][hourKey].overflowCount += 1
         }
 
         let dayIndex = dayjs(dateKey).day() - 1
@@ -112,7 +145,8 @@ const recordsAcrossAllRange = computed(() => {
 
         const hourIndex = datesHours.value[dayIndex].findIndex((h) => h.format('HH:mm') === hourKey)
 
-        const style: Partial<CSSStyleDeclaration> = {
+        style = {
+          ...style,
           top: `${hourIndex * perHeight}px`,
           height: `${perHeight / 2 - 30}px`,
         }
@@ -190,15 +224,28 @@ const recordsAcrossAllRange = computed(() => {
 
           let _startHourIndex = startHourIndex
 
+          let style: Partial<CSSStyleDeclaration> = {}
+
           while (_startHourIndex <= endHourIndex) {
             const hourKey = datesHours.value[dayIndex][_startHourIndex].format('HH:mm')
             if (!overlaps[dateKey]) {
               overlaps[dateKey] = {}
             }
             if (!overlaps[dateKey][hourKey]) {
-              overlaps[dateKey][hourKey] = []
+              overlaps[dateKey][hourKey] = {
+                id: [],
+                overflow: false,
+                overflowCount: 0,
+              }
             }
-            overlaps[dateKey][hourKey].push(id)
+            overlaps[dateKey][hourKey].id.push(id)
+
+            if (overlaps[dateKey][hourKey].id.length > 4) {
+              overlaps[dateKey][hourKey].overflow = true
+              style.display = 'none'
+              overlaps[dateKey][hourKey].overflowCount += 1
+            }
+
             _startHourIndex++
           }
 
@@ -208,7 +255,8 @@ const recordsAcrossAllRange = computed(() => {
 
           const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
 
-          const style: Partial<CSSStyleDeclaration> = {
+          style = {
+            ...style,
             top: `${top}px`,
             height: `${height}px`,
           }
@@ -238,9 +286,9 @@ const recordsAcrossAllRange = computed(() => {
       const dateKey = dayjs(selectedDateRange.value.start).add(dayIndex, 'day').format('YYYY-MM-DD')
 
       for (const hours in overlaps[dateKey]) {
-        if (overlaps[dateKey][hours].includes(record.rowMeta.id!)) {
-          maxOverlaps = Math.max(maxOverlaps, overlaps[dateKey][hours].length)
-          overlapIndex = Math.max(overlapIndex, overlaps[dateKey][hours].indexOf(record.rowMeta.id!))
+        if (overlaps[dateKey][hours].id.includes(record.rowMeta.id!)) {
+          maxOverlaps = Math.max(maxOverlaps, overlaps[dateKey][hours].id.length - overlaps[dateKey][hours].overflowCount)
+          overlapIndex = Math.max(overlapIndex, overlaps[dateKey][hours].id.indexOf(record.rowMeta.id!))
         }
       }
       const spacing = 1
@@ -256,7 +304,10 @@ const recordsAcrossAllRange = computed(() => {
     })
   })
 
-  return recordsToDisplay
+  return {
+    records: recordsToDisplay,
+    count: overlaps,
+  }
 })
 
 const dragElement = ref<HTMLElement | null>(null)
@@ -662,6 +713,12 @@ const dropEvent = (event: DragEvent) => {
     updateRowProperty(newRow, updateProperty, false)
   }
 }
+
+const viewMore = (hour: dayjs.Dayjs) => {
+  sideBarFilterOption.value = 'selectedHours'
+  selectedTime.value = hour
+  showSideMenu.value = true
+}
 </script>
 
 <template>
@@ -681,20 +738,33 @@ const dropEvent = (event: DragEvent) => {
           v-for="(hour, hourIndex) in date"
           :key="hourIndex"
           :class="{
-            'border-2 !border-brand-500': hour.isSame(selectedTime, 'hour'),
+            'border-1 !border-brand-500': hour.isSame(selectedTime, 'hour'),
           }"
           class="text-center relative h-56 text-sm text-gray-500 w-full py-1 border-gray-200 border-1 border-r-white border-t-white last:border-r-white bg-gray-50"
-          @click="selectedTime = hour.toDate()"
+          @click="selectedTime = hour"
         >
           <span v-if="date[0].day() === selectedDateRange.start?.day()" class="absolute left-1">
             {{ hour.format('h A') }}
           </span>
+          <NcButton
+            v-if="recordsAcrossAllRange?.count?.[hour.format('YYYY-MM-DD')]?.[hour.format('HH:mm')]?.overflow"
+            class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
+            size="xxsmall"
+            type="secondary"
+            @click="viewMore(hour)"
+          >
+            <span class="text-xs">
+              +
+              {{ recordsAcrossAllRange?.count[hour.format('YYYY-MM-DD')][hour.format('HH:mm')]?.overflowCount }}
+              more
+            </span>
+          </NcButton>
         </div>
       </div>
 
       <div class="absolute pointer-events-none inset-0 !mt-[20px]">
         <div
-          v-for="(record, rowIndex) in recordsAcrossAllRange"
+          v-for="(record, rowIndex) in recordsAcrossAllRange.records"
           :key="rowIndex"
           :data-unique-id="record.rowMeta!.id"
           :style="record.rowMeta!.style"
@@ -704,7 +774,6 @@ const dropEvent = (event: DragEvent) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
-              :date="dayjs(record.row![record.rowMeta!.range!.fk_from_col.title!]).format('HH:mm')"
               :name="record.row![displayField!.title!]"
               :position="record.rowMeta!.position"
               :record="record"

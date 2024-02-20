@@ -171,7 +171,7 @@ const paginate = (action: 'next' | 'prev') => {
           :key="index"
           :class="{
             'rounded-lg': !weekPicker,
-            'bg-brand-50 border-2 !border-brand-500': isSelectedDate(date) && !weekPicker && isDayInPagedMonth(date),
+            'bg-brand-50 border-1 !border-brand-500': isSelectedDate(date) && !weekPicker && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !weekPicker,
             'nc-selected-week z-1': isDateInSelectedWeek(date) && weekPicker,
             'text-gray-400': !isDateInCurrentMonth(date),
@@ -185,7 +185,7 @@ const paginate = (action: 'next' | 'prev') => {
           <span
             v-if="isActiveDate(date)"
             :class="{
-              'border-2 border-white !h-2 !w-2': dayjs(date).isSame(dayjs(), 'date'),
+              'border-1 border-white !h-2 !w-2': dayjs(date).isSame(dayjs(), 'date'),
             }"
             class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"
           ></span>

@@ -110,7 +110,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(month, id) in months"
             :key="id"
             :class="{
-              '!bg-brand-50 !border-2 !border-brand-500': isMonthSelected(month),
+              '!bg-brand-50 !border-1 !border-brand-500': isMonthSelected(month),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
             @click="selectedDate = month"
@@ -123,7 +123,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(year, id) in years"
             :key="id"
             :class="{
-              '!bg-brand-50 !border-2 !border-brand-500': compareYear(year, selectedDate),
+              '!bg-brand-50 !border-1 !border-brand-500': compareYear(year, selectedDate),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
             @click="selectedDate = year"

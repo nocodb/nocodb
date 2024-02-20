@@ -33,7 +33,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const selectedDateRange = ref<{
             start: Date | null
             end: Date | null
-        }>({start: null, end: null})
+        }>({start: new Date(), end: null})
 
         const defaultPageSize = 1000
 
@@ -102,12 +102,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             switch (activeCalendarView.value) {
                 case 'month':
                     selectedDate.value = action === 'next' ? addMonths(selectedDate.value, 1) : addMonths(selectedDate.value, -1)
+                    if(pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
+                        pageDate.value = selectedDate.value
+                    }
                     break
                 case 'year':
                     selectedDate.value = action === 'next' ? addYears(selectedDate.value, 1) : addYears(selectedDate.value, -1)
+                    if(pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
+                        pageDate.value = selectedDate.value
+                    }
                     break
                 case 'day':
                     selectedDate.value = action === 'next' ? addDays(selectedDate.value, 1) : addDays(selectedDate.value, -1)
+                    if(pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
+                        pageDate.value = selectedDate.value
+                    } else if(pageDate.value.getMonth() !== selectedDate.value.getMonth()) {
+                        pageDate.value = selectedDate.value
+                    }
                     break
                 case 'week':
                     selectedDateRange.value = action === 'next' ? {

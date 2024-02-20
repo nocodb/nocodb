@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { computed, ref } from '#imports'
-import { generateRandomNumber, isRowEmpty } from '~/utils'
+import { generateRandomNumber, getScrollbarWidth, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
 
@@ -725,12 +725,13 @@ const viewMore = (hour: dayjs.Dayjs) => {
 
 <template>
   <div class="w-full relative prevent-select" @drop="dropEvent">
-    <div class="flex absolute w-full top-0">
+    <div class="flex absolute bg-gray-50 w-full top-0">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
         :class="{
           'text-brand-500': date[0].isSame(dayjs(), 'date'),
+          'last:mr-2.75': getScrollbarWidth() > 0,
         }"
         class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 bg-gray-50"
       >

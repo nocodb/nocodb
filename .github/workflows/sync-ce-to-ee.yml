@@ -45,7 +45,7 @@ jobs:
       - name: Sync OSS to EE
         id: sync
         env:
-          GH_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd nocohub
           git fetch --quiet --unshallow origin

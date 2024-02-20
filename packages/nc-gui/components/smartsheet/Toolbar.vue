@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {
   IsPublicInj,
   inject,
@@ -23,6 +23,7 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div
+    v-if="!isMobileMode || !isCalendar"
     class="nc-table-toolbar relative py-1 px-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] z-7"
   >
     <template v-if="isViewsLoading">

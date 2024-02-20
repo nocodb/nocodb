@@ -262,39 +262,31 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
       year-picker
     />
 
-    <div class="px-4 flex flex-col gap-y-6 pt-4">
-      <div class="flex justify-between items-center">
-        <span class="text-lg font-bold">{{ t('objects.Records') }}</span>
-        <NcSelect v-model:value="sideBarFilterOption" :options="options" />
-      </div>
+    <div class="px-4 relative flex flex-col gap-y-6 pt-4">
       <div class="flex items-center gap-3">
-        <a-input
-          v-model:value="searchQuery.value"
-          class="!rounded-lg !border-gray-200 !px-4 !py-2"
-          placeholder="Search your records"
-        >
+        <a-input v-model:value="searchQuery.value" class="!rounded-lg !border-gray-200 !px-4 !py-2" placeholder="Search records">
           <template #prefix>
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcButton type="secondary" @click="emit('new-record', { row: {} })">
-          <div class="px-4 flex items-center gap-2 justify-center">
-            <component :is="iconMap.plus" class="h-4 w-4 text-gray-700" />
-            {{ t('activity.newRecord') }}
-          </div>
-        </NcButton>
+        <NcSelect v-model:value="sideBarFilterOption" :options="options" />
       </div>
 
       <div
         v-if="calendarRange"
         :ref="sideBarListRef"
         :class="{
-        'h-[calc(100vh-40rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
-        'h-[calc(100vh-29rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const),
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const),
       }"
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
         @scroll="sideBarListScrollHandle"
       >
+        <NcButton class="!absolute right-5 bottom-5 !h-12 !w-12" type="secondary" @click="emit('new-record', { row: {} })">
+          <div class="px-4 flex items-center gap-2 justify-center">
+            <component :is="iconMap.plus" class="h-6 w-6 text-lg text-brand-500" />
+          </div>
+        </NcButton>
         <div v-if="renderData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
           <GeneralLoader v-if="isSidebarLoading" size="large" />
 

@@ -239,7 +239,7 @@ export class DatasService {
 
     const dates: Array<string> = [];
 
-    ranges.forEach((range) => {
+    ranges.forEach((range: any) => {
       data.list.forEach((date) => {
         const from =
           date[

@@ -60,7 +60,7 @@ const getAst = async ({
     if (calenderRanges) {
       dependencyFieldsForCalenderView = calenderRanges.ranges
         .flatMap((obj) =>
-          [obj.fk_from_column_id, obj.fk_to_column_id].filter(Boolean),
+          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
         )
         .map(String);
     }

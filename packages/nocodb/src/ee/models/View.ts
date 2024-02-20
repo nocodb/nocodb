@@ -1,9 +1,11 @@
 import ViewCE from 'src/models/View';
+import CalendarRange from './CalendarRange';
 import type { ViewType } from 'nocodb-sdk';
 import type FormView from '~/models/FormView';
 import type GridView from '~/models/GridView';
 import type KanbanView from '~/models/KanbanView';
 import type GalleryView from '~/models/GalleryView';
+import type { MetaService } from '~/meta/meta.service';
 import type MapView from '~/models/MapView';
 import Noco from '~/Noco';
 import Model from '~/models/Model';
@@ -52,5 +54,19 @@ export default class View extends ViewCE implements ViewType {
     }
 
     return super.insert(view, ncMeta);
+  }
+
+  static async getRangeColumnsAsArray(viewId: string, ncMeta: MetaService) {
+    const calRange = await CalendarRange.read(viewId, ncMeta);
+    if (calRange) {
+      const calIds: Set<string> = new Set();
+      calRange.ranges.forEach((range: any) => {
+        calIds.add(range.fk_from_column_id);
+        if (!range.fk_to_column_id) return;
+        calIds.add(range.fk_to_column_id);
+      });
+      return Array.from(calIds) as Array<string>;
+    }
+    return [];
   }
 }

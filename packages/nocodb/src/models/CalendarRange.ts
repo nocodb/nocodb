@@ -7,7 +7,6 @@ import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 export default class CalendarRange implements CalendarRangeType {
   id?: string;
   fk_from_column_id?: string;
-  fk_to_column_id?: string | null;
   fk_view_id?: string;
 
   constructor(data: Partial<CalendarRange>) {
@@ -18,43 +17,39 @@ export default class CalendarRange implements CalendarRangeType {
     data: Partial<CalendarRange>[],
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = [];
+    let insertObj = [];
 
     for (const d of data) {
-      const tempObj = extractProps(d, [
-        'fk_from_column_id',
-        'fk_to_column_id',
-        'fk_view_id',
-      ]);
+      const tempObj = extractProps(d, ['fk_from_column_id', 'fk_view_id']);
       insertObj.push(tempObj);
     }
 
-    const bulkData = await ncMeta.bulkMetaInsert(
+    if (!insertObj.length) return false;
+
+    insertObj = insertObj[0];
+
+    const insertData = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.CALENDAR_VIEW_RANGE,
       insertObj,
     );
-    const uniqueFks: string[] = [
-      ...new Set(bulkData.map((d) => d.fk_view_id)),
-    ] as string[];
 
-    for (const fk of uniqueFks) {
-      await NocoCache.deepDel(
-        `${CacheScope.CALENDAR_VIEW_RANGE}:${fk}:list`,
-        CacheDelDirection.PARENT_TO_CHILD,
-      );
-    }
+    await NocoCache.deepDel(
+      `${CacheScope.CALENDAR_VIEW_RANGE}:${insertData.fk_view_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
 
-    for (const d of bulkData) {
-      await NocoCache.set(`${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`, d);
+    await NocoCache.set(
+      `${CacheScope.CALENDAR_VIEW_RANGE}:${insertData.id}`,
+      insertData,
+    );
 
-      await NocoCache.appendToList(
-        CacheScope.CALENDAR_VIEW_RANGE,
-        [d.fk_view_id],
-        `${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`,
-      );
-    }
+    await NocoCache.appendToList(
+      CacheScope.CALENDAR_VIEW_RANGE,
+      [insertData.fk_view_id],
+      `${CacheScope.CALENDAR_VIEW_RANGE}:${insertData.id}`,
+    );
 
     return true;
   }
@@ -115,11 +110,6 @@ export default class CalendarRange implements CalendarRangeType {
             _or: [
               {
                 fk_from_column_id: {
-                  eq: columnId,
-                },
-              },
-              {
-                fk_to_column_id: {
                   eq: columnId,
                 },
               },

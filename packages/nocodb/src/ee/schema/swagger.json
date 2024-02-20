@@ -3557,6 +3557,47 @@
           }
         ]
       },
+      "CalendarRange": {
+        "description": "Model for Calendar Date Range",
+        "examples": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_from_column_id": "cl_hzos4ghyncqi4k",
+            "fk_to_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "label": "string"
+          }
+        ],
+        "title": "Calendar Date Range Model",
+        "type": "object",
+        "properties": {
+          "fk_from_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_to_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "label": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
       "SSOClientReq": {
         "$ref": "#/components/schemas/SSOClient",
         "required": [

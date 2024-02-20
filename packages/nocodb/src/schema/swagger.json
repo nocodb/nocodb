@@ -20541,10 +20541,6 @@
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
-          "fk_to_column_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Column"
-          },
           "fk_view_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "x-stoplight": {

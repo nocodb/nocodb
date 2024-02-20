@@ -53,11 +53,19 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
       for (const record of formattedData.value) {
-        const id = record.rowMeta.id ?? getRandomNumbers()
-        const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[endCol.title!])
+        const id = getRandomNumbers()
+        let startDate = dayjs(record.row[fromCol.title!])
+        let endDate = dayjs(record.row[endCol.title!])
 
-        if (!startDate.isValid()) continue
+        if (!startDate.isValid() || startDate.isAfter(endDate)) continue
+
+        if (startDate.isBefore(scheduleStart)) {
+          startDate = scheduleStart
+        }
+
+        if (endDate.isAfter(scheduleEnd)) {
+          endDate = scheduleEnd
+        }
 
         const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
@@ -74,12 +82,14 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
             overlaps[startMinutes] = []
           }
           overlaps[startMinutes].push(id)
-          startMinutes += 15
+          startMinutes += 10
         }
 
+        const finalTopInPixels = topInPixels + startHour + 1
+
         const style: Partial<CSSStyleDeclaration> = {
-          top: `${topInPixels + 10}px`,
-          height: `${heightInPixels}px`,
+          top: `${finalTopInPixels}px`,
+          height: `${heightInPixels - 5}px`,
         }
 
         let position = 'none'
@@ -112,14 +122,29 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
+        const id = getRandomNumbers()
+
         const startDate = dayjs(record.row[fromCol.title!])
-        const scaleMin = (scheduleEnd - scheduleStart) / 60000
+        const endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
 
-        const startMinutes = Math.max((startDate - scheduleStart) / 60000, 0)
-        const endMinutes = Math.min((startDate - scheduleStart) / 60000, scaleMin)
+        const startHour = startDate.hour()
+        const endHour = endDate.hour()
 
-        const height = ((endMinutes - startMinutes) / scaleMin) * 100
-        const top = (startMinutes / scaleMin) * 100
+        let startMinutes = startDate.minute() + startHour * 60
+        const endMinutes = endDate.minute() + endHour * 60
+
+        while (startMinutes < endMinutes) {
+          if (!overlaps[startMinutes]) {
+            overlaps[startMinutes] = []
+          }
+          overlaps[startMinutes].push(id)
+          startMinutes += 10
+        }
+
+        const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
+        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
+
+        const finalTopInPixels = topInPixels + startHour
 
         recordsByRange.push({
           ...record,
@@ -127,10 +152,10 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
             ...record.rowMeta,
             range: range as any,
             style: {
-              width: '100%',
-              left: `${50}px`,
-              top: `${top}%`,
+              top: `${finalTopInPixels}px`,
+              height: `${heightInPixels - 5}px`,
             },
+            id,
             position: 'rounded',
           },
         })
@@ -144,23 +169,21 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     for (const minutes in overlaps) {
       if (overlaps[minutes].includes(record.rowMeta.id)) {
         maxOverlaps = Math.max(maxOverlaps, overlaps[minutes].length)
-        console.log(
-          record.row[displayField.value.title!],
-          maxOverlaps,
-          overlaps[minutes],
-          overlaps[minutes].indexOf(record.rowMeta.id),
-        )
+
         overlapIndex = Math.max(overlaps[minutes].indexOf(record.rowMeta.id), overlapIndex)
       }
     }
 
-    const width = 100 / maxOverlaps
-    const left = width * overlapIndex
+    const spacing = 1
+    const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps
+    const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
+
+    console.log('leftPerRecord', leftPerRecord, 'widthPerRecord', widthPerRecord)
 
     record.rowMeta.style = {
       ...record.rowMeta.style,
-      left: left === 0 ? '50px' : `calc(${left}% + 30px)`,
-      width: `${width}%`,
+      left: `${leftPerRecord}%`,
+      width: `calc(${widthPerRecord}%)`,
     }
     return record
   })
@@ -173,7 +196,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
   <div
     v-if="recordsAcrossAllRange.length"
     ref="container"
-    class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full relative h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
   >
     <div
       v-for="(hour, index) in hours"
@@ -188,41 +211,112 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         {{ dayjs(hour).format('H A') }}
       </div>
       <div></div>
-      <NcButton
+      <NcDropdown
+        v-if="calendarRange.length > 1"
         :class="{
           '!block': hour.isSame(selectedTime),
           '!hidden': !hour.isSame(selectedTime),
         }"
-        class="mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+        auto-close
+      >
+        <NcButton
+          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+          size="xsmall"
+          type="secondary"
+        >
+          <component :is="iconMap.plus" class="h-4 w-4" />
+        </NcButton>
+        <template #overlay>
+          <NcMenu class="w-64">
+            <NcMenuItem> Select date field to add </NcMenuItem>
+            <NcMenuItem
+              v-for="(range, index) in calendarRange"
+              :key="index"
+              class="text-gray-800 font-semibold text-sm"
+              @click="
+                () => {
+                  let record = {
+                    row: {
+                      [range.fk_from_col.title]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
+                    },
+                  }
+                  if (range.fk_to_col) {
+                    record = {
+                      row: {
+                        ...record.row,
+                        [range.fk_to_col.title]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
+                      },
+                    }
+                  }
+                  emit('new-record', record)
+                }
+              "
+            >
+              <div class="flex items-center gap-1">
+                <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
+              </div>
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+      <NcButton
+        v-else
+        :class="{
+          '!block': hour.isSame(selectedTime),
+          '!hidden': !hour.isSame(selectedTime),
+        }"
+        class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
         size="xsmall"
         type="secondary"
-        @click="emit('new-record', { row: {} })"
+        @click="
+          () => {
+            let record = {
+              row: {
+                [calendarRange[0].fk_from_col.title]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
+              },
+            }
+
+            if (calendarRange[0].fk_to_col) {
+              record = {
+                row: {
+                  ...record.row,
+                  [calendarRange[0].fk_to_col.title]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
+                },
+              }
+            }
+            emit('new-record', record)
+          }
+        "
       >
-        <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
+        <component :is="iconMap.plus" class="h-4 w-4" />
       </NcButton>
     </div>
-
-    <div
-      v-for="(record, rowIndex) in recordsAcrossAllRange"
-      :key="rowIndex"
-      :draggable="UITypes.DateTime === calDataType"
-      :style="record.rowMeta.style"
-      class="absolute mt-2"
-      @dragstart="dragStart($event, record)"
-      @dragover.prevent
-    >
-      <LazySmartsheetRow :row="record">
-        <LazySmartsheetCalendarRecordCard
-          :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('HH:mm')"
-          :name="record.row[displayField!.title!]"
-          :position="record.rowMeta.position"
-          :record="record"
-          :resize="false"
-          color="blue"
-          size="auto"
-          @click="emit('expand-record', record)"
-        />
-      </LazySmartsheetRow>
+    <div class="absolute inset-0">
+      <div class="relative !ml-[50px]">
+        <div
+          v-for="(record, rowIndex) in recordsAcrossAllRange"
+          :key="rowIndex"
+          :draggable="UITypes.DateTime === calDataType"
+          :style="record.rowMeta.style"
+          class="absolute"
+          @dragstart="dragStart($event, record)"
+          @dragover.prevent
+        >
+          <LazySmartsheetRow :row="record">
+            <LazySmartsheetCalendarRecordCard
+              :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('HH:mm')"
+              :name="record.row[displayField!.title!]"
+              :position="record.rowMeta.position"
+              :record="record"
+              :resize="false"
+              color="blue"
+              size="auto"
+              @click="emit('expand-record', record)"
+            />
+          </LazySmartsheetRow>
+        </div>
+      </div>
     </div>
   </div>
 

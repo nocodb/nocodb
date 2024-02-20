@@ -285,7 +285,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
         @scroll="sideBarListScrollHandle"
       >
         <NcButton
-          v-if="isUIAllowed('dataEdit')"
+          v-if="isUIAllowed('dataEdit') && props.visible"
           class="!absolute right-5 bottom-5 !h-12 !w-12"
           type="secondary"
           @click="emit('new-record', { row: {} })"

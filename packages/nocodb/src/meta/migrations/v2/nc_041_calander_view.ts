@@ -1,8 +1,8 @@
-import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import type {Knex} from 'knex';
+import {MetaTable} from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.CALANDER, (table) => {
+  await knex.schema.createTable(MetaTable.CALENDAR_VIEW, (table) => {
     table.string('fk_view_id', 20).primary();
 
     table.string('base_id', 20);
@@ -19,7 +19,7 @@ const up = async (knex: Knex) => {
     table.dateTime('updated_at');
   });
 
-  await knex.schema.createTable(MetaTable.CALANDER_VIEW_COLUMNS, (table) => {
+  await knex.schema.createTable(MetaTable.CALENDAR_VIEW_COLUMNS, (table) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
@@ -42,7 +42,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.CALANDER_VIEW_RANGE, (table) => {
+  await knex.schema.createTable(MetaTable.CALENDAR_VIEW_RANGE, (table) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('fk_view_id', 20);
@@ -56,9 +56,9 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTable(MetaTable.CALANDER_VIEW);
-  await knex.schema.dropTable(MetaTable.CALANDER_VIEW_COLUMNS);
-  await knex.schema.dropTable(MetaTable.CALANDER_VIEW_RANGE);
+  await knex.schema.dropTable(MetaTable.CALENDAR_VIEW);
+  await knex.schema.dropTable(MetaTable.CALENDAR_VIEW_COLUMNS);
+  await knex.schema.dropTable(MetaTable.CALENDAR_VIEW_RANGE);
 };
 
 export { up, down };

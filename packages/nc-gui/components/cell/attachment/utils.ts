@@ -13,6 +13,7 @@ import {
   extractImageSrcFromRawHtml,
   inject,
   isImage,
+  isImageUrl,
   message,
   parseProp,
   ref,
@@ -282,7 +283,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         const imageUrl = extractImageSrcFromRawHtml(sanitizedHtml) ?? ''
 
-        const imageData = imageUrl ? ((await getImageDataFromUrl(imageUrl)) as AttachmentReqType) : {}
+        if (!imageUrl) {
+          message.error(t('msg.error.draggedContentIsNotTypeOfImage'))
+          return
+        }
+
+        const imageData = (await getImageDataFromUrl(imageUrl)) as AttachmentReqType
         if (imageData?.mimetype) {
           await onFileSelect(
             [],
@@ -295,6 +301,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               },
             ],
           )
+        } else {
+          message.error(t('msg.error.fieldToParseImageData'))
         }
       }
     }
@@ -318,13 +326,19 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     async function getImageDataFromUrl(imageUrl: string) {
       try {
         const response = await fetch(imageUrl)
-        if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-          return {
-            mimetype: response.headers.get('content-type') || undefined,
-            size: +(response.headers.get('content-length') || 0) || undefined,
-          } as { minetype?: string; size?: number }
+        if (response.ok) {
+          if (response.headers.get('content-type')?.startsWith('image/')) {
+            return {
+              mimetype: response.headers.get('content-type') || undefined,
+              size: +(response.headers.get('content-length') || 0) || undefined,
+            } as { minetype?: string; size?: number }
+          } else if (isImageUrl(imageUrl)) {
+            return {
+              mimetype: `image/${imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase()}`,
+              size: +(response.headers.get('content-length') || 0) || undefined,
+            } as { minetype?: string; size?: number }
+          }
         }
-        throw new Error('Field to parse image url')
       } catch (err) {
         console.log(err)
       }

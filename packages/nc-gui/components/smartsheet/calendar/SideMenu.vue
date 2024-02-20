@@ -276,7 +276,7 @@ onUnmounted(() => {
       :class="{
         '!hidden': height < 918,
       }"
-      class="flex flex-col items-center"
+      class="flex flex-col"
     >
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
@@ -323,14 +323,21 @@ onUnmounted(() => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" :options="options" />
+        <NcSelect v-model:value="sideBarFilterOption" class="min-w-36">
+          <a-select-option v-for="option in options" :key="option.value" :value="option.value">
+            <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
+              <template #title>{{ option.label }}</template>
+              {{ option.label }}
+            </NcTooltip>
+          </a-select-option>
+        </NcSelect>
       </div>
 
       <div
         v-if="calendarRange"
         :ref="sideBarListRef"
         :class="{
-          'h-[calc(100vh-10.5rem)]': height < 918,
+          '!h-[calc(100vh-10.5rem)]': height < 918,
         'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && height > 918,
         'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && height > 918,
       }"

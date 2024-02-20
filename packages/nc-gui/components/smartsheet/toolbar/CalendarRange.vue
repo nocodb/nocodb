@@ -150,7 +150,7 @@ const removeRange = async (id: number) => {
           </NcSelect>
 
           <div
-            v-if="range.fk_to_column_id === null && isEeUI"
+            v-if="range.fk_to_column_id === null && isEeUI && false"
             class="flex cursor-pointer flex text-gray-800 items-center gap-1"
             @click="
               () => {
@@ -162,7 +162,7 @@ const removeRange = async (id: number) => {
             <component :is="iconMap.plus" class="h-4 w-4" />
             {{ $t('activity.addEndDate') }}
           </div>
-          <template v-else-if="isEeUI">
+          <template v-else-if="isEeUI && false">
             <span>
               {{ $t('activity.withEndDate') }}
             </span>
@@ -210,7 +210,7 @@ const removeRange = async (id: number) => {
             <component :is="iconMap.close" />
           </NcButton>
         </div>
-        <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+        <NcButton v-if="false" class="mt-2" size="small" type="secondary" @click="addCalendarRange">
           <component :is="iconMap.plus" />
           Add another date field
         </NcButton>

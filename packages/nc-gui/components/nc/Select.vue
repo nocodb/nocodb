@@ -47,6 +47,8 @@ const onChange = (value: string) => {
     :allow-clear="allowClear"
     :disabled="loading"
     :dropdown-class-name="dropdownClassName"
+    :dropdown-match-select-width="dropdownMatchSelectWidth"
+    :filter-option="filterOption"
     :loading="loading"
     :mode="mode"
     :placeholder="placeholder"

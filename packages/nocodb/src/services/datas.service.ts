@@ -3,6 +3,7 @@ import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
+import dayjs from 'dayjs';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
@@ -214,8 +215,6 @@ export class DatasService {
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 
-    const source = await Source.get(view.source_id);
-
     const { ranges } = await CalendarRange.read(view.id);
 
     if (!ranges.length) NcError.badRequest('No ranges found');
@@ -224,32 +223,48 @@ export class DatasService {
       id: view.fk_model_id,
     });
 
-    const baseModel = await Model.getBaseModelSQL({
-      id: view.fk_model_id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    const { dependencyFields } = await getAst({
+    const data = await this.getDataList({
       model,
-      query,
       view,
-      extractOnlyRangeFields: true,
+      query,
     });
 
-    const listArgs: any = dependencyFields;
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
+    if (!data) NcError.notFound('Data not found');
 
-    return await baseModel.countByRanges({
-      model,
-      ranges,
-      ...listArgs,
+    const dates: Array<string> = [];
+
+    ranges.forEach((range) => {
+      data.list.forEach((date) => {
+        const from =
+          date[
+            model.columns.find((c) => c.id === range.fk_from_column_id).title
+          ];
+
+        let to;
+        if (range.fk_to_column_id) {
+          to =
+            date[
+              model.columns.find((c) => c.id === range.fk_to_column_id).title
+            ];
+        }
+
+        if (from && to) {
+          const fromDt = dayjs(from);
+          const toDt = dayjs(to);
+
+          let current = fromDt;
+
+          while (current.isSameOrBefore(toDt)) {
+            dates.push(current.format('YYYY-MM-DD HH:mm:ssZ'));
+            current = current.add(1, 'day');
+          }
+        } else if (from) {
+          dates.push(dayjs(from).format('YYYY-MM-DD HH:mm:ssZ'));
+        }
+      });
     });
+
+    return dates;
   }
 
   async getFindOne(param: { model: Model; view: View; query: any }) {

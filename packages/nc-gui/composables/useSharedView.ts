@@ -148,6 +148,33 @@ export function useSharedView() {
     )
   }
 
+  const fetchSharedViewActiveDate = async (param: {
+    sortsArr: SortType[]
+    filtersArr: FilterType[]
+    sort?: any[]
+    where?: string
+  }) => {
+    if (!sharedView.value)
+      return {
+        list: [],
+        pageInfo: {},
+      }
+
+    return await $api.public.calendarCount(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const fetchSharedViewGroupedData = async (
     columnId: string,
     { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
@@ -200,6 +227,7 @@ export function useSharedView() {
     meta,
     nestedFilters,
     fetchSharedViewData,
+    fetchSharedViewActiveDate,
     fetchSharedViewGroupedData,
     paginationData,
     sorts,

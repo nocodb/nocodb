@@ -1,4 +1,5 @@
 import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
+import DOMPurify from 'isomorphic-dompurify'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -9,6 +10,7 @@ import {
   NOCO,
   ReadonlyInj,
   computed,
+  extractImageSrcFromRawHtml,
   inject,
   isImage,
   message,
@@ -272,9 +274,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       } else {
         event.preventDefault()
 
-        const imageUrl = encodeURIComponent(event.dataTransfer?.getData('text/uri-list') ?? '')
+        // Sanitize the dataTransfer HTML string
+        const sanitizedHtml = DOMPurify.sanitize(event.dataTransfer?.getData('text/html')) ?? ''
 
-        const imageData = await getImageDataFromUrl(imageUrl)
+        const imageUrl = extractImageSrcFromRawHtml(sanitizedHtml) ?? ''
+
+        const imageData = imageUrl ? await getImageDataFromUrl(imageUrl) : ''
         if (imageData) {
           await onFileSelect([], [{ ...imageData, url: imageUrl, fileName: `image.${imageData.mimetype?.split('/')[1]}` }])
         }
@@ -302,11 +307,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         const response = await fetch(imageUrl)
         if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
           return {
-            mimetype: response.headers.get('content-type') ?? undefined,
-            size: +(response.headers.get('content-length') || 0) ?? undefined,
+            mimetype: response.headers.get('content-type') || undefined,
+            size: +(response.headers.get('content-length') || 0) || undefined,
           }
         }
-        throw Error('Field to parse image url')
+        throw new Error('Field to parse image url')
       } catch (err) {
         console.log(err)
       }

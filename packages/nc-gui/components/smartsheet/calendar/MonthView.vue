@@ -85,21 +85,34 @@ const recordsToDisplay = computed<{
     const startCol = range.fk_from_col
     const endCol = range.fk_to_col
 
-    const sortedFormattedData = [...formattedData.value].sort((a, b) => {
-      if (startCol && endCol) {
-        const startA = dayjs(a.row[startCol.title])
-        const endA = dayjs(a.row[endCol.title])
-        const startB = dayjs(b.row[startCol.title])
-        const endB = dayjs(b.row[endCol.title])
+    const sortedFormattedData = [...formattedData.value]
+      .filter((record) => {
+        const fromDate = record.row[startCol?.title] ? dayjs(record.row[startCol.title]) : null
 
-        return endB.diff(startB) - endA.diff(startA)
-      } else {
-        const startA = dayjs(a.row[startCol.title])
-        const startB = dayjs(b.row[startCol.title])
+        if (startCol && endCol) {
+          const fromDate = record.row[startCol.title] ? dayjs(record.row[startCol.title]) : null
+          const toDate = record.row[endCol.title] ? dayjs(record.row[endCol.title]) : null
+          return fromDate && toDate && !toDate.isBefore(fromDate)
+        } else if (startCol && !endCol) {
+          return !!fromDate
+        }
+        return false
+      })
+      .sort((a, b) => {
+        if (startCol && endCol) {
+          const startA = dayjs(a.row[startCol.title])
+          const endA = dayjs(a.row[endCol.title])
+          const startB = dayjs(b.row[startCol.title])
+          const endB = dayjs(b.row[endCol.title])
 
-        return startB.diff(startA)
-      }
-    })
+          return endB.diff(startB) - endA.diff(startA)
+        } else {
+          const startA = dayjs(a.row[startCol.title])
+          const startB = dayjs(b.row[startCol.title])
+
+          return startB.diff(startA)
+        }
+      })
 
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
@@ -113,7 +126,7 @@ const recordsToDisplay = computed<{
 
         const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
 
-        const dayIndex = dates.value[weekIndex].findIndex((day) => {
+        const dayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => {
           return dayjs(day).isSame(startDate, 'day')
         })
 
@@ -147,7 +160,6 @@ const recordsToDisplay = computed<{
       } else if (startCol && endCol) {
         const startDate = dayjs(record.row[startCol.title])
         const endDate = dayjs(record.row[endCol.title])
-
         let currentWeekStart = startDate.startOf('week')
         while (currentWeekStart.isBefore(endDate)) {
           const currentWeekEnd = currentWeekStart.endOf('week')
@@ -155,7 +167,7 @@ const recordsToDisplay = computed<{
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
 
           let day = recordStart.clone()
-          while (day.isBefore(recordEnd) || day.isSame(recordEnd, 'day')) {
+          while (day.isSameOrBefore(recordEnd)) {
             const dateKey = day.format('YYYY-MM-DD')
 
             if (!recordsInDay[dateKey]) {
@@ -180,8 +192,15 @@ const recordsToDisplay = computed<{
 
           for (let i = 0; i < (dates.value[weekIndex] ?? []).length; i++) {
             const day = dates.value[weekIndex][i]
+
             const dateKey = dayjs(day).format('YYYY-MM-DD')
-            if (!recordsInDay[dateKey]) continue
+            if (!recordsInDay[dateKey]) {
+              recordsInDay[dateKey] = {
+                count: 0,
+                overflow: false,
+                overflowCount: 0,
+              }
+            }
             const recordIndex = recordsInDay[dateKey].count
 
             maxRecordCount = Math.max(maxRecordCount, recordIndex)
@@ -206,10 +225,14 @@ const recordsToDisplay = computed<{
 
           let position = 'rounded'
 
+          const isStartMonthBeforeCurrentWeek = startDate.isBefore(selectedMonth.value, 'month')
+
           if (startDate.isSame(currentWeekStart, 'week') && endDate.isSame(currentWeekEnd, 'week')) {
             position = 'rounded'
           } else if (startDate.isSame(recordStart, 'week')) {
-            position = 'leftRounded'
+            if (isStartMonthBeforeCurrentWeek) {
+              position = 'rightRounded'
+            } else position = 'leftRounded'
           } else if (endDate.isSame(currentWeekEnd, 'week')) {
             position = 'rightRounded'
           } else {

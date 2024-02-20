@@ -79,7 +79,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
   const target = e.target as HTMLElement
   if (target.clientHeight + target.scrollTop + INFINITY_SCROLL_THRESHOLD >= target.scrollHeight) {
     const pageSize = appInfo.value?.defaultLimit ?? 25
-    const page = Math.floor(formattedSideBarData.value.length / pageSize)
+    const page = Math.ceil(formattedSideBarData.value.length / pageSize)
     await loadMoreSidebarData({
       offset: page * pageSize,
     })

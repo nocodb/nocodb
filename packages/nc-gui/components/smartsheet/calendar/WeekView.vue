@@ -5,11 +5,14 @@ import type { Row } from '~/lib'
 
 const emits = defineEmits(['expand-record'])
 
-const { selectedDateRange, formattedData, calendarRange, selectedDate, displayField, calDataType } = useCalendarViewStoreOrThrow()
+const { selectedDateRange, formattedData, calendarRange, selectedDate, displayField, calDataType, updateRowProperty } =
+  useCalendarViewStoreOrThrow()
 
 const container = ref(null)
 
 const { width: containerWidth } = useElementSize(container)
+
+const meta = inject(MetaInj, ref())
 
 const weekDates = computed(() => {
   const startOfWeek = new Date(selectedDateRange.value.start)
@@ -180,6 +183,81 @@ const calendarData = computed(() => {
 
   return recordsInRange
 })
+
+const dragStart = (event: DragEvent, record: Row) => {
+  const eventRect = (event.target as HTMLElement).getBoundingClientRect()
+  const initialClickOffsetX = event.clientX - eventRect.left
+  const initialClickOffsetY = event.clientY - eventRect.top
+
+  event.dataTransfer?.setData(
+    'text/plain',
+    JSON.stringify({
+      record,
+      initialClickOffsetY,
+      initialClickOffsetX,
+    }),
+  )
+}
+
+const dropEvent = (event: DragEvent) => {
+  event.preventDefault()
+  const data = event.dataTransfer?.getData('text/plain')
+  if (data) {
+    const {
+      record,
+      initialClickOffsetY,
+      initialClickOffsetX,
+    }: {
+      record: Row
+      initialClickOffsetY: number
+      initialClickOffsetX: number
+    } = JSON.parse(data)
+    const { top, height, width, left } = container.value.getBoundingClientRect()
+
+    const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
+
+    const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
+
+    const day = Math.floor(percentX * 7)
+
+    const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+
+    let endDate
+
+    const newRow = {
+      ...record,
+      row: {
+        ...record.row,
+        [record.rowMeta.range.fk_from_col.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      },
+    }
+
+    const updateProperty = [record.rowMeta.range.fk_from_col.title]
+
+    if (record.rowMeta.range.fk_to_col) {
+      const diffDays = dayjs(record.row[record.rowMeta.range.fk_to_col.title]).diff(
+        record.row[record.rowMeta.range.fk_from_col.title],
+        'day',
+      )
+      endDate = dayjs(newStartDate).add(diffDays, 'day')
+      newRow.row[record.rowMeta.range.fk_to_col.title] = dayjs(endDate).format('YYYY-MM-DD')
+      updateProperty.push(record.rowMeta.range.fk_to_col.title)
+    }
+
+    if (!newRow) return
+
+    updateRowProperty(newRow, updateProperty, false)
+
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value.columns)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+        return newRow
+      }
+      return r
+    })
+  }
+}
 </script>
 
 <template>
@@ -193,7 +271,7 @@ const calendarData = computed(() => {
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
-    <div ref="container" class="flex h-[calc(100vh-11.6rem)]">
+    <div ref="container" class="flex h-[calc(100vh-11.6rem)]" @drop="dropEvent($event)">
       <div
         v-for="date in weekDates"
         :key="date.toISOString()"
@@ -211,7 +289,7 @@ const calendarData = computed(() => {
         :style="record.rowMeta.style"
         class="absolute pointer-events-auto"
         draggable="true"
-        @dragover.prevent
+        @dragstart="dragStart($event, record)"
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard

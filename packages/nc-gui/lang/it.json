@@ -1348,7 +1348,9 @@
       "copyToClipboardError": "Non è riuscito a copiare negli appunti",
       "pasteFromClipboardError": "Impossibile incollare dagli appunti",
       "multiFieldSaveValidation": "Si prega di completare la configurazione di tutti i campi prima di salvare",
-      "somethingWentWrong": "Qualcosa è andato storto"
+      "somethingWentWrong": "Qualcosa è andato storto",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "Metadati del progetto esportati con successo",

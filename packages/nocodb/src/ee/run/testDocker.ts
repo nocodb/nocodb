@@ -21,7 +21,9 @@ server.set('view engine', 'ejs');
 process.env[`DEBUG`] = 'xc*';
 process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 process.env[`NC_ALLOW_LOCAL_EXTERNAL_DBS`] = 'true';
-// process.env[`NC_DASHBOARD_URL`] = 'http://localhost:3000';
+
+// this is required for SSO tests used in: packages/nocodb/src/ee/controllers/auth/sso-auth.controller.ts
+process.env[`NC_DASHBOARD_URL`] = 'http://localhost:3000';
 
 process.env[`TEST`] = 'true';
 

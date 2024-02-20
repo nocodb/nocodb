@@ -178,7 +178,6 @@ const dropEvent = (event: DragEvent) => {
     <div v-for="(record, rowIndex) in recordsAcrossAllRange" :key="rowIndex" :style="record.rowMeta.style" class="absolute mt-2">
       <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard
-          :date="dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).format('H:mm')"
           :name="record.row[displayField!.title!]"
           :position="record.rowMeta.position"
           :record="record"

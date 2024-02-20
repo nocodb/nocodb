@@ -1001,6 +1001,8 @@ export default class View implements ViewType {
             order: colData.order,
             show: colData.show,
           });
+        case ViewTypes.CALENDAR:
+          // todo: calendar view column
       }
       return await ncMeta.metaInsert2(view.base_id, view.source_id, table, {
         fk_view_id: viewId,
@@ -1201,6 +1203,7 @@ export default class View implements ViewType {
     await Sort.deleteAll(viewId, ncMeta);
     await Filter.deleteAll(viewId, ncMeta);
     const table = this.extractViewTableName(view);
+
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
     const columnTableScope = this.extractViewColumnsTableNameScope(view);
@@ -1215,6 +1218,14 @@ export default class View implements ViewType {
       `${tableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    // For Calendar View, delete the range associated with viewId
+    if (view.type === ViewTypes.CALENDAR) {
+      await ncMeta.metaDelete(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
+        fk_view_id: viewId,
+      })
+      await NocoCache.deepDel(CacheScope.CALENDAR_VIEW_RANGE, `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`, CacheDelDirection.CHILD_TO_PARENT)
+    }
     await NocoCache.deepDel(
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
@@ -1255,6 +1266,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW_COLUMNS;
         break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW_COLUMNS;
+        break;
     }
     return table;
   }
@@ -1276,6 +1290,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW;
+        break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW;
         break;
     }
     return table;
@@ -1299,6 +1316,9 @@ export default class View implements ViewType {
       case ViewTypes.FORM:
         scope = CacheScope.FORM_VIEW_COLUMN;
         break;
+      case ViewTypes.CALENDAR:
+        scope = CacheScope.CALENDAR_VIEW_COLUMN;
+        break;
     }
     return scope;
   }
@@ -1320,6 +1340,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.FORM:
         scope = CacheScope.FORM_VIEW;
+        break;
+      case ViewTypes.CALENDAR:
+        scope = CacheScope.CALENDAR_VIEW;
         break;
     }
     return scope;

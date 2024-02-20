@@ -297,7 +297,7 @@ useMenuCloseOnEsc(open)
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-2">
           <GeneralIcon
-            v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
+            v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.CALENDAR"
             icon="creditCard"
             class="h-4 w-4"
           />
@@ -305,7 +305,7 @@ useMenuCloseOnEsc(open)
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
-            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
+            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY || ViewTypes.CALENDAR">
               {{ $t('title.editCards') }}
             </template>
             <template v-else>
@@ -322,7 +322,7 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
-          v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
+          v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.CALENDAR)"
           class="flex flex-col gap-y-2 pr-4 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>

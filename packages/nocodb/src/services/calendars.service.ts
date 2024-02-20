@@ -6,6 +6,7 @@ import {AppHooksService} from '~/services/app-hooks/app-hooks.service';
 import {validatePayload} from '~/helpers';
 import {NcError} from '~/helpers/catchError';
 import {CalendarView, View} from '~/models';
+import CalendarRange from "~/models/CalendarRange";
 
 @Injectable()
 export class CalendarsService {
@@ -13,7 +14,16 @@ export class CalendarsService {
     }
 
     async calendarViewGet(param: { calendarViewId: string }) {
-        return await CalendarView.get(param.calendarViewId);
+        const calendarView = await CalendarView.get(param.calendarViewId);
+        if (!calendarView) {
+            NcError.badRequest('Calendar view not found');
+        }
+        const calendarRanges = await CalendarRange.read(param.calendarViewId)
+        return {
+            ...calendarView,
+            calendar_range: calendarRanges
+        };
+
     }
 
     async calendarViewCreate(param: {

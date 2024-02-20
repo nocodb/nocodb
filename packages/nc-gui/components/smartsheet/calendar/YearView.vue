@@ -4,7 +4,7 @@ const { selectedDate, activeDates } = useCalendarViewStoreOrThrow()
 const months = computed(() => {
   const months = []
   for (let i = 0; i < 12; i++) {
-    months.push(new Date(selectedDate.value.getFullYear(), i, selectedDate.value.getDate()))
+    months.push(new Date(selectedDate.value.getFullYear(), i, 1))
   }
   return months
 })
@@ -14,7 +14,7 @@ const months = computed(() => {
   <div class="flex flex-wrap gap-6 items-center justify-center overflow-auto nc-scrollbar-md">
     <NcDateWeekSelector
       v-for="(month, index) in months"
-      :key="month"
+      :key="index"
       v-model:active-dates="activeDates"
       v-model:page-date="months[index]"
       v-model:selected-date="selectedDate"

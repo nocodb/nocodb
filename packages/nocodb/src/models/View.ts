@@ -1176,7 +1176,6 @@ export default class View implements ViewType {
         fk_view_id: viewId,
       });
       await NocoCache.deepDel(
-        CacheScope.CALENDAR_VIEW_RANGE,
         `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );

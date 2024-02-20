@@ -438,6 +438,7 @@ const onResizeEnd = () => {
   resizeInProgress.value = false
   resizeDirection.value = undefined
   resizeRecord.value = undefined
+
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
 }
@@ -449,6 +450,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
+
   document.addEventListener('mousemove', onResize)
   document.addEventListener('mouseup', onResizeEnd)
 }

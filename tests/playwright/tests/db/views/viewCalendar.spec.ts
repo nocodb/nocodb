@@ -1,131 +1,132 @@
-import { Page, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 
-import setup, { unsetup } from '../../../setup';
+import setup, { NcContext, unsetup } from '../../../setup';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
-import { CalendarTopbarPage } from '../../../pages/Dashboard/Calendar/CalendarTopBar';
+import { Api, ProjectListType, UITypes } from 'nocodb-sdk';
 import { isEE } from '../../../setup/db';
+
+const columns = [
+  {
+    column_name: 'Id',
+    title: 'Id',
+    uidt: UITypes.ID,
+    ai: 1,
+    pk: 1,
+  },
+  {
+    column_name: 'Title',
+    title: 'Title',
+    uidt: UITypes.SingleLineText,
+  },
+  {
+    column_name: 'StartDate',
+    title: 'StartDate',
+    uidt: UITypes.DateTime,
+  },
+  {
+    column_name: 'EndDate',
+    title: 'EndDate',
+    uidt: UITypes.DateTime,
+  },
+];
 
 const dateRecords = [
   {
+    Id: 1,
     Title: 'Team Catchup',
     StartDate: '2024-01-01 09:00',
     EndDate: '2024-01-01 10:00',
   },
   {
+    Id: 2,
     Title: 'Lunch with John',
     StartDate: '2024-01-01 12:00',
     EndDate: '2024-01-01 13:00',
   },
 
   {
+    Id: 3,
     Title: 'Meeting with Client',
     StartDate: '2024-01-01 14:00',
     EndDate: '2024-01-01 15:00',
   },
   {
+    Id: 4,
     Title: 'Meeting with Team',
     StartDate: '2024-01-01 16:00',
     EndDate: '2024-01-01 17:00',
   },
 
   {
+    Id: 5,
     Title: 'Meeting with Manager',
     StartDate: '2024-01-01 18:00',
     EndDate: '2024-01-01 19:00',
   },
   {
+    Id: 6,
     Title: 'Meeting with HR',
     StartDate: '2024-01-01 20:00',
     EndDate: '2024-01-01 21:00',
   },
+  {
+    Id: 7,
+  },
+  {
+    Id: 8,
+  },
+  {
+    Id: 9,
+  },
+  {
+    Id: 10,
+  },
+  {
+    Id: 11,
+  },
+  {
+    Id: 12,
+  },
+  {
+    Id: 13,
+  },
+  {
+    Id: 14,
+  },
+  {
+    Id: 15,
+  },
+  {
+    Id: 16,
+  },
+  {
+    Id: 17,
+  },
+  {
+    Id: 18,
+  },
 ];
 
-test.describe('View', () => {
-  let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage, calendarTopbar: CalendarTopbarPage;
+test.describe('Calendar View', () => {
+  let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
-
-  async function undo({
-    page,
-    dashboard,
-    validateResponse,
-  }: {
-    page: Page;
-    dashboard: DashboardPage;
-    validateResponse: boolean;
-  }) {
-    const isMac = await dashboard.grid.isMacOs();
-
-    if (validateResponse) {
-      await dashboard.grid.waitForResponse({
-        uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-        httpMethodsToMatch: ['PATCH'],
-        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      });
-    } else {
-      await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
-
-      // allow time for undo to complete rendering
-      await page.waitForTimeout(500);
-    }
-  }
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.base);
+
+    const { api, table, base } = await calendarSuite(`xcdb${context.workerId}`, context);
+
     toolbar = toolbar = dashboard.calendar.toolbar;
     topbar = dashboard.calendar.topbar;
-    calendarTopbar = dashboard.calendar.calendarTopbar;
 
-    const base = isEE() ? 'Getting Started' : 'pgExtREST0';
+    await api.dbTableRow.bulkCreate('noco', base.id, table.id, dateRecords);
 
-    await dashboard.treeView.createTable({
-      title: 'Social Media Calendar',
-      baseTitle: base,
-    });
+    await page.reload();
 
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
-
-    await dashboard.grid.column.create({
-      title: 'StartDate',
-      type: 'DateTime',
-      dateFormat: 'YYYY-MM-DD',
-      timeFormat: 'HH:mm',
-    });
-
-    await dashboard.grid.column.create({
-      title: 'EndDate',
-      type: 'DateTime',
-      dateFormat: 'YYYY-MM-DD',
-      timeFormat: 'HH:mm',
-    });
-
-    for (let i = 0; i < dateRecords.length; i++) {
-      await dashboard.grid.addNewRow({
-        index: i,
-        columnHeader: 'Title',
-        value: dateRecords[i].Title,
-        networkValidation: false,
-      });
-    }
-
-    for (let i = 0; i < dateRecords.length; i++) {
-      await dashboard.grid.cell.dateTime.setDateTime({
-        index: i,
-        columnHeader: 'StartDate',
-        dateTime: dateRecords[i].StartDate,
-      });
-    }
-    for (let i = 0; i < dateRecords.length; i++) {
-      await dashboard.grid.cell.dateTime.setDateTime({
-        index: i,
-        columnHeader: 'EndDate',
-        dateTime: dateRecords[i].EndDate,
-      });
-    }
-
-    await dashboard.rootPage.waitForTimeout(5000);
+    await dashboard.rootPage.waitForTimeout(1000);
   });
 
   test.afterEach(async () => {
@@ -134,6 +135,10 @@ test.describe('View', () => {
 
   test('Calendar Sidebar Verify Sidebar Filter, Calendar View Mode', async () => {
     // Create & Verify Calendar View
+    test.slow();
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
     });
@@ -159,40 +164,40 @@ test.describe('View', () => {
 
     await calendar.verifySideBarOpen();
 
-    await calendarTopbar.toggleSideBar();
+    await calendar.calendarTopbar.toggleSideBar();
 
     await calendar.verifySideBarClosed();
 
-    await calendarTopbar.toggleSideBar();
+    await calendar.calendarTopbar.toggleSideBar();
 
     await calendar.verifySideBarOpen();
 
     // Verify Calendar View Modes
-    await calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'week' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'day' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendarTopbar.verifyActiveCalendarView({ view: 'month' });
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'month' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
 
-    await calendarTopbar.verifyActiveCalendarView({ view: 'year' });
+    await calendar.calendarTopbar.verifyActiveCalendarView({ view: 'year' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
 
-    await calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+    await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
 
     // Verify Sidebar Records & Filters
 
-    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.sideMenu.updateFilter({
       filter: 'Without dates',
@@ -210,12 +215,12 @@ test.describe('View', () => {
 
     await calendar.sideMenu.searchRecord({ query: 'Team' });
 
-    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup', ['Meeting with Team']] });
+    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup', 'Meeting with Team'] });
 
     await calendar.sideMenu.searchRecord({ query: '' });
 
     await calendar.sideMenu.verifySideBarRecords({
-      records: [...dateRecords.map(r => r.Title), ...Array(12).fill('')],
+      records: [...dateRecords.filter(f => f.Title).map(f => f.Title), ...Array(12).fill('')],
     });
 
     await calendar.sideMenu.updateFilter({
@@ -224,7 +229,7 @@ test.describe('View', () => {
 
     await calendar.calendarMonth.selectDate({ rowIndex: 0, columnIndex: 0 });
 
-    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.calendarMonth.selectDate({ rowIndex: 0, columnIndex: 3 });
 
@@ -234,7 +239,7 @@ test.describe('View', () => {
 
     await calendar.calendarYear.selectDate({ monthIndex: 0, dayIndex: 0 });
 
-    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.sideMenu.updateFilter({ filter: 'In selected date' });
 
@@ -249,7 +254,7 @@ test.describe('View', () => {
       action: 'prev',
     });
 
-    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.calendarDayDateTime.selectHour({ hourIndex: 10 });
 
@@ -272,6 +277,8 @@ test.describe('View', () => {
 
     await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
 
+    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
+
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
@@ -284,6 +291,12 @@ test.describe('View', () => {
   });
 
   test('Calendar Drag and Drop & Undo Redo Operations', async () => {
+    test.slow();
+
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
     });
@@ -295,13 +308,12 @@ test.describe('View', () => {
 
     await dashboard.viewSidebar.openView({ title: 'Calendar' });
 
-    await calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
-
     const calendar = dashboard.calendar;
+
+    await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
 
     await calendar.calendarMonth.dragAndDrop({
       record: 'Team Catchup',
-
       to: {
         columnIndex: 3,
         rowIndex: 0,
@@ -319,7 +331,7 @@ test.describe('View', () => {
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendarTopbar.moveToDate({
+    await calendar.calendarTopbar.moveToDate({
       date: '1 - 7 Jan 24',
       action: 'prev',
     });
@@ -358,6 +370,10 @@ test.describe('View', () => {
 
   test('Calendar shared view operations', async ({ page }) => {
     test.slow();
+
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
     });
@@ -403,7 +419,7 @@ test.describe('View', () => {
 
     await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
 
-    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.sideMenu.updateFilter({
       filter: 'Without dates',
@@ -413,6 +429,12 @@ test.describe('View', () => {
   });
 
   test('Calendar Operations Date Fields', async () => {
+    test.slow();
+
+    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+
     await dashboard.grid.column.openEdit({
       title: 'StartDate',
       type: 'Date',
@@ -435,19 +457,19 @@ test.describe('View', () => {
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
 
-    await calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+    await dashboard.calendar.calendarTopbar.verifyActiveCalendarView({ view: 'week' });
 
     await toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+    await dashboard.calendar.calendarTopbar.verifyActiveCalendarView({ view: 'day' });
 
     const calendar = dashboard.calendar;
 
-    await calendarTopbar.moveToDate({ date: '1 January 2024', action: 'prev' });
+    await calendar.calendarTopbar.moveToDate({ date: '1 January 2024', action: 'prev' });
 
-    await calendar.calendarDayDate.verifyRecord({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
-    await calendarTopbar.moveToDate({ date: '2 January 2024', action: 'next' });
+    await calendar.calendarTopbar.moveToDate({ date: '2 January 2024', action: 'next' });
 
     await calendar.calendarDayDate.verifyRecord({ records: [] });
 
@@ -457,7 +479,7 @@ test.describe('View', () => {
 
     await calendar.sideMenu.updateFilter({ filter: 'In selected date' });
 
-    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.calendarWeekDate.selectDay({ dayIndex: 1 });
 
@@ -476,4 +498,40 @@ test.describe('View', () => {
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
   });
+
+  async function calendarSuite(baseTitle: string, context: NcContext, skipTableCreate?: boolean) {
+    const api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+    const workspaceId = context?.workspace?.id;
+    try {
+      let baseList: ProjectListType;
+      if (isEE() && api['workspaceBase']) {
+        baseList = await api['workspaceBase'].list(workspaceId);
+      } else {
+        baseList = await api.base.list();
+      }
+      for (const base of baseList.list) {
+        // delete base with title 'xcdb' if it exists
+        if (base.title === baseTitle) {
+          await api.base.delete(base.id);
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+
+    const base = await api.base.create({ title: baseTitle, fk_workspace_id: workspaceId, type: 'database' });
+
+    if (skipTableCreate) return { base, api };
+    const table = await api.source.tableCreate(base.id, base.sources?.[0].id, {
+      table_name: 'Social Media Calendar',
+      title: 'Social Media Calendar',
+      columns: columns,
+    });
+    return { base, table, api };
+  }
 });

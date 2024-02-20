@@ -2,7 +2,6 @@
 import dayjs from 'dayjs'
 import {
   ActiveViewInj,
-  CalendarViewTypeInj,
   IsCalendarInj,
   IsFormInj,
   IsGalleryInj,
@@ -42,23 +41,19 @@ provide(IsKanbanInj, ref(false))
 provide(IsCalendarInj, ref(true))
 
 const {
-  formattedData,
   loadCalendarMeta,
   loadCalendarData,
   isCalendarDataLoading,
-  updateCalendarMeta,
-  calendarMetaData,
   selectedDate,
   selectedDateRange,
   activeCalendarView,
-  addEmptyRow,
-  paginationData,
   paginateCalendarView,
 } = useCalendarViewStoreOrThrow()
 
-provide(CalendarViewTypeInj, activeCalendarView)
-
 const showSideMenu = ref(true)
+
+const router = useRouter()
+const route = useRoute()
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -77,12 +72,8 @@ const expandedFormOnRowIdDlg = computed({
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
-const expandedFormRowState = ref<Record<string, any>>()
 
-const router = useRouter()
-const route = useRoute()
-
-const expandRecord = (row: RowType) => {
+const expandRecord = (row: RowType, isNew = false) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
@@ -94,7 +85,6 @@ const expandRecord = (row: RowType) => {
     })
   } else {
     expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
@@ -142,13 +132,7 @@ const headerText = computed(() => {
           </NcButton>
         </div>
         <NcButton v-if="!isMobileMode" size="small" type="secondary" @click="showSideMenu = !showSideMenu">
-          <component
-            :is="iconMap.sidebarMinimise"
-            :class="{
-              'transform rotate-180': showSideMenu,
-            }"
-            class="h-4 w-4 transition-all"
-          />
+          <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-700 transition-all" />
         </NcButton>
       </div>
       <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />

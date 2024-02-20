@@ -48,6 +48,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const selectedTime = ref<Date | null>(null)
 
+    const selectedMonth = ref<Date | null>(new Date())
+
     const isCalendarDataLoading = ref<boolean>(false)
 
     const selectedDateRange = ref<{
@@ -602,7 +604,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const paginateCalendarView = async (action: 'next' | 'prev') => {
       switch (activeCalendarView.value) {
         case 'month':
-          selectedDate.value = action === 'next' ? addMonths(selectedDate.value, 1) : addMonths(selectedDate.value, -1)
+          selectedMonth.value = action === 'next' ? addMonths(selectedMonth.value, 1) : addMonths(selectedMonth.value, -1)
+          // selectedDate.value = action === 'next' ? addMonths(selectedDate.value, 1) : addMonths(selectedDate.value, -1)
           pageDate.value = action === 'next' ? addMonths(pageDate.value, 1) : addMonths(pageDate.value, -1)
           if (pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
             pageDate.value = selectedDate.value
@@ -662,6 +665,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     })
 
+    watch(selectedMonth, async () => {
+      if (activeCalendarView.value !== 'month') return
+      await Promise.all([loadCalendarData(), loadSidebarData()])
+    })
+
     watch(selectedDateRange, async () => {
       if (activeCalendarView.value !== 'week') return
       await Promise.all([loadCalendarData(), loadSidebarData()])
@@ -703,6 +711,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       pageDate,
       paginationData,
       selectedDate,
+      selectedMonth,
       selectedDateRange,
       paginateCalendarView,
     }

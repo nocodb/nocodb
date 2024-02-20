@@ -405,6 +405,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       switch (activeCalendarView.value) {
         case 'month':
           selectedDate.value = action === 'next' ? addMonths(selectedDate.value, 1) : addMonths(selectedDate.value, -1)
+          pageDate.value = action === 'next' ? addMonths(pageDate.value, 1) : addMonths(pageDate.value, -1)
           if (pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
             pageDate.value = selectedDate.value
           }

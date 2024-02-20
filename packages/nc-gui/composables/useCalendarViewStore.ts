@@ -106,7 +106,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
-      return calendarRange.value[0]!.fk_from_col.uidt
+      return calendarRange.value[0]!.fk_from_col!.uidt
     })
 
     const sideBarFilter = computed(() => {
@@ -597,14 +597,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       isSidebarLoading.value = false
     }
 
-    async function updateRowProperty(toUpdate: Row, property: [], undo = false) {
+    async function updateRowProperty(toUpdate: Row, property: string[], undo = false) {
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
 
-        const updateObj = property.reduce((acc, curr) => {
-          acc[curr] = toUpdate.row[curr]
-          return acc
-        }, {})
+        const updateObj = property.reduce(
+          (
+            acc: {
+              [x: string]: string
+            },
+            curr,
+          ) => {
+            acc[curr] = toUpdate.row[curr]
+            return acc
+          },
+          {},
+        )
 
         return await $api.dbViewRow.update(
           NOCO,
@@ -644,7 +652,34 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await Promise.all([loadCalendarData(), loadSidebarData()])
     })
 
-    watch(activeCalendarView, async () => {
+    watch(activeCalendarView, async (value, oldValue) => {
+      if (oldValue === 'week') {
+        pageDate.value = selectedDate.value
+        selectedDate.value = selectedDateRange.value.start!
+        selectedMonth.value = selectedDateRange.value.start!
+      } else if (oldValue === 'month') {
+        selectedDate.value = selectedMonth.value
+        pageDate.value = selectedDate.value
+        selectedDateRange.value = {
+          start: dayjs(selectedDate.value).startOf('week').toDate(),
+          end: dayjs(selectedDate.value).endOf('week').toDate(),
+        }
+      } else if (oldValue === 'day') {
+        pageDate.value = selectedDate.value
+
+        selectedMonth.value = selectedDate.value
+        selectedDateRange.value = {
+          start: dayjs(selectedDate.value).startOf('week').toDate(),
+          end: dayjs(selectedDate.value).endOf('week').toDate(),
+        }
+      } else if (oldValue === 'year') {
+        selectedMonth.value = selectedDate.value
+        pageDate.value = selectedDate.value
+        selectedDateRange.value = {
+          start: dayjs(selectedDate.value).startOf('week').toDate(),
+          end: dayjs(selectedDate.value).endOf('week').toDate(),
+        }
+      }
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
       await Promise.all([loadCalendarData(), loadSidebarData()])
     })

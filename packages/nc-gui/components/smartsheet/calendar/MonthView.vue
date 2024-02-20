@@ -4,7 +4,7 @@ import { UITypes } from 'nocodb-sdk'
 
 import type { Row } from '#imports'
 
-const emit = defineEmits(['new-record', 'expand-record'])
+const emit = defineEmits(['new-record', 'expandRecord'])
 
 const {
   selectedDate,
@@ -36,6 +36,21 @@ const { width: gridContainerWidth, height: gridContainerHeight } = useElementSiz
 const isDayInPagedMonth = (date: Date) => {
   return date.getMonth() === selectedMonth.value.getMonth()
 }
+
+const dragElement = ref<HTMLElement | null>(null)
+const draggingId = ref<string | null>(null)
+
+const resizeInProgress = ref(false)
+
+const isDragging = ref(false)
+const dragRecord = ref<Row>()
+
+const dragTimeout = ref(null)
+
+const focusedDate = ref<Date | null>(null)
+
+const resizeDirection = ref<'right' | 'left'>()
+const resizeRecord = ref<Row>()
 
 const dates = computed(() => {
   const startOfMonth = dayjs(selectedMonth.value).startOf('month')
@@ -281,18 +296,6 @@ const recordsToDisplay = computed<{
   }
 })
 
-const dragElement = ref<HTMLElement | null>(null)
-const draggingId = ref<string | null>(null)
-
-const resizeInProgress = ref(false)
-
-const isDragging = ref(false)
-const dragRecord = ref<Row>()
-
-const selectedRecord = ref<Row>()
-
-const dragTimeout = ref(null)
-
 const onDrag = (event: MouseEvent) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
@@ -304,6 +307,9 @@ const onDrag = (event: MouseEvent) => {
 
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
+
+  focusedDate.value = dates.value[week] ? dates.value[week][day] : null
+  selectedDate.value = null
 
   const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
 
@@ -345,9 +351,6 @@ const onDrag = (event: MouseEvent) => {
     return r
   })
 }
-
-const resizeDirection = ref<'right' | 'left'>()
-const resizeRecord = ref<Row>()
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
@@ -435,6 +438,7 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+  if (draggingId.value) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -444,6 +448,8 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
 const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
+  clearTimeout(dragTimeout.value)
+
   if (!isDragging.value) return
 
   dragElement.value.style.boxShadow = 'none'
@@ -488,6 +494,7 @@ const stopDrag = (event: MouseEvent) => {
       endDate = newStartDate.clone()
     }
 
+    dragRecord.value = null
     newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
 
     updateProperty.push(toCol.title)
@@ -528,6 +535,7 @@ const stopDrag = (event: MouseEvent) => {
   }
 
   updateRowProperty(newRow, updateProperty, false)
+  focusedDate.value = null
 
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
@@ -537,27 +545,29 @@ const dragStart = (event: MouseEvent, record: Row) => {
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
-  while (!target.classList.contains('draggable-record')) {
-    target = target.parentElement as HTMLElement
-  }
-
-  const allRecords = document.querySelectorAll('.draggable-record')
-  allRecords.forEach((el) => {
-    if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id)) {
-      // el.style.visibility = 'hidden'
-      el.style.opacity = '30%'
+  dragTimeout.value = setTimeout(() => {
+    while (!target.classList.contains('draggable-record')) {
+      target = target.parentElement as HTMLElement
     }
-  })
 
-  dragRecord.value = record
+    const allRecords = document.querySelectorAll('.draggable-record')
+    allRecords.forEach((el) => {
+      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id)) {
+        // el.style.visibility = 'hidden'
+        el.style.opacity = '30%'
+      }
+    })
 
-  isDragging.value = true
-  dragElement.value = target
-  draggingId.value = record.rowMeta.id
-  dragRecord.value = record
+    dragRecord.value = record
 
-  document.addEventListener('mousemove', onDrag)
-  document.addEventListener('mouseup', stopDrag)
+    isDragging.value = true
+    dragElement.value = target
+    draggingId.value = record.rowMeta.id
+    dragRecord.value = record
+
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
+  }, 500)
 }
 
 const selectDate = (date: Date) => {
@@ -605,7 +615,7 @@ onBeforeUnmount(() => {
           v-for="(day, dateIndex) in week"
           :key="`${weekIndex}-${dateIndex}`"
           :class="{
-            'border-brand-500 border-2 border-r-2 border-b-2': isDateSelected(day),
+            'border-brand-500 border-2 border-r-2 border-b-2': isDateSelected(day) || dayjs(day).isSame(focusedDate, 'day'),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
           class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-semibold hover:bg-gray-50 text-gray-800 bg-white"
@@ -723,9 +733,15 @@ onBeforeUnmount(() => {
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col"
-            @click="selectedRecord = record"
-            @dblclick="emit('expand-record', record)"
+            :selected="
+              dragRecord
+                ? dragRecord.rowMeta.id === record.rowMeta.id
+                : resizeRecord
+                ? resizeRecord.rowMeta.id === record.rowMeta.id
+                : false
+            "
             @resize-start="onResizeStart"
+            @dblclick.stop="emit('expand-record', record)"
           />
         </LazySmartsheetRow>
       </div>

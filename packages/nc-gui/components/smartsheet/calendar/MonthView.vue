@@ -5,9 +5,12 @@ import type { Row } from '#imports'
 
 const emit = defineEmits(['new-record', 'expand-record'])
 
-const { selectedDate, selectedMonth, formattedData, displayField, calendarRange, calDataType } = useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, formattedData, displayField, calendarRange, calDataType, updateRowProperty } =
+  useCalendarViewStoreOrThrow()
 
 const isMondayFirst = ref(true)
+
+const meta = inject(MetaInj, ref())
 
 const days = computed(() => {
   if (isMondayFirst.value) {
@@ -274,6 +277,82 @@ const recordsToDisplay = computed<{
   }
 })
 
+const dragStart = (event: DragEvent, record: Row) => {
+  const eventRect = (event.target as HTMLElement).getBoundingClientRect()
+  const initialClickOffsetX = event.clientX - eventRect.left
+  const initialClickOffsetY = event.clientY - eventRect.top
+
+  event.dataTransfer?.setData(
+    'text/plain',
+    JSON.stringify({
+      record,
+      initialClickOffsetY,
+      initialClickOffsetX,
+    }),
+  )
+}
+
+const dropEvent = (event: DragEvent) => {
+  event.preventDefault()
+  const data = event.dataTransfer?.getData('text/plain')
+  if (data) {
+    const {
+      record,
+      initialClickOffsetY,
+      initialClickOffsetX,
+    }: {
+      record: Row
+      initialClickOffsetY: number
+      initialClickOffsetX: number
+    } = JSON.parse(data)
+    const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
+
+    const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
+
+    const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
+
+    const week = Math.floor(percentY * dates.value.length)
+    const day = Math.floor(percentX * 7)
+
+    const newStartDate = dayjs(selectedMonth.value).startOf('month').add(week, 'week').add(day, 'day')
+
+    let endDate
+
+    const newRow = {
+      ...record,
+      row: {
+        ...record.row,
+        [record.rowMeta.range.fk_from_col.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      },
+    }
+
+    const updateProperty = [record.rowMeta.range.fk_from_col.title]
+
+    if (record.rowMeta.range.fk_to_col) {
+      const diffDays = dayjs(record.row[record.rowMeta.range.fk_to_col.title]).diff(
+        record.row[record.rowMeta.range.fk_from_col.title],
+        'day',
+      )
+      endDate = dayjs(newStartDate).add(diffDays, 'day')
+      newRow.row[record.rowMeta.range.fk_to_col.title] = dayjs(endDate).format('YYYY-MM-DD')
+      updateProperty.push(record.rowMeta.range.fk_to_col.title)
+    }
+
+    if (!newRow) return
+
+    updateRowProperty(newRow, updateProperty, false)
+
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value.columns)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+        return newRow
+      }
+      return r
+    })
+  }
+}
+
 const selectDate = (date: Date) => {
   selectedDate.value = date
 }
@@ -303,6 +382,7 @@ const isDateSelected = (date: Date) => {
         'grid-rows-7': dates.length === 7,
       }"
       class="grid h-full pb-7.5"
+      @drop="dropEvent"
     >
       <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow">
         <div
@@ -356,6 +436,7 @@ const isDateSelected = (date: Date) => {
         :style="record.rowMeta.style as Partial<CSSStyleValue>"
         class="absolute pointer-events-auto"
         draggable="true"
+        @dragstart="dragStart($event, record)"
         @dragover.prevent
       >
         <LazySmartsheetRow :row="record">

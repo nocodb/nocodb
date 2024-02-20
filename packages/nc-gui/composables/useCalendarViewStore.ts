@@ -665,11 +665,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 if (row) {
                   Object.assign(row.row, updatedData)
                 }
-                Object.assign(row.oldRow, updatedData)
+                Object.assign(row!.oldRow, updatedData)
               },
               args: [clone(toUpdate), property],
             },
-            scope: defineViewScope({ view: viewMeta.value }),
+            scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
           Object.assign(toUpdate.row, updatedRowData)
           Object.assign(toUpdate.oldRow, updatedRowData)

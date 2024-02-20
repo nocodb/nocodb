@@ -206,7 +206,7 @@ async function onSubmit() {
     } catch (e: any) {
       message.error(e.message)
     } finally {
-      refreshCommandPalette()
+      await refreshCommandPalette()
     }
 
     vModel.value = false
@@ -219,7 +219,7 @@ async function onSubmit() {
 
 const addCalendarRange = async () => {
   form.calendar_range.push({
-    fk_from_column_id: viewSelectFieldOptions.value[0].value,
+    fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
     fk_to_column_id: null,
   })
 }
@@ -431,11 +431,11 @@ onMounted(async () => {
             </span>
             <NcSelect v-model:value="range.fk_from_column_id" :disabled="isMetaLoading" :loading="isMetaLoading">
               <a-select-option
-                v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                   // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
                   if (index === 0) return true
-                  const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
+                  const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
                   return firstRange?.uidt === f.uidt
                 })"
                 :key="id"

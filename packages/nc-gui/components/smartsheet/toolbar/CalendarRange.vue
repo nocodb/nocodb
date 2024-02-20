@@ -96,7 +96,7 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
 // To add new calendar range
 const addCalendarRange = async () => {
   _calendar_ranges.value.push({
-    fk_from_column_id: dateFieldOptions.value[0].value,
+    fk_from_column_id: dateFieldOptions.value![0].value as string,
     fk_to_column_id: null,
   })
   await saveCalendarRanges()
@@ -104,7 +104,11 @@ const addCalendarRange = async () => {
 
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
+  await saveCalendarRanges()
+}
 
+const saveCalendarRange = async (range: CalendarRangeType, value?) => {
+  range.fk_to_column_id = value
   await saveCalendarRanges()
 }
 </script>
@@ -166,12 +170,7 @@ const removeRange = async (id: number) => {
             v-if="range.fk_to_column_id === null && isEeUI && false"
             class="flex cursor-pointer flex text-gray-800 items-center gap-1"
             data-testid="nc-calendar-range-add-end-date"
-            @click="
-              () => {
-                range.fk_to_column_id = undefined
-                saveCalendarRanges()
-              }
-            "
+            @click="saveCalendarRange(range, undefined)"
           >
             <component :is="iconMap.plus" class="h-4 w-4" />
             {{ $t('activity.addEndDate') }}
@@ -206,17 +205,7 @@ const removeRange = async (id: number) => {
                   </div>
                 </a-select-option>
               </NcSelect>
-              <NcButton
-                class="!rounded-l-none !border-l-0"
-                size="small"
-                type="secondary"
-                @click="
-                  () => {
-                    range.fk_to_column_id = null
-                    saveCalendarRanges()
-                  }
-                "
-              >
+              <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="saveCalendarRange(range, null)">
                 <component :is="iconMap.delete" class="h-4 w-4" />
               </NcButton>
             </div>

@@ -145,7 +145,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
       </div>
 
       <div
-        v-if="displayField && calendarRange && calendarRange.length"
+        v-if="displayField && calendarRange"
         :ref="sideBarListRef"
         :class="{
         'h-[calc(100vh-40rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),

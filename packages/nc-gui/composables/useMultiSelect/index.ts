@@ -2,7 +2,15 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
-import type { AttachmentType, ColumnType, LinkToAnotherRecordType, PaginatedType, TableType, UserFieldRecordType, ViewType } from 'nocodb-sdk'
+import type {
+  AttachmentType,
+  ColumnType,
+  LinkToAnotherRecordType,
+  PaginatedType,
+  TableType,
+  UserFieldRecordType,
+  ViewType,
+} from 'nocodb-sdk'
 import { UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
@@ -984,7 +992,7 @@ export function useMultiSelect(
                   ) => {
                     if (paginationDataRef.value?.pageSize === pg?.pageSize) {
                       if (paginationDataRef.value?.page !== pg?.page) {
-                        await changePage?.(pg?.page!)
+                        await changePage?.(pg?.page)
                       }
                       const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                       const rowObj = unref(data)[activeCell.row]

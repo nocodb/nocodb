@@ -374,9 +374,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     watch(selectedDate, async () => {
-      if (activeCalendarView.value !== 'year') {
-        await loadCalendarData()
-      }
+      await loadCalendarData()
       await loadSidebarData()
     })
 

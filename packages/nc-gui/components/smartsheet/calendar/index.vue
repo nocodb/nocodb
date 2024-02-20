@@ -151,10 +151,10 @@ const headerText = computed(() => {
           />
         </NcButton>
       </div>
+      <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />
       <template v-if="!isCalendarDataLoading">
-        <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" class="flex-grow-1" />
         <LazySmartsheetCalendarMonthView
-          v-else-if="activeCalendarView === 'month'"
+          v-if="activeCalendarView === 'month'"
           class="flex-grow-1"
           @expand-record="expandRecord"
         />
@@ -169,7 +169,7 @@ const headerText = computed(() => {
           @expand-record="expandRecord"
         />
       </template>
-      <div v-if="isCalendarDataLoading" class="flex w-full items-center h-full justify-center">
+      <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
         <GeneralLoader size="xlarge" />
       </div>
     </div>

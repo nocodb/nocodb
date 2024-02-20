@@ -394,16 +394,7 @@ export default class View implements ViewType {
       let calendarRanges: Array<string> | null = null;
 
       if (view.type === ViewTypes.CALENDAR) {
-        const calRange = await CalendarRange.read(view_id, ncMeta);
-        if (calRange) {
-          const calIds: Set<string> = new Set();
-          calRange.ranges.forEach((range) => {
-            calIds.add(range.fk_from_column_id);
-            if (!range.fk_to_column_id) return;
-            calIds.add(range.fk_to_column_id);
-          });
-          calendarRanges = Array.from(calIds) as Array<string>;
-        }
+        calendarRanges = await View.getRangeColumnsAsArray(view_id, ncMeta);
       }
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
@@ -515,6 +506,18 @@ export default class View implements ViewType {
       );
       return v;
     });
+  }
+
+  static async getRangeColumnsAsArray(viewId: string, ncMeta) {
+    const calRange = await CalendarRange.read(viewId, ncMeta);
+    if (calRange) {
+      const calIds: Set<string> = new Set();
+      calRange.ranges.forEach((range) => {
+        calIds.add(range.fk_from_column_id);
+      });
+      return Array.from(calIds) as Array<string>;
+    }
+    return [];
   }
 
   static async insertColumnToAllViews(
@@ -1639,7 +1642,10 @@ export default class View implements ViewType {
           const calendarRange = await CalendarRange.read(view.id, ncMeta);
           if (!calendarRange) break;
           const calendarRangeColumns = calendarRange.ranges
-            .map((range) => [range.fk_from_column_id, range.fk_to_column_id])
+            .map((range) => [
+              range.fk_from_column_id,
+              (range as any).fk_to_column_id,
+            ])
             .flat();
 
           if (calendarRangeColumns.includes(column.id)) {

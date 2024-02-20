@@ -1229,7 +1229,7 @@ export class ImportService {
             calendar_range: (vw.view as CalendarView).calendar_range.map(
               (a) => ({
                 fk_from_column_id: idMap.get(a.fk_from_column_id),
-                fk_to_column_id: idMap.get(a.fk_to_column_id),
+                fk_to_column_id: idMap.get((a as any).fk_to_column_id),
               }),
             ),
           } as ViewCreateReqType,

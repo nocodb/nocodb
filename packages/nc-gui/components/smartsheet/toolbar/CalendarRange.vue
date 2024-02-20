@@ -83,7 +83,7 @@ const saveCalendarRanges = async () => {
 const addCalendarRange = async () => {
   _calendar_ranges.value.push({
     fk_from_column_id: '',
-    fk_to_column_id: null,
+    fk_to_column_id: undefined,
   })
 }
 
@@ -169,7 +169,17 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
                   </div>
                 </a-select-option>
               </NcSelect>
-              <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="range.fk_to_column_id = null">
+              <NcButton
+                class="!rounded-l-none !border-l-0"
+                size="small"
+                type="secondary"
+                @click="
+                  () => {
+                    range.fk_to_column_id = null
+                    saveCalendarRanges()
+                  }
+                "
+              >
                 <component :is="iconMap.delete" class="h-4 w-4" />
               </NcButton>
             </div>

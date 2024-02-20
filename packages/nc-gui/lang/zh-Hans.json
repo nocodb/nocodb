@@ -1348,7 +1348,9 @@
       "copyToClipboardError": "未能复制到剪贴板",
       "pasteFromClipboardError": "从剪贴板粘贴失败",
       "multiFieldSaveValidation": "请在保存前完成所有字段的配置",
-      "somethingWentWrong": "出现了一些错误"
+      "somethingWentWrong": "出现了一些错误",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

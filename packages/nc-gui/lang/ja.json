@@ -1348,7 +1348,9 @@
       "copyToClipboardError": "クリップボードへのコピーに失敗しました",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
-      "somethingWentWrong": "Something went wrong"
+      "somethingWentWrong": "Something went wrong",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

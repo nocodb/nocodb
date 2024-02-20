@@ -66,7 +66,7 @@ const dates = computed(() => {
   let numberOfRows = Math.ceil(daysToDisplay / 7)
   numberOfRows = Math.max(numberOfRows, 5)
 
-  const weeksArray = []
+  const weeksArray: Array<Array<Date>> = []
   let currentDay = firstDayToDisplay
   for (let week = 0; week < numberOfRows; week++) {
     const weekArray = []
@@ -237,8 +237,9 @@ const recordsToDisplay = computed(() => {
           const heightRequired = perRecordHeight * maxRecordCount + spaceBetweenRecords
 
           let position = 'rounded'
-
-          const isStartMonthBeforeCurrentWeek = startDate.isBefore(selectedMonth.value, 'month')
+          const isStartMonthBeforeCurrentWeek = dates.value[weekIndex - 1]
+            ? dayjs(dates.value[weekIndex - 1][0]).isBefore(startDate, 'month')
+            : false
 
           if (startDate.isSame(currentWeekStart, 'week') && endDate.isSame(currentWeekEnd, 'week')) {
             position = 'rounded'
@@ -277,7 +278,7 @@ const recordsToDisplay = computed(() => {
               id,
             },
           })
-          currentWeekStart = currentWeekStart.add(1, 'week')
+          currentWeekStart = currentWeekStart.add(1, 'week').endOf('week')
         }
       }
     })

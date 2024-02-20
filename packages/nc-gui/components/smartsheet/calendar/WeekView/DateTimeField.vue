@@ -114,7 +114,7 @@ const recordsAcrossAllRange = computed(() => {
 
         const style: Partial<CSSStyleDeclaration> = {
           top: `${hourIndex * perHeight}px`,
-          height: `${perHeight - 30}px`,
+          height: `${perHeight / 2 - 30}px`,
         }
 
         recordsToDisplay.push({
@@ -134,7 +134,11 @@ const recordsAcrossAllRange = computed(() => {
         let startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
         let endDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
 
-        if (!startDate?.isValid() || !endDate?.isValid()) return
+        if (!startDate?.isValid()) return
+
+        if (!endDate?.isValid()) {
+          endDate = startDate.clone().add(30, 'minutes')
+        }
 
         if (startDate.isBefore(scheduleStart, 'minutes')) {
           startDate = scheduleStart

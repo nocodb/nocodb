@@ -298,18 +298,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const filteredData = computed(() => {
       if (!formattedData.value) return []
-      if (activeCalendarView === 'week') {
+      if (activeCalendarView.value === 'week') {
         return formattedData.value.filter((row) => {
           const startDate = dayjs(row.row[calendarRange.value[0].fk_from_col.title])
           const endDate = dayjs(row.row[calendarRange.value[0].fk_to_col.title])
           return startDate.isSameOrBefore(selectedDateRange.value.end) && endDate.isSameOrAfter(selectedDateRange.value.start)
         })
-      } else if (activeCalendarView === 'day') {
+      } else if (activeCalendarView.value === 'day') {
         return formattedData.value.filter((row) => {
           const startDate = dayjs(row.row[calendarRange.value[0].fk_from_col.title])
           return startDate.isSame(selectedDate.value)
         })
-      } else if (activeCalendarView === 'month') {
+      } else if (activeCalendarView.value === 'month') {
         return formattedData.value.filter((row) => {
           const startDate = dayjs(row.row[calendarRange.value[0].fk_from_col.title])
           const endDate = dayjs(row.row[calendarRange.value[0].fk_to_col.title])

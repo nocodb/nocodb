@@ -49,7 +49,7 @@ const renderData = computed(() => {
       }"
       class="flex flex-col pt-3 gap-2 h-full w-full px-1"
     >
-      <LazySmartSheetRow v-for="(record, rowIndex) in renderData" :row="record">
+      <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :row="record">
         <LazySmartsheetCalendarRecordCard
           :key="rowIndex"
           :date="record.row[calendarRange[0].fk_from_col.title]"
@@ -58,7 +58,7 @@ const renderData = computed(() => {
           size="small"
           @click="emit('expand-record', record)"
         />
-      </LazySmartSheetRow>
+      </LazySmartsheetRow>
     </div>
     <div
       v-else-if="calDataType === UITypes.DateTime"

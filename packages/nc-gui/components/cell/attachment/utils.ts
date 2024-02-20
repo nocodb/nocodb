@@ -159,10 +159,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (selectedFiles.length) {
           files.push(file as File)
         } else {
-          const fileName = populateUniqueFileName((file as AttachmentReqType).fileName ?? '', [
-            ...attachments.value,
-            ...imageUrls,
-          ])
+          const fileName = populateUniqueFileName(
+            (file as AttachmentReqType).fileName ?? '',
+            [...attachments.value, ...imageUrls],
+            (file as File)?.type || (file as AttachmentReqType)?.mimetype || '',
+          )
 
           imageUrls.push({ ...(file as AttachmentReqType), fileName, title: fileName })
         }
@@ -222,7 +223,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           for (const uploadedFile of data) {
             newAttachments.push({
               ...uploadedFile,
-              title: populateUniqueFileName(uploadedFile?.title, [...attachments.value, ...newAttachments]),
+              title: populateUniqueFileName(
+                uploadedFile?.title,
+                [...attachments.value, ...newAttachments],
+                uploadedFile?.mimetype,
+              ),
             })
           }
         } catch (e: any) {
@@ -277,16 +282,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         const imageUrl = extractImageSrcFromRawHtml(sanitizedHtml) ?? ''
 
-        const imageData = imageUrl ? await getImageDataFromUrl(imageUrl) : ''
-        if (imageData) {
+        const imageData = imageUrl ? ((await getImageDataFromUrl(imageUrl)) as AttachmentReqType) : {}
+        if (imageData?.mimetype) {
           await onFileSelect(
             [],
             [
               {
                 ...imageData,
-                url: imageUrl,
-                fileName: `image.${imageData.mimetype?.split('/')[1]}`,
-                title: `image.${imageData.mimetype?.split('/')[1]}`,
+                ...(isPublic.value && isForm.value ? {} : { url: imageUrl }),
+                fileName: `image.${imageData?.mimetype?.split('/')[1]}`,
+                title: `image.${imageData?.mimetype?.split('/')[1]}`,
               },
             ],
           )
@@ -314,10 +319,26 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       try {
         const response = await fetch(imageUrl)
         if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
-          return {
+          const res = {
             mimetype: response.headers.get('content-type') || undefined,
             size: +(response.headers.get('content-length') || 0) || undefined,
+            data: undefined,
+          } as { minetype?: string; size?: number; data?: any }
+
+          if (isPublic.value && isForm.value) {
+            const blob = await response.blob()
+
+            res.data = await new Promise((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onloadend = () => {
+                resolve(reader.result)
+              }
+              reader.onerror = reject
+              reader.readAsDataURL(blob)
+            })
           }
+
+          return res
         }
         throw new Error('Field to parse image url')
       } catch (err) {

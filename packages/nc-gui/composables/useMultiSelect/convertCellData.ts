@@ -201,7 +201,10 @@ export default function convertCellData(
         const newAttachments: AttachmentType[] = []
 
         for (const att of attachments) {
-          newAttachments.push({ ...att, title: populateUniqueFileName(att?.title, [...oldAttachments, ...newAttachments]) })
+          newAttachments.push({
+            ...att,
+            title: populateUniqueFileName(att?.title, [...oldAttachments, ...newAttachments], att?.mimetype),
+          })
         }
         return JSON.stringify([...oldAttachments, ...newAttachments])
       } else if (files.length && attachments.length) {

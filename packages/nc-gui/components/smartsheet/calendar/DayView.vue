@@ -31,24 +31,14 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
       for (const record of formattedData.value) {
         const startDate = dayjs(record.row[fromCol.title])
         const endDate = dayjs(record.row[endCol.title])
-        const scaleMin = (scheduleEnd - scheduleStart) / 60000
-        const startMinutes = Math.max((startDate - scheduleStart) / 60000, 0)
-        const endMinutes = Math.min((endDate - scheduleStart) / 60000, scaleMin)
 
-        const height = ((endMinutes - startMinutes) / scaleMin) * 100
-        const top = (startMinutes / scaleMin) * 100
-
-        const columnIndex = 0 // getColumnIndexFromGroup(record)
-        const totalColumns = 0 // getTotalColumns(record)
-
-        const width = 100 / totalColumns
-        const left = width * columnIndex
+        dayRecordCount++
 
         const style: Partial<CSSStyleDeclaration> = {
-          top: `${top}%`,
-          height: `max(${height}%, 40px)`,
-          width: columnIndex === 0 && calDataType.value === UITypes.DateTime ? `calc(${width}% - 69px)` : `${width}%`,
-          left: columnIndex === 0 && calDataType.value === UITypes.DateTime ? `calc(${left}% + 69px)` : `${left}%`,
+          top: `${(dayRecordCount - 1) * perRecordHeight}px`,
+          width: '100%',
+
+          // left: columnIndex === 0 && calDataType.value === UITypes.DateTime ? `calc(${left}% + 69px)` : `${left}%`,
         }
 
         let position = 'none'
@@ -154,8 +144,12 @@ const dropEvent = (event: DragEvent) => {
     } = JSON.parse(data)
     const { top, height, width, left } = container.value.getBoundingClientRect()
 
+    const percentY = (event.clientY - top - window.scrollY) / height
+    const percentX = (event.clientX - left - window.scrollX) / width
+    /*
     const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
     const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
+*/
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
@@ -253,7 +247,7 @@ const dropEvent = (event: DragEvent) => {
           class="mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
           size="xsmall"
           type="secondary"
-          @click="emit('new-record')"
+          @click="emit('new-record', { row: {} })"
         >
           <component :is="iconMap.plus" class="h-4 w-4 text-gray-700 transition-all" />
         </NcButton>

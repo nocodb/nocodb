@@ -277,7 +277,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcButton type="secondary" @click="emit('new-record')">
+        <NcButton type="secondary" @click="emit('new-record', { row: {} })">
           <div class="px-4 flex items-center gap-2 justify-center">
             <component :is="iconMap.plus" class="h-4 w-4 text-gray-700" />
             {{ t('activity.newRecord') }}

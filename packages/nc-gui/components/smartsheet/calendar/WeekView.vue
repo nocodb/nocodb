@@ -241,8 +241,12 @@ const dropEvent = (event: DragEvent) => {
     } = JSON.parse(data)
     const { top, height, width, left } = container.value.getBoundingClientRect()
 
+    const percentY = (event.clientY - top - window.scrollY) / height
+    const percentX = (event.clientX - left - window.scrollX) / width
+    /*
     const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
     const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
+*/
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col

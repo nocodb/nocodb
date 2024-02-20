@@ -19,7 +19,7 @@ const {eventBus} = useSmartsheetStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -37,44 +37,41 @@ watch(
     async (newVal, oldVal) => {
       if (newVal !== oldVal && meta.value) {
         await loadViewColumns()
-        // For now we are adding a calendar range by default
-        // TODO: Remove this when we have a way to add calendar range
-        await addCalendarRange()
       }
     },
     {immediate: true},
 )
 
-// TODO: Fetch calendar range from viewColumnsComposable
 const calendarRange = computed<{ fk_from_column_id: string; fk_to_column_id: string | null }[]>(() => {
-  const tempCalendarRange: { fk_from_column_id: string; fk_to_column_id: string | null }[] = []
-  // Object.values(fields.value).forEach((col) => {
-  //   if (col.calendar_range) {
-  //     tempCalendarRange.push({
-  //       fk_from_col_id: col.fk_from_column_id,
-  //       fk_to_column_id: col.fk_to_column_id,
-  //     })
-  //   }
-  // })
+  const tempCalendarRange: { fk_from_column_id: string; fk_to_column_id: string | null }[] = [];
+
+  if (!activeView.value || !activeView.value.view) return tempCalendarRange;
+  activeView.value.view.calendar_range?.forEach((range) => {
+    tempCalendarRange.push({
+      fk_from_column_id: range.fk_from_column_id,
+      fk_to_column_id: range.fk_to_column_id,
+    })
+  })
   return tempCalendarRange
 })
 
 // We keep the calendar range here and update it when the user selects a new range
-const _calendar_ranges = ref<{ fk_from_column_id: string; fk_to_column_id: string | null }[]>([])
+const _calendar_ranges = ref<{ fk_from_column_id: string; fk_to_column_id: string | null }[]>(calendarRange.value)
 
 const saveCalendarRanges = async () => {
   if(activeView.value) {
       try {
-          for(const range of _calendar_ranges.value) {
-              if(!range.fk_from_column_id) continue;
-              // TODO: Update calendar range in viewColumnsComposable
-
-              $e('c:calendar:change-calendar-range', {
-                  viewId: activeView.value.id,
-                  fk_from_column_id: range.fk_from_column_id,
-                  fk_to_column_id: range.fk_to_column_id,
-              })
+        const calRanges = _calendar_ranges.value.map((range) => {
+          if (range.fk_from_column_id) {
+            return {
+              fk_from_column_id: range.fk_from_column_id,
+              fk_to_column_id: range.fk_to_column_id,
+            }
           }
+        })
+        await $api.dbView.calendarUpdate(activeView.value?.id as string, {
+          calendar_range: calRanges as { fk_from_column_id: string; fk_to_column_id: string | null }[],
+        })
       } catch (e) {
         console.log(e)
         message.error('There was an error while updating view!')
@@ -131,19 +128,19 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
           <a-divider class="!my-2"/>
         </div>
         <div v-for="cal in _calendar_ranges" class="flex w-full gap-3">
-          <div class="flex flex-col w-1/2">
+          <div class="flex flex-col gap-2 w-1/2">
             <span>
-              {{ $t('labels.selectDateField') }}
+              {{ $t('labels.organizeRecordsBy') }}
             </span>
             <NcSelect
-                :value="cal.fk_from_column_id"
+                v-model:value="cal.fk_from_column_id"
                 :options="dateFieldOptions"
                 class="w-full"
                 @click.stop
                 @change="saveCalendarRanges"
             />
           </div>
-          <div v-if="cal.fk_to_column_id === null" class="flex flex-col justify-end w-1/2">
+          <div v-if="cal.fk_to_column_id === null && isEeUI" class="flex flex-col justify-end w-1/2">
             <div class="cursor-pointer flex items-center font-medium gap-1 mb-1"
                  @click="cal.fk_to_column_id = ''">
               <component :is="iconMap.plus" class="h-4 w-4"/>
@@ -151,17 +148,19 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
             </div>
 
           </div>
-          <div v-if="isEeUI && cal.fk_to_column_id !== null" class="flex flex-col w-1/2">
+          <div v-else-if="isEeUI" class="flex flex-col gap-2 w-1/2">
             <div class="flex flex-row justify-between">
-
             <span>
-              {{ $t('labels.selectEndDateField') }}
+              {{ $t('labels.endDateField') }}
             </span>
               <component :is="iconMap.delete" class="h-4 w-4 cursor-pointer text-red-500"
-                         @click="cal.fk_to_column_id = null"/>
+                         @click="() => {
+                           cal.fk_to_column_id = null
+                            saveCalendarRanges()
+                         }"/>
             </div>
             <NcSelect
-                :value="cal.fk_to_column_id"
+                v-model:value="cal.fk_to_column_id"
                 :options="dateFieldOptions"
                 :disabled="!cal.fk_from_column_id"
                 :placeholder="$t('placeholder.notSelected')"

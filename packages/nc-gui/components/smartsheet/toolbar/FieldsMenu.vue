@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
+import {CalendarType, ColumnType, GalleryType, KanbanType} from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
@@ -151,7 +151,7 @@ const coverOptions = computed<SelectProps['options']>(() => {
 
 const updateCoverImage = async (val?: string | null) => {
   if (
-    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
+    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN || activeView.value?.type === ViewTypes.CALENDAR) &&
     activeView.value?.id &&
     activeView.value?.view
   ) {
@@ -165,6 +165,11 @@ const updateCoverImage = async (val?: string | null) => {
         fk_cover_image_col_id: val,
       })
       ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
+    } else if (activeView.value?.type === ViewTypes.CALENDAR) {
+      await $api.dbView.calendarUpdate(activeView.value?.id, {
+        fk_cover_image_col_id: val,
+      })
+      ;(activeView.value.view as CalendarType).fk_cover_image_col_id = val
     }
     reloadViewMetaHook?.trigger()
   }
@@ -173,7 +178,7 @@ const updateCoverImage = async (val?: string | null) => {
 const coverImageColumnId = computed({
   get: () => {
     const fk_cover_image_col_id =
-      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
+      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN || activeView.value?.type === ViewTypes.CALENDAR) && activeView.value?.view
         ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
         : undefined
     // check if `fk_cover_image_col_id` is in `coverOptions`
@@ -305,7 +310,7 @@ useMenuCloseOnEsc(open)
 
           <!-- Fields -->
           <span v-if="!isMobileMode" class="text-capitalize text-sm font-medium">
-            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY || ViewTypes.CALENDAR">
+            <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.CALENDAR">
               {{ $t('title.editCards') }}
             </template>
             <template v-else>

@@ -100,7 +100,7 @@ export default class CalendarRange implements CalendarRangeType {
     }
 
     public static async read(fk_view_id: string, ncMeta = Noco.ncMeta) {
-        const cachedList = await NocoCache.getList(CacheScope.CALENDAR_VIEW, [
+        const cachedList = await NocoCache.getList(CacheScope.CALENDAR_VIEW_RANGE, [
             fk_view_id,
         ]);
         let { list: ranges } = cachedList;

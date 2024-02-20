@@ -55,7 +55,8 @@ export class CalendarsController {
         '/api/v1/db/meta/calendars/:calendarViewId',
         '/api/v2/meta/calendars/:calendarViewId',
     ])
-    @Acl('calendarViewUpdate')
+    // #TODO Enable ACL Later
+    // @Acl('calendarViewUpdate')
     async calendarViewUpdate(
         @Param('calendarViewId') calendarViewId: string,
         @Body() body,

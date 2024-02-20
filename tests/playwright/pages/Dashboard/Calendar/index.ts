@@ -7,6 +7,8 @@ import { CalendarTopbarPage } from './CalendarTopBar';
 import { CalendarSideMenuPage } from './CalendarSideMenu';
 import { CalendarMonthPage } from './CalendarMonth';
 import { CalendarYearPage } from './CalendarYear';
+import { CalendarDayDateTimePage } from './CalendarDayDateTime';
+import { CalendarWeekDateTimePage } from './CalendarWeekDateTime';
 
 export class CalendarPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -15,7 +17,9 @@ export class CalendarPage extends BasePage {
   readonly calendarTopbar: CalendarTopbarPage;
   readonly sideMenu: CalendarSideMenuPage;
   readonly calendarMonth: CalendarMonthPage;
-  readonly calendarYear: CalendarYearPageß;
+  readonly calendarYear: CalendarYearPage;
+  readonly calendarDayDateTime: CalendarDayDateTimePage;
+  readonly calendarWeekDateTime: CalendarWeekDateTimePage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -26,6 +30,8 @@ export class CalendarPage extends BasePage {
     this.sideMenu = new CalendarSideMenuPage(this);
     this.calendarMonth = new CalendarMonthPage(this);
     this.calendarYear = new CalendarYearPage(this);
+    this.calendarDayDateTime = new CalendarDayDateTimePage(this);
+    this.calendarWeekDateTime = new CalendarWeekDateTimePage(this);
   }
 
   get() {

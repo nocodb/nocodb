@@ -724,7 +724,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div class="w-full relative prevent-select" @drop="dropEvent">
+  <div class="w-full relative prevent-select" data-testid="nc-calendar-week-view" @drop="dropEvent">
     <div class="flex absolute bg-gray-50 w-full top-0">
       <div
         v-for="date in datesHours"
@@ -739,7 +739,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
       </div>
     </div>
     <div ref="container" class="h-[calc(100vh-11.7rem)] relative flex w-full mt-7.1 overflow-y-auto nc-scrollbar-md">
-      <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7">
+      <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7" data-testid="nc-calendar-week-day">
         <div
           v-for="(hour, hourIndex) in date"
           :key="hourIndex"
@@ -748,6 +748,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
             '!border-l-0': date[0].day() === selectedDateRange.start?.day(),
           }"
           class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50"
+          data-testid="nc-calendar-week-hour"
           @click="
             () => {
               selectedTime = hour
@@ -778,6 +779,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
         <div
           v-for="(record, rowIndex) in recordsAcrossAllRange.records"
           :key="rowIndex"
+          :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
           :data-unique-id="record.rowMeta!.id"
           :style="record.rowMeta!.style"
           class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"

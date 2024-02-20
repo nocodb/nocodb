@@ -631,6 +631,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           break
         case 'day':
           selectedDate.value = action === 'next' ? selectedDate.value.add(1, 'day') : selectedDate.value.subtract(1, 'day')
+          selectedTime.value = selectedDate.value
           if (pageDate.value.year() !== selectedDate.value.year()) {
             pageDate.value = selectedDate.value
           } else if (pageDate.value.month() !== selectedDate.value.month()) {
@@ -788,16 +789,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         pageDate.value = selectedDate.value
         selectedDate.value = selectedDateRange.value.start
         selectedMonth.value = selectedDateRange.value.start
+        selectedTime.value = selectedDateRange.value.start
       } else if (oldValue === 'month') {
         selectedDate.value = selectedMonth.value
         pageDate.value = selectedDate.value
+        selectedTime.value = selectedDate.value
         selectedDateRange.value = {
           start: selectedDate.value.startOf('week'),
           end: selectedDate.value.endOf('week'),
         }
       } else if (oldValue === 'day') {
         pageDate.value = selectedDate.value
-
+        selectedTime.value = selectedDate.value
         selectedMonth.value = selectedDate.value
         selectedDateRange.value = {
           start: selectedDate.value.startOf('week'),
@@ -805,6 +808,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       } else if (oldValue === 'year') {
         selectedMonth.value = selectedDate.value
+        selectedTime.value = selectedDate.value
         pageDate.value = selectedDate.value
         selectedDateRange.value = {
           start: selectedDate.value.startOf('week'),
@@ -825,7 +829,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     watch(pageDate, async () => {
       if (activeCalendarView.value === 'year') return
-      console.log('pageDate changed')
       await fetchActiveDates()
     })
 

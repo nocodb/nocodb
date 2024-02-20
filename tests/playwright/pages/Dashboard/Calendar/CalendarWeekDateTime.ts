@@ -1,7 +1,7 @@
 import BasePage from '../../Base';
 import { CalendarPage } from './index';
 
-export class CalendarDayDateTimePage extends BasePage {
+export class CalendarWeekDateTimePage extends BasePage {
   readonly parent: CalendarPage;
 
   constructor(parent: CalendarPage) {
@@ -10,16 +10,16 @@ export class CalendarDayDateTimePage extends BasePage {
   }
 
   get() {
-    return this.rootPage.getByTestId('nc-calendar-day-view');
+    return this.rootPage.getByTestId('nc-calendar-week-view');
   }
 
   getRecordContainer() {
-    return this.get().getByTestId('nc-calendar-day-record-container');
+    return this.get().getByTestId('nc-calendar-week-record-container');
   }
 
   async dragAndDrop({ record, hourIndex }: { record: string; hourIndex: number }) {
     const recordContainer = this.getRecordContainer();
-    const recordCard = recordContainer.getByTestId(`nc-calendar-day-record-${record}`);
+    const recordCard = recordContainer.getByTestId(`nc-calendar-week-record-${record}`);
     const toDay = this.get().getByTestId('nc-calendar-day-hour').nth(hourIndex);
     const cord = await toDay.boundingBox();
 
@@ -29,8 +29,10 @@ export class CalendarDayDateTimePage extends BasePage {
     await this.rootPage.mouse.up();
   }
 
-  async selectHour({ hourIndex }: { hourIndex: number }) {
-    const hour = this.get().getByTestId('nc-calendar-day-hour').nth(hourIndex);
+  async selectHour({ hourIndex, dayIndex }: { dayIndex: number; hourIndex: number }) {
+    const day = this.get().getByTestId('nc-calendar-week-day').nth(dayIndex);
+
+    const hour = day.getByTestId('nc-calendar-week-hour').nth(hourIndex);
     await hour.click({
       force: true,
       position: {

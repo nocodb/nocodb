@@ -574,7 +574,7 @@ const dropEvent = (event: DragEvent) => {
 </script>
 
 <template>
-  <div class="flex relative flex-col prevent-select" @drop="dropEvent">
+  <div class="flex relative flex-col prevent-select" data-testid="nc-calendar-week-view" @drop="dropEvent">
     <div class="flex">
       <div
         v-for="(date, weekIndex) in weekDates"
@@ -598,10 +598,14 @@ const dropEvent = (event: DragEvent) => {
         @click="selectedDate = date"
       ></div>
     </div>
-    <div class="absolute nc-scrollbar-md overflow-y-auto mt-9 pointer-events-none inset-0">
+    <div
+      class="absolute nc-scrollbar-md overflow-y-auto mt-9 pointer-events-none inset-0"
+      data-testid="nc-calendar-week-record-container"
+    >
       <div
         v-for="(record, id) in calendarData"
         :key="id"
+        :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
         :data-unique-id="record.rowMeta.id"
         :style="{
           ...record.rowMeta.style,

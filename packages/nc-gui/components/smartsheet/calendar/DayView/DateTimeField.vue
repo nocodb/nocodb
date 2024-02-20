@@ -717,7 +717,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
   </div>
 
   <div v-else ref="container" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">
-    No Records in this day
+    No records in this day
   </div>
 </template>
 

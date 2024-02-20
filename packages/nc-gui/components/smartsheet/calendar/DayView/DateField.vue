@@ -188,20 +188,20 @@ const dropEvent = (event: DragEvent) => {
           <template v-if="!isRowEmpty(record, displayField)">
             <div
               :class="{
-                '!mt-2': displayField.uidt === UITypes.SingleLineText,
+                '!mt-1.5 ml-1': displayField.uidt === UITypes.SingleLineText,
                 '!mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
               }"
             >
               <LazySmartsheetVirtualCell
-                v-if="isVirtualCol(displayField)"
-                v-model="record.row[displayField.title]"
+                v-if="isVirtualCol(displayField!)"
+                v-model="record.row[displayField!.title!]"
                 :column="displayField"
                 :row="record"
               />
 
               <LazySmartsheetCell
                 v-else
-                v-model="record.row[displayField.title]"
+                v-model="record.row[displayField!.title!]"
                 :column="displayField"
                 :edit-enabled="false"
                 :read-only="true"
@@ -219,7 +219,7 @@ const dropEvent = (event: DragEvent) => {
     class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
     @drop="dropEvent"
   >
-    No Records in this day
+    No records in this day
   </div>
 </template>
 

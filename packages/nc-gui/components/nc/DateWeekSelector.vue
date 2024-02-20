@@ -182,13 +182,7 @@ const paginate = (action: 'next' | 'prev') => {
           class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
           @click="handleSelectDate(date)"
         >
-          <span
-            v-if="isActiveDate(date)"
-            :class="{
-              'border-1 border-white !h-2 !w-2': dayjs(date).isSame(dayjs(), 'date'),
-            }"
-            class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"
-          ></span>
+          <span v-if="isActiveDate(date)" class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
           <span class="z-2">
             {{ date.get('date') }}
           </span>

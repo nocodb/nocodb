@@ -729,12 +729,12 @@ const viewMore = (hour: dayjs.Dayjs) => {
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 border-b-1 border-r-1 bg-gray-50"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-r-1 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
     </div>
-    <div ref="container" class="h-[calc(100vh-11.7rem)] relative flex w-full mt-7.5 overflow-y-auto nc-scrollbar-md">
+    <div ref="container" class="h-[calc(100vh-11.7rem)] relative flex w-full mt-7.1 overflow-y-auto nc-scrollbar-md">
       <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7">
         <div
           v-for="(hour, hourIndex) in date"
@@ -742,7 +742,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
           :class="{
             'border-1 !border-brand-500': hour.isSame(selectedTime, 'hour'),
           }"
-          class="text-center relative h-56 text-sm text-gray-500 w-full py-1 border-gray-200 border-1 border-r-white border-t-white last:border-r-white bg-gray-50"
+          class="text-center relative h-20 text-sm text-gray-500 w-full py-1 border-gray-200 first:border-l-none border-1 border-r-gray-50 border-t-gray-50 bg-gray-50"
           @click="selectedTime = hour"
         >
           <span v-if="date[0].day() === selectedDateRange.start?.day()" class="absolute left-1">

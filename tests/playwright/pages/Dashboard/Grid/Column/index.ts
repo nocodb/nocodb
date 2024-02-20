@@ -216,8 +216,12 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.nc-column-name-input').fill(title);
   }
 
-  async selectType({ type }: { type: string }) {
-    await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+  async selectType({ type, first }: { type: string; first?: boolean }) {
+    if (first) {
+      await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+    } else {
+      await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+    }
 
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
@@ -279,6 +283,7 @@ export class ColumnPageObject extends BasePage {
     format,
     dateFormat = '',
     timeFormat = '',
+    selectType = false,
   }: {
     title: string;
     type?: string;
@@ -286,6 +291,7 @@ export class ColumnPageObject extends BasePage {
     format?: string;
     dateFormat?: string;
     timeFormat?: string;
+    selectType?: boolean;
   }) {
     // when clicked on the dropdown cell header
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
@@ -294,7 +300,9 @@ export class ColumnPageObject extends BasePage {
 
     await this.get().waitFor({ state: 'visible' });
 
-    await this.selectType({ type });
+    if (selectType) {
+      await this.selectType({ type, first: true });
+    }
 
     switch (type) {
       case 'Formula':

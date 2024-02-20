@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import { type Row, computed, ref } from '#imports'
 
-const emit = defineEmits(['expand-record', 'new-record'])
+const emit = defineEmits(['expandRecord', 'new-record'])
 const meta = inject(MetaInj, ref())
 const fields = inject(FieldsInj, ref([]))
 
@@ -201,7 +201,7 @@ const resizeDirection = ref<'right' | 'left' | null>()
 const resizeInProgress = ref(false)
 const resizeRecord = ref<Row | null>()
 
-const dragTimeout = ref(null)
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
@@ -210,7 +210,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 const onResize = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !resizeRecord.value) return
-  const { width, left, top, bottom } = container.value.getBoundingClientRect()
+  const { top, bottom } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
 
@@ -294,7 +294,7 @@ const onResizeEnd = () => {
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
 }
-const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -369,7 +369,7 @@ const onDrag = (event: MouseEvent) => {
 
 const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
-  clearTimeout(dragTimeout.value)
+  clearTimeout(dragTimeout.value!)
   if (!isUIAllowed('dataEdit')) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
@@ -490,10 +490,10 @@ const dragStart = (event: MouseEvent, record: Row) => {
   }, 200)
 
   const onMouseUp = () => {
-    clearTimeout(dragTimeout.value)
+    clearTimeout(dragTimeout.value!)
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
-      emit('expand-record', record)
+      emit('expandRecord', record)
     }
   }
 
@@ -636,11 +636,10 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
 <style lang="scss" scoped>
 .no-selection {
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-  -khtml-user-select: none; /* Konqueror HTML */
-  -moz-user-select: none; /* Old versions of Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 </style>

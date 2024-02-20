@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import type { Row } from '~/lib'
 import { computed, ref } from '#imports'
 
-const emits = defineEmits(['expand-record'])
+const emits = defineEmits(['expandRecord'])
 
 const { selectedDateRange, formattedData, formattedSideBarData, calendarRange, displayField, selectedTime, updateRowProperty } =
   useCalendarViewStoreOrThrow()
@@ -229,7 +229,7 @@ const recordsAcrossAllRange = computed(() => {
     recordsToDisplay = recordsToDisplay.map((record) => {
       let maxOverlaps = 1
       let overlapIndex = 0
-      const dayIndex = record.rowMeta.dayIndex
+      const dayIndex = record.rowMeta.dayIndex as number
 
       const dateKey = dayjs(selectedDateRange.value.start).add(dayIndex, 'day').format('YYYY-MM-DD')
 
@@ -261,7 +261,7 @@ const draggingId = ref<string | null>(null)
 
 const resizeInProgress = ref(false)
 
-const dragTimeout = ref<string | number | null | NodeJS.Timeout>(null)
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
 const resizeDirection = ref<'right' | 'left' | null>()
 const resizeRecord = ref<Row | null>()
@@ -565,7 +565,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
     clearTimeout(dragTimeout.value!)
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
-      emits('expand-record', record)
+      emits('expandRecord', record)
     }
   }
 

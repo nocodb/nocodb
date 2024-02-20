@@ -58,8 +58,6 @@ const showSideMenu = ref(true)
 
 const calendarRangeDropdown = ref(false)
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const router = useRouter()
 const route = useRoute()
 
@@ -99,7 +97,7 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
   }
 }
 
-const newRecord = (row: Row) => {
+const newRecord = (row: RowType) => {
   // TODO: The default values has to be filled based on the active calendar view
   // and selected sidebar filter option
   expandRecord({

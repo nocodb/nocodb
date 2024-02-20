@@ -13,7 +13,7 @@ const months = computed(() => {
 <template>
   <div class="flex flex-wrap gap-6 pb-4 items-center justify-center overflow-auto nc-scrollbar-md">
     <NcDateWeekSelector
-      v-for="(month, index) in months"
+      v-for="(_, index) in months"
       :key="index"
       v-model:active-dates="activeDates"
       v-model:page-date="months[index]"

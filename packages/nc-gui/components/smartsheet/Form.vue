@@ -24,6 +24,7 @@ import {
   reactive,
   ref,
   useDebounceFn,
+  useEventListener,
   useGlobal,
   useI18n,
   useNuxtApp,
@@ -31,7 +32,6 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   watch,
-  useEventListener,
 } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -114,6 +114,8 @@ const emailMe = ref(false)
 const submitted = ref(false)
 
 const activeRow = ref('')
+
+const isLoadingFormView = ref(false)
 
 const focusLabel: VNodeRef = (el) => {
   return (el as HTMLInputElement)?.focus()
@@ -396,8 +398,10 @@ onClickOutside(draggableRef, () => {
 })
 
 onMounted(async () => {
+  isLoadingFormView.value = true
   await loadFormView()
   setFormData()
+  isLoadingFormView.value = false
 })
 
 watch(view, (nextView) => {
@@ -416,11 +420,8 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
   const nextActiveFieldTitle =
     e?.relatedTarget?.getAttribute('data-title') ||
     e?.relatedTarget?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title')
-
-  if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
+  if (nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
     activeRow.value = nextActiveFieldTitle
-  } else {
-    console.log(document.activeElement)
   }
 })
 </script>
@@ -494,8 +495,9 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
       </div>
 
       <div v-else class="h-full w-full flex" data-testid="nc-form-wrapper">
+        <div v-if="isLoadingFormView" class="flex-1"></div>
         <div
-          v-if="formViewData"
+          v-else-if="formViewData"
           class="flex-1 h-full overflow-auto nc-form-scrollbar p-6"
           :style="{background:(formViewData?.meta as Record<string,any>).theme_color || '#F9F9FA'}"
         >
@@ -598,7 +600,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                   @start="drag = true"
                   @end="drag = false"
                 >
-                  <template #item="{ element, index }">
+                  <template #item="{ element }">
                     <div
                       class="nc-editable nc-form-focus-element item relative bg-white"
                       :class="[
@@ -673,9 +675,9 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                           </span>
                           <a-switch
                             v-model:checked="element.required"
+                            v-e="['a:form-view:field:mark-required']"
                             class="nc-form-input-required"
                             data-testid="nc-form-input-required"
-                            v-e="['a:form-view:field:mark-required']"
                             size="small"
                             @change="updateColMeta(element)"
                           />
@@ -751,7 +753,17 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                               },
                             ]"
                           >
-                            <LazySmartsheetDivDataCell class="relative" @click.stop>
+                            <LazySmartsheetDivDataCell
+                              class="relative"
+                              @click.capture="
+                                (e) => {
+                                  if (activeRow !== element.title) {
+                                    onFormItemClick(element)
+                                    e.stopPropagation()
+                                  }
+                                }
+                              "
+                            >
                               <LazySmartsheetVirtualCell
                                 v-if="isVirtualCol(element)"
                                 v-model="formState[element.title]"
@@ -841,7 +853,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
             </a-card>
           </div>
         </div>
-        <div v-if="isEditable" class="h-full w-full max-w-[384px] nc-form-left-drawer border-l border-gray-200">
+        <div v-if="isEditable" class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200">
           <Splitpanes horizontal class="w-full nc-form-right-splitpane">
             <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
               <div class="flex flex-wrap justify-between items-center gap-2">

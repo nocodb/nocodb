@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { type Row, computed, isRowEmpty, ref } from '#imports'
+import { type Row, computed, iconMap, isRowEmpty, ref } from '#imports'
 
 const props = defineProps<{
   visible: boolean
@@ -347,10 +347,20 @@ onUnmounted(() => {
         </a-input>
         <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-800" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-800">
-            <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
-              <template #title>{{ option.label }}</template>
-              {{ option.label }}
-            </NcTooltip>
+            <div class="flex items-center justify-between gap-2">
+              <div class="truncate flex-1">
+                <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
+                  <template #title>{{ option.label }}</template>
+                  {{ option.label }}
+                </NcTooltip>
+              </div>
+              <component
+                :is="iconMap.check"
+                v-if="sideBarFilterOption === option.value"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
           </a-select-option>
         </NcSelect>
       </div>

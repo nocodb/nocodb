@@ -41,11 +41,12 @@ export default class CalendarViewColumn {
         viewColumn.meta && typeof viewColumn.meta === 'string'
           ? JSON.parse(viewColumn.meta)
           : viewColumn.meta;
+
+      await NocoCache.set(
+        `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
+        viewColumn,
+      );
     }
-    await NocoCache.set(
-      `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
-      viewColumn,
-    );
 
     return viewColumn && new CalendarViewColumn(viewColumn);
   }
@@ -90,18 +91,19 @@ export default class CalendarViewColumn {
       id,
     );
 
-    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    const { list } = await NocoCache.getList(CacheScope.CALENDAR_VIEW_COLUMN, [
-      column.fk_view_id,
-    ]);
+    {
+      const view = await View.get(column.fk_view_id, ncMeta);
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    }
 
-    if (list?.length)
+    return this.get(id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
         CacheScope.CALENDAR_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.CALENDAR_VIEW_COLUMN}:${id}`,
       );
-    return this.get(id, ncMeta);
+      return viewColumn;
+    });
   }
 
   public static async list(

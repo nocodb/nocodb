@@ -27,7 +27,7 @@ import * as nc_037_rename_project_and_base from '~/meta/migrations/v2/nc_037_ren
 import * as nc_038_formula_parsed_tree_column from '~/meta/migrations/v2/nc_038_formula_parsed_tree_column';
 import * as nc_039_sqlite_alter_column_types from '~/meta/migrations/v2/nc_039_sqlite_alter_column_types';
 import * as nc_040_form_view_alter_column_types from '~/meta/migrations/v2/nc_040_form_view_alter_column_types';
-import * as nc_041_calander_view from '~/meta/migrations/v2/nc_041_calander_view';
+import * as nc_041_calendar_view from '~/meta/migrations/v2/nc_041_calendar_view';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -66,7 +66,7 @@ export default class XcMigrationSourcev2 {
       'nc_038_formula_parsed_tree_column',
       'nc_039_sqlite_alter_column_types',
       'nc_040_form_view_alter_column_types',
-      'nc_041_calander_view',
+      'nc_041_calendar_view',
     ]);
   }
 
@@ -134,8 +134,8 @@ export default class XcMigrationSourcev2 {
         return nc_039_sqlite_alter_column_types;
       case 'nc_040_form_view_alter_column_types':
         return nc_040_form_view_alter_column_types;
-      case 'nc_041_calander_view':
-        return nc_041_calander_view;
+      case 'nc_041_calendar_view':
+        return nc_041_calendar_view;
     }
   }
 }

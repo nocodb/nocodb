@@ -410,6 +410,12 @@ watch(view, (nextView) => {
   }
 })
 
+watch(activeRow, () => {
+  if (activeRow.value) {
+    document.querySelector(`.nc-form-field-list-item-${activeRow.value}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+})
+
 const onFormItemClick = (element: any) => {
   if (isLocked.value || !isEditable) return
 
@@ -420,7 +426,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
   const nextActiveFieldTitle =
     e?.relatedTarget?.getAttribute('data-title') ||
     e?.relatedTarget?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title')
-  if (nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
+  if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
     activeRow.value = nextActiveFieldTitle
   }
 })
@@ -755,12 +761,9 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                           >
                             <LazySmartsheetDivDataCell
                               class="relative"
-                              @click.capture="
-                                (e) => {
-                                  if (activeRow !== element.title) {
-                                    onFormItemClick(element)
-                                    e.stopPropagation()
-                                  }
+                              @click.stop="
+                                () => {
+                                  activeRow = ''
                                 }
                               "
                             >
@@ -946,8 +949,12 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                       <div
                         v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase())"
                         :key="field.id"
-                        class="w-full p-2 flex flex-row items-center border-b-1 last:border-none border-gray-200 hover:bg-gray-50"
-                        :data-testid="`nc-form-field-item-${field.title}`"
+                        class="w-full p-2 flex flex-row items-center border-b-1 last:border-none border-gray-200"
+                        :class="[
+                          `nc-form-field-list-item-${field.title}`,
+                          `${activeRow === field.title ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
+                        ]"
+                        :data-testid="`nc-form-field-list-item-${field.title}`"
                       >
                         <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
                         <div

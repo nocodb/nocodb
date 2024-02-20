@@ -34,9 +34,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
+    const isCalendar = computed(() => view.value?.type === ViewTypes.CALENDAR)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
-    const isCalendar = computed(() => view.value?.type === ViewTypes.CALENDAR)
     const isSharedForm = computed(() => isForm.value && shared)
     const xWhere = computed(() => {
       let where

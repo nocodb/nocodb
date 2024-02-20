@@ -30,14 +30,17 @@ interface Form {
   fk_geo_data_col_id: string | null
 
   // for calendar view only
-  fk_from_col_id: string | null
-  fk_to_col_id: string | null // For EE only
+  calendar_range: Array<{
+    fk_from_column_id: string,
+    fk_to_column_id: string | null // for ee only
+  }>
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
   groupingFieldColumnId: undefined,
   geoDataFieldColumnId: undefined,
+  calendar_range: undefined,
 })
 
 const emits = defineEmits<Emits>()
@@ -80,8 +83,10 @@ const form = reactive<Form>({
   copy_from_id: null,
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
-  fk_from_col_id: null,
-  fk_to_col_id: null,
+  calendar_range: ViewTypes.CALENDAR === props.type ? {
+    fk_from_column_id: '',
+    fk_to_column_id: null
+  } : null,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -180,12 +185,7 @@ async function onSubmit() {
           data = await api.dbView.mapCreate(tableId.value, form)
           break
         case ViewTypes.CALENDAR:
-          data = {
-            base_id: meta.value?.base_id,
-            source_id: meta.value?.source_id,
-          }
-          // TODO: implement api call
-          // data = await api.dbView.calendarCreate(tableId.value, form)
+          data = await api.dbView.calendarCreate(tableId.value, form)
           break
       }
 
@@ -263,7 +263,6 @@ onMounted(async () => {
       }
 
       if (props.type === ViewTypes.CALENDAR) {
-        console.log(meta)
         viewSelectFieldOptions.value = meta
           .value!.columns!.filter((el) => el.uidt === UITypes.Date || (el.uidt === UITypes.DateTime && !isSystemColumn(el)))
           .map((field) => {
@@ -275,7 +274,10 @@ onMounted(async () => {
 
         if (viewSelectFieldOptions.value?.length) {
           // take the first option
-          form.fk_from_col_id = viewSelectFieldOptions.value[0].value as string
+          form.calendar_range = [{
+            fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
+            fk_to_column_id: null
+          }]
         } else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
@@ -392,13 +394,13 @@ onMounted(async () => {
             :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
           />
         </a-form-item>
-        <div v-if="form.type === ViewTypes.CALENDAR" class="flex w-full gap-3">
+        <div v-if="form.type === ViewTypes.CALENDAR"  v-for="range in form.calendar_range" class="flex w-full gap-3">
           <div class="flex flex-col w-1/2">
             <span>
               {{ $t('labels.selectDateField') }}
             </span>
             <NcSelect
-              :value="form.fk_from_col_id"
+              :value="range.fk_from_col_id"
               class="w-full"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
@@ -410,7 +412,7 @@ onMounted(async () => {
               {{ $t('labels.selectEndDateField') }}
             </span>
             <NcSelect
-              :value="form.fk_to_col_id"
+              :value="range.fk_from_col_id"
               class="w-full"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"

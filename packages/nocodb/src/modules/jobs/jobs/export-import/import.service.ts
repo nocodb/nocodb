@@ -1,13 +1,18 @@
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
-import type { Readable } from 'stream';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { Readable } from 'stream';
+import type {
+  CalendarView,
+  LinkToAnotherRecordColumn,
+  User,
+  View,
+} from '~/models';
 import type { NcRequest } from '~/interface/config';
+import { Base, Column, Model, Source } from '~/models';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -18,7 +23,6 @@ import {
   withoutNull,
 } from '~/helpers/exportImportHelpers';
 import { NcError } from '~/helpers/catchError';
-import { Base, Column, Model, Source } from '~/models';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { FiltersService } from '~/services/filters.service';
@@ -1218,22 +1222,20 @@ export class ImportService {
         return fview;
       }
       case ViewTypes.CALENDAR: {
-        const cview = await this.calendarsService.calendarViewCreate({
+        return await this.calendarsService.calendarViewCreate({
           tableId: md.id,
           calendar: {
             ...vw,
-            calendar_range: (vw.view as any).calendar_range
-              ? (vw.view as any).calendar_range.map((a) => ({
-                  fk_from_column_id: idMap.get(a.fk_from_column_id as string),
-                  fk_to_column_id: idMap.get(a.fk_to_column_id as string),
-                }))
-              : null,
+            calendar_range: (vw.view as CalendarView).calendar_range.map(
+              (a) => ({
+                fk_from_column_id: idMap.get(a.fk_from_column_id),
+                fk_to_column_id: idMap.get(a.fk_to_column_id),
+              }),
+            ),
           } as ViewCreateReqType,
           user,
           req,
         });
-
-        return cview;
       }
       case ViewTypes.GALLERY: {
         const glview = await this.galleriesService.galleryViewCreate({

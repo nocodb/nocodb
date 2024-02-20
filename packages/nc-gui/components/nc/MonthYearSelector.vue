@@ -37,7 +37,7 @@ const months = computed(() => {
 
   const months: dayjs.Dayjs[] = []
   for (let i = 0; i < 12; i++) {
-    months.push(date.add(i, 'month'))
+    months.push(date.set('month', i))
   }
   return months
 })

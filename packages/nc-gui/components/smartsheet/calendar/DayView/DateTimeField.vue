@@ -474,9 +474,7 @@ const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: 
 }
 
 const onDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (!container.value || !dragRecord.value) return
-
+  if (!isUIAllowed('dataEdit') || !container.value || !dragRecord.value) return
   const { top, bottom } = container.value.getBoundingClientRect()
 
   if (event.clientY > bottom - 20) {

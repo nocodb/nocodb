@@ -202,8 +202,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             nextDate = selectedDate.value.add(1, 'day').startOf('day')
             break
           case 'selectedHours':
-            fromDate = selectedTime.value?.startOf('hour')
-            toDate = selectedTime.value?.endOf('hour')
+            fromDate = (selectedTime.value ?? dayjs()).startOf('hour')
+            toDate = (selectedTime.value ?? dayjs()).endOf('hour')
             prevDate = fromDate?.subtract(1, 'hour').endOf('hour')
             nextDate = toDate?.add(1, 'hour').startOf('hour')
             break

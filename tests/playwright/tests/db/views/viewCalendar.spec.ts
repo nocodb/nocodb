@@ -298,6 +298,7 @@ test.describe('View', () => {
 
     await calendar.calendarMonth.dragAndDrop({
       record: 'Team Catchup',
+
       to: {
         columnIndex: 3,
         rowIndex: 0,
@@ -324,13 +325,13 @@ test.describe('View', () => {
       record: 'Team Catchup',
       to: {
         dayIndex: 0,
-        hourIndex: 10,
+        hourIndex: 5,
       },
     });
 
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
 
-    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
+    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 5 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
 
@@ -340,10 +341,10 @@ test.describe('View', () => {
 
     await calendar.calendarDayDateTime.dragAndDrop({
       record: 'Team Catchup',
-      hourIndex: 5,
+      hourIndex: 3,
     });
 
-    await calendar.calendarDayDateTime.selectHour({ hourIndex: 5 });
+    await calendar.calendarDayDateTime.selectHour({ hourIndex: 3 });
 
     await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
 

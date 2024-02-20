@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 
-const { selectedDateRange, filteredData, calendarRange } = useCalendarViewStoreOrThrow()
+const { selectedDateRange, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
 
 const weekDates = computed(() => {
   const startOfWeek = new Date(selectedDateRange.value.start)
@@ -17,8 +17,8 @@ const weekDates = computed(() => {
 const getData = (date: Date) => {
   const range = calendarRange.value[0]
   if (!range) return []
-  if (!filteredData.value) return []
-  return filteredData.value.filter((record) => dayjs(date).isSame(dayjs(record.row[range.fk_from_col.title])))
+  if (!formattedData.value) return []
+  return formattedData.value.filter((record) => dayjs(date).isSame(dayjs(record.row[range.fk_from_col.title])))
 }
 </script>
 

@@ -20,7 +20,7 @@ const data = toRefs(props).data
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const { pageDate, selectedDate, calDataType, filteredData, calendarRange } = useCalendarViewStoreOrThrow()
+const { pageDate, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
 
 const hours = computed(() => {
   const hours = []
@@ -34,12 +34,12 @@ const renderData = computed(() => {
   if (data.value) {
     return data.value
   }
-  return filteredData.value
+  return formattedData.value
 })
 </script>
 
 <template>
-  <template v-if="filteredData && filteredData.length && displayField.title && calendarRange[0].fk_from_col">
+  <template v-if="renderData && renderData.length && displayField.title && calendarRange[0].fk_from_col">
     <div
       v-if="calDataType === UITypes.Date"
       :class="{

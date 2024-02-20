@@ -206,7 +206,7 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': 'false',
       'process.env.NC_ON_PREM': process.env.NC_ON_PREM ? JSON.stringify(process.env.NC_ON_PREM) : '"false"',
-      'process.nextTick': () => {},
+      'process.nextTick': 'globalThis.setImmediate',
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
     },
     server: {
@@ -232,8 +232,9 @@ export default defineNuxtConfig({
     },
   },
 
-  experimental: {
-    reactivityTransform: true,
+  // experimental props destructuring
+  vue: {
+    propsDestructure: true,
   },
 
   image: {

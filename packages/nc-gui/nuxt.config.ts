@@ -11,7 +11,7 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
 
   ssr: false,
   router: {
@@ -101,11 +101,6 @@ export default defineNuxtConfig({
           content: './link-preview.webp',
         },
       ],
-      script: [
-        {
-          src: './js/typesense-docsearch.js',
-        },
-      ],
     },
   },
 
@@ -192,7 +187,7 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
-      'process.nextTick': () => {},
+      'process.nextTick': 'globalThis.setImmediate',
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
     },
     server: {
@@ -218,8 +213,9 @@ export default defineNuxtConfig({
     },
   },
 
-  experimental: {
-    reactivityTransform: true,
+  // experimental props destructuring
+  vue: {
+    propsDestructure: true,
   },
 
   image: {

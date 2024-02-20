@@ -299,6 +299,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 
 // When the user is dragging a record, we calculate the new start and end date based on the mouse position
 const calculateNewRow = (event: MouseEvent) => {
+  if (!container.value || !dragRecord.value) return { newRow: null, updateProperty: [] }
   const { top } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
@@ -402,7 +403,7 @@ const onResize = (event: MouseEvent) => {
 
   const hour = Math.max(Math.floor(percentY * 23), 0)
 
-  let newRow
+  let newRow: Row | null = null
   let updateProperty: string[] = []
 
   if (resizeDirection.value === 'right') {
@@ -446,15 +447,13 @@ const onResize = (event: MouseEvent) => {
       },
     }
   }
+  if (!newRow) return
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
   formattedData.value = formattedData.value.map((r) => {
     const pk = extractPkFromRow(r.row, meta.value!.columns!)
-    if (pk === newPk) {
-      return newRow
-    }
-    return r
-  })
+    return pk === newPk ? newRow : r
+  }) as Row[]
   useDebouncedRowUpdate(newRow, updateProperty, false)
 }
 
@@ -504,6 +503,7 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value = null
   }
 
+  if (!newRow) return
   updateRowProperty(newRow, updateProperty, false)
 
   document.removeEventListener('mousemove', onDrag)
@@ -686,7 +686,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
           class="absolute draggable-record group cursor-pointer pointer-events-auto"
           @mousedown="dragStart($event, record)"
           @mouseleave="hoverRecord = null"
-          @mouseover="hoverRecord = record.rowMeta.id"
+          @mouseover="hoverRecord = record.rowMeta.id as string"
           @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
@@ -701,20 +701,20 @@ const viewMore = (hour: dayjs.Dayjs) => {
               <template v-if="!isRowEmpty(record, displayField)">
                 <div
                   :class="{
-                    '!mt-2': displayField.uidt === UITypes.SingleLineText,
-                    '!mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
+                    '!mt-2': displayField!.uidt === UITypes.SingleLineText,
+                    '!mt-1': displayField!.uidt === UITypes.MultiSelect || displayField!.uidt === UITypes.SingleSelect,
                   }"
                 >
                   <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(displayField)"
-                    v-model="record.row[displayField.title]"
+                    v-if="isVirtualCol(displayField!)"
+                    v-model="record.row[displayField!.title!]"
                     :column="displayField"
                     :row="record"
                   />
 
                   <LazySmartsheetCell
                     v-else
-                    v-model="record.row[displayField.title]"
+                    v-model="record.row[displayField!.title!]"
                     :column="displayField"
                     :edit-enabled="false"
                     :read-only="true"

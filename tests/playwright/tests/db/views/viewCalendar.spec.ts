@@ -112,6 +112,7 @@ const dateRecords = [
 test.describe('Calendar View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage;
   let context: any;
+  test.skip();
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });

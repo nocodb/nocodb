@@ -114,21 +114,29 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (fromCol) {
             filters.push({
               fk_column_id: fromCol.id,
-              comparison_op: 'is',
-              value: 'blank',
+              logical_op: 'or',
+              comparison_op: 'blank',
             })
           }
 
           if (toCol) {
             filters.push({
               fk_column_id: toCol.id,
-              comparison_op: 'is',
-              value: 'blank',
+              logical_op: 'or',
+              comparison_op: 'blank',
             })
           }
           // Combine the filters for this range with the overall filter array
-          combinedFilters = combinedFilters.concat(filters)
+          combinedFilters = [...combinedFilters, ...filters]
         })
+        // Wrap the combined filters in a group
+        combinedFilters = [
+          {
+            is_group: true,
+            logical_op: 'or',
+            children: combinedFilters,
+          },
+        ]
       } else if (
         sideBarFilterOption.value === 'week' ||
         sideBarFilterOption.value === 'month' ||
@@ -283,6 +291,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 value: searchQuery.value,
               },
             ],
+          })
+        } else {
+          combinedFilters.push({
+            fk_column_id: displayField.value.id,
+            comparison_op: 'like',
+            value: searchQuery.value,
           })
         }
       }

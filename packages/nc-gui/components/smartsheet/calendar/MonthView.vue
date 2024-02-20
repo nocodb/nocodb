@@ -165,17 +165,20 @@ const recordsToDisplay = computed<{
             day = day.add(1, 'day')
           }
 
-          const weekIndex = dates.value.findIndex((week) => {
-            return (
-              week.findIndex((day) => {
-                return dayjs(day).isSame(recordStart, 'day')
-              }) !== -1
-            )
-          })
+          const weekIndex = Math.max(
+            dates.value.findIndex((week) => {
+              return (
+                week.findIndex((day) => {
+                  return dayjs(day).isSame(recordStart, 'day')
+                }) !== -1
+              )
+            }),
+            0,
+          )
 
           let maxRecordCount = 0
 
-          for (let i = 0; i < dates.value[weekIndex].length; i++) {
+          for (let i = 0; i < (dates.value[weekIndex] ?? []).length; i++) {
             const day = dates.value[weekIndex][i]
             const dateKey = dayjs(day).format('YYYY-MM-DD')
             if (!recordsInDay[dateKey]) continue
@@ -184,32 +187,41 @@ const recordsToDisplay = computed<{
             maxRecordCount = Math.max(maxRecordCount, recordIndex)
           }
 
-          const startDayIndex = dates.value[weekIndex].findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
-          const endDayIndex = dates.value[weekIndex].findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
+          const startDayIndex = Math.max(
+            (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day')),
+            0,
+          )
+          const endDayIndex = Math.max(
+            (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day')),
+            0,
+          )
 
           const style: Partial<CSSStyleDeclaration> = {
             left: `${startDayIndex * perWidth}px`,
             width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
           }
-          const top = weekIndex * perHeight + spaceBetweenRecords + (maxRecordCount - 1) * perRecordHeight
+
+          const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * perRecordHeight
           const heightRequired = perRecordHeight * maxRecordCount + spaceBetweenRecords
 
-          let position = 'rounded' as const
+          let position = 'rounded'
 
           if (startDate.isSame(currentWeekStart, 'week') && endDate.isSame(currentWeekEnd, 'week')) {
-            position = 'rounded' as const
-          } else if (startDate.isSame(currentWeekStart, 'week')) {
-            position = 'leftRounded' as const
+            position = 'rounded'
+          } else if (startDate.isSame(recordStart, 'week')) {
+            position = 'leftRounded'
           } else if (endDate.isSame(currentWeekEnd, 'week')) {
-            position = 'rightRounded' as const
+            position = 'rightRounded'
           } else {
-            position = 'none' as const
+            position = 'none'
           }
 
           if (heightRequired > perHeight) {
             style.display = 'none'
             for (let i = startDayIndex; i <= endDayIndex; i++) {
-              const day = dates.value[weekIndex][i]
+              const week = dates.value[weekIndex]
+              if (!week) continue
+              const day = week[i]
               const dateKey = dayjs(day).format('YYYY-MM-DD')
               if (!recordsInDay[dateKey]) continue
               recordsInDay[dateKey].overflow = true

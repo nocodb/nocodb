@@ -6,7 +6,7 @@ interface Props {
   color?: string
   resize?: boolean
   selected?: boolean
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'auto'
   showDate?: boolean
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
 }
@@ -31,6 +31,7 @@ const emit = defineEmits(['resize-start'])
       'min-h-9': size === 'small',
       'min-h-10': size === 'medium',
       'min-h-12': size === 'large',
+      'h-full': size === 'auto',
       'rounded-l-lg ml-3': position === 'leftRounded',
       'rounded-r-lg mr-3': position === 'rightRounded',
       'rounded-lg mx-3': position === 'rounded',

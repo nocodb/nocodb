@@ -35,7 +35,7 @@ interface Form {
   fk_geo_data_col_id: string | null
 
   // for calendar view only
-  calendarRange: Array<{
+  calendar_range: Array<{
     fk_from_column_id: string
     fk_to_column_id: string | undefined // for ee only
   }>
@@ -88,15 +88,7 @@ const form = reactive<Form>({
   copy_from_id: null,
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
-  calendarRange:
-    ViewTypes.CALENDAR === props.type
-      ? props.calendarRange
-      : [
-          {
-            fk_from_column_id: '',
-            fk_to_column_id: null,
-          },
-        ],
+  calendar_range: props.calendarRange || [],
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -197,7 +189,7 @@ async function onSubmit() {
         case ViewTypes.CALENDAR:
           data = await api.dbView.calendarCreate(tableId.value, {
             ...form,
-            calendar_range: form.calendarRange.map((range) => ({
+            calendar_range: form.calendar_range.map((range) => ({
               fk_from_column_id: range.fk_from_column_id,
               fk_to_column_id: range.fk_to_column_id,
             })),
@@ -226,7 +218,7 @@ async function onSubmit() {
 }
 
 const addCalendarRange = async () => {
-  form.calendarRange.push({
+  form.calendar_range.push({
     fk_from_column_id: viewSelectFieldOptions.value[0].value,
     fk_to_column_id: null,
   })
@@ -298,12 +290,14 @@ onMounted(async () => {
 
         if (viewSelectFieldOptions.value?.length) {
           // take the first option
-          form.calendarRange = [
-            {
-              fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
-              fk_to_column_id: null, // for ee only
-            },
-          ]
+          if (form.calendar_range.length === 0) {
+            form.calendar_range = [
+              {
+                fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
+                fk_to_column_id: null, // for ee only
+              },
+            ]
+          }
         } else {
           // if there is no grouping field column, disable the create button
           isNecessaryColumnsPresent.value = false
@@ -431,7 +425,7 @@ onMounted(async () => {
           />
         </a-form-item>
         <template v-if="form.type === ViewTypes.CALENDAR">
-          <div v-for="(range, index) in form.calendarRange" :key="`range-${index}`" class="flex w-full mb-2 items-center gap-2">
+          <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full mb-2 items-center gap-2">
             <span>
               {{ $t('labels.organiseBy') }}
             </span>
@@ -441,7 +435,7 @@ onMounted(async () => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                   // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
                   if (index === 0) return true
-                  const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendarRange[0].fk_from_column_id)
+                  const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
                   return firstRange?.uidt === f.uidt
                 })"
                 :key="id"
@@ -449,7 +443,7 @@ onMounted(async () => {
               >
                 <div class="flex items-center">
                   <SmartsheetHeaderIcon :column="option" />
-                  <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
+                  <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
                     <template #title>{{ option.label }}</template>
                     {{ option.label }}
                   </NcTooltip>
@@ -481,7 +475,7 @@ onMounted(async () => {
                       // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                       // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
 
-                      const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendarRange[0].fk_from_column_id)
+                      const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
                       return firstRange?.uidt === f.uidt
                     })"
                     :key="id"
@@ -489,7 +483,7 @@ onMounted(async () => {
                   >
                     <div class="flex items-center">
                       <SmartsheetHeaderIcon :column="option" />
-                      <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
+                      <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
                         <template #title>{{ option.label }}</template>
                         {{ option.label }}
                       </NcTooltip>
@@ -507,7 +501,7 @@ onMounted(async () => {
               type="secondary"
               @click="
                 () => {
-                  form.calendarRange = form.calendarRange.filter((_, i) => i !== index)
+                  form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
                 }
               "
             >

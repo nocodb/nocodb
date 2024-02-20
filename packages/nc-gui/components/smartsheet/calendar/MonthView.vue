@@ -103,34 +103,18 @@ const recordsToDisplay = computed<{
     const startCol = range.fk_from_col
     const endCol = range.fk_to_col
 
-    const sortedFormattedData = [...formattedData.value]
-      .filter((record) => {
-        const fromDate = record.row[startCol?.title] ? dayjs(record.row[startCol.title]) : null
+    const sortedFormattedData = [...formattedData.value].filter((record) => {
+      const fromDate = record.row[startCol?.title] ? dayjs(record.row[startCol.title]) : null
 
-        if (startCol && endCol) {
-          const fromDate = record.row[startCol.title] ? dayjs(record.row[startCol.title]) : null
-          const toDate = record.row[endCol.title] ? dayjs(record.row[endCol.title]) : null
-          return fromDate && toDate && !toDate.isBefore(fromDate)
-        } else if (startCol && !endCol) {
-          return !!fromDate
-        }
-        return false
-      })
-      .sort((a, b) => {
-        if (startCol && endCol) {
-          const startA = dayjs(a.row[startCol.title])
-          const endA = dayjs(a.row[endCol.title])
-          const startB = dayjs(b.row[startCol.title])
-          const endB = dayjs(b.row[endCol.title])
-
-          return endB.diff(startB) - endA.diff(startA)
-        } else {
-          const startA = dayjs(a.row[startCol.title])
-          const startB = dayjs(b.row[startCol.title])
-
-          return startB.diff(startA)
-        }
-      })
+      if (startCol && endCol) {
+        const fromDate = record.row[startCol.title] ? dayjs(record.row[startCol.title]) : null
+        const toDate = record.row[endCol.title] ? dayjs(record.row[endCol.title]) : null
+        return fromDate && toDate && !toDate.isBefore(fromDate)
+      } else if (startCol && !endCol) {
+        return !!fromDate
+      }
+      return false
+    })
 
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
@@ -141,6 +125,7 @@ const recordsToDisplay = computed<{
           recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0 }
         }
         recordsInDay[dateKey].count++
+        const id = record.rowMeta.id ?? getRandomNumbers()
 
         const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
 
@@ -173,6 +158,7 @@ const recordsToDisplay = computed<{
             style,
             position: 'rounded',
             range,
+            id,
           },
         })
       } else if (startCol && endCol) {
@@ -356,6 +342,102 @@ const onDrag = (event: MouseEvent) => {
   })
 }
 
+const resizeDirection = ref<'right' | 'left'>()
+const resizeRecord = ref<Row>()
+
+const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
+  updateRowProperty(row, updateProperty, isDelete)
+}, 500)
+
+const onResize = (event: MouseEvent) => {
+  const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
+
+  const percentY = (event.clientY - top - window.scrollY) / height
+  const percentX = (event.clientX - left - window.scrollX) / width
+
+  const ogEndDate = resizeRecord.value.row[resizeRecord.value.rowMeta.range?.fk_to_col.title]
+  const ogStartDate = resizeRecord.value.row[resizeRecord.value.rowMeta.range?.fk_from_col.title]
+
+  const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
+  const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
+
+  const week = Math.floor(percentY * dates.value.length)
+  const day = Math.floor(percentX * 7)
+
+  if (resizeDirection.value === 'right') {
+    let newEndDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+
+    const updateProperty = [toCol.title]
+
+    if (dayjs(newEndDate).isBefore(ogStartDate)) {
+      newEndDate = dayjs(ogStartDate).clone()
+    }
+
+    if (!newEndDate) return
+
+    const newRow = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [toCol.title]: dayjs(newEndDate).format('YYYY-MM-DD'),
+      },
+    }
+
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value.columns)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+        return newRow
+      }
+      return r
+    })
+    useDebouncedRowUpdate(newRow, updateProperty, false)
+  } else if (resizeDirection.value === 'left') {
+    let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+    const updateProperty = [fromCol.title]
+
+    if (dayjs(newStartDate).isAfter(ogEndDate)) {
+      newStartDate = dayjs(ogEndDate).clone()
+    }
+    if (!newStartDate) return
+
+    const newRow = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+      },
+    }
+
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value.columns)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+        return newRow
+      }
+      return r
+    })
+
+    useDebouncedRowUpdate(newRow, updateProperty, false)
+  }
+}
+
+const onResizeEnd = () => {
+  resizeInProgress.value = false
+  resizeDirection.value = null
+  resizeRecord.value = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+}
+
+const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+  resizeInProgress.value = true
+  resizeDirection.value = direction
+  resizeRecord.value = record
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
 const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
   if (!isDragging.value) return
@@ -405,12 +487,6 @@ const stopDrag = (event: MouseEvent) => {
     newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
 
     updateProperty.push(toCol.title)
-
-    const allRecords = document.querySelectorAll('.draggable-record')
-    allRecords.forEach((el) => {
-      el.style.visibility = ''
-      el.style.opacity = '100%'
-    })
   }
 
   if (!newRow) return
@@ -433,6 +509,12 @@ const stopDrag = (event: MouseEvent) => {
     })
   }
 
+  const allRecords = document.querySelectorAll('.draggable-record')
+  allRecords.forEach((el) => {
+    el.style.visibility = ''
+    el.style.opacity = '100%'
+  })
+
   if (dragElement.value) {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value.classList.remove('hide')
@@ -448,6 +530,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
   while (!target.classList.contains('draggable-record')) {
@@ -637,7 +720,9 @@ const isDateSelected = (date: Date) => {
             :name="record.row[displayField.title]"
             :position="record.rowMeta.position"
             :record="record"
+            :resize="record.rowMeta.range?.fk_to_col"
             @click="emit('expand-record', record)"
+            @resize-start="onResizeStart"
           />
         </LazySmartsheetRow>
       </div>

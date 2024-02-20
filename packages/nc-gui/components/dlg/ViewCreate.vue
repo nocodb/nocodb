@@ -436,7 +436,17 @@ onMounted(async () => {
               {{ $t('labels.organiseBy') }}
             </span>
             <NcSelect v-model:value="range.fk_from_column_id" :disabled="isMetaLoading" :loading="isMetaLoading">
-              <a-select-option v-for="(option, id) in viewSelectFieldOptions" :key="id" :value="option.value">
+              <a-select-option
+                v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                  // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                  // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                  if (index === 0) return true
+                  const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendarRange[0].fk_from_column_id)
+                  return firstRange?.uidt === f.uidt
+                })"
+                :key="id"
+                :value="option.value"
+              >
                 <div class="flex items-center">
                   <SmartsheetHeaderIcon :column="option" />
                   <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
@@ -466,7 +476,17 @@ onMounted(async () => {
                   :placeholder="$t('placeholder.notSelected')"
                   class="!rounded-r-none nc-to-select"
                 >
-                  <a-select-option v-for="(option, id) in viewSelectFieldOptions" :key="id" :value="option.value">
+                  <a-select-option
+                    v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                      // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                      // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+
+                      const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendarRange[0].fk_from_column_id)
+                      return firstRange?.uidt === f.uidt
+                    })"
+                    :key="id"
+                    :value="option.value"
+                  >
                     <div class="flex items-center">
                       <SmartsheetHeaderIcon :column="option" />
                       <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>

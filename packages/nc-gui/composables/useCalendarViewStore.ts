@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, CalendarType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { type Api, type CalendarType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { addDays, addMonths, addYears } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState } from '#imports'
@@ -38,7 +38,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const selectedDate = ref<Date>(new Date())
 
-    const selectedTime = ref<Date>()
+    const selectedTime = ref<Date | null>(null)
 
     const isCalendarDataLoading = ref<boolean>(false)
 
@@ -58,7 +58,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isSidebarLoading = ref<boolean>(false)
 
-    const sideBarFilterOption = ref<string>(activeCalendarView.value)
+    const sideBarFilterOption = ref<string>(activeCalendarView.value ?? 'allRecords')
 
     const { api } = useApi()
 
@@ -100,7 +100,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     const sideBarFilter = computed(() => {
-      let combinedFilters = []
+      let combinedFilters: any = []
 
       if (sideBarFilterOption.value === 'allRecords') {
         combinedFilters = []
@@ -144,8 +144,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         sideBarFilterOption.value === 'year' ||
         sideBarFilterOption.value === 'selectedDate'
       ) {
-        let fromDate
-        let toDate
+        let fromDate: string | null = null
+        let toDate: string | null = null
 
         switch (sideBarFilterOption.value) {
           case 'day':
@@ -173,7 +173,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col
-          let rangeFilter = []
+          let rangeFilter: any = []
 
           if (fromCol && toCol) {
             rangeFilter = [
@@ -320,23 +320,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         : await fetchSharedViewData({
             ...params,
             sortsArr: sorts.value,
-            filtersArr: [nestedFilters.value, ...sideBarFilter],
+            filtersArr: [nestedFilters.value, ...sideBarFilter.value],
             offset: params.offset,
-            where: sideBarxWhere.value,
+            where: where?.value ?? '',
           })
 
       formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
     }
 
     const filterJSON = computed(() => {
-      const combinedFilters = {
+      const combinedFilters: any = {
         is_group: true,
         logical_op: 'and',
         children: [],
       }
 
-      let fromDate
-      let toDate
+      let fromDate: string | null = null
+      let toDate: string | null = null
 
       if (activeCalendarView.value === 'week') {
         fromDate = dayjs(selectedDateRange.value.start).format('YYYY-MM-DD')
@@ -355,7 +355,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       calendarRange.value.forEach((range) => {
         const fromCol = range.fk_from_col
         const toCol = range.fk_to_col
-        let rangeFilter = []
+        let rangeFilter: any = []
 
         if (fromCol && toCol) {
           rangeFilter = [
@@ -520,7 +520,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
       const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
       calendarMetaData.value = res
-      activeCalendarView.value = typeof res.meta === 'string' ? JSON.parse(res.meta)?.active_view : res.meta?.active_view
+      const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
+      activeCalendarView.value = calMeta?.active_view
       if (!activeCalendarView.value) activeCalendarView.value = 'month'
       displayField.value = meta.value.columns.find((col) => col.pv)
     }
@@ -536,7 +537,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
             where: where?.value ?? '',
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: [nestedFilters.value, ...filterJSON] })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: [nestedFilters.value, ...filterJSON.value] })
       formattedData.value = formatData(res!.list)
       isCalendarDataLoading.value = false
     }

@@ -112,4 +112,30 @@ export default class CalendarRange implements CalendarRangeType {
 
     return data && new CalendarRange(data);
   }
+
+  public static async IsColumnBeingUsedAsRange(
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return (
+      (
+        await ncMeta.metaList2(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
+          xcCondition: {
+            _or: [
+              {
+                fk_from_column_id: {
+                  eq: columnId,
+                },
+              },
+              {
+                fk_to_column_id: {
+                  eq: columnId,
+                },
+              },
+            ],
+          },
+        })
+      ).length > 0
+    );
+  }
 }

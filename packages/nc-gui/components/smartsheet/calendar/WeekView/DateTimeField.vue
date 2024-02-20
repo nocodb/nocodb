@@ -775,11 +775,11 @@ const viewMore = (hour: dayjs.Dayjs) => {
         </div>
       </div>
 
-      <div class="absolute pointer-events-none inset-0 !mt-[25px]">
+      <div class="absolute pointer-events-none inset-0 !mt-[25px]" data-testid="nc-calendar-week-record-container">
         <div
           v-for="(record, rowIndex) in recordsAcrossAllRange.records"
           :key="rowIndex"
-          :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
+          :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
           :data-unique-id="record.rowMeta!.id"
           :style="record.rowMeta!.style"
           class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"

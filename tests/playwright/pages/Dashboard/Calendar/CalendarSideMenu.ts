@@ -24,6 +24,11 @@ export class CalendarSideMenuPage extends BasePage {
     await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${filter}"`).click();
   }
 
+  async searchRecord({ query }: { query: string }) {
+    const searchInput = this.get().getByTestId('nc-calendar-sidebar-search');
+    await searchInput.fill(query);
+  }
+
   async verifySideBarRecords({ records }: { records: string[] }) {
     const sideBar = this.get().getByTestId('nc-calendar-side-menu-list');
 

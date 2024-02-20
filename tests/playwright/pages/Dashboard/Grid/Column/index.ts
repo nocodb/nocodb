@@ -28,10 +28,6 @@ export class ColumnPageObject extends BasePage {
     return this.grid.get().locator(`.nc-grid-header > th`).nth(index);
   }
 
-  private getColumnHeader(title: string) {
-    return this.grid.get().locator(`th[data-title="${title}"]`).first();
-  }
-
   async clickColumnHeader({ title }: { title: string }) {
     await this.getColumnHeader(title).click();
   }
@@ -221,7 +217,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   async selectType({ type }: { type: string }) {
-    await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+    await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
 
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
@@ -275,7 +271,6 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
   }
 
-  // opening edit modal in table header  double click
   // or in the dropdown edit click
   async openEdit({
     title,
@@ -298,6 +293,8 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
     await this.get().waitFor({ state: 'visible' });
+
+    await this.selectType({ type });
 
     switch (type) {
       case 'Formula':
@@ -328,6 +325,8 @@ export class ColumnPageObject extends BasePage {
         break;
     }
   }
+
+  // opening edit modal in table header  double click
 
   async editMenuShowMore() {
     await this.rootPage.locator('.nc-more-options').click();
@@ -479,5 +478,9 @@ export class ColumnPageObject extends BasePage {
     const { title } = param;
     const cell = this.rootPage.locator(`th[data-title="${title}"]`);
     return await cell.evaluate(el => el.getBoundingClientRect().width);
+  }
+
+  private getColumnHeader(title: string) {
+    return this.grid.get().locator(`th[data-title="${title}"]`).first();
   }
 }

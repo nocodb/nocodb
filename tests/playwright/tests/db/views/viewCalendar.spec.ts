@@ -104,7 +104,7 @@ test.describe('View', () => {
     await unsetup(context);
   });
 
-  test('Calendar', async () => {
+  test('Calendar Sidebar Verify Sidebar Filter, Calendar View Mode', async () => {
     // Create & Verify Calendar View
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -172,9 +172,19 @@ test.describe('View', () => {
 
     await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
 
+    await calendar.sideMenu.searchRecord({ query: 'ooooooo' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: [] });
+
     await calendar.sideMenu.updateFilter({
       filter: 'All records',
     });
+
+    await calendar.sideMenu.searchRecord({ query: 'Team' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup', ['Meeting with Team']] });
+
+    await calendar.sideMenu.searchRecord({ query: '' });
 
     await calendar.sideMenu.verifySideBarRecords({
       records: [...dateRecords.map(r => r.Title), ...Array(12).fill('')],
@@ -191,11 +201,6 @@ test.describe('View', () => {
     await calendar.calendarMonth.selectDate({ rowIndex: 0, columnIndex: 3 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
-
-    /* await calendar.calendarMonth.dragAndDrop({
-      record: dateRecords[0].Title,
-      to: { rowIndex: 0, columnIndex: 3 },
-    });*/
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
 
@@ -246,6 +251,80 @@ test.describe('View', () => {
     await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 1 });
 
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
+
+    await dashboard.viewSidebar.deleteView({ title: 'Calendar' });
+  });
+
+  test('Calendar Drag and Drop & Undo Redo Operations', async () => {
+    await dashboard.viewSidebar.createCalendarView({
+      title: 'Calendar',
+    });
+
+    await dashboard.viewSidebar.verifyView({
+      title: 'Calendar',
+      index: 0,
+    });
+
+    await dashboard.viewSidebar.openView({ title: 'Calendar' });
+
+    await calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
+
+    const calendar = dashboard.calendar;
+
+    await calendar.calendarMonth.dragAndDrop({
+      record: 'Team Catchup',
+      to: {
+        columnIndex: 3,
+        rowIndex: 0,
+      },
+    });
+
+    await calendar.calendarMonth.selectDate({
+      rowIndex: 0,
+      columnIndex: 3,
+    });
+
+    await calendar.sideMenu.updateFilter({ filter: 'In selected date' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
+
+    await calendarTopbar.moveToDate({
+      date: '1 - 7 Jan 24',
+      action: 'prev',
+    });
+
+    await calendar.calendarWeekDateTime.dragAndDrop({
+      record: 'Team Catchup',
+      to: {
+        dayIndex: 0,
+        hourIndex: 10,
+      },
+    });
+
+    await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
+
+    await calendar.calendarWeekDateTime.selectHour({ dayIndex: 0, hourIndex: 10 });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
+
+    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
+
+    await dashboard.rootPage.waitForTimeout(5000);
+
+    await calendar.calendarDayDateTime.dragAndDrop({
+      record: 'Team Catchup',
+      hourIndex: 5,
+    });
+
+    await calendar.calendarDayDateTime.selectHour({ hourIndex: 5 });
+
+    await calendar.sideMenu.updateFilter({ filter: 'In selected hours' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
+
+    await dashboard.viewSidebar.deleteView({ title: 'Calendar' });
   });
 
   test('Calendar shared view operations', async ({ page }) => {
@@ -302,5 +381,56 @@ test.describe('View', () => {
     });
 
     await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
+  });
+
+  test('Calendar Operations Date Fields', async () => {
+    await dashboard.grid.column.openEdit({
+      title: 'StartDate',
+      type: 'Date',
+      dateFormat: 'YYYY-MM-DD',
+    });
+
+    await dashboard.grid.column.save({ isUpdated: true });
+
+    await dashboard.viewSidebar.createCalendarView({
+      title: 'Calendar',
+    });
+
+    await dashboard.viewSidebar.verifyView({
+      title: 'Calendar',
+      index: 0,
+    });
+
+    await dashboard.viewSidebar.openView({ title: 'Calendar' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'week' });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
+
+    await calendarTopbar.verifyActiveCalendarView({ view: 'day' });
+
+    const calendar = dashboard.calendar;
+
+    await calendarTopbar.moveToDate({ date: '1 January 2024', action: 'prev' });
+
+    await calendar.calendarDayDate.verifyRecord({ records: dateRecords.map(r => r.Title) });
+
+    await calendarTopbar.moveToDate({ date: '2 January 2024', action: 'next' });
+
+    await calendar.calendarDayDate.verifyRecord({ records: [] });
+
+    await toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
+
+    await calendar.calendarWeekDate.selectDay({ dayIndex: 0 });
+
+    await calendar.sideMenu.updateFilter({ filter: 'In selected date' });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.map(r => r.Title) });
+
+    await calendar.calendarWeekDate.selectDay({ dayIndex: 1 });
+
+    await calendar.sideMenu.verifySideBarRecords({ records: [] });
   });
 });

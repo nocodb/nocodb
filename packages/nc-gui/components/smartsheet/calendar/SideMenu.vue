@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { type Row, computed, ref } from '#imports'
+import { type Row, computed, isRowEmpty, ref } from '#imports'
 
 const props = defineProps<{
   visible: boolean
@@ -338,7 +338,6 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
                   dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]),
                 )
               "
-              :name="record.row[displayField!.title!]"
               :row="record"
               :to-date="
                 record.rowMeta.range!.fk_to_col
@@ -351,7 +350,24 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
               @click="emit('expand-record', record)"
               @dragstart="dragStart($event, record)"
               @dragover.prevent
-            />
+            >
+              <template v-if="!isRowEmpty(record, displayField)">
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(displayField)"
+                  v-model="record.row[displayField.title]"
+                  :column="displayField"
+                  :row="record"
+                />
+
+                <LazySmartsheetCell
+                  v-else
+                  v-model="record.row[displayField.title]"
+                  :column="displayField"
+                  :edit-enabled="false"
+                  :read-only="true"
+                />
+              </template>
+            </LazySmartsheetCalendarSideRecordCard>
           </LazySmartsheetRow>
         </template>
       </div>

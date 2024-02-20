@@ -468,7 +468,8 @@ export default class View implements ViewType {
           const calendarView = await CalendarView.get(view_id, ncMeta);
           if (calendarRanges && calendarRanges.includes(vCol.id)) {
             show = true;
-          } else show = vCol.id === calendarView?.fk_cover_image_col_id;
+          } else
+            show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
           // Show all Fields in Ranges
         } else if (view.type === ViewTypes.MAP && !copyFromView) {
           const mapView = await MapView.get(view_id, ncMeta);
@@ -815,7 +816,7 @@ export default class View implements ViewType {
     const updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
-    if (view.type === ViewTypes.GRID) {
+    if (view.type === ViewTypes.GRID || view.type === ViewTypes.CALENDAR) {
       const primary_value_column_meta = await ncMeta.metaGet2(
         null,
         null,
@@ -923,7 +924,6 @@ export default class View implements ViewType {
             order: colData.order,
             show: colData.show,
           });
-          break;
         case ViewTypes.MAP:
           return await MapViewColumn.insert({
             fk_view_id: viewId,
@@ -931,7 +931,6 @@ export default class View implements ViewType {
             order: colData.order,
             show: colData.show,
           });
-          break;
         case ViewTypes.FORM:
           return await FormViewColumn.insert({
             fk_view_id: viewId,
@@ -940,7 +939,12 @@ export default class View implements ViewType {
             show: colData.show,
           });
         case ViewTypes.CALENDAR:
-        // todo: calendar view column
+          return await CalendarViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
       }
       return await ncMeta.metaInsert2(view.base_id, view.source_id, table, {
         fk_view_id: viewId,

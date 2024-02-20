@@ -157,21 +157,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
 
         if (selectedFiles.length) {
-          // this prevent file with same names
-          const isFileNameAlreadyExist = attachments.value.some((el) => el.title === (file as File).name)
-          if (isFileNameAlreadyExist) {
-            message.error(
-              t('labels.duplicateAttachment', {
-                filename: (file as File).name,
-              }),
-            )
-            return
-          }
           files.push(file as File)
         } else {
-          let fileName = `image.${(file as AttachmentReqType).mimetype?.split('/')[1]}`
+          let fileName = (file as AttachmentReqType).fileName ?? ''
           let count = 1
-          while (attachments.value.some((el) => el.title === fileName)) {
+          while ([...attachments.value, ...imageUrls].some((el) => el.title === fileName)) {
             fileName = fileName.replace(/(.+?)(\.[^.]+)$/, `$1(${count})$2`)
             count++
           }
@@ -179,7 +169,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
       }
 
-      if (isPublic.value && isForm.value) {
+      if (files.length && isPublic.value && isForm.value) {
         const newFiles = await Promise.all<AttachmentType>(
           Array.from(files).map(
             (file) =>
@@ -196,7 +186,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
                   reader.onload = (e) => {
                     res.data = e.target?.result
-
                     resolve(res)
                   }
 
@@ -214,6 +203,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         attachments.value = [...attachments.value, ...newFiles]
 
         return updateModelValue(attachments.value)
+      } else if (isPublic.value && isForm.value) {
+        attachments.value = [...attachments.value, ...imageUrls.map((item) => ({ ...item, title: item.fileName }))]
+
+        return updateModelValue(attachments.value)
       }
 
       if (selectedFiles.length) {
@@ -226,7 +219,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               files,
             },
           )
-          newAttachments.push(...data)
+          // add suffix in duplicate file title
+          for (const uploadedFile of data) {
+            let fileName = uploadedFile?.title
+            let count = 1
+            while ([...attachments.value, ...newAttachments].some((el) => el.title === fileName)) {
+              fileName = fileName.replace(/(.+?)(\.[^.]+)$/, `$1(${count})$2`)
+              count++
+            }
+            newAttachments.push({ ...uploadedFile, title: fileName })
+          }
         } catch (e: any) {
           message.error(e.message || t('msg.error.internalError'))
         }
@@ -275,7 +277,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         event.preventDefault()
 
         // Sanitize the dataTransfer HTML string
-        const sanitizedHtml = DOMPurify.sanitize(event.dataTransfer?.getData('text/html')) ?? ''
+        const sanitizedHtml = DOMPurify.sanitize(event.dataTransfer?.getData('text/html') ?? '') ?? ''
 
         const imageUrl = extractImageSrcFromRawHtml(sanitizedHtml) ?? ''
 

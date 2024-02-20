@@ -82,6 +82,9 @@ const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanD
     let isColumnSuitable = true
     for (let i = 0; i < spanDays; i++) {
       const dayIndex = startDayIndex + i
+      if (!recordsInDay[dayIndex]) {
+        recordsInDay[dayIndex] = {}
+      }
       if (recordsInDay[dayIndex][column]) {
         isColumnSuitable = false
         break

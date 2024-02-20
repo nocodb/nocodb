@@ -76,7 +76,7 @@ const onDecode = async (scannedCodeValue: string) => {
     />
 
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
     >
       <template v-if="sharedFormView">
         <div>
@@ -97,10 +97,10 @@ const onDecode = async (scannedCodeValue: string) => {
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
-            <div v-if="sharedFormView" class="w-full max-w-350px mt-3">
+            <div v-if="sharedFormView" class="w-full lg:w-[95%]">
               <a-alert
                 type="success"
-                class="my-4 text-center"
+                class="!my-4 text-center !rounded-lg"
                 outlined
                 :message="sharedFormView.success_msg || 'Successfully submitted form data'"
               />

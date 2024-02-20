@@ -80,15 +80,11 @@ const onDecode = async (scannedCodeValue: string) => {
     >
       <template v-if="sharedFormView">
         <div>
-          <h1 class="prose-2xl font-bold mb-4" style="word-break: break-all">
+          <h1 class="prose-2xl font-bold mb-4">
             {{ sharedFormView.heading }}
           </h1>
 
-          <h2
-            v-if="sharedFormView.subheading"
-            class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6"
-            style="word-break: break-all"
-          >
+          <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6">
             {{ sharedFormView.subheading }}
           </h2>
         </div>

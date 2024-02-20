@@ -10054,6 +10054,101 @@
         }
       }
     },
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/" : {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Count of Records in Dates in Calendar View",
+        "operationId": "db-view-row-calendar-count",
+        "description": "Get the count of table view rows grouped by the dates",
+        "tags": [
+          "DB View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby": {
       "parameters": [
         {

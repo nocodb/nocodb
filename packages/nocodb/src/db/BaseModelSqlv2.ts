@@ -21,7 +21,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
-import type { SortType } from 'nocodb-sdk';
+import type { CalendarRangeType, SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type { XKnex } from '~/db/CustomKnex';
@@ -249,6 +249,71 @@ class BaseModelSqlv2 {
     }
     qb.where(_wherePk(pks, id)).first();
     return !!(await this.execAndParse(qb, null, { raw: true, first: true }));
+  }
+
+  public async countByRanges({
+    ranges,
+    model,
+    filterArr,
+  }: {
+    ranges: Partial<CalendarRangeType>[];
+    model: Model;
+    filterArr?: Filter[];
+  }) {
+    const columns = await model.getColumns();
+
+    const queryRanges = [];
+
+    for (const range of ranges) {
+      let query;
+      if (range?.fk_from_column_id && range?.fk_to_column_id) {
+        query = this.dbDriver(
+          this.dbDriver.raw(
+            `SELECT generate_series(
+              ??,
+              ??,
+              '1 day'
+            )::date AS date FROM ??`,
+            [
+              columns.find((c) => c.id === range.fk_from_column_id).column_name,
+              columns.find((c) => c.id === range.fk_to_column_id).column_name,
+              this.tnPath,
+            ],
+          ),
+        );
+      } else if (range.fk_from_column_id) {
+        query = this.dbDriver(
+          this.dbDriver.raw(`SELECT ??::date AS date FROM ??`, [
+            columns.find((c) => c.id === range.fk_from_column_id).column_name,
+            this.tnPath,
+          ]),
+        );
+      }
+
+      if (query) {
+        await conditionV2(this, filterArr, query);
+        queryRanges.push(query);
+      }
+    }
+
+    const unionQuery = this.dbDriver.raw(
+      queryRanges.reduce(
+        (acc, range) =>
+          acc ? `${acc} UNION ALL ${range.toQuery()}` : range.toQuery(),
+        '',
+      ),
+    );
+
+    const qb = this.dbDriver(
+      this.dbDriver.raw(`(${unionQuery.toQuery()}) AS ??`, ['nc']),
+    )
+      .select('date')
+      .count('* as count')
+      .groupBy('date')
+      .orderBy('date');
+
+    console.log(qb.toQuery());
+    return await this.execAndParse(qb);
   }
 
   // todo: add support for sortArrJson

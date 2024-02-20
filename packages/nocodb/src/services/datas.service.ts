@@ -6,7 +6,7 @@ import { nocoExecute } from 'nc-help';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, CalendarRange, Column, Model, Source, View } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -202,6 +202,53 @@ export class DatasService {
     return new PagedResponseImpl(data, {
       ...query,
       count,
+    });
+  }
+
+  async getCalendarRecordCount(param: { viewId: string; query: any }) {
+    const { viewId, query = {} } = param;
+
+    const view = await View.get(viewId);
+
+    if (!view) NcError.notFound('View not found');
+    if (view.type !== ViewTypes.CALENDAR)
+      NcError.badRequest('View is not a calendar view');
+
+    const source = await Source.get(view.source_id);
+
+    const { ranges } = await CalendarRange.read(view.id);
+
+    if (!ranges.length) NcError.badRequest('No ranges found');
+
+    const model = await Model.getByIdOrName({
+      id: view.fk_model_id,
+    });
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: view.fk_model_id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const { dependencyFields } = await getAst({
+      model,
+      query,
+      view,
+      extractOnlyRangeFields: true,
+    });
+
+    const listArgs: any = dependencyFields;
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    return await baseModel.countByRanges({
+      model,
+      ranges,
+      ...listArgs,
     });
   }
 

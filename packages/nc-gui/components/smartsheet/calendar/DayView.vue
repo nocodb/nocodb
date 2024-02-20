@@ -9,6 +9,8 @@ const fields = inject(FieldsInj, ref([]))
 
 const container = ref()
 
+const { isUIAllowed } = useRoles()
+
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const { selectedTime, selectedDate, calDataType, formattedData, formattedSideBarData, calendarRange, updateRowProperty } =
@@ -109,6 +111,7 @@ const hours = computed(() => {
 const dragElement = ref<HTMLElement | null>(null)
 
 const dragStart = (event: DragEvent, record: Row) => {
+  if (isUIAllowed('dataEdit')) return
   dragElement.value = event.target as HTMLElement
 
   dragElement.value.classList.add('hide')
@@ -129,6 +132,7 @@ const dragStart = (event: DragEvent, record: Row) => {
 }
 
 const dropEvent = (event: DragEvent) => {
+  if (isUIAllowed('dataEdit')) return
   event.preventDefault()
   const data = event.dataTransfer?.getData('text/plain')
   if (data) {

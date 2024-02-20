@@ -20,6 +20,8 @@ const container = ref<null | HTMLElement>(null)
 
 const { width: containerWidth } = useElementSize(container)
 
+const { isUIAllowed } = useRoles()
+
 const meta = inject(MetaInj, ref())
 
 const weekDates = computed(() => {
@@ -220,6 +222,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
   if (!container.value || !resizeRecord.value) return
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -299,6 +302,7 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -307,6 +311,7 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const onDrag = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
   const { width, left } = container.value.getBoundingClientRect()
 
@@ -361,6 +366,7 @@ const onDrag = (event: MouseEvent) => {
 
 const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
+  if (!isUIAllowed('dataEdit')) return
   if (!isDragging.value || !container.value || !dragRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
@@ -447,6 +453,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -521,7 +528,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
             :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"
-            :resize="!!record.rowMeta.range?.fk_to_col"
+            :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             color="blue"
             @click="emits('expand-record', record)"
             @resize-start="onResizeStart"

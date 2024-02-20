@@ -62,7 +62,7 @@ const emit = defineEmits(['resize-start'])
     </div>
 
     <div
-      v-if="position === 'leftRounded' || (position === 'rounded' && resize)"
+      v-if="(position === 'leftRounded' || position === 'rounded') && resize"
       :class="{
         '!block border-2 rounded-lg border-brand-500': selected,
       }"
@@ -80,7 +80,7 @@ const emit = defineEmits(['resize-start'])
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
     <div
-      v-if="position === 'rightRounded' || (position === 'rounded' && resize)"
+      v-if="(position === 'rightRounded' || position === 'rounded') && resize"
       :class="{
         '!block border-2 rounded-lg border-brand-500': selected,
       }"

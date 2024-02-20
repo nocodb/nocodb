@@ -19,6 +19,8 @@ const {
 
 const isMondayFirst = ref(true)
 
+const { isUIAllowed } = useRoles()
+
 const meta = inject(MetaInj, ref())
 
 const days = computed(() => {
@@ -357,6 +359,8 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 const onResize = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
@@ -438,6 +442,8 @@ const onResizeEnd = () => {
 }
 
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
+
   if (draggingId.value) return
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -447,6 +453,8 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const stopDrag = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+
   event.preventDefault()
   clearTimeout(dragTimeout.value)
 
@@ -542,6 +550,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
 
@@ -621,7 +630,7 @@ onBeforeUnmount(() => {
           class="text-right relative group text-sm h-full border-r-1 border-b-1 border-gray-200 font-semibold hover:bg-gray-50 text-gray-800 bg-white"
           @click="selectDate(day)"
         >
-          <div class="flex justify-between p-1">
+          <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
             <span
               :class="{
                 block: !isDateSelected(day),
@@ -669,7 +678,6 @@ onBeforeUnmount(() => {
               </template>
             </NcDropdown>
             <NcButton
-              v-else
               :class="{
                 '!block': isDateSelected(day),
                 '!hidden': !isDateSelected(day),
@@ -690,9 +698,10 @@ onBeforeUnmount(() => {
             >
               <component :is="iconMap.plus" class="h-4 w-4" />
             </NcButton>
-
             <span class="px-1 py-2">{{ dayjs(day).format('DD') }}</span>
           </div>
+          <div v-if="!isUIAllowed('dataEdit')" class="p-3">{{ dayjs(day).format('DD') }}</div>
+
           <div
             v-if="
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
@@ -732,7 +741,7 @@ onBeforeUnmount(() => {
             :name="record.row[displayField.title]"
             :position="record.rowMeta.position"
             :record="record"
-            :resize="!!record.rowMeta.range?.fk_to_col"
+            :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             :selected="
               dragRecord
                 ? dragRecord.rowMeta.id === record.rowMeta.id

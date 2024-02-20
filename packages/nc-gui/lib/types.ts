@@ -63,6 +63,11 @@ interface Row {
     saving?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+    }
   }
 }
 

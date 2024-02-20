@@ -45,11 +45,10 @@ const options = computed(() => {
   }
 })
 
-const pageDate = ref(new Date())
+
+const  { pageDate, selectedDate, selectedDateRange } = useCalendarViewStoreOrThrow()
 
 const activeDates = ref([new Date()])
-const selectedDate = ref(null);
-
 
 
 </script>
@@ -61,7 +60,7 @@ const selectedDate = ref(null);
     'transition-all': true,
   }" class="h-full border-l-1 border-gray-200">
     <NcDateWeekSelector v-if="activeCalendarView === ('day' as const)" v-model:page-date="pageDate" v-model:selected-date="selectedDate" :active-dates="activeDates" />
-    <NcDateWeekSelector v-else-if="activeCalendarView === ('week' as const)" v-model:page-date="pageDate" week-picker v-model:selected-week="selectedDate" />
+    <NcDateWeekSelector v-else-if="activeCalendarView === ('week' as const)" v-model:page-date="pageDate" week-picker v-model:selected-week="selectedDateRange" />
     <NcMonthYearSelector v-else-if="activeCalendarView === ('month' as const)" v-model:page-date="pageDate" v-model:selected-date="selectedDate" />
     <NcMonthYearSelector v-else-if="activeCalendarView === ('year' as const)" year-picker v-model:page-date="pageDate" v-model:selected-date="selectedDate" />
 

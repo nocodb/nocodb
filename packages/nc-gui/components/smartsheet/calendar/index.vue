@@ -131,9 +131,13 @@ const headerText = computed(() => {
     case 'day':
       return dayjs(selectedDate.value).format('D MMMM YYYY')
     case 'week':
-      return `${dayjs(selectedDateRange.value.start).format('D MMM YYYY')} - ${dayjs(selectedDateRange.value.end).format(
-        'D MMM YYYY',
-      )}`
+      if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'month')) {
+        return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YYYY')}`
+      } else if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'year')) {
+        return `${selectedDateRange.value.start.format('D MMM')} - ${selectedDateRange.value.end.format('D MMM YYYY')}`
+      } else {
+        return `${selectedDateRange.value.start.format('D MMM YYYY')} - ${selectedDateRange.value.end.format('D MMM YYYY')}`
+      }
     case 'month':
       return dayjs(selectedMonth.value).format('MMMM YYYY')
     case 'year':

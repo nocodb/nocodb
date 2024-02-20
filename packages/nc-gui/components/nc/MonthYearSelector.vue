@@ -83,7 +83,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 </script>
 
 <template>
-  <div class="p-4 flex flex-col gap-4">
+  <div class="px-4 pt-3 pb-4 flex flex-col gap-4">
     <div class="flex justify-between items-center">
       <NcTooltip>
         <NcButton size="small" type="secondary" @click="paginate('prev')">
@@ -103,7 +103,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         </template>
       </NcTooltip>
     </div>
-    <div class="border-1 border-gray-200 rounded-y-xl max-w-[350px]">
+    <div class="rounded-y-xl max-w-[350px]">
       <div class="grid grid-cols-4 gap-2 p-2">
         <template v-if="!yearPicker">
           <span

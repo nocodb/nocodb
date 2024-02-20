@@ -284,7 +284,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
       year-picker
     />
 
-    <div class="px-4 relative flex flex-col gap-y-6 pt-4">
+    <div class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-4">
       <div class="flex items-center gap-2">
         <a-input
           v-model:value="searchQuery.value"
@@ -359,20 +359,22 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
               @dragover.prevent
             >
               <template v-if="!isRowEmpty(record, displayField)">
-                <LazySmartsheetVirtualCell
-                  v-if="isVirtualCol(displayField)"
-                  v-model="record.row[displayField.title]"
-                  :column="displayField"
-                  :row="record"
-                />
+                <div :class="{}">
+                  <LazySmartsheetVirtualCell
+                    v-if="isVirtualCol(displayField)"
+                    v-model="record.row[displayField.title]"
+                    :column="displayField"
+                    :row="record"
+                  />
 
-                <LazySmartsheetCell
-                  v-else
-                  v-model="record.row[displayField.title]"
-                  :column="displayField"
-                  :edit-enabled="false"
-                  :read-only="true"
-                />
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="record.row[displayField.title]"
+                    :column="displayField"
+                    :edit-enabled="false"
+                    :read-only="true"
+                  />
+                </div>
               </template>
             </LazySmartsheetCalendarSideRecordCard>
           </LazySmartsheetRow>

@@ -865,8 +865,8 @@ const isDateSelected = (date: dayjs.Dayjs) => {
             <template v-if="!isRowEmpty(record, displayField)">
               <div
                 :class="{
-                  '!mt-2': displayField!.uidt === UITypes.SingleLineText,
-                  '!mt-1': displayField!.uidt === UITypes.MultiSelect || displayField!.uidt === UITypes.SingleSelect,
+                  'mt-1.4': displayField!.uidt === UITypes.SingleLineText,
+                  'mt-1': displayField!.uidt === UITypes.MultiSelect || displayField!.uidt === UITypes.SingleSelect,
                 }"
               >
                 <LazySmartsheetVirtualCell

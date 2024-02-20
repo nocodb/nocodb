@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="border-1 cursor-pointer border-gray-200 items-center px-2 py-3 rounded-lg">
-    <div class="flex items-center">
+    <div class="flex items-center gap-2">
       <span
         :class="{
           'bg-maroon-500': props.color === 'maroon',
@@ -29,8 +29,8 @@ const props = withDefaults(defineProps<Props>(), {
         }"
         class="block h-10 w-1 rounded"
       ></span>
-      <div class="flex flex-col gap-1 ml-3">
-        <span class="text-sm max-w-36 h-8 truncate text-gray-800">
+      <div class="flex text-ellipsis gap-1 flex-col">
+        <span class="text-sm max-w-40 truncate text-gray-800">
           <slot />
         </span>
         <span v-if="showDate" class="text-xs text-gray-500">{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span>

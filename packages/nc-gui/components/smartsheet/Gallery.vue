@@ -4,9 +4,9 @@ import type { Row as RowType } from '#imports'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsCalendarInj,
   IsFormInj,
   IsGalleryInj,
-  IsCalendarInj,
   IsGridInj,
   MetaInj,
   NavigateDir,

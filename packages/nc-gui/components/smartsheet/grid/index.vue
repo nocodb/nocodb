@@ -5,8 +5,8 @@ import GroupBy from './GroupBy.vue'
 import {
   ActiveViewInj,
   FieldsInj,
-  IsFormInj,
   IsCalendarInj,
+  IsFormInj,
   IsGalleryInj,
   IsGridInj,
   MetaInj,

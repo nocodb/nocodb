@@ -32,7 +32,10 @@ const { allowCSVDownload } = useSharedView()
       <LazySmartsheetToolbarMappedBy v-if="isMap" />
       <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-      <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isCalendar" :show-system-fields="false" />
+      <LazySmartsheetToolbarFieldsMenu
+        v-if="isGrid || isGallery || isKanban || isMap || isCalendar"
+        :show-system-fields="false"
+      />
 
       <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 

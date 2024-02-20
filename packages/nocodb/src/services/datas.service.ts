@@ -979,9 +979,9 @@ export class DatasService {
       direction: 'asc' | 'desc';
     };
   }) {
-    const {viewId, query = {} } = param;
+    const { viewId, query = {} } = param;
 
-    const view = await View.get(viewId)
+    const view = await View.get(viewId);
 
     const source = await Source.get(view.source_id);
 

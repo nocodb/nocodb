@@ -29,8 +29,6 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const { isMobileMode } = useGlobal()
 
-const { t } = useI18n()
-
 provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))

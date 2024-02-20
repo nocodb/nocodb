@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { computed, ref } from '#imports'
-import { isRowEmpty } from '~/utils'
+import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
 
@@ -52,12 +52,6 @@ const datesHours = computed(() => {
   }
   return datesHours
 })
-
-function getRandomNumbers() {
-  const typedArray = new Uint8Array(10)
-  const randomValues = window.crypto.getRandomValues(typedArray)
-  return randomValues.join('')
-}
 
 const recordsAcrossAllRange = computed<{
   records: Array<Row>
@@ -117,7 +111,7 @@ const recordsAcrossAllRange = computed<{
         if (!startDate) return
         const dateKey = startDate?.format('YYYY-MM-DD')
         const hourKey = startDate?.startOf('hour').format('HH:mm')
-        const id = record.rowMeta.id ?? getRandomNumbers()
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         let style: Partial<CSSStyleDeclaration> = {}
 
@@ -169,7 +163,7 @@ const recordsAcrossAllRange = computed<{
           },
         })
       } else if (fromCol && toCol) {
-        const id = record.rowMeta.id ?? getRandomNumbers()
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         let startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
         let endDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null

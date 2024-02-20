@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '#imports'
-import { isRowEmpty } from '~/utils'
+import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['new-record', 'expandRecord'])
 
@@ -82,12 +82,6 @@ const dates = computed(() => {
   return weeksArray
 })
 
-function getRandomNumbers() {
-  const typedArray = new Uint8Array(10)
-  const randomValues = window.crypto.getRandomValues(typedArray)
-  return randomValues.join('')
-}
-
 const recordsToDisplay = computed<{
   records: Row[]
   count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
@@ -137,7 +131,7 @@ const recordsToDisplay = computed<{
           recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0 }
         }
         recordsInDay[dateKey].count++
-        const id = record.rowMeta.id ?? getRandomNumbers()
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
 
@@ -178,7 +172,7 @@ const recordsToDisplay = computed<{
         const endDate = dayjs(record.row[endCol!.title!])
         let currentWeekStart = startDate.startOf('week')
 
-        const id = record.rowMeta.id ?? getRandomNumbers()
+        const id = record.rowMeta.id ?? generateRandomNumber()
         while (
           currentWeekStart.isSameOrBefore(endDate, 'day') &&
           currentWeekStart.isBefore(dates.value[dates.value.length - 1][6])

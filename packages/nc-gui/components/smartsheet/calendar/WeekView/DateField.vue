@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import { ref } from '#imports'
-import { isRowEmpty } from '~/utils'
+import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
 
@@ -28,12 +28,6 @@ const weekDates = computed(() => {
   }
   return datesArray
 })
-
-function getRandomNumbers() {
-  const typedArray = new Uint8Array(10)
-  const randomValues = window.crypto.getRandomValues(typedArray)
-  return randomValues.join('')
-}
 
 const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
   let column = 0
@@ -86,7 +80,7 @@ const calendarData = computed(() => {
         if (!startDate.isValid() || !endDate.isValid()) return false
         return !endDate.isBefore(startDate)
       })) {
-        const id = record.row.id ?? getRandomNumbers()
+        const id = record.row.id ?? generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         const ogStartDate = startDate.clone()
         const endDate = dayjs(record.row[toCol.title!])
@@ -171,7 +165,7 @@ const calendarData = computed(() => {
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
-        const id = record.row.id ?? getRandomNumbers()
+        const id = record.row.id ?? generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
         const startDaysDiff = Math.max(startDate.diff(selectedDateRange.value.start, 'day'), 0)

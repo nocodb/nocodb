@@ -2,13 +2,9 @@
 import dayjs from 'dayjs'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { type Row, computed, ref } from '#imports'
-import { isRowEmpty } from '~/utils'
+import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expandRecord', 'new-record'])
-const meta = inject(MetaInj, ref())
-const container = ref()
-
-const { isUIAllowed } = useRoles()
 
 const {
   selectedDate,
@@ -22,6 +18,11 @@ const {
   showSideMenu,
 } = useCalendarViewStoreOrThrow()
 
+const container = ref<null | HTMLElement>(null)
+
+const { isUIAllowed } = useRoles()
+const meta = inject(MetaInj, ref())
+
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
   const _selectedDate = dayjs(selectedDate.value)
@@ -31,12 +32,6 @@ const hours = computed(() => {
   }
   return hours
 })
-
-function getRandomNumbers() {
-  const typedArray = new Uint8Array(10)
-  const randomValues = window.crypto.getRandomValues(typedArray)
-  return randomValues.join('')
-}
 
 const recordsAcrossAllRange = computed<{
   record: Row[]
@@ -85,7 +80,7 @@ const recordsAcrossAllRange = computed<{
 
     if (fromCol && endCol) {
       for (const record of sortedFormattedData) {
-        const id = getRandomNumbers()
+        const id = generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         let endDate = dayjs(record.row[endCol.title!])
 
@@ -164,7 +159,7 @@ const recordsAcrossAllRange = computed<{
       }
     } else if (fromCol) {
       for (const record of sortedFormattedData) {
-        const id = getRandomNumbers()
+        const id = generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
         const endDate = dayjs(record.row[fromCol.title!]).add(15, 'minutes')
@@ -728,9 +723,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
     </div>
   </div>
 
-  <div v-else ref="container" class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">
-    No records in this day
-  </div>
+  <div v-else class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">No records in this day</div>
 </template>
 
 <style lang="scss" scoped>

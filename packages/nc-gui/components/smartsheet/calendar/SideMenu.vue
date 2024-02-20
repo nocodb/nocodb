@@ -309,7 +309,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
                     ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM•HH:MM A')
+                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM•HH:mm A')
                   : null
               "
               :invalid="
@@ -324,7 +324,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
                 record.rowMeta.range!.fk_to_col
                   ? calDataType === UITypes.Date
                     ? dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM•HH:MM A')
+                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM•HH:mm A')
                   : null
               "
               color="blue"

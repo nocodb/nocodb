@@ -784,7 +784,14 @@ onBeforeUnmount(() => {
             >
               <component :is="iconMap.plus" class="h-4 w-4" />
             </NcButton>
-            <span class="px-1 py-2">{{ dayjs(day).format('DD') }}</span>
+            <span
+              :class="{
+                'bg-brand-50  text-brand-500': dayjs(day).isSame(dayjs(), 'date'),
+              }"
+              class="px-1.5 rounded-lg py-1 my-1"
+            >
+              {{ dayjs(day).format('DD') }}
+            </span>
           </div>
           <div v-if="!isUIAllowed('dataEdit')" class="p-3">{{ dayjs(day).format('DD') }}</div>
 
@@ -819,11 +826,6 @@ onBeforeUnmount(() => {
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :date="
-              calDataType === UITypes.DateTime
-                ? dayjs(record.row[record.rowMeta.range?.fk_from_col.title]).format('YYYY-MM-DD HH:mm')
-                : dayjs(record.row[record.rowMeta.range?.fk_from_col.title]).format('YYYY-MM-DD')
-            "
             :name="record.row[displayField!.title!]"
             :position="record.rowMeta.position"
             :record="record"

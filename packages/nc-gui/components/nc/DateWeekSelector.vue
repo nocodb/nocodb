@@ -164,11 +164,18 @@ const paginate = (action: 'next' | 'prev') => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, dayjs(selectedWeek?.start)),
             'nc-selected-week-end': isSameDate(date, dayjs(selectedWeek?.end)),
+            'rounded-md bg-brand-50 text-brand-500': dayjs(date).isSame(dayjs(), 'date'),
           }"
           class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
           @click="handleSelectDate(date)"
         >
-          <span v-if="isActiveDate(date)" class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
+          <span
+            v-if="isActiveDate(date)"
+            :class="{
+              'border-2 border-white !h-2 !w-2': dayjs(date).isSame(dayjs(), 'date'),
+            }"
+            class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"
+          ></span>
           <span class="z-2">
             {{ date.get('date') }}
           </span>

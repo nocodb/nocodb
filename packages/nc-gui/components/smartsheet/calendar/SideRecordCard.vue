@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
         class="block h-10 w-1 rounded"
       ></span>
       <div class="flex flex-col gap-1 ml-3">
-        <span class="text-sm font-bold text-gray-700">{{ name }}</span>
+        <span class="text-sm text-gray-800">{{ name }}</span>
         <span v-if="showDate" class="text-xs text-gray-500">{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span>
       </div>
     </div>

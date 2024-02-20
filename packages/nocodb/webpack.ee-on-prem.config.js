@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
+const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
   entry: './src/run/cloud.ts',
@@ -52,6 +53,14 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
+    new JavaScriptObfuscator(
+      {
+        rotateStringArray: true,
+        splitStrings: true,
+        splitStringsChunkLength: 6,
+      },
+      [],
+    ),
   ],
   target: 'node',
 };

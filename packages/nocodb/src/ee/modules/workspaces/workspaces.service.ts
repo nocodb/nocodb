@@ -35,14 +35,14 @@ const mockUser = {
 
 @Injectable()
 export class WorkspacesService implements OnApplicationBootstrap {
-  private logger = new Logger(WorkspacesService.name);
+  protected logger = new Logger(WorkspacesService.name);
 
   constructor(
-    private appHooksService: AppHooksService,
-    private configService: ConfigService<AppConfig>,
-    private basesService: BasesService,
-    private tablesService: TablesService,
-    @Inject(forwardRef(() => 'JobsService')) private jobsService,
+    protected appHooksService: AppHooksService,
+    protected configService: ConfigService<AppConfig>,
+    protected basesService: BasesService,
+    protected tablesService: TablesService,
+    @Inject(forwardRef(() => 'JobsService')) protected jobsService,
   ) {}
 
   async onApplicationBootstrap() {

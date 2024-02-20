@@ -126,7 +126,7 @@ export default defineNuxtConfig({
       ncBackendUrl: '',
     },
   },
-  sourcemap: true,
+  sourcemap: process.env.NC_ON_PREM !== 'true',
   vite: {
     worker: {
       format: 'es',
@@ -205,6 +205,7 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
+      'process.env.NC_ON_PREM': process.env.NC_ON_PREM ? JSON.stringify(process.env.NC_ON_PREM) : '"false"',
       'process.nextTick': () => {},
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
     },

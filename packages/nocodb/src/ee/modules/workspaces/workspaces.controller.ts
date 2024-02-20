@@ -12,8 +12,8 @@ import {
 import { Request } from 'express';
 import { WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
-import { WorkspacesService } from './workspaces.service';
 import type { WorkspaceType } from 'nocodb-sdk';
+import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { CacheScope, MetaTable } from '~/utils/globals';

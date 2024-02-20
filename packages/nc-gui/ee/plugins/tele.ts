@@ -11,12 +11,14 @@ let isTeleEnabled = false
 let phClient: PostHog | void
 
 try {
-  init({
-    clientIdCb: (id) => {
-      clientId = id
-      initPostHog(id)
-    },
-  })
+  if (process.env.NC_ON_PREM !== 'true') {
+    init({
+      clientIdCb: (id) => {
+        clientId = id
+        initPostHog(id)
+      },
+    })
+  }
 } catch (e) {}
 
 function initPostHog(clientId: string) {
@@ -84,6 +86,10 @@ class EventBatcher {
   )
 
   private batchProcessor = async (events: any[]) => {
+    if (process.env.NC_ON_PREM === 'true') {
+      return
+    }
+
     if (!this.nuxtApp.$state.signedIn.value) return
     await this.nuxtApp.$api.instance.post('/api/v1/tele', {
       events,

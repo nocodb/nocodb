@@ -13,6 +13,7 @@ import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 import { UpdateStatsService } from '~/services/update-stats.service';
+import { NcLogger } from '~/utils/logger/NcLogger';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -38,7 +39,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       : []),
     LoggerModule.forRoot({
       pinoHttp: {
-        // quietReqLogger: true,
         autoLogging: false,
         serializers: {
           req: (req) => ({
@@ -80,7 +80,9 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       useClass: ExecutionTimeCalculatorInterceptor,
     },
     UpdateStatsService,
+    NcLogger,
   ],
+  exports: [NcLogger],
 })
 export class AppModule extends AppCeModule {
   constructor() {

@@ -263,8 +263,8 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
     />
 
     <div class="px-4 relative flex flex-col gap-y-6 pt-4">
-      <div class="flex items-center gap-3">
-        <a-input v-model:value="searchQuery.value" class="!rounded-lg !border-gray-200 !px-4 !py-2" placeholder="Search records">
+      <div class="flex items-center gap-2">
+        <a-input v-model:value="searchQuery.value" class="!rounded-lg !h-8 !border-gray-200 !px-4" placeholder="Search records">
           <template #prefix>
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>

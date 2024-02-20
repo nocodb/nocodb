@@ -269,6 +269,7 @@ const dropEvent = (event: DragEvent) => {
           :name="record.row[displayField.title]"
           :position="record.rowMeta.position"
           :record="record"
+          :resize="false"
           color="blue"
           size="small"
           @click="emit('expand-record', record)"

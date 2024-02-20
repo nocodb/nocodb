@@ -59,31 +59,31 @@ const emit = defineEmits(['resize-start'])
     </div>
 
     <div
-      v-if="position === 'leftRounded' || position === 'rounded'"
+      v-if="position === 'leftRounded' || (position === 'rounded' && resize)"
       :class="{
         '!group-hover:(border-brand-500 block border-2 rounded-lg)': resize,
       }"
       class="absolute mt-0.6 h-7.1 hidden -left-3 resize"
     >
-      <NcButton v-if="resize" size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
+      <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'left', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>
       </NcButton>
     </div>
 
     <div class="ml-3 mt-2 text-ellipsis overflow-hidden w-full h-6 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'"> .... </span>
-      <span class="text-sm font-bold text-gray-800">{{ name }}</span>
+      <span class="text-sm text-gray-800">{{ name }}</span>
       <span v-if="showDate" class="text-xs ml-1 text-gray-600">{{ date }}</span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
     <div
-      v-if="position === 'rightRounded' || position === 'rounded'"
+      v-if="position === 'rightRounded' || (position === 'rounded' && resize)"
       :class="{
         '!group-hover:(border-brand-500 border-2 block rounded-lg)': resize,
       }"
       class="absolute mt-0.6 hidden h-7.1 -right-3 border-1 resize"
     >
-      <NcButton v-if="resize" size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
+      <NcButton size="xsmall" type="secondary" @mousedown.stop="emit('resize-start', 'right', $event, record)">
         <component :is="iconMap.drag" class="text-gray-400"></component>
       </NcButton>
     </div>

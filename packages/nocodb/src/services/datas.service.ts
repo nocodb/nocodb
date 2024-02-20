@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isSystemColumn } from 'nocodb-sdk';
+import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
@@ -164,6 +164,16 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
+    let options = {};
+
+    if (view.type === ViewTypes.CALENDAR) {
+      {
+        options = {
+          ignorePagination: true,
+        };
+      }
+    }
+
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
@@ -174,6 +184,7 @@ export class DatasService {
             await baseModel.list(listArgs, {
               ignoreViewFilterAndSort,
               throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+              ...options,
             }),
             {},
             listArgs,

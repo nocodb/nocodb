@@ -74,10 +74,17 @@ export class PublicDatasService {
     let data = [];
     let count = 0;
 
+    let option = {};
+    if (view.type === ViewTypes.CALENDAR) {
+      option = {
+        ignorePagination: true,
+      };
+    }
+
     try {
       data = await nocoExecute(
         ast,
-        await baseModel.list(listArgs),
+        await baseModel.list(listArgs, option),
         {},
         listArgs,
       );

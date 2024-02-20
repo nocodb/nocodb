@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { ColumnType, CalendarType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import {ColumnType, CalendarType, PaginatedType, TableType, ViewType, UITypes} from 'nocodb-sdk'
 import { IsPublicInj, ref, storeToRefs, useBase, useInjectionState, useMetas } from '#imports'
 import type { Row } from '#imports'
 import {addDays, addMonths, addWeeks, addYears} from "../utils";
@@ -28,6 +28,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const pageDate = ref<Date> (new Date())
 
         const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>('month')
+
+        const calDataType = ref<UITypes.Date | UITypes.DateTime>(UITypes.Date)
 
         const selectedDate = ref<Date>(new Date())
         const selectedDateRange = ref<{
@@ -135,6 +137,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         return {
             formattedData,
             changeCalendarView,
+            calDataType,
             loadCalendarMeta,
             updateCalendarMeta,
             calendarMetaData,

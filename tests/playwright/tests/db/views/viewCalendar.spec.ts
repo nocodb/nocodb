@@ -45,7 +45,15 @@ test.describe('View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, topbar: TopbarPage, calendarTopbar: CalendarTopbarPage;
   let context: any;
 
-  async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage }) {
+  async function undo({
+    page,
+    dashboard,
+    validateResponse,
+  }: {
+    page: Page;
+    dashboard: DashboardPage;
+    validateResponse: boolean;
+  }) {
     const isMac = await dashboard.grid.isMacOs();
 
     if (validateResponse) {
@@ -272,7 +280,7 @@ test.describe('View', () => {
     await dashboard.viewSidebar.deleteView({ title: 'Calendar' });
   });
 
-  test.only('Calendar Drag and Drop & Undo Redo Operations', async () => {
+  test('Calendar Drag and Drop & Undo Redo Operations', async () => {
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
     });

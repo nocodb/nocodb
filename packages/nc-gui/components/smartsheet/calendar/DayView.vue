@@ -25,7 +25,8 @@ const data = toRefs(props).data
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const { pageDate, selectedTime, selectedDate, calDataType, formattedData, calendarRange } = useCalendarViewStoreOrThrow()
+const { pageDate, selectedTime, selectedDate, calDataType, formattedData, calendarRange, selectedDateRange } =
+  useCalendarViewStoreOrThrow()
 
 const renderData = computed(() => {
   if (data.value) {
@@ -122,6 +123,7 @@ const hours = computed<dayjs.Dayjs>(() => {
 })
 
 const isOverlap = (record, record1) => {
+  if (!calendarRange.value || !calendarRange.value[0]) return false
   const startCol = calendarRange.value[0].fk_from_col.title
   const endCol = calendarRange.value[0].fk_to_col.title
 
@@ -180,10 +182,17 @@ const getRecordStyle = (record: Row) => {
   let startDate = dayjs(record.row[startCol])
   let endDate = dayjs(record.row[endCol])
 
-  if (!startDate) {
-    startDate = endDate.subtract(1, 'hour')
-  } else if (!endDate) {
-    endDate = startDate.add(1, 'hour')
+  if (endDate.isAfter(startDate)) {
+    const diff = endDate.diff(startDate)
+    endDate = startDate
+    startDate = endDate.subtract(diff)
+  }
+
+  if (startDate.isBefore(scheduleStart)) {
+    startDate = scheduleStart
+  }
+  if (endDate.isAfter(scheduleEnd)) {
+    endDate = scheduleEnd
   }
 
   const scaleMin = (scheduleEnd - scheduleStart) / 60000
@@ -200,9 +209,9 @@ const getRecordStyle = (record: Row) => {
   const left = width * columnIndex
   return {
     top: `${top}%`,
-    height: `${height}%`,
-    width: columnIndex === 0 ? `calc(${width}% - 69px)` : `${width}%`,
-    left: columnIndex === 0 ? `calc(${left}% + 69px)` : `${left}%`,
+    height: `max(${height}%, 40px)`,
+    width: columnIndex === 0 && calDataType.value === UITypes.DateTime ? `calc(${width}% - 69px)` : `${width}%`,
+    left: columnIndex === 0 && calDataType.value === UITypes.DateTime ? `calc(${left}% + 69px)` : `${left}%`,
   }
 }
 
@@ -248,7 +257,7 @@ const dropEvent = (event: DragEvent) => {
 </script>
 
 <template>
-  <template v-if="((renderData && renderData.length) || isEmbed) && displayField.title && calendarRange[0].fk_from_col">
+  <template v-if="((renderData && renderData.length) || isEmbed) && displayField && calendarRange[0].fk_from_col">
     <div
       v-if="calDataType === UITypes.Date"
       :class="{
@@ -286,31 +295,24 @@ const dropEvent = (event: DragEvent) => {
       }"
       class="flex flex-col w-full"
     >
-      <div v-if="getSpanningRecords && getSpanningRecords.length" class="pb-3">
-        <div class="text-xs text-gray-500 pl-3 py-3 font-bold">Records spanning multiple days</div>
-        <LazySmartsheetRow v-for="(record, rowIndex) in getSpanningRecords.slice(0, 4)" :key="rowIndex" :row="record">
-          <LazySmartsheetCalendarRecordCard
-            :date="dayjs(record.row[calendarRange[0].fk_from_col.title]).format('H:mm')"
-            :name="record.row[displayField.title]"
-            :position="getRecordPosition(record)"
-            class="mb-2"
-            color="blue"
-            size="small"
-            @click="emit('expand-record', record)"
-          />
-        </LazySmartsheetRow>
-      </div>
-      <div ref="container" class="relative" @drop="dropEvent($event, record)">
+      <div ref="container" class="relative" @drop="dropEvent($event)">
         <div
           v-for="hour in hours"
           :key="hour"
           :class="{
-            '!border-brand-500': dayjs(hour).isSame(selectedTime),
+            '!border-brand-500': dayjs(hour).isSame(selectedTime) && !props.isEmbed,
           }"
-          class="flex w-full relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
-          @click="selectedTime = dayjs(hour).toDate()"
+          class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+          @click="
+            () => {
+              if (!isEmbed) selectedTime = hour
+            }
+          "
         >
-          <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
+          <div
+            v-if="isEmbed && dayjs(hour).isSame(dayjs(selectedDateRange.start), 'day')"
+            class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20"
+          >
             {{ dayjs(hour).format('H A') }}
           </div>
           <div></div>

@@ -19,7 +19,7 @@ const {eventBus} = useSmartsheetStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
 
-const { $e, $api } = useNuxtApp()
+const {$e, $api} = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
 

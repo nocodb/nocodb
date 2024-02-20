@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
+import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
@@ -114,6 +115,8 @@ const emailMe = ref(false)
 const submitted = ref(false)
 
 const activeRow = ref('')
+
+const isTabPressed = ref(false)
 
 const isLoadingFormView = ref(false)
 
@@ -311,7 +314,7 @@ function setFormData() {
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
     meta: {
       hide_branding: false,
-      theme_color: '#F9F9FA',
+      background_color: '#F9F9FA',
       ...(parseProp(formViewData.value?.meta) ?? {}),
     },
   }
@@ -395,6 +398,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
 
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
+  isTabPressed.value = false
 })
 
 onMounted(async () => {
@@ -410,26 +414,55 @@ watch(view, (nextView) => {
   }
 })
 
-watch(activeRow, () => {
-  if (activeRow.value) {
-    document.querySelector(`.nc-form-field-list-item-${activeRow.value}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+watch(activeRow, (newValue) => {
+  if (newValue) {
+    document.querySelector(`.nc-form-field-item-${newValue}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 })
 
 const onFormItemClick = (element: any) => {
   if (isLocked.value || !isEditable) return
-
   activeRow.value = element.title
+  isTabPressed.value = false
 }
 
-useEventListener(document, 'focusout', (e: FocusEvent) => {
-  const nextActiveFieldTitle =
-    e?.relatedTarget?.getAttribute('data-title') ||
-    e?.relatedTarget?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title')
-  if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
-    activeRow.value = nextActiveFieldTitle
+const handleChangeBackground = (color: string) => {
+  const tcolor = tinycolor(color)
+  if (tcolor.isValid()) {
+    ;(formViewData.value?.meta as Record<string, any>).background_color = color
+    updateView()
   }
-})
+}
+useEventListener(
+  formRef,
+  'focusout',
+  (e: FocusEvent) => {
+    const nextActiveFieldTitle =
+      (e?.relatedTarget as HTMLElement)?.getAttribute('data-title') ||
+      (e?.relatedTarget as HTMLElement)?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title')
+
+    if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
+      if (isTabPressed.value) {
+        activeRow.value = nextActiveFieldTitle
+      }
+    }
+    isTabPressed.value = false
+  },
+  true,
+)
+
+useEventListener(
+  formRef,
+  'keydown',
+  (e: KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      isTabPressed.value = true
+    } else {
+      isTabPressed.value = false
+    }
+  },
+  true,
+)
 </script>
 
 <template>
@@ -448,7 +481,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
       <div
         v-if="submitted"
         class="h-full p-6"
-        :style="{background:(formViewData?.meta as Record<string,any>).theme_color || '#F9F9FA'}"
+        :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
         data-testid="nc-form-wrapper-submit"
       >
         <GeneralFormBanner :banner-image-url="formViewData?.banner_image_url" />
@@ -505,7 +538,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
         <div
           v-else-if="formViewData"
           class="flex-1 h-full overflow-auto nc-form-scrollbar p-6"
-          :style="{background:(formViewData?.meta as Record<string,any>).theme_color || '#F9F9FA'}"
+          :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
         >
           <div :class="isEditable ? 'min-w-[616px] overflow-x-auto nc-form-scrollbar' : ''">
             <!-- for future implementation of cover image -->
@@ -634,7 +667,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                       }"
                       :data-title="element.title"
                       data-testid="nc-form-fields"
-                      @click="onFormItemClick(element)"
+                      @click.stop="onFormItemClick(element)"
                     >
                       <div v-if="activeRow !== element.title">
                         <div>
@@ -667,27 +700,29 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                           </NcTooltip>
                           <span v-if="element.required" class="text-red-500">&nbsp;*</span>
                         </div>
-                        <div class="flex gap-2 items-center">
-                          <span
-                            class="text-gray-500 mr-2"
-                            @click="
-                              () => {
-                                element.required = !element.required
-                                updateColMeta(element)
-                              }
-                            "
-                          >
-                            {{ $t('general.required') }}
-                          </span>
-                          <a-switch
-                            v-model:checked="element.required"
-                            v-e="['a:form-view:field:mark-required']"
-                            class="nc-form-input-required"
-                            data-testid="nc-form-input-required"
-                            size="small"
-                            @change="updateColMeta(element)"
-                          />
-                        </div>
+                        <a-form-item class="my-0 !mb-2">
+                          <div class="flex gap-2 items-center">
+                            <span
+                              class="text-gray-500 mr-2"
+                              @click="
+                                () => {
+                                  element.required = !element.required
+                                  updateColMeta(element)
+                                }
+                              "
+                            >
+                              {{ $t('general.required') }}
+                            </span>
+                            <a-switch
+                              v-model:checked="element.required"
+                              v-e="['a:form-view:field:mark-required']"
+                              class="nc-form-input-required"
+                              data-testid="nc-form-input-required"
+                              size="small"
+                              @change="updateColMeta(element)"
+                            />
+                          </div>
+                        </a-form-item>
                       </div>
 
                       <!-- Field Body  -->
@@ -729,7 +764,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                             <div class="flex space-x-4 items-center">
                               <a-switch
                                 v-model:checked="element.enable_scanner"
-                                v-e="['a:form-view:field:mark-enable-scaner']"
+                                v-e="['a:form-view:field:mark-enable-scanner']"
                                 size="small"
                                 @change="updateColMeta(element)"
                               />
@@ -763,7 +798,10 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                               class="relative"
                               @click.stop="
                                 () => {
-                                  activeRow = ''
+                                  isTabPressed = false
+                                  if (activeRow !== element.title) {
+                                    activeRow = ''
+                                  }
                                 }
                               "
                             >
@@ -951,10 +989,10 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                         :key="field.id"
                         class="w-full p-2 flex flex-row items-center border-b-1 last:border-none border-gray-200"
                         :class="[
-                          `nc-form-field-list-item-${field.title}`,
+                          `nc-form-field-item-${field.title}`,
                           `${activeRow === field.title ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
                         ]"
-                        :data-testid="`nc-form-field-list-item-${field.title}`"
+                        :data-testid="`nc-form-field-item-${field.title}`"
                       >
                         <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
                         <div
@@ -1000,10 +1038,10 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                 <div class="text-base font-bold text-gray-900">Appearance Settings</div>
 
                 <div>
-                  <div class="text-gray-800">Form Theme</div>
+                  <div class="text-gray-800">Background Color</div>
                   <div class="flex justify-start">
                     <LazyGeneralColorPicker
-                      v-model="(formViewData.meta as Record<string,any>).theme_color"
+                      :model-value="(formViewData.meta as Record<string,any>).background_color"
                       :colors="[
                         '#FFFFFF',
                         '#FFDBD9',
@@ -1028,10 +1066,7 @@ useEventListener(document, 'focusout', (e: FocusEvent) => {
                       ]"
                       :is-new-design="true"
                       class="nc-form-theme-color-picker !p-0 !-ml-1"
-                      @input="(el:string)=>{
-                        (formViewData?.meta as Record<string,any>).theme_color = el
-                        updateView()
-                      }"
+                      @input="handleChangeBackground"
                     />
                   </div>
                 </div>

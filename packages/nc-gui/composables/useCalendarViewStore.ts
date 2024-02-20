@@ -170,9 +170,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             nextDate = selectedDate.value.add(1, 'day').startOf('day')
             break
           case 'week':
-            prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
             fromDate = selectedDateRange.value.start.startOf('day')
             toDate = selectedDateRange.value.end.endOf('day')
+            prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
             nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
             break
           case 'month': {
@@ -190,7 +190,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           case 'year':
             fromDate = selectedDate.value.startOf('year')
             toDate = selectedDate.value.endOf('year')
-
             prevDate = fromDate.subtract(1, 'day').endOf('day')
             nextDate = toDate.add(1, 'day').startOf('day')
             break
@@ -225,53 +224,40 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 logical_op: 'and',
                 children: [
                   {
-                    is_group: true,
-                    logical_op: 'or',
-                    children: [
-                      {
-                        is_group: true,
-                        logical_op: 'and',
-                        children: [
-                          {
-                            fk_column_id: fromCol.id,
-                            comparison_op: 'lt',
-                            comparison_sub_op: 'exactDate',
-                            value: nextDate,
-                          },
-                          {
-                            fk_column_id: toCol.id,
-                            comparison_op: 'gt',
-                            comparison_sub_op: 'exactDate',
-                            value: prevDate,
-                          },
-                        ],
-                      },
-                      {
-                        // Exact match check
-                        is_group: true,
-                        logical_op: 'or',
-                        children: [
-                          {
-                            fk_column_id: fromCol.id,
-                            comparison_op: 'eq',
-                            logical_op: 'or',
-                            comparison_sub_op: 'exactDate',
-                            value: fromDate,
-                          },
-                        ],
-                      },
-                    ],
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'lt',
+                    comparison_sub_op: 'exactDate',
+                    value: nextDate,
+                  },
+                  {
+                    fk_column_id: toCol.id,
+                    comparison_op: 'gt',
+                    comparison_sub_op: 'exactDate',
+                    value: prevDate,
                   },
                 ],
+              },
+              {
+                fk_column_id: fromCol.id,
+                comparison_op: 'eq',
+                logical_op: 'or',
+                comparison_sub_op: 'exactDate',
+                value: fromDate,
               },
             ]
           } else if (fromCol) {
             rangeFilter = [
               {
                 fk_column_id: fromCol.id,
-                comparison_op: 'btw',
+                comparison_op: 'lt',
                 comparison_sub_op: 'exactDate',
-                value: `${prevDate},${nextDate}`,
+                value: nextDate,
+              },
+              {
+                fk_column_id: fromCol.id,
+                comparison_op: 'gt',
+                comparison_sub_op: 'exactDate',
+                value: prevDate,
               },
             ]
           }
@@ -401,65 +387,47 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               logical_op: 'and',
               children: [
                 {
-                  is_group: true,
-                  logical_op: 'or',
-                  children: [
-                    {
-                      is_group: true,
-                      logical_op: 'and',
-                      children: [
-                        {
-                          fk_column_id: fromCol.id,
-                          comparison_op: 'lt',
-                          comparison_sub_op: 'exactDate',
-                          value: nextDate,
-                        },
-                        {
-                          fk_column_id: toCol.id,
-                          comparison_op: 'gt',
-                          comparison_sub_op: 'exactDate',
-                          value: prevDate,
-                        },
-                      ],
-                    },
-                    {
-                      // Exact match check
-                      is_group: true,
-                      logical_op: 'or',
-                      children: [
-                        {
-                          fk_column_id: fromCol.id,
-                          comparison_op: 'eq',
-                          logical_op: 'or',
-                          comparison_sub_op: 'exactDate',
-                          value: fromDate,
-                        },
-                      ],
-                    },
-                  ],
+                  fk_column_id: fromCol.id,
+                  comparison_op: 'lt',
+                  comparison_sub_op: 'exactDate',
+                  value: nextDate,
+                },
+                {
+                  fk_column_id: toCol.id,
+                  comparison_op: 'gt',
+                  comparison_sub_op: 'exactDate',
+                  value: prevDate,
                 },
               ],
+            },
+            {
+              fk_column_id: fromCol.id,
+              comparison_op: 'eq',
+              logical_op: 'or',
+              comparison_sub_op: 'exactDate',
+              value: fromDate,
             },
           ]
         } else if (fromCol) {
           rangeFilter = [
             {
               fk_column_id: fromCol.id,
-              comparison_op: 'btw',
+              comparison_op: 'lt',
               comparison_sub_op: 'exactDate',
-              value: `${prevDate},${nextDate}`,
+              value: nextDate,
+            },
+            {
+              fk_column_id: fromCol.id,
+              comparison_op: 'gt',
+              comparison_sub_op: 'exactDate',
+              value: prevDate,
             },
           ]
         }
         if (rangeFilter.length > 0) {
-          combinedFilters.children.push({
-            is_group: true,
-            logical_op: 'or',
-            children: rangeFilter,
-          })
+          combinedFilters.children.push(rangeFilter)
         }
       })
-
       return combinedFilters.children.length > 0 ? [combinedFilters] : []
     })
 

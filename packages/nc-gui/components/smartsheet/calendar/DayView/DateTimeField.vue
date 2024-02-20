@@ -10,8 +10,17 @@ const container = ref()
 
 const { isUIAllowed } = useRoles()
 
-const { selectedDate, selectedTime, formattedData, calendarRange, formattedSideBarData, updateRowProperty, displayField } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDate,
+  selectedTime,
+  formattedData,
+  calendarRange,
+  formattedSideBarData,
+  updateRowProperty,
+  displayField,
+  sideBarFilterOption,
+  showSideMenu,
+} = useCalendarViewStoreOrThrow()
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
@@ -101,6 +110,11 @@ const recordsAcrossAllRange = computed<{
 
         let _startDate = startDate.clone()
 
+        const style: Partial<CSSStyleDeclaration> = {
+          height: `${heightInPixels}px`,
+          top: `${topInPixels + 5 + startHour * 2}px`,
+        }
+
         while (_startDate.isBefore(endDate)) {
           const timeKey = _startDate.format('HH:mm')
           if (!overlaps[timeKey]) {
@@ -118,13 +132,6 @@ const recordsAcrossAllRange = computed<{
             overlaps[timeKey].overflowCount += 1
           }
           _startDate = _startDate.add(15, 'minutes')
-        }
-
-        const finalTopInPixels = topInPixels + 5 + startHour * 2
-
-        const style: Partial<CSSStyleDeclaration> = {
-          top: `${finalTopInPixels}px`,
-          height: `${heightInPixels}px`,
         }
 
         let position = 'none'
@@ -169,7 +176,6 @@ const recordsAcrossAllRange = computed<{
 
         while (_startDate.isBefore(endDate)) {
           const timeKey = _startDate.format('HH:mm')
-          console.log('timeKey', timeKey)
 
           if (!overlaps[timeKey]) {
             overlaps[timeKey] = {
@@ -550,6 +556,12 @@ const dragStart = (event: MouseEvent, record: Row) => {
   }
 
   document.addEventListener('mouseup', onMouseUp)
+}
+
+const viewMore = (hour: dayjs.Dayjs) => {
+  sideBarFilterOption.value = 'selectedHours'
+  selectedTime.value = hour
+  showSideMenu.value = true
 }
 </script>
 

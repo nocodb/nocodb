@@ -2,24 +2,24 @@
 import dayjs from 'dayjs'
 
 interface Props {
-  selectedDate?: Date | null
+  selectedDate?: dayjs.Dayjs | null
   isDisabled?: boolean
-  pageDate?: Date
+  pageDate?: dayjs.Dayjs
   yearPicker?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedDate: null,
   isDisabled: false,
-  pageDate: new Date(),
+  pageDate: dayjs(),
   yearPicker: false,
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate'])
-const pageDate = useVModel(props, 'pageDate', emit)
-const selectedDate = useVModel(props, 'selectedDate', emit)
+const pageDate = useVModel<dayjs.Dayjs>(props, 'pageDate', emit)
+const selectedDate = useVModel<dayjs.Dayjs>(props, 'selectedDate', emit)
 
 const years = computed(() => {
-  const date = dayjs(pageDate.value)
+  const date = pageDate.value
   const startOfYear = date.startOf('year')
   const years: dayjs.Dayjs[] = []
   for (let i = 0; i < 12; i++) {
@@ -28,16 +28,10 @@ const years = computed(() => {
   return years
 })
 
-const currentYear = computed(() => {
-  return pageDate.value.getFullYear()
-})
-
 const months = computed(() => {
-  const date = dayjs(pageDate.value)
-
   const months: dayjs.Dayjs[] = []
   for (let i = 0; i < 12; i++) {
-    months.push(date.set('month', i))
+    months.push(pageDate.value.set('month', i))
   }
   return months
 })
@@ -48,19 +42,19 @@ const compareDates = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 }
 
 const isMonthSelected = (date: dayjs.Dayjs) => {
-  if (!selectedDate.value) return false
-  return compareDates(date, dayjs(selectedDate.value))
+  if (!dayjs(selectedDate.value).isValid()) return false
+  return compareDates(date, selectedDate.value)
 }
 
 const paginateMonth = (action: 'next' | 'prev') => {
-  let date = dayjs(pageDate.value)
+  let date = pageDate.value
   if (action === 'next') {
     date = date.add(1, 'year')
   } else {
     date = date.subtract(1, 'year')
   }
-  pageDate.value = date.toDate()
-  emit('update:pageDate', date.toDate())
+  pageDate.value = date
+  emit('update:pageDate', date)
 }
 
 const paginateYear = (action: 'next' | 'prev') => {
@@ -70,8 +64,8 @@ const paginateYear = (action: 'next' | 'prev') => {
   } else {
     date = date.subtract(12, 'year').clone()
   }
-  pageDate.value = date.toDate()
-  emit('update:pageDate', date.toDate())
+  pageDate.value = date
+  emit('update:pageDate', date)
 }
 
 const paginate = (action: 'next' | 'prev') => {
@@ -99,7 +93,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
           <span>{{ $t('labels.previousYear') }}</span>
         </template>
       </NcTooltip>
-      <span class="font-bold text-gray-700">{{ yearPicker ? 'Select Year' : currentYear }}</span>
+      <span class="font-bold text-gray-700">{{ yearPicker ? 'Select Year' : pageDate.year() }}</span>
       <NcTooltip>
         <NcButton size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
@@ -119,7 +113,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               '!bg-brand-50 !border-2 !border-brand-500': isMonthSelected(month),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
-            @click="selectedDate = month.toDate()"
+            @click="selectedDate = month"
           >
             {{ month.format('MMM') }}
           </span>
@@ -129,10 +123,10 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(year, id) in years"
             :key="id"
             :class="{
-              '!bg-brand-50 !border-2 !border-brand-500': compareYear(year, dayjs(selectedDate)),
+              '!bg-brand-50 !border-2 !border-brand-500': compareYear(year, selectedDate),
             }"
             class="h-9 rounded-lg flex font-medium items-center justify-center hover:(border-1 border-gray-200 bg-gray-100) text-gray-500 cursor-pointer"
-            @click="selectedDate = year.toDate()"
+            @click="selectedDate = year"
           >
             {{ year.format('YYYY') }}
           </span>

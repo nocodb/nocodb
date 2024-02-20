@@ -17,6 +17,8 @@ const { selectedDate, selectedTime, formattedData, calendarRange, formattedSideB
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
+  const _selectedDate = dayjs(selectedDate.value)
+
   for (let i = 0; i < 24; i++) {
     hours.push(
       dayjs()
@@ -24,9 +26,9 @@ const hours = computed(() => {
         .minute(0)
         .second(0)
         .millisecond(0)
-        .year(selectedDate.value.getFullYear() || dayjs().year())
-        .month(selectedDate.value.getMonth() || dayjs().month())
-        .date(selectedDate.value.getDate() || dayjs().date()),
+        .year(_selectedDate.year())
+        .month(_selectedDate.month())
+        .date(_selectedDate.date()),
     )
   }
   return hours
@@ -639,7 +641,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               color="blue"
-              size="auto"
               @resize-start="onResizeStart"
             />
           </LazySmartsheetRow>

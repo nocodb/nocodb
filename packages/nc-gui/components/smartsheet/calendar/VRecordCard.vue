@@ -16,7 +16,6 @@ withDefaults(defineProps<Props>(), {
   resize: true,
   selected: false,
   color: 'blue',
-  size: 'small',
   showDate: true,
   position: 'rounded',
 })

@@ -18,10 +18,10 @@ const meta = inject(MetaInj, ref())
 
 const datesHours = computed(() => {
   const datesHours: Array<Array<dayjs.Dayjs>> = []
-  const startOfWeek = new Date(selectedDateRange.value.start!)
-  const endOfWeek = new Date(selectedDateRange.value.end!)
+  let startOfWeek = dayjs(selectedDateRange.value.start) ?? dayjs().startOf('week')
+  const endOfWeek = dayjs(selectedDateRange.value.end) ?? dayjs().endOf('week')
 
-  while (startOfWeek.getTime() <= endOfWeek.getTime()) {
+  while (startOfWeek.isSameOrBefore(endOfWeek)) {
     const hours: Array<dayjs.Dayjs> = []
     for (let i = 0; i < 24; i++) {
       hours.push(
@@ -30,13 +30,13 @@ const datesHours = computed(() => {
           .minute(0)
           .second(0)
           .millisecond(0)
-          .year(startOfWeek.getFullYear())
-          .month(startOfWeek.getMonth())
-          .date(startOfWeek.getDate()),
+          .year(startOfWeek.year())
+          .month(startOfWeek.month())
+          .date(startOfWeek.date()),
       )
     }
     datesHours.push(hours)
-    startOfWeek.setDate(startOfWeek.getDate() + 1)
+    startOfWeek = startOfWeek.add(1, 'day')
   }
   return datesHours
 })
@@ -686,7 +686,7 @@ const dropEvent = (event: DragEvent) => {
           class="text-center relative h-56 text-sm text-gray-500 w-full py-1 border-gray-200 border-1 border-r-white border-t-white last:border-r-white bg-gray-50"
           @click="selectedTime = hour.toDate()"
         >
-          <span v-if="date[0].day() === selectedDateRange.start?.getDay()" class="absolute left-1">
+          <span v-if="date[0].day() === selectedDateRange.start?.day()" class="absolute left-1">
             {{ hour.format('h A') }}
           </span>
         </div>

@@ -123,7 +123,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
 
     <div class="px-4 flex flex-col gap-y-6 pt-4">
       <div class="flex justify-between items-center">
-        <span class="text-2xl font-bold">{{ t('objects.Records') }}</span>
+        <span class="text-lg font-bold">{{ t('objects.Records') }}</span>
         <NcSelect v-model:value="sideBarFilterOption" :options="options" />
       </div>
       <div class="flex items-center gap-3">

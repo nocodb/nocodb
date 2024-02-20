@@ -22,60 +22,6 @@ const weekDates = computed(() => {
   return datesArray
 })
 
-const getRecordPosition = (record: Row) => {
-  if (!calendarRange.value) return ''
-  if (!record.rowMeta.range) return ''
-  const range = record.rowMeta.range
-  const startCol = range.fk_from_col
-  const endCol = range.fk_to_col
-  if (!endCol && startCol) {
-    const startDate = dayjs(record.row[startCol.title])
-
-    return startDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
-      ? 'rounded'
-      : startDate.isBefore(selectedDateRange.value.start)
-      ? 'rightRounded'
-      : 'leftRounded'
-  } else if (endCol && startCol) {
-    const startDate = dayjs(record.row[startCol.title])
-    const endDate = dayjs(record.row[endCol.title])
-
-    // StartDate is same/after as selectedDateRange start and EndDate is same/before as selectedDateRange end -> No Spanning - none
-    // EndDate is same/after selectedDateRange start and StartDate is same/before selectedDateRange end -> No Spanning - none
-    // StartDate is same as selectedDateRange start and no EndDate -> no Spanning - none
-    // EndDate is same as selectedDateRange end and no StartDate -> no Spanning - none
-
-    // StartDate is same/after as selectedDateRange start and EndDate is after selectedDateRange end -> Spanning Right
-    // EndDate is same/after selectedDateRange start and StartDate is after selectedDateRange end -> Spanning Right
-
-    // StartDate is before selectedDateRange start and EndDate is before selectedDateRange end -> Spanning Left
-    // EndDate is before selectedDateRange start and StartDate is before selectedDateRange end -> Spanning Left
-
-    // StartDate is before selectedDateRange start and EndDate is after selectedDateRange end -> Spanning Both
-    // StartDate is after selectedDateRange end and EndDate is before selectedDateRange start -> Spanning Both
-
-    if (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) {
-      return 'leftRounded'
-    } else if (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isAfter(selectedDateRange.value.end)) {
-      return 'leftRounded'
-    } else if (startDate.isBefore(selectedDateRange.value.start) && endDate.isBefore(selectedDateRange.value.end)) {
-      return 'rightRounded'
-    } else if (endDate.isBefore(selectedDateRange.value.start) && startDate.isBefore(selectedDateRange.value.end)) {
-      return 'rightRounded'
-    } else if (startDate.isBefore(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) {
-      return 'rounded'
-    } else if (startDate.isAfter(selectedDateRange.value.end) && endDate.isBefore(selectedDateRange.value.start)) {
-      return 'rounded'
-    } else if (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isSameOrBefore(selectedDateRange.value.end)) {
-      return 'rounded'
-    } else if (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isSameOrBefore(selectedDateRange.value.end)) {
-      return 'rounded'
-    } else if ((startDate && !endDate) || (endDate && !startDate)) {
-      return 'rounded'
-    }
-  }
-}
-
 const findFirstSuitableColumn = (recordsInDay: any, startDayIndex: number, spanDays: number) => {
   let column = 0
   while (true) {
@@ -114,85 +60,101 @@ const calendarData = computed(() => {
   const perDayWidth = containerWidth.value / 7
 
   calendarRange.value.forEach((range) => {
-    if (range.fk_from_col && range.fk_to_col) {
-      const fromCol = range.fk_from_col
-      const toCol = range.fk_to_col
-
+    const fromCol = range.fk_from_col
+    const toCol = range.fk_to_col
+    if (fromCol && toCol) {
       for (const record of formattedData.value) {
         let startDate = dayjs(record.row[fromCol.title])
+        const ogStartDate = startDate.clone()
         const endDate = dayjs(record.row[toCol.title])
-        if (
-          (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isSameOrBefore(selectedDateRange.value.end)) ||
-          (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isSameOrBefore(selectedDateRange.value.end)) ||
-          (startDate.isSameOrAfter(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) ||
-          (endDate.isSameOrAfter(selectedDateRange.value.start) && startDate.isAfter(selectedDateRange.value.end)) ||
-          (startDate.isBefore(selectedDateRange.value.start) && endDate.isBefore(selectedDateRange.value.end)) ||
-          (endDate.isBefore(selectedDateRange.value.start) && startDate.isBefore(selectedDateRange.value.end)) ||
-          (startDate.isBefore(selectedDateRange.value.start) && endDate.isAfter(selectedDateRange.value.end)) ||
-          (startDate.isAfter(selectedDateRange.value.end) && endDate.isBefore(selectedDateRange.value.start))
-        ) {
-          if (startDate.isBefore(selectedDateRange.value.start)) {
-            startDate = dayjs(selectedDateRange.value.start)
-          }
 
-          const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-          const spanDays = Math.max(endDate.diff(startDate, 'day') + 1, 1)
-          const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
-
-          let suitableColumn = -1
-          for (let i = 0; i < spanDays; i++) {
-            const dayIndex = startDaysDiff + i
-
-            if (!recordsInDay[dayIndex]) {
-              recordsInDay[dayIndex] = {}
-            }
-
-            if (suitableColumn === -1) {
-              suitableColumn = findFirstSuitableColumn(recordsInDay, dayIndex, spanDays)
-            }
-          }
-
-          // Mark the suitable column as occupied for the entire span
-          for (let i = 0; i < spanDays; i++) {
-            const dayIndex = startDaysDiff + i
-            recordsInDay[dayIndex][suitableColumn] = true
-          }
-
-          recordsInRange.push({
-            ...record,
-            rowMeta: {
-              ...record.rowMeta,
-              range,
-              style: {
-                width: widthStyle,
-                left: `${startDaysDiff * perDayWidth}px`,
-                top: `${suitableColumn * 50}px`,
-              },
-            },
-          })
+        if (startDate.isBefore(selectedDateRange.value.start)) {
+          startDate = dayjs(selectedDateRange.value.start)
         }
+
+        const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
+        const spanDays = Math.max(Math.min(endDate.diff(startDate, 'day'), 6) + 1, 1)
+        const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
+
+        let suitableColumn = -1
+        for (let i = 0; i < spanDays; i++) {
+          const dayIndex = startDaysDiff + i
+
+          if (!recordsInDay[dayIndex]) {
+            recordsInDay[dayIndex] = {}
+          }
+
+          if (suitableColumn === -1) {
+            suitableColumn = findFirstSuitableColumn(recordsInDay, dayIndex, spanDays)
+          }
+        }
+
+        // Mark the suitable column as occupied for the entire span
+        for (let i = 0; i < spanDays; i++) {
+          const dayIndex = startDaysDiff + i
+          recordsInDay[dayIndex][suitableColumn] = true
+        }
+
+        let position = ''
+
+        const isStartInRange =
+          ogStartDate && ogStartDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
+        const isEndInRange = endDate && endDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')
+
+        if (isStartInRange && isEndInRange) {
+          position = 'rounded'
+        } else if (
+          startDate &&
+          endDate &&
+          startDate.isBefore(selectedDateRange.value.start) &&
+          endDate.isAfter(selectedDateRange.value.end)
+        ) {
+          position = 'none'
+        } else if (
+          startDate &&
+          endDate &&
+          (startDate.isAfter(selectedDateRange.value.end) || endDate.isBefore(selectedDateRange.value.start))
+        ) {
+          position = 'none'
+        } else if (isStartInRange) {
+          position = 'leftRounded'
+        } else if (isEndInRange) {
+          position = 'rightRounded'
+        }
+
+        recordsInRange.push({
+          ...record,
+          rowMeta: {
+            ...record.rowMeta,
+            range,
+            position,
+            style: {
+              width: widthStyle,
+              left: `${startDaysDiff * perDayWidth}px`,
+              top: `${suitableColumn * 50}px`,
+            },
+          },
+        })
       }
-    } else if (range.fk_from_col) {
-      const fromCol = range.fk_from_col
+    } else if (fromCol) {
       for (const record of formattedData.value) {
         const startDate = dayjs(record.row[fromCol.title])
-        if (startDate.isBetween(selectedDateRange.value.start, selectedDateRange.value.end, 'day', '[]')) {
-          const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-          recordsInDay[startDaysDiff]++
+        const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
+        recordsInDay[startDaysDiff]++
 
-          recordsInRange.push({
-            ...record,
-            rowMeta: {
-              ...record.rowMeta,
-              range,
-              style: {
-                width: `calc(${perDayWidth}px)`,
-                left: `${startDate.diff(selectedDateRange.value.start, 'day') * perDayWidth}px`,
-                top: `${(recordsInDay[startDaysDiff] - 1) * 50}px`,
-              },
+        recordsInRange.push({
+          ...record,
+          rowMeta: {
+            ...record.rowMeta,
+            range,
+            position: 'rounded',
+            style: {
+              width: `calc(${perDayWidth}px)`,
+              left: `${startDate.diff(selectedDateRange.value.start, 'day') * perDayWidth}px`,
+              top: `${(recordsInDay[startDaysDiff] - 1) * 50}px`,
             },
-          })
-        }
+          },
+        })
       }
     }
   })
@@ -228,9 +190,9 @@ const calendarData = computed(() => {
         v-for="(record, id) in calendarData"
         :key="id"
         :class="{
-          'ml-3': getRecordPosition(record) === 'leftRounded',
-          'mr-3': getRecordPosition(record) === 'rightRounded',
-          '': getRecordPosition(record) === 'rounded',
+          'ml-3': record.rowMeta.position === 'leftRounded',
+          'mr-3': record.rowMeta.position === 'rightRounded',
+          '': record.rowMeta.position === 'rounded',
         }"
         :style="record.rowMeta.style"
         class="absolute pointer-events-auto"
@@ -245,7 +207,7 @@ const calendarData = computed(() => {
                 : dayjs(record.row[record.rowMeta.range.fk_from_col.title]).format('DD-MM-YYYY')
             "
             :name="record.row[displayField.title]"
-            :position="getRecordPosition(record)"
+            :position="record.rowMeta.position"
             color="blue"
             @click="emits('expand-record', record)"
           />

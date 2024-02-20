@@ -1348,7 +1348,9 @@
       "copyToClipboardError": "Nie udało się skopiować do schowka",
       "pasteFromClipboardError": "Nie udało się wkleić ze schowka",
       "multiFieldSaveValidation": "Proszę zakończyć konfigurację wszystkich pól przed zapisaniem",
-      "somethingWentWrong": "Coś poszło nie tak"
+      "somethingWentWrong": "Coś poszło nie tak",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

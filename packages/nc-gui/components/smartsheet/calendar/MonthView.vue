@@ -180,7 +180,7 @@ const recordsToDisplay = computed<{
         const endDate = dayjs(record.row[endCol.title])
         let currentWeekStart = startDate.startOf('week')
 
-        const id = getRandomNumbers()
+        const id = record.rowMeta.id ?? getRandomNumbers()
         while (currentWeekStart.isBefore(endDate)) {
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
@@ -298,138 +298,179 @@ const recordsToDisplay = computed<{
 const dragElement = ref<HTMLElement | null>(null)
 const draggingId = ref<string | null>(null)
 
-const dragStart = (event: DragEvent, record: Row) => {
-  dragElement.value = event.target as HTMLElement
+const resizeInProgress = ref(false)
 
-  draggingId.value = record.rowMeta.id
+const isDragging = ref(false)
+const dragRecord = ref<Row>()
 
-  dragElement.value.classList.add('hide')
-  dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
-  const eventRect = dragElement.value.getBoundingClientRect()
-
-  const initialClickOffsetX = event.clientX - eventRect.left
-  const initialClickOffsetY = event.clientY - eventRect.top
-
-  event.dataTransfer?.setData(
-    'text/plain',
-    JSON.stringify({
-      record,
-      initialClickOffsetY,
-      initialClickOffsetX,
-    }),
-  )
-}
-
-const dragEnter = (event: DragEvent) => {
-  event.preventDefault()
+const onDrag = (event: MouseEvent) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
-
   const percentX = (event.clientX - left - window.scrollX) / width
+
+  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
+  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
 
-  if (dragElement.value) {
-    calendarGridContainer.value.addEventListener('mousemove', onDragMove)
+  const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+
+  if (!newStartDate) return
+
+  let endDate
+
+  const newRow = {
+    ...dragRecord.value,
+    row: {
+      ...dragRecord.value.row,
+      [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+    },
   }
 
-  const currSelectedDate = dayjs(selectedDate.value).startOf('month').add(week, 'week').add(day, 'day')
-  selectedDate.value = currSelectedDate.toDate()
+  if (toCol) {
+    const fromDate = dragRecord.value.row[fromCol.title] ? dayjs(dragRecord.value.row[fromCol.title]) : null
+    const toDate = dragRecord.value.row[toCol.title] ? dayjs(dragRecord.value.row[toCol.title]) : null
+
+    if (fromDate && toDate) {
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+    } else if (fromDate && !toDate) {
+      endDate = dayjs(newStartDate).endOf('day')
+    } else if (!fromDate && toDate) {
+      endDate = dayjs(newStartDate).endOf('day')
+    } else {
+      endDate = newStartDate.clone()
+    }
+
+    newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
+  }
+
+  formattedData.value = formattedData.value.map((r) => {
+    const pk = extractPkFromRow(r.row, meta.value.columns)
+
+    if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+      return newRow
+    }
+    return r
+  })
 }
 
-const dropEvent = (event: DragEvent) => {
+const stopDrag = (event: MouseEvent) => {
   event.preventDefault()
-  const data = event.dataTransfer?.getData('text/plain')
-  if (data) {
-    const {
-      record,
-      initialClickOffsetY,
-      initialClickOffsetX,
-    }: {
-      record: Row
-      initialClickOffsetY: number
-      initialClickOffsetX: number
-    } = JSON.parse(data)
-    const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
+  if (!isDragging.value) return
 
-    const percentY = (event.clientY - top - window.scrollY) / height
-    const percentX = (event.clientX - left - window.scrollX) / width
-    /*
-   const percentY = (event.clientY - top - initialClickOffsetY - window.scrollY) / height
-    const percentX = (event.clientX - left - initialClickOffsetX - window.scrollX) / width
-*/
+  dragElement.value.style.boxShadow = 'none'
 
-    const fromCol = record.rowMeta.range?.fk_from_col
-    const toCol = record.rowMeta.range?.fk_to_col
+  const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
-    const week = Math.floor(percentY * dates.value.length)
-    const day = Math.floor(percentX * 7)
+  const percentY = (event.clientY - top - window.scrollY) / height
+  const percentX = (event.clientX - left - window.scrollX) / width
 
-    const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
-    if (!newStartDate) return
+  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
+  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
 
-    let endDate
+  const week = Math.floor(percentY * dates.value.length)
+  const day = Math.floor(percentX * 7)
 
-    const newRow = {
-      ...record,
-      row: {
-        ...record.row,
-        [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
-      },
-    }
+  const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+  if (!newStartDate) return
 
-    const updateProperty = [fromCol.title]
+  let endDate
 
-    if (toCol) {
-      const fromDate = record.row[fromCol.title] ? dayjs(record.row[fromCol.title]) : null
-      const toDate = record.row[toCol.title] ? dayjs(record.row[toCol.title]) : null
-
-      if (fromDate && toDate) {
-        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-      } else if (fromDate && !toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
-      } else if (!fromDate && toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
-      } else {
-        endDate = newStartDate.clone()
-      }
-
-      newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
-
-      updateProperty.push(toCol.title)
-    }
-
-    if (!newRow) return
-
-    if (dragElement.value) {
-      formattedData.value = formattedData.value.map((r) => {
-        const pk = extractPkFromRow(r.row, meta.value.columns)
-
-        if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
-          return newRow
-        }
-        return r
-      })
-    } else {
-      formattedData.value = [...formattedData.value, newRow]
-      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
-        const pk = extractPkFromRow(r.row, meta.value.columns)
-
-        return pk !== extractPkFromRow(newRow.row, meta.value.columns)
-      })
-    }
-
-    if (dragElement.value) {
-      dragElement.value.style.boxShadow = 'none'
-      dragElement.value.classList.remove('hide')
-
-      dragElement.value = null
-    }
-
-    updateRowProperty(newRow, updateProperty, false)
+  const newRow = {
+    ...dragRecord.value,
+    row: {
+      ...dragRecord.value.row,
+      [fromCol.title]: dayjs(newStartDate).format('YYYY-MM-DD'),
+    },
   }
+
+  const updateProperty = [fromCol.title]
+
+  if (toCol) {
+    const fromDate = dragRecord.value.row[fromCol.title] ? dayjs(dragRecord.value.row[fromCol.title]) : null
+    const toDate = dragRecord.value.row[toCol.title] ? dayjs(dragRecord.value.row[toCol.title]) : null
+
+    if (fromDate && toDate) {
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+    } else if (fromDate && !toDate) {
+      endDate = dayjs(newStartDate).endOf('day')
+    } else if (!fromDate && toDate) {
+      endDate = dayjs(newStartDate).endOf('day')
+    } else {
+      endDate = newStartDate.clone()
+    }
+
+    newRow.row[toCol.title] = dayjs(endDate).format('YYYY-MM-DD')
+
+    updateProperty.push(toCol.title)
+
+    const allRecords = document.querySelectorAll('.draggable-record')
+    allRecords.forEach((el) => {
+      el.style.visibility = ''
+      el.style.opacity = '100%'
+    })
+  }
+
+  if (!newRow) return
+
+  if (dragElement.value) {
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value.columns)
+
+      if (pk === extractPkFromRow(newRow.row, meta.value.columns)) {
+        return newRow
+      }
+      return r
+    })
+  } else {
+    formattedData.value = [...formattedData.value, newRow]
+    formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+      const pk = extractPkFromRow(r.row, meta.value.columns)
+
+      return pk !== extractPkFromRow(newRow.row, meta.value.columns)
+    })
+  }
+
+  if (dragElement.value) {
+    dragElement.value.style.boxShadow = 'none'
+    dragElement.value.classList.remove('hide')
+    isDragging.value = false
+    draggingId.value = null
+    dragElement.value = null
+  }
+
+  updateRowProperty(newRow, updateProperty, false)
+
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+}
+
+const dragStart = (event: MouseEvent, record: Row) => {
+  let target = event.target as HTMLElement
+
+  while (!target.classList.contains('draggable-record')) {
+    target = target.parentElement as HTMLElement
+  }
+
+  const allRecords = document.querySelectorAll('.draggable-record')
+  allRecords.forEach((el) => {
+    if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id)) {
+      // el.style.visibility = 'hidden'
+      el.style.opacity = '30%'
+    }
+  })
+
+  dragRecord.value = record
+
+  isDragging.value = true
+  dragElement.value = target
+  draggingId.value = record.rowMeta.id
+  dragRecord.value = record
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
 }
 
 const selectDate = (date: Date) => {
@@ -443,7 +484,7 @@ const isDateSelected = (date: Date) => {
 </script>
 
 <template>
-  <div v-if="calendarRange" class="h-full relative">
+  <div v-if="calendarRange" class="h-full prevent-select relative">
     <div class="grid grid-cols-7">
       <div
         v-for="(day, index) in days"
@@ -483,7 +524,8 @@ const isDateSelected = (date: Date) => {
               }"
               class="group-hover:hidden"
             ></span>
-            <NcDropdown auto-close>
+
+            <NcDropdown v-if="calendarRange.length > 1" auto-close>
               <NcButton
                 :class="{
                   '!block': isDateSelected(day),
@@ -494,7 +536,6 @@ const isDateSelected = (date: Date) => {
                 type="secondary"
                 @click="
                   () => {
-                    if (calendarRange.length !== 1) return
                     const record = {
                       row: {
                         [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
@@ -532,15 +573,38 @@ const isDateSelected = (date: Date) => {
                 </NcMenu>
               </template>
             </NcDropdown>
+            <NcButton
+              v-else
+              :class="{
+                '!block': isDateSelected(day),
+                '!hidden': !isDateSelected(day),
+              }"
+              class="!group-hover:block"
+              size="small"
+              type="secondary"
+              @click="
+                () => {
+                  const record = {
+                    row: {
+                      [calendarRange[0].fk_from_col.title]: dayjs(day).format('YYYY-MM-DD'),
+                    },
+                  }
+                  emit('new-record', record)
+                }
+              "
+            >
+              <component :is="iconMap.plus" class="h-4 w-4" />
+            </NcButton>
 
             <span class="px-1 py-2">{{ dayjs(day).format('DD') }}</span>
           </div>
           <div
             v-if="
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
-              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow
+              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
+              !draggingId
             "
-            class="text-xs absolute bottom-1 text-center inset-x-0 text-gray-500"
+            class="text-xs absolute bottom-1 text-center inset-x-0 z-[90] text-gray-500"
           >
             + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more
           </div>
@@ -551,14 +615,17 @@ const isDateSelected = (date: Date) => {
       <div
         v-for="(record, recordIndex) in recordsToDisplay.records"
         :key="recordIndex"
+        :data-unique-id="record.rowMeta.id"
         :style="{
           ...record.rowMeta.style,
           zIndex: record.rowMeta.id === draggingId ? 100 : 0,
+          boxShadow:
+            record.rowMeta.id === draggingId
+              ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
+              : 'none',
         }"
-        class="absolute pointer-events-auto"
-        draggable="true"
-        @dragstart="dragStart($event, record)"
-        @dragover.prevent
+        class="absolute draggable-record cursor-pointer pointer-events-auto"
+        @mousedown.stop="dragStart($event, record)"
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
@@ -582,5 +649,11 @@ const isDateSelected = (date: Date) => {
 .hide {
   transition: 0.01s;
   transform: translateX(-9999px);
+}
+
+.prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
 }
 </style>

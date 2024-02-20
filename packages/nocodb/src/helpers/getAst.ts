@@ -13,7 +13,7 @@ import type {
   Model,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { GalleryView, KanbanView, View } from '~/models';
+import { CalendarView, GalleryView, KanbanView, View } from '~/models';
 
 const getAst = async ({
   query,
@@ -49,6 +49,9 @@ const getAst = async ({
   } else if (view && view.type === ViewTypes.KANBAN) {
     const kanban = await KanbanView.get(view.id);
     coverImageId = kanban.fk_cover_image_col_id;
+  } else if (view && view.type === ViewTypes.CALENDAR) {
+    const calendar = await CalendarView.get(view.id);
+    coverImageId = calendar.fk_cover_image_col_id;
   }
 
   if (!model.columns?.length) await model.getColumns();

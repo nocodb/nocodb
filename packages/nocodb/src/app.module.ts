@@ -75,9 +75,10 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
+    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     consumer
       .apply(GuiMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.GET })
+      .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

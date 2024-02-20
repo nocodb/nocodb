@@ -130,8 +130,8 @@ const headerText = computed(() => {
     case 'day':
       return dayjs(selectedDate.value).format('D MMMM YYYY')
     case 'week':
-      return `${dayjs(selectedDateRange.value.start).format('D MMMM YYYY')} - ${dayjs(selectedDateRange.value.end).format(
-        'D MMMM YYYY',
+      return `${dayjs(selectedDateRange.value.start).format('D MMM YYYY')} - ${dayjs(selectedDateRange.value.end).format(
+        'D MMM YYYY',
       )}`
     case 'month':
       return dayjs(selectedMonth.value).format('MMMM YYYY')

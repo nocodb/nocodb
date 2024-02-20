@@ -20,6 +20,7 @@ interface Props {
   type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
   centered?: boolean
+  fullWidth?: boolean
   iconOnly?: boolean
 }
 
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   size: 'medium',
   type: 'primary',
+  fullWidth: false,
   centered: true,
 })
 
@@ -110,6 +112,7 @@ useEventListener(NcButton, 'mousedown', () => {
         v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
+          'w-full': props.fullWidth,
         }"
         class="flex flex-row items-center"
       >

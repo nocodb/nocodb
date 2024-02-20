@@ -92,7 +92,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
 
         const style: Partial<CSSStyleDeclaration> = {
           top: `${finalTopInPixels}px`,
-          height: `${heightInPixels - 5}px`,
+          height: `${heightInPixels}px`,
         }
 
         let position = 'none'

@@ -46,9 +46,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarDataLoading = ref<boolean>(false)
 
+    const showSideMenu = ref(true)
+
     const selectedDateRange = ref<{
-      start: dayjs.Dayjs | null
-      end: dayjs.Dayjs | null
+      start: dayjs.Dayjs
+      end: dayjs.Dayjs
     }>({
       start: dayjs(selectedDate.value).startOf('week'), // This will be the previous Monday
       end: dayjs(selectedDate.value).startOf('week').add(6, 'day'), // This will be the following Sunday
@@ -544,24 +546,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const paginateCalendarView = async (action: 'next' | 'prev') => {
       switch (activeCalendarView.value) {
         case 'month':
-          selectedMonth.value = action === 'next' ? addMonths(selectedMonth.value, 1) : addMonths(selectedMonth.value, -1)
+          selectedMonth.value = action === 'next' ? selectedMonth.value.add(1, 'month') : selectedMonth.value.subtract(1, 'month')
+          pageDate.value = action === 'next' ? pageDate.value.add(1, 'month') : pageDate.value.subtract(1, 'month')
           // selectedDate.value = action === 'next' ? addMonths(selectedDate.value, 1) : addMonths(selectedDate.value, -1)
-          pageDate.value = action === 'next' ? addMonths(pageDate.value, 1) : addMonths(pageDate.value, -1)
-          if (pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
+          if (pageDate.value.year() !== selectedDate.value.year()) {
             pageDate.value = selectedDate.value
           }
           break
         case 'year':
-          selectedDate.value = action === 'next' ? addYears(selectedDate.value, 1) : addYears(selectedDate.value, -1)
-          if (pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
+          selectedDate.value = action === 'next' ? selectedDate.value.add(1, 'year') : selectedDate.value.subtract(1, 'year')
+          if (pageDate.value.year() !== selectedDate.value.year()) {
             pageDate.value = selectedDate.value
           }
           break
         case 'day':
-          selectedDate.value = action === 'next' ? addDays(selectedDate.value, 1) : addDays(selectedDate.value, -1)
-          if (pageDate.value.getFullYear() !== selectedDate.value.getFullYear()) {
+          selectedDate.value = action === 'next' ? selectedDate.value.add(1, 'day') : selectedDate.value.subtract(1, 'day')
+          if (pageDate.value.year() !== selectedDate.value.year()) {
             pageDate.value = selectedDate.value
-          } else if (pageDate.value.getMonth() !== selectedDate.value.getMonth()) {
+          } else if (pageDate.value.month() !== selectedDate.value.month()) {
             pageDate.value = selectedDate.value
           }
           break
@@ -569,15 +571,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           selectedDateRange.value =
             action === 'next'
               ? {
-                  start: addDays(selectedDateRange.value.start!, 7),
-                  end: addDays(selectedDateRange.value.end!, 7),
+                  start: selectedDateRange.value.start.add(7, 'day'),
+                  end: selectedDateRange.value.end.add(7, 'day'),
                 }
               : {
-                  start: addDays(selectedDateRange.value.start!, -7),
-                  end: addDays(selectedDateRange.value.end!, -7),
+                  start: selectedDateRange.value.start.subtract(7, 'day'),
+                  end: selectedDateRange.value.end.subtract(7, 'day'),
                 }
-          if (pageDate.value.getMonth() !== selectedDateRange.value.end?.getMonth()) {
-            pageDate.value = selectedDateRange.value.start!
+          if (pageDate.value.month() !== selectedDateRange.value.end.month()) {
+            pageDate.value = selectedDateRange.value.start
           }
           break
       }
@@ -692,8 +694,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     watch(activeCalendarView, async (value, oldValue) => {
       if (oldValue === 'week') {
         pageDate.value = selectedDate.value
-        selectedDate.value = selectedDateRange.value.start!
-        selectedMonth.value = selectedDateRange.value.start!
+        selectedDate.value = selectedDateRange.value.start
+        selectedMonth.value = selectedDateRange.value.start
       } else if (oldValue === 'month') {
         selectedDate.value = selectedMonth.value
         pageDate.value = selectedDate.value
@@ -745,6 +747,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       loadCalendarData,
       formattedData,
       isSidebarLoading,
+      showSideMenu,
       selectedTime,
       updateCalendarMeta,
       calendarMetaData,

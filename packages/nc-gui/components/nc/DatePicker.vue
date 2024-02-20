@@ -34,16 +34,51 @@ const currentMonth = computed(() => {
 });
 
 const getDay = (date: Date) => {
-  return date.getDate();
+  return date.getDay();
 };
 
-const blankDays = computed((): any => {
+const blankDaysAtStart = computed((): any => {
   const date = new Date(pageDate.value);
   const dObj = new Date(date.getFullYear(), date.getMonth(), 1, date.getHours(), date.getMinutes());
-  if (props.isMondayFirst) {
-    return getDay(dObj) > 0 ? getDay(dObj) - 1 : 6;
+
+  const blankDaysCount = props.isMondayFirst
+      ? getDay(dObj) > 0
+          ? getDay(dObj) - 1
+          : 6
+      : getDay(dObj);
+
+  const blankDays = [];
+
+  for (let i = 1; i <= blankDaysCount; i++) {
+    const blankDayDate = new Date(dObj);
+    blankDayDate.setDate(dObj.getDate() - i);
+    const dayOfMonth = blankDayDate.getDate();
+    blankDays.unshift({ day: dayOfMonth });
   }
-  return getDay(dObj);
+
+  return blankDays;
+});
+
+const blankDaysAtEnd = computed((): any => {
+  const date = new Date(pageDate.value);
+  const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+  const daysInWeek = 7;
+  const lastDayOfWeek = props.isMondayFirst ? 6 : 0;
+
+  const blankDaysCount = props.isMondayFirst
+      ? lastDayOfWeek - (lastDayOfMonth.getDay() % daysInWeek)
+      : (daysInWeek - 1) - lastDayOfMonth.getDay();
+
+  const blankDays = [];
+
+  for (let i = 1; i <= blankDaysCount; i++) {
+    const blankDayDate = new Date(lastDayOfMonth);
+    blankDayDate.setDate(lastDayOfMonth.getDate() + i);
+    const dayOfMonth = blankDayDate.getDate();
+    blankDays.push({ day: dayOfMonth });
+  }
+  return blankDays;
 });
 
 function isSelectedDate(dObj: Date): boolean {
@@ -129,7 +164,7 @@ const selectDate = (day: number) => {
         <span v-for="day in days" class="h-9 flex items-center justify-center  w-9 text-gray-500">{{ day }}</span>
       </div>
       <div class="flex flex-row flex-wrap gap-2 p-2">
-        <span v-for="day in blankDays" class="h-9 w-9"></span>
+        <span v-for="day in blankDaysAtStart" class="h-9 w-9 px-1 py-2 text-gray-400 flex items-center justify-center">{{day.day}}</span>
         <span v-for="day in monthDays" :key="day.timestamp" :class="{
           'bg-brand-50 border-2 !border-brand-500' : day.isSelected,
           'hover:(border-1 border-gray-200 bg-gray-100)' : !day.isSelected
@@ -139,6 +174,7 @@ const selectDate = (day: number) => {
           <span v-if="day.hasEvent" class="absolute h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
           {{day.date}}
         </span>
+        <span v-for="day in blankDaysAtEnd" class="h-9 w-9 px-1 py-2 text-gray-400 flex items-center justify-center">{{day.day}}</span>
       </div>
     </div>
 

@@ -109,14 +109,16 @@ export function jdbcToXcUrl(url: string): string {
   const extraParams = [];
 
   for (const [key, value] of Object.entries(extra)) {
-    extraParams.push(`${key}=${value}`);
+    extraParams.push(`${key}=${encodeURIComponent(value + '')}`);
   }
 
   const res = `${driverClientMapping[driver] || driver}://${host}${
     port ? `:${port}` : ''
-  }?${user ? `u=${user}&` : ''}${password ? `p=${password}&` : ''}${
-    database ? `d=${database}&` : ''
-  }${extraParams.join('&')}`;
+  }?${user ? `u=${encodeURIComponent(user)}&` : ''}${
+    password ? `p=${encodeURIComponent(password)}&` : ''
+  }${database ? `d=${encodeURIComponent(database)}&` : ''}${extraParams.join(
+    '&',
+  )}`;
 
   return res;
 }

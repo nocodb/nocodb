@@ -7,6 +7,8 @@ const emit = defineEmits(['expand-record'])
 
 const { t } = useI18n()
 
+const { pageDate, selectedDate, selectedDateRange, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
+
 const options = computed(() => {
   switch (activeCalendarView.value) {
     case 'day' as const:
@@ -39,8 +41,6 @@ const options = computed(() => {
       ]
   }
 })
-
-const { pageDate, selectedDate, selectedDateRange, activeDates, activeCalendarView } = useCalendarViewStoreOrThrow()
 </script>
 
 <template>
@@ -53,12 +53,13 @@ const { pageDate, selectedDate, selectedDateRange, activeDates, activeCalendarVi
   >
     <NcDateWeekSelector
       v-if="activeCalendarView === ('day' as const)"
+      v-model:active-dates="activeDates"
       v-model:page-date="pageDate"
       v-model:selected-date="selectedDate"
-      :active-dates="activeDates"
     />
     <NcDateWeekSelector
       v-else-if="activeCalendarView === ('week' as const)"
+      v-model:active-dates="activeDatess"
       v-model:page-date="pageDate"
       v-model:selected-week="selectedDateRange"
       week-picker

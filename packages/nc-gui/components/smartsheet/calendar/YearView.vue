@@ -1,11 +1,10 @@
-<script setup lang="ts">
-const { pageDate, selectedDate, selectedDateRange } = useCalendarViewStoreOrThrow()
+<script lang="ts" setup>
+const { selectedDate, activeDates } = useCalendarViewStoreOrThrow()
 
 const months = computed(() => {
-  const date = new Date()
   const months = []
   for (let i = 0; i < 12; i++) {
-    months.push(new Date(date.getFullYear(), i, selectedDate.value.getDate()))
+    months.push(new Date(selectedDate.value.getFullYear(), i, selectedDate.value.getDate()))
   }
   return months
 })
@@ -16,12 +15,13 @@ const months = computed(() => {
     <NcDateWeekSelector
       v-for="(month, index) in months"
       :key="month"
+      v-model:active-dates="activeDates"
       v-model:page-date="months[index]"
       v-model:selected-date="selectedDate"
-      disable-pagination
       class="max-w-[350px]"
+      disable-pagination
     />
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style lang="scss" scoped></style>

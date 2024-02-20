@@ -160,6 +160,7 @@ const headerText = computed(() => {
                 'w-36': activeCalendarView === 'month',
                 'w-40': activeCalendarView === 'day',
                 'w-20': activeCalendarView === 'year',
+                'w-50': activeCalendarView === 'week',
               }"
               size="small"
               type="secondary"

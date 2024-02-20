@@ -43,6 +43,7 @@ const getAst = async ({
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
   let coverImageId;
+  let dependencyFieldsForCalenderView;
   if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(view.id);
     coverImageId = gallery.fk_cover_image_col_id;
@@ -52,6 +53,14 @@ const getAst = async ({
   } else if (view && view.type === ViewTypes.CALENDAR) {
     const calendar = await CalendarView.get(view.id);
     coverImageId = calendar.fk_cover_image_col_id;
+    const calenderRanges = await CalendarRange.read(view.id);
+    if (calenderRanges) {
+      dependencyFieldsForCalenderView = calenderRanges.ranges
+        .flatMap((obj) =>
+          [obj.fk_from_column_id, obj.fk_to_column_id].filter(Boolean),
+        )
+        .map(String);
+    }
   }
 
   if (!model.columns?.length) await model.getColumns();
@@ -101,6 +110,11 @@ const getAst = async ({
     );
     if (coverImageId) {
       allowedCols[coverImageId] = 1;
+    }
+    if (dependencyFieldsForCalenderView) {
+      dependencyFieldsForCalenderView.forEach((id) => {
+        allowedCols[id] = 1;
+      });
     }
   }
 

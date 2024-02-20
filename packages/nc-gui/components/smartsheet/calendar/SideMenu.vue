@@ -168,6 +168,11 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
                   ? dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('DD-MM-YYYY HH:mm')
                   : dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).format('DD-MM-YYYY')
               "
+              :invalid="
+                dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_from_col.title : '']).isAfter(
+                  dayjs(record.row[calendarRange[0] ? calendarRange[0].fk_to_col.title : '']),
+                )
+              "
               :name="record.row[displayField.title]"
               color="blue"
               @click="emit('expand-record', record)"

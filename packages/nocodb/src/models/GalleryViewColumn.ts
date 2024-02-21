@@ -122,6 +122,38 @@ export default class GalleryViewColumn {
     return views?.map((v) => new GalleryViewColumn(v));
   }
 
-  // todo: update method
+  // todo: update prop names
+  static async update(
+    columnId: string,
+    body: Partial<GalleryViewColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(body, [
+      'order',
+      'show',
+      'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+    ]);
+    // get existing cache
+    const key = `${CacheScope.GALLERY_VIEW_COLUMN}:${columnId}`;
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o = { ...o, ...updateObj };
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.GALLERY_VIEW_COLUMNS,
+      updateObj,
+      columnId,
+    );
 
+    return res;
+  }
 }

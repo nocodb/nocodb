@@ -1196,94 +1196,6 @@ export default class View implements ViewType {
     );
   }
 
-  private static extractViewColumnsTableName(view: View) {
-    let table;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW_COLUMNS;
-        break;
-      case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW_COLUMNS;
-        break;
-      case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW_COLUMNS;
-        break;
-      case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW_COLUMNS;
-        break;
-      case ViewTypes.MAP:
-        table = MetaTable.MAP_VIEW_COLUMNS;
-        break;
-    }
-    return table;
-  }
-
-  private static extractViewTableName(view: View) {
-    let table;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW;
-        break;
-      case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW;
-        break;
-      case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW;
-        break;
-      case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW;
-        break;
-      case ViewTypes.MAP:
-        table = MetaTable.MAP_VIEW;
-        break;
-    }
-    return table;
-  }
-
-  private static extractViewColumnsTableNameScope(view: View) {
-    let scope;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        scope = CacheScope.GRID_VIEW_COLUMN;
-        break;
-      case ViewTypes.GALLERY:
-        scope = CacheScope.GALLERY_VIEW_COLUMN;
-        break;
-      case ViewTypes.MAP:
-        scope = CacheScope.MAP_VIEW_COLUMN;
-        break;
-      case ViewTypes.KANBAN:
-        scope = CacheScope.KANBAN_VIEW_COLUMN;
-        break;
-      case ViewTypes.FORM:
-        scope = CacheScope.FORM_VIEW_COLUMN;
-        break;
-    }
-    return scope;
-  }
-
-  private static extractViewTableNameScope(view: View) {
-    let scope;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        scope = CacheScope.GRID_VIEW;
-        break;
-      case ViewTypes.GALLERY:
-        scope = CacheScope.GALLERY_VIEW;
-        break;
-      case ViewTypes.MAP:
-        scope = CacheScope.MAP_VIEW;
-        break;
-      case ViewTypes.KANBAN:
-        scope = CacheScope.KANBAN_VIEW;
-        break;
-      case ViewTypes.FORM:
-        scope = CacheScope.FORM_VIEW;
-        break;
-    }
-    return scope;
-  }
-
   static async showAllColumns(
     viewId,
     ignoreColdIds = [],
@@ -2036,7 +1948,7 @@ export default class View implements ViewType {
     return insertedView;
   }
 
-  protected static extractViewColumnsTableName(view: View) {
+  public static extractViewColumnsTableName(view: View) {
     let table;
     switch (view.type) {
       case ViewTypes.GRID:
@@ -2086,7 +1998,7 @@ export default class View implements ViewType {
     return table;
   }
 
-  private static extractViewColumnsTableNameScope(view: View) {
+  protected static extractViewColumnsTableNameScope(view: View) {
     let scope;
     switch (view.type) {
       case ViewTypes.GRID:

@@ -1,17 +1,19 @@
 import 'mocha';
 // @ts-ignore
+import assert from 'assert';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
-import { createTable, getTable } from '../../factory/table';
-import { createView } from '../../factory/view';
+import { createTable, getAllTables, getTable } from '../../factory/table';
+import { createView, getView } from '../../factory/view';
 import {
   createColumn,
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
+  defaultColumns,
   updateViewColumn,
 } from '../../factory/column';
 import {
@@ -19,10 +21,12 @@ import {
   createRow,
   getOneRow,
   getRow,
+  listRow,
 } from '../../factory/row';
+import Model from '../../../../src/models/Model';
+import { getViewColumns, updateViewColumns } from '../../factory/viewColumns';
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
-import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
 
 // Test case list
@@ -1695,6 +1699,81 @@ function viewRowTests() {
     }
     if (!response.text) {
       throw new Error('Wrong export');
+    }
+  });
+
+  it('Test view column v3 apis', async function () {
+    const table = new Model(
+      await getTable({
+        base: sakilaProject,
+        name: 'film',
+      }),
+    );
+
+    const view = await getView(context, {
+      table,
+      name: 'Film',
+    });
+
+    const columns = await table.getColumns();
+
+    // get rows
+    const rows = await listRow({
+      base: sakilaProject,
+      table: table,
+      view,
+      options: {
+        limit: 1,
+      },
+    });
+
+    // verify fields in response
+
+    // hide few columns using update view column API
+    // const view = await createView(context, {
+    const columnsToHide = ['Rating', 'Description', 'ReleaseYear'];
+
+    // generate key value pair of column id and object with hidden as true
+    const viewColumnsObj: any = columnsToHide.reduce((acc, columnTitle) => {
+      const column = columns.find((c) => c.title === columnTitle);
+      if (column) {
+        acc[column.id] = {
+          show: false,
+        };
+      }
+      return acc;
+    }, {});
+
+    await updateViewColumns(context, {
+      view,
+      viewColumns: viewColumnsObj,
+    });
+
+    // get rows after update
+    const rowsAfterUpdate = await listRow({
+      base: sakilaProject,
+      table: table,
+      view,
+      options: {
+        limit: 1,
+      },
+    });
+
+    // verify column visible in old and hidden in new
+    for (const title of columnsToHide) {
+      expect(rows[0]).to.have.property(title);
+      expect(rowsAfterUpdate[0]).to.not.have.property(title);
+    }
+
+    // get view columns and verify hidden columns
+    const viewColumnsViaApi: any = await getViewColumns(context, {
+      view,
+    });
+
+    for (const colId of Object.keys(viewColumnsViaApi)) {
+      const column = columns.find((c) => c.id === colId);
+      if (columnsToHide.includes(column.title))
+        expect(!!viewColumnsViaApi[colId]).to.have.property('show', false);
     }
   });
 }

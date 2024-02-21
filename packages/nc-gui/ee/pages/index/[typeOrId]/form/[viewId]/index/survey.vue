@@ -242,13 +242,13 @@ onMounted(() => {
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading">
+        <h1 class="text-2xl font-bold text-gray-900 self-center my-4" data-testid="nc-survey-form__heading">
           {{ sharedFormView.heading }}
         </h1>
 
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
-          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
+          class="text-base font-bold text-gray-500 dark:text-gray-300 self-center mb-4"
           data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
@@ -391,14 +391,9 @@ onMounted(() => {
                 </p>
 
                 <div v-if="sharedFormView?.submit_another_form" class="text-center">
-                  <button
-                    type="button"
-                    class="scaling-btn bg-opacity-100"
-                    data-testid="nc-survey-form__btn-submit-another-form"
-                    @click="resetForm"
-                  >
+                  <NcButton type="primary" size="medium" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
                     Submit Another Form
-                  </button>
+                  </NcButton>
                 </div>
               </div>
             </div>

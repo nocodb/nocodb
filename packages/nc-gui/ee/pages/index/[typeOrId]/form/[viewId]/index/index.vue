@@ -90,12 +90,12 @@ const onDecode = async (scannedCodeValue: string) => {
       class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
     >
       <template v-if="sharedFormView">
-        <div>
-          <h1 class="prose-2xl font-bold mb-4">
+        <div class="mb-4">
+          <h1 class="text-2xl font-bold text-gray-900 mb-4">
             {{ sharedFormView.heading }}
           </h1>
 
-          <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6">
+          <h2 v-if="sharedFormView.subheading" class="text-base font-bold text-gray-500 dark:text-slate-300 mb-4">
             {{ sharedFormView.subheading }}
           </h2>
         </div>
@@ -117,7 +117,7 @@ const onDecode = async (scannedCodeValue: string) => {
               </p>
 
               <div v-if="sharedFormView.submit_another_form" class="text-center">
-                <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+                <NcButton type="primary" size="medium" @click="submitted = false"> Submit Another Form</NcButton>
               </div>
             </div>
           </div>

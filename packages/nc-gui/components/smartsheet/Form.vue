@@ -493,12 +493,12 @@ useEventListener(
           class="transition-all duration-300 ease-in relative max-w-[max(33%,688px)] mx-auto my-6 bg-white rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
         >
           <div v-if="formViewData" class="items-center justify-center text-center mt-2">
-            <div class="text-left">
-              <h1 class="prose-2xl font-bold mb-4">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 mb-4">
                 {{ formViewData.heading }}
               </h1>
 
-              <h2 v-if="formViewData.subheading" class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6">
+              <h2 v-if="formViewData.subheading" class="font-bold text-base text-gray-500 mb-4">
                 {{ formViewData.subheading }}
               </h2>
             </div>
@@ -522,8 +522,8 @@ useEventListener(
                 </div>
 
                 <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
-                  <a-button type="primary" size="large" @click="submitted = false">
-                    {{ $t('activity.submitAnotherForm') }}</a-button
+                  <NcButton type="primary" size="medium" @click="submitted = false">
+                    {{ $t('activity.submitAnotherForm') }}</NcButton
                   >
                 </div>
               </div>
@@ -607,7 +607,7 @@ useEventListener(
                       />
                     </a-form-item>
 
-                    <div v-else class="text-bold text-2xl text-gray-900">
+                    <div v-else class="font-bold text-2xl text-gray-900">
                       {{ formViewData.heading }}
                     </div>
                   </div>
@@ -634,7 +634,7 @@ useEventListener(
                     <a-form-item v-if="isEditable" class="w-full !my-0">
                       <a-textarea
                         v-model:value="formViewData.subheading"
-                        class="nc-form-focus-element w-full !p-0 !m-0 !border-0 !rounded-none !text-gray-500"
+                        class="nc-form-focus-element w-full !p-0 !m-0 !border-0 !rounded-none font-bold !text-gray-500"
                         :style="{
                           borderRightWidth: '0px !important',
                           resize: 'vertical',
@@ -652,7 +652,7 @@ useEventListener(
                       />
                     </a-form-item>
 
-                    <div v-else class="text-bold text-base text-gray-500">
+                    <div v-else class="font-bold text-base text-gray-500">
                       {{ formViewData.subheading || '---' }}
                     </div>
                   </div>

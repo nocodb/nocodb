@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 interface Props {
-  bannerImageUrl?: string
+  bannerImageUrl?: string | null
 }
 const { bannerImageUrl } = defineProps<Props>()
 </script>

@@ -538,8 +538,8 @@ useEventListener(
 
                 <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
                   <NcButton type="primary" size="medium" @click="submitted = false">
-                    {{ $t('activity.submitAnotherForm') }}</NcButton
-                  >
+                    {{ $t('activity.submitAnotherForm') }}
+                  </NcButton>
                 </div>
               </div>
             </div>
@@ -723,10 +723,10 @@ useEventListener(
                           <span data-testid="nc-form-input-label">
                             {{ element.label || element.title }}
                           </span>
-                          <span v-if="element.required" class="text-red-500">&nbsp;*</span>
+                          <span v-if="isRequired(element, element.required)" class="text-red-500">&nbsp;*</span>
                         </div>
 
-                        <div class="nc-form-help-text text-gray-500 text-[13px] leading-5 mt-2" data-testid="nc-form-help-text">
+                        <div class="nc-form-help-text text-gray-500 text-sm mt-2" data-testid="nc-form-help-text">
                           {{ element.description }}
                         </div>
                       </div>
@@ -747,7 +747,7 @@ useEventListener(
                               {{ element.label || element.title }}
                             </span>
                           </NcTooltip>
-                          <span v-if="element.required" class="text-red-500">&nbsp;*</span>
+                          <span v-if="isRequired(element, element.required)" class="text-red-500">&nbsp;*</span>
                         </div>
                         <a-form-item class="my-0 !mb-2">
                           <div class="flex gap-2 items-center">
@@ -798,7 +798,7 @@ useEventListener(
                               :rows="1"
                               auto-size
                               hide-details
-                              class="form-meta-input text-sm nc-form-input-help-text"
+                              class="form-meta-input nc-form-input-help-text"
                               data-testid="nc-form-input-help-text"
                               :placeholder="$t('msg.info.formHelpText')"
                               @keydown.enter.prevent
@@ -838,7 +838,7 @@ useEventListener(
                             :rules="[
                               {
                                 required: isRequired(element, element.required),
-                                message: `${element.label || element.title} is required`,
+                                message: `${$t('msg.error.fieldRequired', { value: 'This Field' })}`,
                               },
                             ]"
                           >
@@ -886,8 +886,8 @@ useEventListener(
                         <div class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
                           <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" />
                           <div>
-                            <div class="font-medium text-gray-800">Show on condtions</div>
-                            <div class="text-gray-500">Shows field only when conditions are met</div>
+                            <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
+                            <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
                           </div>
                         </div>
                       </div>
@@ -896,10 +896,10 @@ useEventListener(
 
                   <template #footer>
                     <div
-                      v-if="!visibleColumns.length"
+                      v-if="!visibleColumns.length && isEditable"
                       class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center"
                     >
-                      Select fields from right panel to add here
+                      {{ $t('title.selectFieldsFromRightPannelToAddHere') }}
                     </div>
                   </template>
                 </Draggable>
@@ -914,7 +914,7 @@ useEventListener(
                     data-title="nc-form-clear"
                     @click="clearForm"
                   >
-                    Crear Form
+                    {{ $t('activity.clearForm') }}
                   </NcButton>
                   <NcButton
                     html-type="submit"
@@ -947,11 +947,10 @@ useEventListener(
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <div class="flex gap-3">
                   <div class="text-base font-bold text-gray-900">
-                    <!-- {{ $t('objects.fields') }} -->
-                    Form Fields
+                    {{ $t('objects.viewType.form') }} {{ $t('objects.fields') }}
                   </div>
-                  <NcBadge color="border-gray-200" class="">
-                    {{ visibleColumns.length }}/{{ localColumns.length }} Field
+                  <NcBadge color="border-gray-200">
+                    {{ visibleColumns.length }}/{{ localColumns.length }} {{ $t('objects.field') }}
                   </NcBadge>
                 </div>
 
@@ -960,7 +959,6 @@ useEventListener(
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-form-add-column"
                 >
-                  <!-- v-if="localColumns.length" -->
                   <NcButton
                     type="secondary"
                     size="small"
@@ -970,7 +968,7 @@ useEventListener(
                   >
                     <div class="flex gap-2 items-center">
                       <component :is="iconMap.plus" class="w-4 h-4" />
-                      <span> Add Field </span>
+                      <span> {{ $t('activity.addFieldFromFormView') }} </span>
                     </div>
                   </NcButton>
 
@@ -1020,7 +1018,7 @@ useEventListener(
                   >
                     <div class="w-4 h-4 flex-none mr-2"></div>
                     <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
-                      <div class="flex-1 font-base">Select all fields</div>
+                      <div class="flex-1 font-base">{{ $t('activity.selectAllFields') }}</div>
                       <NcSwitch :checked="visibleColumns.length === localColumns.length" @change="handleAddOrRemoveAllColumns" />
                     </div>
                   </div>
@@ -1057,7 +1055,7 @@ useEventListener(
                                 {{ field.label || field.title }}
                               </span>
                             </NcTooltip>
-                            <span v-if="field.required" class="text-red-500">&nbsp;*</span>
+                            <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
                           </div>
                           <NcSwitch :checked="!!field.show" :disabled="field.required" />
                         </div>
@@ -1083,10 +1081,10 @@ useEventListener(
             >
               <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
                 <!-- Appearance Settings -->
-                <div class="text-base font-bold text-gray-900">Appearance Settings</div>
+                <div class="text-base font-bold text-gray-900">{{ $t('labels.appearanceSettings') }}</div>
 
                 <div>
-                  <div class="text-gray-800">Background Color</div>
+                  <div class="text-gray-800">{{ $t('labels.backgroundColor') }}</div>
                   <div class="flex justify-start">
                     <LazyGeneralColorPicker
                       :model-value="(formViewData.meta as Record<string,any>).background_color"
@@ -1136,22 +1134,21 @@ useEventListener(
                     "
                   />
                   <a-switch v-else :checked="false" size="small" :disabled="true" />
-                  <span class="ml-4">Hide NocoDB Branding</span>
+                  <span class="ml-4">{{ $t('labels.hideNocodbBranding') }}</span>
                 </div>
               </div>
 
               <div class="p-4 flex flex-col space-y-4">
                 <!-- Post Form Submission Settings -->
                 <div class="text-base font-bold text-gray-900">
-                  Post Form Submission Settings
-                  <!-- {{ $t('msg.info.afterFormSubmitted') }} -->
+                  {{ $t('msg.info.postFormSubmissionSettings') }}
                 </div>
 
                 <!-- Show this message -->
                 <div>
                   <div class="text-gray-800 mb-2">
                     Display Message
-                    <!-- {{ $t('msg.info.showMessage') }} -->
+                    <!-- {{ $t('msg.info.formDisplayMessage') }} -->
                   </div>
                   <a-textarea
                     v-model:value="formViewData.success_msg"
@@ -1240,9 +1237,17 @@ useEventListener(
   }
   &:not(.nc-cell-longtext) {
     @apply px-2 py-2;
+
+    :deep(textarea) {
+      @apply !p-2;
+    }
   }
-  :deep(textarea) {
-    @apply !p-2;
+
+  &.nc-cell-json {
+    @apply h-auto;
+    & > div {
+      @apply w-full;
+    }
   }
 }
 
@@ -1264,6 +1269,9 @@ useEventListener(
 .nc-input-required-error {
   max-width: 100%;
   white-space: pre-line;
+  :deep(.ant-form-item-explain-error) {
+    @apply mt-2;
+  }
 }
 
 :deep(.nc-cell-attachment) {

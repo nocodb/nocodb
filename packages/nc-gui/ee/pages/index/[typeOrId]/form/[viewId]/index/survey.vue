@@ -264,7 +264,7 @@ onMounted(() => {
           class="color-transition h-full flex flex-col mt-6 gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
-            <div class="flex nc-form-column-label" data-testid="nc-form-column-label">
+            <div class="nc-form-column-label" data-testid="nc-form-column-label">
               <span>
                 {{ field.label || field.title }}
               </span>
@@ -272,7 +272,7 @@ onMounted(() => {
             </div>
             <div
               v-if="field?.description"
-              class="nc-form-column-description text-gray-500 text-[13px]"
+              class="nc-form-column-description text-gray-500 text-sm"
               data-testid="nc-survey-form__field-description"
             >
               {{ field?.description }}

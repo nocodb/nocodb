@@ -148,13 +148,13 @@ const onDecode = async (scannedCodeValue: string) => {
             <div class="nc-form h-full">
               <div class="flex flex-col gap-3 md:gap-6">
                 <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
-                  <div class="flex nc-form-column-label">
+                  <div class="nc-form-column-label">
                     <span>
                       {{ field.label || field.title }}
                     </span>
                     <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
                   </div>
-                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-[13px]">
+                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
                     {{ field?.description }}
                   </div>
 
@@ -190,7 +190,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       </a-button>
                     </LazySmartsheetDivDataCell>
 
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-sm mt-2">
                       <template v-if="isVirtualCol(field)">
                         <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
                           {{ error.$message }}
@@ -216,7 +216,7 @@ const onDecode = async (scannedCodeValue: string) => {
                   data-testid="shared-form-clear-button"
                   @click="clearForm"
                 >
-                  Crear Form
+                  {{ $t('activity.clearForm') }}
                 </NcButton>
 
                 <NcButton
@@ -224,7 +224,7 @@ const onDecode = async (scannedCodeValue: string) => {
                   :disabled="progress"
                   type="primary"
                   size="small"
-                  class="nc-shared-form-button shared-form-submit-button prose-sm"
+                  class="nc-shared-form-button shared-form-submit-button"
                   data-testid="shared-form-submit-button"
                   @click="submitForm"
                 >

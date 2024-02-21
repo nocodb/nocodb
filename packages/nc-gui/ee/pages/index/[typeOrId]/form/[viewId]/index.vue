@@ -138,6 +138,13 @@ p {
             box-shadow: none !important;
           }
         }
+
+        &.nc-cell-json {
+          @apply h-auto;
+          & > div {
+            @apply w-full;
+          }
+        }
       }
     }
 

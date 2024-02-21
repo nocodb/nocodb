@@ -226,6 +226,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     progress.value = false
   }
 
+  const clearForm = async () => {
+    formResetHook.trigger()
+
+    additionalState.value = {}
+    formState.value = {}
+    v$.value?.$reset()
+  }
+
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal) => {
     if (nextVal && sharedFormView.value?.show_blank_form) {
@@ -261,6 +269,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadSharedView,
     columns,
     submitForm,
+    clearForm,
     progress,
     meta,
     validators,

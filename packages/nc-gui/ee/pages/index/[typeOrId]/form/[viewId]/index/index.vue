@@ -5,8 +5,19 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { iconMap, useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
-  useSharedFormStoreOrThrow()
+const {
+  sharedFormView,
+  submitForm,
+  clearForm,
+  v$,
+  formState,
+  notFound,
+  formColumns,
+  submitted,
+  secondsRemain,
+  isLoading,
+  progress,
+} = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -127,7 +138,7 @@ const onDecode = async (scannedCodeValue: string) => {
               <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
             </div>
           </a-modal>
-          <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
+          <GeneralOverlay class="bg-gray-50/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
             </div>
@@ -179,10 +190,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       </a-button>
                     </LazySmartsheetDivDataCell>
 
-                    <div
-                      class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
-                      style="word-break: break-all"
-                    >
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}
                       </div>
@@ -191,18 +199,30 @@ const onDecode = async (scannedCodeValue: string) => {
                 </div>
               </div>
 
-              <div class="flex justify-center items-center mt-6">
-                <!-- <button type="reset" :disabled="isLoading" class="nc-form-clear" data-testid="shared-form-clear-button">
+              <div class="flex justify-between items-center mt-6">
+                <NcButton
+                  html-type="reset"
+                  type="secondary"
+                  size="small"
+                  :disabled="isLoading"
+                  class="nc-shared-form-button shared-form-clear-button"
+                  data-testid="shared-form-clear-button"
+                  @click="clearForm"
+                >
                   Crear Form
-                </button> -->
-                <button
-                  type="submit"
-                  class="uppercase scaling-btn prose-sm"
+                </NcButton>
+
+                <NcButton
+                  html-type="submit"
+                  :disabled="progress"
+                  type="primary"
+                  size="small"
+                  class="nc-shared-form-button shared-form-submit-button uppercase prose-sm"
                   data-testid="shared-form-submit-button"
                   @click="submitForm"
                 >
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
             </div>
           </div>
@@ -226,5 +246,11 @@ const onDecode = async (scannedCodeValue: string) => {
 .nc-btn-fill-form-column-by-scan {
   @apply h-auto;
   @apply ml-1;
+}
+
+.nc-shared-form-button {
+  &.nc-button.ant-btn:focus {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
 }
 </style>

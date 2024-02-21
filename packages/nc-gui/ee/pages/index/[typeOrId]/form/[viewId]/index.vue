@@ -116,10 +116,16 @@ p {
         }
 
         &.nc-cell-longtext {
-          @apply !p-0 pb-2px pr-2px;
+          @apply p-0 h-auto;
           & > div {
             @apply w-full;
           }
+          :deep(textarea) {
+            @apply !p-2;
+          }
+        }
+        &:not(.nc-cell-longtext) {
+          @apply px-2 py-2;
         }
 
         textarea {

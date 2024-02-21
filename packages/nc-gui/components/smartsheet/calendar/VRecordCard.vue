@@ -69,11 +69,14 @@ const emit = defineEmits(['resize-start'])
 
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
-    <div class="ml-3 pr-3 text-ellipsis overflow-hidden w-full h-8 absolute">
-      <span class="text-sm text-gray-800">
-        <slot />
-      </span>
-    </div>
+    <span
+      :class="{
+        '!h-[40%]': position === 'none',
+      }"
+      class="mt-1.5 pl-4 pr-1 text-sm h-[70%] text-gray-800 leading-7 space-x-2 break-all whitespace-normal truncate w-full overflow-y-hidden absolute"
+    >
+      <slot />
+    </span>
     <div v-if="position === 'topRounded' || position === 'none'" class="h-full pb-7 flex items-end ml-3">....</div>
   </div>
   <div

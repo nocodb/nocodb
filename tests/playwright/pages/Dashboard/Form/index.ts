@@ -75,11 +75,11 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsInputLabel() {
-    return this.get().locator('input[data-testid="nc-form-input-label"]:visible');
+    return this.get().locator('textarea[data-testid="nc-form-input-label"]:visible');
   }
 
   getFormFieldsInputHelpText() {
-    return this.get().locator('input[data-testid="nc-form-input-help-text"]:visible');
+    return this.get().locator('textarea[data-testid="nc-form-input-help-text"]:visible');
   }
 
   async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {

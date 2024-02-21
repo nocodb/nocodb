@@ -1,18 +1,15 @@
 <script lang="ts" setup>
-import { autoResetRef, useThrottleFn, toRefs } from '#imports'
+import { autoResetRef, toRefs, useThrottleFn } from '#imports'
 
 interface Props {
   size?: number
   animate?: boolean
 }
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    size: 90,
-    animate: false,
-  },
-)
+const props = withDefaults(defineProps<Props>(), {
+  size: 90,
+  animate: false,
+})
 
 const { size, animate } = toRefs(props)
 

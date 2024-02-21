@@ -113,11 +113,13 @@ const onDecode = async (scannedCodeValue: string) => {
               />
 
               <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-                New form will be loaded after {{ secondsRemain }} seconds
+                {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 
               <div v-if="sharedFormView.submit_another_form" class="text-center">
-                <NcButton type="primary" size="medium" @click="submitted = false"> Submit Another Form</NcButton>
+                <NcButton type="primary" size="medium" @click="submitted = false">
+                  {{ $t('activity.submitAnotherForm') }}
+                </NcButton>
               </div>
             </div>
           </div>
@@ -172,7 +174,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       <LazySmartsheetCell
                         v-else
                         v-model="formState[field.title]"
-                        class="nc-input"
+                        class="nc-input truncate"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                         :column="field"

@@ -303,8 +303,8 @@ onMounted(() => {
                 </div>
 
                 <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
-                  Shift <MdiAppleKeyboardShift class="mx-1 text-primary" /> + Enter
-                  <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> to make a line break
+                  {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
+                  <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.makeLineBreak') }}
                 </div>
               </div>
             </LazySmartsheetDivDataCell>
@@ -313,30 +313,30 @@ onMounted(() => {
           <div class="ml-1 mt-4 flex w-full text-lg">
             <div class="flex-1 flex justify-center">
               <div v-if="isLast && !submitted && !v$.$invalid" class="text-center my-4">
-                <button
+                <NcButton
                   :class="
                     animationTarget === AnimationTarget.SubmitButton && isAnimating
                       ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
                       : ''
                   "
-                  type="submit"
-                  class="uppercase scaling-btn prose-sm"
+                  html-type="submit"
                   data-testid="nc-survey-form__btn-submit"
                   @click="submit"
                 >
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
 
               <div v-else-if="!submitted" class="flex items-center gap-3 flex-col">
                 <a-tooltip
-                  :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
+                  :title="
+                    v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : $t('msg.info.goToNext')
+                  "
                   :mouse-enter-delay="0.25"
                   :mouse-leave-delay="0"
                 >
                   <!-- Ok button for question -->
-                  <button
-                    class="bg-opacity-100 scaling-btn flex items-center gap-1"
+                  <NcButton
                     data-testid="nc-survey-form__btn-next"
                     :class="[
                       v$.localState[field.title]?.$error || columnValidationError ? 'after:!bg-gray-100 after:!ring-red-500' : '',
@@ -346,24 +346,25 @@ onMounted(() => {
                     ]"
                     @click="goNext()"
                   >
-                    <Transition name="fade">
-                      <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
-                    </Transition>
+                    <div class="flex items-center gap-1">
+                      <Transition name="fade">
+                        <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
+                      </Transition>
 
-                    <Transition name="slide-right" mode="out-in">
-                      <component
-                        :is="iconMap.closeCircle"
-                        v-if="v$.localState[field.title]?.$error || columnValidationError"
-                        class="text-red-500 md:text-md"
-                      />
-                      <component :is="iconMap.check" v-else class="text-white md:text-md" />
-                    </Transition>
-                  </button>
+                      <Transition name="slide-right" mode="out-in">
+                        <component
+                          :is="iconMap.closeCircle"
+                          v-if="v$.localState[field.title]?.$error || columnValidationError"
+                          class="text-red-500 md:text-md"
+                        />
+                        <component :is="iconMap.check" v-else class="text-white md:text-md" />
+                      </Transition>
+                    </div>
+                  </NcButton>
                 </a-tooltip>
 
-                <!-- todo: i18n -->
                 <div class="hidden md:flex text-sm text-gray-500 items-center gap-1">
-                  Press Enter <MaterialSymbolsKeyboardReturn class="text-primary" />
+                  {{ $t('labels.pressEnter') }} <MaterialSymbolsKeyboardReturn class="text-primary" />
                 </div>
               </div>
             </div>
@@ -376,17 +377,18 @@ onMounted(() => {
                 class="!my-4 !py-4 text-center !rounded-lg"
                 data-testid="nc-survey-form__success-msg"
                 outlined
-                :message="sharedFormView?.success_msg || 'Successfully submitted form data'"
+                :message="sharedFormView?.success_msg || $t('msg.info.thankYou')"
+                :description="sharedFormView?.success_msg ? undefined : $t('msg.info.submittedFormData')"
               />
 
               <div v-if="sharedFormView" class="mt-3">
                 <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-                  New form will be loaded after {{ secondsRemain }} seconds
+                  {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds') }}
                 </p>
 
                 <div v-if="sharedFormView?.submit_another_form" class="text-center">
                   <NcButton type="primary" size="medium" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
-                    Submit Another Form
+                    {{ $t('activity.submitAnotherForm') }}
                   </NcButton>
                 </div>
               </div>
@@ -408,7 +410,7 @@ onMounted(() => {
           v-if="!submitted"
           class="color-transition shadow-sm absolute bottom-18 right-1/2 transform translate-x-[50%] md:bottom-4 md:(right-12 transform-none) flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
         >
-          <a-tooltip :title="isFirst ? '' : 'Go to previous'" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
+          <a-tooltip :title="isFirst ? '' : $t('msg.info.goToPrevious')" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
             <button
               :class="
                 animationTarget === AnimationTarget.ArrowLeft && isAnimating
@@ -428,7 +430,7 @@ onMounted(() => {
           </a-tooltip>
 
           <a-tooltip
-            :title="v$.localState[field.title]?.$error ? '' : 'Go to next'"
+            :title="v$.localState[field.title]?.$error ? '' : $t('msg.info.goToNext')"
             :mouse-enter-delay="0.25"
             :mouse-leave-delay="0"
           >
@@ -460,8 +462,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-:global(html),
-:global(body) {
+:global(html, body) {
   @apply overscroll-x-none;
 }
 
@@ -495,9 +496,15 @@ onMounted(() => {
     }
     &:not(.nc-cell-longtext) {
       @apply px-2 py-2;
+      :deep(textarea) {
+        @apply !p-2;
+      }
     }
-    :deep(textarea) {
-      @apply !p-2;
+
+    &.nc-cell-checkbox {
+      > * {
+        @apply justify-center flex items-center;
+      }
     }
   }
 

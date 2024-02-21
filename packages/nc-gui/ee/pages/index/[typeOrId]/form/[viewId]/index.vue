@@ -125,6 +125,10 @@ p {
           }
           :deep(textarea) {
             @apply !p-2;
+
+            &:focus {
+              box-shadow: none !important;
+            }
           }
         }
         &:not(.nc-cell-longtext) {

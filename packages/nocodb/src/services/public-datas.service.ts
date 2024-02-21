@@ -5,7 +5,9 @@ import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
+import dayjs from 'dayjs';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { CalendarRange } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -36,7 +38,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.MAP
+      view.type !== ViewTypes.MAP &&
+      view.type !== ViewTypes.CALENDAR
     ) {
       NcError.notFound('Not found');
     }
@@ -73,10 +76,17 @@ export class PublicDatasService {
     let data = [];
     let count = 0;
 
+    let option = {};
+    if (view && view.type === ViewTypes.CALENDAR) {
+      option = {
+        ignorePagination: true,
+      };
+    }
+
     try {
       data = await nocoExecute(
         ast,
-        await baseModel.list(listArgs),
+        await baseModel.list(listArgs, option),
         {},
         listArgs,
       );
@@ -87,6 +97,70 @@ export class PublicDatasService {
     }
 
     return new PagedResponseImpl(data, { ...param.query, count });
+  }
+
+  async getCalendarRecordCount(param: {
+    sharedViewUuid: string;
+    password?: string;
+    query: any;
+  }) {
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+
+    if (view.password && view.password !== password) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    if (view.type !== ViewTypes.CALENDAR)
+      NcError.badRequest('View is not a calendar view');
+
+    const { ranges } = await CalendarRange.read(view.id);
+
+    const model = await Model.getByIdOrName({
+      id: view.fk_model_id,
+    });
+
+    const columns = await model.getColumns();
+
+    const data: any = await this.dataList({
+      sharedViewUuid,
+      password,
+      query,
+    });
+
+    if (!data) NcError.notFound('Data not found');
+
+    const dates: Array<string> = [];
+
+    ranges.forEach((range: any) => {
+      data.list.forEach((date) => {
+        const from =
+          date[columns.find((c) => c.id === range.fk_from_column_id).title];
+
+        let to;
+        if (range.fk_to_column_id) {
+          to = date[columns.find((c) => c.id === range.fk_to_column_id).title];
+        }
+
+        if (from && to) {
+          const fromDt = dayjs(from);
+          const toDt = dayjs(to);
+
+          let current = fromDt;
+
+          while (current.isSameOrBefore(toDt)) {
+            dates.push(current.format('YYYY-MM-DD HH:mm:ssZ'));
+            current = current.add(1, 'day');
+          }
+        } else if (from) {
+          dates.push(dayjs(from).format('YYYY-MM-DD HH:mm:ssZ'));
+        }
+      });
+    });
+
+    return dates;
   }
 
   // todo: Handle the error case where view doesnt belong to model
@@ -495,7 +569,8 @@ export class PublicDatasService {
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR
     ) {
       NcError.notFound('Not found');
     }
@@ -569,7 +644,8 @@ export class PublicDatasService {
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR
     ) {
       NcError.notFound('Not found');
     }

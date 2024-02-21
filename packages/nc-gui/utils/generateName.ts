@@ -20,3 +20,7 @@ export const generateUniqueTitle = <T extends Record<string, any> = Record<strin
 
   return `${title}-${c}`
 }
+
+export const generateRandomNumber = () => {
+  return window.crypto.getRandomValues(new Uint8Array(10)).join('')
+}

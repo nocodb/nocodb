@@ -4,6 +4,7 @@ import type { Row as RowType } from '#imports'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsCalendarInj,
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
@@ -57,6 +58,7 @@ const {
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
+provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, ref(1 as const))
 

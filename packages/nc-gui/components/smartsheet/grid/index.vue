@@ -5,6 +5,7 @@ import GroupBy from './GroupBy.vue'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsCalendarInj,
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
@@ -94,6 +95,8 @@ provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 
 provide(IsGridInj, ref(true))
+
+provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, rowHeight)
 

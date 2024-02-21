@@ -1,4 +1,5 @@
 import type {
+  CalendarType,
   ExportTypes,
   FilterType,
   KanbanType,
@@ -42,7 +43,7 @@ export function useSharedView() {
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = useState<TableType | KanbanType | MapType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | MapType | CalendarType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>
@@ -109,16 +110,21 @@ export function useSharedView() {
     }
   }
 
-  const fetchSharedViewData = async (param: {
-    sortsArr: SortType[]
-    filtersArr: FilterType[]
-    fields?: any[]
-    sort?: any[]
-    where?: string
-    /** Query params for nested data */
-    nested?: any
-    offset?: number
-  }) => {
+  const fetchSharedViewData = async (
+    param: {
+      sortsArr: SortType[]
+      filtersArr: FilterType[]
+      fields?: any[]
+      sort?: any[]
+      where?: string
+      /** Query params for nested data */
+      nested?: any
+      offset?: number
+    },
+    headers?: {
+      ignorePagination?: boolean
+    },
+  ) => {
     if (!sharedView.value)
       return {
         list: [],
@@ -135,6 +141,34 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+          'xc-ignore-pagination': headers?.ignorePagination ? 'true' : 'false',
+        },
+      },
+    )
+  }
+
+  const fetchSharedViewActiveDate = async (param: {
+    sortsArr: SortType[]
+    filtersArr: FilterType[]
+    sort?: any[]
+    where?: string
+  }) => {
+    if (!sharedView.value)
+      return {
+        list: [],
+        pageInfo: {},
+      }
+
+    return await $api.public.calendarCount(
+      sharedView.value.uuid!,
+      {
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
@@ -199,6 +233,7 @@ export function useSharedView() {
     meta,
     nestedFilters,
     fetchSharedViewData,
+    fetchSharedViewActiveDate,
     fetchSharedViewGroupedData,
     paginationData,
     sorts,

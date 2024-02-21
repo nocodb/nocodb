@@ -195,6 +195,10 @@
     "restore": "Ripristino"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Spazio di lavoro",
     "workspaces": "Spazi di lavoro",
     "project": "Progetto",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Titolo 1",
     "heading2": "Titolo 2",
     "heading3": "Titolo 3",
@@ -473,6 +484,8 @@
     "timeFormat": "Formato Ora",
     "singularLabel": "Etichetta singolare",
     "pluralLabel": "Etichetta plurale",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(Opzionale)",
     "clickToMake": "Click per eseguire",
     "visibleForRole": "visibile per il ruolo:",
@@ -515,7 +528,9 @@
     "duplicateFormView": "Duplica Visualizzazione Form",
     "createFormView": "Crea Visualizzazione Form",
     "duplicateKanbanView": "Duplica Visualizzazione Kanban",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Crea Visualizzaizone Kanban",
+    "createCalendarView": "Create Calendar View",
     "viewName": "Visualizza nome",
     "viewLink": "Visualizza link",
     "columnName": "Nome della colonna",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "Selezionare un campo di raggruppamento",
     "selectGroupFieldNotFound": "Non è stato trovato nessun campo di selezione singolo. Si prega di crearne uno prima.",
     "selectGeoField": "Seleziona un campo GeoData",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "Non è stato trovato alcun campo GeoData. Si prega di crearne uno prima.",
     "password": {
       "enter": "Inserisci la password",
@@ -1069,11 +1091,15 @@
     "length59Required": "La lunghezza supera i 59 caratteri massimi",
     "noNewNotifications": "Non hai nuove notifiche",
     "noRecordFound": "Riga non trovata",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Riga eliminata",
     "saveChanges": "Salvare le modifiche?",
     "tooLargeFieldEntity": "Il campo è troppo grande per essere convertito in {entity}",
     "roleRequired": "Ruolo richiesto",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Assicurati che il database che stai cercando di connetterti sia valido! Questa operazione può causare la perdita dello schema!!",
       "barcode": {
         "renderError": "Errore del codice a barre - verificare la compatibilità tra l'input e il tipo di codice a barre"
@@ -1348,7 +1374,9 @@
       "copyToClipboardError": "Non è riuscito a copiare negli appunti",
       "pasteFromClipboardError": "Impossibile incollare dagli appunti",
       "multiFieldSaveValidation": "Si prega di completare la configurazione di tutti i campi prima di salvare",
-      "somethingWentWrong": "Qualcosa è andato storto"
+      "somethingWentWrong": "Qualcosa è andato storto",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "Metadati del progetto esportati con successo",

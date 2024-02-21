@@ -12,6 +12,7 @@ export class ViewSidebarPage extends BasePage {
   readonly createFormButton: Locator;
   readonly createKanbanButton: Locator;
   readonly createMapButton: Locator;
+  readonly createCalendarButton: Locator;
 
   readonly erdButton: Locator;
   readonly apiSnippet: Locator;
@@ -25,6 +26,7 @@ export class ViewSidebarPage extends BasePage {
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
     this.createKanbanButton = this.get().locator('.nc-create-kanban-view:visible');
+    this.createCalendarButton = this.get().locator('.nc-create-calendar-view:visible');
 
     this.erdButton = this.get().locator('.nc-view-sidebar-erd');
     this.apiSnippet = this.get().locator('.nc-view-sidebar-api-snippet');
@@ -54,12 +56,6 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.goto(this.rootPage.url());
   }
 
-  private async createView({ title, type }: { title: string; type: ViewTypes }) {
-    await this.rootPage.waitForTimeout(1000);
-
-    await this.dashboard.sidebar.createView({ title, type });
-  }
-
   async createGalleryView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.GALLERY });
   }
@@ -81,6 +77,11 @@ export class ViewSidebarPage extends BasePage {
   async createKanbanView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.KANBAN });
 
+    await this.rootPage.waitForTimeout(1500);
+  }
+
+  async createCalendarView({ title }: { title: string }) {
+    await this.createView({ title, type: ViewTypes.CALENDAR });
     await this.rootPage.waitForTimeout(1500);
   }
 
@@ -201,6 +202,12 @@ export class ViewSidebarPage extends BasePage {
     // await expect(this.erdButton).toHaveCount(1);
     // await expect(this.apiSnippet).toHaveCount(1);
     // await expect(this.webhookButton).toHaveCount(count);
+  }
+
+  private async createView({ title, type }: { title: string; type: ViewTypes }) {
+    await this.rootPage.waitForTimeout(1000);
+
+    await this.dashboard.sidebar.createView({ title, type });
   }
 
   // async openDeveloperTab({ option }: { option?: string }) {

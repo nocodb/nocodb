@@ -25,6 +25,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcRequest } from '~/interface/config';
+import { CalendarRange } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -2263,6 +2264,15 @@ export class ColumnsService {
           }
         }
         /* falls through to default */
+      }
+      case UITypes.DateTime:
+      case UITypes.Date: {
+        if (await CalendarRange.IsColumnBeingUsedAsRange(column.id, ncMeta)) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+          );
+        }
+        break;
       }
 
       // on deleting created/last modified columns, keep the column in table and delete the column from meta

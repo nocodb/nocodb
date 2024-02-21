@@ -195,6 +195,10 @@
     "restore": "Restore"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "작업 공간",
     "workspaces": "작업 공간",
     "project": "프로젝트",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -473,6 +484,8 @@
     "timeFormat": "시간 형식",
     "singularLabel": "단수 레이블",
     "pluralLabel": "복수 레이블",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(선택사항)",
     "clickToMake": "클릭하여 생성",
     "visibleForRole": "역할에 표시:",
@@ -515,7 +528,9 @@
     "duplicateFormView": "폼 뷰 복제",
     "createFormView": "폼 뷰 생성",
     "duplicateKanbanView": "칸반 뷰 복제",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "칸반 뷰 생성",
+    "createCalendarView": "Create Calendar View",
     "viewName": "이름 보기",
     "viewLink": "링크 보기",
     "columnName": "열 이름",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "그룹화 필드 선택",
     "selectGroupFieldNotFound": "단일 선택 필드를 찾을 수 없습니다. 최소한 하나의 단일 선택 필드를 만들어야 합니다.",
     "selectGeoField": "GeoField 선택",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "GeoField를 찾을 수 없습니다. 최소한 하나의 GeoField를 만들어야 합니다.",
     "password": {
       "enter": "비밀번호를 입력하십시오",
@@ -1069,11 +1091,15 @@
     "length59Required": "길이는 59자 이하여야 합니다.",
     "noNewNotifications": "새 알림 없음",
     "noRecordFound": "레코드를 찾을 수 없습니다.",
+    "noRecordsFound": "No records found",
     "rowDeleted": "행이 삭제되었습니다.",
     "saveChanges": "변경 사항을 저장하시겠습니까?",
     "tooLargeFieldEntity": "{entity}를 저장할 수 없습니다. 필드가 너무 큽니다.",
     "roleRequired": "역할이 필요합니다.",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "연결하려는 데이터베이스가 올바른지 확인하십시오! 이 작업으로 스키마 손실이 발생할 수 있습니다!!",
       "barcode": {
         "renderError": "바코드를 렌더링하는 동안 오류가 발생했습니다."
@@ -1348,7 +1374,9 @@
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
-      "somethingWentWrong": "Something went wrong"
+      "somethingWentWrong": "Something went wrong",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다.",

@@ -545,6 +545,13 @@ a {
   @apply bg-gray-300 bg-opacity-20;
 }
 
+.ant-select-item-option:hover{
+  @apply !bg-gray-100;
+}
+
+.ant-select-item-option-selected{
+  @apply !bg-white;
+}
 /* Hide the element with id nc-selected-item-icon */
 .ant-select-selection-item #nc-selected-item-icon {
   @apply hidden;

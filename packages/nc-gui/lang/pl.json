@@ -195,6 +195,10 @@
     "restore": "Przywróć"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Obszar roboczy",
     "workspaces": "Obszary robocze",
     "project": "Projekt",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Nagłówek 1",
     "heading2": "Nagłówek 2",
     "heading3": "Nagłówek 3",
@@ -473,6 +484,8 @@
     "timeFormat": "Format czasu",
     "singularLabel": "Etykieta pojedyncza",
     "pluralLabel": "Etykieta mnoga",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(Opcjonalnie)",
     "clickToMake": "Kliknij, aby utworzyć",
     "visibleForRole": "widoczne dla roli:",
@@ -515,7 +528,9 @@
     "duplicateFormView": "Zduplikuj widok formularza",
     "createFormView": "Utwórz widok formularza",
     "duplicateKanbanView": "Zduplikuj widok Kanban",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Utwórz widok Kanban",
+    "createCalendarView": "Create Calendar View",
     "viewName": "Nazwa widoku",
     "viewLink": "Link do widoku",
     "columnName": "Nazwa kolumny",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "Wybierz pole grupowania",
     "selectGroupFieldNotFound": "Nie można znaleźć pola jednokrotnego wyboru. Najpierw je utwórz.",
     "selectGeoField": "Wybierz pole danych geograficznych",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "Nie można znaleźć pola danych geograficznych. Najpierw je utwórz.",
     "password": {
       "enter": "Podaj hasło",
@@ -1069,11 +1091,15 @@
     "length59Required": "Długość przekracza maksymalną liczbę 59 znaków",
     "noNewNotifications": "Nie masz nowych powiadomień",
     "noRecordFound": "Nie znaleziono rekordu",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Rekord usunięty",
     "saveChanges": "Czy chcesz zapisać zmiany?",
     "tooLargeFieldEntity": "Pole jest zbyt duże, aby przekonwertować je na {entity}",
     "roleRequired": "Wymagana rola",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Upewnij się, że próbujesz połączyć się z prawidłową bazą danych! Ta operacja może spowodować utratę schematu!",
       "barcode": {
         "renderError": "Błąd kodu kreskowego - proszę sprawdzić kompatybilność między typem kodu wejściowego i kreskowego"
@@ -1348,7 +1374,9 @@
       "copyToClipboardError": "Nie udało się skopiować do schowka",
       "pasteFromClipboardError": "Nie udało się wkleić ze schowka",
       "multiFieldSaveValidation": "Proszę zakończyć konfigurację wszystkich pól przed zapisaniem",
-      "somethingWentWrong": "Coś poszło nie tak"
+      "somethingWentWrong": "Coś poszło nie tak",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

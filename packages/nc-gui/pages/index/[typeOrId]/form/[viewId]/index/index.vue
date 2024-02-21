@@ -235,7 +235,7 @@ const onDecode = async (scannedCodeValue: string) => {
               </div>
             </div>
           </div>
-          <div v-if="!parseProp(sharedFormView?.meta).hide_branding">
+          <div>
             <a-divider class="!my-6 !md:my-8" />
             <div class="inline-block">
               <GeneralFormBranding />

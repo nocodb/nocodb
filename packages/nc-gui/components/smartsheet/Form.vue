@@ -430,7 +430,9 @@ watch(view, (nextView) => {
 
 watch(activeRow, (newValue) => {
   if (newValue) {
-    document.querySelector(`.nc-form-field-item-${newValue}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    document
+      .querySelector(`.nc-form-field-item-${newValue?.replaceAll(' ', '')}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 })
 
@@ -492,15 +494,11 @@ useEventListener(
         >
           <div v-if="formViewData" class="items-center justify-center text-center mt-2">
             <div class="text-left">
-              <h1 class="prose-2xl font-bold mb-4" style="word-break: break-all">
+              <h1 class="prose-2xl font-bold mb-4">
                 {{ formViewData.heading }}
               </h1>
 
-              <h2
-                v-if="formViewData.subheading"
-                class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6"
-                style="word-break: break-all"
-              >
+              <h2 v-if="formViewData.subheading" class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6">
                 {{ formViewData.subheading }}
               </h2>
             </div>
@@ -991,7 +989,7 @@ useEventListener(
                         :key="field.id"
                         class="w-full p-2 flex flex-row items-center border-b-1 last:border-none border-gray-200"
                         :class="[
-                          `nc-form-field-item-${field.title}`,
+                          `nc-form-field-item-${field.title.replaceAll(' ', '')}`,
                           `${activeRow === field.title ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
                         ]"
                         :data-testid="`nc-form-field-item-${field.title}`"

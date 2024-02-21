@@ -553,7 +553,7 @@ useEventListener(
             >
               <a-form ref="formRef" :model="formState" class="nc-form" no-style>
                 <!-- form header -->
-                <div class="flex flex-col gap-4 px-8 lg:px-12 mb-6">
+                <div class="flex flex-col px-4 lg:px-6">
                   <!-- Form logo  -->
                   <!-- <div v-if="isEditable">
                     <div class="inline-block rounded-xl bg-gray-100 p-3">
@@ -566,60 +566,95 @@ useEventListener(
                     </div>
                   </div> -->
                   <!-- form title -->
+                  <div
+                    :class="[
+                      `border-transparent px-4 lg:px-6`,
+                      {
+                        'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
+                      },
+                      {
+                        'mb-4 py-0 lg:py-0': !isEditable,
+                      },
+                      {
+                        'hover:bg-gray-50': activeRow !== 'nc-form-heading' && isEditable,
+                      },
+                      {
+                        '!hover:bg-white !ring-0 !cursor-auto': isLocked,
+                      },
+                    ]"
+                    @click.stop="onFormItemClick({ title: 'nc-form-heading' })"
+                  >
+                    <a-form-item v-if="isEditable" class="!my-0">
+                      <a-textarea
+                        v-model:value="formViewData.heading"
+                        class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
+                        :style="{
+                          'borderRightWidth': '0px !important',
+                          'height': '70px',
+                          'max-height': '250px',
+                          'resize': 'vertical',
+                        }"
+                        auto-size
+                        size="large"
+                        hide-details
+                        :disabled="isLocked"
+                        placeholder="Form Title"
+                        :bordered="false"
+                        data-testid="nc-form-heading"
+                        data-title="nc-form-heading"
+                        @blur="updateView"
+                        @keydown.enter="updateView"
+                      />
+                    </a-form-item>
 
-                  <a-form-item v-if="isEditable">
-                    <a-textarea
-                      v-model:value="formViewData.heading"
-                      class="nc-form-focus-element w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                      :style="{
-                        'borderRightWidth': '0px !important',
-                        'height': '70px',
-                        'max-height': '250px',
-                        'resize': 'vertical',
-                      }"
-                      auto-size
-                      size="large"
-                      hide-details
-                      :disabled="isLocked"
-                      placeholder="Form Title"
-                      :bordered="false"
-                      data-testid="nc-form-heading"
-                      data-title="nc-form-heading"
-                      @blur="updateView"
-                      @keydown.enter="updateView"
-                    />
-                  </a-form-item>
-
-                  <div v-else class="w-full text-bold text-4xl">
-                    {{ formViewData.heading }}
+                    <div v-else class="text-bold text-2xl text-gray-900">
+                      {{ formViewData.heading }}
+                    </div>
                   </div>
 
                   <!-- form description  -->
-                  <a-form-item v-if="isEditable" class="w-full">
-                    <a-textarea
-                      v-model:value="formViewData.subheading"
-                      class="nc-form-focus-element w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                      :style="{
-                        'borderRightWidth': '0px !important',
-                        'height': '40px',
-                        'min-height': '40px',
-                        'resize': 'vertical',
-                      }"
-                      size="large"
-                      auto-size
-                      hide-details
-                      :placeholder="$t('msg.info.formDesc')"
-                      :bordered="false"
-                      :disabled="!isEditable || isLocked"
-                      data-testid="nc-form-sub-heading"
-                      data-title="nc-form-sub-heading"
-                      @blur="updateView"
-                      @click="updateView"
-                    />
-                  </a-form-item>
+                  <div
+                    :class="[
+                      `border-transparent px-4 lg:px-6`,
+                      {
+                        'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
+                      },
+                      {
+                        'mb-4 py-0 lg:py-0': !isEditable,
+                      },
+                      {
+                        'hover:bg-gray-50': activeRow !== 'nc-form-sub-heading' && isEditable,
+                      },
+                      {
+                        '!hover:bg-white !ring-0 !cursor-auto': isLocked,
+                      },
+                    ]"
+                    @click.stop="onFormItemClick({ title: 'nc-form-sub-heading' })"
+                  >
+                    <a-form-item v-if="isEditable" class="w-full !my-0">
+                      <a-textarea
+                        v-model:value="formViewData.subheading"
+                        class="nc-form-focus-element w-full !p-0 !m-0 !border-0 !rounded-none !text-gray-500"
+                        :style="{
+                          borderRightWidth: '0px !important',
+                          resize: 'vertical',
+                        }"
+                        size="large"
+                        auto-size
+                        hide-details
+                        :placeholder="$t('msg.info.formDesc')"
+                        :bordered="false"
+                        :disabled="!isEditable || isLocked"
+                        data-testid="nc-form-sub-heading"
+                        data-title="nc-form-sub-heading"
+                        @blur="updateView"
+                        @click="updateView"
+                      />
+                    </a-form-item>
 
-                  <div v-else class="w-full text-bold text-base">
-                    {{ formViewData.subheading || '---' }}
+                    <div v-else class="text-bold text-base text-gray-500">
+                      {{ formViewData.subheading || '---' }}
+                    </div>
                   </div>
                 </div>
 

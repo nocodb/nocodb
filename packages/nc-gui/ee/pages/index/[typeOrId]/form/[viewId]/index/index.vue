@@ -191,7 +191,15 @@ const onDecode = async (scannedCodeValue: string) => {
                     </LazySmartsheetDivDataCell>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                      <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                      <div
+                        v-if="isVirtualCol(field)"
+                        v-for="error of v$.virtual[field.title]?.$errors"
+                        :key="error + 'virtual'"
+                        class="text-red-500"
+                      >
+                        {{ error.$message }}
+                      </div>
+                      <div v-else v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}
                       </div>
                     </div>
@@ -217,7 +225,7 @@ const onDecode = async (scannedCodeValue: string) => {
                   :disabled="progress"
                   type="primary"
                   size="small"
-                  class="nc-shared-form-button shared-form-submit-button uppercase prose-sm"
+                  class="nc-shared-form-button shared-form-submit-button prose-sm"
                   data-testid="shared-form-submit-button"
                   @click="submitForm"
                 >

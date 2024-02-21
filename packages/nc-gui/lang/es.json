@@ -195,6 +195,10 @@
     "restore": "Restaurar"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Espacio de trabajo",
     "workspaces": "Espacios de trabajo",
     "project": "Proyecto",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Encabezado 1",
     "heading2": "Encabezado 2",
     "heading3": "Heading 3",
@@ -473,6 +484,8 @@
     "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(Optional)",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
@@ -515,7 +528,9 @@
     "duplicateFormView": "Duplicar vista de formulario",
     "createFormView": "Crear vista de formulario",
     "duplicateKanbanView": "Duplicar vista Kanban",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Crear vista Kanban",
+    "createCalendarView": "Create Calendar View",
     "viewName": "Nombre de la vista",
     "viewLink": "Ver enlace",
     "columnName": "Nombre de columna",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "Seleccione un campo de agrupación",
     "selectGroupFieldNotFound": "No se encuentra ningún campo de selección único. Por favor, cree uno primero.",
     "selectGeoField": "Seleccione un campo de datos geográficos",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "No se encuentra ningún campo de datos geográficos. Por favor, cree uno primero.",
     "password": {
       "enter": "Ingresa la contraseña",
@@ -1069,11 +1091,15 @@
     "length59Required": "La longitud excede el máximo de 59 caracteres",
     "noNewNotifications": "No tiene nuevas notificaciones",
     "noRecordFound": "Registro no encontrado",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Registro eliminado",
     "saveChanges": "¿Desea guardar los cambios?",
     "tooLargeFieldEntity": "El campo es demasiado grande para convertirlo a {entity}",
     "roleRequired": "Rol requerido",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "¡Por favor, asegúrese de que la base de datos que está intentando conectar es válida! ¡Esta operación puede causar pérdidas de esquemas!!",
       "barcode": {
         "renderError": "Error de código de barras - por favor, compruebe la compatibilidad entre la entrada y el tipo de código de barras"

@@ -195,6 +195,10 @@
     "restore": "Restore"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Workspace",
     "workspaces": "Workspaces",
     "project": "Base",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -473,6 +484,8 @@
     "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(Optional)",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
@@ -515,7 +528,9 @@
     "duplicateFormView": "Duplicate Form View",
     "createFormView": "Create Form View",
     "duplicateKanbanView": "Duplicate Kanban View",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Create Kanban View",
+    "createCalendarView": "Create Calendar View",
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Field Name",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "Select a Grouping Field",
     "selectGroupFieldNotFound": "No Single Select Field can be found. Please create one first.",
     "selectGeoField": "Select a GeoData Field",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",
     "password": {
       "enter": "Enter the password",
@@ -1069,11 +1091,15 @@
     "length59Required": "The length exceeds the max 59 characters",
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"

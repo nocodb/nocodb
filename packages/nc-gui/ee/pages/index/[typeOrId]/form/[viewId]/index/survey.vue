@@ -371,19 +371,13 @@ onMounted(() => {
 
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
-              <div class="text-lg px-6 py-3 bg-green-300 text-gray-700 rounded" data-testid="nc-survey-form__success-msg">
-                <template v-if="sharedFormView?.success_msg">
-                  {{ sharedFormView?.success_msg }}
-                </template>
-
-                <template v-else>
-                  <div class="flex flex-col gap-1">
-                    <div>Thank you!</div>
-
-                    <div>You have successfully submitted the form data.</div>
-                  </div>
-                </template>
-              </div>
+              <a-alert
+                type="success"
+                class="!my-4 !py-4 text-center !rounded-lg"
+                data-testid="nc-survey-form__success-msg"
+                outlined
+                :message="sharedFormView?.success_msg || 'Successfully submitted form data'"
+              />
 
               <div v-if="sharedFormView" class="mt-3">
                 <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedViewMeta } = useSharedFormStoreOrThrow()
+const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
 
 const isDark = useDark()
 
@@ -33,7 +33,10 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-10 nc-form-view relative bg-primary bg-opacity-10 dark:(bg-slate-900) min-h-[600px]"
+    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-10 nc-form-view relative min-h-[600px]"
+    :style="{
+      background: parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA',
+    }"
   >
     <NuxtPage />
 

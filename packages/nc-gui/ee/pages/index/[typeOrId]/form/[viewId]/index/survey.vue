@@ -242,14 +242,13 @@ onMounted(() => {
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading" style="word-break: break-all">
+        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading">
           {{ sharedFormView.heading }}
         </h1>
 
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
           class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
-          style="word-break: break-all"
           data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
@@ -266,23 +265,20 @@ onMounted(() => {
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="flex nc-form-column-label" data-testid="nc-form-column-label">
-              <LazySmartsheetHeaderVirtualCell
-                v-if="isVirtualCol(field)"
-                :column="{ ...field, title: field.label || field.title }"
-                :required="isRequired(field, field.required)"
-                :hide-menu="true"
-              />
-
-              <LazySmartsheetHeaderCell
-                v-else
-                :class="field.uidt === UITypes.Checkbox ? 'nc-form-column-label__checkbox' : ''"
-                :column="{ meta: {}, ...field, title: field.label || field.title }"
-                :required="isRequired(field, field.required)"
-                :hide-menu="true"
-              />
+              <span>
+                {{ field.label || field.title }}
+              </span>
+              <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+            </div>
+            <div
+              v-if="field?.description"
+              class="nc-form-column-description text-gray-500 text-[13px]"
+              data-testid="nc-survey-form__field-description"
+            >
+              {{ field?.description }}
             </div>
 
-            <LazySmartsheetDivDataCell v-if="field.title" class="relative">
+            <LazySmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
                 v-model="formState[field.title]"
@@ -301,19 +297,9 @@ onMounted(() => {
                 edit-enabled
               />
 
-              <div
-                class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
-                style="word-break: break-all"
-              >
+              <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                 <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                   {{ error.$message }}
-                </div>
-                <div
-                  class="block text-[14px]"
-                  :class="field.uidt === UITypes.Checkbox ? 'text-center' : ''"
-                  data-testid="nc-survey-form__field-description"
-                >
-                  {{ field.description }}
                 </div>
 
                 <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
@@ -477,7 +463,9 @@ onMounted(() => {
         </div>
       </Transition>
 
-      <GeneralPoweredBy />
+      <div v-if="!parseProp(sharedFormView?.meta)?.hide_branding" class="w-full flex justify-center">
+        <GeneralFormBranding class="inline-flex mx-auto" />
+      </div>
     </div>
   </div>
 </template>
@@ -504,16 +492,31 @@ onMounted(() => {
   }
 
   .nc-input {
-    @apply appearance-none w-full rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
-
-    &.nc-cell-checkbox {
-      > * {
-        @apply justify-center flex items-center;
-      }
+    @apply appearance-none w-full !bg-white !rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+    &.nc-cell-rating,
+    &.nc-cell-geodata {
+      @apply !py-1;
     }
 
-    input {
-      @apply !py-1 !px-1;
+    :deep(input) {
+      @apply !px-1;
+    }
+    &.nc-cell-longtext {
+      @apply p-0 h-auto overflow-hidden;
+    }
+    &:not(.nc-cell-longtext) {
+      @apply px-2 py-2;
+    }
+    :deep(textarea) {
+      @apply !p-2;
+    }
+  }
+
+  .nc-form-data-cell.nc-data-cell {
+    @apply !border-none rounded-none;
+
+    &:focus-within {
+      @apply !border-none;
     }
   }
 }

@@ -100,8 +100,6 @@ const columns = computed(() => meta?.value?.columns || [])
 
 const localColumns = ref<Record<string, any>[]>([])
 
-const hiddenColumns = ref<Record<string, any>[]>([])
-
 const draggableRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>[]>([])
@@ -238,7 +236,7 @@ function onMove(event: any, isVisibleFormFields = false) {
   $e('a:form-view:reorder')
 }
 
-function showOrHideColumn(column: Record<string, any>, show: boolean, isSidePannel = false) {
+async function showOrHideColumn(column: Record<string, any>, show: boolean, isSidePannel = false) {
   if (shouldSkipColumn(column)) {
     // Required field can't be moved
     !isSidePannel && message.info(t('msg.info.requriedFieldsCantBeMoved'))
@@ -248,7 +246,7 @@ function showOrHideColumn(column: Record<string, any>, show: boolean, isSidePann
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === column.fk_column_id)
 
   if (fieldIndex !== -1 && fieldIndex !== undefined) {
-    saveOrUpdate(
+    await saveOrUpdate(
       {
         ...column,
         show,
@@ -333,9 +331,6 @@ function setFormData() {
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
-  hiddenColumns.value = col.filter(
-    (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
-  )
 }
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -1147,8 +1142,7 @@ useEventListener(
                 <!-- Show this message -->
                 <div>
                   <div class="text-gray-800 mb-2">
-                    Display Message
-                    <!-- {{ $t('msg.info.formDisplayMessage') }} -->
+                    {{ $t('msg.info.formDisplayMessage') }}
                   </div>
                   <a-textarea
                     v-model:value="formViewData.success_msg"

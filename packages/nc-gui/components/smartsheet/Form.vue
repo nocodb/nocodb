@@ -582,8 +582,8 @@ useEventListener(
                   </div> -->
                   <!-- form title -->
                   <div
+                    class="border-transparent px-4 lg:px-6"
                     :class="[
-                      `border-transparent px-4 lg:px-6`,
                       {
                         'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
                       },
@@ -629,8 +629,8 @@ useEventListener(
 
                   <!-- form description  -->
                   <div
+                    class="border-transparent px-4 lg:px-6"
                     :class="[
-                      `border-transparent px-4 lg:px-6`,
                       {
                         'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
                       },

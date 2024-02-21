@@ -192,14 +192,14 @@ const onDecode = async (scannedCodeValue: string) => {
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                       <div
-                        v-if="isVirtualCol(field)"
                         v-for="error of v$.virtual[field.title]?.$errors"
-                        :key="error + 'virtual'"
+                        v-if="isVirtualCol(field)"
+                        :key="`${error}virtual`"
                         class="text-red-500"
                       >
                         {{ error.$message }}
                       </div>
-                      <div v-else v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                      <div v-for="error of v$.localState[field.title]?.$errors" v-else :key="error" class="text-red-500">
                         {{ error.$message }}
                       </div>
                     </div>

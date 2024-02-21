@@ -195,6 +195,10 @@
     "restore": "还原"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "工作区",
     "workspaces": "工作区",
     "project": "项目",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "New Provider",
     "generalSettings": "General Settings",
     "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "一级标题",
     "heading2": "二级标题",
     "heading3": "三级标题",
@@ -473,6 +484,8 @@
     "timeFormat": "时间格式",
     "singularLabel": "单数标签",
     "pluralLabel": "复数标签",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(可选)",
     "clickToMake": "点击创建",
     "visibleForRole": "角色可见：",
@@ -515,7 +528,9 @@
     "duplicateFormView": "复制表单视图",
     "createFormView": "创建表格视图",
     "duplicateKanbanView": "复制看板视图",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "创建看板视图",
+    "createCalendarView": "Create Calendar View",
     "viewName": "查看名称",
     "viewLink": "查看链接",
     "columnName": "列名",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "选择分组字段",
     "selectGroupFieldNotFound": "没有可用的单选字段，请先创建。",
     "selectGeoField": "选择地理数据字段",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "未找到 GeoData 字段。请先创建一个。",
     "password": {
       "enter": "输入密码",
@@ -1069,11 +1091,15 @@
     "length59Required": "长度超过最大 59 个字符",
     "noNewNotifications": "您没有新的通知",
     "noRecordFound": "未找到记录",
+    "noRecordsFound": "No records found",
     "rowDeleted": "记录已删除",
     "saveChanges": "要保存更改吗？",
     "tooLargeFieldEntity": "字段太大，无法转换为 {entity}",
     "roleRequired": "角色要求",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "请确保您尝试连接的数据库有效！此操作可能导致模式丢失",
       "barcode": {
         "renderError": "条形码错误 - 请注意输入数据和条形码类型之间的兼容性"

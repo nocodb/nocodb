@@ -195,6 +195,10 @@
     "restore": "Restaurer"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Espace de travail",
     "workspaces": "Espaces de travail",
     "project": "Projet",
@@ -420,6 +424,7 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
     "metadataUrl": "Metadata URL",
@@ -430,6 +435,12 @@
     "newProvider": "Nouveau fournisseur",
     "generalSettings": "Paramètres généraux",
     "ssoSettings": "Paramètres SSO",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Titre 1",
     "heading2": "Titre 2",
     "heading3": "Titre 3",
@@ -473,6 +484,8 @@
     "timeFormat": "Format d'heure",
     "singularLabel": "Libellé au singulier",
     "pluralLabel": "Libellé au pluriel",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(Facultatif)",
     "clickToMake": "Cliquez pour faire",
     "visibleForRole": "visible pour le rôle :",
@@ -515,7 +528,9 @@
     "duplicateFormView": "Dupliquer une vue Formulaire",
     "createFormView": "Créer une vue Formulaire",
     "duplicateKanbanView": "Dupliquer une vue Kanban",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Créer une vue Kanban",
+    "createCalendarView": "Create Calendar View",
     "viewName": "Vue",
     "viewLink": "Lien de vue",
     "columnName": "Nom de la colonne",
@@ -671,6 +686,12 @@
     }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",
@@ -931,6 +952,7 @@
     "selectGroupField": "Select a Grouping Field",
     "selectGroupFieldNotFound": "No Single Select Field can be found. Please create one first.",
     "selectGeoField": "Select a GeoData Field",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",
     "password": {
       "enter": "Saisir le mot de passe",
@@ -1069,11 +1091,15 @@
     "length59Required": "The length exceeds the max 59 characters",
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Veuillez vous assurer que la base de données à laquelle vous essayez de vous connecter est valide ! Cette opération peut provoquer une perte de schéma !!",
       "barcode": {
         "renderError": "Erreur de code-barres - veuillez vérifier la compatibiltié entre la donnée d'entrée et le type de code-barres"

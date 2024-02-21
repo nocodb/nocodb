@@ -296,6 +296,7 @@ watch(inputWrapperRef, () => {
         :class="{
           'cursor-move': isDragging,
         }"
+        @keydown.enter.stop
       >
         <div
           v-if="column"

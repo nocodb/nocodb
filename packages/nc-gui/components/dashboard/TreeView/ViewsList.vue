@@ -350,11 +350,16 @@ function onOpenModal({
   type,
   copyViewId,
   groupingFieldColumnId,
+  calendarRange,
 }: {
   title?: string
   type: ViewTypes
   copyViewId?: string
   groupingFieldColumnId?: string
+  calendarRange?: Array<{
+    fk_from_column_id: string
+    fk_to_column_id: string | null // for ee only
+  }>
 }) {
   const isOpen = ref(true)
 
@@ -366,6 +371,7 @@ function onOpenModal({
     'selectedViewId': copyViewId,
     groupingFieldColumnId,
     'views': views,
+    calendarRange,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -400,24 +406,24 @@ function onOpenModal({
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
+    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
     <DashboardTreeViewCreateViewBtn
       v-if="isUIAllowed('viewCreateOrEdit')"
+      :align-left-level="isDefaultSource ? 1 : 2"
       :class="{
         '!pl-18 !xs:(pl-19.75)': isDefaultSource,
         '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
       }"
-      :align-left-level="isDefaultSource ? 1 : 2"
     >
       <div
-        role="button"
-        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
         :class="{
           'text-brand-500 hover:text-brand-600': activeTableId === table.id,
           'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
         }"
+        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+        role="button"
       >
         <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
           <GeneralIcon icon="plus" />
@@ -437,20 +443,20 @@ function onOpenModal({
         v-for="view of views"
         :id="view.id"
         :key="view.id"
-        :view="view"
-        :on-validate="validate"
-        :table="table"
-        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         :class="{
           'bg-gray-200': isMarked === view.id,
           'active': activeView?.id === view.id,
           [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
         }"
         :data-view-id="view.id"
-        @change-view="changeView"
-        @open-modal="onOpenModal"
+        :on-validate="validate"
+        :table="table"
+        :view="view"
+        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         @delete="openDeleteDialog"
         @rename="onRename"
+        @change-view="changeView"
+        @open-modal="onOpenModal"
         @select-icon="setIcon($event, view)"
       />
     </template>

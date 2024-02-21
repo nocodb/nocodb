@@ -584,7 +584,6 @@ const dropEvent = (event: DragEvent) => {
           >
             <template v-if="!isRowEmpty(record, displayField)">
               <LazySmartsheetCalendarCell
-                v-if="!isRowEmpty(record, displayField!)"
                 v-model="record.row[displayField!.title!]"
                 :bold="getFieldStyle(displayField).bold"
                 :column="displayField"

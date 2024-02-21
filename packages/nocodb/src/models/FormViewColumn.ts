@@ -49,11 +49,12 @@ export default class FormViewColumn implements FormColumnType {
         viewColumn.meta && typeof viewColumn.meta === 'string'
           ? JSON.parse(viewColumn.meta)
           : viewColumn.meta;
+
+      await NocoCache.set(
+        `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
+        viewColumn,
+      );
     }
-    await NocoCache.set(
-      `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
-      viewColumn,
-    );
 
     return viewColumn && new FormViewColumn(viewColumn);
   }

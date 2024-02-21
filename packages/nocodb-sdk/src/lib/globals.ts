@@ -6,6 +6,7 @@ export enum ViewTypes {
   GRID = 3,
   KANBAN = 4,
   MAP = 5,
+  CALENDAR = 6,
 }
 
 export enum ProjectTypes {

@@ -10,6 +10,7 @@ export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
+export const IsCalendarInj: InjectionKey<Ref<boolean>> = Symbol('is-calendar-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')
@@ -53,5 +54,6 @@ export const TreeViewInj: InjectionKey<{
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')
+export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')

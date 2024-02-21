@@ -725,7 +725,7 @@ const parseConditionV2 = async (
                 ].includes(column.uidt)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  //  todo: enbale back if group by date required custom implementation
+                  //  todo: enable back if group by date required custom implementation
                   // if ((filter as any).groupby)
                   //   qb = qb.where(knex.raw('??::timestamp = ?', [field, val]));
                   // else
@@ -899,11 +899,40 @@ const parseConditionV2 = async (
           case 'gt':
             {
               const gt_op = customWhereClause ? '<' : '>';
-              qb = qb.where(field, gt_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset rating is considered as NULL
-                if (gt_op === '<' && val > 0) {
-                  qb = qb.orWhereNull(field);
+              // If the column is a datetime and the client is pg and the value has a timezone offset at the end
+              // then we need to convert the value to timestamptz before comparing
+              if (
+                column.uidt === UITypes.DateTime &&
+                val.match(/[+-]\d{2}:\d{2}$/)
+              ) {
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    gt_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    gt_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, gt_op, val);
+                }
+              } else {
+                qb = qb.where(field, gt_op, val);
+                if (column.uidt === UITypes.Rating) {
+                  // unset rating is considered as NULL
+                  if (gt_op === '<' && val > 0) {
+                    qb = qb.orWhereNull(field);
+                  }
                 }
               }
             }
@@ -912,11 +941,40 @@ const parseConditionV2 = async (
           case 'gte':
             {
               const ge_op = customWhereClause ? '<=' : '>=';
-              qb = qb.where(field, ge_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset rating is considered as NULL
-                if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
-                  qb = qb.orWhereNull(field);
+              // If the column is a datetime and the client is pg and the value has a timezone offset at the end
+              // then we need to convert the value to timestamptz before comparing
+              if (
+                column.uidt === UITypes.DateTime &&
+                val.match(/[+-]\d{2}:\d{2}$/)
+              ) {
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    ge_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    ge_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, ge_op, val);
+                }
+              } else {
+                qb = qb.where(field, ge_op, val);
+                if (column.uidt === UITypes.Rating) {
+                  // unset rating is considered as NULL
+                  if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
+                    qb = qb.orWhereNull(field);
+                  }
                 }
               }
             }
@@ -924,11 +982,40 @@ const parseConditionV2 = async (
           case 'lt':
             {
               const lt_op = customWhereClause ? '>' : '<';
-              qb = qb.where(field, lt_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset number is considered as NULL
-                if (lt_op === '<' && val > 0) {
-                  qb = qb.orWhereNull(field);
+              // If the column is a datetime and the client is pg and the value has a timezone offset at the end
+              // then we need to convert the value to timestamptz before comparing
+              if (
+                column.uidt === UITypes.DateTime &&
+                val.match(/[+-]\d{2}:\d{2}$/)
+              ) {
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    lt_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    lt_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, lt_op, val);
+                }
+              } else {
+                qb = qb.where(field, lt_op, val);
+                if (column.uidt === UITypes.Rating) {
+                  // unset number is considered as NULL
+                  if (lt_op === '<' && val > 0) {
+                    qb = qb.orWhereNull(field);
+                  }
                 }
               }
             }
@@ -938,11 +1025,40 @@ const parseConditionV2 = async (
           case 'lte':
             {
               const le_op = customWhereClause ? '>=' : '<=';
-              qb = qb.where(field, le_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset number is considered as NULL
-                if (le_op === '<=' || (le_op === '>=' && val === 0)) {
-                  qb = qb.orWhereNull(field);
+              // If the column is a datetime and the client is pg and the value has a timezone offset at the end
+              // then we need to convert the value to timestamptz before comparing
+              if (
+                column.uidt === UITypes.DateTime &&
+                val.match(/[+-]\d{2}:\d{2}$/)
+              ) {
+                if (qb.client.config.client === 'pg') {
+                  qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                } else if (qb.client.config.client === 'sqlite3') {
+                  qb.where(
+                    field,
+                    le_op,
+                    knex.raw('datetime(?)', [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else if (qb.client.config.client === 'mysql2') {
+                  qb.where(
+                    field,
+                    le_op,
+                    knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+                      dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+                    ]),
+                  );
+                } else {
+                  qb.where(field, le_op, val);
+                }
+              } else {
+                qb = qb.where(field, le_op, val);
+                if (column.uidt === UITypes.Rating) {
+                  // unset number is considered as NULL
+                  if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                    qb = qb.orWhereNull(field);
+                  }
                 }
               }
             }

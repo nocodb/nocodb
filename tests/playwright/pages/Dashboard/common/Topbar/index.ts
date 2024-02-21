@@ -6,16 +6,17 @@ import { KanbanPage } from '../../Kanban';
 import { FormPage } from '../../Form';
 import { MapPage } from '../../Map';
 import { TopbarSharePage } from './Share';
+import { CalendarPage } from '../../Calendar';
 
 export class TopbarPage extends BasePage {
-  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage;
   readonly share: TopbarSharePage;
 
   readonly btn_share: Locator;
   readonly btn_data: Locator;
   readonly btn_details: Locator;
 
-  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage) {
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
     super(parent.rootPage);
     this.parent = parent;
     this.share = new TopbarSharePage(this);

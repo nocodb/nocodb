@@ -1,5 +1,10 @@
 // eslint-disable-file no-fallthrough
-import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  NcDataErrorCodes,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -936,6 +941,7 @@ export async function singleQueryList(ctx: {
   params;
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
+  ignorePagination?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
@@ -959,7 +965,6 @@ export async function singleQueryList(ctx: {
   ) {
     skipCache = true;
   }
-
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
   const getAlias = getAliasGenerator();
@@ -1097,14 +1102,16 @@ export async function singleQueryList(ctx: {
     alias: ROOT_ALIAS,
   });
 
-  if (skipCache) {
-    rootQb.limit(+listArgs.limit);
-    rootQb.offset(+listArgs.offset);
-  } else {
-    // provide some dummy non-zero value to limit and offset to populate bindings,
-    // if offset is 0 then it will ignore bindings
-    rootQb.limit(9999);
-    rootQb.offset(9999);
+  if (ctx.view?.type !== ViewTypes.CALENDAR && !ctx.ignorePagination) {
+    if (skipCache) {
+      rootQb.limit(+listArgs.limit);
+      rootQb.offset(+listArgs.offset);
+    } else {
+      // provide some dummy non-zero value to limit and offset to populate bindings,
+      // if offset is 0 then it will ignore bindings
+      rootQb.limit(9999);
+      rootQb.offset(9999);
+    }
   }
 
   // apply the sort on final query to get the result in correct order

@@ -191,17 +191,16 @@ const onDecode = async (scannedCodeValue: string) => {
                     </LazySmartsheetDivDataCell>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                      <div
-                        v-for="error of v$.virtual[field.title]?.$errors"
-                        v-if="isVirtualCol(field)"
-                        :key="`${error}virtual`"
-                        class="text-red-500"
-                      >
-                        {{ error.$message }}
-                      </div>
-                      <div v-for="error of v$.localState[field.title]?.$errors" v-else :key="error" class="text-red-500">
-                        {{ error.$message }}
-                      </div>
+                      <template v-if="isVirtualCol(field)">
+                        <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
+                          {{ error.$message }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                          {{ error.$message }}
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>

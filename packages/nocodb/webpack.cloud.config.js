@@ -34,7 +34,7 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
-    alias: resolveTsAliases(path.resolve('./src/ee-on-prem/tsconfig.json')),
+    alias: resolveTsAliases(path.resolve('./src/ee/tsconfig.json')),
   },
   mode: 'production',
   output: {

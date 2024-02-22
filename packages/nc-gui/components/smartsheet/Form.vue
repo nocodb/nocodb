@@ -738,7 +738,7 @@ useEventListener(
                           :is="iconMap.drag"
                           class="nc-form-field-drag-handler flex-none cursor-move !h-4 !w-4 text-gray-600"
                         />
-                        <div class="flex-1 flex items-center max-w-[calc(100%_-_152px)]">
+                        <div class="font-semibold flex-1 flex items-center max-w-[calc(100%_-_152px)]">
                           <SmartsheetHeaderVirtualCellIcon v-if="element && isVirtualCol(element)" :column-meta="element" />
                           <SmartsheetHeaderCellIcon v-else :column-meta="element" />
 

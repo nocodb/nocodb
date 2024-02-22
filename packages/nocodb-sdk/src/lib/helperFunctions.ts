@@ -114,11 +114,11 @@ function populateUniqueFileName(
     fileName = `image.${mimeType.split('/')[1]}`;
   }
 
-  let match = fileName.match(/^(.+?)(\((\d+)\))?(\.[^.]+)$/);
+  const match = fileName.match(/^(.+?)(\((\d+)\))?(\.[^.]+)$/);
 
   if (!match) return fileName;
 
-  let c = match && !isNaN(parseInt(match[3])) ? parseInt(match[3]) : 1;
+  let c = !isNaN(parseInt(match[3])) ? parseInt(match[3]) : 1;
 
   while (attachments.some((fn) => fn === fileName)) {
     fileName = `${match[1]}(${c++})${match[4]}`;

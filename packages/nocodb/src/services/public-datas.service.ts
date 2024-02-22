@@ -1,7 +1,12 @@
 import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  ErrorMessages,
+  UITypes,
+  ViewTypes,
+  populateUniqueFileName,
+} from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
@@ -396,16 +401,11 @@ export class PublicDatasService {
         attachments[fieldName] = attachments[fieldName] || [];
         let originalName = utf8ify(file.originalname);
 
-        let c = 1;
-        while (
-          path.extname(originalName) &&
-          attachments[fieldName].some((att) => att?.title === originalName)
-        ) {
-          originalName = originalName.replace(
-            /(.+?)(\.[^.]+)$/,
-            `$1(${c++})$2`,
-          );
-        }
+        originalName = populateUniqueFileName(
+          originalName,
+          attachments[fieldName].map((att) => att?.title),
+          file.mimetype,
+        );
 
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 

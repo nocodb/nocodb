@@ -194,13 +194,20 @@ function onMoveCallback(event: any) {
 
 // Todo: reorder visible form fields
 function onMove(event: any, isVisibleFormFields = false) {
-  const { newIndex, element, oldIndex } = event.moved
+  let { newIndex, element, oldIndex } = event.moved
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
   if (fieldIndex === -1 || fieldIndex === undefined) return
 
-  const localColumnIndex = localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)
+  if (isVisibleFormFields) {
+    element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
+    newIndex = localColumns.value.findIndex(
+      (c) =>
+        c.fk_column_id ===
+        visibleColumns.value[newIndex > oldIndex ? newIndex - 1 : newIndex < oldIndex ? newIndex + 1 : newIndex].fk_column_id,
+    )
+  }
 
   if (!localColumns.value.length || localColumns.value.length === 1) {
     element.order = 1
@@ -483,7 +490,7 @@ const onFormItemClick = (element: any) => {
                 <!-- form header -->
                 <div class="flex flex-col gap-4 px-8 lg:px-12">
                   <!-- Form logo  -->
-                  <div v-if="isEditable">
+                  <!-- <div v-if="isEditable">
                     <div class="inline-block rounded-xl bg-gray-100 p-3">
                       <NcButton type="secondary" size="small" class="nc-form-upload-logo" data-testid="nc-form-upload-log">
                         <div class="flex gap-2 items-center">
@@ -492,7 +499,7 @@ const onFormItemClick = (element: any) => {
                         </div>
                       </NcButton>
                     </div>
-                  </div>
+                  </div> -->
                   <!-- form title -->
 
                   <a-form-item v-if="isEditable">
@@ -560,7 +567,7 @@ const onFormItemClick = (element: any) => {
                   class="h-full px-4 lg:px-6"
                   :move="onMoveCallback"
                   :disabled="isLocked"
-                  @change="onMove($event)"
+                  @change="onMove($event, true)"
                   @start="drag = true"
                   @end="drag = false"
                 >
@@ -892,7 +899,7 @@ const onFormItemClick = (element: any) => {
                     </div>
                   </div>
                   <Draggable
-                    v-model="localColumns"
+                    :list="localColumns"
                     item-key="id"
                     ghost-class="nc-form-field-ghost"
                     :style="{ height: 'calc(100% - 64px)' }"
@@ -931,7 +938,7 @@ const onFormItemClick = (element: any) => {
                       #footer
                     >
                       <div class="px-0.5 py-2 text-gray-500 text-center">
-                        {{ $t('title.noFieldsFound') }} for title `{{ searchQuery }}`
+                        {{ $t('title.noFieldsFound') }} with title `{{ searchQuery }}`
                       </div>
                     </template>
                   </Draggable>
@@ -1129,7 +1136,7 @@ const onFormItemClick = (element: any) => {
 .nc-form-fields-list {
 }
 .nc-form-scrollbar {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-200 scrollbar-track-transparent;
+  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
   &::-webkit-scrollbar-thumb:hover {
     @apply !scrollbar-thumb-gray-300;
   }

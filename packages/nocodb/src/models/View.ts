@@ -583,9 +583,6 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
-        case ViewTypes.FORM:
-          await FormViewColumn.insert(modifiedInsertObj, ncMeta);
-          break;
       }
     }
   }

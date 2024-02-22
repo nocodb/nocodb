@@ -902,7 +902,7 @@ useEventListener(
                   <NcButton
                     type="secondary"
                     size="small"
-                    :disabled="!isUIAllowed('dataInsert')"
+                    :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
                     class="nc-form-clear nc-form-focus-element"
                     data-testid="nc-form-clear"
                     data-title="nc-form-clear"
@@ -914,7 +914,7 @@ useEventListener(
                     html-type="submit"
                     type="primary"
                     size="small"
-                    :disabled="!isUIAllowed('dataInsert')"
+                    :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
                     class="nc-form-submit nc-form-focus-element"
                     data-testid="nc-form-submit"
                     data-title="nc-form-submit"

@@ -727,10 +727,8 @@ const viewMore = (hour: dayjs.Dayjs) => {
                   :underline="getFieldStyle(displayField!).underline"
                 />
               </template>
-              <template v-for="(field, id) in fieldsWithoutDisplay">
+              <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
                 <LazySmartsheetCalendarCell
-                  v-if="!isRowEmpty(record, field)"
-                  :key="id"
                   v-model="record.row[field!.title!]"
                   :bold="getFieldStyle(field).bold"
                   :column="field"

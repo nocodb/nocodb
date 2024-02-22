@@ -205,7 +205,7 @@ export default function convertCellData(
             ...att,
             title: populateUniqueFileName(
               att?.title,
-              [...oldAttachments, ...newAttachments].map((fn) => fn?.title || fn?.fileName || 'image'),
+              [...oldAttachments, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
               att?.mimetype,
             ),
           })

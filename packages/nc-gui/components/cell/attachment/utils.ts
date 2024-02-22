@@ -162,7 +162,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         } else {
           const fileName = populateUniqueFileName(
             (file as AttachmentReqType).fileName ?? '',
-            [...attachments.value, ...imageUrls].map((fn) => fn?.title || fn?.fileName || 'image'),
+            [...attachments.value, ...imageUrls].map((fn) => fn?.title || fn?.fileName),
             (file as File)?.type || (file as AttachmentReqType)?.mimetype || '',
           )
 
@@ -226,7 +226,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               ...uploadedFile,
               title: populateUniqueFileName(
                 uploadedFile?.title,
-                [...attachments.value, ...newAttachments].map((fn) => fn?.title || fn?.fileName || 'image'),
+                [...attachments.value, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
                 uploadedFile?.mimetype,
               ),
             })

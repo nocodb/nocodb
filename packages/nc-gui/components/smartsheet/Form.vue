@@ -498,7 +498,7 @@ useEventListener(
     <template v-else>
       <div
         v-if="submitted"
-        class="h-full p-6"
+        class="h-full p-6 overflow-auto nc-form-scrollbar"
         :style="{ background: parseProp(formViewData?.meta)?.background_color || '#F9F9FA' }"
         data-testid="nc-form-wrapper-submit"
       >

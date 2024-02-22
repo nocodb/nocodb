@@ -738,7 +738,7 @@ useEventListener(
                           :is="iconMap.drag"
                           class="nc-form-field-drag-handler flex-none cursor-move !h-4 !w-4 text-gray-600"
                         />
-                        <div class="font-semibold flex-1 flex items-center max-w-[calc(100%_-_152px)]">
+                        <div class="flex-1 flex items-center max-w-[calc(100%_-_152px)]">
                           <SmartsheetHeaderVirtualCellIcon v-if="element && isVirtualCol(element)" :column-meta="element" />
                           <SmartsheetHeaderCellIcon v-else :column-meta="element" />
 
@@ -748,7 +748,9 @@ useEventListener(
                               {{ element.title }}
                             </span>
                           </NcTooltip>
-                          <span v-if="isRequired(element, element.required)" class="text-red-500">&nbsp;*</span>
+                          <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
+                            >&nbsp;*</span
+                          >
                         </div>
                         <a-form-item class="!my-0">
                           <div class="flex gap-2 items-center">
@@ -1276,7 +1278,7 @@ useEventListener(
 }
 
 .nc-form-input-label {
-  @apply !px-4 !py-2 text-gray-800;
+  @apply !px-4 !py-2 font-semibold text-gray-800;
 }
 .nc-form-input-help-text {
   @apply !px-4 !py-1 text-gray-700;

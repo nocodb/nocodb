@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import { useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
@@ -253,22 +252,6 @@ async function updateSharedView() {
   }
 
   return true
-}
-
-function onChangeTheme(color: string) {
-  if (!activeView.value?.meta) return
-
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const complement = tcolor.complement()
-    activeView.value.meta.theme = {
-      primaryColor: color,
-      accentColor: complement.toHex8String(),
-    }
-
-    saveTheme()
-  }
 }
 
 const isPublicShared = computed(() => {

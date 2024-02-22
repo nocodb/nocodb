@@ -87,8 +87,11 @@ export function populateUniqueFileName(fn: string, attachments: any[], mimeType:
   }
 
   let c = 1
+  let originalFn = fn
+
   while (attachments.some((att) => att?.title === fn || att?.fileName === fn)) {
-    fn = fn.replace(/(.+?)(\.[^.]+)$/, `$1(${c++})$2`)
+    const match = fn.match(/^(.+?)(\(\d+\))?(\.[^.]+)$/)
+    fn = match ? `${match[1]}(${c++})${match[3]}` : `${originalFn}(${c++})`
   }
   return fn
 }

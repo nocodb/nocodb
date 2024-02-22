@@ -226,7 +226,7 @@ watch(inputWrapperRef, () => {
         v-else-if="editEnabled && !isVisible"
         :ref="focus"
         v-model="vModel"
-        rows="4"
+        :rows="isForm ? 5 : 4"
         class="h-full w-full outline-none border-none nc-scrollbar-lg"
         :class="{
           'p-2': editEnabled,
@@ -234,7 +234,7 @@ watch(inputWrapperRef, () => {
           'px-2': isExpandedFormOpen,
         }"
         :style="{
-          minHeight: `${height}px`,
+          minHeight: isForm ? '117px' : `${height}px`,
         }"
         :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :disabled="readOnly"
@@ -270,7 +270,7 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block z-3"
+        class="!absolute right-1 hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="isExpandedFormOpen || isForm ? 'top-1' : 'bottom-1'"
       >
         <template #title>{{ $t('title.expand') }}</template>

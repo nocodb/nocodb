@@ -1179,7 +1179,7 @@ useEventListener(
 }
 
 .nc-input {
-  @apply appearance-none w-full !bg-white rounded-lg px-2 py-2 border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  @apply appearance-none w-full !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
   &.nc-cell-rating,
   &.nc-cell-geodata {
     @apply !py-1;
@@ -1187,6 +1187,12 @@ useEventListener(
 
   :deep(input) {
     @apply !px-1;
+  }
+  &.nc-cell-longtext {
+    @apply p-0 h-auto;
+  }
+  &:not(.nc-cell-longtext) {
+    @apply px-2 py-2;
   }
 }
 

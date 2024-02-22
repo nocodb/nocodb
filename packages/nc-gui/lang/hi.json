@@ -212,7 +212,7 @@
     "page": "पृष्ठ",
     "pages": "पृष्ठों",
     "record": "अभिलेख",
-    "records": "अभिलेख",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "राय",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "एक्सेस पासवर्ड प्रतिबंधित है",
       "privateLink": "यह दृश्य एक निजी लिंक के माध्यम से साझा किया गया है",
       "privateLinkAdditionalInfo": "निजी लिंक वाले लोग केवल इस दृश्य में दिखाई देने वाली कोशिकाओं को देख सकते हैं",
-      "afterFormSubmitted": "फॉर्म के बाद प्रस्तुत किया जाता है",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "के माध्यम से प्रोजेक्ट",
       "submitAnotherForm": "एक और फॉर्म सबमिट करें' बटन दिखाएं",
       "showBlankForm": "5 सेकंड के बाद एक खाली फॉर्म दिखाएं",
       "emailForm": "मुझे ई-मेल करें",
       "showSysFields": "सिस्टम फ़ील्ड दिखाएं",
       "filterAutoApply": "ऑटो लागू करें",
-      "showMessage": "यह संदेश दिखाएं",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "वर्तमान दृश्य साझा नहीं है!",
       "showAllViews": "इस तालिका के सभी साझा विचार दिखाएं",
       "collabView": "संपादन अनुमतियों या उच्चतर के साथ सहयोगी दृश्य कॉन्फ़िगरेशन को बदल सकते हैं।",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "परियोजना मेटाडेटा सफलतापूर्वक निर्यात की गई",

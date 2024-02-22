@@ -117,7 +117,7 @@ export class PublicDatasService {
 
     const calendarRange = await CalendarRange.read(view.id);
 
-    if (!calendarRange || !calendarRange.ranges.length)
+    if (!calendarRange?.ranges?.length)
       NcError.notFound('Calendar ranges are required in a calendar view');
 
     const model = await Model.getByIdOrName({

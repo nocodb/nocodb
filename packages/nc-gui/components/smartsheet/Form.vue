@@ -668,30 +668,6 @@ const onFormItemClick = (element: any) => {
 
                       <div class="nc-form-field-body" :class="activeRow === element.title ? 'p-4 lg:p-6' : ''">
                         <template v-if="activeRow === element.title">
-                          <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 !mb-1">
-                            <div class="flex gap-2 items-center">
-                              <span
-                                class="text-gray-500 mr-2 nc-form-input-required"
-                                data-testid="nc-form-input-enable-scanner"
-                                @click="
-                                  () => {
-                                    element.general.enable_scanner = !element.general.enable_scanner
-                                    updateColMeta(element)
-                                  }
-                                "
-                              >
-                                {{ $t('general.enableScanner') }}
-                              </span>
-
-                              <a-switch
-                                v-model:checked="element.enable_scanner"
-                                v-e="['a:form-view:field:mark-enable-scaner']"
-                                size="small"
-                                @change="updateColMeta(element)"
-                              />
-                            </div>
-                          </a-form-item>
-
                           <a-form-item class="my-0 !mb-2">
                             <a-textarea
                               v-model:value="element.label"
@@ -701,6 +677,7 @@ const onFormItemClick = (element: any) => {
                               class="form-meta-input nc-form-input-label"
                               data-testid="nc-form-input-label"
                               :placeholder="$t('msg.info.formInput')"
+                              @keydown.enter.prevent
                               @change="updateColMeta(element)"
                             />
                           </a-form-item>
@@ -714,8 +691,34 @@ const onFormItemClick = (element: any) => {
                               class="form-meta-input text-sm nc-form-input-help-text"
                               data-testid="nc-form-input-help-text"
                               :placeholder="$t('msg.info.formHelpText')"
+                              @keydown.enter.prevent
                               @change="updateColMeta(element)"
                             />
+                          </a-form-item>
+                          <a-form-item
+                            v-if="columnSupportsScanning(element.uidt)"
+                            class="!my-0 !mb-3 nc-form-input-enable-scanner-form-item"
+                          >
+                            <div class="flex space-x-4 items-center">
+                              <a-switch
+                                v-model:checked="element.enable_scanner"
+                                v-e="['a:form-view:field:mark-enable-scaner']"
+                                size="small"
+                                @change="updateColMeta(element)"
+                              />
+                              <span
+                                class="text-gray-500 nc-form-input-enable-scanner"
+                                data-testid="nc-form-input-enable-scanner"
+                                @click="
+                                  () => {
+                                    element.general.enable_scanner = !element.general.enable_scanner
+                                    updateColMeta(element)
+                                  }
+                                "
+                              >
+                                {{ $t('general.enableScanner') }}
+                              </span>
+                            </div>
                           </a-form-item>
                         </template>
                         <div :class="activeRow !== element.title ? 'mt-2' : ''">
@@ -1173,6 +1176,11 @@ const onFormItemClick = (element: any) => {
   }
 }
 
+.nc-form-input-enable-scanner-form-item {
+  :deep(.ant-form-item-control-input) {
+    @apply min-h-max;
+  }
+}
 :deep(.nc-form-right-splitpane .splitpanes__splitter) {
   @apply !border-t-1 !border-gray-200 relative;
 

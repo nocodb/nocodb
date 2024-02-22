@@ -212,7 +212,7 @@
     "page": "Страница",
     "pages": "Страницы",
     "record": "Запись",
-    "records": "Записи",
+    "records": "records",
     "webhook": "Вебхук (Webhook)",
     "webhooks": "Вебхуки (Webhooks)",
     "view": "Представление",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Установить в NULL",
       "setDefault": "Установить по умолчанию"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Выбрать поле",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Переключить мобильный режим",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "Доступ защищенный паролем",
       "privateLink": "Это представление передано личной ссылкой.",
       "privateLinkAdditionalInfo": "Люди с личной ссыкой могу видеть только ячейки видимые в этом представлении",
-      "afterFormSubmitted": "После отправки формы",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Доступ проекта через",
       "submitAnotherForm": "Показать кнопку «Отправить другую форму»",
       "showBlankForm": "Показать пустую форму через 5 секунд",
       "emailForm": "Напишите мне на",
       "showSysFields": "Показать системные поля",
       "filterAutoApply": "Применять автоматически",
-      "showMessage": "Покажите это сообщение",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Текущим представлением не поделились",
       "showAllViews": "Показать все общие представление этой таблицы",
       "collabView": "Сотрудники с разрешениями редактирования или выше могут изменить конфигурацию представления",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Допустимые типы файлов: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ключ параметра не может быть пустым",
       "duplicateParameterKeysAreNotAllowed": "Дублирование ключей параметров не допускается",
-      "fieldRequired": "{value} не может быть пустым.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Проект недоступен",
       "copyToClipboardError": "Не удалось скопировать в буфер обмена",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

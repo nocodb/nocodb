@@ -484,7 +484,7 @@ useEventListener(
       <div
         v-if="submitted"
         class="h-full p-6"
-        :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
+        :style="{ background: parseProp(formViewData?.meta)?.background_color || '#F9F9FA' }"
         data-testid="nc-form-wrapper-submit"
       >
         <GeneralFormBanner :banner-image-url="formViewData?.banner_image_url" />

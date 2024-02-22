@@ -98,7 +98,7 @@ const onDecode = async (scannedCodeValue: string) => {
             {{ sharedFormView.heading }}
           </h1>
 
-          <h2 v-if="sharedFormView.subheading" class="font-medium text-base text-gray-500  dark:text-slate-300 mb-4">
+          <h2 v-if="sharedFormView.subheading" class="font-medium text-base text-gray-500 dark:text-slate-300 mb-4">
             {{ sharedFormView.subheading }}
           </h2>
         </div>

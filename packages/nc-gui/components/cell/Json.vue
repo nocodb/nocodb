@@ -185,6 +185,7 @@ watch(isExpanded, () => {
         :hide-minimap="true"
         :disable-deep-compare="true"
         @update:model-value="localValue = $event"
+        @keydown.enter.stop
       />
 
       <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">

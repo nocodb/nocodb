@@ -76,7 +76,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const fieldRequired = (fieldName = 'Value') => helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
+  const fieldRequired = (fieldName = 'This Field') =>
+    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
     columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
@@ -158,7 +159,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
-        obj.localState[column.title!] = { required: fieldRequired(column.label || column.title) }
+        obj.localState[column.title!] = { required: fieldRequired() }
       } else if (
         isLinksOrLTAR(column) &&
         column.colOptions &&
@@ -168,13 +169,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
         if ((col && col.rqd && !col.cdf) || column.required) {
           if (col) {
-            obj.virtual[column.title!] = { required: fieldRequired(column.label || column.title) }
+            obj.virtual[column.title!] = { required: fieldRequired() }
           }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title!] = {
           minLength: minLength(1),
-          required: fieldRequired(column.label || column.title),
+          required: fieldRequired(),
         }
       }
     }

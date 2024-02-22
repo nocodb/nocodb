@@ -80,7 +80,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
+const { fields, showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
 
 const { state, row } = useProvideSmartsheetRowStore(
   meta,
@@ -120,6 +120,8 @@ const searchQuery = ref('')
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
+
+const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
 
 const updateView = useDebounceFn(
   () => {
@@ -187,63 +189,56 @@ function onMoveCallback(event: any) {
   }
 }
 
-function onMove(event: any) {
-  const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
+function onMove(event: any, isVisibleFormFields = false) {
+  const { newIndex, element, oldIndex } = event.moved
 
-  if (event.added) {
-    element.show = true
-  }
+  const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
-  if (event.removed) {
-    if (shouldSkipColumn(element)) {
-      return
-    }
-    element.show = false
-    saveOrUpdate(element, oldIndex)
+  if (fieldIndex === -1 || fieldIndex === undefined) return
+
+  const localColumnIndex = localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)
+
+  if (!localColumns.value.length || localColumns.value.length === 1) {
+    element.order = 1
+  } else if (localColumns.value.length - 1 === newIndex) {
+    element.order = (localColumns.value[newIndex - 1]?.order || 0) + 1
+  } else if (newIndex === 0) {
+    element.order = (localColumns.value[1]?.order || 0) / 2
   } else {
-    if (!localColumns.value.length || localColumns.value.length === 1) {
-      element.order = 1
-    } else if (localColumns.value.length - 1 === newIndex) {
-      element.order = (localColumns.value[newIndex - 1]?.order || 0) + 1
-    } else if (newIndex === 0) {
-      element.order = (localColumns.value[1]?.order || 0) / 2
-    } else {
-      element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
-    }
-    saveOrUpdate(element, newIndex)
+    element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
   }
+
+  saveOrUpdate(element, fieldIndex)
 
   $e('a:form-view:reorder')
 }
 
-function hideColumn(idx: number) {
-  if (shouldSkipColumn(localColumns.value[idx])) {
+function showOrHideColumn(column: Record<string, any>, show: boolean) {
+  if (shouldSkipColumn(column)) {
     // Required field can't be moved
     message.info(t('msg.info.requriedFieldsCantBeMoved'))
     return
   }
 
-  saveOrUpdate(
-    {
-      ...localColumns.value[idx],
-      show: false,
-    },
-    idx,
-  )
+  const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === column.fk_column_id)
 
-  reloadEventHook.trigger()
+  if (fieldIndex !== -1 && fieldIndex !== undefined) {
+    saveOrUpdate(
+      {
+        ...column,
+        show: show,
+      },
+      fieldIndex,
+    )
 
-  $e('a:form-view:hide-columns')
-}
+    reloadEventHook.trigger()
 
-async function addAllColumns() {
-  for (const col of (localColumns as Record<string, any>)?.value) {
-    if (!systemFieldsIds.value.includes(col.fk_column_id)) {
-      col.show = true
+    if (show) {
+      $e('a:form-view:show-columns')
+    } else {
+      $e('a:form-view:hide-columns')
     }
   }
-  await showAll(systemFieldsIds.value)
-  $e('a:form-view:add-all')
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
@@ -252,16 +247,24 @@ function shouldSkipColumn(col: Record<string, any>) {
   )
 }
 
-async function removeAllColumns() {
-  for (const col of (localColumns as Record<string, any>)?.value) {
-    if (!shouldSkipColumn(col)) col.show = false
+async function handleAddOrRemoveAllColumns(value: boolean) {
+  if (value) {
+    for (const col of (localColumns as Record<string, any>)?.value) {
+      col.show = true
+    }
+    await showAll(systemFieldsIds.value)
+    $e('a:form-view:add-all')
+  } else {
+    for (const col of (localColumns as Record<string, any>)?.value) {
+      if (!shouldSkipColumn(col)) col.show = false
+    }
+    await hideAll(
+      (localColumns as Record<string, any>)?.value
+        .filter((col: Record<string, any>) => shouldSkipColumn(col))
+        .map((col: Record<string, any>) => col.fk_column_id),
+    )
+    $e('a:form-view:remove-all')
   }
-  await hideAll(
-    (localColumns as Record<string, any>)?.value
-      .filter((col: Record<string, any>) => shouldSkipColumn(col))
-      .map((col: Record<string, any>) => col.fk_column_id),
-  )
-  $e('a:form-view:remove-all')
 }
 
 async function checkSMTPStatus() {
@@ -279,6 +282,7 @@ async function checkSMTPStatus() {
 
 function setFormData() {
   const col = formColumnData?.value || []
+  systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   formViewData.value = {
     ...formViewData.value,
@@ -295,13 +299,11 @@ function setFormData() {
   emailMe.value = data[user.value?.email as string]
 
   localColumns.value = col
-    .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
+    .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
   editEnabled.value = new Array(localColumns.value.length).fill(false)
-
-  systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
     (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
@@ -370,10 +372,6 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
     const index = localColumns.value.length
     col.order = (index ? localColumns.value[index - 1].order : 0) + 1
     col.show = true
-
-    /** remove column from hiddenColumns and add to localColumns */
-    localColumns.value.push(col)
-    hiddenColumns.value.splice(hiddenColIndex, 1)
 
     saveOrUpdate(col, index)
   }
@@ -445,301 +443,329 @@ const onFormItemClick = (element: any) => {
       </a-row>
 
       <a-row v-else class="h-full flex" data-testid="nc-form-wrapper">
-        <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-dull p-6 bg-gray-50">
+        <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto nc-form-scrollbar p-6 bg-gray-50">
           <div class="h-[160px] bg-primary bg-opacity-75 border-gray-200 rounded-3xl">
             <!-- for future implementation of cover image -->
           </div>
 
           <a-card
-            class="p-4 border-none !mt-6 max-w-[688px] !mx-auto"
+            class="!p-12 <xl:!p-8 border-gray-200 !rounded-3xl !mt-6 max-w-[688px] !mx-auto"
             :body-style="{
-              maxWidth: 'max(50vw, 700px)',
               margin: '0 auto',
-
-              padding: '0px',
+              padding: '0px !important',
             }"
           >
             <a-form ref="formRef" :model="formState" class="nc-form" no-style>
-              <a-card class="!rounded !shadow !m-2 md:(!m-4) xl:(!m-8)" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
-                <!-- Header -->
-                <div v-if="isEditable" class="px-4 lg:px-12">
-                  <a-form-item v-if="isEditable">
-                    <a-textarea
-                      v-model:value="formViewData.heading"
-                      class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                      :style="{
-                        'borderRightWidth': '0px !important',
-                        'height': '70px',
-                        'max-height': '250px',
-                        'resize': 'vertical',
-                      }"
-                      autosize
-                      size="large"
-                      hide-details
-                      :disabled="isLocked"
-                      placeholder="Form Title"
-                      :bordered="false"
-                      data-testid="nc-form-heading"
-                      @blur="updateView"
-                      @keydown.enter="updateView"
-                    />
-                  </a-form-item>
+              <!-- form header -->
+              <div class="flex flex-col gap-4">
+                <!-- Form logo  -->
+                <div v-if="isEditable">
+                  <div class="inline-block rounded-xl bg-gray-100 p-3">
+                    <NcButton type="secondary" size="small" class="nc-form-upload-logo" data-testid="nc-form-upload-log">
+                      <div class="flex gap-2 items-center">
+                        <component :is="iconMap.upload" class="w-4 h-4" />
+                        <span> Upload Logo </span>
+                      </div>
+                    </NcButton>
+                  </div>
                 </div>
-                <div v-else class="px-4 ml-3 w-full text-bold text-4xl">
+                <!-- form title -->
+
+                <a-form-item v-if="isEditable">
+                  <a-textarea
+                    v-model:value="formViewData.heading"
+                    class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                    :style="{
+                      'borderRightWidth': '0px !important',
+                      'height': '70px',
+                      'max-height': '250px',
+                      'resize': 'vertical',
+                    }"
+                    autosize
+                    size="large"
+                    hide-details
+                    :disabled="isLocked"
+                    placeholder="Form Title"
+                    :bordered="false"
+                    data-testid="nc-form-heading"
+                    @blur="updateView"
+                    @keydown.enter="updateView"
+                  />
+                </a-form-item>
+
+                <div v-else class="w-full text-bold text-4xl">
                   {{ formViewData.heading }}
                 </div>
 
-                <!-- Sub Header -->
-                <div v-if="isEditable" class="px-4 lg:px-12">
-                  <a-form-item>
-                    <a-textarea
-                      v-model:value="formViewData.subheading"
-                      class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                      :style="{
-                        'borderRightWidth': '0px !important',
-                        'height': '40px',
-                        'min-height': '40px',
-                        'resize': 'vertical',
-                      }"
-                      size="large"
-                      autosize
-                      hide-details
-                      :placeholder="$t('msg.info.formDesc')"
-                      :bordered="false"
-                      :disabled="!isEditable || isLocked"
-                      data-testid="nc-form-sub-heading"
-                      @blur="updateView"
-                      @click="updateView"
-                    />
-                  </a-form-item>
-                </div>
+                <!-- form description  -->
+                <a-form-item v-if="isEditable" class="w-full">
+                  <a-textarea
+                    v-model:value="formViewData.subheading as string"
+                    class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                    :style="{
+                      'borderRightWidth': '0px !important',
+                      'height': '40px',
+                      'min-height': '40px',
+                      'resize': 'vertical',
+                    }"
+                    size="large"
+                    autosize
+                    hide-details
+                    :placeholder="$t('msg.info.formDesc')"
+                    :bordered="false"
+                    :disabled="!isEditable || isLocked"
+                    data-testid="nc-form-sub-heading"
+                    @blur="updateView"
+                    @click="updateView"
+                  />
+                </a-form-item>
 
                 <div v-else class="px-4 ml-3 w-full text-bold text-md">
                   {{ formViewData.subheading || '---' }}
                 </div>
+              </div>
 
-                <Draggable
-                  ref="draggableRef"
-                  :list="localColumns"
-                  item-key="fk_column_id"
-                  draggable=".item"
-                  group="form-inputs"
-                  class="h-full"
-                  :move="onMoveCallback"
-                  :disabled="isLocked"
-                  @change="onMove($event)"
-                  @start="drag = true"
-                  @end="drag = false"
-                >
-                  <template #item="{ element, index }">
+              <Draggable
+                ref="draggableRef"
+                :list="visibleColumns"
+                item-key="fk_column_id"
+                draggable=".item"
+                group="form-inputs"
+                class="h-full"
+                :move="onMoveCallback"
+                :disabled="isLocked"
+                @change="onMove($event)"
+                @start="drag = true"
+                @end="drag = false"
+              >
+                <template #item="{ element, index }">
+                  <div
+                    class="color-transition nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10 ring-1 ring-accent ring-opacity-100) px-4 lg:px-12 py-4 relative"
+                    :class="[
+                      `nc-form-drag-${element.title.replaceAll(' ', '')}`,
+                      {
+                        'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
+                      },
+                      {
+                        '!hover:bg-white !ring-0 !cursor-auto': isLocked,
+                      },
+                    ]"
+                    data-testid="nc-form-fields"
+                    @click="onFormItemClick(element)"
+                  >
                     <div
-                      class="color-transition nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10 ring-1 ring-accent ring-opacity-100) px-4 lg:px-12 py-4 relative"
-                      :class="[
-                        `nc-form-drag-${element.title.replaceAll(' ', '')}`,
-                        {
-                          'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
-                        },
-                        {
-                          '!hover:bg-white !ring-0 !cursor-auto': isLocked,
-                        },
-                      ]"
-                      data-testid="nc-form-fields"
-                      @click="onFormItemClick(element)"
+                      v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required) && !isLocked"
+                      class="absolute flex top-2 right-2"
                     >
-                      <div
-                        v-if="isUIAllowed('viewFieldEdit') && !isRequired(element, element.required) && !isLocked"
-                        class="absolute flex top-2 right-2"
-                      >
-                        <component
-                          :is="iconMap.eyeSlash"
-                          class="opacity-0 nc-field-remove-icon"
-                          data-testid="nc-field-remove-icon"
-                          @click.stop="hideColumn(index)"
+                      <component
+                        :is="iconMap.eyeSlash"
+                        class="opacity-0 nc-field-remove-icon"
+                        data-testid="nc-field-remove-icon"
+                        @click.stop="showOrHideColumn(element, !element.show)"
+                      />
+                    </div>
+
+                    <div v-if="activeRow === element.title" class="flex flex-col gap-3 mb-3">
+                      <div class="flex gap-2 items-center">
+                        <span
+                          class="text-gray-500 mr-2 nc-form-input-required"
+                          data-testid="nc-form-input-required"
+                          @click="
+                            () => {
+                              element.required = !element.required
+                              updateColMeta(element)
+                            }
+                          "
+                        >
+                          {{ $t('general.required') }}
+                        </span>
+
+                        <a-switch
+                          v-model:checked="element.required"
+                          v-e="['a:form-view:field:mark-required']"
+                          size="small"
+                          @change="updateColMeta(element)"
                         />
                       </div>
 
-                      <div v-if="activeRow === element.title" class="flex flex-col gap-3 mb-3">
+                      <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 w-1/2 !mb-1">
                         <div class="flex gap-2 items-center">
                           <span
                             class="text-gray-500 mr-2 nc-form-input-required"
-                            data-testid="nc-form-input-required"
+                            data-testid="nc-form-input-enable-scanner"
                             @click="
                               () => {
-                                element.required = !element.required
+                                element.general.enable_scanner = !element.general.enable_scanner
                                 updateColMeta(element)
                               }
                             "
                           >
-                            {{ $t('general.required') }}
+                            {{ $t('general.enableScanner') }}
                           </span>
 
                           <a-switch
-                            v-model:checked="element.required"
-                            v-e="['a:form-view:field:mark-required']"
+                            v-model:checked="element.enable_scanner"
+                            v-e="['a:form-view:field:mark-enable-scaner']"
                             size="small"
                             @change="updateColMeta(element)"
                           />
                         </div>
+                      </a-form-item>
 
-                        <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 w-1/2 !mb-1">
-                          <div class="flex gap-2 items-center">
-                            <span
-                              class="text-gray-500 mr-2 nc-form-input-required"
-                              data-testid="nc-form-input-enable-scanner"
-                              @click="
-                                () => {
-                                  element.general.enable_scanner = !element.general.enable_scanner
-                                  updateColMeta(element)
-                                }
-                              "
-                            >
-                              {{ $t('general.enableScanner') }}
-                            </span>
-
-                            <a-switch
-                              v-model:checked="element.enable_scanner"
-                              v-e="['a:form-view:field:mark-enable-scaner']"
-                              size="small"
-                              @change="updateColMeta(element)"
-                            />
-                          </div>
-                        </a-form-item>
-
-                        <a-form-item class="my-0 w-1/2 !mb-1">
-                          <a-input
-                            v-model:value="element.label"
-                            type="text"
-                            class="form-meta-input nc-form-input-label"
-                            data-testid="nc-form-input-label"
-                            :placeholder="$t('msg.info.formInput')"
-                            @change="updateColMeta(element)"
-                          >
-                          </a-input>
-                        </a-form-item>
-
-                        <a-form-item class="mt-2 mb-0 w-1/2">
-                          <a-input
-                            v-model:value="element.description"
-                            type="text"
-                            class="form-meta-input text-sm nc-form-input-help-text"
-                            data-testid="nc-form-input-help-text"
-                            :placeholder="$t('msg.info.formHelpText')"
-                            @change="updateColMeta(element)"
-                          />
-                        </a-form-item>
-                      </div>
-
-                      <div>
-                        <LazySmartsheetHeaderVirtualCell
-                          v-if="isVirtualCol(element)"
-                          :column="{ ...element, title: element.label || element.title }"
-                          :required="isRequired(element, element.required)"
-                          :hide-menu="true"
+                      <a-form-item class="my-0 w-1/2 !mb-1">
+                        <a-input
+                          v-model:value="element.label"
+                          type="text"
+                          class="form-meta-input nc-form-input-label"
                           data-testid="nc-form-input-label"
-                        />
+                          :placeholder="$t('msg.info.formInput')"
+                          @change="updateColMeta(element)"
+                        >
+                        </a-input>
+                      </a-form-item>
 
-                        <LazySmartsheetHeaderCell
-                          v-else
-                          :column="{ ...element, title: element.label || element.title }"
-                          :required="isRequired(element, element.required)"
-                          :hide-menu="true"
-                          data-testid="nc-form-input-label"
+                      <a-form-item class="mt-2 mb-0 w-1/2">
+                        <a-input
+                          v-model:value="element.description"
+                          type="text"
+                          class="form-meta-input text-sm nc-form-input-help-text"
+                          data-testid="nc-form-input-help-text"
+                          :placeholder="$t('msg.info.formHelpText')"
+                          @change="updateColMeta(element)"
                         />
-                      </div>
+                      </a-form-item>
+                    </div>
 
-                      <a-form-item
+                    <div>
+                      <LazySmartsheetHeaderVirtualCell
                         v-if="isVirtualCol(element)"
-                        :name="element.title"
-                        class="!mb-0 nc-input-required-error nc-form-input-item"
-                        :rules="[
-                          {
-                            required: isRequired(element, element.required),
-                            message: `${element.label || element.title} is required`,
-                          },
-                        ]"
-                      >
-                        <LazySmartsheetVirtualCell
+                        :column="{ ...element, title: element.label || element.title }"
+                        :required="isRequired(element, element.required)"
+                        :hide-menu="true"
+                        data-testid="nc-form-input-label"
+                      />
+
+                      <LazySmartsheetHeaderCell
+                        v-else
+                        :column="{ ...element, title: element.label || element.title }"
+                        :required="isRequired(element, element.required)"
+                        :hide-menu="true"
+                        data-testid="nc-form-input-label"
+                      />
+                    </div>
+
+                    <a-form-item
+                      v-if="isVirtualCol(element)"
+                      :name="element.title"
+                      class="!mb-0 nc-input-required-error nc-form-input-item"
+                      :rules="[
+                        {
+                          required: isRequired(element, element.required),
+                          message: `${element.label || element.title} is required`,
+                        },
+                      ]"
+                    >
+                      <LazySmartsheetVirtualCell
+                        v-model="formState[element.title]"
+                        :row="row"
+                        class="nc-input"
+                        :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                        :column="element"
+                        @click.stop.prevent
+                      />
+                    </a-form-item>
+
+                    <a-form-item
+                      v-else
+                      :name="element.title"
+                      class="!mb-0 nc-input-required-error nc-form-input-item"
+                      :rules="[
+                        {
+                          required: isRequired(element, element.required),
+                          message: `${element.label || element.title} is required`,
+                        },
+                      ]"
+                    >
+                      <LazySmartsheetDivDataCell class="relative">
+                        <LazySmartsheetCell
                           v-model="formState[element.title]"
-                          :row="row"
-                          class="nc-input"
+                          class="nc-input truncate"
                           :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                           :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                           :column="element"
+                          :edit-enabled="editEnabled[index]"
+                          @click="editEnabled[index] = true"
+                          @cancel="editEnabled[index] = false"
+                          @update:edit-enabled="editEnabled[index] = $event"
                           @click.stop.prevent
                         />
-                      </a-form-item>
+                      </LazySmartsheetDivDataCell>
+                    </a-form-item>
 
-                      <a-form-item
-                        v-else
-                        :name="element.title"
-                        class="!mb-0 nc-input-required-error nc-form-input-item"
-                        :rules="[
-                          {
-                            required: isRequired(element, element.required),
-                            message: `${element.label || element.title} is required`,
-                          },
-                        ]"
-                      >
-                        <LazySmartsheetDivDataCell class="relative">
-                          <LazySmartsheetCell
-                            v-model="formState[element.title]"
-                            class="nc-input truncate"
-                            :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                            :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                            :column="element"
-                            :edit-enabled="editEnabled[index]"
-                            @click="editEnabled[index] = true"
-                            @cancel="editEnabled[index] = false"
-                            @update:edit-enabled="editEnabled[index] = $event"
-                            @click.stop.prevent
-                          />
-                        </LazySmartsheetDivDataCell>
-                      </a-form-item>
-
-                      <div class="nc-form-help-text text-gray-500 text-xs truncate" data-testid="nc-form-input-help-text-label">
-                        {{ element.description }}
-                      </div>
+                    <div class="nc-form-help-text text-gray-500 text-xs truncate" data-testid="nc-form-input-help-text-label">
+                      {{ element.description }}
                     </div>
-                  </template>
+                  </div>
+                </template>
 
-                  <template #footer>
-                    <div
-                      v-if="!localColumns.length"
-                      class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center"
-                    >
-                      {{ $t('activity.dragAndDropFieldsHereToAdd') }}
-                    </div>
-                  </template>
-                </Draggable>
-
-                <div class="justify-center flex mt-6">
-                  <NcButton
-                    html-type="submit"
-                    type="primary"
-                    :disabled="!isUIAllowed('dataInsert')"
-                    class="nc-form-submit"
-                    data-testid="nc-form-submit"
-                    @click="submitForm"
+                <template #footer>
+                  <div
+                    v-if="!visibleColumns.length"
+                    class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center"
                   >
-                    {{ $t('general.submit') }}
-                  </NcButton>
-                </div>
-              </a-card>
+                    Select fields from right panel to add here
+                  </div>
+                </template>
+              </Draggable>
+
+              <div class="flex justify-between items-center mt-6">
+                <NcButton
+                  html-type="reset"
+                  type="secondary"
+                  size="small"
+                  :disabled="!isUIAllowed('dataInsert')"
+                  class="nc-form-clear"
+                  data-testid="nc-form-clear"
+                >
+                  Crear Form
+                </NcButton>
+                <NcButton
+                  html-type="submit"
+                  type="primary"
+                  size="small"
+                  :disabled="!isUIAllowed('dataInsert')"
+                  class="nc-form-submit"
+                  data-testid="nc-form-submit"
+                  @click="submitForm"
+                >
+                  {{ $t('general.submit') }}
+                </NcButton>
+              </div>
             </a-form>
 
-            <a-divider v-if="!isLocked" />
+            <a-divider v-if="!isLocked" class="!my-8" />
+
+            <!-- Nocodb Branding  -->
+            <div class="flex items-center gap-3">
+              <!-- Todo: add new NocoDB icon -->
+              <img src="~assets/img/icons/64x64.png" alt="NocoDB" class="w-6" />
+              <div class="text-sm text-gray-700">NocoDB Forms</div>
+            </div>
           </a-card>
         </a-col>
         <a-col v-if="isEditable" :span="8" class="h-full nc-form-left-drawer border-l border-gray-200">
           <Splitpanes horizontal class="w-full nc-form-right-splitpane">
-            <Pane min-size="40%" size="50" class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4">
+            <Pane min-size="25" size="50" class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4">
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <div class="flex gap-3">
                   <div class="text-base font-bold text-gray-900">
                     <!-- {{ $t('objects.fields') }} -->
                     Form Fields
                   </div>
-                  <NcBadge color="border-gray-200" class=""> 22/26 Field </NcBadge>
+                  <NcBadge color="border-gray-200" class="">
+                    {{ visibleColumns.length }}/{{ localColumns.length }} Field
+                  </NcBadge>
                 </div>
 
                 <a-dropdown
@@ -747,8 +773,8 @@ const onFormItemClick = (element: any) => {
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-form-add-column"
                 >
+                  <!-- v-if="localColumns.length" -->
                   <NcButton
-                    v-if="hiddenColumns.length"
                     type="secondary"
                     size="small"
                     class="nc-form-add-field"
@@ -756,7 +782,7 @@ const onFormItemClick = (element: any) => {
                     @click.stop="showColumnDropdown = true"
                   >
                     <div class="flex gap-2 items-center">
-                      <component :is="iconMap.plus" class="color-transition transform group-hover:(text-accent scale-125)" />
+                      <component :is="iconMap.plus" class="w-4 h-4" />
                       <span> Add Field </span>
                     </div>
                   </NcButton>
@@ -771,29 +797,6 @@ const onFormItemClick = (element: any) => {
                     />
                   </template>
                 </a-dropdown>
-                <!-- <NcButton
-                    v-if="hiddenColumns.length"
-                    type="secondary"
-                    class="nc-form-add-all"
-                    data-testid="nc-form-add-all"
-                    :disabled="isLocked"
-                    @click="addAllColumns"
-                  >
-                    Add all
-                    {{ $t('general.addAll') }}
-                  </NcButton>
-
-                  <NcButton
-                    v-if="localColumns.length"
-                    type="secondary"
-                    class="nc-form-remove-all"
-                    data-testid="nc-form-remove-all"
-                    :disabled="isLocked"
-                    @click="removeAllColumns"
-                  >
-                    Remove all
-                    {{ $t('general.removeAll') }}
-                  </NcButton> -->
               </div>
               <div>
                 <a-input
@@ -816,17 +819,13 @@ const onFormItemClick = (element: any) => {
                   </template>
                 </a-input>
               </div>
-              <div class="nc-form-fields-list border-1 border-gray-200 rounded-lg overflow-y-auto">
-                <div
-                  v-if="!hiddenColumns?.filter((el) => el.title.toLowerCase().includes(searchQuery.toLowerCase())).length"
-                  class="px-0.5 py-2 text-gray-500 text-center"
-                >
+              <div class="nc-form-fields-list border-1 border-gray-200 rounded-lg overflow-y-auto nc-form-scrollbar">
+                <div v-if="!localColumns.length" class="px-0.5 py-2 text-gray-500 text-center">
                   {{ $t('title.noFieldsFound') }}
                 </div>
-
                 <Draggable
-                  v-else
-                  v-model="hiddenColumns"
+                  v-if="localColumns"
+                  v-model="localColumns"
                   item-key="id"
                   @change="onMove($event)"
                   :style="{ height: 'calc(100% - 64px)' }"
@@ -837,16 +836,11 @@ const onFormItemClick = (element: any) => {
                       :key="field.id"
                       class="p-2 flex flex-row items-center border-b-1 last:border-none first:rounded-t-lg border-gray-200"
                       :data-testid="`nc-form-field-item-${field.title}`"
-                      @click.stop
                     >
                       <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
                       <div
                         class="flex-1 flex items-center justify-between cursor-pointer"
-                        @click="
-                          () => {
-                            field.show = !field.show
-                          }
-                        "
+                        @click="showOrHideColumn(field, !field.show)"
                       >
                         <div class="flex-1 flex items-center">
                           <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
@@ -857,26 +851,37 @@ const onFormItemClick = (element: any) => {
                             <span data-testid="nc-field-title">
                               {{ field.title }}
                             </span>
+                            <span v-if="field.required" class="text-red-500">&nbsp;*</span>
                           </NcTooltip>
                         </div>
 
-                        <NcSwitch :checked="field.show" />
+                        <NcSwitch :checked="field.show" :disabled="field.required" />
                       </div>
                     </div>
                   </template>
                   <template #header>
                     <div
                       key="nc-form-show-all-fields"
-                      class="w-full px-2 py-2 flex flex-row items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100 overflow-hidden"
-                      data-testid="nc"
+                      class="w-full p-2 flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
+                      data-testid="nc-form-show-all-fields"
                       @click.stop
                     >
                       <div class="w-4 h-4 flex-none mr-2"></div>
-
                       <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
                         <div class="flex-1 font-base">Select all fields</div>
-                        <NcSwitch :checked="true" />
+                        <NcSwitch
+                          :checked="visibleColumns.length === localColumns.length"
+                          @change="handleAddOrRemoveAllColumns"
+                        />
                       </div>
+                    </div>
+                  </template>
+                  <template
+                    #footer
+                    v-if="!localColumns?.filter((el) => el.title.toLowerCase().includes(searchQuery.toLowerCase())).length"
+                  >
+                    <div class="px-0.5 py-2 text-gray-500 text-center">
+                      {{ $t('title.noFieldsFound') }} for title `{{ searchQuery }}`
                     </div>
                   </template>
                 </Draggable>
@@ -884,9 +889,9 @@ const onFormItemClick = (element: any) => {
             </Pane>
             <Pane
               v-if="isEditable && !isLocked && formViewData"
-              min-size="20%"
+              min-size="20"
               size="35"
-              class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4 !overflow-y-auto nc-scrollbar-x-lg"
+              class="nc-form-right-splitpane-item p-2 md:p-4 flex flex-col space-y-4 !overflow-y-auto nc-form-scrollbar"
             >
               <!-- After form is submitted -->
               <div class="text-base font-bold text-gray-900">
@@ -957,60 +962,8 @@ const onFormItemClick = (element: any) => {
                 </div>
               </div>
             </Pane>
-            <!-- <Draggable
-            :list="hiddenColumns"
-            item-key="id"
-            draggable=".item"
-            group="form-inputs"
-            :disabled="isLocked"
-            class="flex flex-col gap-2"
-            @start="drag = true"
-            @end="drag = false"
-          >
-            <template #item="{ element, index }">
-              <a-card
-                size="small"
-                class="!border-0 color-transition cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
-                :class="{
-                  '!bg-gray-50 !hover:bg-gray-50 !hover:ring-transparent !cursor-not-allowed': isLocked,
-                }"
-                :data-testid="`nc-form-hidden-column-${element.label || element.title}`"
-                @mousedown="moved = false"
-                @mousemove="moved = false"
-                @mouseup="handleMouseUp(element, index)"
-              >
-                <div class="flex">
-                  <div class="flex flex-1">
-                    <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(element)"
-                      :column="{ ...element, title: element.label || element.title }"
-                      :required="isRequired(element, element.required)"
-                      :hide-menu="true"
-                    />
-
-                    <LazySmartsheetHeaderCell
-                      v-else
-                      :column="{ ...element, title: element.label || element.title }"
-                      :required="isRequired(element, element.required)"
-                      :hide-menu="true"
-                    />
-                  </div>
-                </div>
-              </a-card>
-            </template>
-
-            <template v-if="!isLocked" #footer>
-              <div
-                class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
-                data-testid="nc-drag-n-drop-to-hide"
-              >
-                
-                {{ $t('msg.info.dragDropHide') }}
-              </div>
-            </template>
-          </Draggable> -->
-          </Splitpanes></a-col
-        >
+          </Splitpanes>
+        </a-col>
       </a-row>
     </template>
   </div>
@@ -1085,5 +1038,11 @@ const onFormItemClick = (element: any) => {
   }
 }
 .nc-form-fields-list {
+}
+.nc-form-scrollbar {
+  @apply scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-200 scrollbar-track-transparent;
+  &::-webkit-scrollbar-thumb:hover {
+    @apply !scrollbar-thumb-gray-300;
+  }
 }
 </style>

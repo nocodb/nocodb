@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
-    }
+    },
+    "appearanceSettings":"Appearance Settings",
+    "backgroundColor":"Background Color",
+    "hideNocodbBranding":"Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet":"Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "Access is password restricted",
       "privateLink": "This view is shared via a private link",
       "privateLinkAdditionalInfo": "People with private link can only see cells visible in this view",
-      "afterFormSubmitted": "After form is submitted",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Access Base via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",
       "emailForm": "E-mail me at",
       "showSysFields": "Show system fields",
       "filterAutoApply": "Auto apply",
-      "showMessage": "Show this message",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Current view is not shared!",
       "showAllViews": "Show all shared views of this table",
       "collabView": "Collaborators with edit permissions or higher can change the view configuration.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Base not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

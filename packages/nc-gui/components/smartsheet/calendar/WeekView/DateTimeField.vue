@@ -458,6 +458,7 @@ const onResizeEnd = () => {
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
 }
+
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true

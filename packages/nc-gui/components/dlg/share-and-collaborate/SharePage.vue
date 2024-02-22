@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import { useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
@@ -255,22 +254,6 @@ async function updateSharedView() {
   return true
 }
 
-function onChangeTheme(color: string) {
-  if (!activeView.value?.meta) return
-
-  const tcolor = tinycolor(color)
-
-  if (tcolor.isValid()) {
-    const complement = tcolor.complement()
-    activeView.value.meta.theme = {
-      primaryColor: color,
-      accentColor: complement.toHex8String(),
-    }
-
-    saveTheme()
-  }
-}
-
 const isPublicShared = computed(() => {
   return !!activeView.value?.uuid
 })
@@ -351,7 +334,7 @@ const isPublicShared = computed(() => {
             >
             </a-switch>
           </div>
-          <div v-if="activeView?.type === ViewTypes.FORM && isEeUI" class="flex flex-row justify-between">
+          <div v-if="activeView?.type === ViewTypes.FORM && !isEeUI" class="flex flex-row justify-between">
             <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
             <a-switch
               v-model:checked="withRTL"
@@ -359,33 +342,6 @@ const isPublicShared = computed(() => {
               data-testid="nc-modal-share-view__RTL"
             >
             </a-switch>
-          </div>
-          <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-col justify-between gap-y-1 bg-gray-50 rounded-md">
-            <div class="flex flex-row justify-between">
-              <div class="text-black">{{ $t('activity.useTheme') }}</div>
-              <a-switch
-                v-e="['c:share:view:theme:toggle']"
-                :checked="viewTheme"
-                :loading="isUpdating.password"
-                class="share-theme-toggle !mt-0.25"
-                data-testid="share-theme-toggle"
-                @click="viewTheme = !viewTheme"
-              />
-            </div>
-
-            <Transition mode="out-in" name="layout">
-              <div v-if="viewTheme" class="flex -ml-1">
-                <LazyGeneralColorPicker
-                  :advanced="false"
-                  :colors="baseThemeColors"
-                  :model-value="activeView?.meta?.theme?.primaryColor"
-                  :row-size="9"
-                  class="!p-0 !bg-inherit"
-                  data-testid="nc-modal-share-view__theme-picker"
-                  @input="onChangeTheme"
-                />
-              </div>
-            </Transition>
           </div>
         </div>
       </template>

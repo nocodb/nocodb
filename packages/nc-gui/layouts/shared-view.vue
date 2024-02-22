@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 import { iconMap, onMounted, useEventListener, useGlobal, useRouter, useSharedView } from '#imports'
 
 const { isLoading, appInfo } = useGlobal()

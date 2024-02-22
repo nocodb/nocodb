@@ -54,7 +54,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const loadViewColumns = async () => {
       if (!meta || !view) return
-
       let order = 1
 
       if (view.value?.id) {

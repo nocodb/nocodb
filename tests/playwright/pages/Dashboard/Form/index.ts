@@ -22,14 +22,16 @@ export class FormPage extends BasePage {
   readonly formSubHeading: Locator;
   readonly afterSubmitMsg: Locator;
 
+  readonly formFields: Locator;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
     this.topbar = new TopbarPage(this);
 
-    this.addAllButton = dashboard.get().locator('[data-testid="nc-form-add-all"]');
-    this.removeAllButton = dashboard.get().locator('[data-testid="nc-form-remove-all"]');
+    this.addAllButton = dashboard.get().locator('[data-testid="nc-form-show-all-fields"]').locator('.nc-switch');
+    this.removeAllButton = dashboard.get().locator('[data-testid="nc-form-show-all-fields"]').locator('.nc-switch');
     this.submitButton = dashboard.get().locator('[data-testid="nc-form-submit"]');
 
     this.showAnotherFormRadioButton = dashboard.get().locator('[data-testid="nc-form-checkbox-submit-another-form"]');
@@ -40,6 +42,8 @@ export class FormPage extends BasePage {
     this.formHeading = dashboard.get().locator('[data-testid="nc-form-heading"]');
     this.formSubHeading = dashboard.get().locator('[data-testid="nc-form-sub-heading"]');
     this.afterSubmitMsg = dashboard.get().locator('[data-testid="nc-form-after-submit-msg"]');
+
+    this.formFields = dashboard.get().locator('.nc-form-fields-list');
   }
 
   get() {
@@ -50,20 +54,8 @@ export class FormPage extends BasePage {
     return this.dashboard.get().locator('[data-testid="nc-form-wrapper-submit"]');
   }
 
-  getFormHiddenColumn() {
-    return this.get().locator('[data-testid="nc-form-hidden-column"]');
-  }
-
   getFormFields() {
     return this.get().locator('[data-testid="nc-form-fields"]');
-  }
-
-  getDragNDropToHide() {
-    return this.get().locator('[data-testid="nc-drag-n-drop-to-hide"]');
-  }
-
-  getFormFieldsRemoveIcon() {
-    return this.get().locator('[data-testid="nc-field-remove-icon"]');
   }
 
   getFormFieldsRequired() {
@@ -71,11 +63,11 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsInputLabel() {
-    return this.get().locator('input[data-testid="nc-form-input-label"]:visible');
+    return this.get().locator('textarea[data-testid="nc-form-input-label"]:visible');
   }
 
   getFormFieldsInputHelpText() {
-    return this.get().locator('input[data-testid="nc-form-input-help-text"]:visible');
+    return this.get().locator('textarea[data-testid="nc-form-input-help-text"]:visible');
   }
 
   async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {
@@ -83,9 +75,7 @@ export class FormPage extends BasePage {
   }
 
   async verifyFormFieldHelpText({ index, helpText }: { index: number; helpText: string }) {
-    await expect(
-      this.getFormFields().nth(index).locator('[data-testid="nc-form-input-help-text-label"]')
-    ).toContainText(helpText);
+    await expect(this.getFormFields().nth(index).locator('[data-testid="nc-form-help-text"]')).toContainText(helpText);
   }
 
   async verifyFieldsIsEditable({ index }: { index: number }) {
@@ -124,8 +114,8 @@ export class FormPage extends BasePage {
       const dst = this.get().locator(`[data-testid="nc-drag-n-drop-to-hide"]`);
       await src.dragTo(dst);
     } else if (mode === 'hideField') {
-      const src = this.get().locator(`.nc-form-drag-${field.replace(' ', '')}`);
-      await src.locator(`[data-testid="nc-field-remove-icon"]`).click();
+      // in form-v2, hide field will be using right sidebar
+      await this.formFields.locator(`[data-testid="nc-form-field-item-${field}"]`).locator('.nc-switch').click();
     }
   }
 
@@ -141,15 +131,11 @@ export class FormPage extends BasePage {
       await src.dragTo(dst, { trial: true });
       await src.dragTo(dst);
     } else if (mode === 'clickField') {
-      const src = this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
-      await src.click();
+      await this.formFields.locator(`[data-testid="nc-form-field-item-${field}"]`).locator('.nc-switch').click();
     }
   }
 
   async removeAllFields() {
-    // TODO: Otherwise form input boxes are not visible sometimes
-    await this.rootPage.waitForTimeout(1000);
-
     await this.removeAllButton.click();
   }
 
@@ -214,8 +200,9 @@ export class FormPage extends BasePage {
 
     await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-testid="nc-form-input-label"]')
+      .locator('[data-testid="nc-form-input-label"]')
       .click();
+
     await waitForResponse(() => this.getFormFieldsInputLabel().fill(label));
     await waitForResponse(() => this.getFormFieldsInputHelpText().fill(helpText));
     if (required) {

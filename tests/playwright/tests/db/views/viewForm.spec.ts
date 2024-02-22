@@ -49,17 +49,18 @@ test.describe('Form view', () => {
       fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
+    // drag-drop feature to remove a field will not be supported in form v2
     // remove & verify (drag-drop)
-    await form.removeField({ field: 'Cities', mode: 'dragDrop' });
-    await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country'],
-    });
+    // await form.removeField({ field: 'Cities', mode: 'dragDrop' });
+    // await form.verifyFormViewFieldsOrder({
+    //   fields: ['LastUpdate', 'Country'],
+    // });
 
     // add & verify (drag-drop)
-    await form.addField({ field: 'Cities', mode: 'dragDrop' });
-    await form.verifyFormViewFieldsOrder({
-      fields: ['LastUpdate', 'Country', 'Cities'],
-    });
+    // await form.addField({ field: 'Cities', mode: 'dragDrop' });
+    // await form.verifyFormViewFieldsOrder({
+    //   fields: ['LastUpdate', 'Country', 'Cities'],
+    // });
 
     // remove & verify (hide field button)
     await form.removeField({ field: 'Cities', mode: 'hideField' });
@@ -88,7 +89,7 @@ test.describe('Form view', () => {
     });
   });
 
-  test('Form elements validation', async ({ page }) => {
+  test('Form elements validation', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });

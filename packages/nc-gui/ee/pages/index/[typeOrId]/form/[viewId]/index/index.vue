@@ -5,8 +5,19 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { iconMap, useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
-  useSharedFormStoreOrThrow()
+const {
+  sharedFormView,
+  submitForm,
+  clearForm,
+  v$,
+  formState,
+  notFound,
+  formColumns,
+  submitted,
+  secondsRemain,
+  isLoading,
+  progress,
+} = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -69,40 +80,49 @@ const onDecode = async (scannedCodeValue: string) => {
 
 <template>
   <div class="h-full flex flex-col items-center">
+    <GeneralFormBanner
+      v-if="
+        sharedFormView &&
+        (sharedFormView.banner_image_url || !(parseProp(sharedFormView?.meta).hide_branding && !sharedFormView.banner_image_url))
+      "
+      :banner-image-url="sharedFormView.banner_image_url"
+      class="flex-none dark:border-none"
+    />
+
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
     >
       <template v-if="sharedFormView">
-        <h1 class="prose-2xl font-bold self-center my-4" style="word-break: break-all">
-          {{ sharedFormView.heading }}
-        </h1>
+        <div class="mb-4">
+          <h1 class="text-2xl font-bold text-gray-900 mb-4">
+            {{ sharedFormView.heading }}
+          </h1>
 
-        <h2
-          v-if="sharedFormView.subheading"
-          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
-          style="word-break: break-all"
-        >
-          {{ sharedFormView.subheading }}
-        </h2>
+          <h2 v-if="sharedFormView.subheading" class="font-medium text-base text-gray-500 dark:text-slate-300 mb-4">
+            {{ sharedFormView.subheading }}
+          </h2>
+        </div>
 
         <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
-            <div v-if="sharedFormView" class="min-w-350px mt-3">
+            <div v-if="sharedFormView" class="w-full lg:w-[95%]">
               <a-alert
                 type="success"
-                class="my-4 text-center"
+                class="!my-4 text-center !rounded-lg"
                 outlined
                 :message="sharedFormView.success_msg || 'Successfully submitted form data'"
               />
 
               <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-                New form will be loaded after {{ secondsRemain }} seconds
+                {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 
               <div v-if="sharedFormView.submit_another_form" class="text-center">
-                <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+                <NcButton type="primary" size="medium" @click="submitted = false">
+                  {{ $t('activity.submitAnotherForm') }}
+                </NcButton>
               </div>
             </div>
           </div>
@@ -123,7 +143,7 @@ const onDecode = async (scannedCodeValue: string) => {
               <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
             </div>
           </a-modal>
-          <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
+          <GeneralOverlay class="bg-gray-50/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
             </div>
@@ -131,22 +151,16 @@ const onDecode = async (scannedCodeValue: string) => {
 
           <div class="nc-form-wrapper">
             <div class="nc-form h-full">
-              <div class="flex flex-col gap-6">
+              <div class="flex flex-col gap-3 md:gap-6">
                 <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
-                  <div class="flex nc-form-column-label">
-                    <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(field)"
-                      :column="{ ...field, title: field.label || field.title }"
-                      :required="isRequired(field, field.required)"
-                      :hide-menu="true"
-                    />
-
-                    <LazySmartsheetHeaderCell
-                      v-else
-                      :column="{ ...field, title: field.label || field.title }"
-                      :required="isRequired(field, field.required)"
-                      :hide-menu="true"
-                    />
+                  <div class="nc-form-column-label text-sm font-semibold text-gray-800">
+                    <span>
+                      {{ field.label || field.title }}
+                    </span>
+                    <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
+                  </div>
+                  <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
+                    {{ field?.description }}
                   </div>
 
                   <div>
@@ -163,7 +177,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       <LazySmartsheetCell
                         v-else
                         v-model="formState[field.title]"
-                        class="nc-input"
+                        class="nc-input truncate"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                         :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                         :column="field"
@@ -181,39 +195,59 @@ const onDecode = async (scannedCodeValue: string) => {
                       </a-button>
                     </LazySmartsheetDivDataCell>
 
-                    <div
-                      class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1"
-                      style="word-break: break-all"
-                    >
-                      <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
-                        {{ error.$message }}
-                      </div>
-
-                      {{ field.description }}
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-sm mt-2">
+                      <template v-if="isVirtualCol(field)">
+                        <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
+                          {{ error.$message }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                          {{ error.$message }}
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="text-center mt-4">
-                <button
-                  type="submit"
-                  class="uppercase scaling-btn prose-sm"
+              <div class="flex justify-between items-center mt-6">
+                <NcButton
+                  html-type="reset"
+                  type="secondary"
+                  size="small"
+                  :disabled="isLoading"
+                  class="nc-shared-form-button shared-form-clear-button"
+                  data-testid="shared-form-clear-button"
+                  @click="clearForm"
+                >
+                  {{ $t('activity.clearForm') }}
+                </NcButton>
+
+                <NcButton
+                  html-type="submit"
+                  :disabled="progress"
+                  type="primary"
+                  size="small"
+                  class="nc-shared-form-button shared-form-submit-button"
                   data-testid="shared-form-submit-button"
                   @click="submitForm"
                 >
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
+            </div>
+          </div>
+          <div v-if="!parseProp(sharedFormView?.meta).hide_branding">
+            <a-divider class="!my-6 !md:my-8" />
+            <div class="inline-block">
+              <GeneralFormBranding />
             </div>
           </div>
         </template>
       </template>
     </div>
-
-    <div class="flex items-end">
-      <GeneralPoweredBy />
-    </div>
+    <div>&nbsp;</div>
   </div>
 </template>
 
@@ -224,5 +258,11 @@ const onDecode = async (scannedCodeValue: string) => {
 .nc-btn-fill-form-column-by-scan {
   @apply h-auto;
   @apply ml-1;
+}
+
+.nc-shared-form-button {
+  &.nc-button.ant-btn:focus {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
 }
 </style>

@@ -613,7 +613,7 @@ a {
 }
 
 .nc-click-transition {
-  @apply transform transition-transform transition-color !text-gray-400 !hover:(scale-130 !text-gray-500) !active:(scale-100 !text-gray-500);
+  @apply transform transition-transform transition-colors !text-gray-400 !hover:(scale-130 !text-gray-500) !active:(scale-100 !text-gray-500);
 }
 
 .nc-click-transition-1 {

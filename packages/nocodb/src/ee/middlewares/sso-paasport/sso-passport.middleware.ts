@@ -91,7 +91,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
         wantAuthnResponseSigned: false,
         // Azure AD otp based auth is not supporting with authContext
         // https://github.com/node-saml/passport-saml/issues/226
-        disableRequestedAuthnContext: config.disableRequestedAuthnContext ?? true,
+        disableRequestedAuthnContext:
+          config.disableRequestedAuthnContext ?? true,
       },
       async (req, profile, callback) => {
         try {

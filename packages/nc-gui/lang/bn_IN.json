@@ -212,7 +212,7 @@
     "page": "পৃষ্ঠা",
     "pages": "পৃষ্ঠাগুলি",
     "record": "রেকর্ড",
-    "records": "রেকর্ড",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "ওয়েবহুকস",
     "view": "দেখুন",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "অ্যাক্সেস পাসওয়ার্ড সীমাবদ্ধ",
       "privateLink": "এই ভিউটি একটি ব্যক্তিগত লিঙ্কের মাধ্যমে ভাগ করা হয়েছে",
       "privateLinkAdditionalInfo": "ব্যক্তিগত লিঙ্কযুক্ত লোকেরা কেবল এই দৃশ্যে কোষগুলি দৃশ্যমান দেখতে পারে",
-      "afterFormSubmitted": "ফর্ম জমা দেওয়ার পরে",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "মাধ্যমে অ্যাক্সেস প্রকল্প",
       "submitAnotherForm": "অন্য ফর্ম জমা দিন' বোতামটি দেখান",
       "showBlankForm": "5 সেকেন্ড পরে একটি ফাঁকা ফর্ম দেখান",
       "emailForm": "আমাকে ইমেল করুন",
       "showSysFields": "সিস্টেম ক্ষেত্রগুলি দেখান",
       "filterAutoApply": "অটো প্রয়োগ",
-      "showMessage": "এই বার্তাটি দেখান",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "বর্তমান ভিউ ভাগ করা হয় না!",
       "showAllViews": "এই টেবিলের সমস্ত ভাগ করা দর্শন দেখান",
       "collabView": "সম্পাদনা অনুমতি বা উচ্চতর সহ সহযোগীরা ভিউ কনফিগারেশন পরিবর্তন করতে পারে।",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

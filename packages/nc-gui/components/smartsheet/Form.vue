@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
@@ -30,6 +31,7 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   watch,
+  useEventListener,
 } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -113,7 +115,9 @@ const submitted = ref(false)
 
 const activeRow = ref('')
 
-const editEnabled = ref<boolean[]>([])
+const focusLabel: VNodeRef = (el) => {
+  return (el as HTMLInputElement)?.focus()
+}
 
 const searchQuery = ref('')
 
@@ -323,8 +327,6 @@ function setFormData() {
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
-  editEnabled.value = new Array(localColumns.value.length).fill(false)
-
   hiddenColumns.value = col.filter(
     (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
   )
@@ -409,6 +411,18 @@ const onFormItemClick = (element: any) => {
 
   activeRow.value = element.title
 }
+
+useEventListener(document, 'focusout', (e: FocusEvent) => {
+  const nextActiveFieldTitle =
+    e?.relatedTarget?.getAttribute('data-title') ||
+    e?.relatedTarget?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title')
+
+  if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
+    activeRow.value = nextActiveFieldTitle
+  } else {
+    console.log(document.activeElement)
+  }
+})
 </script>
 
 <template>
@@ -516,7 +530,7 @@ const onFormItemClick = (element: any) => {
                   <a-form-item v-if="isEditable">
                     <a-textarea
                       v-model:value="formViewData.heading"
-                      class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                      class="nc-form-focus-element w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
                       :style="{
                         'borderRightWidth': '0px !important',
                         'height': '70px',
@@ -530,6 +544,7 @@ const onFormItemClick = (element: any) => {
                       placeholder="Form Title"
                       :bordered="false"
                       data-testid="nc-form-heading"
+                      data-title="nc-form-heading"
                       @blur="updateView"
                       @keydown.enter="updateView"
                     />
@@ -543,7 +558,7 @@ const onFormItemClick = (element: any) => {
                   <a-form-item v-if="isEditable" class="w-full">
                     <a-textarea
                       v-model:value="formViewData.subheading"
-                      class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
+                      class="nc-form-focus-element w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
                       :style="{
                         'borderRightWidth': '0px !important',
                         'height': '40px',
@@ -557,6 +572,7 @@ const onFormItemClick = (element: any) => {
                       :bordered="false"
                       :disabled="!isEditable || isLocked"
                       data-testid="nc-form-sub-heading"
+                      data-title="nc-form-sub-heading"
                       @blur="updateView"
                       @click="updateView"
                     />
@@ -584,7 +600,7 @@ const onFormItemClick = (element: any) => {
                 >
                   <template #item="{ element, index }">
                     <div
-                      class="nc-editable item relative bg-white"
+                      class="nc-editable nc-form-focus-element item relative bg-white"
                       :class="[
                         `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                         {
@@ -608,6 +624,7 @@ const onFormItemClick = (element: any) => {
                       :style="{
                         transition: 'height 1s ease-in',
                       }"
+                      :data-title="element.title"
                       data-testid="nc-form-fields"
                       @click="onFormItemClick(element)"
                     >
@@ -644,8 +661,7 @@ const onFormItemClick = (element: any) => {
                         </div>
                         <div class="flex gap-2 items-center">
                           <span
-                            class="text-gray-500 mr-2 nc-form-input-required"
-                            data-testid="nc-form-input-required"
+                            class="text-gray-500 mr-2"
                             @click="
                               () => {
                                 element.required = !element.required
@@ -657,6 +673,8 @@ const onFormItemClick = (element: any) => {
                           </span>
                           <a-switch
                             v-model:checked="element.required"
+                            class="nc-form-input-required"
+                            data-testid="nc-form-input-required"
                             v-e="['a:form-view:field:mark-required']"
                             size="small"
                             @change="updateColMeta(element)"
@@ -670,6 +688,7 @@ const onFormItemClick = (element: any) => {
                         <template v-if="activeRow === element.title">
                           <a-form-item class="my-0 !mb-2">
                             <a-textarea
+                              :ref="focusLabel"
                               v-model:value="element.label"
                               :rows="1"
                               auto-size
@@ -723,7 +742,6 @@ const onFormItemClick = (element: any) => {
                         </template>
                         <div :class="activeRow !== element.title ? 'mt-2' : ''">
                           <a-form-item
-                            v-if="isVirtualCol(element)"
                             :name="element.title"
                             class="!my-0 nc-input-required-error nc-form-input-item"
                             :rules="[
@@ -733,40 +751,24 @@ const onFormItemClick = (element: any) => {
                               },
                             ]"
                           >
-                            <LazySmartsheetVirtualCell
-                              v-model="formState[element.title]"
-                              :row="row"
-                              class="nc-input"
-                              :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                              :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                              :column="element"
-                              @click.stop.prevent
-                            />
-                          </a-form-item>
-
-                          <a-form-item
-                            v-else
-                            :name="element.title"
-                            class="!my-0 nc-input-required-error nc-form-input-item"
-                            :rules="[
-                              {
-                                required: isRequired(element, element.required),
-                                message: `${element.label || element.title} is required`,
-                              },
-                            ]"
-                          >
-                            <LazySmartsheetDivDataCell class="relative">
+                            <LazySmartsheetDivDataCell class="relative" @click.stop>
+                              <LazySmartsheetVirtualCell
+                                v-if="isVirtualCol(element)"
+                                v-model="formState[element.title]"
+                                :row="row"
+                                class="nc-input"
+                                :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                :column="element"
+                              />
                               <LazySmartsheetCell
+                                v-else
                                 v-model="formState[element.title]"
                                 class="nc-input truncate"
                                 :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                 :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                 :column="element"
-                                :edit-enabled="editEnabled[index]"
-                                @click="editEnabled[index] = true"
-                                @cancel="editEnabled[index] = false"
-                                @update:edit-enabled="editEnabled[index] = $event"
-                                @click.stop.prevent
+                                :edit-enabled="true"
                               />
                             </LazySmartsheetDivDataCell>
                           </a-form-item>
@@ -807,8 +809,9 @@ const onFormItemClick = (element: any) => {
                     type="secondary"
                     size="small"
                     :disabled="!isUIAllowed('dataInsert')"
-                    class="nc-form-clear"
+                    class="nc-form-clear nc-form-focus-element"
                     data-testid="nc-form-clear"
+                    data-title="nc-form-clear"
                     @click="clearForm"
                   >
                     Crear Form
@@ -818,8 +821,9 @@ const onFormItemClick = (element: any) => {
                     type="primary"
                     size="small"
                     :disabled="!isUIAllowed('dataInsert')"
-                    class="nc-form-submit"
+                    class="nc-form-submit nc-form-focus-element"
                     data-testid="nc-form-submit"
+                    data-title="nc-form-submit"
                     @click="submitForm"
                   >
                     {{ $t('general.submit') }}
@@ -1121,7 +1125,6 @@ const onFormItemClick = (element: any) => {
 
 .nc-input {
   @apply appearance-none w-full !bg-white rounded-lg px-2 py-2 border-solid border-1 border-gray-200 focus-within:border-brand-500;
-
   &.nc-cell-rating,
   &.nc-cell-geodata {
     @apply !py-1;
@@ -1188,8 +1191,7 @@ const onFormItemClick = (element: any) => {
     @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-gray-800 border-1 border-gray-200 rounded bg-white absolute -top-2.5 z-100 left-[calc(50%_-_16px)];
   }
 }
-.nc-form-fields-list {
-}
+
 .nc-form-scrollbar {
   @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
   &::-webkit-scrollbar-thumb:hover {
@@ -1205,5 +1207,8 @@ const onFormItemClick = (element: any) => {
 }
 .nc-form-field-ghost {
   @apply bg-gray-50;
+}
+:deep(.nc-form-input-required):focus {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
 </style>

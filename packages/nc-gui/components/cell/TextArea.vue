@@ -61,7 +61,7 @@ const mousePosition = ref<
 const isDragging = ref(false)
 
 const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && isForm.value && (el as HTMLTextAreaElement)?.focus()
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (isExpandedFormOpen.value) return 36 * 4

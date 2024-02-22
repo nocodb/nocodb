@@ -678,7 +678,7 @@ useEventListener(
                           <span v-if="element.required" class="text-red-500">&nbsp;*</span>
                         </div>
 
-                        <div class="nc-form-help-text text-gray-500 text-sm mt-2" data-testid="nc-form-help-text">
+                        <div class="nc-form-help-text text-gray-500 text-[13px] mt-2" data-testid="nc-form-help-text">
                           {{ element.description }}
                         </div>
                       </div>

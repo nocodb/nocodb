@@ -212,7 +212,7 @@
     "page": "页",
     "pages": "页",
     "record": "记录",
-    "records": "记录",
+    "records": "records",
     "webhook": "Webhook.",
     "webhooks": "Webhooks.",
     "view": "视图",
@@ -421,7 +421,8 @@
       "restrict": "限制",
       "setNull": "设置 NULL",
       "setDefault": "设为默认"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "配置不完整",
       "selectField": "请设置需要查询的字段",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "切换移动模式",
-    "startCommenting": "开始评论"
+    "startCommenting": "开始评论",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "暂时只限于一个数据源",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "访问受密码限制",
       "privateLink": "此视图通过私有链接共享",
       "privateLinkAdditionalInfo": "拥有私人链接的人只能看到此视图中可见的单元格",
-      "afterFormSubmitted": "表单提交后",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "访问项目通过",
       "submitAnotherForm": "显示“提交另一个表单”按钮",
       "showBlankForm": "5 秒后显示空表单",
       "emailForm": "发电子邮件给我",
       "showSysFields": "显示系统字段",
       "filterAutoApply": "自动应用",
-      "showMessage": "显示此消息",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "当前视图不共享！",
       "showAllViews": "显示此表的所有共享视图",
       "collabView": "具有编辑及更高权限的合作者可以更改视图配置。",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "不支持编辑系统密钥",
       "notAvailableAtTheMoment": "当前不可用。",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "可接受的文件类型是 .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "参数键不能为空",
       "duplicateParameterKeysAreNotAllowed": "不允许重复的参数键",
-      "fieldRequired": "{value} 不能为空。",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "无权访问此项目",
       "copyToClipboardError": "未能复制到剪贴板",
       "pasteFromClipboardError": "从剪贴板粘贴失败",
       "multiFieldSaveValidation": "请在保存前完成所有字段的配置",
       "somethingWentWrong": "出现了一些错误",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

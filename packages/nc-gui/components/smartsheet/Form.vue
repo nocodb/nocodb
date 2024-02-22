@@ -424,37 +424,66 @@ const onFormItemClick = (element: any) => {
       </div>
     </template>
     <template v-else>
-      <a-row v-if="submitted" class="h-full" data-testid="nc-form-wrapper-submit">
-        <a-col :span="24">
-          <div v-if="formViewData" class="items-center justify-center text-center mt-2">
-            <a-alert type="success">
-              <template #message>
-                <div class="text-center">
-                  {{ formViewData.success_msg || $t('msg.successfullySubmittedFormData') }}
-                </div>
-              </template>
-            </a-alert>
+      <div
+        v-if="submitted"
+        class="h-full p-6"
+        :style="{background:(formViewData?.meta as Record<string,any>).theme_color || '#F9F9FA'}"
+        data-testid="nc-form-wrapper-submit"
+      >
+        <GeneralFormBanner :banner-image-url="formViewData?.banner_image_url" />
 
-            <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
-              {{
-                $t('msg.newFormWillBeLoaded', {
-                  seconds: secondsRemain,
-                })
-              }}
+        <div
+          class="transition-all duration-300 ease-in relative max-w-[max(33%,688px)] mx-auto my-6 bg-white rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+        >
+          <div v-if="formViewData" class="items-center justify-center text-center mt-2">
+            <div class="text-left">
+              <h1 class="prose-2xl font-bold mb-4" style="word-break: break-all">
+                {{ formViewData.heading }}
+              </h1>
+
+              <h2
+                v-if="formViewData.subheading"
+                class="prose-lg text-slate-500 dark:text-slate-300 mb-4 leading-6"
+                style="word-break: break-all"
+              >
+                {{ formViewData.subheading }}
+              </h2>
             </div>
 
-            <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
-              <a-button type="primary" size="large" @click="submitted = false"> {{ $t('activity.submitAnotherForm') }}</a-button>
+            <div class="flex justify-center">
+              <div class="w-full lg:w-[95%]">
+                <a-alert type="success" class="!my-4 text-center !rounded-lg">
+                  <template #message>
+                    <div class="text-center">
+                      {{ formViewData.success_msg || $t('msg.successfullySubmittedFormData') }}
+                    </div>
+                  </template>
+                </a-alert>
+
+                <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
+                  {{
+                    $t('msg.newFormWillBeLoaded', {
+                      seconds: secondsRemain,
+                    })
+                  }}
+                </div>
+
+                <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
+                  <a-button type="primary" size="large" @click="submitted = false">
+                    {{ $t('activity.submitAnotherForm') }}</a-button
+                  >
+                </div>
+              </div>
             </div>
           </div>
-        </a-col>
-      </a-row>
+        </div>
+      </div>
 
       <div v-else class="h-full w-full flex" data-testid="nc-form-wrapper">
         <div
           v-if="formViewData"
-          class="flex-1 h-full overflow-auto nc-form-scrollbar p-6 bg-gray-50"
-          :style="{background:(formViewData?.meta as Record<string,any>).theme_color}"
+          class="flex-1 h-full overflow-auto nc-form-scrollbar p-6"
+          :style="{background:(formViewData?.meta as Record<string,any>).theme_color || '#F9F9FA'}"
         >
           <div :class="isEditable ? 'min-w-[616px] overflow-x-auto nc-form-scrollbar' : ''">
             <!-- for future implementation of cover image -->

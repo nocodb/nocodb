@@ -212,7 +212,7 @@
     "page": "ページ",
     "pages": "ページ",
     "record": "レコード",
-    "records": "レコード",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhook",
     "view": "ビュー",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "アクセスするにはパスワードが必要です",
       "privateLink": "このビューはプライベートリンクを介して共有されています",
       "privateLinkAdditionalInfo": "プライベートリンクを持つ人々は、このビューで表示されているセルのみを見ることができます",
-      "afterFormSubmitted": "フォーム送信後の操作",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "プロジェクトへのアクセス: ",
       "submitAnotherForm": "「他の回答を送信」ボタンを表示",
       "showBlankForm": "5秒後に空白のフォームを表示",
       "emailForm": "次のアドレスへメールを送る",
       "showSysFields": "システムフィールドを表示",
       "filterAutoApply": "自動適用",
-      "showMessage": "このメッセージを表示",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "共有されているビューはありません！",
       "showAllViews": "このテーブルのすべての共有されているビューを表示する",
       "collabView": "編集権限を持つコラボレータは、ビュー構成を変更できます。",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "使用可能なファイル形式は、.xls、.xlsx、.xlsm、.ods、.ots です。",
       "parameterKeyCannotBeEmpty": "パラメータキーは空にできません",
       "duplicateParameterKeysAreNotAllowed": "パラメータキーの重複は許可されていません",
-      "fieldRequired": "{value} を空にすることはできません。",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "このプロジェクトにはアクセスできません",
       "copyToClipboardError": "クリップボードへのコピーに失敗しました",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

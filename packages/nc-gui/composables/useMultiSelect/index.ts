@@ -1261,7 +1261,7 @@ export function useMultiSelect(
           ...uploadedFile,
           title: populateUniqueFileName(
             uploadedFile?.title,
-            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map((fn) => fn?.title || fn?.fileName || 'image'),
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map((fn) => fn?.title || fn?.fileName),
             uploadedFile?.mimetype,
           ),
         })

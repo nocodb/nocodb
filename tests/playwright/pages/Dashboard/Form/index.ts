@@ -87,9 +87,7 @@ export class FormPage extends BasePage {
   }
 
   async verifyFormFieldHelpText({ index, helpText }: { index: number; helpText: string }) {
-    await expect(
-      this.getFormFields().nth(index).locator('[data-testid="nc-form-input-help-text-label"]')
-    ).toContainText(helpText);
+    await expect(this.getFormFields().nth(index).locator('[data-testid="nc-form-help-text"]')).toContainText(helpText);
   }
 
   async verifyFieldsIsEditable({ index }: { index: number }) {
@@ -219,8 +217,9 @@ export class FormPage extends BasePage {
 
     await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-testid="nc-form-input-label"]')
+      .locator('[data-testid="nc-form-input-label"]')
       .click();
+
     await waitForResponse(() => this.getFormFieldsInputLabel().fill(label));
     await waitForResponse(() => this.getFormFieldsInputHelpText().fill(helpText));
     if (required) {

@@ -458,6 +458,9 @@ const onResizeEnd = () => {
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
 }
+
+// Todo: remove eslint-disable later
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true

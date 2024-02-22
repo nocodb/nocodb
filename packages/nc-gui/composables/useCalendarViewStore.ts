@@ -514,21 +514,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       })
 
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
-      const res = !isPublic.value
-        ? await api.dbViewRow.calendarCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
-            ...queryParams.value,
-            ...{},
-            ...{},
-            ...{ filterArrJson: JSON.stringify([...activeDateFilter]) },
-          })
-        : await fetchSharedViewActiveDate({
-            sortsArr: sorts.value,
-            filtersArr: activeDateFilter,
-          })
-      if (res) {
+
+      try {
+        const res = !isPublic.value
+          ? await api.dbViewRow.calendarCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+              ...queryParams.value,
+              ...{},
+              ...{},
+              ...{ filterArrJson: JSON.stringify([...activeDateFilter]) },
+            })
+          : await fetchSharedViewActiveDate({
+              sortsArr: sorts.value,
+              filtersArr: activeDateFilter,
+            })
         activeDates.value = res.map((dateObj: unknown) => dayjs(dateObj))
-      } else {
-        activeDates.value = []
+      } catch (e) {
+        message.error(`${t('msg.error.fetchingActiveDates')} ${await extractSdkResponseErrorMsg(e)}`)
+        console.log(e)
       }
     }
 

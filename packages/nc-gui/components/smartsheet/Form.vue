@@ -726,7 +726,7 @@ useEventListener(
                           <span v-if="element.required" class="text-red-500">&nbsp;*</span>
                         </div>
 
-                        <div class="nc-form-help-text text-gray-500 text-[13px] mt-2" data-testid="nc-form-help-text">
+                        <div class="nc-form-help-text text-gray-500 text-[13px] leading-5 mt-2" data-testid="nc-form-help-text">
                           {{ element.description }}
                         </div>
                       </div>
@@ -752,8 +752,9 @@ useEventListener(
                         <a-form-item class="my-0 !mb-2">
                           <div class="flex gap-2 items-center">
                             <span
-                              class="text-gray-500 mr-2"
-                              @click="
+                              class="nc-form-input-required text-gray-500 mr-2"
+                              data-testid="nc-form-input-required"
+                              @click.stop="
                                 () => {
                                   element.required = !element.required
                                   updateColMeta(element)
@@ -765,8 +766,6 @@ useEventListener(
                             <a-switch
                               v-model:checked="element.required"
                               v-e="['a:form-view:field:mark-required']"
-                              class="nc-form-input-required"
-                              data-testid="nc-form-input-required"
                               size="small"
                               @change="updateColMeta(element)"
                             />
@@ -1320,7 +1319,7 @@ useEventListener(
 .nc-form-field-ghost {
   @apply bg-gray-50;
 }
-:deep(.nc-form-input-required):focus {
+:deep(.nc-form-input-required + button):focus {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
 </style>

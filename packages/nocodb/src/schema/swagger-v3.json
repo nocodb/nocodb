@@ -105,7 +105,7 @@
                       "$ref": "#/components/schemas/GridColumnReq"
                     },
                     {
-                      "$ref": "#/components/schemas/GalleeryColumnReq"
+                      "$ref": "#/components/schemas/GalleryColumnReq"
                     },
                     {
                       "$ref": "#/components/schemas/FormColumnReq"
@@ -151,7 +151,7 @@
                         "$ref": "#/components/schemas/GridColumn"
                       },
                       {
-                        "$ref": "#/components/schemas/GalleeryColumn"
+                        "$ref": "#/components/schemas/GalleryColumn"
                       },
                       {
                         "$ref": "#/components/schemas/FormColumn"
@@ -617,63 +617,42 @@
           "id": "psbv6c6y9qvbu"
         }
       },
+      "KanbanColumnReq": {
+        "description": "Model for Kanban Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Kanban Column Model Request",
+        "type": "object",
         "properties": {
-          "source_id": {
-            "description": "The ID of the source that this map column belongs to",
-            "example": "ds_g4ccx6e77h1dmi",
-            "type": "string"
-          },
-          "fk_column_id": {
-            "description": "Foreign Key to Column",
-            "example": "cl_8iw2o4ejzvdyna",
-            "type": "string"
-          },
-          "fk_view_id": {
-            "description": "Foreign Key to View",
-            "example": "vw_qjt7klod1p9kyv",
-            "type": "string"
-          },
-          "id": {
-            "description": "Unique ID of Map Column",
-            "example": "nc_46xcacqn4rc9xf",
-            "type": "string"
-          },
-          "order": {
-            "description": "the order in the list of map columns",
-            "example": 1,
-            "type": "number"
-          },
-          "base_id": {
-            "description": "The ID of the base that this map column belongs to",
-            "example": "p_xm3thidrblw4n7",
-            "type": "string"
+          "title": {
+            "type": "string",
+            "description": "Title"
           },
           "show": {
-            "description": "Whether to show this column or not",
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
             "example": 1,
-            "type": "number"
+            "description": "Column Order"
           }
-        },
-        "title": "Map Column Model",
-        "type": "object",
-        "x-stoplight": {
-          "id": "01nfqgzhqlqoe"
         }
       },
       "GalleryColumnReq": {
         "description": "Model for Gallery Column Request",
         "examples": [
           {
-            "fk_column_id": "cl_c5knoi4xs4sfpt",
             "label": "My Column",
             "width": "200px"
           }
         ],
         "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
           "show": {
             "$ref": "#/components/schemas/Bool",
             "description": "Show"
@@ -683,91 +662,7 @@
             "description": "Order",
             "example": 1
           }
-        },
-        "title": "Gallery Column Request Model",
-        "type": "object"
-      },
-      "KanbanColumnReq": {
-        "description": "Model for Kanban Column Request",
-        "examples": [
-          {
-            "fk_column_id": "cl_c5knoi4xs4sfpt",
-            "label": "My Column",
-            "width": "200px"
-          }
-        ],
-        "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show"
-          },
-          "order": {
-            "type": "number",
-            "description": "Order",
-            "example": 1
-          }
-        },
-        "title": "Kanban Column Request Model",
-        "type": "object"
-      },
-
-      "GalleryColumnReq": {
-        "description": "Model for Gallery Column Request",
-        "examples": [
-          {
-            "fk_column_id": "cl_c5knoi4xs4sfpt",
-            "label": "My Column",
-            "width": "200px"
-          }
-        ],
-        "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show"
-          },
-          "order": {
-            "type": "number",
-            "description": "Order",
-            "example": 1
-          }
-        },
-        "title": "Gallery Column Request Model",
-        "type": "object"
-      },
-      "KanbanColumnReq": {
-        "description": "Model for Kanban Column Request",
-        "examples": [
-          {
-            "fk_column_id": "cl_c5knoi4xs4sfpt",
-            "label": "My Column",
-            "width": "200px"
-          }
-        ],
-        "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show"
-          },
-          "order": {
-            "type": "number",
-            "description": "Order",
-            "example": 1
-          }
-        },
-        "title": "Kanban Column Request Model",
-        "type": "object"
+        }
       }
     },
     "responses": {

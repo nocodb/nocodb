@@ -1052,25 +1052,39 @@ useEventListener(
                       >
                         <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
                         <div
-                          class="flex-1 flex items-center justify-between space-x-6 cursor-pointer max-w-[calc(100%_-_20px)]"
+                          class="flex-1 flex items-center justify-between cursor-pointer max-w-[calc(100%_-_20px)]"
                           @click="showOrHideColumn(field, !field.show, true)"
                         >
-                          <div class="flex-1 flex items-center max-w-[calc(100%_-_56px)]">
-                            <NcTooltip class="truncate ml-1" :disabled="drag">
-                              <template #title>
-                                <div class="flex items-center space-x-1">
-                                  <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
-                                  <SmartsheetHeaderCellIcon v-else :column-meta="field" />
-                                  <span class="text-xs font-medium">
+                          <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
+                          <SmartsheetHeaderCellIcon v-else :column-meta="field" />
+                          <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_68px)] mr-4">
+                            <div class="w-full flex items-end">
+                              <div class="ml-1 inline-block max-w-1/2">
+                                <NcTooltip class="truncate" :disabled="drag" show-on-truncate-only>
+                                  <template #title>
+                                    {{ field.title }}
+                                  </template>
+                                  <span data-testid="nc-field-title">
                                     {{ field.title }}
                                   </span>
-                                </div>
-                              </template>
-                              <span data-testid="nc-field-title">
-                                {{ field.label || field.title }}
-                              </span>
-                            </NcTooltip>
-                            <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+                                </NcTooltip>
+                              </div>
+                              <div class="ml-1 truncate inline-flex">
+                                <NcTooltip
+                                  class="truncate text-xs font-normal text-gray-700"
+                                  :disabled="drag"
+                                  show-on-truncate-only
+                                >
+                                  <template #title>
+                                    {{ field.label }}
+                                  </template>
+                                  <span data-testid="nc-field-title">
+                                    {{ field.label }}
+                                  </span>
+                                </NcTooltip>
+                              </div>
+                              <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+                            </div>
                           </div>
                           <NcSwitch :checked="!!field.show" :disabled="field.required" />
                         </div>

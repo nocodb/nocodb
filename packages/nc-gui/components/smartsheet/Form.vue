@@ -60,7 +60,7 @@ const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
-const formState = reactive({})
+let formState = reactive({})
 
 const secondsRemain = ref(0)
 
@@ -149,6 +149,12 @@ async function submitForm() {
   })
 
   submitted.value = true
+}
+
+async function clearForm() {
+  formState = {}
+  state.value = {}
+  reloadEventHook.trigger()
 }
 
 function isDbRequired(column: Record<string, any>) {
@@ -413,7 +419,7 @@ watch(view, (nextView) => {
 })
 
 const onFormItemClick = (element: any) => {
-  if (isLocked.value) return
+  if (isLocked.value || !isEditable) return
 
   activeRow.value = element.title
 }
@@ -465,18 +471,26 @@ const onFormItemClick = (element: any) => {
           :style="{background:(formViewData?.meta as Record<string,any>).theme_color}"
         >
           <div :class="isEditable ? 'min-w-[616px] overflow-x-auto nc-form-scrollbar' : ''">
-            <div class="h-[160px] bg-primary bg-opacity-75 border-gray-200 rounded-3xl">
+            <div class="h-[160px] bg-white border-gray-200 rounded-3xl overflow-hidden">
               <!-- for future implementation of cover image -->
+              <!-- Todo: cover image uploader and image cropper to crop image in fixed aspect ratio  -->
               <LazyNuxtImg
+                v-if="formViewData.banner_image_url"
                 class="h-full"
-                :src="
-                  formViewData.banner_image_url ??
-                  'http://localhost:8080/dltemp/KBFMWX8l0BIabZ6E/1708117800000/noco/pr5u10r2vcqirf2/mua2zr4vlyv3524/cvncb31si72grpm/X3yt8PX8ZFQEM5mluk.png'
-                "
+                :src="formViewData.banner_image_url"
                 alt="form-banner'"
                 placeholder
                 quality="75"
               />
+              <div v-else class="h-full flex items-stretch justify-between">
+                <img class="" src="~assets/img/form-banner-left.png" alt="form-banner-left'" />
+
+                <div class="w-[91px] grid place-items-center">
+                  <img class="w-full" src="~assets/img/icons/256x256.png" alt="form-banner-logo'" />
+                </div>
+
+                <img class="" src="~assets/img/form-banner-right.png" alt="form-banner-left'" />
+              </div>
             </div>
 
             <a-card
@@ -566,23 +580,27 @@ const onFormItemClick = (element: any) => {
                   ghost-class="nc-form-field-ghost"
                   class="h-full px-4 lg:px-6"
                   :move="onMoveCallback"
-                  :disabled="isLocked"
+                  :disabled="isLocked || !isEditable"
                   @change="onMove($event, true)"
                   @start="drag = true"
                   @end="drag = false"
                 >
                   <template #item="{ element, index }">
                     <div
-                      class="nc-editable item cursor-pointer relative bg-white my-1"
+                      class="nc-editable item relative bg-white"
                       :class="[
                         `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                         {
-                          'rounded-2xl overflow-hidden border-2': editEnabled,
+                          'rounded-2xl overflow-hidden border-2 cursor-pointer my-1': isEditable,
                         },
                         {
-                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6':
-                            activeRow !== element.title,
+                          'p-4 lg:p-6 border-transparent my-0': !isEditable,
                         },
+                        {
+                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 ':
+                            activeRow !== element.title && isEditable,
+                        },
+
                         {
                           'border-brand-500': activeRow === element.title,
                         },
@@ -787,6 +805,7 @@ const onFormItemClick = (element: any) => {
                     :disabled="!isUIAllowed('dataInsert')"
                     class="nc-form-clear"
                     data-testid="nc-form-clear"
+                    @click="clearForm"
                   >
                     Crear Form
                   </NcButton>

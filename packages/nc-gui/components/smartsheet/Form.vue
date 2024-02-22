@@ -553,7 +553,12 @@ useEventListener(
           <div :class="isEditable ? 'min-w-[616px] overflow-x-auto nc-form-scrollbar' : ''">
             <!-- for future implementation of cover image -->
             <!-- Todo: cover image uploader and image cropper to crop image in fixed aspect ratio  -->
-            <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
+            <GeneralFormBanner
+              v-if="
+                formViewData.banner_image_url || !(parseProp(formViewData?.meta).hide_branding && !formViewData.banner_image_url)
+              "
+              :banner-image-url="formViewData.banner_image_url"
+            />
 
             <a-card
               class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 max-w-[688px] !mx-auto"
@@ -681,8 +686,6 @@ useEventListener(
                   :move="onMoveCallback"
                   :disabled="isLocked || !isEditable"
                   @change="onMove($event, true)"
-                  @start="drag = true"
-                  @end="drag = false"
                 >
                   <template #item="{ element }">
                     <div
@@ -1010,14 +1013,19 @@ useEventListener(
                 <template v-if="localColumns.length">
                   <div
                     key="nc-form-show-all-fields"
-                    class="w-full p-2 flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
+                    class="w-full flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
                     data-testid="nc-form-show-all-fields"
                     @click.stop
                   >
-                    <div class="w-4 h-4 flex-none mr-2"></div>
+                    <div class="w-4 h-4 flex-none mx-2"></div>
                     <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
-                      <div class="flex-1 font-base">{{ $t('activity.selectAllFields') }}</div>
-                      <NcSwitch :checked="visibleColumns.length === localColumns.length" @change="handleAddOrRemoveAllColumns" />
+                      <div class="flex-1 font-base my-1.5">{{ $t('activity.selectAllFields') }}</div>
+                      <div class="flex items-center px-2">
+                        <NcSwitch
+                          :checked="visibleColumns.length === localColumns.length"
+                          @change="handleAddOrRemoveAllColumns"
+                        />
+                      </div>
                     </div>
                   </div>
                   <Draggable
@@ -1026,12 +1034,14 @@ useEventListener(
                     ghost-class="nc-form-field-ghost"
                     :style="{ height: 'calc(100% - 64px)' }"
                     @change="onMove($event)"
+                    @start="drag = true"
+                    @end="drag = false"
                   >
                     <template #item="{ element: field }">
                       <div
                         v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase())"
                         :key="field.id"
-                        class="w-full p-2 flex flex-row items-center border-b-1 last:border-none border-gray-200"
+                        class="w-full px-2 py-1.5 flex flex-row items-center border-b-1 last:border-none border-gray-200"
                         :class="[
                           `nc-form-field-item-${field.title.replaceAll(' ', '')}`,
                           `${activeRow === field.title ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
@@ -1044,7 +1054,7 @@ useEventListener(
                           @click="showOrHideColumn(field, !field.show, true)"
                         >
                           <div class="flex-1 flex items-center max-w-[calc(100%_-_56px)]">
-                            <NcTooltip class="truncate ml-1">
+                            <NcTooltip class="truncate ml-1" :disabled="drag">
                               <template #title>
                                 <div class="flex items-center space-x-1">
                                   <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />

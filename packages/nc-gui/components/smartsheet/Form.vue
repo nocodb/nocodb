@@ -719,7 +719,9 @@ useEventListener(
                           <span data-testid="nc-form-input-label">
                             {{ element.label || element.title }}
                           </span>
-                          <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
+                          <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
+                            >&nbsp;*</span
+                          >
                         </div>
 
                         <div class="nc-form-help-text text-gray-500 text-sm mt-2" data-testid="nc-form-help-text">
@@ -1038,15 +1040,20 @@ useEventListener(
                       >
                         <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
                         <div
-                          class="flex-1 flex items-center justify-between space-x-2 cursor-pointer max-w-[calc(100%_-_20px)]"
+                          class="flex-1 flex items-center justify-between space-x-6 cursor-pointer max-w-[calc(100%_-_20px)]"
                           @click="showOrHideColumn(field, !field.show, true)"
                         >
-                          <div class="flex-1 flex items-center max-w-[calc(100%_-_40px)]">
-                            <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
-                            <SmartsheetHeaderCellIcon v-else :column-meta="field" />
-
-                            <NcTooltip class="truncate ml-1" show-on-truncate-only>
-                              <template #title> {{ field.label || field.title }} </template>
+                          <div class="flex-1 flex items-center max-w-[calc(100%_-_56px)]">
+                            <NcTooltip class="truncate ml-1">
+                              <template #title>
+                                <div class="flex items-center space-x-1">
+                                  <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
+                                  <SmartsheetHeaderCellIcon v-else :column-meta="field" />
+                                  <span class="text-xs font-medium">
+                                    {{ field.title }}
+                                  </span>
+                                </div>
+                              </template>
                               <span data-testid="nc-field-title">
                                 {{ field.label || field.title }}
                               </span>

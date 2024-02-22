@@ -121,7 +121,6 @@ import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
-import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 
 // keep it for reference

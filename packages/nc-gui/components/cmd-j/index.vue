@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import '~/assets/js/typesense-docsearch'
-declare const docsearch: any;
+declare const docsearch: any
 
 const modalEl = ref<HTMLElement | null>(null)
 const { user } = useGlobal()

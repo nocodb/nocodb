@@ -291,8 +291,8 @@ const headerText = computed(() => {
           <GeneralLoader size="xlarge" />
         </div>
       </template>
-      <template>
-        <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
+      <template v-else>
+        <div class="flex w-full items-center h-full justify-center">
           {{ $t('activity.noRange') }}
         </div>
       </template>

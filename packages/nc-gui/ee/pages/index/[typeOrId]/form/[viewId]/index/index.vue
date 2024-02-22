@@ -98,7 +98,7 @@ const onDecode = async (scannedCodeValue: string) => {
             {{ sharedFormView.heading }}
           </h1>
 
-          <h2 v-if="sharedFormView.subheading" class="text-base font-bold text-gray-500 dark:text-slate-300 mb-4">
+          <h2 v-if="sharedFormView.subheading" class="font-medium text-base text-gray-500  dark:text-slate-300 mb-4">
             {{ sharedFormView.subheading }}
           </h2>
         </div>
@@ -153,11 +153,11 @@ const onDecode = async (scannedCodeValue: string) => {
             <div class="nc-form h-full">
               <div class="flex flex-col gap-3 md:gap-6">
                 <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
-                  <div class="nc-form-column-label">
+                  <div class="nc-form-column-label text-sm font-semibold text-gray-800">
                     <span>
                       {{ field.label || field.title }}
                     </span>
-                    <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+                    <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
                   </div>
                   <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
                     {{ field?.description }}

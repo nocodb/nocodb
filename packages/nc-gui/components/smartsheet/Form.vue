@@ -509,7 +509,7 @@ useEventListener(
                 {{ formViewData.heading }}
               </h1>
 
-              <h2 v-if="formViewData.subheading" class="font-bold text-base text-gray-500 mb-4">
+              <h2 v-if="formViewData.subheading" class="font-medium text-base text-gray-500 mb-4">
                 {{ formViewData.subheading }}
               </h2>
             </div>
@@ -645,7 +645,7 @@ useEventListener(
                     <a-form-item v-if="isEditable" class="w-full !my-0">
                       <a-textarea
                         v-model:value="formViewData.subheading"
-                        class="nc-form-focus-element w-full !p-0 !m-0 !border-0 !rounded-none font-bold !text-gray-500"
+                        class="nc-form-focus-element w-full !px-0 !m-0 !border-0 !rounded-none font-medium text-base !text-gray-500"
                         :style="{
                           borderRightWidth: '0px !important',
                           resize: 'vertical',
@@ -663,7 +663,7 @@ useEventListener(
                       />
                     </a-form-item>
 
-                    <div v-else class="font-bold text-base text-gray-500">
+                    <div v-else class="font-medium text-base text-gray-500">
                       {{ formViewData.subheading || '---' }}
                     </div>
                   </div>
@@ -715,11 +715,11 @@ useEventListener(
                       @click.stop="onFormItemClick(element)"
                     >
                       <div v-if="activeRow !== element.title">
-                        <div>
+                        <div class="text-sm font-semibold text-gray-800">
                           <span data-testid="nc-form-input-label">
                             {{ element.label || element.title }}
                           </span>
-                          <span v-if="isRequired(element, element.required)" class="text-red-500">&nbsp;*</span>
+                          <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
                         </div>
 
                         <div class="nc-form-help-text text-gray-500 text-sm mt-2" data-testid="nc-form-help-text">
@@ -737,15 +737,15 @@ useEventListener(
                           <SmartsheetHeaderVirtualCellIcon v-if="element && isVirtualCol(element)" :column-meta="element" />
                           <SmartsheetHeaderCellIcon v-else :column-meta="element" />
 
-                          <NcTooltip class="truncate" show-on-truncate-only>
-                            <template #title> {{ element.label || element.title }} </template>
+                          <NcTooltip class="truncate max-w-3/5" show-on-truncate-only>
+                            <template #title> {{ element.title }} </template>
                             <span data-testid="nc-form-input-label">
-                              {{ element.label || element.title }}
+                              {{ element.title }}
                             </span>
                           </NcTooltip>
                           <span v-if="isRequired(element, element.required)" class="text-red-500">&nbsp;*</span>
                         </div>
-                        <a-form-item class="my-0 !mb-2">
+                        <a-form-item class="!my-0">
                           <div class="flex gap-2 items-center">
                             <span
                               class="nc-form-input-required text-gray-500 mr-2"
@@ -1259,10 +1259,10 @@ useEventListener(
 }
 
 .nc-form-input-label {
-  @apply !px-4 !py-2;
+  @apply !px-4 !py-2 text-gray-800;
 }
 .nc-form-input-help-text {
-  @apply !px-4 !py-1;
+  @apply !px-4 !py-1 text-gray-700;
 }
 
 .nc-form-help-text,

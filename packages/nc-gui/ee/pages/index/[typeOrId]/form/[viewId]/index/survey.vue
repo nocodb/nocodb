@@ -248,7 +248,7 @@ onMounted(() => {
 
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
-          class="text-base font-bold text-gray-500 dark:text-gray-300 self-center mb-4"
+          class="font-medium text-base text-gray-500 dark:text-gray-300 self-center mb-4"
           data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
@@ -264,11 +264,11 @@ onMounted(() => {
           class="color-transition h-full flex flex-col mt-6 gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
-            <div class="nc-form-column-label" data-testid="nc-form-column-label">
+            <div class="nc-form-column-label text-sm font-semibold text-gray-800" data-testid="nc-form-column-label">
               <span>
                 {{ field.label || field.title }}
               </span>
-              <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+              <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
             </div>
             <div
               v-if="field?.description"

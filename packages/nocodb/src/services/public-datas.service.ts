@@ -7,7 +7,7 @@ import { nocoExecute } from 'nc-help';
 
 import dayjs from 'dayjs';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { CalendarRange } from '~/models';
+import { CalendarRange, Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -15,7 +15,6 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
-import { Column, Model, Source, View } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 
 // todo: move to utils
@@ -116,7 +115,10 @@ export class PublicDatasService {
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 
-    const { ranges } = await CalendarRange.read(view.id);
+    const calendarRange = await CalendarRange.read(view.id);
+
+    if (!calendarRange || !calendarRange.ranges.length)
+      NcError.notFound('Calendar ranges are required in a calendar view');
 
     const model = await Model.getByIdOrName({
       id: view.fk_model_id,
@@ -134,7 +136,7 @@ export class PublicDatasService {
 
     const dates: Array<string> = [];
 
-    ranges.forEach((range: any) => {
+    calendarRange.ranges.forEach((range: any) => {
       data.list.forEach((date) => {
         const from =
           date[columns.find((c) => c.id === range.fk_from_column_id).title];

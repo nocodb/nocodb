@@ -264,7 +264,6 @@ test.describe('Form view with LTAR', () => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.base);
     loginPage = new LoginPage(page);
-    wsPage = new WorkspacePage(page);
 
     api = new Api({
       baseURL: `http://localhost:8080/`,

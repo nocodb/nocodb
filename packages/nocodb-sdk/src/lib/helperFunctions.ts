@@ -97,6 +97,36 @@ const getAvailableRollupForUiType = (type: string) => {
   }
 };
 
+function populateUniqueFileName(
+  fileName: string,
+  attachments: string[],
+  mimeType: string
+) {
+  if (!mimeType) return fileName;
+
+  // If the file extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
+  if (!fileName?.endsWith(`.${mimeType.split('/')[1]}`)) {
+    fileName = `${fileName}.${mimeType.split('/')[1]}`;
+  } else if (
+    fileName?.endsWith(`.${mimeType.split('/')[1]}`) &&
+    fileName.length === `.${mimeType.split('/')[1]}`.length
+  ) {
+    fileName = `image.${mimeType.split('/')[1]}`;
+  }
+
+  let match = fileName.match(/^(.+?)(\((\d+)\))?(\.[^.]+)$/);
+
+  if (!match) return fileName;
+
+  let c = match && !isNaN(parseInt(match[3])) ? parseInt(match[3]) : 1;
+
+  while (attachments.some((fn) => fn === fileName)) {
+    fileName = `${match[1]}(${c++})${match[4]}`;
+  }
+
+  return fileName;
+}
+
 export {
   filterOutSystemColumns,
   getSystemColumnsIds,
@@ -106,4 +136,5 @@ export {
   extractRolesObj,
   stringifyRolesObj,
   getAvailableRollupForUiType,
+  populateUniqueFileName,
 };

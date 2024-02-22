@@ -215,10 +215,10 @@ const dropEvent = (event: DragEvent) => {
             <LazySmartsheetCalendarCell
               v-if="!isRowEmpty(record, displayField!)"
               v-model="record.row[displayField!.title!]"
-              :bold="getFieldStyle(displayField).bold"
-              :column="displayField"
-              :italic="getFieldStyle(displayField).italic"
-              :underline="getFieldStyle(displayField).underline"
+              :bold="getFieldStyle(displayField!).bold"
+              :column="displayField!"
+              :italic="getFieldStyle(displayField!).italic"
+              :underline="getFieldStyle(displayField!).underline"
             />
           </template>
           <template v-for="(field, id) in fieldsWithoutDisplay">

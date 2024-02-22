@@ -7,6 +7,7 @@ import { generateRandomNumber, isRowEmpty } from '~/utils'
 const emit = defineEmits(['expandRecord', 'new-record'])
 
 const {
+  activeCalendarView,
   selectedDate,
   selectedTime,
   formattedData,
@@ -29,16 +30,17 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const getFieldStyle = (field: ColumnType) => {
+  if (!_fields.value) return { underline: false, bold: false, italic: false }
   const fi = _fields.value.find((f) => f.title === field.title)
 
   return {
-    underline: fi.underline,
-    bold: fi.bold,
-    italic: fi.italic,
+    underline: fi?.underline,
+    bold: fi?.bold,
+    italic: fi?.italic,
   }
 }
 
-const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
@@ -707,6 +709,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
+              :view="activeCalendarView"
               :hover="hoverRecord === record.rowMeta.id"
               :position="record.rowMeta!.position"
               :record="record"
@@ -718,10 +721,10 @@ const viewMore = (hour: dayjs.Dayjs) => {
                 <LazySmartsheetCalendarCell
                   v-if="!isRowEmpty(record, displayField!)"
                   v-model="record.row[displayField!.title!]"
-                  :bold="getFieldStyle(displayField).bold"
+                  :bold="getFieldStyle(displayField!).bold"
                   :column="displayField"
-                  :italic="getFieldStyle(displayField).italic"
-                  :underline="getFieldStyle(displayField).underline"
+                  :italic="getFieldStyle(displayField!).italic"
+                  :underline="getFieldStyle(displayField!).underline"
                 />
               </template>
               <template v-for="(field, id) in fieldsWithoutDisplay">

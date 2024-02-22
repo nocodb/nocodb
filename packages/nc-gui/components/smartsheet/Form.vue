@@ -942,9 +942,10 @@ useEventListener(
               <div>
                 <a-input
                   v-model:value="searchQuery"
-                  data-testid="nc-form-field-search-input"
                   class="!h-9 !px-3 !py-1 !rounded-lg"
                   :placeholder="`${$t('placeholder.searchFields')}...`"
+                  name="nc-form-field-search-input"
+                  data-testid="nc-form-field-search-input"
                 >
                   <template #prefix>
                     <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />

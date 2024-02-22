@@ -41,6 +41,7 @@ provide(IsKanbanInj, ref(false))
 provide(IsCalendarInj, ref(true))
 
 const {
+  calendarRange,
   calDataType,
   loadCalendarMeta,
   loadCalendarData,
@@ -256,37 +257,45 @@ const headerText = computed(() => {
           </NcButton>
         </NcTooltip>
       </div>
-      <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
-      <template v-if="!isCalendarDataLoading">
-        <LazySmartsheetCalendarMonthView
-          v-if="activeCalendarView === 'month'"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
-        <LazySmartsheetCalendarWeekViewDateField
-          v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
-        <LazySmartsheetCalendarWeekViewDateTimeField
-          v-else-if="activeCalendarView === 'week' && calDataType === UITypes.DateTime"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
-        <LazySmartsheetCalendarDayViewDateField
-          v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
-        <LazySmartsheetCalendarDayViewDateTimeField
-          v-else-if="activeCalendarView === 'day' && calDataType === UITypes.DateTime"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
+      <template v-if="calendarRange">
+        <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
+        <template v-if="!isCalendarDataLoading">
+          <LazySmartsheetCalendarMonthView
+            v-if="activeCalendarView === 'month'"
+            @expand-record="expandRecord"
+            @new-record="newRecord"
+          />
+          <LazySmartsheetCalendarWeekViewDateField
+            v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
+            @expand-record="expandRecord"
+            @new-record="newRecord"
+          />
+          <LazySmartsheetCalendarWeekViewDateTimeField
+            v-else-if="activeCalendarView === 'week' && calDataType === UITypes.DateTime"
+            @expand-record="expandRecord"
+            @new-record="newRecord"
+          />
+          <LazySmartsheetCalendarDayViewDateField
+            v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
+            @expand-record="expandRecord"
+            @new-record="newRecord"
+          />
+          <LazySmartsheetCalendarDayViewDateTimeField
+            v-else-if="activeCalendarView === 'day' && calDataType === UITypes.DateTime"
+            @expand-record="expandRecord"
+            @new-record="newRecord"
+          />
+        </template>
+
+        <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
+          <GeneralLoader size="xlarge" />
+        </div>
       </template>
-      <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
-        <GeneralLoader size="xlarge" />
-      </div>
+      <template>
+        <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
+          {{ $t('activity.noRange') }}
+        </div>
+      </template>
     </div>
     <LazySmartsheetCalendarSideMenu
       v-if="!isMobileMode"

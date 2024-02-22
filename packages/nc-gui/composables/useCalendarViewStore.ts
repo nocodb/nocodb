@@ -123,6 +123,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const sideBarFilter = computed(() => {
       let combinedFilters: any = []
 
+      if (!calendarRange.value) return []
+
       if (sideBarFilterOption.value === 'allRecords') {
         combinedFilters = []
       } else if (sideBarFilterOption.value === 'withoutDates') {
@@ -336,6 +338,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const filterJSON = computed(() => {
+      if (!calendarRange.value) return []
       const combinedFilters: any = {
         is_group: true,
         logical_op: 'and',

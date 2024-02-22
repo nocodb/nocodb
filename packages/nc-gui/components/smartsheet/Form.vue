@@ -1193,6 +1193,9 @@ useEventListener(
   &:not(.nc-cell-longtext) {
     @apply px-2 py-2;
   }
+  :deep(textarea) {
+    @apply !p-2;
+  }
 }
 
 .form-meta-input {

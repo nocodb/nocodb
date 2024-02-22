@@ -1129,7 +1129,7 @@ useEventListener(
                   />
                   <a-tooltip v-else placement="top">
                     <template #title>
-                      {{ $t('msg.info.upgradeToEnterpriseEdition', { extraInfo: 'to ' + $t('labels.hideNocodbBranding') }) }}
+                      {{ $t('msg.info.upgradeToEnterpriseEdition', { extraInfo: `to ${$t('labels.hideNocodbBranding')}` }) }}
                     </template>
                     <a-switch :checked="false" size="small" :disabled="true" />
                   </a-tooltip>

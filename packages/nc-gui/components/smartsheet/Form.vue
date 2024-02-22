@@ -62,7 +62,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-let formState = reactive({})
+let formState = reactive<Record<string, any>>({})
 
 const secondsRemain = ref(0)
 
@@ -158,8 +158,9 @@ async function submitForm() {
 }
 
 async function clearForm() {
-  formState = {}
+  formState = reactive<Record<string, any>>({})
   state.value = {}
+  await formRef.value.clearValidate()
   reloadEventHook.trigger()
 }
 
@@ -425,6 +426,20 @@ watch(submitted, (v) => {
 watch(view, (nextView) => {
   if (nextView?.type === ViewTypes.FORM) {
     reloadEventHook.trigger()
+  }
+})
+
+watch([formState, state.value], async () => {
+  for (const virtualField in state.value) {
+    if (!formState[virtualField]) {
+      formState[virtualField] = state.value[virtualField]
+    }
+  }
+
+  try {
+    await formRef.value?.validateFields([...Object.keys(formState)])
+  } catch (e: any) {
+    e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
   }
 })
 
@@ -892,7 +907,6 @@ useEventListener(
 
                 <div class="flex justify-between items-center mt-6 !px-8 !lg:px-12">
                   <NcButton
-                    html-type="reset"
                     type="secondary"
                     size="small"
                     :disabled="!isUIAllowed('dataInsert')"

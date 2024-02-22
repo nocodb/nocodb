@@ -1,5 +1,6 @@
 import request from 'supertest';
 import type View from '../../../src/models/View';
+import { APIContext } from 'nocodb-sdk'
 
 const updateViewColumns = async (
   context,
@@ -23,7 +24,7 @@ const updateViewColumns = async (
   await request(context.app)
     .patch(`/api/v3/meta/views/${view.id}/columns`)
     .set('xc-auth', context.token)
-    .send(fields)
+    .send({ [APIContext.VIEW_COLUMNS]: fields })
     .expect(200);
 };
 

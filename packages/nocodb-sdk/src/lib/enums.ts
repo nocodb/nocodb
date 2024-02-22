@@ -296,3 +296,9 @@ export enum PlanLimitTypes {
   FILTER_LIMIT = 'FILTER_LIMIT',
   SORT_LIMIT = 'SORT_LIMIT',
 }
+
+export enum APIContext {
+  VIEW_COLUMNS = 'fields',
+  FILTERS = 'filters',
+  SORTS = 'sorts',
+}

@@ -62,7 +62,7 @@ watch(picked, (n, _o) => {
         <GeneralTooltip>
           <template #title>{{ $t('activity.moreColors') }}</template>
           <div class="flex items-center justify-center">
-            <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4"/>
+            <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4" />
           </div>
         </GeneralTooltip>
       </button>

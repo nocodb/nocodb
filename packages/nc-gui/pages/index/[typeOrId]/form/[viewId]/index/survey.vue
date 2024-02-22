@@ -454,7 +454,7 @@ onMounted(() => {
         </div>
       </Transition>
 
-      <div v-if="!parseProp(sharedFormView?.meta)?.hide_branding" class="w-full flex justify-center">
+      <div class="w-full flex justify-center">
         <GeneralFormBranding class="inline-flex mx-auto" />
       </div>
     </div>

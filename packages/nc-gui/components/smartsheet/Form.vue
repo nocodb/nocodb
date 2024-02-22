@@ -330,7 +330,6 @@ function setFormData() {
     .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
-
 }
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -1128,7 +1127,12 @@ useEventListener(
                       }
                     "
                   />
-                  <a-switch v-else :checked="false" size="small" :disabled="true" />
+                  <a-tooltip v-else placement="top">
+                    <template #title>
+                      {{ $t('msg.info.upgradeToEnterpriseEdition', { extraInfo: 'to ' + $t('labels.hideNocodbBranding') }) }}
+                    </template>
+                    <a-switch :checked="false" size="small" :disabled="true" />
+                  </a-tooltip>
                   <span class="ml-4">{{ $t('labels.hideNocodbBranding') }}</span>
                 </div>
               </div>

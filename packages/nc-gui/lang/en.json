@@ -1292,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",

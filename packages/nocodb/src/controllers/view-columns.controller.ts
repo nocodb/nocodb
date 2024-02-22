@@ -9,7 +9,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { APIContext, ViewColumnReqType } from 'nocodb-sdk'
+import {
+  APIContext, CalendarColumnReqType,
+  FormColumnReqType,
+  GalleryColumnReqType,
+  GridColumnReqType,
+  KanbanColumnReqType,
+  ViewColumnReqType,
+} from 'nocodb-sdk'
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { ViewColumnsService } from '~/services/view-columns.service';
@@ -79,7 +86,10 @@ export class ViewColumnsController {
   async viewColumnUpdate(
     @Req() req,
     @Param('viewId') viewId: string,
-    @Body() body: ViewColumnReqType[] | Record<APIContext.VIEW_COLUMNS, Record<string, ViewColumnReqType>>,
+    @Body()
+    body:
+      | GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType[]
+      | Record<APIContext.VIEW_COLUMNS, Record<string, GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType>>,
   ) {
     return new PagedResponseImpl(
       await this.viewColumnsService.columnsUpdate({
@@ -97,7 +107,7 @@ export class ViewColumnsController {
       [APIContext.VIEW_COLUMNS]: await this.viewColumnsService.viewColumnList({
         viewId,
         req,
-      })
+      }),
     };
   }
 }

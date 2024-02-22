@@ -75,8 +75,8 @@ export class ViewColumnsService {
   async columnsUpdate(param: {
     viewId: string;
     columns:
-      | ViewColumnReqType[]
-      | Record<APIContext.VIEW_COLUMNS, Record<string, ViewColumnReqType>>;
+      | GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType[]
+      | Record<APIContext.VIEW_COLUMNS, Record<string, GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType>>;
     req: any;
   }) {
     const { viewId } = param;

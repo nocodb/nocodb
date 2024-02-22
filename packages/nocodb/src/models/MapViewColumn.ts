@@ -3,7 +3,7 @@ import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import {extractProps} from "~/helpers/extractProps";
+import { extractProps } from '~/helpers/extractProps';
 
 export default class MapViewColumn {
   id: string;

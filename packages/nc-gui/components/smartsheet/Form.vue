@@ -142,8 +142,10 @@ async function submitForm() {
   try {
     await formRef.value?.validateFields()
   } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    if (e.errorFields.length) return
+    if (e.errorFields.length) {
+      message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+      return
+    }
   }
 
   await insertRow({
@@ -832,7 +834,7 @@ useEventListener(
                             :rules="[
                               {
                                 required: isRequired(element, element.required),
-                                message: `${$t('msg.error.fieldRequired', { value: 'This Field' })}`,
+                                message: `${$t('msg.error.fieldRequired', { value: 'This field' })}`,
                               },
                             ]"
                           >

@@ -76,7 +76,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const fieldRequired = (fieldName = 'This Field') =>
+  const fieldRequired = (fieldName = 'This field') =>
     helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
@@ -191,6 +191,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const submitForm = async () => {
     try {
       if (!(await v$.value?.$validate())) {
+        message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
         return
       }
 

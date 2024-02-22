@@ -742,6 +742,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               color="blue"
+              @resize-start="onResizeStart"
             >
               <template v-if="!isRowEmpty(record, displayField)">
                 <div

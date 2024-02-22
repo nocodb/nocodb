@@ -242,13 +242,13 @@ onMounted(() => {
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading">
+        <h1 class="text-2xl font-bold text-gray-900 self-center my-4" data-testid="nc-survey-form__heading">
           {{ sharedFormView.heading }}
         </h1>
 
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
-          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
+          class="text-base font-bold text-gray-500 dark:text-gray-300 self-center mb-4"
           data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
@@ -264,24 +264,21 @@ onMounted(() => {
           class="color-transition h-full flex flex-col mt-6 gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
-            <div class="flex nc-form-column-label" data-testid="nc-form-column-label">
-              <LazySmartsheetHeaderVirtualCell
-                v-if="isVirtualCol(field)"
-                :column="{ ...field, title: field.label || field.title }"
-                :required="isRequired(field, field.required)"
-                :hide-menu="true"
-              />
-
-              <LazySmartsheetHeaderCell
-                v-else
-                :class="field.uidt === UITypes.Checkbox ? 'nc-form-column-label__checkbox' : ''"
-                :column="{ meta: {}, ...field, title: field.label || field.title }"
-                :required="isRequired(field, field.required)"
-                :hide-menu="true"
-              />
+            <div class="nc-form-column-label" data-testid="nc-form-column-label">
+              <span>
+                {{ field.label || field.title }}
+              </span>
+              <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+            </div>
+            <div
+              v-if="field?.description"
+              class="nc-form-column-description text-gray-500 text-sm"
+              data-testid="nc-survey-form__field-description"
+            >
+              {{ field?.description }}
             </div>
 
-            <LazySmartsheetDivDataCell v-if="field.title" class="relative">
+            <LazySmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
                 v-model="formState[field.title]"
@@ -304,13 +301,6 @@ onMounted(() => {
                 <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                   {{ error.$message }}
                 </div>
-                <div
-                  class="block text-[14px]"
-                  :class="field.uidt === UITypes.Checkbox ? 'text-center' : ''"
-                  data-testid="nc-survey-form__field-description"
-                >
-                  {{ field.description }}
-                </div>
 
                 <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
                   {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
@@ -323,19 +313,18 @@ onMounted(() => {
           <div class="ml-1 mt-4 flex w-full text-lg">
             <div class="flex-1 flex justify-center">
               <div v-if="isLast && !submitted && !v$.$invalid" class="text-center my-4">
-                <button
+                <NcButton
                   :class="
                     animationTarget === AnimationTarget.SubmitButton && isAnimating
                       ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
                       : ''
                   "
-                  type="submit"
-                  class="uppercase scaling-btn prose-sm"
+                  html-type="submit"
                   data-testid="nc-survey-form__btn-submit"
                   @click="submit"
                 >
                   {{ $t('general.submit') }}
-                </button>
+                </NcButton>
               </div>
 
               <div v-else-if="!submitted" class="flex items-center gap-3 flex-col">
@@ -357,18 +346,20 @@ onMounted(() => {
                     ]"
                     @click="goNext()"
                   >
-                    <Transition name="fade">
-                      <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">{{ $t('general.ok') }}</span>
-                    </Transition>
+                    <div class="flex items-center gap-1">
+                      <Transition name="fade">
+                        <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
+                      </Transition>
 
-                    <Transition name="slide-right" mode="out-in">
-                      <component
-                        :is="iconMap.closeCircle"
-                        v-if="v$.localState[field.title]?.$error || columnValidationError"
-                        class="text-red-500 md:text-md"
-                      />
-                      <component :is="iconMap.check" v-else class="text-white md:text-md" />
-                    </Transition>
+                      <Transition name="slide-right" mode="out-in">
+                        <component
+                          :is="iconMap.closeCircle"
+                          v-if="v$.localState[field.title]?.$error || columnValidationError"
+                          class="text-red-500 md:text-md"
+                        />
+                        <component :is="iconMap.check" v-else class="text-white md:text-md" />
+                      </Transition>
+                    </div>
                   </NcButton>
                 </a-tooltip>
 
@@ -381,19 +372,14 @@ onMounted(() => {
 
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
-              <div class="text-lg px-6 py-3 bg-green-300 text-gray-700 rounded" data-testid="nc-survey-form__success-msg">
-                <template v-if="sharedFormView?.success_msg">
-                  {{ sharedFormView?.success_msg }}
-                </template>
-
-                <template v-else>
-                  <div class="flex flex-col gap-1">
-                    <div>{{ $t('msg.info.thankYou') }}</div>
-
-                    <div>{{ $t('msg.info.submittedFormData') }}</div>
-                  </div>
-                </template>
-              </div>
+              <a-alert
+                type="success"
+                class="!my-4 !py-4 text-center !rounded-lg"
+                data-testid="nc-survey-form__success-msg"
+                outlined
+                :message="sharedFormView?.success_msg || $t('msg.info.thankYou')"
+                :description="sharedFormView?.success_msg ? undefined : $t('msg.info.submittedFormData')"
+              />
 
               <div v-if="sharedFormView" class="mt-3">
                 <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
@@ -401,7 +387,7 @@ onMounted(() => {
                 </p>
 
                 <div v-if="sharedFormView?.submit_another_form" class="text-center">
-                  <NcButton type="primary" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
+                  <NcButton type="primary" size="medium" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
                     {{ $t('activity.submitAnotherForm') }}
                   </NcButton>
                 </div>
@@ -468,7 +454,9 @@ onMounted(() => {
         </div>
       </Transition>
 
-      <GeneralPoweredBy />
+      <div v-if="!parseProp(sharedFormView?.meta)?.hide_branding" class="w-full flex justify-center">
+        <GeneralFormBranding class="inline-flex mx-auto" />
+      </div>
     </div>
   </div>
 </template>
@@ -494,16 +482,37 @@ onMounted(() => {
   }
 
   .nc-input {
-    @apply appearance-none w-full rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
+    @apply appearance-none w-full !bg-white !rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+    &.nc-cell-rating,
+    &.nc-cell-geodata {
+      @apply !py-1;
+    }
+
+    :deep(input) {
+      @apply !px-1;
+    }
+    &.nc-cell-longtext {
+      @apply p-0 h-auto overflow-hidden;
+    }
+    &:not(.nc-cell-longtext) {
+      @apply px-2 py-2;
+      :deep(textarea) {
+        @apply !p-2;
+      }
+    }
 
     &.nc-cell-checkbox {
       > * {
         @apply justify-center flex items-center;
       }
     }
+  }
 
-    input {
-      @apply !py-1 !px-1;
+  .nc-form-data-cell.nc-data-cell {
+    @apply !border-none rounded-none;
+
+    &:focus-within {
+      @apply !border-none;
     }
   }
 }

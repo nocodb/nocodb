@@ -1058,32 +1058,26 @@ useEventListener(
                           <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
                           <SmartsheetHeaderCellIcon v-else :column-meta="field" />
                           <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_68px)] mr-4">
-                            <div class="w-full flex items-end">
+                            <div class="w-full flex items-center">
                               <div class="ml-1 inline-block max-w-1/2">
+                                <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
+                                  <template #title>
+                                    {{ field.title }}
+                                  </template>
+                                  <span data-testid="nc-field-title"> {{ field.title }} </span>
+                                </NcTooltip>
+                              </div>
+                              <div v-if="field.label?.trim()" class="truncate inline-flex text-xs font-normal text-gray-700">
+                                <span>&nbsp;(</span>
                                 <NcTooltip class="truncate" :disabled="drag" show-on-truncate-only>
                                   <template #title>
-                                    {{ field.title }}
-                                  </template>
-                                  <span data-testid="nc-field-title">
-                                    {{ field.title }}
-                                  </span>
-                                </NcTooltip>
-                              </div>
-                              <div class="ml-1 truncate inline-flex">
-                                <NcTooltip
-                                  class="truncate text-xs font-normal text-gray-700"
-                                  :disabled="drag"
-                                  show-on-truncate-only
-                                >
-                                  <template #title>
                                     {{ field.label }}
                                   </template>
-                                  <span data-testid="nc-field-title">
-                                    {{ field.label }}
-                                  </span>
+                                  <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
                                 </NcTooltip>
+                                <span>)</span>
                               </div>
-                              <span v-if="isRequired(field, field.required)" class="text-red-500">&nbsp;*</span>
+                              <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top">&nbsp;*</span>
                             </div>
                           </div>
                           <NcSwitch :checked="!!field.show" :disabled="field.required" />

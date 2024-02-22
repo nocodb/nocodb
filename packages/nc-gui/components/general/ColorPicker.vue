@@ -7,6 +7,8 @@ interface Props {
   rowSize?: number
   advanced?: boolean
   pickButton?: boolean
+  borders?: string[]
+  isNewDesign?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   rowSize: 10,
   advanced: true,
   pickButton: false,
+  isNewDesign: false,
 })
 
 const emit = defineEmits(['input', 'closeModal'])
@@ -52,11 +55,14 @@ watch(picked, (n, _o) => {
         v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
         class="color-selector"
-        :class="compare(picked, color) ? 'selected' : ''"
-        :style="{ 'background-color': `${color}` }"
+        :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
+        :style="{
+          'background-color': `${color}`,
+          'border': borders?.length && borders[i] ? `1px solid ${borders[i]}` : undefined,
+        }"
         @click="selectColor(color, true)"
       >
-        {{ compare(picked, color) ? '&#10003;' : '' }}
+        {{ compare(picked, color) && !isNewDesign ? '&#10003;' : '' }}
       </button>
       <button class="h-6 w-6 mt-2.7 ml-1 border-1 border-[grey] rounded-md" @click="isPickerOn = !isPickerOn">
         <GeneralTooltip>
@@ -98,13 +104,21 @@ watch(picked, (n, _o) => {
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: white;
 }
-.color-selector:hover {
+.color-selector:not(.new-design):hover {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
 }
-.color-selector.selected {
+
+.color-selector.new-design:hover {
+  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+}
+
+.color-selector.selected:not(.new-design) {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
+}
+.color-selector.selected.new-design {
+  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
 }
 :deep(.vc-chrome-toggle-icon) {
   @apply ml-3!important;

@@ -54,21 +54,9 @@ export class FormPage extends BasePage {
     return this.dashboard.get().locator('[data-testid="nc-form-wrapper-submit"]');
   }
 
-  // getFormHiddenColumn() {
-  //   return this.get().locator('[data-testid="nc-form-hidden-column"]');
-  // }
-
   getFormFields() {
     return this.get().locator('[data-testid="nc-form-fields"]');
   }
-
-  // getDragNDropToHide() {
-  //   return this.get().locator('[data-testid="nc-drag-n-drop-to-hide"]');
-  // }
-  //
-  // getFormFieldsRemoveIcon() {
-  //   return this.get().locator('[data-testid="nc-field-remove-icon"]');
-  // }
 
   getFormFieldsRequired() {
     return this.get().locator('[data-testid="nc-form-input-required"] + button');
@@ -126,9 +114,6 @@ export class FormPage extends BasePage {
       const dst = this.get().locator(`[data-testid="nc-drag-n-drop-to-hide"]`);
       await src.dragTo(dst);
     } else if (mode === 'hideField') {
-      // const src = this.get().locator(`.nc-form-drag-${field.replace(' ', '')}`);
-      // await src.locator(`[data-testid="nc-field-remove-icon"]`).click();
-
       // in form-v2, hide field will be using right sidebar
       await this.formFields.locator(`[data-testid="nc-form-field-item-${field}"]`).locator('.nc-switch').click();
     }
@@ -146,8 +131,6 @@ export class FormPage extends BasePage {
       await src.dragTo(dst, { trial: true });
       await src.dragTo(dst);
     } else if (mode === 'clickField') {
-      // const src = this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
-      // await src.click();
       await this.formFields.locator(`[data-testid="nc-form-field-item-${field}"]`).locator('.nc-switch').click();
     }
   }

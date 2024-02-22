@@ -8,11 +8,11 @@ const { bannerImageUrl } = defineProps<Props>()
 <template>
   <div
     class="w-full max-w-screen-xl mx-auto bg-white border-1 border-gray-200 rounded-3xl overflow-hidden"
-    :style="{
-      ...(bannerImageUrl
+    :style="
+      bannerImageUrl
         ? { 'background-image': `url(${bannerImageUrl})`, 'background-size': 'cover', 'background-position': 'center' }
-        : {}),
-    }"
+        : {}
+    "
   >
     <!-- Todo: aspect ratio and cover image uploader and image cropper to crop image in fixed aspect ratio  -->
     <div v-if="!bannerImageUrl" class="h-full flex items-stretch justify-between">

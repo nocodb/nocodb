@@ -380,45 +380,9 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   }
 }, 250)
 
-watch(submitted, (v) => {
-  if (v && formViewData.value?.show_blank_form) {
-    secondsRemain.value = 5
-    const intvl = setInterval(() => {
-      if (--secondsRemain.value < 0) {
-        submitted.value = false
-        clearInterval(intvl)
-      }
-    }, 1000)
-  }
-})
-
 const columnSupportsScanning = (elementType: UITypes) =>
   betaFeatureToggleState.show &&
   [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
-
-onClickOutside(draggableRef, () => {
-  activeRow.value = ''
-  isTabPressed.value = false
-})
-
-onMounted(async () => {
-  isLoadingFormView.value = true
-  await loadFormView()
-  setFormData()
-  isLoadingFormView.value = false
-})
-
-watch(view, (nextView) => {
-  if (nextView?.type === ViewTypes.FORM) {
-    reloadEventHook.trigger()
-  }
-})
-
-watch(activeRow, (newValue) => {
-  if (newValue) {
-    document.querySelector(`.nc-form-field-item-${newValue}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-})
 
 const onFormItemClick = (element: any) => {
   if (isLocked.value || !isEditable) return
@@ -433,6 +397,43 @@ const handleChangeBackground = (color: string) => {
     updateView()
   }
 }
+
+onClickOutside(draggableRef, () => {
+  activeRow.value = ''
+  isTabPressed.value = false
+})
+
+onMounted(async () => {
+  isLoadingFormView.value = true
+  await loadFormView()
+  setFormData()
+  isLoadingFormView.value = false
+})
+
+watch(submitted, (v) => {
+  if (v && formViewData.value?.show_blank_form) {
+    secondsRemain.value = 5
+    const intvl = setInterval(() => {
+      if (--secondsRemain.value < 0) {
+        submitted.value = false
+        clearInterval(intvl)
+      }
+    }, 1000)
+  }
+})
+
+watch(view, (nextView) => {
+  if (nextView?.type === ViewTypes.FORM) {
+    reloadEventHook.trigger()
+  }
+})
+
+watch(activeRow, (newValue) => {
+  if (newValue) {
+    document.querySelector(`.nc-form-field-item-${newValue}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+})
+
 useEventListener(
   formRef,
   'focusout',

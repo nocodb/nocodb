@@ -16,7 +16,7 @@ export class FormColumnsController {
     '/api/v1/db/meta/form-columns/:formViewColumnId',
     '/api/v2/meta/form-columns/:formViewColumnId',
   ])
-  @Acl('columnUpdate')
+  @Acl('formViewUpdate')
   async columnUpdate(
     @Param('formViewColumnId') formViewColumnId: string,
     @Body() formViewColumnbody: FormColumnUpdateReqType,

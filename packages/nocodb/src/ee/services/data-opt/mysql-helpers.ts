@@ -17,10 +17,7 @@ import type {
   View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { Source } from '~/models';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Column, Filter, Model, Sort } from '~/models';
-import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
+import { Column, Filter, Model, Sort, Source } from '~/models';
 import {
   _wherePk,
   extractFilterFromXwhere,
@@ -28,6 +25,8 @@ import {
   getColumnName,
   getListArgs,
 } from '~/db/BaseModelSqlv2';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import conditionV2 from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -951,7 +950,6 @@ export async function singleQueryList(ctx: {
   params;
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
-  ignorePagination?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
@@ -1111,7 +1109,7 @@ export async function singleQueryList(ctx: {
     validateFormula: ctx.validateFormula,
   });
 
-  if (ctx.view.type !== ViewTypes.CALENDAR && !ctx.ignorePagination) {
+  if (ctx.view.type !== ViewTypes.CALENDAR) {
     if (skipCache) {
       rootQb.limit(+listArgs.limit);
       rootQb.offset(+listArgs.offset);

@@ -3,10 +3,10 @@ import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import type { PathParams } from '~/modules/datas/helpers';
 import type { View } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 

@@ -941,7 +941,6 @@ export async function singleQueryList(ctx: {
   params;
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
-  ignorePagination?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
@@ -1102,7 +1101,7 @@ export async function singleQueryList(ctx: {
     alias: ROOT_ALIAS,
   });
 
-  if (ctx.view?.type !== ViewTypes.CALENDAR && !ctx.ignorePagination) {
+  if (ctx.view?.type !== ViewTypes.CALENDAR) {
     if (skipCache) {
       rootQb.limit(+listArgs.limit);
       rootQb.offset(+listArgs.offset);

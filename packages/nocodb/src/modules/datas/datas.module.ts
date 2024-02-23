@@ -18,6 +18,8 @@ import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import { PublicDatasService } from '~/services/public-datas.service';
+import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
+import { CalendarDatasService } from '~/services/calendar-datas.service';
 
 export const dataModuleMetadata = {
   imports: [
@@ -33,6 +35,7 @@ export const dataModuleMetadata = {
       ? [
           DataTableController,
           DatasController,
+          CalendarDatasController,
           BulkDataAliasController,
           DataAliasController,
           DataAliasNestedController,
@@ -48,6 +51,7 @@ export const dataModuleMetadata = {
     DatasService,
     BulkDataAliasService,
     DataAliasNestedService,
+    CalendarDatasService,
     OldDatasService,
     PublicDatasService,
     PublicDatasExportService,
@@ -55,6 +59,7 @@ export const dataModuleMetadata = {
   exports: [
     DatasService,
     BulkDataAliasService,
+    CalendarDatasService,
     DataAliasNestedService,
     OldDatasService,
     PublicDatasService,

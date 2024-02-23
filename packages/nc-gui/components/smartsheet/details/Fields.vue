@@ -14,6 +14,7 @@ interface TableExplorerColumn extends ColumnType {
     order: number
     view_id: string
   }
+  view_id?: string
 }
 
 interface op {
@@ -355,6 +356,7 @@ const onFieldAdd = (state: TableExplorerColumn) => {
   }
 
   state.temp_id = `temp_${++temporaryAddCount.value}`
+  state.view_id = view.value?.id as string
   ops.value.push({
     op: 'add',
     column: state,

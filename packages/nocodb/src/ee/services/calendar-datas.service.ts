@@ -88,8 +88,8 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     };
 
     const prevDate = dayjs(from_date)
-      .subtract(1, 'day')
-      .endOf('day')
+      .add(1, 'day')
+      .startOf('day')
       .format('YYYY-MM-DD HH:mm:ssZ');
 
     calendarRange.ranges.forEach((range: CalendarRange) => {

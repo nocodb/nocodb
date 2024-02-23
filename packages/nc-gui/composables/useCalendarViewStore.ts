@@ -25,7 +25,14 @@ const formatData = (list: Record<string, any>[]) =>
 const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
   (
     meta: Ref<((CalendarType & { id: string }) | TableType) | undefined>,
-    viewMeta: Ref<(ViewType | CalendarType | undefined) & { id: string }> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    viewMeta:
+      | Ref<(ViewType | CalendarType | undefined) & { id: string }>
+      | ComputedRef<
+          | (ViewType & {
+              id: string
+            })
+          | undefined
+        >,
     shared = false,
     where?: ComputedRef<string | undefined>,
   ) => {
@@ -115,6 +122,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const sideBarFilter = computed(() => {
       let combinedFilters: any = []
+
+      if (!calendarRange.value) return []
 
       if (sideBarFilterOption.value === 'allRecords') {
         combinedFilters = []
@@ -329,6 +338,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const filterJSON = computed(() => {
+      if (!calendarRange.value) return []
       const combinedFilters: any = {
         is_group: true,
         logical_op: 'and',
@@ -514,21 +524,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       })
 
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
-      const res = !isPublic.value
-        ? await api.dbViewRow.calendarCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
-            ...queryParams.value,
-            ...{},
-            ...{},
-            ...{ filterArrJson: JSON.stringify([...activeDateFilter]) },
-          })
-        : await fetchSharedViewActiveDate({
-            sortsArr: sorts.value,
-            filtersArr: activeDateFilter,
-          })
-      if (res) {
+
+      try {
+        const res = !isPublic.value
+          ? await api.dbViewRow.calendarCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+              ...queryParams.value,
+              ...{},
+              ...{},
+              ...{ filterArrJson: JSON.stringify([...activeDateFilter]) },
+            })
+          : await fetchSharedViewActiveDate({
+              sortsArr: sorts.value,
+              filtersArr: activeDateFilter,
+            })
         activeDates.value = res.map((dateObj: unknown) => dayjs(dateObj))
-      } else {
+      } catch (e) {
         activeDates.value = []
+        message.error(`${t('msg.error.fetchingActiveDates')} ${await extractSdkResponseErrorMsg(e)}`)
+        console.log(e)
       }
     }
 
@@ -554,44 +567,55 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     async function loadCalendarMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
-      calendarMetaData.value = res
-      const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
-      activeCalendarView.value = calMeta?.active_view
-      if (!activeCalendarView.value) activeCalendarView.value = 'month'
-      calendarRange.value = res?.calendar_range!.map((range: any) => {
-        return {
-          fk_from_col: meta.value?.columns!.find((col) => col.id === range.fk_from_column_id),
-          fk_to_col: range.fk_to_column_id ? meta.value?.columns!.find((col) => col.id === range.fk_to_column_id) : null,
-        }
-      }) as any
+      try {
+        const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
+        calendarMetaData.value = res
+        const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
+        activeCalendarView.value = calMeta?.active_view
+        if (!activeCalendarView.value) activeCalendarView.value = 'month'
+        calendarRange.value = res?.calendar_range?.map((range: any) => {
+          return {
+            fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
+            fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
+          }
+        }) as any
+      } catch (e) {
+        message.error(`Error loading calendar meta ${await extractSdkResponseErrorMsg(e)}`)
+      }
     }
 
     async function loadCalendarData() {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !filterJSON.value) && !isPublic?.value) return
-      isCalendarDataLoading.value = true
-      const res = !isPublic.value
-        ? await api.dbViewRow.list(
-            'noco',
-            base.value.id!,
-            meta.value!.id!,
-            viewMeta.value!.id!,
-            {
-              ...queryParams.value,
-              ...(isUIAllowed('filterSync')
-                ? { filterArrJson: JSON.stringify([...filterJSON.value]) }
-                : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
-              where: where?.value ?? '',
-            },
-            {
-              headers: {
-                'xc-ignore-pagination': true,
+      try {
+        isCalendarDataLoading.value = true
+
+        const res = !isPublic.value
+          ? await api.dbViewRow.list(
+              'noco',
+              base.value.id!,
+              meta.value!.id!,
+              viewMeta.value!.id!,
+              {
+                ...queryParams.value,
+                ...(isUIAllowed('filterSync')
+                  ? { filterArrJson: JSON.stringify([...filterJSON.value]) }
+                  : { filterArrJson: JSON.stringify([nestedFilters.value, ...filterJSON.value]) }),
+                where: where?.value ?? '',
               },
-            },
-          )
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: filterJSON.value })
-      formattedData.value = formatData(res!.list)
-      isCalendarDataLoading.value = false
+              {
+                headers: {
+                  'xc-ignore-pagination': true,
+                },
+              },
+            )
+          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: filterJSON.value })
+        formattedData.value = formatData(res!.list)
+      } catch (e) {
+        message.error(`${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(e)}`)
+        console.log(e)
+      } finally {
+        isCalendarDataLoading.value = false
+      }
     }
 
     async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
@@ -662,18 +686,24 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const loadSidebarData = async () => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
-      isSidebarLoading.value = true
-      const res = !isPublic.value
-        ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
-            ...queryParams.value,
-            ...{},
-            ...{},
-            ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
-          })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: sideBarFilter.value })
+      try {
+        isSidebarLoading.value = true
+        const res = !isPublic.value
+          ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
+              ...queryParams.value,
+              ...{},
+              ...{},
+              ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
+            })
+          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: sideBarFilter.value })
 
-      formattedSideBarData.value = formatData(res!.list)
-      isSidebarLoading.value = false
+        formattedSideBarData.value = formatData(res!.list)
+      } catch (e) {
+        message.error(`${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(e)}`)
+        console.log(e)
+      } finally {
+        isSidebarLoading.value = false
+      }
     }
 
     async function updateRowProperty(toUpdate: Row, property: string[], undo = false) {

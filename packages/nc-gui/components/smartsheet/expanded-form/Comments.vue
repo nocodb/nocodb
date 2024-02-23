@@ -158,8 +158,8 @@ const onClickAudit = () => {
           @click="tab = 'comments'"
         >
           <div class="tab-title nc-tab">
-            <MdiMessageOutline class="h-4 w-4" />
-            Comments
+            <MdiMessageOutline class="h-4 w-4 flex-none" />
+            <span class="<lg:hidden">Comments</span>
           </div>
         </div>
         <NcTooltip v-if="appInfo.ee" class="tab flex-1">
@@ -173,7 +173,7 @@ const onClickAudit = () => {
           >
             <div class="tab-title nc-tab select-none">
               <MdiFileDocumentOutline class="h-4 w-4" />
-              Audits
+              <span class="<lg:hidden">Audits</span>
             </div>
           </div>
         </NcTooltip>
@@ -188,7 +188,7 @@ const onClickAudit = () => {
         >
           <div class="tab-title nc-tab">
             <MdiFileDocumentOutline class="h-4 w-4" />
-            Audits
+            <span class="<lg:hidden">Audits</span>
           </div>
         </div>
       </div>
@@ -211,16 +211,28 @@ const onClickAudit = () => {
         </div>
         <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-2 pl-2 pr-1 space-y-2 nc-scrollbar-md">
           <div v-for="log of comments" :key="log.id">
-            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200">
+            <div class="bg-white rounded-xl group border-1 gap-2 border-gray-200 overflow-hidden">
               <div class="flex flex-col p-4 gap-3">
                 <div class="flex justify-between">
                   <div class="flex items-center gap-2">
-                    <GeneralUserIcon size="base" :name="log.display_name ?? log.user" :email="log.user" />
+                    <GeneralUserIcon size="base" :name="log.display_name" :email="log.user" />
 
-                    <div class="flex flex-col">
-                      <span class="truncate font-bold max-w-42">
-                        {{ log.display_name ?? log.user.split('@')[0] ?? 'Shared source' }}
-                      </span>
+                    <div class="flex flex-col <lg:max-w-22">
+                      <NcTooltip class="truncate max-w-42" show-on-truncate-only>
+                        <template #title>
+                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                        </template>
+                        <span
+                          class="text-ellipsis overflow-hidden font-bold"
+                          :style="{
+                            wordBreak: 'keep-all',
+                            whiteSpace: 'nowrap',
+                            display: 'inline',
+                          }"
+                        >
+                          {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                        </span>
+                      </NcTooltip>
                       <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                         {{ log.created_at !== log.updated_at ? `Edited ${timeAgo(log.updated_at)}` : timeAgo(log.created_at) }}
                       </div>
@@ -298,12 +310,24 @@ const onClickAudit = () => {
           <div class="flex flex-col p-4 gap-3">
             <div class="flex justify-between">
               <div class="flex items-center gap-2">
-                <GeneralUserIcon size="base" :email="log.user" />
+                <GeneralUserIcon size="base" :email="log.user" :name="log.display_name" />
 
                 <div class="flex flex-col">
-                  <span class="truncate font-bold max-w-50">
-                    {{ log.display_name ?? log.user.split('@')[0].slice(0, 2) ?? 'Shared source' }}
-                  </span>
+                  <NcTooltip class="truncate max-w-50" show-on-truncate-only>
+                    <template #title>
+                      {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                    </template>
+                    <span
+                      class="text-ellipsis overflow-hidden font-bold"
+                      :style="{
+                        wordBreak: 'keep-all',
+                        whiteSpace: 'nowrap',
+                        display: 'inline',
+                      }"
+                    >
+                      {{ log.display_name?.trim() || log.user || 'Shared source' }}
+                    </span>
+                  </NcTooltip>
                   <div v-if="log.id !== editLog?.id" class="text-xs font-medium text-gray-500">
                     {{ timeAgo(log.created_at) }}
                   </div>

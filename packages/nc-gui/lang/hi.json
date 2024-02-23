@@ -157,6 +157,8 @@
     "groupingField": "Grouping Field",
     "insertAfter": "Insert After",
     "insertBefore": "Insert Before",
+    "insertAbove": "Insert above",
+    "insertBelow": "Insert below",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
     "sortDesc": "Sort Descending",
@@ -189,9 +191,14 @@
     "shift": "Shift",
     "enter": "Enter",
     "seconds": "Seconds",
-    "paste": "Paste"
+    "paste": "Paste",
+    "restore": "Restore"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "Workspace",
     "workspaces": "Workspaces",
     "project": "परियोजना",
@@ -298,6 +305,7 @@
     "isNotNull": "निरर्थक नहीं है"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "Docs",
     "forum": "Forum",
     "parameter": "Parameter",
@@ -328,6 +336,7 @@
     "virtualRelation": "Virtual Relation",
     "linkMore": "Link More",
     "linkMoreRecords": "Link more records",
+    "linkRecords": "Link Records",
     "downloadFile": "Download File",
     "renameTable": "Rename Table",
     "renamingTable": "Renaming Table",
@@ -394,6 +403,7 @@
     "findRowByScanningCode": "Find row by scanning a QR or Barcode",
     "tokenManagement": "Token Management",
     "addNewToken": "Add new token",
+    "createNewToken": "Create new token",
     "accountSettings": "Account Settings",
     "resetPasswordMenu": "Reset Password",
     "tokens": "Tokens",
@@ -414,6 +424,23 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "Security Assertion Markup Language (SAML)",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -457,6 +484,8 @@
     "timeFormat": "Time Format",
     "singularLabel": "Singular Label",
     "pluralLabel": "Plural Label",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(Optional)",
     "clickToMake": "Click to make",
     "visibleForRole": "visible for role:",
@@ -499,7 +528,9 @@
     "duplicateFormView": "Duplicate Form View",
     "createFormView": "Create Form View",
     "duplicateKanbanView": "Duplicate Kanban View",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Create Kanban View",
+    "createCalendarView": "Create Calendar View",
     "viewName": "नाम देखें",
     "viewLink": "लिंक देखें",
     "columnName": "आम नाम",
@@ -510,6 +541,7 @@
     "databaseType": "डेटाबेस में टाइप करें",
     "lengthValue": "लंबाई/ मूल्य",
     "dbType": "डेटाबेस प्रकार",
+    "servername": "servername / hostAddr",
     "sqliteFile": "Sqlite फ़ाइल",
     "hostAddress": "मेज़बान का पता",
     "port": "पोर्ट संख्या",
@@ -642,9 +674,27 @@
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",
     "newFormLoaded": "New form will be loaded after",
-    "webhook": "Webhook"
+    "webhook": "Webhook",
+    "multiField": {
+      "newField": "New field",
+      "saveChanges": "Save changes",
+      "updatedField": "Updated field",
+      "deletedField": "Deleted field",
+      "incompleteConfiguration": "Incomplete configuration",
+      "selectField": "Select a field",
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
+    }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
+    "googleOAuth": "Google OAuth",
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "Open in a new tab",
     "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
@@ -668,7 +718,7 @@
     "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
-    "enabledPublicViewing": "Enable public viewing",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "Restrict access with password",
     "manageProjectAccess": "Manage Base Access",
     "allowDownload": "Allow Download",
@@ -721,7 +771,7 @@
     "groupBy": "Group By",
     "addSubGroup": "Add subgroup",
     "shareBase": {
-      "label": "Share base",
+      "label": "Share Base",
       "disable": "साझा आधार अक्षम करें",
       "enable": "कोई भी व्यक्ति जिसके पास लिंक हो",
       "link": "साझा आधार लिंक"
@@ -902,6 +952,7 @@
     "selectGroupField": "Select a Grouping Field",
     "selectGroupFieldNotFound": "No Single Select Field can be found. Please create one first.",
     "selectGeoField": "Select a GeoData Field",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "No GeoData Field can be found. Please create one first.",
     "password": {
       "enter": "पासवर्ड दर्ज करे",
@@ -932,7 +983,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "Value",
-    "key": "Key"
+    "key": "Key",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",
@@ -960,6 +1017,7 @@
       "hintStart": "Hint: Use {placeholder1} to reference fields, e.g: {placeholder2}. For more, please check out",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "No suggested formula found",
+      "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "Numeric type is expected",
       "stringTypeIsExpected": "String type is expected",
       "operationNotAvailable": "{operation} operation not available",
@@ -1016,8 +1074,9 @@
       "tooltip_desc": "A single record from table ",
       "tooltip_desc2": " can be linked with a single record from table "
     },
-    "noRecordsAreLinkedFromTable": "No records are linked from table",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "No records linked",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "records linked",
     "acceptOnlyValid": "Accepts only",
     "apiTokenCreate": "Create personal API tokens to use in automation or external apps.",
@@ -1025,19 +1084,22 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "There are no records in table",
     "createWebhookMsg1": "Get started with web-hooks!",
-    "createWebhookMsg2": "Create web-hooks to power you automations,",
-    "createWebhookMsg3": "Get notified as soon as there are changes in your data",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "Are you sure you want to delete the following",
     "areYouSureUWantToDeleteLabel": "Are you sure you want to {deleteLabel} the following",
     "idColumnRequired": "ID field is required, you can rename this later if required.",
     "length59Required": "The length exceeds the max 59 characters",
     "noNewNotifications": "You have no new notifications",
     "noRecordFound": "Record not found",
+    "noRecordsFound": "No records found",
     "rowDeleted": "Record deleted",
     "saveChanges": "Do you want to save the changes?",
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"
@@ -1048,9 +1110,16 @@
         "barcodeFieldsCannotBeDirectlyChanged": "Warning: Barcode fields cannot be directly changed."
       },
       "duplicateProject": "Are you sure you want to duplicate the base?",
-      "duplicateTable": "Are you sure you want to duplicate the table?"
+      "duplicateTable": "Are you sure you want to duplicate the table?",
+      "multiField": {
+        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
+        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
+        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+      }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",
@@ -1211,9 +1280,22 @@
       "goToNext": "Go to next",
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
-      "editingSystemKeyNotSupported": "Editing system key not supported"
+      "editingSystemKeyNotSupported": "Editing system key not supported",
+      "notAvailableAtTheMoment": "Not available at the moment",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
     },
     "error": {
+      "scopesRequired": "Scopes required",
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "issuerRequired": "Issuer is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Name Required",
       "nameMinLength": "Name must be at least 2 characters long",
       "nameMaxLength": "Name must be at most 60 characters long",
@@ -1244,6 +1326,7 @@
         "invalidEmails": "Invalid emails",
         "invalidEmail": "Invalid Email"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "Invalid URL",
       "invalidEmail": "Invalid Email",
       "internalError": "Some internal error occurred",
@@ -1289,7 +1372,11 @@
       "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
-      "pasteFromClipboardError": "Failed to paste from clipboard"
+      "pasteFromClipboardError": "Failed to paste from clipboard",
+      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
+      "somethingWentWrong": "Something went wrong",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "परियोजना मेटाडेटा सफलतापूर्वक निर्यात की गई",

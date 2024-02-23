@@ -20,6 +20,8 @@ export class SharedFormPage extends BasePage {
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/rows',
     });
+
+    await this.rootPage.waitForTimeout(200);
   }
 
   async verifySuccessMessage() {

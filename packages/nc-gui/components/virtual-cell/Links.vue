@@ -3,15 +3,7 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import {
-  ActiveCellInj,
-  CellValueInj,
-  ColumnInj,
-  IsExpandedFormOpenInj,
-  IsUnderLookupInj,
-  inject,
-  useSelectedCellKeyupListener,
-} from '#imports'
+import { ActiveCellInj, CellValueInj, ColumnInj, IsUnderLookupInj, inject, useSelectedCellKeyupListener } from '#imports'
 
 const value = inject(CellValueInj, ref(0))
 
@@ -26,8 +18,6 @@ const isForm = inject(IsFormInj)
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const colTitle = computed(() => column.value?.title || '')
 
@@ -130,13 +120,7 @@ watch([listItemsDlg], () => {
 </script>
 
 <template>
-  <div
-    class="flex w-full group items-center nc-links-wrapper py-1"
-    :class="{
-      'px-2': isExpandedFormOpen,
-    }"
-    @dblclick.stop="openChildList"
-  >
+  <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
     <div class="block flex-shrink truncate">
       <component
         :is="isUnderLookup ? 'span' : 'a'"
@@ -145,7 +129,7 @@ watch([listItemsDlg], () => {
         :title="textVal"
         class="text-center nc-datatype-link underline-transparent"
         :class="{ '!text-gray-300': !textVal }"
-        tabindex="0"
+        :tabindex="readOnly ? -1 : 0"
         @click.stop.prevent="openChildList"
         @keydown.enter.stop.prevent="openChildList"
       >
@@ -157,7 +141,7 @@ watch([listItemsDlg], () => {
     <div
       v-if="!isUnderLookup"
       ref="plusBtnRef"
-      tabindex="0"
+      :tabindex="readOnly ? -1 : 0"
       class="!xs:hidden flex group justify-end group-hover:flex items-center"
       @keydown.enter.stop="openListDlg"
     >

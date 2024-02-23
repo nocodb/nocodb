@@ -4,13 +4,14 @@ import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import type { Knex } from 'knex';
 import type * as knex from 'knex';
+import type { Knex } from 'knex';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -118,26 +119,35 @@ export class MetaService {
     });
     return insertObj;
   }
-
   public async bulkMetaInsert(
     base_id: string,
     source_id: string,
     target: string,
-    data: any[],
+    data: any | any[],
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
+    if (Array.isArray(data) ? !data.length : !data) {
+      return [];
+    }
+
     const insertObj = [];
     const at = this.now();
-    for (const d of data) {
+
+    const commonProps: Record<string, any> = {
+      created_at: at,
+      updated_at: at,
+    };
+
+    if (source_id !== null) commonProps.source_id = source_id;
+    if (base_id !== null) commonProps.base_id = base_id;
+
+    for (const d of Array.isArray(data) ? data : [data]) {
       const id = d?.id || (await this.genNanoid(target));
       const tempObj = {
         ...d,
         ...(ignoreIdGeneration ? {} : { id }),
-        created_at: at,
-        updated_at: at,
+        ...commonProps,
       };
-      if (source_id !== null) tempObj.source_id = source_id;
-      if (base_id !== null) tempObj.base_id = base_id;
       insertObj.push(tempObj);
     }
 
@@ -205,6 +215,15 @@ export class MetaService {
         break;
       case MetaTable.KANBAN_VIEW_COLUMNS:
         prefix = 'kvc';
+        break;
+      case MetaTable.CALENDAR_VIEW:
+        prefix = 'cv';
+        break;
+      case MetaTable.CALENDAR_VIEW_COLUMNS:
+        prefix = 'cvc';
+        break;
+      case MetaTable.CALENDAR_VIEW_RANGE:
+        prefix = 'cvr';
         break;
       case MetaTable.USERS:
         prefix = 'us';

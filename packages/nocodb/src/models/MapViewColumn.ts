@@ -66,18 +66,14 @@ export default class MapViewColumn {
 
     await NocoCache.set(`${CacheScope.MAP_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    const { list } = await NocoCache.getList(CacheScope.MAP_VIEW_COLUMN, [
-      column.fk_view_id,
-    ]);
-    if (list?.length)
+    return this.get(id, ncMeta).then(async (viewCol) => {
       await NocoCache.appendToList(
         CacheScope.MAP_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.MAP_VIEW_COLUMN}:${id}`,
       );
-
-    return this.get(id, ncMeta);
+      return viewCol;
+    });
   }
 
   public static async list(

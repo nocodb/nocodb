@@ -109,29 +109,22 @@ export default class GridViewColumn implements GridColumnType {
 
     await NocoCache.set(`${CacheScope.GRID_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
-    const { list } = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
-      column.fk_view_id,
-    ]);
-    if (list.length)
-      await NocoCache.appendToList(
-        CacheScope.GRID_VIEW_COLUMN,
-        [column.fk_view_id],
-        `${CacheScope.GRID_VIEW_COLUMN}:${id}`,
-      );
-
     await View.fixPVColumnForView(column.fk_view_id, ncMeta);
 
     // on new view column, delete any optimised single query cache
     {
       const view = await View.get(column.fk_view_id, ncMeta);
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${view.fk_model_id}:${view.id}:*`,
-      );
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
     }
 
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta).then(async (viewColumn) => {
+      await NocoCache.appendToList(
+        CacheScope.GRID_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.GRID_VIEW_COLUMN}:${id}`,
+      );
+      return viewColumn;
+    });
   }
 
   static async update(
@@ -169,10 +162,7 @@ export default class GridViewColumn implements GridColumnType {
     {
       const gridCol = await this.get(columnId, ncMeta);
       const view = await View.get(gridCol.fk_view_id, ncMeta);
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${view.fk_model_id}:${view.id}:*`,
-      );
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
     }
 
     return res;

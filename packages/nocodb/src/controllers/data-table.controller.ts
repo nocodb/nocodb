@@ -38,6 +38,7 @@ export class DataTableController {
       query: req.query,
       modelId: modelId,
       viewId: viewId,
+      ignorePagination: req.headers?.['xc-ignore-pagination'] === 'true',
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -190,6 +191,32 @@ export class DataTableController {
       viewId,
       columnId,
       refRowIds,
+      cookie: req,
+    });
+  }
+
+  // todo: naming
+  @Post(['/api/v2/tables/:modelId/links/:columnId/records'])
+  @Acl('nestedDataListCopyPasteOrDeleteAll')
+  async nestedListCopyPasteOrDeleteAll(
+    @Req() req: Request,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+    @Param('columnId') columnId: string,
+    @Body()
+    data: {
+      operation: 'copy' | 'paste';
+      rowId: string;
+      columnId: string;
+      fk_related_model_id: string;
+    }[],
+  ) {
+    return await this.dataTableService.nestedListCopyPasteOrDeleteAll({
+      modelId,
+      query: req.query,
+      viewId,
+      columnId,
+      data,
       cookie: req,
     });
   }

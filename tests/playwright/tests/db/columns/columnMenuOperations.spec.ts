@@ -85,6 +85,7 @@ test.describe('Column menu operations', () => {
       insertAfterColumnTitle: 'Title',
     });
 
+    await dashboard.grid.toolbar.fields.toggle({ title: 'Actors', isLocallySaved: false, checked: true });
     await dashboard.grid.column.create({
       title: 'InsertAfterColumn1',
       type: 'SingleLineText',
@@ -104,6 +105,7 @@ test.describe('Column menu operations', () => {
       isDisplayValue: true,
     });
 
+    await dashboard.grid.toolbar.fields.toggle({ title: 'Actors', isLocallySaved: false, checked: true });
     await dashboard.grid.column.create({
       title: 'InsertBeforeColumn1',
       type: 'SingleLineText',
@@ -121,6 +123,7 @@ test.describe('Column menu operations', () => {
       isDisplayValue: true,
     });
 
+    await dashboard.grid.toolbar.fields.toggle({ title: 'Actors', isLocallySaved: false, checked: true });
     await dashboard.grid.column.hideColumn({
       title: 'Actors',
     });

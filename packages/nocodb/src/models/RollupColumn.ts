@@ -38,19 +38,21 @@ export default class RollupColumn implements RollupType {
     ]);
     await ncMeta.metaInsert2(null, null, MetaTable.COL_ROLLUP, insertObj);
 
-    await NocoCache.appendToList(
-      CacheScope.COL_ROLLUP,
-      [data.fk_rollup_column_id],
-      `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
-    );
+    return this.read(data.fk_column_id, ncMeta).then(async (rollupColumn) => {
+      await NocoCache.appendToList(
+        CacheScope.COL_ROLLUP,
+        [data.fk_rollup_column_id],
+        `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
+      );
 
-    await NocoCache.appendToList(
-      CacheScope.COL_ROLLUP,
-      [data.fk_relation_column_id],
-      `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
-    );
+      await NocoCache.appendToList(
+        CacheScope.COL_ROLLUP,
+        [data.fk_relation_column_id],
+        `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
+      );
 
-    return this.read(data.fk_column_id, ncMeta);
+      return rollupColumn;
+    });
   }
 
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {

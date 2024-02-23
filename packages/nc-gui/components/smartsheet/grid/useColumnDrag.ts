@@ -25,7 +25,11 @@ export const useColumnDrag = ({
   const reorderColumn = async (colId: string, toColId: string) => {
     const toBeReorderedViewCol = gridViewCols.value[colId]
 
-    const toViewCol = gridViewCols.value[toColId]!
+    const toViewCol = gridViewCols.value[toColId]
+
+    // if toBeReorderedViewCol/toViewCol is null, return
+    if (!toBeReorderedViewCol || !toViewCol) return
+
     const toColIndex = fields.value.findIndex((f) => f.id === toColId)
 
     const nextToColField = toColIndex < fields.value.length - 1 ? fields.value[toColIndex + 1] : null
@@ -73,6 +77,14 @@ export const useColumnDrag = ({
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }
 
+  const handleReorderColumn = async () => {
+    dragColPlaceholderDomRef.value!.style.left = '0px'
+    dragColPlaceholderDomRef.value!.style.height = '0px'
+    await reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
+    draggedCol.value = null
+    toBeDroppedColId.value = null
+  }
+
   const onDragStart = (colId: string, e: DragEvent) => {
     if (!e.dataTransfer) return
 
@@ -108,11 +120,7 @@ export const useColumnDrag = ({
     if (!dragColPlaceholderDomRef.value) return
 
     if (e.clientX === 0) {
-      dragColPlaceholderDomRef.value!.style.left = `0px`
-      dragColPlaceholderDomRef.value!.style.height = '0px'
-      reorderColumn(draggedCol.value!.id!, toBeDroppedColId.value!)
-      draggedCol.value = null
-      toBeDroppedColId.value = null
+      handleReorderColumn()
       return
     }
 
@@ -143,9 +151,19 @@ export const useColumnDrag = ({
     }
   }
 
+  // fallback for safari browser
+  const onDragEnd = (e: DragEvent) => {
+    e.preventDefault()
+
+    if (!e.dataTransfer || !draggedCol.value || !toBeDroppedColId.value) return
+
+    handleReorderColumn()
+  }
+
   return {
     onDrag,
     onDragStart,
+    onDragEnd,
     draggedCol,
     dragColPlaceholderDomRef,
     toBeDroppedColId,

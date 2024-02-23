@@ -1,4 +1,4 @@
-import { RelationTypes } from 'nocodb-sdk';
+import { NcDataErrorCodes, RelationTypes } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { LinksColumn } from '~/models';
 import type { RollupColumn } from '~/models';
@@ -33,9 +33,10 @@ export default async function ({
     case RelationTypes.HAS_MANY:
       return {
         builder: knex(
-          `${baseModelSqlv2.getTnPath(
-            childModel?.table_name,
-          )} as ${refTableAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(childModel?.table_name),
+            refTableAlias,
+          ]),
         )
           [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
@@ -55,11 +56,18 @@ export default async function ({
       const mmChildCol = await relationColumnOption.getMMChildColumn();
       const mmParentCol = await relationColumnOption.getMMParentColumn();
 
+      if (!mmModel) {
+        return this.dbDriver.raw(`?`, [
+          NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+        ]);
+      }
+
       return {
         builder: knex(
-          `${baseModelSqlv2.getTnPath(
-            parentModel?.table_name,
-          )} as ${refTableAlias}`,
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(parentModel?.table_name),
+            refTableAlias,
+          ]),
         )
           [columnOptions.rollup_function as string]?.(
             knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),

@@ -2,6 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
+import type { TabItem } from '#imports'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -19,12 +20,12 @@ import {
   ref,
   toRef,
   useMetas,
+  useProvideCalendarViewStore,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
   useRoles,
   useSqlEditor,
 } from '#imports'
-import type { TabItem } from '#imports'
 
 const props = defineProps<{
   activeTab: TabItem
@@ -51,11 +52,11 @@ const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
 
-const reloadEventHook = createEventHook<void | boolean>()
+const reloadEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
@@ -63,6 +64,7 @@ const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
+useProvideCalendarViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -169,7 +171,7 @@ watch([activeViewTitleOrId, activeTableId], () => {
     <div style="height: calc(100% - var(--topbar-height))">
       <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
         <LazySmartsheetToolbar v-if="!isForm" />
-        <div class="flex flex-row w-full" style="height: calc(100% - var(--topbar-height))">
+        <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">
           <Transition name="layout" mode="out-in">
             <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
               <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
@@ -181,6 +183,8 @@ watch([activeViewTitleOrId, activeTableId], () => {
                   <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
                   <LazySmartsheetKanban v-else-if="isKanban" />
+
+                  <LazySmartsheetCalendar v-else-if="isCalendar" />
 
                   <LazySmartsheetMap v-else-if="isMap" />
                 </template>

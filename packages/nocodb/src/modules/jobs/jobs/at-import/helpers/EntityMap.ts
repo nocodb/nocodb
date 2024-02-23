@@ -1,5 +1,8 @@
 import { Readable } from 'stream';
 import sqlite3 from 'sqlite3';
+import { Logger } from '@nestjs/common';
+
+const logger = new Logger('EntityMap');
 
 class EntityMap {
   initialized: boolean;
@@ -18,7 +21,7 @@ class EntityMap {
           : 'mappingPlaceholder TEXT';
       db.run(`CREATE TABLE mapping (${colStatement})`, (err) => {
         if (err) {
-          console.log(err);
+          logger.log(err);
           reject(err);
         }
         resolve(db);
@@ -55,7 +58,7 @@ class EntityMap {
         new Promise((resolve, reject) => {
           this.db.run(`ALTER TABLE mapping ADD '${col}' TEXT;`, (err) => {
             if (err) {
-              console.log(err);
+              logger.log(err);
               reject(err);
             }
             this.cols.push(col);
@@ -80,7 +83,7 @@ class EntityMap {
         values,
         (err) => {
           if (err) {
-            console.log(err);
+            logger.log(err);
             reject(err);
           }
           resolve(true);
@@ -103,7 +106,7 @@ class EntityMap {
         [val],
         (err, rs) => {
           if (err) {
-            console.log(err);
+            logger.log(err);
             reject(err);
           }
           if (rs) {
@@ -122,7 +125,7 @@ class EntityMap {
     return new Promise((resolve, reject) => {
       this.db.get(`SELECT COUNT(*) as count FROM mapping`, (err, rs) => {
         if (err) {
-          console.log(err);
+          logger.log(err);
           reject(err);
         }
         resolve(rs.count);
@@ -153,7 +156,7 @@ class EntityMap {
         } FROM mapping LIMIT ${limit} OFFSET ${offset}`,
         (err, rs) => {
           if (err) {
-            console.log(err);
+            logger.log(err);
             reject(err);
           }
           for (let row of rs) {
@@ -200,7 +203,7 @@ function processResponseRow(res: any) {
       try {
         res[key] = JSON.parse(res[key].replace('JSON::', ''));
       } catch (e) {
-        console.log(e);
+        logger.log(e);
       }
     }
     if (revertKey(key) !== key) {

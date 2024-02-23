@@ -50,7 +50,8 @@ export class AccountUsersPage extends BasePage {
     await this.verifyToast({ message: 'Successfully added user' });
 
     // TODO: Wait on the invite api and get the invite url a better way as we are not waiting if the url is reflected in the UI
-    await this.rootPage.waitForTimeout(1000);
+    // await this.rootPage.waitForTimeout(1000);
+    await this.inviteUserModal.waitFor({ state: 'visible' });
 
     // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
     return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).split('\n')[0];

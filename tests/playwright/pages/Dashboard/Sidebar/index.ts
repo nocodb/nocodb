@@ -63,7 +63,15 @@ export class SidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
   }
 
-  async createProject({ title, type }: { title: string; type: ProjectTypes }) {
+  async createProject({
+    title,
+    type,
+    networkValidation = true,
+  }: {
+    title: string;
+    type: ProjectTypes;
+    networkValidation?: boolean;
+  }) {
     await this.createProjectBtn.click();
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
@@ -71,11 +79,15 @@ export class SidebarPage extends BasePage {
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
     await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);
 
-    await this.waitForResponse({
-      uiAction: () => this.dashboard.get().getByTestId('docs-create-proj-dlg-create-btn').click(),
-      httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
-    });
+    if (networkValidation) {
+      await this.waitForResponse({
+        uiAction: () => this.dashboard.get().getByTestId('docs-create-proj-dlg-create-btn').click(),
+        httpMethodsToMatch: ['POST'],
+        requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
+      });
+    } else {
+      await this.dashboard.get().getByTestId('docs-create-proj-dlg-create-btn').click();
+    }
 
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.docs.pagesList.waitForOpen({ title });
@@ -100,6 +112,10 @@ export class SidebarPage extends BasePage {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-kanban');
     } else if (type === ViewTypes.GALLERY) {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-gallery');
+    } else if (type === ViewTypes.CALENDAR) {
+      // TODO: Remove this once the easter egg is removed
+      await this.rootPage.waitForTimeout(4500);
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-calendar');
     }
 
     await this.rootPage.waitForTimeout(750);

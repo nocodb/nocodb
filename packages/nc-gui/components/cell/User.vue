@@ -9,7 +9,6 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
-  IsExpandedFormOpenInj,
   IsKanbanInj,
   ReadonlyInj,
   RowHeightInj,
@@ -48,8 +47,6 @@ const readOnly = inject(ReadonlyInj)!
 const isEditable = inject(EditModeInj, ref(false))
 
 const activeCell = inject(ActiveCellInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const basesStore = useBases()
 
@@ -265,8 +262,8 @@ const filterOption = (input: string, option: any) => {
 
 <template>
   <div
-    class="nc-user-select h-full w-full flex items-center"
-    :class="{ 'read-only': readOnly, 'px-2': isExpandedFormOpen }"
+    class="nc-cell-field nc-user-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly }"
     @click="toggleMenu"
   >
     <div
@@ -281,7 +278,7 @@ const filterOption = (input: string, option: any) => {
       }"
     >
       <template v-for="selectedOpt of vModel" :key="selectedOpt.value">
-        <a-tag class="rounded-tag max-w-full" color="'#ccc'">
+        <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
           <span
             :style="{
               'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -289,8 +286,17 @@ const filterOption = (input: string, option: any) => {
                 : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
               'font-size': '13px',
             }"
+            class="flex items-stretch gap-2"
             :class="{ 'text-sm': isKanban }"
           >
+            <div class="flex-none">
+              <GeneralUserIcon
+                size="auto"
+                :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
+                :email="selectedOpt.label"
+                class="!text-[0.65rem]"
+              />
+            </div>
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
               <template #title>
                 {{ selectedOpt.label }}
@@ -349,13 +355,20 @@ const filterOption = (input: string, option: any) => {
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                 'font-size': '13px',
               }"
-              class="flex items-center gap-2"
+              class="flex items-stretch gap-2"
               :class="{ 'text-sm': isKanban }"
             >
-              <GeneralUserIcon size="medium" :email="op.email" />
+              <div>
+                <GeneralUserIcon
+                  size="auto"
+                  :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
+                  :email="op.email"
+                  class="!text-[0.65rem]"
+                />
+              </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
-                  {{ op.display_name?.length ? op.display_name : op.email }}
+                  {{ op.display_name?.trim() || op.email }}
                 </template>
                 <span
                   class="text-ellipsis overflow-hidden"
@@ -365,7 +378,7 @@ const filterOption = (input: string, option: any) => {
                     display: 'inline',
                   }"
                 >
-                  {{ op.display_name?.length ? op.display_name : op.email }}
+                  {{ op.display_name?.trim() || op.email }}
                 </span>
               </NcTooltip>
             </span>
@@ -376,7 +389,7 @@ const filterOption = (input: string, option: any) => {
       <template #tagRender="{ label, value: val, onClose }">
         <a-tag
           v-if="options.find((el) => el.id === val)"
-          class="rounded-tag nc-selected-option"
+          class="rounded-tag nc-selected-option !pl-0"
           :style="{ display: 'flex', alignItems: 'center' }"
           color="'#ccc'"
           :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
@@ -394,8 +407,17 @@ const filterOption = (input: string, option: any) => {
                 : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
               'font-size': '13px',
             }"
+            class="flex items-stretch gap-2"
             :class="{ 'text-sm': isKanban }"
           >
+            <div>
+              <GeneralUserIcon
+                size="auto"
+                :name="!label?.includes('@') ? label.trim() : ''"
+                :email="label"
+                class="!text-[0.65rem]"
+              />
+            </div>
             {{ label }}
           </span>
         </a-tag>

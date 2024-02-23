@@ -61,7 +61,7 @@ onMounted(() => {
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center px-2 pb-1 gap-x-1.5">
-              <PhUsersBold />
+              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               Members
             </div>
           </template>

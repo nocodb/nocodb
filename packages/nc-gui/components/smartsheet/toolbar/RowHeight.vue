@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { OrgUserRoles, ProjectRoles, extractRolesObj } from 'nocodb-sdk'
 import type { GridType } from 'nocodb-sdk'
 import { ActiveViewInj, IsLockedInj, iconMap, inject, ref, storeToRefs, useMenuCloseOnEsc, useUndoRedo } from '#imports'
 
@@ -13,6 +14,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 const { $api } = useNuxtApp()
 
 const { addUndo, defineViewScope } = useUndoRedo()
+
+const { user } = useGlobal()
 
 const open = ref(false)
 
@@ -35,7 +38,14 @@ const updateRowHeight = async (rh: number, undo = false) => {
     }
 
     try {
-      if (!isPublic.value && !isSharedBase.value) {
+      if (
+        !isPublic.value &&
+        !isSharedBase.value &&
+        !(
+          extractRolesObj(user.value?.roles ?? {})[ProjectRoles.VIEWER] ||
+          extractRolesObj(user.value?.roles ?? {})[OrgUserRoles.VIEWER]
+        )
+      ) {
         await $api.dbView.gridUpdate(view.value.id, {
           row_height: rh,
         })

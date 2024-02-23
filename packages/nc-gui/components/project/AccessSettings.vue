@@ -30,6 +30,7 @@ interface Collaborators {
   base_roles: Roles
   workspace_roles: WorkspaceUserRoles
   created_at: string
+  display_name: string | null
 }
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
@@ -40,7 +41,9 @@ const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const filteredCollaborators = computed(() =>
-  collaborators.value.filter((collab) => collab.email.toLowerCase().includes(userSearchText.value.toLowerCase())),
+  collaborators.value.filter((collab) =>
+    (collab.display_name || collab.email).toLowerCase().includes(userSearchText.value.toLowerCase()),
+  ),
 )
 
 const sortedCollaborators = computed(() => {
@@ -182,7 +185,15 @@ onMounted(async () => {
             >
               <div class="flex gap-3 items-center users-email-grid">
                 <GeneralUserIcon size="base" :email="collab.email" />
-                <span class="truncate">
+                <NcTooltip v-if="collab.display_name">
+                  <template #title>
+                    {{ collab.email }}
+                  </template>
+                  <span class="truncate">
+                    {{ collab.display_name }}
+                  </span>
+                </NcTooltip>
+                <span v-else class="truncate">
                   {{ collab.email }}
                 </span>
               </div>

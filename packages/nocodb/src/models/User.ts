@@ -75,7 +75,6 @@ export default class User implements UserType {
     const bases = await Base.list({}, ncMeta);
     for (const base of bases) {
       await NocoCache.deepDel(
-        CacheScope.BASE_USER,
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -147,10 +146,7 @@ export default class User implements UserType {
   }
 
   static async isFirst(ncMeta = Noco.ncMeta) {
-    const isFirst = !(await NocoCache.getAll(`${CacheScope.USER}:*`))?.length;
-    if (isFirst)
-      return !(await ncMeta.metaGet2(null, null, MetaTable.USERS, {}));
-    return false;
+    return !(await ncMeta.metaGet2(null, null, MetaTable.USERS, {}));
   }
 
   public static async count(
@@ -194,7 +190,7 @@ export default class User implements UserType {
     {
       limit,
       offset,
-      query,
+      query = '',
     }: {
       limit?: number | undefined;
       offset?: number | undefined;
@@ -217,6 +213,7 @@ export default class User implements UserType {
         `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`,
+        `${MetaTable.USERS}.display_name`,
       )
       .select(
         ncMeta
@@ -228,7 +225,17 @@ export default class User implements UserType {
           .as('projectsCount'),
       );
     if (query) {
-      queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
+      queryBuilder.where(function () {
+        this.where(function () {
+          this.whereNotNull('display_name')
+            .andWhereNot('display_name', '')
+            .andWhere('display_name', 'like', `%${query.toLowerCase()}%`);
+        }).orWhere(function () {
+          this.where(function () {
+            this.whereNull('display_name').orWhere('display_name', '');
+          }).andWhere('email', 'like', `%${query.toLowerCase()}%`);
+        });
+      });
     }
 
     return queryBuilder;
@@ -291,7 +298,6 @@ export default class User implements UserType {
 
     for (const base of bases) {
       await NocoCache.deepDel(
-        CacheScope.BASE_USER,
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );

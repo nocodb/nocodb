@@ -1,12 +1,17 @@
 <script lang="ts" setup>
-import { autoResetRef, useThrottleFn } from '#imports'
+import { autoResetRef, toRefs, useThrottleFn } from '#imports'
 
 interface Props {
   size?: number
   animate?: boolean
 }
 
-const { size = 90, animate = false } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  size: 90,
+  animate: false,
+})
+
+const { size, animate } = toRefs(props)
 
 const ping = autoResetRef(false, 1000)
 

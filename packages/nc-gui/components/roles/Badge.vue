@@ -39,14 +39,14 @@ const roleProperties = computed(() => {
 
 <template>
   <div
-    class="flex items-start rounded-md"
+    class="flex items-start rounded-md w-[fit-content] nc-role-badge"
     :class="{
       'cursor-pointer': clickableRef,
     }"
   >
-    <NcBadge class="!px-2" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
+    <NcBadge class="!px-2 w-full" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
       <div
-        class="badge-text flex items-center gap-2"
+        class="badge-text w-full flex items-center justify-between gap-2"
         :class="{
           'text-purple-700': roleProperties.color === 'purple',
           'text-blue-700': roleProperties.color === 'blue',
@@ -59,11 +59,13 @@ const roleProperties = computed(() => {
           sizeSelect,
         }"
       >
-        <GeneralIcon :icon="roleProperties.icon" />
-        <span class="flex whitespace-nowrap">
-          {{ $t(`objects.roleType.${roleProperties.label}`) }}
-        </span>
-        <GeneralIcon v-if="clickableRef" icon="arrowDown" />
+        <div class="flex items-center gap-2">
+          <GeneralIcon :icon="roleProperties.icon" />
+          <span class="flex whitespace-nowrap">
+            {{ $t(`objects.roleType.${roleProperties.label}`) }}
+          </span>
+        </div>
+        <GeneralIcon v-if="clickableRef" icon="arrowDown" class="flex-none" />
       </div>
     </NcBadge>
     <!--

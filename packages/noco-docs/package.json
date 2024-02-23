@@ -33,7 +33,7 @@
     "@docusaurus/plugin-ideal-image": "3.0.1",
     "@docusaurus/plugin-sitemap": "3.0.1",
     "@docusaurus/preset-classic": "3.0.1",
-    "@mdx-js/react": "^3.0.0",
+    "@mdx-js/react": "^3.0.1",
     "clsx": "^1.2.1",
     "docusaurus-plugin-sass": "^0.2.5",
     "docusaurus-theme-search-typesense": "^0.14.1",

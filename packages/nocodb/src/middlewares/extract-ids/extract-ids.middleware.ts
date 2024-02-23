@@ -81,13 +81,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       params.formViewId ||
       params.gridViewId ||
       params.kanbanViewId ||
-      params.galleryViewId
+      params.galleryViewId ||
+      params.calendarViewId
     ) {
       const view = await View.get(
         params.formViewId ||
           params.gridViewId ||
           params.kanbanViewId ||
-          params.galleryViewId,
+          params.galleryViewId ||
+          params.calendarViewId,
       );
       req.ncBaseId = view?.base_id;
     } else if (params.publicDataUuid) {
@@ -215,6 +217,10 @@ export class AclMiddleware implements NestInterceptor {
     const scope = this.reflector.get<string>('scope', context.getHandler());
 
     const req = context.switchToHttp().getRequest();
+
+    if (!req.user?.isAuthorized) {
+      NcError.unauthorized('Invalid token');
+    }
 
     const userScopeRole =
       req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true

@@ -21,16 +21,21 @@ const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
 
-const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+const { isNew, state, syncLTARRefs, clearLTARCell, addLTARRef, cleaMMCell } = useProvideSmartsheetRowStore(
+  meta as Ref<TableType>,
+  currentRow,
+)
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 
 // override reload trigger and use it to reload row
-const reloadHook = createEventHook<boolean | void>()
+const reloadHook = createEventHook()
 
-reloadHook.on((shouldShowLoading) => {
+reloadHook.on((params) => {
   if (isNew.value) return
-  reloadViewDataTrigger?.trigger(shouldShowLoading)
+  reloadViewDataTrigger?.trigger({
+    shouldShowLoading: (params?.shouldShowLoading as boolean) ?? false,
+  })
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
@@ -39,6 +44,7 @@ defineExpose({
   syncLTARRefs,
   clearLTARCell,
   addLTARRef,
+  cleaMMCell,
 })
 </script>
 

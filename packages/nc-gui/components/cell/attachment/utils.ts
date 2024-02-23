@@ -1,4 +1,6 @@
-import type { AttachmentType } from 'nocodb-sdk'
+import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
+import { populateUniqueFileName } from 'nocodb-sdk'
+import DOMPurify from 'isomorphic-dompurify'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -9,6 +11,7 @@ import {
   NOCO,
   ReadonlyInj,
   computed,
+  extractImageSrcFromRawHtml,
   inject,
   isImage,
   message,
@@ -98,22 +101,27 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** save a file on select / drop, either locally (in-memory) or in the db */
-    async function onFileSelect(selectedFiles: FileList | File[]) {
-      if (!selectedFiles.length) return
+    async function onFileSelect(selectedFiles: FileList | File[], selectedFileUrls?: AttachmentReqType[]) {
+      if (!selectedFiles.length && !selectedFileUrls?.length) return
 
       const attachmentMeta = {
         ...defaultAttachmentMeta,
         ...parseProp(column?.value?.meta),
       }
 
-      const newAttachments = []
+      const newAttachments: AttachmentType[] = []
 
       const files: File[] = []
 
-      for (const file of selectedFiles) {
+      const imageUrls: AttachmentReqType[] = []
+
+      for (const file of selectedFiles.length ? selectedFiles : selectedFileUrls || []) {
         if (appInfo.value.ee) {
           // verify number of files
-          if (visibleItems.value.length + selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
+          if (
+            visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0) >
+            attachmentMeta.maxNumberOfAttachments
+          ) {
             message.error(
               `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
                 attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
@@ -123,35 +131,46 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           }
 
           // verify file size
-          if (file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
-            message.error(`The size of ${file.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
+          if (file?.size && file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
+            message.error(
+              `The size of ${(file as File)?.name || (file as AttachmentReqType)?.fileName} exceeds the maximum file size ${
+                attachmentMeta.maxAttachmentSize
+              } MB.`,
+            )
             continue
           }
 
           // verify mime type
           if (
             !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
-            !attachmentMeta.supportedAttachmentMimeTypes.includes(file.type) &&
-            !attachmentMeta.supportedAttachmentMimeTypes.includes(file.type.split('/')[0])
+            !attachmentMeta.supportedAttachmentMimeTypes.includes((file as File).type || (file as AttachmentReqType).mimetype) &&
+            !attachmentMeta.supportedAttachmentMimeTypes.includes(
+              ((file as File)?.type || (file as AttachmentReqType).mimetype)?.split('/')[0],
+            )
           ) {
-            message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
+            message.error(
+              `${(file as File)?.name || (file as AttachmentReqType)?.fileName} has the mime type ${
+                (file as File)?.type || (file as AttachmentReqType)?.mimetype
+              } which is not allowed in this column.`,
+            )
             continue
           }
         }
-        // this prevent file with same names
-        const isFileNameAlreadyExist = attachments.value.some((el) => el.title === file.name)
-        if (isFileNameAlreadyExist) {
-          message.error(
-            t('labels.duplicateAttachment', {
-              filename: file.name,
-            }),
+
+        if (selectedFiles.length) {
+          files.push(file as File)
+        } else {
+          const fileName = populateUniqueFileName(
+            (file as AttachmentReqType).fileName ?? '',
+            [...attachments.value, ...imageUrls].map((fn) => fn?.title || fn?.fileName),
+            (file as File)?.type || (file as AttachmentReqType)?.mimetype || '',
           )
-          return
+
+          imageUrls.push({ ...(file as AttachmentReqType), fileName, title: fileName })
         }
-        files.push(file)
       }
 
-      if (isPublic.value && isForm.value) {
+      if (files.length && isPublic.value && isForm.value) {
         const newFiles = await Promise.all<AttachmentType>(
           Array.from(files).map(
             (file) =>
@@ -168,7 +187,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
                   reader.onload = (e) => {
                     res.data = e.target?.result
-
                     resolve(res)
                   }
 
@@ -186,20 +204,48 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         attachments.value = [...attachments.value, ...newFiles]
 
         return updateModelValue(attachments.value)
+      } else if (isPublic.value && isForm.value) {
+        attachments.value = [...attachments.value, ...imageUrls]
+
+        return updateModelValue(attachments.value)
       }
 
-      try {
-        const data = await api.storage.upload(
-          {
-            path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-          },
-          {
-            files,
-          },
-        )
-        newAttachments.push(...data)
-      } catch (e: any) {
-        message.error(e.message || t('msg.error.internalError'))
+      if (selectedFiles.length) {
+        try {
+          const data = await api.storage.upload(
+            {
+              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
+            },
+            {
+              files,
+            },
+          )
+          // add suffix in duplicate file title
+          for (const uploadedFile of data) {
+            newAttachments.push({
+              ...uploadedFile,
+              title: populateUniqueFileName(
+                uploadedFile?.title,
+                [...attachments.value, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
+                uploadedFile?.mimetype,
+              ),
+            })
+          }
+        } catch (e: any) {
+          message.error(e.message || t('msg.error.internalError'))
+        }
+      } else if (imageUrls.length) {
+        try {
+          const data = await api.storage.uploadByUrl(
+            {
+              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
+            },
+            imageUrls,
+          )
+          newAttachments.push(...data)
+        } catch (e: any) {
+          message.error(e.message || t('msg.error.internalError'))
+        }
       }
 
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
@@ -224,12 +270,40 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** save files on drop */
-    async function onDrop(droppedFiles: FileList | File[] | null) {
+    async function onDrop(droppedFiles: FileList | File[] | null, event: DragEvent) {
       if (isReadonly.value) return
-
       if (droppedFiles) {
         // set files
         await onFileSelect(droppedFiles)
+      } else {
+        event.preventDefault()
+
+        // Sanitize the dataTransfer HTML string
+        const sanitizedHtml = DOMPurify.sanitize(event.dataTransfer?.getData('text/html') ?? '') ?? ''
+
+        const imageUrl = extractImageSrcFromRawHtml(sanitizedHtml) ?? ''
+
+        if (!imageUrl) {
+          message.error(t('msg.error.draggedContentIsNotTypeOfImage'))
+          return
+        }
+
+        const imageData = (await getImageDataFromUrl(imageUrl)) as AttachmentReqType
+        if (imageData?.mimetype) {
+          await onFileSelect(
+            [],
+            [
+              {
+                ...imageData,
+                url: imageUrl,
+                fileName: `image.${imageData?.mimetype?.split('/')[1]}`,
+                title: `image.${imageData?.mimetype?.split('/')[1]}`,
+              },
+            ],
+          )
+        } else {
+          message.error(t('msg.error.fieldToParseImageData'))
+        }
       }
     }
 
@@ -246,6 +320,27 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         ;(await import('file-saver')).saveAs(src, item.title)
       } else {
         message.error('Failed to download file')
+      }
+    }
+
+    async function getImageDataFromUrl(imageUrl: string) {
+      try {
+        const response = await fetch(imageUrl)
+        if (response.ok) {
+          if (response.headers.get('content-type')?.startsWith('image/')) {
+            return {
+              mimetype: response.headers.get('content-type') || undefined,
+              size: +(response.headers.get('content-length') || 0) || undefined,
+            } as { mimetype?: string; size?: number }
+          } else if (imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase().length) {
+            return {
+              mimetype: `image/${imageUrl.slice(imageUrl.lastIndexOf('.') + 1).toLowerCase()}`,
+              size: +(response.headers.get('content-length') || 0) || undefined,
+            } as { mimetype?: string; size?: number }
+          }
+        }
+      } catch (err) {
+        console.log(err)
       }
     }
 

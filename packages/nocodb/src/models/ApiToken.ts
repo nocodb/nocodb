@@ -33,12 +33,14 @@ export default class ApiToken implements ApiTokenType {
       token,
       fk_user_id: apiToken.fk_user_id,
     });
-    await NocoCache.appendToList(
-      CacheScope.API_TOKEN,
-      [],
-      `${CacheScope.API_TOKEN}:${token}`,
-    );
-    return this.getByToken(token);
+    return this.getByToken(token).then(async (apiToken) => {
+      await NocoCache.appendToList(
+        CacheScope.API_TOKEN,
+        [],
+        `${CacheScope.API_TOKEN}:${token}`,
+      );
+      return apiToken;
+    });
   }
 
   static async list(userId: string, ncMeta = Noco.ncMeta) {
@@ -54,7 +56,6 @@ export default class ApiToken implements ApiTokenType {
 
   static async delete(token, ncMeta = Noco.ncMeta) {
     await NocoCache.deepDel(
-      CacheScope.API_TOKEN,
       `${CacheScope.API_TOKEN}:${token}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

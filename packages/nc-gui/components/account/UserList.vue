@@ -203,13 +203,13 @@ const openDeleteModal = (user: UserType) => {
             data-rec="true"
           >
             <span>
-              {{ $t('labels.email') }}
+              {{ $t('objects.users') }}
             </span>
             <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
           </div>
           <div class="py-3.5 text-gray-500 font-medium text-3.5 w-1/3 text-start flex items-center space-x-2" data-rec="true">
             <span>
-              {{ $t('objects.role') }}
+              {{ $t('general.access') }}
             </span>
             <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
           </div>
@@ -235,7 +235,15 @@ const openDeleteModal = (user: UserType) => {
             }"
           >
             <div class="text-3.5 text-start w-2/3 pl-5 flex items-center">
-              <GeneralTruncateText length="29">
+              <NcTooltip v-if="el.display_name">
+                <template #title>
+                  {{ el.email }}
+                </template>
+                <GeneralTruncateText length="29">
+                  {{ el.display_name }}
+                </GeneralTruncateText>
+              </NcTooltip>
+              <GeneralTruncateText v-else length="29">
                 {{ el.email }}
               </GeneralTruncateText>
             </div>
@@ -244,7 +252,7 @@ const openDeleteModal = (user: UserType) => {
                 {{ $t('labels.superAdmin') }}
               </div>
               <NcSelect
-                v-else
+                v-else-if="el.id !== loggedInUser?.id"
                 v-model:value="el.roles"
                 class="w-55 nc-user-roles"
                 :dropdown-match-select-width="false"
@@ -265,9 +273,9 @@ const openDeleteModal = (user: UserType) => {
                       class="w-4 h-4 text-primary"
                     />
                   </div>
-                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
+                  <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgCreator') }}
-                  </span>
+                  </div>
                 </a-select-option>
 
                 <a-select-option
@@ -284,11 +292,14 @@ const openDeleteModal = (user: UserType) => {
                       class="w-4 h-4 text-primary"
                     />
                   </div>
-                  <span class="text-gray-500 text-xs whitespace-normal" data-rec="true">
+                  <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
                     {{ $t('msg.info.roles.orgViewer') }}
-                  </span>
+                  </div>
                 </a-select-option>
               </NcSelect>
+              <div v-else class="font-weight-bold" data-rec="true">
+                {{ $t(`objects.roleType.orgLevelCreator`) }}
+              </div>
             </div>
             <span class="w-26 flex items-center justify-end mr-4">
               <div
@@ -333,6 +344,18 @@ const openDeleteModal = (user: UserType) => {
                 </NcDropdown>
               </div>
             </span>
+          </div>
+          <div
+            v-if="sortedUsers.length === 1"
+            class="user pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center border-b-1 border-l-1 border-r-1"
+          >
+            <div class="text-2xl text-gray-800 font-bold">
+              {{ $t('placeholder.inviteYourTeam') }}
+            </div>
+            <div class="text-sm text-gray-700">
+              {{ $t('placeholder.inviteYourTeamLabel') }}
+            </div>
+            <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
           </div>
         </section>
       </div>

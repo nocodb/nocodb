@@ -5,6 +5,7 @@ import {
   IsExpandedFormOpenInj,
   IsFormInj,
   IsPublicInj,
+  ReadonlyInj,
   RowHeightInj,
   computed,
   inject,
@@ -39,7 +40,7 @@ const row = useVModel(props, 'row')
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const readonly = inject(ReadonlyInj, ref(false))
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -88,12 +89,13 @@ const displayValue = computed(() => {
 
 <template>
   <a-card
-    class="!border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
+    tabindex="0"
+    class="nc-list-item !outline-brand-500 !border-1 group transition-all !rounded-xl relative !mb-2 !border-gray-200 hover:bg-gray-50"
     :class="{
       '!bg-white': isLoading,
       '!border-1': isLinked && !isLoading,
       '!hover:border-gray-400': !isLinked,
-      '!cursor-auto !hover:bg-white': readonly,
+      '!cursor-auto !hover:bg-white': readOnly,
     }"
     :body-style="{ padding: 0 }"
     :hoverable="false"
@@ -126,7 +128,7 @@ const displayValue = computed(() => {
             v-if="isLinked && !isLoading"
             class="text-brand-500 text-0.875"
             :class="{
-              '!group-hover:mr-12': fields.length === 0 && !readonly,
+              '!group-hover:mr-12': fields.length === 0 && !readOnly,
             }"
           >
             <LinkIcon class="w-4 h-4" />
@@ -135,7 +137,7 @@ const displayValue = computed(() => {
           <MdiLoading
             v-else-if="isLoading"
             :class="{
-              '!group-hover:mr-8': fields.length === 0 && !readonly,
+              '!group-hover:mr-8': fields.length === 0 && !readOnly,
             }"
             class="w-6 h-6 !text-brand-500 animate-spin"
           />
@@ -174,7 +176,7 @@ const displayValue = computed(() => {
       </div>
     </div>
     <NcButton
-      v-if="!isForm && !isPublic && !readonly"
+      v-if="!isForm && !isPublic && !readOnly"
       v-e="['c:row-expand:open']"
       type="text"
       size="lg"
@@ -192,5 +194,29 @@ const displayValue = computed(() => {
 <style lang="scss" scoped>
 :deep(.slick-list) {
   @apply rounded-lg;
+}
+</style>
+
+<style lang="scss">
+.nc-list-item {
+  &:hover {
+    .nc-text-area-expand-btn {
+      @apply !hidden;
+    }
+  }
+  .long-text-wrapper {
+    @apply select-none pointer-events-none;
+    .nc-readonly-rich-text-wrapper {
+      @apply !min-h-6 !max-h-6;
+    }
+    .nc-rich-text-embed {
+      .nc-textarea-rich-editor {
+        @apply !overflow-hidden;
+        .ProseMirror {
+          @apply !overflow-hidden line-clamp-1;
+        }
+      }
+    }
+  }
 }
 </style>

@@ -83,6 +83,14 @@ abstract class BaseModelXcMeta extends BaseRender {
     return columnsArr;
   }
 
+  protected renderXcHasMany(args) {
+    return JSON.stringify(args.hasMany);
+  }
+
+  protected renderXcBelongsTo(args) {
+    return JSON.stringify(args.belongsTo);
+  }
+
   public getObject() {
     return {
       tn: this.ctx.tn,
@@ -93,12 +101,11 @@ abstract class BaseModelXcMeta extends BaseRender {
       belongsTo: this.ctx.belongsTo,
       db_type: this.ctx.db_type,
       type: this.ctx.type,
-
-      v: this.getVitualColumns(),
+      v: this.getVirtualColumns(),
     };
   }
 
-  public getVitualColumns(): any[] {
+  public getVirtualColumns(): any[] {
     // todo: handle duplicate relation
     const virtualColumns = [
       ...(this.ctx.hasMany || []).map((hm) => {
@@ -129,6 +136,52 @@ abstract class BaseModelXcMeta extends BaseRender {
 
   public mapDefaultDisplayValue(columnsArr: any[]): void {
     mapDefaultDisplayValue(columnsArr);
+  }
+
+  /**
+   *
+   * @param args
+   * @param args.columns
+   * @param args.relations
+   * @returns {string}
+   * @private
+   */
+  protected renderXcColumns(args) {
+    let str = '[\r\n';
+
+    for (let i = 0; i < args.columns.length; ++i) {
+      str += `{\r\n`;
+      str += `cn: '${args.columns[i].cn}',\r\n`;
+      str += `type: '${this._getAbstractType(args.columns[i])}',\r\n`;
+      str += `dt: '${args.columns[i].dt}',\r\n`;
+      if (args.columns[i].rqd) str += `rqd: ${args.columns[i].rqd},\r\n`;
+
+      if (args.columns[i].cdf) {
+        str += `default: "${args.columns[i].cdf}",\r\n`;
+        str += `columnDefault: "${args.columns[i].cdf}",\r\n`;
+      }
+
+      if (args.columns[i].un) str += `un: ${args.columns[i].un},\r\n`;
+
+      if (args.columns[i].pk) str += `pk: ${args.columns[i].pk},\r\n`;
+
+      if (args.columns[i].ai) str += `ai: ${args.columns[i].ai},\r\n`;
+
+      if (args.columns[i].dtxp) str += `dtxp: "${args.columns[i].dtxp}",\r\n`;
+
+      if (args.columns[i].dtxs) str += `dtxs: ${args.columns[i].dtxs},\r\n`;
+
+      str += `validate: {
+                func: [],
+                args: [],
+                msg: []
+              },`;
+      str += `},\r\n`;
+    }
+
+    str += ']\r\n';
+
+    return str;
   }
 }
 

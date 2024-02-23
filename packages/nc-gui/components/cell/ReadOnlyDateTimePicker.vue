@@ -9,9 +9,9 @@ defineProps<Props>()
 
 provide(ReadonlyInj, ref(true))
 
-provide(EditModeInj, ref(true))
+provide(EditModeInj, ref(false))
 
-provide(ActiveCellInj, ref(true))
+provide(ActiveCellInj, ref(false))
 </script>
 
 <template>

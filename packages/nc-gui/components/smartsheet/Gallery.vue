@@ -4,6 +4,7 @@ import type { Row as RowType } from '#imports'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsCalendarInj,
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
@@ -57,6 +58,7 @@ const {
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
+provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, ref(1 as const))
 
@@ -174,12 +176,14 @@ reloadViewMetaHook?.on(async () => {
     reloadAttachments.value = false
   })
 })
-reloadViewDataHook?.on(async () => {
-  await loadData()
+reloadViewDataHook?.on(async (params) => {
+  await loadData({
+    ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+  })
 })
 
 // provide view data reload hook as fallback to row data reload
-provide(ReloadRowDataHookInj, reloadViewDataHook)
+provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 watch(
   view,

@@ -90,13 +90,13 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
     </JsBarcodeWrapper>
   </div>
 
-  <div v-if="tooManyCharsForBarcode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+  <div v-if="tooManyCharsForBarcode" class="nc-cell-field text-left text-wrap text-[#e65100] text-xs">
     {{ $t('labels.barcodeValueTooLong') }}
   </div>
-  <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+  <div v-if="showEditNonEditableFieldWarning" class="nc-cell-field text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
   </div>
-  <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+  <div v-if="showClearNonEditableFieldWarning" class="nc-cell-field text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.barcodeFieldsCannotBeDirectlyChanged') }}
   </div>
 </template>

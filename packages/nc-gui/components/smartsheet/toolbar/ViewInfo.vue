@@ -17,6 +17,7 @@ const openedBaseUrl = computed(() => {
   return `${window.location.origin}/#${baseUrl({
     id: base.value.id!,
     type: 'database',
+    isSharedBase: isSharedBase.value,
   })}`
 })
 </script>
@@ -112,7 +113,7 @@ const openedBaseUrl = computed(() => {
             <NuxtLink
               v-else
               class="!text-inherit !underline-transparent !hover:(text-black underline-gray-600)"
-              :to="tableUrl({ table: activeTable, completeUrl: true })"
+              :to="tableUrl({ table: activeTable, completeUrl: true, isSharedBase })"
             >
               {{ activeTable?.title }}
             </NuxtLink>

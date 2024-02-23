@@ -184,6 +184,9 @@ export default {
   STRING(args: MapFnArgs) {
     return args.fn(args.pt?.arguments?.[0]);
   },
+  BOOLEAN(args: MapFnArgs) {
+    return args.fn(args.pt?.arguments?.[0]);
+  },
   AND: async (args: MapFnArgs) => {
     return {
       builder: args.knex.raw(

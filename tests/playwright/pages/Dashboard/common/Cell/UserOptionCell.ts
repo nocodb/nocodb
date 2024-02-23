@@ -101,8 +101,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     const locator = this.cell.get({ index, columnHeader }).locator('.ant-tag');
     await locator.waitFor({ state: 'visible' });
-    const text = await locator.allInnerTexts();
-    return expect(text).toContain(option);
+    return expect(locator).toContainText(option);
   }
 
   async verifyNoOptionsSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
@@ -134,7 +133,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
-      await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
+      await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toContainText(option);
       counter++;
     }
     await this.rootPage.keyboard.press('Escape');
@@ -155,7 +154,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
-      await expect(selectCell.locator(`.nc-selected-option`).nth(counter)).toHaveText(option);
+      await expect(selectCell.locator(`.nc-selected-option`).nth(counter)).toContainText(option);
       counter++;
     }
   }

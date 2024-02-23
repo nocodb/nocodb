@@ -14,7 +14,7 @@ provide(IsGroupByLabelInj, ref(true))
 
 <template>
   <div class="pointer-events-none">
-    <LazySmartsheetRow :row="{ row: { [column.title]: modelValue }, rowMeta: {} }">
+    <LazySmartsheetRow :row="{ row: { [column.title as string]: modelValue }, rowMeta: {} }">
       <LazySmartsheetVirtualCell
         v-if="isVirtualCol(column)"
         :model-value="modelValue"

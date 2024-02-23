@@ -1,11 +1,18 @@
 import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  ErrorMessages,
+  populateUniqueFileName,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
+import dayjs from 'dayjs';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { CalendarRange, Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -13,7 +20,6 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
-import { Column, Model, Source, View } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 
 // todo: move to utils
@@ -36,7 +42,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.MAP
+      view.type !== ViewTypes.MAP &&
+      view.type !== ViewTypes.CALENDAR
     ) {
       NcError.notFound('Not found');
     }
@@ -73,10 +80,17 @@ export class PublicDatasService {
     let data = [];
     let count = 0;
 
+    let option = {};
+    if (view && view.type === ViewTypes.CALENDAR) {
+      option = {
+        ignorePagination: true,
+      };
+    }
+
     try {
       data = await nocoExecute(
         ast,
-        await baseModel.list(listArgs),
+        await baseModel.list(listArgs, option),
         {},
         listArgs,
       );
@@ -87,6 +101,73 @@ export class PublicDatasService {
     }
 
     return new PagedResponseImpl(data, { ...param.query, count });
+  }
+
+  async getCalendarRecordCount(param: {
+    sharedViewUuid: string;
+    password?: string;
+    query: any;
+  }) {
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+
+    if (view.password && view.password !== password) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    if (view.type !== ViewTypes.CALENDAR)
+      NcError.badRequest('View is not a calendar view');
+
+    const calendarRange = await CalendarRange.read(view.id);
+
+    if (!calendarRange?.ranges?.length)
+      NcError.notFound('Calendar ranges are required in a calendar view');
+
+    const model = await Model.getByIdOrName({
+      id: view.fk_model_id,
+    });
+
+    const columns = await model.getColumns();
+
+    const data: any = await this.dataList({
+      sharedViewUuid,
+      password,
+      query,
+    });
+
+    if (!data) NcError.notFound('Data not found');
+
+    const dates: Array<string> = [];
+
+    calendarRange.ranges.forEach((range: any) => {
+      data.list.forEach((date) => {
+        const from =
+          date[columns.find((c) => c.id === range.fk_from_column_id).title];
+
+        let to;
+        if (range.fk_to_column_id) {
+          to = date[columns.find((c) => c.id === range.fk_to_column_id).title];
+        }
+
+        if (from && to) {
+          const fromDt = dayjs(from);
+          const toDt = dayjs(to);
+
+          let current = fromDt;
+
+          while (current.isSameOrBefore(toDt)) {
+            dates.push(current.format('YYYY-MM-DD HH:mm:ssZ'));
+            current = current.add(1, 'day');
+          }
+        } else if (from) {
+          dates.push(dayjs(from).format('YYYY-MM-DD HH:mm:ssZ'));
+        }
+      });
+    });
+
+    return dates;
   }
 
   // todo: Handle the error case where view doesnt belong to model
@@ -320,7 +401,14 @@ export class PublicDatasService {
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
-        const originalName = utf8ify(file.originalname);
+        let originalName = utf8ify(file.originalname);
+
+        originalName = populateUniqueFileName(
+          originalName,
+          attachments[fieldName].map((att) => att?.title),
+          file.mimetype,
+        );
+
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
@@ -345,6 +433,65 @@ export class PublicDatasService {
           icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
         });
       }
+    }
+
+    // filter the uploadByUrl attachments
+    const uploadByUrlAttachments = [];
+    for (const [column, data] of Object.entries(insertObject)) {
+      if (fields[column].uidt === UITypes.Attachment && Array.isArray(data)) {
+        data.forEach((file, uploadIndex) => {
+          if (file?.url && !file?.file) {
+            uploadByUrlAttachments.push({
+              ...file,
+              fieldName: column,
+              uploadIndex,
+            });
+          }
+        });
+      }
+    }
+
+    for (const file of uploadByUrlAttachments) {
+      const filePath = sanitizeUrlPath([
+        'noco',
+        base.title,
+        model.title,
+        file.fieldName,
+      ]);
+
+      attachments[file.fieldName] = attachments[file.fieldName] || [];
+
+      const fileName = `${nanoid(18)}${path.extname(
+        file?.fileName || file.url.split('/').pop(),
+      )}`;
+
+      const attachmentUrl: string | null = await storageAdapter.fileCreateByUrl(
+        slash(path.join('nc', 'uploads', ...filePath, fileName)),
+        file.url,
+      );
+
+      let attachmentPath: string | undefined;
+
+      // if `attachmentUrl` is null, then it is local attachment
+      if (!attachmentUrl) {
+        // then store the attachment path only
+        // url will be constructed in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
+      }
+
+      // add attachement in uploaded order
+      attachments[file.fieldName].splice(
+        file.uploadIndex ?? attachments[file.fieldName].length,
+        0,
+        {
+          ...(attachmentUrl ? { url: attachmentUrl } : {}),
+          ...(attachmentPath ? { path: attachmentPath } : {}),
+          title: file.fileName,
+          mimetype: file.mimetype,
+          size: file.size,
+          icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+        },
+      );
     }
 
     for (const [column, data] of Object.entries(attachments)) {
@@ -424,7 +571,8 @@ export class PublicDatasService {
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR
     ) {
       NcError.notFound('Not found');
     }
@@ -498,7 +646,8 @@ export class PublicDatasService {
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR
     ) {
       NcError.notFound('Not found');
     }

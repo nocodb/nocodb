@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isCreatedOrLastModifiedByCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { MetaInj, computed, inject, ref, resolveComponent, useViewColumnsOrThrow } from '#imports'
 
 const { modelValue, isSort, allowEmpty, ...restProps } = defineProps<{
@@ -28,8 +28,8 @@ const options = computed<SelectProps['options']>(() =>
   (
     customColumns.value?.filter((c: ColumnType) => {
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
-        if (isCreatedOrLastModifiedByCol(c)) {
-          /** ignore created by and last modified by system field */
+        if (isHiddenCol(c)) {
+          /** ignore mm relation column, created by and last modified by system field */
           return false
         }
       }
@@ -40,8 +40,8 @@ const options = computed<SelectProps['options']>(() =>
         return true
       }
       if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
-        if (isCreatedOrLastModifiedByCol(c)) {
-          /** ignore created by and last modified by system field */
+        if (isHiddenCol(c)) {
+          /** ignore mm relation column, created by and last modified by system field */
           return false
         }
 

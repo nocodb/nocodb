@@ -22,7 +22,15 @@ import {
 } from '#imports'
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
+  (
+    event: 'openModal',
+    data: {
+      type: ViewTypes
+      title?: string
+      copyViewId?: string
+      groupingFieldColumnId?: string
+    },
+  ): void
 
   (event: 'deleted'): void
 }
@@ -119,7 +127,10 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   if (views.value.length < 2) return
 
-  const { newIndex = 0, oldIndex = 0 } = evt
+  let { newIndex = 0, oldIndex = 0 } = evt
+
+  newIndex = newIndex - 1
+  oldIndex = oldIndex - 1
 
   if (newIndex === oldIndex) return
 
@@ -149,7 +160,10 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
     })
   }
 
-  const children = evt.to.children as unknown as HTMLLIElement[]
+  const children = Array.from(evt.to.children as unknown as HTMLLIElement[])
+
+  // remove `Create View` children from list
+  children.shift()
 
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
@@ -158,7 +172,8 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   if (!currentItem || !currentItem.id) return
 
-  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) : {}) as ViewType
+  // set default order value as 0 if item not found
+  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }) as ViewType
   const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
@@ -195,7 +210,7 @@ const initSortable = (el: HTMLElement) => {
   })
 }
 
-onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
+onMounted(() => menuRef.value && isUIAllowed('viewCreateOrEdit') && initSortable(menuRef.value.$el))
 
 /** Navigate to view by changing url param */
 async function changeView(view: ViewType) {
@@ -278,7 +293,11 @@ function openDeleteDialog(view: ViewType) {
 
       emits('deleted')
 
-      removeFromRecentViews({ viewId: view.id, tableId: view.fk_model_id, baseId: base.value.id })
+      removeFromRecentViews({
+        viewId: view.id,
+        tableId: view.fk_model_id,
+        baseId: base.value.id,
+      })
       refreshCommandPalette()
       if (activeView.value?.id === view.id) {
         navigateToTable({
@@ -331,11 +350,16 @@ function onOpenModal({
   type,
   copyViewId,
   groupingFieldColumnId,
+  calendarRange,
 }: {
   title?: string
   type: ViewTypes
   copyViewId?: string
   groupingFieldColumnId?: string
+  calendarRange?: Array<{
+    fk_from_column_id: string
+    fk_to_column_id: string | null // for ee only
+  }>
 }) {
   const isOpen = ref(true)
 
@@ -347,6 +371,7 @@ function onOpenModal({
     'selectedViewId': copyViewId,
     groupingFieldColumnId,
     'views': views,
+    calendarRange,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -381,24 +406,24 @@ function onOpenModal({
   <a-menu
     ref="menuRef"
     :class="{ dragging }"
-    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     :selected-keys="selected"
+    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
     <DashboardTreeViewCreateViewBtn
       v-if="isUIAllowed('viewCreateOrEdit')"
+      :align-left-level="isDefaultSource ? 1 : 2"
       :class="{
         '!pl-18 !xs:(pl-19.75)': isDefaultSource,
         '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
       }"
-      :align-left-level="isDefaultSource ? 1 : 2"
     >
       <div
-        role="button"
-        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
         :class="{
           'text-brand-500 hover:text-brand-600': activeTableId === table.id,
           'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
         }"
+        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+        role="button"
       >
         <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
           <GeneralIcon icon="plus" />
@@ -418,20 +443,20 @@ function onOpenModal({
         v-for="view of views"
         :id="view.id"
         :key="view.id"
-        :view="view"
-        :on-validate="validate"
-        :table="table"
-        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         :class="{
           'bg-gray-200': isMarked === view.id,
           'active': activeView?.id === view.id,
           [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
         }"
         :data-view-id="view.id"
-        @change-view="changeView"
-        @open-modal="onOpenModal"
+        :on-validate="validate"
+        :table="table"
+        :view="view"
+        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         @delete="openDeleteDialog"
         @rename="onRename"
+        @change-view="changeView"
+        @open-modal="onOpenModal"
         @select-icon="setIcon($event, view)"
       />
     </template>

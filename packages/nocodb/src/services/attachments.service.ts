@@ -1,8 +1,9 @@
 import path from 'path';
 import { AppEvents } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
+import PQueue from 'p-queue';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -14,6 +15,8 @@ import { utf8ify } from '~/helpers/stringHelpers';
 
 @Injectable()
 export class AttachmentsService {
+  protected logger = new Logger(AttachmentsService.name);
+
   constructor(private readonly appHooksService: AppHooksService) {}
 
   async upload(param: { path?: string; files: FileType[]; req: NcRequest }) {
@@ -25,62 +28,77 @@ export class AttachmentsService {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const attachments = await Promise.all(
-      param.files?.map(async (file) => {
-        const originalName = utf8ify(file.originalname);
-        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
+    // just in case we want to increase concurrency in future
+    const queue = new PQueue({ concurrency: 1 });
 
-        const url = await storageAdapter.fileCreate(
-          slash(path.join(destPath, fileName)),
-          file,
-        );
+    const attachments = [];
+    const errors = [];
 
-        const attachment: {
-          url?: string;
-          path?: string;
-          title: string;
-          mimetype: string;
-          size: number;
-          icon?: string;
-          signedPath?: string;
-          signedUrl?: string;
-        } = {
-          ...(url ? { url } : {}),
-          title: originalName,
-          mimetype: file.mimetype,
-          size: file.size,
-          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
-        };
+    queue.addAll(
+      param.files?.map((file) => async () => {
+        try {
+          const originalName = utf8ify(file.originalname);
+          const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
-        const promises = [];
-        // if `url` is null, then it is local attachment
-        if (!url) {
-          // then store the attachment path only
-          // url will be constructed in `useAttachmentCell`
-          attachment.path = `download/${filePath.join('/')}/${fileName}`;
-
-          promises.push(
-            PresignedUrl.getSignedUrl({
-              path: attachment.path.replace(/^download\//, ''),
-            }).then((r) => (attachment.signedPath = r)),
+          const url = await storageAdapter.fileCreate(
+            slash(path.join(destPath, fileName)),
+            file,
           );
-        } else {
-          if (attachment.url.includes('.amazonaws.com/')) {
-            const relativePath = decodeURI(
-              attachment.url.split('.amazonaws.com/')[1],
-            );
-            promises.push(
-              PresignedUrl.getSignedUrl({
+
+          const attachment: {
+            url?: string;
+            path?: string;
+            title: string;
+            mimetype: string;
+            size: number;
+            icon?: string;
+            signedPath?: string;
+            signedUrl?: string;
+          } = {
+            ...(url ? { url } : {}),
+            title: originalName,
+            mimetype: file.mimetype,
+            size: file.size,
+            icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+          };
+
+          // if `url` is null, then it is local attachment
+          if (!url) {
+            // then store the attachment path only
+            // url will be constructed in `useAttachmentCell`
+            attachment.path = `download/${filePath.join('/')}/${fileName}`;
+
+            attachment.signedPath = await PresignedUrl.getSignedUrl({
+              path: attachment.path.replace(/^download\//, ''),
+            });
+          } else {
+            if (attachment.url.includes('.amazonaws.com/')) {
+              const relativePath = decodeURI(
+                attachment.url.split('.amazonaws.com/')[1],
+              );
+
+              attachment.signedUrl = await PresignedUrl.getSignedUrl({
                 path: relativePath,
                 s3: true,
-              }).then((r) => (attachment.signedUrl = r)),
-            );
+              });
+            }
           }
-        }
 
-        return Promise.all(promises).then(() => attachment);
+          attachments.push(attachment);
+        } catch (e) {
+          errors.push(e);
+        }
       }),
     );
+
+    await queue.onIdle();
+
+    if (errors.length) {
+      for (const error of errors) {
+        this.logger.error(error);
+      }
+      throw errors[0];
+    }
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
@@ -103,39 +121,58 @@ export class AttachmentsService {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const attachments = await Promise.all(
-      param.urls?.map?.(async (urlMeta) => {
-        const { url, fileName: _fileName } = urlMeta;
+    // just in case we want to increase concurrency in future
+    const queue = new PQueue({ concurrency: 1 });
 
-        const fileName = `${nanoid(18)}${path.extname(
-          _fileName || url.split('/').pop(),
-        )}`;
+    const attachments = [];
+    const errors = [];
 
-        const attachmentUrl: string | null =
-          await storageAdapter.fileCreateByUrl(
-            slash(path.join(destPath, fileName)),
-            url,
-          );
+    queue.addAll(
+      param.urls?.map?.((urlMeta) => async () => {
+        try {
+          const { url, fileName: _fileName } = urlMeta;
 
-        let attachmentPath: string | undefined;
+          const fileName = `${nanoid(18)}${path.extname(
+            _fileName || url.split('/').pop(),
+          )}`;
 
-        // if `attachmentUrl` is null, then it is local attachment
-        if (!attachmentUrl) {
-          // then store the attachment path only
-          // url will be constructed in `useAttachmentCell`
-          attachmentPath = `download/${filePath.join('/')}/${fileName}`;
+          const attachmentUrl: string | null =
+            await storageAdapter.fileCreateByUrl(
+              slash(path.join(destPath, fileName)),
+              url,
+            );
+
+          let attachmentPath: string | undefined;
+
+          // if `attachmentUrl` is null, then it is local attachment
+          if (!attachmentUrl) {
+            // then store the attachment path only
+            // url will be constructed in `useAttachmentCell`
+            attachmentPath = `download/${filePath.join('/')}/${fileName}`;
+          }
+
+          attachments.push({
+            ...(attachmentUrl ? { url: attachmentUrl } : {}),
+            ...(attachmentPath ? { path: attachmentPath } : {}),
+            title: _fileName,
+            mimetype: urlMeta.mimetype,
+            size: urlMeta.size,
+            icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+          });
+        } catch (e) {
+          errors.push(e);
         }
-
-        return {
-          ...(attachmentUrl ? { url: attachmentUrl } : {}),
-          ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: _fileName,
-          mimetype: urlMeta.mimetype,
-          size: urlMeta.size,
-          icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
-        };
       }),
     );
+
+    await queue.onIdle();
+
+    if (errors.length) {
+      for (const error of errors) {
+        this.logger.error(error);
+      }
+      throw errors[0];
+    }
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',

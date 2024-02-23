@@ -1,13 +1,11 @@
-import {
+import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import type {
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
+  RelationTypes,
   type RequestParams,
   type TableType,
-  UITypes,
-  dateFormats,
-  parseStringDateTime,
-  timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -45,7 +43,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     column: Ref<Required<ColumnType>>,
     row: Ref<Row>,
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
-    reloadData = (_showProgress?: boolean) => {},
+    reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
     // state
     const { metas, getMeta } = useMetas()
@@ -230,7 +228,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
-            colOptions.value.type as 'mm' | 'hm',
+            colOptions.value.type as RelationTypes,
             column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
@@ -284,7 +282,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
             encodeURIComponent(rowId.value),
-            colOptions.value.type as 'mm' | 'hm',
+            colOptions.value.type as RelationTypes,
             column.value.id,
             {
               limit: String(childrenListPagination.size),
@@ -304,7 +302,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
             meta.value.id,
             encodeURIComponent(rowId.value),
-            colOptions.value.type as 'mm' | 'hm',
+            colOptions.value.type as RelationTypes,
             column?.value?.id,
             {
               limit: String(childrenListPagination.size),
@@ -351,7 +349,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            reloadData?.(false)
+            reloadData?.({ shouldShowLoading: false })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -395,7 +393,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           base.value.id as string,
           metaValue.id!,
           encodeURIComponent(rowId.value),
-          colOptions.value.type as 'mm' | 'hm',
+          colOptions.value.type as RelationTypes,
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string),
         )
@@ -429,7 +427,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }, 600)
       }
 
-      reloadData?.(false)
+      reloadData?.({ shouldShowLoading: false })
       $e('a:links:unlink')
     }
 
@@ -461,7 +459,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           base.value.id as string,
           metaValue.id as string,
           encodeURIComponent(rowId.value),
-          colOptions.value.type as 'mm' | 'hm',
+          colOptions.value.type as RelationTypes,
           column?.value?.id,
           encodeURIComponent(getRelatedTableRowId(row) as string) as string,
         )
@@ -499,7 +497,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }, 600)
       }
 
-      reloadData?.(false)
+      reloadData?.({ shouldShowLoading: false })
       $e('a:links:link')
     }
 

@@ -95,4 +95,57 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     nuxtApp.provide('tele', tele)
     nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
   }
+
+  document.body.removeEventListener('click', clickListener, true)
+  document.body.addEventListener('click', clickListener, true)
+
+  document.body.removeEventListener('keydown', keydownListener, true)
+  document.body.addEventListener('keydown', keydownListener, true)
 })
+
+function clickListener(e) {
+  if (e.nc_handled) return
+  e.nc_handled = true
+  let target = e.target
+
+  while (target && !target.classList.contains('DocSearch-Hit')) {
+    target = target.parentElement
+  }
+  if (target) {
+    const searchInput = document.querySelector('.DocSearch-Input')
+    const selectedElement = target.querySelector('a')
+    const url = new URL(selectedElement.href)
+
+    e.preventDefault()
+    e.stopPropagation()
+    url.searchParams.append('search', searchInput.value)
+    url.searchParams.append('origin', location.hostname)
+
+    window.open(url.toString(), '_blank', 'noopener,noreferrer')
+  }
+}
+
+function keydownListener(e) {
+  if (e.nc_handled || e.which !== 13) return
+  e.nc_handled = true
+  let target = e.target
+
+  while (target && !target.classList.contains('DocSearch-Input')) {
+    target = target.parentElement
+  }
+
+  if (target) {
+    const selectedElement = document.querySelector('.DocSearch-Hit[aria-selected=true] a')
+
+    if (selectedElement) {
+      const url = new URL(selectedElement.href)
+
+      url.searchParams.append('search', target.value)
+      url.searchParams.append('origin', location.hostname)
+      e.preventDefault()
+      e.stopPropagation()
+
+      window.open(url.toString(), '_blank', 'noopener,noreferrer')
+    }
+  }
+}

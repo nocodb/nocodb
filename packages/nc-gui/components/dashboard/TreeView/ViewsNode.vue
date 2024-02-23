@@ -222,7 +222,7 @@ watch(isDropdownOpen, async () => {
           :emoji="props.view?.meta?.icon"
           size="small"
           :clearable="true"
-          :readonly="isMobileMode"
+          :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
@@ -235,7 +235,7 @@ watch(isDropdownOpen, async () => {
         v-if="isEditing"
         :ref="focusInput"
         v-model:value="_title"
-        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent"
+        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0"
         :class="{
           'font-medium': activeView?.id === vModel.id,
         }"
@@ -256,7 +256,7 @@ watch(isDropdownOpen, async () => {
       </NcTooltip>
       <div class="flex-1" />
 
-      <template v-if="!isEditing && !isLocked && isUIAllowed('viewCreateOrEdit')">
+      <template v-if="!isEditing && !isLocked">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
             v-e="['c:view:option']"

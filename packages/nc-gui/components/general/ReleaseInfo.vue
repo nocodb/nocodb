@@ -67,7 +67,7 @@ onMounted(async () => await fetchReleaseInfo())
 
           <nuxt-link
             no-prefetch
-            no-rel
+            rel="noopener"
             class="!text-primary !no-underline"
             to="https://docs.nocodb.com/getting-started/upgrading"
             target="_blank"

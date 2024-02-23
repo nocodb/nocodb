@@ -8,6 +8,7 @@ import {
   isVirtualCol,
   ModelTypes,
   ProjectRoles,
+  RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
@@ -172,6 +173,38 @@ export class TablesService {
     const table = await Model.getByIdOrName({ id: param.tableId });
     await table.getColumns();
 
+    if (table.mm) {
+      const columns = await table.getColumns();
+
+      // get table names of the relation which uses the current table as junction table
+      const tables = await Promise.all(
+        columns
+          .filter((c) => isLinksOrLTAR(c))
+          .map((c) => c.colOptions.getRelatedTable()),
+      );
+
+      // get relation column names
+      const relColumns = await Promise.all(
+        tables.map((t) => {
+          return t.getColumns().then((cols) => {
+            return cols.find((c) => {
+              return (
+                isLinksOrLTAR(c) &&
+                (c.colOptions as LinkToAnotherRecordColumn).type ===
+                  RelationTypes.MANY_TO_MANY &&
+                (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
+                  table.id
+              );
+            });
+          });
+        }),
+      );
+
+      NcError.badRequest(
+        `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
+      );
+    }
+
     const base = await Base.getWithInfo(table.base_id);
     const source = base.sources.find((b) => b.id === table.source_id);
 
@@ -202,7 +235,7 @@ export class TablesService {
       // delete all relations
       for (const c of relationColumns) {
         // skip if column is hasmany relation to mm table
-        if (c.system) {
+        if (c.system && !table.mm) {
           continue;
         }
 
@@ -216,6 +249,7 @@ export class TablesService {
             req: param.req,
             columnId: c.id,
             user: param.user,
+            forceDeleteSystem: true,
           },
           ncMeta,
         );
@@ -380,7 +414,7 @@ export class TablesService {
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
-      columns: (Omit<ColumnType, 'column_name' | 'title'> & { cn?: string })[];
+      columns: (ColumnType & { cn?: string })[];
     } = {
       ...param.table,
     };
@@ -547,6 +581,8 @@ export class TablesService {
 
     const uniqueColumnNameCount = {};
 
+    mapDefaultDisplayValue(param.table.columns);
+
     for (const column of param.table.columns) {
       if (
         !isVirtualCol(column) ||
@@ -598,48 +634,44 @@ export class TablesService {
           column_name: c.column_name,
         })),
     );
+
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,
       tn: tableCreatePayLoad.table_name,
     });
 
-    const columns: Array<
+    let columns: Array<
       Omit<Column, 'column_name' | 'title'> & {
         cn: string;
         system?: boolean;
       }
-    > = (
-      await sqlMgr.sqlOpPlus(source, 'columnList', {
-        tn: tableCreatePayLoad.table_name,
-        schema: source.getConfig()?.schema,
-      })
-    )?.data?.list;
+    >;
+
+    if (!source.isMeta()) {
+      columns = (
+        await sqlMgr.sqlOpPlus(source, 'columnList', {
+          tn: tableCreatePayLoad.table_name,
+          schema: source.getConfig()?.schema,
+        })
+      )?.data?.list;
+    }
 
     const tables = await Model.list({
       base_id: base.id,
       source_id: source.id,
     });
 
-    mapDefaultDisplayValue(param.table.columns);
-
     // todo: type correction
     const result = await Model.insert(base.id, source.id, {
       ...tableCreatePayLoad,
-      columns: columns.map((c, i) => {
-        const colMetaFromReq = param.table?.columns?.find(
-          (c1) => c.cn === c1.column_name,
-        );
+      columns: tableCreatePayLoad.columns.map((c, i) => {
+        const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);
         return {
-          ...colMetaFromReq,
-          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(source, c),
           ...c,
-          dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
-            colMetaFromReq.uidt as any,
-          )
-            ? colMetaFromReq.dtxp
-            : c.dtxp,
-          title: colMetaFromReq?.title || getColumnNameAlias(c.cn, source),
-          column_name: c.cn,
+          uidt: c.uidt || getColumnUiType(source, colMetaFromDb || c),
+          ...(colMetaFromDb || {}),
+          title: c.title || getColumnNameAlias(c.cn, source),
+          column_name: colMetaFromDb?.cn || c.cn || c.column_name,
           order: i + 1,
         } as NormalColumnRequestType;
       }),

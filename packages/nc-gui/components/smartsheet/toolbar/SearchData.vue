@@ -53,7 +53,7 @@ watch(
 )
 
 function onPressEnter() {
-  reloadData.trigger()
+  reloadData.trigger({ shouldShowLoading: false, offset: 0 })
 }
 
 const displayColumnLabel = computed(() => {

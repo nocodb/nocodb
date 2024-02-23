@@ -78,8 +78,13 @@ export class BasesService {
       'meta',
       'color',
       'status',
+      'order',
     ]);
     await this.validateProjectTitle(data, base);
+
+    if (data?.order !== undefined) {
+      data.order = !isNaN(+data.order) ? +data.order : 0;
+    }
 
     const result = await Base.update(param.baseId, data);
 

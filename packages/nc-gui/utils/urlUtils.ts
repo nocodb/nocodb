@@ -27,8 +27,8 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return found && out
 }
 
-export const isValidURL = (str: string) => {
-  return isURL(`${str}`)
+export const isValidURL = (str: string, extraProps?) => {
+  return isURL(`${str}`, extraProps)
 }
 
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {

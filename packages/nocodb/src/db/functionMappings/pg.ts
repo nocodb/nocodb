@@ -210,7 +210,9 @@ const pg = {
   SUBSTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const str = (await fn(pt.arguments[0])).builder;
     const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
-    const numberOfCharacters = (await fn(pt.arguments[2] ?? '')).builder;
+    const numberOfCharacters = pt.arguments[2]
+      ? (await fn(pt.arguments[2])).builder
+      : null;
     return {
       builder: knex.raw(
         `SUBSTR(${str}::TEXT, ${positionFrom}${
@@ -343,6 +345,15 @@ END ${colAlias}`,
     return {
       builder: args.knex.raw(
         `(${(await args.fn(args.pt.arguments[0])).builder})::text ${
+          args.colAlias
+        }`,
+      ),
+    };
+  },
+  BOOLEAN: async (args: MapFnArgs) => {
+    return {
+      builder: args.knex.raw(
+        `(${(await args.fn(args.pt.arguments[0])).builder})::boolean${
           args.colAlias
         }`,
       ),

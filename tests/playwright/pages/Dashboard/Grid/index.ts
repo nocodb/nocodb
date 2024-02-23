@@ -302,12 +302,12 @@ export class GridPage extends BasePage {
   async verifyTotalRowCount({ count }: { count: number }) {
     // wait for 100 ms and try again : 5 times
     let i = 0;
-    await this.get().locator(`.nc-pagination`).waitFor();
+    await this.get().locator(`.nc-pagination-skeleton`).waitFor({ state: 'hidden' });
     let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
     let recordCnt = records[0].split(' ')[0];
 
     while (parseInt(recordCnt) !== count && i < 5) {
-      await this.get().locator(`.nc-pagination`).waitFor();
+      await this.get().locator(`.nc-pagination-skeleton`).waitFor({ state: 'hidden' });
       records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
       recordCnt = records[0].split(' ')[0];
 
@@ -319,6 +319,11 @@ export class GridPage extends BasePage {
   }
 
   async verifyPaginationCount({ count }: { count: string }) {
+    if (await this.get().locator('.nc-pagination').isHidden()) {
+      expect(1).toBe(+count);
+      return;
+    }
+
     await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
@@ -329,6 +334,8 @@ export class GridPage extends BasePage {
     type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
     skipWait?: boolean;
   }) {
+    if (await this.get().locator('.nc-pagination').isHidden()) return;
+
     if (!skipWait) {
       await this.get().locator(`.nc-pagination .${type}`).click();
       await this.waitLoading();
@@ -345,6 +352,11 @@ export class GridPage extends BasePage {
   }
 
   async verifyActivePage({ pageNumber }: { pageNumber: string }) {
+    if (await this.get().locator('.nc-pagination').isHidden()) {
+      expect(1).toBe(+pageNumber);
+      return;
+    }
+
     await expect(this.get().locator(`.nc-pagination .ant-select-selection-item`)).toHaveText(pageNumber);
   }
 

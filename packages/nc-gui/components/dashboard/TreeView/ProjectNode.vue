@@ -463,7 +463,7 @@ const projectDelete = () => {
                 <template v-if="!isSharedBase">
                   <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-project-rename" @click="enableEditMode">
                     <div v-e="['c:base:rename']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="edit" class="group-hover:text-black" />
+                      <GeneralIcon icon="rename" class="group-hover:text-black" />
                       {{ $t('general.rename') }}
                     </div>
                   </NcMenuItem>
@@ -717,7 +717,7 @@ const projectDelete = () => {
         <template v-else-if="contextMenuTarget.type === 'table'">
           <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
             <div v-e="['c:table:rename']" class="nc-base-option-item flex gap-2 items-center">
-              <GeneralIcon icon="edit" class="text-gray-700" />
+              <GeneralIcon icon="rename" class="text-gray-700" />
               {{ $t('general.rename') }}
             </div>
           </NcMenuItem>

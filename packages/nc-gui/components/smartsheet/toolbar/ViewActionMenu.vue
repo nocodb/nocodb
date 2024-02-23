@@ -3,9 +3,6 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '~/lib'
 
-import UploadIcon from '~icons/nc-icons/upload'
-import DownloadIcon from '~icons/nc-icons/download'
-
 const props = defineProps<{
   view: ViewType
   table: TableType
@@ -100,6 +97,7 @@ function onDuplicate() {
     'selectedViewId': view.value!.id,
     'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
+    'calendarRange': view.value!.view!.calendar_range,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -142,7 +140,12 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <NcMenu class="!min-w-70" data-id="toolbar-actions" :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`">
+  <NcMenu
+    v-if="view"
+    :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
+    class="!min-w-70"
+    data-id="toolbar-actions"
+  >
     <NcTooltip>
       <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
       <div class="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
@@ -153,33 +156,34 @@ const onDelete = async () => {
             })
           }}
         </div>
-        <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
-          <GeneralIcon v-if="isViewIdCopied" icon="check" class="max-h-4 min-w-4" />
-          <GeneralIcon v-else else icon="copy" class="max-h-4 min-w-4" />
+        <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
+          <GeneralIcon v-if="isViewIdCopied" class="max-h-4 min-w-4" icon="check" />
+          <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
         </NcButton>
       </div>
     </NcTooltip>
-    <NcDivider />
-    <template v-if="!view?.is_default">
+
+    <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
+      <NcDivider />
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-        <GeneralIcon icon="edit" />
+        <GeneralIcon icon="rename" />
         {{ $t('activity.renameView') }}
       </NcMenuItem>
       <NcTooltip v-else>
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-          <GeneralIcon icon="edit" />
+          <GeneralIcon icon="rename" />
           {{ $t('activity.renameView') }}
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem @click="onDuplicate">
-        <GeneralIcon icon="duplicate" class="nc-view-copy-icon" />
+        <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
         {{ $t('labels.duplicateView') }}
       </NcMenuItem>
-      <NcDivider />
     </template>
 
     <template v-if="view.type !== ViewTypes.FORM">
+      <NcDivider />
       <template v-if="isUIAllowed('csvTableImport') && !isPublicView">
         <NcSubMenu key="upload">
           <template #title>
@@ -192,7 +196,7 @@ const onDelete = async () => {
               ]"
               class="nc-base-menu-item group"
             >
-              <UploadIcon class="w-4 h-4" />
+              <GeneralIcon icon="upload" />
               {{ $t('general.upload') }}
             </div>
           </template>
@@ -209,10 +213,10 @@ const onDelete = async () => {
                     sidebar: props.inSidebar,
                   },
                 ]"
-                class="nc-base-menu-item"
                 :class="{ disabled: lockType === LockType.Locked }"
+                class="nc-base-menu-item"
               >
-                <component :is="iconMap.upload" />
+                <component :is="iconMap.cloudUpload" />
                 {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
               </div>
             </NcMenuItem>
@@ -230,7 +234,7 @@ const onDelete = async () => {
             ]"
             class="nc-base-menu-item group nc-view-context-download-option"
           >
-            <DownloadIcon class="w-4 h-4" />
+            <GeneralIcon icon="download" />
             {{ $t('general.download') }}
           </div>
         </template>
@@ -260,9 +264,9 @@ const onDelete = async () => {
             </div>
             <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
               <LazySmartsheetToolbarLockType
-                hide-tick
                 :type="lockType"
                 class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+                hide-tick
               />
             </div>
             <div class="flex flex-grow"></div>
@@ -281,12 +285,12 @@ const onDelete = async () => {
       </NcSubMenu>
     </template>
 
-    <template v-if="!view.is_default">
+    <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
-          <GeneralIcon icon="delete" class="nc-view-delete-icon" />
+          <GeneralIcon class="nc-view-delete-icon" icon="delete" />
           {{
             $t('general.deleteEntity', {
               entity: $t('objects.view'),
@@ -295,7 +299,7 @@ const onDelete = async () => {
         </NcMenuItem>
       </NcTooltip>
       <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
-        <GeneralIcon icon="delete" class="nc-view-delete-icon" />
+        <GeneralIcon class="nc-view-delete-icon" icon="delete" />
         {{
           $t('general.deleteEntity', {
             entity: $t('objects.view'),
@@ -308,12 +312,13 @@ const onDelete = async () => {
         v-for="tp in quickImportDialogTypes"
         :key="tp"
         v-model="quickImportDialogs[tp].value"
+        :import-data-only="true"
         :import-type="tp"
         :source-id="currentBaseId"
-        :import-data-only="true"
       />
     </template>
   </NcMenu>
+  <span v-else></span>
 </template>
 
 <style lang="scss" scoped>

@@ -5,7 +5,10 @@ import FormView from '~/models/FormView';
 import GridView from '~/models/GridView';
 import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
+import CalendarView from '~/models/CalendarView';
 import GridViewColumn from '~/models/GridViewColumn';
+import CalendarViewColumn from '~/models/CalendarViewColumn';
+import CalendarRange from '~/models/CalendarRange';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -33,6 +36,7 @@ type ViewColumn =
   | FormViewColumn
   | GalleryViewColumn
   | KanbanViewColumn
+  | CalendarViewColumn
   | MapViewColumn;
 
 type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
@@ -55,13 +59,20 @@ export default class View implements ViewType {
 
   fk_model_id: string;
   model?: Model;
-  view?: FormView | GridView | KanbanView | GalleryView | MapView;
+  view?:
+    | FormView
+    | GridView
+    | KanbanView
+    | GalleryView
+    | MapView
+    | CalendarView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
     | GalleryViewColumn
     | KanbanViewColumn
     | MapViewColumn
+    | CalendarViewColumn
   >;
 
   sorts: Sort[];
@@ -73,64 +84,6 @@ export default class View implements ViewType {
 
   constructor(data: View) {
     Object.assign(this, data);
-  }
-
-  async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
-    return (this.model = await Model.getByIdOrName(
-      { id: this.fk_model_id },
-      ncMeta,
-    ));
-  }
-
-  async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
-    return (this.model = await Model.getWithInfo(
-      { id: this.fk_model_id },
-      ncMeta,
-    ));
-  }
-
-  async getView<T>(): Promise<T> {
-    switch (this.type) {
-      case ViewTypes.GRID:
-        this.view = await GridView.get(this.id);
-        break;
-      case ViewTypes.KANBAN:
-        this.view = await KanbanView.get(this.id);
-        break;
-      case ViewTypes.GALLERY:
-        this.view = await GalleryView.get(this.id);
-        break;
-      case ViewTypes.MAP:
-        this.view = await MapView.get(this.id);
-        break;
-      case ViewTypes.FORM:
-        this.view = await FormView.get(this.id);
-        break;
-    }
-    return <T>this.view;
-  }
-
-  async getViewWithInfo(
-    ncMeta = Noco.ncMeta,
-  ): Promise<FormView | GridView | KanbanView | GalleryView> {
-    switch (this.type) {
-      case ViewTypes.GRID:
-        this.view = await GridView.getWithInfo(this.id, ncMeta);
-        break;
-      case ViewTypes.KANBAN:
-        this.view = await KanbanView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.GALLERY:
-        this.view = await GalleryView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.MAP:
-        this.view = await MapView.get(this.id, ncMeta);
-        break;
-      case ViewTypes.FORM:
-        this.view = await FormView.get(this.id, ncMeta);
-        break;
-    }
-    return this.view;
   }
 
   public static async get(viewId: string, ncMeta = Noco.ncMeta) {
@@ -158,8 +111,8 @@ export default class View implements ViewType {
     const viewId =
       titleOrId &&
       (await NocoCache.get(
-        `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        CacheGetType.TYPE_OBJECT,
+        `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
+        CacheGetType.TYPE_STRING,
       ));
     if (!viewId) {
       const view = await ncMeta.metaGet2(
@@ -192,7 +145,7 @@ export default class View implements ViewType {
         view.meta = parseMetaProp(view);
         // todo: cache - titleOrId can be viewId so we need a different scope here
         await NocoCache.set(
-          `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
+          `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
           view.id,
         );
       }
@@ -256,24 +209,14 @@ export default class View implements ViewType {
     return viewsList?.map((v) => new View(v));
   }
 
-  public async getFilters(ncMeta = Noco.ncMeta) {
-    return (this.filter = (await Filter.getFilterObject(
-      {
-        viewId: this.id,
-      },
-      ncMeta,
-    )) as any);
-  }
-
-  public async getSorts(ncMeta = Noco.ncMeta) {
-    return (this.sorts = await Sort.list({ viewId: this.id }, ncMeta));
-  }
-
   static async insert(
     view: Partial<View> &
-      Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
+      Partial<
+        FormView | GridView | GalleryView | KanbanView | MapView | CalendarView
+      > & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
+        calendar_range?: Partial<CalendarRange>[];
       },
     ncMeta = Noco.ncMeta,
   ) {
@@ -317,12 +260,6 @@ export default class View implements ViewType {
       null,
       MetaTable.VIEWS,
       insertObj,
-    );
-
-    await NocoCache.appendToList(
-      CacheScope.VIEW,
-      [view.fk_model_id],
-      `${CacheScope.VIEW}:${view_id}`,
     );
 
     let columns: any[] = await (
@@ -384,6 +321,25 @@ export default class View implements ViewType {
           ncMeta,
         );
         break;
+      case ViewTypes.CALENDAR: {
+        const obj = extractProps(view, ['calendar_range']);
+        if (!obj.calendar_range) break;
+        const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
+        calendarRange.forEach((range) => {
+          range.fk_view_id = view_id;
+        });
+
+        await CalendarView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        await CalendarRange.bulkInsert(calendarRange, ncMeta);
+      }
     }
 
     if (copyFromView) {
@@ -394,7 +350,13 @@ export default class View implements ViewType {
       for (const sort of sorts) {
         await Sort.insert(
           {
-            ...sort,
+            ...extractProps(sort, [
+              'fk_column_id',
+              'direction',
+              'base_id',
+              'source_id',
+              'order',
+            ]),
             fk_view_id: view_id,
             id: null,
           },
@@ -405,7 +367,19 @@ export default class View implements ViewType {
       for (const filter of filters.children) {
         await Filter.insert(
           {
-            ...filter,
+            ...extractProps(filter, [
+              'id',
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+              'base_id',
+              'source_id',
+              'order',
+            ]),
             fk_view_id: view_id,
             id: null,
           },
@@ -417,6 +391,11 @@ export default class View implements ViewType {
       let order = 1;
       let galleryShowLimit = 0;
       let kanbanShowLimit = 0;
+      let calendarRanges: Array<string> | null = null;
+
+      if (view.type === ViewTypes.CALENDAR) {
+        calendarRanges = await View.getRangeColumnsAsArray(view_id, ncMeta);
+      }
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
         // sort by display value & attachment first, then by singleLineText & Number
@@ -443,6 +422,9 @@ export default class View implements ViewType {
 
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
+        const underline = false;
+        const bold = false;
+        const italic = false;
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(view_id, ncMeta);
@@ -473,6 +455,13 @@ export default class View implements ViewType {
             // other columns will be hidden
             show = false;
           }
+        } else if (view.type === ViewTypes.CALENDAR && !copyFromView) {
+          const calendarView = await CalendarView.get(view_id, ncMeta);
+          if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            show = true;
+          } else
+            show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
+          // Show all Fields in Ranges
         } else if (view.type === ViewTypes.MAP && !copyFromView) {
           const mapView = await MapView.get(view_id, ncMeta);
           if (vCol.id === mapView?.fk_geo_data_col_id) {
@@ -494,6 +483,9 @@ export default class View implements ViewType {
             view_id,
             fk_column_id: vCol.fk_column_id || vCol.id,
             show,
+            underline,
+            bold,
+            italic,
             id: null,
           },
           ncMeta,
@@ -506,7 +498,26 @@ export default class View implements ViewType {
       ncMeta,
     );
 
-    return View.get(view_id, ncMeta);
+    return View.get(view_id, ncMeta).then(async (v) => {
+      await NocoCache.appendToList(
+        CacheScope.VIEW,
+        [view.fk_model_id],
+        `${CacheScope.VIEW}:${view_id}`,
+      );
+      return v;
+    });
+  }
+
+  static async getRangeColumnsAsArray(viewId: string, ncMeta) {
+    const calRange = await CalendarRange.read(viewId, ncMeta);
+    if (calRange) {
+      const calIds: Set<string> = new Set();
+      calRange.ranges.forEach((range) => {
+        calIds.add(range.fk_from_column_id);
+      });
+      return Array.from(calIds) as Array<string>;
+    }
+    return [];
   }
 
   static async insertColumnToAllViews(
@@ -514,7 +525,10 @@ export default class View implements ViewType {
       fk_column_id: any;
       fk_model_id: any;
       order?: number;
-      show;
+      column_show: {
+        show: boolean;
+        view_id?: any;
+      };
     } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -522,12 +536,19 @@ export default class View implements ViewType {
       fk_column_id: param.fk_column_id,
       fk_model_id: param.fk_model_id,
       order: param.order,
-      show: param.show,
+      show: param.column_show.show,
     };
     const views = await this.list(param.fk_model_id, ncMeta);
 
     for (const view of views) {
-      const modifiedInsertObj = { ...insertObj, fk_view_id: view.id };
+      const modifiedInsertObj = {
+        ...insertObj,
+        fk_view_id: view.id,
+      };
+
+      if (param.column_show?.view_id === view.id) {
+        modifiedInsertObj.show = true;
+      }
 
       if (param.column_order?.view_id === view.id) {
         modifiedInsertObj.order = param.column_order?.order;
@@ -553,6 +574,18 @@ export default class View implements ViewType {
         case ViewTypes.KANBAN:
           await KanbanViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
+        case ViewTypes.CALENDAR:
+          await CalendarViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+          break;
+        case ViewTypes.FORM:
+          await FormViewColumn.insert(modifiedInsertObj, ncMeta);
+          break;
       }
     }
   }
@@ -562,9 +595,13 @@ export default class View implements ViewType {
       view_id: any;
       order;
       show;
+      underline?;
+      bold?;
+      italic?;
       fk_column_id;
       id?: string;
-    } & Partial<FormViewColumn>,
+    } & Partial<FormViewColumn> &
+      Partial<CalendarViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(param.view_id, ncMeta);
@@ -626,6 +663,17 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.CALENDAR:
+        {
+          col = await CalendarViewColumn.insert(
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
     }
 
     return col;
@@ -649,6 +697,7 @@ export default class View implements ViewType {
       | GalleryViewColumn
       | KanbanViewColumn
       | MapViewColumn
+      | CalendarViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -671,13 +720,12 @@ export default class View implements ViewType {
       case ViewTypes.KANBAN:
         columns = await KanbanViewColumn.list(viewId, ncMeta);
         break;
+      case ViewTypes.CALENDAR:
+        columns = await CalendarViewColumn.list(viewId, ncMeta);
+        break;
     }
 
     return columns;
-  }
-
-  async getColumns(ncMeta = Noco.ncMeta) {
-    return (this.columns = await View.getColumns(this.id, ncMeta));
   }
 
   static async getViewColumnId(
@@ -719,6 +767,11 @@ export default class View implements ViewType {
       case ViewTypes.KANBAN:
         tableName = MetaTable.KANBAN_VIEW_COLUMNS;
         cacheScope = CacheScope.KANBAN_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.CALENDAR:
+        tableName = MetaTable.CALENDAR_VIEW_COLUMNS;
+        cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
 
         break;
     }
@@ -771,11 +824,14 @@ export default class View implements ViewType {
         table = MetaTable.FORM_VIEW_COLUMNS;
         cacheScope = CacheScope.FORM_VIEW_COLUMN;
         break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW_COLUMNS;
+        cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
     }
     const updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
-    if (view.type === ViewTypes.GRID) {
+    if (view.type === ViewTypes.GRID || view.type === ViewTypes.CALENDAR) {
       const primary_value_column_meta = await ncMeta.metaGet2(
         null,
         null,
@@ -815,10 +871,7 @@ export default class View implements ViewType {
     const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
 
     // on view column update, delete corresponding single query cache
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${view.fk_model_id}:${view.id}:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
     return res;
   }
@@ -860,10 +913,7 @@ export default class View implements ViewType {
       );
 
       // on view column update, delete any optimised single query cache
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${view.fk_model_id}:${view.id}:*`,
-      );
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
       return { ...existingCol, ...colData };
     } else {
@@ -889,7 +939,6 @@ export default class View implements ViewType {
             order: colData.order,
             show: colData.show,
           });
-          break;
         case ViewTypes.MAP:
           return await MapViewColumn.insert({
             fk_view_id: viewId,
@@ -897,9 +946,15 @@ export default class View implements ViewType {
             order: colData.order,
             show: colData.show,
           });
-          break;
         case ViewTypes.FORM:
           return await FormViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+        case ViewTypes.CALENDAR:
+          return await CalendarViewColumn.insert({
             fk_view_id: viewId,
             fk_column_id: fkColId,
             order: colData.order,
@@ -1094,10 +1149,7 @@ export default class View implements ViewType {
     }
 
     // on update, delete any optimised single query cache
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${view.fk_model_id}:${view.id}:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
     return view;
   }
@@ -1108,132 +1160,52 @@ export default class View implements ViewType {
     await Sort.deleteAll(viewId, ncMeta);
     await Filter.deleteAll(viewId, ncMeta);
     const table = this.extractViewTableName(view);
+
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
     const columnTableScope = this.extractViewColumnsTableNameScope(view);
     await ncMeta.metaDelete(null, null, columnTable, {
       fk_view_id: viewId,
     });
-    await NocoCache.deepDel(
-      tableScope,
-      `${tableScope}:${viewId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
     await ncMeta.metaDelete(null, null, table, {
       fk_view_id: viewId,
     });
+    await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
     await NocoCache.deepDel(
-      columnTableScope,
+      `${tableScope}:${viewId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    // For Calendar View, delete the range associated with viewId
+    if (view.type === ViewTypes.CALENDAR) {
+      await ncMeta.metaDelete(null, null, MetaTable.CALENDAR_VIEW_RANGE, {
+        fk_view_id: viewId,
+      });
+      await NocoCache.deepDel(
+        `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+    await NocoCache.deepDel(
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
     await NocoCache.deepDel(
-      CacheScope.VIEW,
       `${CacheScope.VIEW}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.id}`);
+    await NocoCache.del([
+      `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.title}`,
+      `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.id}`,
+    ]);
 
     // on update, delete any optimised single query cache
-    await NocoCache.delAll(
-      CacheScope.SINGLE_QUERY,
-      `${view.fk_model_id}:${view.id}:*`,
-    );
+    await View.clearSingleQueryCache(view.fk_model_id, [view]);
 
     await Model.getNonDefaultViewsCountAndReset(
       { modelId: view.fk_model_id },
       ncMeta,
     );
-  }
-
-  private static extractViewColumnsTableName(view: View) {
-    let table;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW_COLUMNS;
-        break;
-      case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW_COLUMNS;
-        break;
-      case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW_COLUMNS;
-        break;
-      case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW_COLUMNS;
-        break;
-      case ViewTypes.MAP:
-        table = MetaTable.MAP_VIEW_COLUMNS;
-        break;
-    }
-    return table;
-  }
-
-  private static extractViewTableName(view: View) {
-    let table;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW;
-        break;
-      case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW;
-        break;
-      case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW;
-        break;
-      case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW;
-        break;
-      case ViewTypes.MAP:
-        table = MetaTable.MAP_VIEW;
-        break;
-    }
-    return table;
-  }
-
-  private static extractViewColumnsTableNameScope(view: View) {
-    let scope;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        scope = CacheScope.GRID_VIEW_COLUMN;
-        break;
-      case ViewTypes.GALLERY:
-        scope = CacheScope.GALLERY_VIEW_COLUMN;
-        break;
-      case ViewTypes.MAP:
-        scope = CacheScope.MAP_VIEW_COLUMN;
-        break;
-      case ViewTypes.KANBAN:
-        scope = CacheScope.KANBAN_VIEW_COLUMN;
-        break;
-      case ViewTypes.FORM:
-        scope = CacheScope.FORM_VIEW_COLUMN;
-        break;
-    }
-    return scope;
-  }
-
-  private static extractViewTableNameScope(view: View) {
-    let scope;
-    switch (view.type) {
-      case ViewTypes.GRID:
-        scope = CacheScope.GRID_VIEW;
-        break;
-      case ViewTypes.GALLERY:
-        scope = CacheScope.GALLERY_VIEW;
-        break;
-      case ViewTypes.MAP:
-        scope = CacheScope.MAP_VIEW;
-        break;
-      case ViewTypes.KANBAN:
-        scope = CacheScope.KANBAN_VIEW;
-        break;
-      case ViewTypes.FORM:
-        scope = CacheScope.FORM_VIEW;
-        break;
-    }
-    return scope;
   }
 
   static async showAllColumns(
@@ -1387,10 +1359,6 @@ export default class View implements ViewType {
     );
   }
 
-  async delete(ncMeta = Noco.ncMeta) {
-    await View.delete(this.id, ncMeta);
-  }
-
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
     let { list: sharedViews } = cachedList;
@@ -1513,5 +1481,646 @@ export default class View implements ViewType {
       },
     );
     await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
+  }
+
+  public static async clearSingleQueryCache(
+    modelId: string,
+    views?: { id?: string }[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    // get all views of the model
+    let viewsList =
+      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
+
+    if (!views && !viewsList?.length) {
+      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
+        condition: {
+          fk_model_id: modelId,
+        },
+      });
+    }
+
+    const deleteKeys = [];
+
+    for (const view of viewsList) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+      );
+    }
+
+    deleteKeys.push(
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+    );
+
+    await NocoCache.del(deleteKeys);
+  }
+
+  static async bulkColumnInsertToViews(
+    {
+      columns,
+      viewColumns,
+      copyFromView,
+    }: {
+      copyFromView?: View;
+      columns?: ({
+        order?: number;
+        show?;
+      } & Column)[];
+      viewColumns?: (
+        | GridViewColumn
+        | GalleryViewColumn
+        | FormViewColumn
+        | KanbanViewColumn
+        | MapViewColumn
+        | CalendarViewColumn
+      )[];
+    },
+    view: View,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObjs = [];
+
+    if (viewColumns) {
+      for (let i = 0; i < viewColumns.length; i++) {
+        const column = viewColumns[i];
+
+        insertObjs.push({
+          ...extractProps(column, [
+            'fk_view_id',
+            'fk_column_id',
+            'show',
+            'base_id',
+            'source_id',
+            'order',
+            'width',
+            'group_by',
+            'group_by_order',
+            'group_by_sort',
+          ]),
+          fk_view_id: view.id,
+          base_id: view.base_id,
+          source_id: view.source_id,
+        });
+      }
+    } else {
+      if (!columns) {
+        columns = await Column.list({ fk_model_id: view.fk_model_id });
+      }
+
+      // todo: avoid duplicate code
+      if (view.type === ViewTypes.KANBAN && !copyFromView) {
+        // sort by display value & attachment first, then by singleLineText & Number
+        // so that later we can handle control `show` easily
+        columns.sort((a, b) => {
+          const displayValueOrder = +b.pv - +a.pv;
+          const attachmentOrder =
+            +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
+          const singleLineTextOrder =
+            +(b.uidt === UITypes.SingleLineText) -
+            +(a.uidt === UITypes.SingleLineText);
+          const numberOrder =
+            +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
+          const defaultOrder = b.order - a.order;
+          return (
+            displayValueOrder ||
+            attachmentOrder ||
+            singleLineTextOrder ||
+            numberOrder ||
+            defaultOrder
+          );
+        });
+      }
+
+      let order = 1;
+      let galleryShowLimit = 0;
+      let kanbanShowLimit = 0;
+
+      for (let i = 0; i < columns.length; i++) {
+        const column = columns[i];
+
+        let show = 'show' in column ? column.show : true;
+
+        if (view.type === ViewTypes.GALLERY) {
+          const galleryView = await GalleryView.get(view.id, ncMeta);
+          if (
+            column.id === galleryView.fk_cover_image_col_id ||
+            column.pv ||
+            galleryShowLimit < 3
+          ) {
+            show = true;
+            galleryShowLimit++;
+          } else {
+            show = false;
+          }
+        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
+          const kanbanView = await KanbanView.get(view.id, ncMeta);
+          if (column.id === kanbanView?.fk_grp_col_id) {
+            // include grouping field if it exists
+            show = true;
+          } else if (
+            column.id === kanbanView.fk_cover_image_col_id ||
+            column.pv
+          ) {
+            // Show cover image or primary key
+            show = true;
+            kanbanShowLimit++;
+          } else if (kanbanShowLimit < 3 && !isSystemColumn(column)) {
+            // show at most 3 non-system columns
+            show = true;
+            kanbanShowLimit++;
+          } else {
+            // other columns will be hidden
+            show = false;
+          }
+        } else if (view.type === ViewTypes.MAP && !copyFromView) {
+          const mapView = await MapView.get(view.id, ncMeta);
+          if (column.id === mapView?.fk_geo_data_col_id) {
+            show = true;
+          }
+        } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
+          show = false;
+        } else if (view.type === ViewTypes.CALENDAR && !copyFromView) {
+          const calendarRange = await CalendarRange.read(view.id, ncMeta);
+          if (!calendarRange) break;
+          const calendarRangeColumns = calendarRange.ranges
+            .map((range) => [
+              range.fk_from_column_id,
+              (range as any).fk_to_column_id,
+            ])
+            .flat();
+
+          if (calendarRangeColumns.includes(column.id)) {
+            show = true;
+          }
+        }
+
+        insertObjs.push({
+          fk_column_id: column.id,
+          order: order++,
+          show,
+          fk_view_id: view.id,
+          base_id: view.base_id,
+          source_id: view.source_id,
+        });
+      }
+    }
+
+    switch (view.type) {
+      case ViewTypes.GRID:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.GRID_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.GALLERY:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.GALLERY_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.MAP:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.MAP_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.KANBAN:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.KANBAN_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.FORM:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.FORM_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
+      case ViewTypes.CALENDAR:
+        await ncMeta.bulkMetaInsert(
+          null,
+          null,
+          MetaTable.CALENDAR_VIEW_COLUMNS,
+          insertObjs,
+        );
+    }
+  }
+
+  static async insertMetaOnly(
+    view: Partial<View> &
+      Partial<
+        FormView | GridView | GalleryView | KanbanView | MapView | CalendarView
+      > & {
+        copy_from_id?: string;
+        fk_grp_col_id?: string;
+        calendar_range?: Partial<CalendarRange>[];
+      },
+    model: {
+      getColumns: () => Promise<Column[]>;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = extractProps(view, [
+      'id',
+      'title',
+      'is_default',
+      'type',
+      'fk_model_id',
+      'base_id',
+      'source_id',
+      'meta',
+    ]);
+
+    if (!insertObj.order) {
+      // get order value
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
+        fk_model_id: view.fk_model_id,
+      });
+    }
+
+    insertObj.show = true;
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+
+    insertObj.meta = stringifyMetaProp(insertObj);
+
+    const copyFromView =
+      view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
+
+    // get base and base id if missing
+    if (!(view.base_id && view.source_id)) {
+      const model = await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta);
+      insertObj.base_id = model.base_id;
+      insertObj.source_id = model.source_id;
+    }
+
+    const insertedView = await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.VIEWS,
+      insertObj,
+    );
+
+    const { id: view_id } = insertedView;
+
+    // insert view metadata based on view type
+    switch (view.type) {
+      case ViewTypes.GRID:
+        await GridView.insert(
+          {
+            ...((copyFromView?.view as GridView) || {}),
+            ...(view as GridView),
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.MAP:
+        await MapView.insert(
+          {
+            ...(view as MapView),
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.GALLERY:
+        await GalleryView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.FORM:
+        await FormView.insert(
+          {
+            heading: view.title,
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.KANBAN:
+        // set grouping field
+        (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
+
+        await KanbanView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+        break;
+      case ViewTypes.CALENDAR: {
+        const obj = extractProps(view, ['calendar_range']);
+        if (!obj.calendar_range) break;
+        const calendarRange = obj.calendar_range as Partial<CalendarRange>[];
+        calendarRange.forEach((range) => {
+          range.fk_view_id = view_id;
+        });
+
+        await CalendarRange.bulkInsert(calendarRange, ncMeta);
+        await CalendarView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        break;
+      }
+    }
+
+    //  copy from view
+    if (copyFromView) {
+      const sorts = await copyFromView.getSorts(ncMeta);
+      const filters = await Filter.rootFilterList(
+        { viewId: copyFromView.id },
+        ncMeta,
+      );
+      const viewColumns = await copyFromView.getColumns(ncMeta);
+
+      const sortInsertObjs = [];
+      const filterInsertObjs = [];
+
+      for (const sort of sorts) {
+        sortInsertObjs.push({
+          ...extractProps(sort, [
+            'fk_column_id',
+            'direction',
+            'base_id',
+            'source_id',
+          ]),
+          fk_view_id: view_id,
+          id: undefined,
+        });
+      }
+
+      for (const filter of filters) {
+        const fn = async (filter, parentId: string = null) => {
+          const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
+
+          filterInsertObjs.push({
+            ...extractProps(filter, [
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+            ]),
+            fk_view_id: view_id,
+            id: generatedId,
+            fk_parent_id: parentId,
+          });
+          if (filter.is_group)
+            await Promise.all(
+              ((await filter.getChildren()) || []).map(async (child) => {
+                await fn(child, generatedId);
+              }),
+            );
+        };
+
+        await fn(filter);
+      }
+
+      await ncMeta.bulkMetaInsert(null, null, MetaTable.SORT, sortInsertObjs);
+
+      await ncMeta.bulkMetaInsert(
+        null,
+        null,
+        MetaTable.FILTER_EXP,
+        filterInsertObjs,
+        true,
+      );
+
+      // populate view columns
+      await View.bulkColumnInsertToViews(
+        { viewColumns, copyFromView },
+        insertedView,
+      );
+    } else {
+      // populate view columns
+      await View.bulkColumnInsertToViews(
+        { columns: (await model.getColumns()) as any[] },
+        insertedView,
+      );
+    }
+
+    await Model.getNonDefaultViewsCountAndReset(
+      { modelId: view.fk_model_id },
+      ncMeta,
+    );
+
+    return insertedView;
+  }
+
+  private static extractViewColumnsTableName(view: View) {
+    let table;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        table = MetaTable.GRID_VIEW_COLUMNS;
+        break;
+      case ViewTypes.GALLERY:
+        table = MetaTable.GALLERY_VIEW_COLUMNS;
+        break;
+      case ViewTypes.KANBAN:
+        table = MetaTable.KANBAN_VIEW_COLUMNS;
+        break;
+      case ViewTypes.FORM:
+        table = MetaTable.FORM_VIEW_COLUMNS;
+        break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW_COLUMNS;
+        break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW_COLUMNS;
+        break;
+    }
+    return table;
+  }
+
+  private static extractViewTableName(view: View) {
+    let table;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        table = MetaTable.GRID_VIEW;
+        break;
+      case ViewTypes.GALLERY:
+        table = MetaTable.GALLERY_VIEW;
+        break;
+      case ViewTypes.KANBAN:
+        table = MetaTable.KANBAN_VIEW;
+        break;
+      case ViewTypes.FORM:
+        table = MetaTable.FORM_VIEW;
+        break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW;
+        break;
+      case ViewTypes.CALENDAR:
+        table = MetaTable.CALENDAR_VIEW;
+        break;
+    }
+    return table;
+  }
+
+  private static extractViewColumnsTableNameScope(view: View) {
+    let scope;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        scope = CacheScope.GRID_VIEW_COLUMN;
+        break;
+      case ViewTypes.GALLERY:
+        scope = CacheScope.GALLERY_VIEW_COLUMN;
+        break;
+      case ViewTypes.MAP:
+        scope = CacheScope.MAP_VIEW_COLUMN;
+        break;
+      case ViewTypes.KANBAN:
+        scope = CacheScope.KANBAN_VIEW_COLUMN;
+        break;
+      case ViewTypes.FORM:
+        scope = CacheScope.FORM_VIEW_COLUMN;
+        break;
+      case ViewTypes.CALENDAR:
+        scope = CacheScope.CALENDAR_VIEW_COLUMN;
+        break;
+    }
+    return scope;
+  }
+
+  private static extractViewTableNameScope(view: View) {
+    let scope;
+    switch (view.type) {
+      case ViewTypes.GRID:
+        scope = CacheScope.GRID_VIEW;
+        break;
+      case ViewTypes.GALLERY:
+        scope = CacheScope.GALLERY_VIEW;
+        break;
+      case ViewTypes.MAP:
+        scope = CacheScope.MAP_VIEW;
+        break;
+      case ViewTypes.KANBAN:
+        scope = CacheScope.KANBAN_VIEW;
+        break;
+      case ViewTypes.FORM:
+        scope = CacheScope.FORM_VIEW;
+        break;
+      case ViewTypes.CALENDAR:
+        scope = CacheScope.CALENDAR_VIEW;
+        break;
+    }
+    return scope;
+  }
+
+  async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
+    return (this.model = await Model.getByIdOrName(
+      { id: this.fk_model_id },
+      ncMeta,
+    ));
+  }
+
+  async getModelWithInfo(ncMeta = Noco.ncMeta): Promise<Model> {
+    return (this.model = await Model.getWithInfo(
+      { id: this.fk_model_id },
+      ncMeta,
+    ));
+  }
+
+  async getView<T>(): Promise<T> {
+    switch (this.type) {
+      case ViewTypes.GRID:
+        this.view = await GridView.get(this.id);
+        break;
+      case ViewTypes.KANBAN:
+        this.view = await KanbanView.get(this.id);
+        break;
+      case ViewTypes.GALLERY:
+        this.view = await GalleryView.get(this.id);
+        break;
+      case ViewTypes.MAP:
+        this.view = await MapView.get(this.id);
+        break;
+      case ViewTypes.FORM:
+        this.view = await FormView.get(this.id);
+        break;
+      case ViewTypes.CALENDAR:
+        this.view = await CalendarView.get(this.id);
+        break;
+    }
+    return <T>this.view;
+  }
+
+  async getViewWithInfo(
+    ncMeta = Noco.ncMeta,
+  ): Promise<FormView | GridView | KanbanView | GalleryView> {
+    switch (this.type) {
+      case ViewTypes.GRID:
+        this.view = await GridView.getWithInfo(this.id, ncMeta);
+        break;
+      case ViewTypes.KANBAN:
+        this.view = await KanbanView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.GALLERY:
+        this.view = await GalleryView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.MAP:
+        this.view = await MapView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.FORM:
+        this.view = await FormView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.CALENDAR:
+        this.view = await CalendarView.get(this.id, ncMeta);
+        break;
+    }
+    return this.view;
+  }
+
+  public async getFilters(ncMeta = Noco.ncMeta) {
+    return (this.filter = (await Filter.getFilterObject(
+      {
+        viewId: this.id,
+      },
+      ncMeta,
+    )) as any);
+  }
+
+  public async getSorts(ncMeta = Noco.ncMeta) {
+    return (this.sorts = await Sort.list({ viewId: this.id }, ncMeta));
+  }
+
+  async getColumns(ncMeta = Noco.ncMeta) {
+    return (this.columns = await View.getColumns(this.id, ncMeta));
+  }
+
+  async delete(ncMeta = Noco.ncMeta) {
+    await View.delete(this.id, ncMeta);
   }
 }

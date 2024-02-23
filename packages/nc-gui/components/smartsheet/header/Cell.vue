@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ColumnInj, IsExpandedFormOpenInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useRoles } from '#imports'
+import { UITypes, UITypesName } from 'nocodb-sdk'
+import {
+  ColumnInj,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  IsKanbanInj,
+  inject,
+  parseProp,
+  provide,
+  ref,
+  toRef,
+  useRoles,
+} from '#imports'
 
 interface Props {
   column: ColumnType
@@ -14,6 +26,8 @@ const props = defineProps<Props>()
 const { isMobileMode } = useGlobal()
 
 const hideMenu = toRef(props, 'hideMenu')
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -36,6 +50,13 @@ provide(ColumnInj, column)
 const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const columnTypeName = computed(() => {
+  if (column.value.uidt === UITypes.LongText && parseProp(column?.value?.meta)?.richMode) {
+    return UITypesName.RichText
+  }
+  return column.value.uidt ? UITypesName[column.value.uidt] : ''
+})
 
 const addField = async (payload: any) => {
   columnOrder.value = payload
@@ -84,12 +105,22 @@ const onClick = (e: Event) => {
     @click.right="openDropDown"
     @click="onClick"
   >
-    <SmartsheetHeaderCellIcon
-      v-if="column && !props.hideIcon"
-      :class="{
-        'self-start': isForm || isSurveyForm,
-      }"
-    />
+    <template v-if="column && !props.hideIcon">
+      <NcTooltip v-if="isGrid && !isExpandedForm" class="flex items-center" placement="bottom">
+        <template #title> {{ columnTypeName }} </template>
+        <SmartsheetHeaderCellIcon
+          :class="{
+            'self-start': isForm || isSurveyForm,
+          }"
+        />
+      </NcTooltip>
+      <SmartsheetHeaderCellIcon
+        v-else
+        :class="{
+          'self-start': isForm || isSurveyForm,
+        }"
+      />
+    </template>
     <NcTooltip
       v-if="column"
       :class="{

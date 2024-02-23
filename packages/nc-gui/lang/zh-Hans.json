@@ -157,6 +157,8 @@
     "groupingField": "分组字段",
     "insertAfter": "在右侧插入列",
     "insertBefore": "在左侧插入列",
+    "insertAbove": "将上方内容插入",
+    "insertBelow": "将下方内容插入",
     "hideField": "隐藏字段",
     "sortAsc": "升序",
     "sortDesc": "降序",
@@ -189,9 +191,14 @@
     "shift": "Shift 键",
     "enter": "回车键",
     "seconds": "秒",
-    "paste": "粘贴"
+    "paste": "粘贴",
+    "restore": "还原"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "工作区",
     "workspaces": "工作区",
     "project": "项目",
@@ -236,7 +243,7 @@
       "orgLevelViewer": "游客"
     },
     "sqlVIew": "SQL 视图",
-    "rowHeight": "历史最高",
+    "rowHeight": "行高",
     "heightClass": {
       "short": "短",
       "medium": "正常",
@@ -298,6 +305,7 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "文档",
     "forum": "论坛",
     "parameter": "参数",
@@ -328,6 +336,7 @@
     "virtualRelation": "虚拟关系",
     "linkMore": "链接更多",
     "linkMoreRecords": "链接更多记录",
+    "linkRecords": "Link Records",
     "downloadFile": "下载文件",
     "renameTable": "重命名表格",
     "renamingTable": "重新命名表格",
@@ -394,6 +403,7 @@
     "findRowByScanningCode": "通过扫描二维码或条码查找行",
     "tokenManagement": "Token 管理",
     "addNewToken": "添加新令牌（Token）",
+    "createNewToken": "Create new token",
     "accountSettings": "账户设置",
     "resetPasswordMenu": "密码重置",
     "tokens": "令牌",
@@ -414,6 +424,23 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "Security Assertion Markup Language (SAML)",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "一级标题",
     "heading2": "二级标题",
     "heading3": "三级标题",
@@ -457,6 +484,8 @@
     "timeFormat": "时间格式",
     "singularLabel": "单数标签",
     "pluralLabel": "复数标签",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(可选)",
     "clickToMake": "点击创建",
     "visibleForRole": "角色可见：",
@@ -499,7 +528,9 @@
     "duplicateFormView": "复制表单视图",
     "createFormView": "创建表格视图",
     "duplicateKanbanView": "复制看板视图",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "创建看板视图",
+    "createCalendarView": "Create Calendar View",
     "viewName": "查看名称",
     "viewLink": "查看链接",
     "columnName": "列名",
@@ -510,6 +541,7 @@
     "databaseType": "数据库中的类型",
     "lengthValue": "长度/值",
     "dbType": "数据库类型",
+    "servername": "servername / hostAddr",
     "sqliteFile": "SQLite 文件",
     "hostAddress": "服务器地址",
     "port": "端口号",
@@ -642,9 +674,27 @@
     "changeWsName": "更改工作区名称",
     "pressEnter": "按回车键",
     "newFormLoaded": "新表格将在",
-    "webhook": "网络钩子"
+    "webhook": "网络钩子",
+    "multiField": {
+      "newField": "新建字段",
+      "saveChanges": "保存更改",
+      "updatedField": "已更新字段",
+      "deletedField": "已删除的字段",
+      "incompleteConfiguration": "配置不完整",
+      "selectField": "请设置需要查询的字段",
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
+    }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
+    "googleOAuth": "Google OAuth",
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "在新标签页中打开",
     "copyIFrameCode": "复制 IFrame 代码",
     "onCondition": "条件",
@@ -902,6 +952,7 @@
     "selectGroupField": "选择分组字段",
     "selectGroupFieldNotFound": "没有可用的单选字段，请先创建。",
     "selectGeoField": "选择地理数据字段",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "未找到 GeoData 字段。请先创建一个。",
     "password": {
       "enter": "输入密码",
@@ -932,7 +983,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "值",
-    "key": "键"
+    "key": "键",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "点击复制字段ID",
@@ -960,6 +1017,7 @@
       "hintStart": "提示：使用 {placeholder1} 引用字段，例如： {placeholder2}。更多信息，请查阅",
       "hintEnd": "公式",
       "noSuggestedFormulaFound": "未找到建议配方",
+      "typeIsExpected": "{calleeName} 需要在 {type} 位置 {position}",
       "numericTypeIsExpected": "预计为数字类型",
       "stringTypeIsExpected": "预计为字符串类型",
       "operationNotAvailable": "{operation} 操作不可用",
@@ -1016,8 +1074,9 @@
       "tooltip_desc": "表中的一条记录 ",
       "tooltip_desc2": " 可以从表中链接到单条记录 "
     },
-    "noRecordsAreLinkedFromTable": "表中没有链接记录",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "没有链接记录",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "链接的记录",
     "acceptOnlyValid": "仅接受",
     "apiTokenCreate": "创建个人 API tokens，以便在自动化或外部应用程序中使用。",
@@ -1025,19 +1084,22 @@
     "selectFieldToGroup": "选择要分组的字段",
     "thereAreNoRecordsInTable": "表中没有记录",
     "createWebhookMsg1": "开始使用Web Hooks！",
-    "createWebhookMsg2": "创建Web Hooks来实现自动化",
-    "createWebhookMsg3": "一旦您的数据发生变化，您将立即收到通知",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "您确定要删除以下内容",
     "areYouSureUWantToDeleteLabel": "您确定要 {deleteLabel} 以下内容吗？",
     "idColumnRequired": "ID 字段是必填字段，如果需要，您可以稍后重新命名。",
     "length59Required": "长度超过最大 59 个字符",
     "noNewNotifications": "您没有新的通知",
     "noRecordFound": "未找到记录",
+    "noRecordsFound": "No records found",
     "rowDeleted": "记录已删除",
     "saveChanges": "要保存更改吗？",
     "tooLargeFieldEntity": "字段太大，无法转换为 {entity}",
     "roleRequired": "角色要求",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "请确保您尝试连接的数据库有效！此操作可能导致模式丢失",
       "barcode": {
         "renderError": "条形码错误 - 请注意输入数据和条形码类型之间的兼容性"
@@ -1048,9 +1110,16 @@
         "barcodeFieldsCannotBeDirectlyChanged": "警告：条形码字段不能直接更改。"
       },
       "duplicateProject": "你确定要复制项目吗？",
-      "duplicateTable": "您确定要复制表格吗？"
+      "duplicateTable": "您确定要复制表格吗？",
+      "multiField": {
+        "fieldVisibility": "您不能更改正在编辑的字段的可见性。请先保存或放弃更改。",
+        "moveEditedField": "您不能移动正在编辑的字段的可见性。请先保存或放弃更改。",
+        "moveDeletedField": "您不能移动已被删除的字段的可见性。请先保存或放弃更改。"
+      }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "已禁用，因为视图已锁定",
       "basesMigrated": "项目已迁移。请重试。",
       "pasteNotSupported": "处于活动状态的单元格不能粘贴内容",
@@ -1211,9 +1280,22 @@
       "goToNext": "转到下一个",
       "thankYou": "谢谢你！",
       "submittedFormData": "您已成功提交表单数据。",
-      "editingSystemKeyNotSupported": "不支持编辑系统密钥"
+      "editingSystemKeyNotSupported": "不支持编辑系统密钥",
+      "notAvailableAtTheMoment": "当前不可用。",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
     },
     "error": {
+      "scopesRequired": "Scopes required",
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "issuerRequired": "Issuer is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "您必须指定一个名字",
       "nameMinLength": "名称长度必须至少为 2 个字符",
       "nameMaxLength": "名称长度不得超过 60 个字符",
@@ -1244,6 +1326,7 @@
         "invalidEmails": "邮箱格式错误",
         "invalidEmail": "无效的电子邮件"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "无效的 URL",
       "invalidEmail": "无效的电子邮件",
       "internalError": "发生了一些内部错误",
@@ -1289,7 +1372,11 @@
       "fieldRequired": "{value} 不能为空。",
       "projectNotAccessible": "无权访问此项目",
       "copyToClipboardError": "未能复制到剪贴板",
-      "pasteFromClipboardError": "从剪贴板粘贴失败"
+      "pasteFromClipboardError": "从剪贴板粘贴失败",
+      "multiFieldSaveValidation": "请在保存前完成所有字段的配置",
+      "somethingWentWrong": "出现了一些错误",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

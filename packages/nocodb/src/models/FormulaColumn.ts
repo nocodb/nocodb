@@ -62,7 +62,7 @@ export default class FormulaColumn {
   id: string;
 
   static async update(
-    id: string,
+    columnId: string,
     formula: Partial<FormulaColumn> & { parsed_tree?: any },
     ncMeta = Noco.ncMeta,
   ) {
@@ -75,7 +75,7 @@ export default class FormulaColumn {
     ]);
 
     // get existing cache
-    const key = `${CacheScope.COL_FORMULA}:${id}`;
+    const key = `${CacheScope.COL_FORMULA}:${columnId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
       o = { ...o, ...updateObj };
@@ -85,7 +85,9 @@ export default class FormulaColumn {
     if ('parsed_tree' in updateObj)
       updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.COL_FORMULA, updateObj, id);
+    await ncMeta.metaUpdate(null, null, MetaTable.COL_FORMULA, updateObj, {
+      fk_column_id: columnId,
+    });
   }
 
   public getParsedTree() {

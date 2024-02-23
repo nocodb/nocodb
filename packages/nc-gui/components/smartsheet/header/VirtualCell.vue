@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import { UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsFormInj,
@@ -45,6 +45,8 @@ const { metas } = useMetas()
 const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -116,6 +118,13 @@ const tooltipMsg = computed(() => {
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
+const columnTypeName = computed(() => {
+  if (column.value.uidt === UITypes.LongText && parseProp(column?.value?.meta)?.richMode) {
+    return UITypesName.RichText
+  }
+  return column.value.uidt ? UITypesName[column.value.uidt] : ''
+})
+
 const addField = async (payload: any) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
@@ -152,8 +161,13 @@ const openDropDown = (e: Event) => {
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
   >
-    <LazySmartsheetHeaderVirtualCellIcon v-if="column && !props.hideIcon" />
-
+    <template v-if="column && !props.hideIcon">
+      <NcTooltip v-if="isGrid && !isExpandedForm" class="flex items-center" placement="bottom">
+        <template #title> {{ columnTypeName }} </template>
+        <LazySmartsheetHeaderVirtualCellIcon />
+      </NcTooltip>
+      <LazySmartsheetHeaderVirtualCellIcon v-else />
+    </template>
     <NcTooltip placement="bottom" class="truncate name pl-1" show-on-truncate-only>
       <template #title>
         {{ tooltipMsg }}

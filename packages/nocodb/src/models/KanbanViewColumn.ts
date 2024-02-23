@@ -72,13 +72,14 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
     await NocoCache.set(`${CacheScope.KANBAN_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    await NocoCache.appendToList(
-      CacheScope.KANBAN_VIEW_COLUMN,
-      [column.fk_view_id],
-      `${CacheScope.KANBAN_VIEW_COLUMN}:${id}`,
-    );
-
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta).then(async (kanbanViewColumn) => {
+      await NocoCache.appendToList(
+        CacheScope.KANBAN_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.KANBAN_VIEW_COLUMN}:${id}`,
+      );
+      return kanbanViewColumn;
+    });
   }
 
   public static async list(

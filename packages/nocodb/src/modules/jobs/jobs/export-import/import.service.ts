@@ -1,13 +1,18 @@
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, UITypes, ViewTypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
-import type { Readable } from 'stream';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { Readable } from 'stream';
+import type {
+  CalendarView,
+  LinkToAnotherRecordColumn,
+  User,
+  View,
+} from '~/models';
 import type { NcRequest } from '~/interface/config';
+import { Base, Column, Model, Source } from '~/models';
 import {
   findWithIdentifier,
   generateUniqueName,
@@ -18,7 +23,6 @@ import {
   withoutNull,
 } from '~/helpers/exportImportHelpers';
 import { NcError } from '~/helpers/catchError';
-import { Base, Column, Model, Source } from '~/models';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
 import { FiltersService } from '~/services/filters.service';
@@ -28,6 +32,7 @@ import { GridColumnsService } from '~/services/grid-columns.service';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { GridsService } from '~/services/grids.service';
 import { FormsService } from '~/services/forms.service';
+import { CalendarsService } from '~/services/calendars.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { HooksService } from '~/services/hooks.service';
@@ -52,6 +57,7 @@ export class ImportService {
     private gridsService: GridsService,
     private formsService: FormsService,
     private galleriesService: GalleriesService,
+    private calendarsService: CalendarsService,
     private kanbansService: KanbansService,
     private bulkDataService: BulkDataAliasService,
     private hooksService: HooksService,
@@ -1087,6 +1093,7 @@ export class ImportService {
             break;
           case ViewTypes.GALLERY:
           case ViewTypes.KANBAN:
+          case ViewTypes.CALENDAR:
             break;
         }
 
@@ -1213,6 +1220,22 @@ export class ImportService {
           });
         }
         return fview;
+      }
+      case ViewTypes.CALENDAR: {
+        return await this.calendarsService.calendarViewCreate({
+          tableId: md.id,
+          calendar: {
+            ...vw,
+            calendar_range: (vw.view as CalendarView).calendar_range.map(
+              (a) => ({
+                fk_from_column_id: idMap.get(a.fk_from_column_id),
+                fk_to_column_id: idMap.get((a as any).fk_to_column_id),
+              }),
+            ),
+          } as ViewCreateReqType,
+          user,
+          req,
+        });
       }
       case ViewTypes.GALLERY: {
         const glview = await this.galleriesService.galleryViewCreate({

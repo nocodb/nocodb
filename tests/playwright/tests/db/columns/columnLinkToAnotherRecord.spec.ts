@@ -56,10 +56,16 @@ test.describe('LTAR create & update', () => {
     });
 
     // Sheet2 now has all 3 column categories : HM, BT, MM
-    //
+
+    // Verify fields and toggle the visibility
+    await dashboard.grid.toolbar.clickFields();
+    for (const title of ['Sheet1', 'Sheet1s']) {
+      await dashboard.grid.toolbar.fields.verify({ title, checked: false });
+      await dashboard.grid.toolbar.fields.click({ title, isLocallySaved: false });
+    }
+    await dashboard.grid.toolbar.clickFields();
 
     // Expanded form insert
-
     await dashboard.grid.footbar.clickAddRecordFromForm();
     await dashboard.expandedForm.fillField({
       columnTitle: 'Title',
@@ -100,6 +106,7 @@ test.describe('LTAR create & update', () => {
     // Expand record insert
     await dashboard.grid.addNewRow({ index: 2, value: '2c-temp' });
     await dashboard.grid.openExpandedRow({ index: 2 });
+
     await dashboard.expandedForm.fillField({
       columnTitle: 'Sheet1',
       value: '1c',
@@ -148,6 +155,12 @@ test.describe('LTAR create & update', () => {
 
     await dashboard.closeTab({ title: 'Sheet2' });
     await dashboard.treeView.openTable({ title: 'Sheet1' });
+
+    // Verify fields and toggle the visibility
+    await dashboard.grid.toolbar.clickFields();
+    await dashboard.grid.toolbar.fields.verify({ title: 'Sheet2', checked: false });
+    await dashboard.grid.toolbar.fields.click({ title: 'Sheet2', isLocallySaved: false });
+    await dashboard.grid.toolbar.clickFields();
 
     const expected2 = [
       [['1 Sheet2'], ['1 Sheet2'], ['1 Sheet2']],

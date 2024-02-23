@@ -1163,7 +1163,8 @@
                   "value": {
                     "color": "#24716E",
                     "meta": null,
-                    "title": "My Base"
+                    "title": "My Base",
+                    "order": 1
                   }
                 }
               }
@@ -7272,6 +7273,83 @@
         "description": "List Shared View Grouped Data"
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/countByDate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Count of Records in Dates in Calendar View",
+        "operationId": "public-calendar-count",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {
@@ -12946,7 +13024,7 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Banner Image URL. Not in use currently."
           },
           "columns": {
@@ -12989,7 +13067,7 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Logo URL. Not in use currently."
           },
           "meta": {
@@ -13001,7 +13079,7 @@
             "description": "The numbers of seconds to redirect after form submission"
           },
           "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
           },
           "show_blank_form": {
@@ -13009,7 +13087,7 @@
             "description": "Show `Blank Form` after 5 seconds"
           },
           "subheading": {
-            "type": "string",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "The subheading of the form",
             "example": "My Form Subheading"
           },
@@ -13018,7 +13096,7 @@
             "description": "Show `Submit Another Form` button"
           },
           "success_msg": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Custom message after the form is successfully submitted"
           },
           "title": {
@@ -13052,7 +13130,7 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Banner Image URL. Not in use currently."
           },
           "email": {
@@ -13066,7 +13144,7 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Logo URL. Not in use currently."
           },
           "meta": {
@@ -13078,7 +13156,7 @@
             "description": "The numbers of seconds to redirect after form submission"
           },
           "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "URL to redirect after submission"
           },
           "show_blank_form": {
@@ -13086,15 +13164,16 @@
             "description": "Show `Blank Form` after 5 seconds"
           },
           "subheading": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "The subheading of the form"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "The subheading of the form",
+            "example": "My Form Subheading"
           },
           "submit_another_form": {
             "$ref": "#/components/schemas/Bool",
             "description": "Show `Submit Another Form` button"
           },
           "success_msg": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Custom message after the form is successfully submitted"
           }
         },
@@ -13146,8 +13225,8 @@
             "description": "Unique ID"
           },
           "description": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Description (Not in use)"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
@@ -13158,11 +13237,11 @@
             "description": "Foreign Key to View"
           },
           "help": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Help Text"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
           },
           "label": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Form Column Label"
           },
           "meta": {
@@ -13231,15 +13310,15 @@
         },
         "properties": {
           "description": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Description (Not in use)"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
           },
           "help": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Form Column Help Text"
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
           },
           "label": {
-            "$ref": "#/components/schemas/StringOrNull",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Form Column Label"
           },
           "meta": {
@@ -16011,7 +16090,8 @@
           {
             "color": "#24716E",
             "meta": null,
-            "title": "My Base"
+            "title": "My Base",
+            "order": 1
           }
         ],
         "title": "Base Update Request Model",
@@ -16048,6 +16128,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the list of projects.",
+            "example": 1,
+            "minimum": 0
           }
         }
       },
@@ -16742,6 +16828,22 @@
         "x-stoplight": {
           "id": "8v8qzwm3w4v11"
         }
+      },
+      "TextOrNull": {
+        "description": "Model for TextOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [
+          {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "TextOrNull Model"
       },
       "StringOrNull": {
         "description": "Model for StringOrNull",

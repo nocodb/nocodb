@@ -827,7 +827,7 @@ export interface FormType {
   /** Unique ID */
   id?: IdType;
   /** Banner Image URL. Not in use currently. */
-  banner_image_url?: StringOrNullType;
+  banner_image_url?: TextOrNullType;
   /** Form Columns */
   columns?: FormColumnType[];
   /** Email to sned after form is submitted */
@@ -853,24 +853,24 @@ export interface FormType {
    */
   lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Logo URL. Not in use currently. */
-  logo_url?: StringOrNullType;
+  logo_url?: TextOrNullType;
   /** Meta Info for this view */
   meta?: MetaType;
   /** The numbers of seconds to redirect after form submission */
   redirect_after_secs?: StringOrNullType;
   /** URL to redirect after submission */
-  redirect_url?: StringOrNullType;
+  redirect_url?: TextOrNullType;
   /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
   /**
    * The subheading of the form
    * @example My Form Subheading
    */
-  subheading?: string;
+  subheading?: TextOrNullType;
   /** Show `Submit Another Form` button */
   submit_another_form?: BoolType;
   /** Custom message after the form is successfully submitted */
-  success_msg?: StringOrNullType;
+  success_msg?: TextOrNullType;
   /**
    * Form View Title
    * @example Form View 1
@@ -883,7 +883,7 @@ export interface FormType {
  */
 export interface FormUpdateReqType {
   /** Banner Image URL. Not in use currently. */
-  banner_image_url?: StringOrNullType;
+  banner_image_url?: TextOrNullType;
   /** Email to sned after form is submitted */
   email?: StringOrNullType;
   /**
@@ -892,21 +892,24 @@ export interface FormUpdateReqType {
    */
   heading?: string;
   /** Logo URL. Not in use currently. */
-  logo_url?: StringOrNullType;
+  logo_url?: TextOrNullType;
   /** Meta Info for this view */
   meta?: MetaType;
   /** The numbers of seconds to redirect after form submission */
   redirect_after_secs?: StringOrNullType;
   /** URL to redirect after submission */
-  redirect_url?: StringOrNullType;
+  redirect_url?: TextOrNullType;
   /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
-  /** The subheading of the form */
-  subheading?: StringOrNullType;
+  /**
+   * The subheading of the form
+   * @example My Form Subheading
+   */
+  subheading?: TextOrNullType;
   /** Show `Submit Another Form` button */
   submit_another_form?: BoolType;
   /** Custom message after the form is successfully submitted */
-  success_msg?: StringOrNullType;
+  success_msg?: TextOrNullType;
 }
 
 /**
@@ -915,16 +918,16 @@ export interface FormUpdateReqType {
 export interface FormColumnType {
   /** Unique ID */
   id?: IdType;
-  /** Form Column Description (Not in use) */
-  description?: StringOrNullType;
+  /** Form Column Description */
+  description?: TextOrNullType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Foreign Key to View */
   fk_view_id?: IdType;
-  /** Form Column Help Text */
-  help?: StringOrNullType;
+  /** Form Column Help Text (Not in use) */
+  help?: TextOrNullType;
   /** Form Column Label */
-  label?: StringOrNullType;
+  label?: TextOrNullType;
   /** Meta Info */
   meta?: MetaType;
   /**
@@ -949,12 +952,12 @@ export interface FormColumnType {
  * Model for Form Column Request
  */
 export interface FormColumnReqType {
-  /** Form Column Description (Not in use) */
-  description?: StringOrNullType;
-  /** Form Column Help Text */
-  help?: StringOrNullType;
+  /** Form Column Description */
+  description?: TextOrNullType;
+  /** Form Column Help Text (Not in use) */
+  help?: TextOrNullType;
   /** Form Column Label */
-  label?: StringOrNullType;
+  label?: TextOrNullType;
   /** Meta Info */
   meta?: MetaType;
   /** The order among all the columns in the form */
@@ -2063,6 +2066,12 @@ export interface ProjectUpdateReqType {
   status?: StringOrNullType;
   /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
+  /**
+   * The order of the list of projects.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
@@ -2311,6 +2320,11 @@ export interface SortReqType {
   /** Sort direction */
   direction?: 'asc' | 'desc';
 }
+
+/**
+ * Model for TextOrNull
+ */
+export type TextOrNullType = string | null;
 
 /**
  * Model for StringOrNull
@@ -2778,6 +2792,13 @@ export interface UserFieldRecordType {
   email: string;
   deleted?: boolean;
 }
+
+export type NestedListCopyPasteOrDeleteAllReqType = {
+  operation: 'copy' | 'paste' | 'deleteAll';
+  rowId: string;
+  columnId: string;
+  fk_related_model_id: string;
+}[];
 
 import type {
   AxiosInstance,
@@ -9908,6 +9929,25 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * @description Get dynamic command palette suggestions based on scope
+     *
+     * @tags Utils
+     * @name CommandPalette
+     * @summary Get command palette suggestions
+     * @request POST:/api/v1/command_palette
+     * @response `200` `any` OK
+     */
+    commandPalette: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/command_palette`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
   };
   dbTableWebhook = {
     /**
@@ -10958,6 +10998,46 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/links/${columnId}/records/${rowId}`,
         method: 'DELETE',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Copy links from the one cell and paste them into another cell or delete all records from cell
+ * 
+ * @tags DB Data Table Row
+ * @name NestedListCopyPasteOrDeleteAll
+ * @summary Copy paste or deleteAll nested link
+ * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    nestedListCopyPasteOrDeleteAll: (
+      tableId: string,
+      columnId: string,
+      data: NestedListCopyPasteOrDeleteAllReqType,
+      query?: {
+        /** View ID */
+        viewId?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/links/${columnId}/records`,
+        method: 'POST',
         query: query,
         body: data,
         type: ContentType.Json,

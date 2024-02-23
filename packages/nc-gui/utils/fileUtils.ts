@@ -1,4 +1,19 @@
-const imageExt = ['jpeg', 'gif', 'png', 'png', 'svg', 'bmp', 'ico', 'jpg', 'webp']
+const imageExt = [
+  'jpeg',
+  'gif',
+  'png',
+  'png',
+  'svg',
+  'bmp',
+  'ico',
+  'jpg',
+  'webp',
+  'avif',
+  'heif',
+  'heifs',
+  'heic',
+  'heic-sequence',
+]
 
 const isImage = (name: string, mimetype?: string) => {
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
@@ -45,5 +60,20 @@ function ieReadFile(filename: string) {
     return contents
   } catch (Exception) {
     return false
+  }
+}
+
+export function extractImageSrcFromRawHtml(rawText: string) {
+  // Parse the provided HTML string
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(rawText, 'text/html')
+
+  // Extract the img element
+  const imgElement = doc.querySelector('img')
+
+  // Check if the img element exists
+  if (imgElement) {
+    // Extract the src attribute
+    return imgElement.getAttribute('src')
   }
 }

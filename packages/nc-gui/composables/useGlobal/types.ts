@@ -35,6 +35,8 @@ export interface AppInfo {
   mainSubDomain?: string
   dashboardPath: string
   inviteOnlySignup: boolean
+  samlAuthEnabled: boolean
+  samlProviderName: string | null
 }
 
 export interface StoredState {
@@ -70,7 +72,7 @@ export interface Getters {
 
 export interface Actions {
   signOut: (skipRedirect?: boolean) => void
-  signIn: (token: string) => void
+  signIn: (token: string, keepProps?: boolean) => void
   refreshToken: () => void
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void

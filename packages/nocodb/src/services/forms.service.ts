@@ -9,7 +9,9 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { FormView, View } from '~/models';
+import { FormView, Model, View } from '~/models';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 @Injectable()
 export class FormsService {
@@ -31,22 +33,32 @@ export class FormsService {
       param.body,
     );
 
-    const view = await View.insert({
-      ...param.body,
-      // todo: sanitize
-      fk_model_id: param.tableId,
-      type: ViewTypes.FORM,
-    });
+    const model = await Model.get(param.tableId);
 
-    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
-      view,
-      showAs: 'form',
-      req: param.req,
-    });
+    const { id } = await View.insertMetaOnly(
+      {
+        ...param.body,
+        // todo: sanitize
+        fk_model_id: param.tableId,
+        type: ViewTypes.FORM,
+        base_id: model.base_id,
+        source_id: model.source_id,
+      },
+      model,
+    );
+
+    // populate  cache and add to list since the list cache already exist
+    const view = await View.get(id);
+    await NocoCache.appendToList(
+      CacheScope.VIEW,
+      [view.fk_model_id],
+      `${CacheScope.VIEW}:${id}`,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_CREATE, {
       user: param.user,
       view,
+      showAs: 'form',
       req: param.req,
     });
 

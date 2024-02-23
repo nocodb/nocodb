@@ -9,12 +9,15 @@ export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
 export {
   default as UITypes,
+  UITypesName,
   numericUITypes,
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,
+  isHiddenCol,
+  getEquivalentUIType,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';

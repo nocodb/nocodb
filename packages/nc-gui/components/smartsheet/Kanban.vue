@@ -291,7 +291,8 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.value.defaultLimit || 25
     const stack = formattedData.value.get(stackTitle)
-    if (stack) {
+
+    if (stack && (countByStack.value.get(stackTitle) === undefined || stack.length < countByStack.value.get(stackTitle)!)) {
       const page = Math.ceil(stack.length / pageSize)
       await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
     }
@@ -366,7 +367,7 @@ watch(
         // horizontally scroll to the end of the kanban container
         // when a new option is added within kanban view
         nextTick(() => {
-          if (shouldScrollToRight.value) {
+          if (shouldScrollToRight.value && kanbanContainerRef.value) {
             kanbanContainerRef.value.scrollTo({
               left: kanbanContainerRef.value.scrollWidth,
               behavior: 'smooth',

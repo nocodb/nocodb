@@ -17,16 +17,18 @@ const { showNull } = useGlobal()
 
 const { t } = useI18n()
 
-const editEnabled = inject(EditModeInj)!
+const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const column = inject(ColumnInj)!
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
 // Used in the logic of when to display error since we are not storing the phone if it's not valid
 const localState = ref(value)
-
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const vModel = computed({
   get: () => value,
@@ -38,7 +40,7 @@ const vModel = computed({
   },
 })
 
-const validEmail = computed(() => vModel.value && isMobilePhone(vModel.value))
+const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.value))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -62,11 +64,10 @@ watch(
 
 <template>
   <input
-    v-if="editEnabled"
+    v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full outline-none text-sm py-1"
-    :class="isExpandedFormOpen ? 'px-2' : 'px-0'"
+    class="nc-cell-field w-full outline-none text-sm py-1"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
@@ -78,17 +79,18 @@ watch(
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
 
   <a
-    v-else-if="validEmail"
-    class="text-sm underline hover:opacity-75"
+    v-else-if="validPhoneNumber"
+    class="py-1 text-sm underline hover:opacity-75 inline-block"
     :href="`tel:${vModel}`"
     target="_blank"
     rel="noopener noreferrer"
+    :tabindex="readOnly ? -1 : 0"
   >
-    <LazyCellClampedText :value="vModel" :lines="rowHeight" />
+    <LazyCellClampedText :value="vModel" :lines="rowHeight" class="nc-cell-field" />
   </a>
 
-  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" />
+  <LazyCellClampedText v-else :value="vModel" :lines="rowHeight" class="nc-cell-field" />
 </template>

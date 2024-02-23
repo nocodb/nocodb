@@ -233,11 +233,13 @@ const onPaste = (e: ClipboardEvent) => {
             @paste.prevent="onPaste"
           />
         </div>
-        <span v-if="emailValidation.isError" class="ml-2 text-red-500 text-[10px] mt-1.5">{{ emailValidation.message }}</span>
+        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 text-[10px] mt-1.5">{{
+          emailValidation.message
+        }}</span>
       </div>
       <RolesSelector
         size="md"
-        class="px-1"
+        class="px-1 min-w-[152px] nc-invite-role-selector"
         :role="inviteData.roles"
         :roles="allowedRoles"
         :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
@@ -269,5 +271,9 @@ const onPaste = (e: ClipboardEvent) => {
 
 :deep(.ant-select-selection-item) {
   @apply mt-0.75;
+}
+
+:deep(.nc-invite-role-selector .nc-role-badge) {
+  @apply w-full;
 }
 </style>

@@ -759,9 +759,79 @@ test.describe.serial('Webhook', () => {
       }
     }
 
-    console.log('rsp', rsp[0]);
-    console.log('expectedData', expectedData);
-
     expect(isSubset(rsp[0], expectedData)).toBe(true);
+  });
+
+  test('Delete operations', async ({ request }) => {
+    async function verifyDeleteOperation(rsp, type, deleteCount) {
+      // kludge- add delay to allow server to process webhook
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      expect(rsp[rsp.length - 1].type).toBe(type);
+      expect(rsp[rsp.length - 1].data.table_name).toBe('Test');
+
+      if (deleteCount !== null) {
+        expect(rsp[rsp.length - 1].data.rows.length).toBe(deleteCount);
+      }
+    }
+
+    test.slow();
+
+    await clearServerData({ request });
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
+
+    // after insert hook
+    await webhook.create({
+      title: 'hook-1',
+      event: 'After Delete',
+    });
+    // after insert hook
+    await webhook.create({
+      title: 'hook-2',
+      event: 'After Bulk Delete',
+    });
+
+    const titles = ['Poole', 'Delaware', 'Pabalo', 'John', 'Vicky', 'Tom'];
+    for (let i = 0; i < titles.length; i++) {
+      await dashboard.grid.addNewRow({
+        index: i,
+        columnHeader: 'Title',
+        value: titles[i],
+      });
+    }
+
+    // Select one record and delete
+    await dashboard.grid.selectRow(0);
+    await dashboard.grid.deleteSelectedRows();
+    let rsp = await getWebhookResponses({ request, count: 1 });
+
+    await verifyDeleteOperation(rsp, 'records.after.delete', null);
+
+    // Select multiple records and delete
+    await dashboard.grid.selectRow(0);
+    await dashboard.grid.selectRow(1);
+    await dashboard.grid.deleteSelectedRows();
+    rsp = await getWebhookResponses({ request, count: 2 });
+
+    await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
+
+    // Right click and delete record
+    await dashboard.grid.deleteRow(0);
+    rsp = await getWebhookResponses({ request, count: 3 });
+
+    await verifyDeleteOperation(rsp, 'records.after.delete', null);
+
+    // Select range and delete records
+    await dashboard.grid.selectRange({
+      start: { index: 0, columnHeader: 'Title' },
+      end: { index: 1, columnHeader: 'Title' },
+    });
+
+    await dashboard.grid.deleteRow(0);
+    rsp = await getWebhookResponses({ request, count: 4 });
+
+    await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
   });
 });

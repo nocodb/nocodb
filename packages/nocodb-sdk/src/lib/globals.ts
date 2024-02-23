@@ -6,6 +6,7 @@ export enum ViewTypes {
   GRID = 3,
   KANBAN = 4,
   MAP = 5,
+  CALENDAR = 6,
 }
 
 export enum ProjectTypes {
@@ -121,6 +122,10 @@ export enum TiptapMarksTypes {
   link = 'link',
   code = 'code',
   underline = 'underline',
+}
+
+export enum NcDataErrorCodes {
+  NC_ERR_MM_MODEL_NOT_FOUND = 'NC_ERR_MM_MODEL_NOT_FOUND',
 }
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;

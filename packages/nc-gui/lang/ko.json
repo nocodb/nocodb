@@ -157,6 +157,8 @@
     "groupingField": "그룹화 필드",
     "insertAfter": "다음에 삽입",
     "insertBefore": "이전에 삽입",
+    "insertAbove": "Insert above",
+    "insertBelow": "Insert below",
     "hideField": "필드 숨기기",
     "sortAsc": "오름차순 정렬",
     "sortDesc": "내림차순 정렬",
@@ -189,9 +191,14 @@
     "shift": "Shift",
     "enter": "Enter",
     "seconds": "초",
-    "paste": "Paste"
+    "paste": "Paste",
+    "restore": "Restore"
   },
   "objects": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
     "workspace": "작업 공간",
     "workspaces": "작업 공간",
     "project": "프로젝트",
@@ -298,6 +305,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
+    "sso": "Authentication (SSO)",
     "docs": "문서",
     "forum": "포럼",
     "parameter": "매개 변수",
@@ -328,6 +336,7 @@
     "virtualRelation": "가상 관계",
     "linkMore": "링크 더 보기",
     "linkMoreRecords": "더 많은 레코드 연결",
+    "linkRecords": "Link Records",
     "downloadFile": "파일 다운로드",
     "renameTable": "테이블 이름 변경",
     "renamingTable": "테이블 이름 바꾸기",
@@ -394,6 +403,7 @@
     "findRowByScanningCode": "QR 또는 바코드를 스캔하여 행 찾기",
     "tokenManagement": "토큰 관리",
     "addNewToken": "새 토큰 추가",
+    "createNewToken": "Create new token",
     "accountSettings": "계정 설정",
     "resetPasswordMenu": "비밀번호 재설정",
     "tokens": "토큰",
@@ -414,6 +424,23 @@
     }
   },
   "labels": {
+    "selectYear": "Select Year",
+    "save": "Save",
+    "cancel": "Cancel",
+    "metadataUrl": "Metadata URL",
+    "audience-entityId": "Audience/ Entity ID",
+    "redirectUrl": "Redirect URL",
+    "oidc": "OpenID Connect (OIDC)",
+    "saml": "Security Assertion Markup Language (SAML)",
+    "newProvider": "New Provider",
+    "generalSettings": "General Settings",
+    "ssoSettings": "SSO Settings",
+    "organizeBy": "Organize by",
+    "previous": "Previous",
+    "nextMonth": "Next Month",
+    "previousMonth": "Previous Month",
+    "next": "Next",
+    "organiseBy": "Organise by",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -457,6 +484,8 @@
     "timeFormat": "시간 형식",
     "singularLabel": "단수 레이블",
     "pluralLabel": "복수 레이블",
+    "selectDateField": "Select a date field",
+    "endDateField": "End date field",
     "optional": "(선택사항)",
     "clickToMake": "클릭하여 생성",
     "visibleForRole": "역할에 표시:",
@@ -499,7 +528,9 @@
     "duplicateFormView": "폼 뷰 복제",
     "createFormView": "폼 뷰 생성",
     "duplicateKanbanView": "칸반 뷰 복제",
+    "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "칸반 뷰 생성",
+    "createCalendarView": "Create Calendar View",
     "viewName": "이름 보기",
     "viewLink": "링크 보기",
     "columnName": "열 이름",
@@ -510,6 +541,7 @@
     "databaseType": "데이터베이스 입력",
     "lengthValue": "길이 / 값",
     "dbType": "데이터베이스 유형",
+    "servername": "servername / hostAddr",
     "sqliteFile": "SQLite 파일",
     "hostAddress": "호스트 주소",
     "port": "포트 번호",
@@ -642,9 +674,27 @@
     "changeWsName": "작업 공간 이름 변경",
     "pressEnter": "Enter를 누르세요",
     "newFormLoaded": "새로운 폼이 로드되었습니다.",
-    "webhook": "Webhook"
+    "webhook": "Webhook",
+    "multiField": {
+      "newField": "New field",
+      "saveChanges": "Save changes",
+      "updatedField": "Updated field",
+      "deletedField": "Deleted field",
+      "incompleteConfiguration": "Incomplete configuration",
+      "selectField": "Select a field",
+      "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
+    }
   },
   "activity": {
+    "goToToday": "Go to Today",
+    "toggleSidebar": "Toggle Sidebar",
+    "addEndDate": "Add end date",
+    "withEndDate": "with end date",
+    "calendar": "Calendar",
+    "viewSettings": "View settings",
+    "googleOAuth": "Google OAuth",
+    "registerOIDC": "Register OIDC Identity Provider",
+    "registerSAML": "Register SAML Identity Provider",
     "openInANewTab": "새 탭에서 열기",
     "copyIFrameCode": "IFrame 코드 복사",
     "onCondition": "조건에 따라",
@@ -668,7 +718,7 @@
     "enablePublicAccess": "전체 공개",
     "doYouWantToSaveTheChanges": "바뀐 내용을 저장할까요?",
     "editingAccess": "수정 권한",
-    "enabledPublicViewing": "공개 보기 사용 설정",
+    "enabledPublicViewing": "Enable Public Viewing",
     "restrictAccessWithPassword": "비밀번호로 액세스 제한",
     "manageProjectAccess": "프로젝트 접근 권한",
     "allowDownload": "다운로드 허용",
@@ -721,7 +771,7 @@
     "groupBy": "분류 기준",
     "addSubGroup": "하위 그룹 추가",
     "shareBase": {
-      "label": "프로젝트 공유",
+      "label": "Share Base",
       "disable": "공유 베이스 비활성화",
       "enable": "링크가 있는 모든 사용자",
       "link": "공유 링크"
@@ -902,6 +952,7 @@
     "selectGroupField": "그룹화 필드 선택",
     "selectGroupFieldNotFound": "단일 선택 필드를 찾을 수 없습니다. 최소한 하나의 단일 선택 필드를 만들어야 합니다.",
     "selectGeoField": "GeoField 선택",
+    "notSelected": "-not selected-",
     "selectGeoFieldNotFound": "GeoField를 찾을 수 없습니다. 최소한 하나의 GeoField를 만들어야 합니다.",
     "password": {
       "enter": "비밀번호를 입력하십시오",
@@ -932,7 +983,13 @@
     "decimal7": "1.0000000",
     "decimal8": "1.00000000",
     "value": "값",
-    "key": "키"
+    "key": "키",
+    "createTable": "Create your First Table!",
+    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "noTokenCreated": "No API Tokens created",
+    "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
+    "inviteYourTeam": "Invite your team",
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
   },
   "msg": {
     "clickToCopyFieldId": "클릭하여 필드 ID 복사",
@@ -960,6 +1017,7 @@
       "hintStart": "팁:{placeholder1}을(를) 사용하여 필드(예: {placeholder2})를 참조하십시오.",
       "hintEnd": "Formulas.",
       "noSuggestedFormulaFound": "제안된 공식이 없습니다.",
+      "typeIsExpected": "{calleeName} requires a {type} at position {position}",
       "numericTypeIsExpected": "숫자 유형이 필요합니다.",
       "stringTypeIsExpected": "문자열 유형이 필요합니다.",
       "operationNotAvailable": "{operation} 작업을 사용할 수 없습니다.",
@@ -1016,8 +1074,9 @@
       "tooltip_desc": "테이블의 단일 레코드 ",
       "tooltip_desc2": " 테이블의 단일 레코드와 연결될 수 있습니다."
     },
-    "noRecordsAreLinkedFromTable": "테이블에 연결된 레코드가 없습니다.",
+    "clickLinkRecordsToAddLinkFromTable": "Click 'Link Records' to begin associating data with '{tableName}'.",
     "noRecordsLinked": "레코드가 연결되지 않았습니다.",
+    "noLinkedRecords": "No linked records",
     "recordsLinked": "레코드가 연결되었습니다.",
     "acceptOnlyValid": "유효한 값만 허용",
     "apiTokenCreate": "새 API 토큰 생성",
@@ -1025,19 +1084,22 @@
     "selectFieldToGroup": "Select Field to Group",
     "thereAreNoRecordsInTable": "테이블에 레코드가 없습니다.",
     "createWebhookMsg1": "웹훅을 생성하여 자동화를 구동하고,",
-    "createWebhookMsg2": "자동화를 지원하는 웹 후크를 만들고,",
-    "createWebhookMsg3": "데이터에 변경 사항이 있는 경우 즉시 알림 받기",
+    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
     "areYouSureUWantTo": "삭제하시겠습니까?",
     "areYouSureUWantToDeleteLabel": "{deleteLabel}을 삭제하시겠습니까?",
     "idColumnRequired": "ID 필드가 필요합니다. 필요한 경우 나중에 이름을 변경할 수 있습니다.",
     "length59Required": "길이는 59자 이하여야 합니다.",
     "noNewNotifications": "새 알림 없음",
     "noRecordFound": "레코드를 찾을 수 없습니다.",
+    "noRecordsFound": "No records found",
     "rowDeleted": "행이 삭제되었습니다.",
     "saveChanges": "변경 사항을 저장하시겠습니까?",
     "tooLargeFieldEntity": "{entity}를 저장할 수 없습니다. 필드가 너무 큽니다.",
     "roleRequired": "역할이 필요합니다.",
     "warning": {
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
+      "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
+      "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "연결하려는 데이터베이스가 올바른지 확인하십시오! 이 작업으로 스키마 손실이 발생할 수 있습니다!!",
       "barcode": {
         "renderError": "바코드를 렌더링하는 동안 오류가 발생했습니다."
@@ -1048,9 +1110,16 @@
         "barcodeFieldsCannotBeDirectlyChanged": "경고: 바코드 필드는 직접 변경할 수 없습니다."
       },
       "duplicateProject": "프로젝트를 복제하려고 합니다. 계속하시겠습니까?",
-      "duplicateTable": "테이블을 복제하려고 합니다. 계속하시겠습니까?"
+      "duplicateTable": "테이블을 복제하려고 합니다. 계속하시겠습니까?",
+      "multiField": {
+        "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
+        "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
+        "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
+      }
     },
     "info": {
+      "idpPaste": "Paste these URL in your Identity Providers console",
+      "noSaml": "There are no configured SAML authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "베이스가 마이그레이션되었습니다. 다시 시도하십시오.",
       "pasteNotSupported": "활성 셀에서는 붙여넣기 작업이 지원되지 않습니다.",
@@ -1211,9 +1280,22 @@
       "goToNext": "Go to next",
       "thankYou": "Thank you!",
       "submittedFormData": "You have successfully submitted the form data.",
-      "editingSystemKeyNotSupported": "Editing system key not supported"
+      "editingSystemKeyNotSupported": "Editing system key not supported",
+      "notAvailableAtTheMoment": "Not available at the moment",
+      "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
     },
     "error": {
+      "scopesRequired": "Scopes required",
+      "authUrlRequired": "Auth URL is required",
+      "userNameAttributeRequired": "Username attribute is required",
+      "clientIdRequired": "Client ID is required",
+      "issuerRequired": "Issuer is required",
+      "clientSecretRequired": "Client Secret is required",
+      "jwkUrlRequired": "JWK URL is required",
+      "tokenUrlRequired": "Token URL is required",
+      "userInfoUrlRequired": "UserInfo URL is required",
+      "eitherXML": "Either xml or metadata url is required",
       "nameRequired": "Name Required",
       "nameMinLength": "Name must be at least 2 characters long",
       "nameMaxLength": "Name must be at most 60 characters long",
@@ -1244,6 +1326,7 @@
         "invalidEmails": "Invalid emails",
         "invalidEmail": "Invalid Email"
       },
+      "invalidXml": "Invalid XML",
       "invalidURL": "유효하지 않은 URL",
       "invalidEmail": "유효하지 않은 이메일",
       "internalError": "내부 오류",
@@ -1289,7 +1372,11 @@
       "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
-      "pasteFromClipboardError": "Failed to paste from clipboard"
+      "pasteFromClipboardError": "Failed to paste from clipboard",
+      "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
+      "somethingWentWrong": "Something went wrong",
+      "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
+      "fieldToParseImageData": "Field to parse image data"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다.",

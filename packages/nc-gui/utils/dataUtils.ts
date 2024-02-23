@@ -1,7 +1,7 @@
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import type { Row } from 'lib'
 import { isColumnRequiredAndNull } from './columnUtils'
+import type { Row } from '~/lib'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
@@ -20,6 +20,14 @@ export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
     }
   }
   return pkData
+}
+
+export const extractPk = (columns: ColumnType[]) => {
+  if (!columns && !Array.isArray(columns)) return null
+  return columns
+    .filter((c) => c.pk)
+    .map((c) => c.title)
+    .join('___')
 }
 
 export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
@@ -105,4 +113,12 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
   }, {} as Record<string, any>)
 
   return defaultData
+}
+
+export const isRowEmpty = (record: any, col: any) => {
+  if (!record || !col) return true
+  const val = record.row[col.title]
+  if (!val) return true
+
+  return Array.isArray(val) && val.length === 0
 }

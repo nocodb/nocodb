@@ -414,7 +414,6 @@ export default class Source implements SourceType {
         fk_column_id: relCol.col.id,
       });
       await NocoCache.deepDel(
-        relCol.cacheScopeName,
         `${relCol.cacheScopeName}:${relCol.col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -423,11 +422,6 @@ export default class Source implements SourceType {
     for (const model of models) {
       await model.delete(ncMeta, true);
     }
-    await NocoCache.deepDel(
-      CacheScope.BASE,
-      `${CacheScope.BASE}:${this.id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
 
     const syncSources = await SyncSource.list(this.base_id, this.id, ncMeta);
     for (const syncSource of syncSources) {
@@ -436,7 +430,14 @@ export default class Source implements SourceType {
 
     await NcConnectionMgrv2.deleteAwait(this);
 
-    return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
+    const res = await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
+
+    await NocoCache.deepDel(
+      `${CacheScope.BASE}:${this.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    return res;
   }
 
   async softDelete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
@@ -457,12 +458,9 @@ export default class Source implements SourceType {
     );
 
     await NocoCache.deepDel(
-      CacheScope.BASE,
       `${CacheScope.BASE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
-    await NocoCache.del(`${CacheScope.BASE}:${this.id}`);
   }
 
   async getModels(ncMeta = Noco.ncMeta) {

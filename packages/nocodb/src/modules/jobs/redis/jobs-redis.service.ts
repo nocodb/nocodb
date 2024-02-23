@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 import { InstanceTypes } from '~/interface/Jobs';
 
 @Injectable()
 export class JobsRedisService {
+  protected logger = new Logger(JobsRedisService.name);
+
   private redisClient: Redis;
   private redisSubscriber: Redis;
   private unsubscribeCallbacks: { [key: string]: () => void } = {};
@@ -42,7 +44,7 @@ export class JobsRedisService {
       try {
         this.redisClient.publish(channel, JSON.stringify(message));
       } catch (e) {
-        console.error(e);
+        this.logger.error(e);
       }
     }
   }

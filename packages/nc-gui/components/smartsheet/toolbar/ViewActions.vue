@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import type { Ref } from '@vue/reactivity'
-import UploadIcon from '~icons/nc-icons/upload'
-import DownloadIcon from '~icons/nc-icons/download'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -120,7 +118,7 @@ useMenuCloseOnEsc(open)
               <a-sub-menu key="upload">
                 <template #title>
                   <div v-e="['c:navdraw:preview-as']" class="nc-base-menu-item group">
-                    <UploadIcon class="w-4 h-4" />
+                    <GeneralIcon type="upload" />
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
 
@@ -147,7 +145,7 @@ useMenuCloseOnEsc(open)
             <a-sub-menu key="download">
               <template #title>
                 <div v-e="['c:download']" class="nc-base-menu-item group">
-                  <DownloadIcon class="w-4 h-4" />
+                  <GeneralIcon icon="download" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
 

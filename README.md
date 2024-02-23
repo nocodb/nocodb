@@ -15,7 +15,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 <div align="center">
 
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.14.0-brightgreen)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
@@ -250,7 +250,7 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 
 ### App Store for Workflow Automations
 
-We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/setup-and-usages/account-settings#app-store" target="_blank">App Store</a> for details.
+We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a> for details.
 
 - ⚡ &nbsp;Chat: Slack, Discord, Mattermost, and etc
 - ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc

@@ -63,7 +63,21 @@ interface Row {
     saving?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+    }
+    id?: string
+    position?: string
+    dayIndex?: number
   }
+}
+
+interface CalendarRangeType {
+  fk_from_column_id: string
+  fk_to_column_id: string | null
 }
 
 type RolePermissions = Omit<typeof rolePermissions, 'guest' | 'admin' | 'super'>
@@ -182,6 +196,8 @@ interface UsersSortType {
   direction?: 'asc' | 'desc'
 }
 
+type CommandPaletteType = 'cmd-k' | 'cmd-j' | 'cmd-l'
+
 export type {
   User,
   ProjectMetaInfo,
@@ -208,4 +224,6 @@ export type {
   NcButtonSize,
   SidebarTableNode,
   UsersSortType,
+  CommandPaletteType,
+  CalendarRangeType,
 }

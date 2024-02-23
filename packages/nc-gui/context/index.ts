@@ -10,6 +10,7 @@ export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
+export const IsCalendarInj: InjectionKey<Ref<boolean>> = Symbol('is-calendar-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')
@@ -23,10 +24,12 @@ export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-in
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
-/** when bool is passed, it indicates if a loading spinner should be visible while reloading */
-export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
+/** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
+export const ReloadViewDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
+  Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
-export const ReloadRowDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-row-data-injection')
+export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
+  Symbol('reload-row-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<ColumnType[]>> = Symbol('fields-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')
@@ -51,5 +54,6 @@ export const TreeViewInj: InjectionKey<{
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')
+export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import { type ColumnReqType, type ColumnType, type PaginatedType, type TableType, type ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
   ViewTypes,
@@ -25,19 +25,22 @@ import {
   NavigateDir,
   ReadonlyInj,
   computed,
-  enumColor,
   extractPkFromRow,
+  getEnumColorByIndex,
   iconMap,
   inject,
+  isBt,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
   isEeUI,
   isMac,
+  isMm,
   message,
   onClickOutside,
   onMounted,
   provide,
   ref,
+  useApi,
   useEventListener,
   useI18n,
   useMultiSelect,
@@ -56,7 +59,7 @@ import type { CellRange, Row } from '#imports'
 const props = defineProps<{
   data: Row[]
   paginationData?: PaginatedType
-  loadData?: () => Promise<void>
+  loadData?: (params?: any) => Promise<void>
   changePage?: (page: number) => void
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
@@ -97,6 +100,8 @@ const paginationDataRef = toRef(props, 'paginationData')
 const dataRef = toRef(props, 'data')
 
 const paginationStyleRef = toRef(props, 'pagination')
+
+const { api } = useApi()
 
 const {
   loadData,
@@ -202,7 +207,7 @@ const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
-const { onDrag, onDragStart, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
+const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
   tableBodyEl,
   gridWrapper,
@@ -263,17 +268,19 @@ provide(JsonExpandInj, isJsonExpand)
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (!ctx || !hasEditPermission.value || (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))) return
 
-  if (fields.value[ctx.col]?.uidt === UITypes.Links) {
-    return message.info(t('msg.linkColumnClearNotSupportedYet'))
-  }
-
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    let mmClearResult
+
+    if (isMm(columnObj) && rowRefs.value) {
+      mmClearResult = await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+    }
+
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult: any[]) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -286,11 +293,21 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
               columnObj.id === col.id
             ) {
-              rowObj.row[columnObj.title] = row.row[columnObj.title]
-
               if (rowRefs.value) {
-                await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
-                await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
+                if (isBt(columnObj)) {
+                  rowObj.row[columnObj.title] = row.row[columnObj.title]
+
+                  await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
+                  await rowRefs.value[ctx.row]!.syncLTARRefs(rowObj.row)
+                } else if (isMm(columnObj)) {
+                  await api.dbDataTableRow.nestedLink(
+                    meta.value?.id as string,
+                    columnObj.id as string,
+                    encodeURIComponent(rowId as string),
+                    mmClearResult,
+                  )
+                  rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                }
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -305,7 +322,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
       },
       redo: {
         fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
@@ -318,7 +335,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             const columnObj = fields.value[ctx.col]
             if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
               if (rowRefs.value) {
-                await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+                if (isBt(columnObj)) {
+                  await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+                } else if (isMm(columnObj)) {
+                  await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
+                }
               }
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
@@ -336,7 +357,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if (rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+    if (isBt(columnObj) && rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+
     return
   }
 
@@ -558,7 +580,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
-  (e: KeyboardEvent) => {
+  async (e: KeyboardEvent) => {
     // ignore navigating if picker(Date, Time, DateTime, Year)
     // or single/multi select options is open
     const activePickerOrDropdownEl = document.querySelector(
@@ -600,6 +622,42 @@ const {
       if (editEnabled.value) {
         editEnabled.value = false
         return true
+      }
+    } else if (e.key === 'Tab') {
+      if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0 && !paginationDataRef.value?.isFirstPage) {
+        e.preventDefault()
+        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1, -1)
+        return true
+      } else if (!e.shiftKey && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
+        e.preventDefault()
+
+        if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          addEmptyRow()
+          await resetAndChangePage(dataRef.value.length - 1, 0)
+          return true
+        } else if (!paginationDataRef.value?.isLastPage) {
+          await resetAndChangePage(0, 0, 1)
+          return true
+        }
+      }
+    } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowUp') {
+      if (activeCell.row === 0 && !paginationDataRef.value?.isFirstPage) {
+        e.preventDefault()
+        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!, -1)
+        return true
+      }
+    } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowDown') {
+      if (activeCell.row === dataRef.value.length - 1) {
+        e.preventDefault()
+
+        if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          addEmptyRow()
+          await resetAndChangePage(dataRef.value.length - 1, activeCell.col!)
+          return true
+        } else if (!paginationDataRef.value?.isLastPage) {
+          await resetAndChangePage(0, activeCell.col!, 1)
+          return true
+        }
       }
     }
 
@@ -697,6 +755,9 @@ const {
   },
   bulkUpdateRows,
   fillHandle,
+  view,
+  paginationDataRef,
+  changePage,
 )
 
 function scrollToRow(row?: number) {
@@ -859,13 +920,20 @@ async function clearSelectedRangeOfCells() {
   const cols = fields.value.slice(startCol, endCol + 1)
   const rows = dataRef.value.slice(startRow, endRow + 1)
   const props = []
+  let isInfoShown = false
 
   for (const row of rows) {
     for (const col of cols) {
       if (!row || !col || !col.title) continue
 
       // TODO handle LinkToAnotherRecord
-      if (isVirtualCol(col)) continue
+      if (isVirtualCol(col)) {
+        if ((isBt(col) || isMm(col)) && !isInfoShown) {
+          message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
+          isInfoShown = true
+        }
+        continue
+      }
 
       row.row[col.title] = null
       props.push(col.title)
@@ -936,6 +1004,21 @@ function scrollToCell(row?: number | null, col?: number | null) {
       behavior: 'smooth',
     })
   }
+}
+
+async function resetAndChangePage(row: number, col: number, pageChange?: number) {
+  clearSelectedRange()
+
+  if (pageChange !== undefined && paginationDataRef.value?.page) {
+    await changePage?.(paginationDataRef.value.page + pageChange)
+    await nextTick()
+    makeActive(row, col)
+  } else {
+    makeActive(row, col)
+    await nextTick()
+  }
+
+  scrollToCell?.()
 }
 
 const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
@@ -1061,7 +1144,7 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
+async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {
   isViewDataLoading.value = true
 
   if (predictedNextColumn.value?.length) {
@@ -1071,7 +1154,7 @@ async function reloadViewDataHandler(_shouldShowLoading: boolean | void) {
   // save any unsaved data before reload
   await saveOrUpdateRecords()
 
-  await loadData?.()
+  await loadData?.({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) })
 
   isViewDataLoading.value = false
 }
@@ -1320,7 +1403,10 @@ onKeyStroke('ArrowDown', onDown)
                     :title="true"
                     :paragraph="false"
                     class="ml-2 -mt-2"
-                    :class="{ 'max-w-32': colIndex !== 0, 'max-w-5 !ml-3.5': colIndex === 0 }"
+                    :class="{
+                      'max-w-32': colIndex !== 0,
+                      'max-w-5 !ml-3.5': colIndex === 0,
+                    }"
                   />
                 </td>
               </tr>
@@ -1330,7 +1416,10 @@ onKeyStroke('ArrowDown', onDown)
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
-                        :class="{ hidden: !vSelectedAllRecords, flex: vSelectedAllRecords }"
+                        :class="{
+                          hidden: !vSelectedAllRecords,
+                          flex: vSelectedAllRecords,
+                        }"
                         class="nc-check-all w-full items-center"
                       >
                         <a-checkbox v-model:checked="vSelectedAllRecords" />
@@ -1368,6 +1457,7 @@ onKeyStroke('ArrowDown', onDown)
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
+                    @dragend.stop="onDragEnd($event)"
                   >
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(col)"
@@ -1404,7 +1494,9 @@ onKeyStroke('ArrowDown', onDown)
                             <template #title>
                               <div class="flex flex-row items-center py-3">
                                 <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">{{ $t('activity.predictColumns') }}</div>
+                                <div class="text-xs pl-2">
+                                  {{ $t('activity.predictColumns') }}
+                                </div>
                                 <MdiChevronRight class="text-gray-500 ml-2" />
                               </div>
                             </template>
@@ -1433,14 +1525,18 @@ onKeyStroke('ArrowDown', onDown)
                             <div class="flex flex-row items-center py-3" @click="predictNextColumn">
                               <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
                               <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">{{ $t('activity.predictColumns') }}</div>
+                              <div class="text-xs pl-2">
+                                {{ $t('activity.predictColumns') }}
+                              </div>
                             </div>
                           </NcMenuItem>
                           <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
                             <template #title>
                               <div class="flex flex-row items-center py-3">
                                 <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">{{ $t('activity.predictFormulas') }}</div>
+                                <div class="text-xs pl-2">
+                                  {{ $t('activity.predictFormulas') }}
+                                </div>
                                 <MdiChevronRight class="text-gray-500 ml-2" />
                               </div>
                             </template>
@@ -1450,7 +1546,11 @@ onKeyStroke('ArrowDown', onDown)
                                 <NcMenuItem>
                                   <div
                                     class="flex flex-row items-center py-3"
-                                    @click="loadColumn(col.title, 'Formula', { formula_raw: col.formula })"
+                                    @click="
+                                      loadColumn(col.title, 'Formula', {
+                                        formula_raw: col.formula,
+                                      })
+                                    "
                                   >
                                     <div class="text-xs pl-2">{{ col.title }}</div>
                                   </div>
@@ -1463,7 +1563,9 @@ onKeyStroke('ArrowDown', onDown)
                             <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
                               <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
                               <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">{{ $t('activity.predictFormulas') }}</div>
+                              <div class="text-xs pl-2">
+                                {{ $t('activity.predictFormulas') }}
+                              </div>
                             </div>
                           </NcMenuItem>
                         </NcMenu>
@@ -1520,7 +1622,10 @@ onKeyStroke('ArrowDown', onDown)
                         </div>
                         <div
                           v-if="!readOnly"
-                          :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                          :class="{
+                            hidden: !row.rowMeta.selected,
+                            flex: row.rowMeta.selected,
+                          }"
                           class="nc-row-expand-and-checkbox"
                         >
                           <a-checkbox v-model:checked="row.rowMeta.selected" />
@@ -1543,7 +1648,9 @@ onKeyStroke('ArrowDown', onDown)
                             v-if="row.rowMeta?.commentCount && expandForm"
                             v-e="['c:expanded-form:open']"
                             class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                            :style="{
+                              backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
+                            }"
                             @click="expandAndLooseFocus(row, state)"
                           >
                             {{ row.rowMeta.commentCount }}
@@ -1673,7 +1780,11 @@ onKeyStroke('ArrowDown', onDown)
                 ? 'z-3'
                 : 'z-4'
             "
-            :style="{ top: `${fillHandleTop}px`, left: `${fillHandleLeft}px`, cursor: 'crosshair' }"
+            :style="{
+              top: `${fillHandleTop}px`,
+              left: `${fillHandleLeft}px`,
+              cursor: 'crosshair',
+            }"
           />
         </div>
 
@@ -1684,7 +1795,7 @@ onKeyStroke('ArrowDown', onDown)
               @click="emits('bulkUpdateDlg')"
             >
               <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.edit" />
+                <component :is="iconMap.ncEdit" />
                 {{ $t('title.updateSelectedRows') }}
               </div>
             </NcMenuItem>
@@ -1695,7 +1806,16 @@ onKeyStroke('ArrowDown', onDown)
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
-              <div v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
+              <div
+                v-if="data.filter((r) => r.rowMeta.selected).length === 1"
+                v-e="['a:row:delete']"
+                class="flex gap-2 items-center"
+              >
+                <component :is="iconMap.delete" />
+                <!-- Delete Selected Rows -->
+                {{ $t('activity.deleteSelectedRow') }}
+              </div>
+              <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
                 <component :is="iconMap.delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
@@ -1846,7 +1966,9 @@ onKeyStroke('ArrowDown', onDown)
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
-                <template v-if="isAddNewRecordGridMode"> {{ $t('activity.newRecord') }} </template>
+                <template v-if="isAddNewRecordGridMode">
+                  {{ $t('activity.newRecord') }}
+                </template>
                 <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }} </template>
               </span>
             </div>
@@ -1854,11 +1976,11 @@ onKeyStroke('ArrowDown', onDown)
             <template #overlay>
               <div class="relative overflow-visible min-h-17 w-10">
                 <div
-                  class="absolute -top-19 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                  class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                   style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                   :class="{
-                    '-left-44': !isAddNewRecordGridMode,
-                    '-left-32': isAddNewRecordGridMode,
+                    '-left-32.5': !isAddNewRecordGridMode,
+                    '-left-21.5': isAddNewRecordGridMode,
                   }"
                 >
                   <div
@@ -1874,7 +1996,9 @@ onKeyStroke('ArrowDown', onDown)
 
                       <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">{{ $t('labels.addRowGrid') }}</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.25">
+                      {{ $t('labels.addRowGrid') }}
+                    </div>
                   </div>
                   <div
                     v-e="['c:row:add:form']"
@@ -1889,7 +2013,9 @@ onKeyStroke('ArrowDown', onDown)
 
                       <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
                     </div>
-                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">{{ $t('labels.addRowForm') }}</div>
+                    <div class="flex flex-row text-xs text-gray-400 ml-7.05">
+                      {{ $t('labels.addRowForm') }}
+                    </div>
                   </div>
                 </div>
               </div>

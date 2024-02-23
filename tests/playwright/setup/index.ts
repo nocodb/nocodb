@@ -181,7 +181,7 @@ async function localInit({
   try {
     let response: AxiosResponse<any, any>;
     // Login as root user
-    if (isSuperUser && !isEE()) {
+    if (isSuperUser && process.env.NC_CLOUD !== 'true') {
       // required for configuring license key settings
       response = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
         email: `user@nocodb.com`,
@@ -208,6 +208,18 @@ async function localInit({
     const baseTitle = `pgExtREST${workerId}`;
 
     // console.log(process.env.TEST_WORKER_INDEX, process.env.TEST_PARALLEL_INDEX);
+
+    // delete sso-clients
+    if (isEE() && api['ssoClient'] && isSuperUser) {
+      const clients = await api.ssoClient.list();
+      for (const client of clients.list) {
+        try {
+          await api.ssoClient.delete(client.id);
+        } catch (e) {
+          console.log(`Error deleting sso-client: ${client.id}`);
+        }
+      }
+    }
 
     if (isEE() && api['workspace']) {
       // Delete associated workspace
@@ -398,9 +410,9 @@ const setup = async ({
     // ignore error: some roles will not have permission for license reset
     // console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
   }
-
   await page.addInitScript(
     async ({ token }) => {
+      if (location.search?.match(/code=|short-token=|skip-init-script=/)) return;
       try {
         let initialLocalStorage = {};
         try {
@@ -408,6 +420,9 @@ const setup = async ({
         } catch (e) {
           console.error('Failed to parse local storage', e);
         }
+
+        if (initialLocalStorage?.token) return;
+
         window.localStorage.setItem(
           'nocodb-gui-v2',
           JSON.stringify({

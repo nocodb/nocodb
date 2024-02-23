@@ -915,10 +915,6 @@ export class SqliteUi {
 
   static getUnsupportedFnList() {
     return [
-      'LOG',
-      'EXP',
-      'POWER',
-      'SQRT',
       'XOR',
       'REGEX_MATCH',
       'REGEX_EXTRACT',
@@ -926,8 +922,6 @@ export class SqliteUi {
       'VALUE',
       'COUNTA',
       'COUNT',
-      'ROUNDDOWN',
-      'ROUNDUP',
       'DATESTR',
       'DAY',
       'MONTH',

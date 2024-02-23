@@ -2,8 +2,24 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
-import type { ColumnType, LinkToAnotherRecordType, TableType, UserFieldRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
+import type {
+  AttachmentType,
+  ColumnType,
+  LinkToAnotherRecordType,
+  PaginatedType,
+  TableType,
+  UserFieldRecordType,
+  ViewType,
+} from 'nocodb-sdk'
+import {
+  UITypes,
+  dateFormats,
+  isDateMonthFormat,
+  isSystemColumn,
+  isVirtualCol,
+  populateUniqueFileName,
+  timeFormats,
+} from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
@@ -12,20 +28,25 @@ import type { Nullable, Row } from '#imports'
 import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  isBt,
   isDrawerOrModalExist,
   isExpandedCellInputExist,
   isMac,
+  isMm,
   isTypableInputColumn,
   message,
+  parseProp,
   reactive,
   ref,
   unref,
+  useApi,
   useBase,
   useCopy,
   useEventListener,
   useGlobal,
   useI18n,
   useMetas,
+  useUndoRedo,
 } from '#imports'
 
 const MAIN_MOUSE_PRESSED = 0
@@ -48,6 +69,9 @@ export function useMultiSelect(
   syncCellData?: Function,
   bulkUpdateRows?: Function,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
+  view?: MaybeRef<ViewType | undefined>,
+  paginationData?: MaybeRef<PaginatedType | undefined>,
+  changePage?: (page: number) => void,
 ) {
   const meta = ref(_meta)
 
@@ -61,11 +85,21 @@ export function useMultiSelect(
 
   const { isMysql, isPg } = useBase()
 
+  const { base } = storeToRefs(useBase())
+
+  const { api } = useApi()
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
+
   const editEnabled = ref(_editEnabled)
 
   const isMouseDown = ref(false)
 
   const isFillMode = ref(false)
+
+  const activeView = ref(view)
+
+  const paginationDataRef = ref(paginationData)
 
   const selectedRange = reactive(new CellRange())
 
@@ -124,6 +158,23 @@ export function useMultiSelect(
       }
     }
 
+    if (isBt(columnObj)) {
+      // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
+      textToCopy = {
+        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
+        value: textToCopy || null,
+      }
+    }
+
+    if (isMm(columnObj)) {
+      textToCopy = {
+        rowId: extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+        columnId: columnObj.id,
+        fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
+        value: !isNaN(+textToCopy) ? +textToCopy : 0,
+      }
+    }
+
     if (typeof textToCopy === 'object') {
       textToCopy = JSON.stringify(textToCopy)
     } else {
@@ -138,7 +189,7 @@ export function useMultiSelect(
       })
     }
 
-    if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(columnObj.uidt)) {
+    if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(columnObj.uidt as UITypes)) {
       // remove `"`
       // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
       textToCopy = textToCopy.replace(/["']/g, '')
@@ -159,14 +210,15 @@ export function useMultiSelect(
       // therefore, here we reformat to the correct datetime format based on the meta
       textToCopy = d.format(constructDateTimeFormat(columnObj))
 
-      if (!dayjs(textToCopy).isValid()) {
+      if (!d.isValid()) {
         // return empty string for invalid datetime
         return ''
       }
     }
 
     if (columnObj.uidt === UITypes.Date) {
-      const dateFormat = columnObj.meta?.date_format
+      const dateFormat = parseProp(columnObj.meta)?.date_format
+
       if (dateFormat && isDateMonthFormat(dateFormat)) {
         // any date month format (e.g. YYYY-MM) couldn't be stored in database
         // with date type since it is not a valid date
@@ -772,7 +824,6 @@ export function useMultiSelect(
 
     // Replace \" with " in clipboard data
     const clipboardData = e.clipboardData?.getData('text/plain') || ''
-
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
@@ -794,6 +845,7 @@ export function useMultiSelect(
         const propsToPaste: string[] = []
 
         let pastedRows = 0
+        let isInfoShown = false
 
         for (let i = 0; i < pasteMatrixRows; i++) {
           const pasteRow = rowsToPaste[i]
@@ -807,6 +859,10 @@ export function useMultiSelect(
             const pasteCol = colsToPaste[j]
 
             if (!isPasteable(pasteRow, pasteCol)) {
+              if ((isBt(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
+                message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                isInfoShown = true
+              }
               continue
             }
 
@@ -819,6 +875,7 @@ export function useMultiSelect(
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
+                oldValue: pasteCol.uidt === UITypes.Attachment ? pasteRow.row[pasteCol.title!] : undefined,
               },
               isMysql(meta.value?.source_id),
               true,
@@ -842,15 +899,10 @@ export function useMultiSelect(
           const columnObj = unref(fields)[activeCell.col]
 
           // handle belongs to column
-          if (
-            columnObj.uidt === UITypes.LinkToAnotherRecord &&
-            (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
-          ) {
-            const clipboardContext = JSON.parse(clipboardData!)
-
-            rowObj.row[columnObj.title!] = convertCellData(
+          if (isBt(columnObj)) {
+            const pasteVal = convertCellData(
               {
-                value: clipboardContext,
+                value: clipboardData,
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
@@ -858,17 +910,208 @@ export function useMultiSelect(
               isMysql(meta.value?.source_id),
             )
 
+            if (pasteVal === undefined) return
+
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
             )
 
-            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
-
             if (!foreignKeyColumn) return
 
-            rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext, (relatedTableMeta as any)!.columns!)
+            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+            rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
+            rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
+              ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
+              : null
+
+            rowObj.row[columnObj.title!] = pasteVal?.value
+
+            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
+              ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
+              : null
 
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+          }
+
+          if (isMm(columnObj)) {
+            const pasteVal = convertCellData(
+              {
+                value: clipboardData,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+              },
+              isMysql(meta.value?.source_id),
+            )
+
+            if (pasteVal === undefined) return
+
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+            if (!pasteRowPk) return
+
+            const oldCellValue = rowObj.row[columnObj.title!]
+
+            rowObj.row[columnObj.title!] = pasteVal.value
+
+            let result
+
+            try {
+              result = await api.dbDataTableRow.nestedListCopyPasteOrDeleteAll(
+                meta.value?.id as string,
+                columnObj.id as string,
+                [
+                  {
+                    operation: 'copy',
+                    rowId: pasteVal.rowId,
+                    columnId: pasteVal.columnId,
+                    fk_related_model_id: pasteVal.fk_related_model_id,
+                  },
+                  {
+                    operation: 'paste',
+                    rowId: pasteRowPk,
+                    columnId: columnObj.id as string,
+                    fk_related_model_id:
+                      (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
+                  },
+                ],
+                { viewId: activeView?.value?.id },
+              )
+            } catch {
+              rowObj.row[columnObj.title!] = oldCellValue
+              return
+            }
+
+            if (result && result?.link && result?.unlink && Array.isArray(result.link) && Array.isArray(result.unlink)) {
+              if (!result.link.length && !result.unlink.length) {
+                rowObj.row[columnObj.title!] = oldCellValue
+                return
+              }
+              addUndo({
+                redo: {
+                  fn: async (
+                    activeCell: Cell,
+                    col: ColumnType,
+                    row: Row,
+                    pg: PaginatedType,
+                    value: number,
+                    result: { link: any[]; unlink: any[] },
+                  ) => {
+                    if (paginationDataRef.value?.pageSize === pg?.pageSize) {
+                      if (paginationDataRef.value?.page !== pg?.page) {
+                        await changePage?.(pg?.page)
+                      }
+                      const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      const rowObj = unref(data)[activeCell.row]
+                      const columnObj = unref(fields)[activeCell.col]
+                      if (
+                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+                        columnObj.id === col.id
+                      ) {
+                        await Promise.all([
+                          result.link.length &&
+                            api.dbDataTableRow.nestedLink(
+                              meta.value?.id as string,
+                              columnObj.id as string,
+                              encodeURIComponent(pasteRowPk),
+                              result.link,
+                              {
+                                viewId: activeView?.value?.id,
+                              },
+                            ),
+                          result.unlink.length &&
+                            api.dbDataTableRow.nestedUnlink(
+                              meta.value?.id as string,
+                              columnObj.id as string,
+                              encodeURIComponent(pasteRowPk),
+                              result.unlink,
+                              { viewId: activeView?.value?.id },
+                            ),
+                        ])
+
+                        rowObj.row[columnObj.title!] = value
+
+                        await syncCellData?.(activeCell)
+                      } else {
+                        throw new Error(t('msg.recordCouldNotBeFound'))
+                      }
+                    } else {
+                      throw new Error(t('msg.pageSizeChanged'))
+                    }
+                  },
+                  args: [
+                    clone(activeCell),
+                    clone(columnObj),
+                    clone(rowObj),
+                    clone(paginationDataRef.value),
+                    clone(pasteVal.value),
+                    result,
+                  ],
+                },
+                undo: {
+                  fn: async (
+                    activeCell: Cell,
+                    col: ColumnType,
+                    row: Row,
+                    pg: PaginatedType,
+                    value: number,
+                    result: { link: any[]; unlink: any[] },
+                  ) => {
+                    if (paginationDataRef.value?.pageSize === pg.pageSize) {
+                      if (paginationDataRef.value?.page !== pg.page) {
+                        await changePage?.(pg.page!)
+                      }
+
+                      const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      const rowObj = unref(data)[activeCell.row]
+                      const columnObj = unref(fields)[activeCell.col]
+
+                      if (
+                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+                        columnObj.id === col.id
+                      ) {
+                        await Promise.all([
+                          result.unlink.length &&
+                            api.dbDataTableRow.nestedLink(
+                              meta.value?.id as string,
+                              columnObj.id as string,
+                              encodeURIComponent(pasteRowPk),
+                              result.unlink,
+                            ),
+                          result.link.length &&
+                            api.dbDataTableRow.nestedUnlink(
+                              meta.value?.id as string,
+                              columnObj.id as string,
+                              encodeURIComponent(pasteRowPk),
+                              result.link,
+                            ),
+                        ])
+
+                        rowObj.row[columnObj.title!] = value
+
+                        await syncCellData?.(activeCell)
+                      } else {
+                        throw new Error(t('msg.recordCouldNotBeFound'))
+                      }
+                    } else {
+                      throw new Error(t('msg.pageSizeChanged'))
+                    }
+                  },
+                  args: [
+                    clone(activeCell),
+                    clone(columnObj),
+                    clone(rowObj),
+                    clone(paginationDataRef.value),
+                    clone(oldCellValue),
+                    result,
+                  ],
+                },
+                scope: defineViewScope({ view: activeView?.value }),
+              })
+            }
+
+            return await syncCellData?.(activeCell)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {
@@ -881,11 +1124,17 @@ export function useMultiSelect(
               to: columnObj.uidt as UITypes,
               column: columnObj,
               appInfo: unref(appInfo),
+              files: columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
+              oldValue: rowObj.row[columnObj.title!],
             },
             isMysql(meta.value?.source_id),
           )
 
-          if (pasteValue !== undefined) {
+          if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
+            const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
+
+            rowObj.row[columnObj.title!] = newAttachments ? JSON.stringify(newAttachments) : null
+          } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
 
@@ -903,29 +1152,64 @@ export function useMultiSelect(
           const rows = unref(data).slice(startRow, endRow + 1)
           const props = []
 
+          let pasteValue
+          let isInfoShown = false
+
+          const files = e.clipboardData?.files
+
           for (const row of rows) {
             // TODO handle insert new row
             if (!row || row.rowMeta.new) continue
 
             for (const col of cols) {
-              if (!col.title) continue
-
-              if (!isPasteable(row, col)) {
+              if (!col.title || !isPasteable(row, col)) {
+                if ((isBt(col) || isMm(col)) && !isInfoShown) {
+                  message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                  isInfoShown = true
+                }
                 continue
               }
 
-              props.push(col.title)
+              if (files?.length) {
+                if (col.uidt !== UITypes.Attachment) {
+                  continue
+                }
 
-              const pasteValue = convertCellData(
-                {
-                  value: clipboardData,
-                  to: col.uidt as UITypes,
-                  column: col,
-                  appInfo: unref(appInfo),
-                },
-                isMysql(meta.value?.source_id),
-                true,
-              )
+                if (pasteValue === undefined) {
+                  const fileUploadPayload = convertCellData(
+                    {
+                      value: '',
+                      to: col.uidt as UITypes,
+                      column: col,
+                      appInfo: unref(appInfo),
+                      files,
+                      oldValue: row.row[col.title],
+                    },
+                    isMysql(meta.value?.source_id),
+                    true,
+                  )
+
+                  if (fileUploadPayload?.length) {
+                    const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
+
+                    pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                  }
+                }
+              } else {
+                pasteValue = convertCellData(
+                  {
+                    value: clipboardData,
+                    to: col.uidt as UITypes,
+                    column: col,
+                    appInfo: unref(appInfo),
+                    oldValue: row.row[col.title],
+                  },
+                  isMysql(meta.value?.source_id),
+                  true,
+                )
+              }
+
+              props.push(col.title)
 
               if (pasteValue !== undefined) {
                 row.row[col.title] = pasteValue
@@ -933,6 +1217,7 @@ export function useMultiSelect(
             }
           }
 
+          if (!props.length) return
           await bulkUpdateRows?.(rows, props)
         }
       }
@@ -955,6 +1240,46 @@ export function useMultiSelect(
     }
 
     event.preventDefault()
+  }
+
+  async function handleFileUploadAndGetCellValue(files: File[], columnId: string, oldValue: AttachmentType[]) {
+    const newAttachments: AttachmentType[] = []
+
+    try {
+      const data = await api.storage.upload(
+        {
+          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
+        },
+        {
+          files,
+        },
+      )
+
+      // add suffix in duplicate file title
+      for (const uploadedFile of data) {
+        newAttachments.push({
+          ...uploadedFile,
+          title: populateUniqueFileName(
+            uploadedFile?.title,
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map((fn) => fn?.title || fn?.fileName),
+            uploadedFile?.mimetype,
+          ),
+        })
+      }
+      return newAttachments
+    } catch (e: any) {
+      message.error(e.message || t('msg.error.internalError'))
+    }
+  }
+
+  function handleParseAttachmentCellData<T>(value: T): T {
+    const parsedVal = parseProp(value)
+
+    if (parsedVal && Array.isArray(parsedVal)) {
+      return parsedVal as T
+    } else {
+      return [] as T
+    }
   }
 
   useEventListener(document, 'keydown', handleKeyDown)

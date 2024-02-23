@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import {
   ActiveCellInj,
   EditColumnInj,
-  IsExpandedFormOpenInj,
   ReadonlyInj,
   computed,
   inject,
@@ -31,8 +30,6 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isYearInvalid = ref(false)
 
@@ -119,8 +116,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :tabindex="0"
     picker="year"
     :bordered="false"
-    class="!w-full !py-1 !border-none !text-current"
-    :class="{ 'nc-null': modelValue === null && showNull, '!px-2': isExpandedFormOpen, '!px-0': !isExpandedFormOpen }"
+    class="nc-cell-field !w-full !py-1 !border-none !text-current"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
     :input-read-only="true"

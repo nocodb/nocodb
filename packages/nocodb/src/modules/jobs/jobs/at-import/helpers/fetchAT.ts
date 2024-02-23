@@ -1,4 +1,7 @@
+import { Logger } from '@nestjs/common';
 import axios from 'axios';
+
+const logger = new Logger('FetchAT');
 
 const info: any = {
   initialized: false,
@@ -43,7 +46,8 @@ async function initialize(shareId, appId?: string) {
         }
         return response.data;
       })
-      .catch(() => {
+      .catch((e) => {
+        logger.log(e);
         throw {
           message:
             'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -68,6 +72,11 @@ async function initialize(shareId, appId?: string) {
       hreq.match(/(?<=fetch\(")(\\.*)(?=")/g)[0].trim(),
     );
 
+    info.link = info.link.replace(
+      '%22mayExcludeCellDataForLargeViews%22%3Afalse',
+      '%22mayExcludeCellDataForLargeViews%22%3Atrue',
+    );
+
     info.baseInfo = decodeURIComponent(info.link)
       .match(/{(.*)}/g)[0]
       .split('&')
@@ -88,7 +97,7 @@ async function initialize(shareId, appId?: string) {
     info.baseId = info.baseInfo.applicationId;
     info.initialized = true;
   } catch (e) {
-    console.log(e);
+    logger.log(e);
     info.initialized = false;
     if (e.message) {
       throw e;
@@ -128,7 +137,8 @@ async function read() {
       .then((response) => {
         return response.data;
       })
-      .catch(() => {
+      .catch((e) => {
+        logger.log(e);
         throw {
           message:
             'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -151,7 +161,12 @@ async function readView(viewId) {
   if (info.initialized) {
     const resreq = await axios(
       `https://airtable.com/v0.3/view/${viewId}/readData?` +
-        `stringifiedObjectParams=${encodeURIComponent('{}')}&requestId=${
+        `stringifiedObjectParams=${encodeURIComponent(
+          JSON.stringify({
+            mayOnlyIncludeRowAndCellDataForIncludedViews: true,
+            mayExcludeCellDataForLargeViews: true,
+          }),
+        )}&requestId=${
           info.baseInfo.requestId
         }&accessPolicy=${encodeURIComponent(
           JSON.stringify({
@@ -189,7 +204,8 @@ async function readView(viewId) {
       .then((response) => {
         return response.data;
       })
-      .catch(() => {
+      .catch((e) => {
+        logger.log(e);
         throw {
           message:
             'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
@@ -238,7 +254,8 @@ async function readTemplate(templateId) {
     .then((response) => {
       return response.data;
     })
-    .catch(() => {
+    .catch((e) => {
+      logger.log(e);
       throw {
         message:
           'Error Fetching :: Ensure www.airtable.com/templates/featured/<TemplateID> is accessible.',

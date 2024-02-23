@@ -19,7 +19,9 @@ const filterCollaborators = computed(() => {
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter((collab) => collab.email!.includes(userSearchText.value))
+  return collaborators.value.filter((collab) =>
+    (collab.display_name || collab.email).toLowerCase().includes(userSearchText.value.toLowerCase()),
+  )
 })
 
 const sortedCollaborators = computed(() => {
@@ -67,7 +69,7 @@ onMounted(async () => {
     </div>
     <WorkspaceInviteSection v-if="workspaceRole !== WorkspaceUserRoles.VIEWER" />
     <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <Empty description="No members found" />
+      <a-empty description="No members found" />
     </div>
     <div v-else class="nc-collaborators-list mt-6 h-full">
       <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
@@ -96,7 +98,15 @@ onMounted(async () => {
           >
             <div class="flex gap-3 items-center users-email-grid w-3/8 ml-10">
               <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
-              <span class="truncate">
+              <NcTooltip v-if="collab.display_name">
+                <template #title>
+                  {{ collab.email }}
+                </template>
+                <span class="truncate">
+                  {{ collab.display_name }}
+                </span>
+              </NcTooltip>
+              <span v-else class="truncate">
                 {{ collab.email }}
               </span>
             </div>
@@ -141,6 +151,15 @@ onMounted(async () => {
                 </template>
               </NcDropdown>
             </div>
+          </div>
+          <div v-if="sortedCollaborators.length === 1" class="pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+            <div class="text-2xl text-gray-800 font-bold">
+              {{ $t('placeholder.inviteYourTeam') }}
+            </div>
+            <div class="text-sm text-gray-700">
+              {{ $t('placeholder.inviteYourTeamLabel') }}
+            </div>
+            <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
           </div>
         </div>
       </div>

@@ -128,6 +128,9 @@ test.describe('Shared view', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Address' });
 
+    // Unhide City column
+    await dashboard.grid.toolbar.fields.toggle({ title: 'City', isLocallySaved: false, checked: true });
+
     // hide column
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
     await dashboard.grid.toolbar.fields.toggle({ title: 'Stores' });
@@ -168,7 +171,6 @@ test.describe('Shared view', () => {
       { title: 'Address', isVisible: true },
       { title: 'Address2', isVisible: false },
       { title: 'District', isVisible: true },
-      { title: 'City', isVisible: true },
       { title: 'PostalCode', isVisible: true },
       { title: 'Phone', isVisible: true },
       { title: 'LastUpdate', isVisible: true },
@@ -225,7 +227,7 @@ test.describe('Shared view', () => {
       await sharedPage.grid.toolbar.clickFilter();
     }
     await sharedPage.grid.toolbar.fields.toggle({ title: 'LastUpdate', isLocallySaved: true });
-    expectedColumns[6].isVisible = false;
+    expectedColumns[5].isVisible = false;
 
     // verify new sort & filter criteria
     for (const column of expectedColumns) {

@@ -144,35 +144,16 @@ export default class Filter implements FilterType {
     if (!value) {
       /* get from db */
       value = await ncMeta.metaGet2(null, null, MetaTable.FILTER_EXP, id);
-      // pushing calls for Promise.all
-      const p = [];
+
       /* store in redis */
-      p.push(NocoCache.set(key, value));
-      /* append key to relevant lists */
-      if (filter.fk_view_id) {
-        p.push(
-          NocoCache.appendToList(
-            CacheScope.FILTER_EXP,
-            [filter.fk_view_id],
-            key,
-          ),
-        );
-      }
-      if (filter.fk_hook_id) {
-        p.push(
-          NocoCache.appendToList(
-            CacheScope.FILTER_EXP,
-            [filter.fk_hook_id],
-            key,
-          ),
-        );
-      }
-      if (filter.fk_parent_id) {
+      await NocoCache.set(key, value).then(async () => {
+        /* append key to relevant lists */
+        const p = [];
         if (filter.fk_view_id) {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_view_id, filter.fk_parent_id],
+              [filter.fk_view_id],
               key,
             ),
           );
@@ -181,29 +162,49 @@ export default class Filter implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_hook_id, filter.fk_parent_id],
+              [filter.fk_hook_id],
               key,
             ),
           );
         }
-        p.push(
-          NocoCache.appendToList(
-            CacheScope.FILTER_EXP,
-            [filter.fk_parent_id],
-            key,
-          ),
-        );
-      }
-      if (filter.fk_column_id) {
-        p.push(
-          NocoCache.appendToList(
-            CacheScope.FILTER_EXP,
-            [filter.fk_column_id],
-            key,
-          ),
-        );
-      }
-      await Promise.all(p);
+        if (filter.fk_parent_id) {
+          if (filter.fk_view_id) {
+            p.push(
+              NocoCache.appendToList(
+                CacheScope.FILTER_EXP,
+                [filter.fk_view_id, filter.fk_parent_id],
+                key,
+              ),
+            );
+          }
+          if (filter.fk_hook_id) {
+            p.push(
+              NocoCache.appendToList(
+                CacheScope.FILTER_EXP,
+                [filter.fk_hook_id, filter.fk_parent_id],
+                key,
+              ),
+            );
+          }
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_parent_id],
+              key,
+            ),
+          );
+        }
+        if (filter.fk_column_id) {
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_column_id],
+              key,
+            ),
+          );
+        }
+        await Promise.all(p);
+      });
     }
 
     // on new filter creation delete any optimised single query cache
@@ -211,10 +212,8 @@ export default class Filter implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
-        await NocoCache.delAll(
-          CacheScope.SINGLE_QUERY,
-          `${view.fk_model_id}:${view.id}:*`,
-        );
+
+        await View.clearSingleQueryCache(view.fk_model_id, [view]);
       }
     }
 
@@ -259,10 +258,9 @@ export default class Filter implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
-        await NocoCache.delAll(
-          CacheScope.SINGLE_QUERY,
-          `${view.fk_model_id}:${view.id}:*`,
-        );
+        await View.clearSingleQueryCache(view.fk_model_id, [
+          { id: filter.fk_view_id },
+        ]);
       }
     }
 
@@ -278,7 +276,6 @@ export default class Filter implements FilterType {
         await deleteRecursively(f);
       await ncMeta.metaDelete(null, null, MetaTable.FILTER_EXP, filter.id);
       await NocoCache.deepDel(
-        CacheScope.FILTER_EXP,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -290,10 +287,10 @@ export default class Filter implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
-        await NocoCache.delAll(
-          CacheScope.SINGLE_QUERY,
-          `${view.fk_model_id}:${view.id}:*`,
-        );
+
+        await View.clearSingleQueryCache(view.fk_model_id, [
+          { id: filter.fk_view_id },
+        ]);
       }
     }
   }
@@ -437,7 +434,6 @@ export default class Filter implements FilterType {
       if (filter.id) {
         await ncMeta.metaDelete(null, null, MetaTable.FILTER_EXP, filter.id);
         await NocoCache.deepDel(
-          CacheScope.FILTER_EXP,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -448,10 +444,7 @@ export default class Filter implements FilterType {
     // on update delete any optimised single query cache
     {
       const view = await View.get(viewId, ncMeta);
-      await NocoCache.delAll(
-        CacheScope.SINGLE_QUERY,
-        `${view.fk_model_id}:${view.id}:*`,
-      );
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
     }
   }
 
@@ -464,7 +457,6 @@ export default class Filter implements FilterType {
       if (filter.id) {
         await ncMeta.metaDelete(null, null, MetaTable.FILTER_EXP, filter.id);
         await NocoCache.deepDel(
-          CacheScope.FILTER_EXP,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );

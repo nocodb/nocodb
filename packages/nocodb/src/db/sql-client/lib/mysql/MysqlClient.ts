@@ -316,8 +316,6 @@ class MysqlClient extends KnexClient {
 
       log.debug('Create database if not exists', data);
 
-      // create new knex client
-      this.sqlClient = knex(this.connectionConfig);
       await tempSqlClient.destroy();
     } catch (e) {
       log.ppe(e, func);

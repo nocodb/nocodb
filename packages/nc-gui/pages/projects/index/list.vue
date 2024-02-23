@@ -30,7 +30,7 @@ const openProject = async (base: BaseType) => {
 
     <template v-for="base of bases" :key="base.id">
       <div
-        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30) p-2 transition-color ease-in duration-100"
+        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30) p-2 transition-colors ease-in duration-100"
         @click="openProject(base)"
       >
         <div class="font-semibold capitalize">{{ base.title || 'Untitled' }}</div>

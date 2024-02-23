@@ -48,7 +48,8 @@ import Text from '~/components/cell/Text.vue'
 import User from '~/components/cell/User.vue'
 
 interface Props {
-  column: ColumnType
+  // column could be possibly undefined when the filter is created
+  column?: ColumnType
   filter: Filter
 }
 

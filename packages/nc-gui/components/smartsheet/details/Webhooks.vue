@@ -197,13 +197,10 @@ watch(
       </NcButton>
     </div>
     <div v-if="!selectedHookId && !isDraftMode" class="flex flex-col h-full w-full items-center">
-      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full justify-center items-center gap-y-6">
-        <GeneralIcon icon="webhook" class="flex text-5xl h-10" style="-webkit-text-stroke: 0.5px" />
-        <div class="flex text-gray-600 font-medium text-lg">{{ $t('msg.createWebhookMsg1') }}</div>
-        <div class="flex flex-col items-center">
-          <div class="flex">{{ $t('msg.createWebhookMsg2') }}</div>
-          <div class="flex">{{ $t('msg.createWebhookMsg3') }}</div>
-        </div>
+      <div v-if="hooks.length === 0" class="flex flex-col px-1.5 py-2.5 ml-1 h-full items-center gap-y-6 text-center">
+        <img src="~assets/img/placeholder/webhooks.png" class="!w-[24rem] flex-none" />
+        <div class="text-gray-700 font-bold text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
+        <div class="text-gray-700 max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
         <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" @click="createWebhook()">
           <div class="flex flex-row items-center justify-between w-full">
             <span class="ml-1">{{ $t('activity.newWebhook') }}</span>
@@ -265,7 +262,9 @@ watch(
                       @click="copyWebhook(hook)"
                     >
                       <template #loading> {{ $t('general.duplicating') }} </template>
-                      <div class="flex items-center gap-x-1"><GeneralIcon icon="copy" /> {{ $t('general.duplicate') }}</div>
+                      <div class="flex items-center gap-x-1">
+                        <GeneralIcon icon="duplicate"></GeneralIcon> {{ $t('general.duplicate') }}
+                      </div>
                     </NcButton>
                     <NcButton type="text" class="w-full !rounded-md !px-2" :centered="false" @click="openDeleteModal(hook.id!)">
                       <div class="flex items-center justify-start gap-x-1 !text-red-500">

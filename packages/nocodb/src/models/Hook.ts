@@ -161,13 +161,14 @@ export default class Hook implements HookType {
       insertObj,
     );
 
-    await NocoCache.appendToList(
-      CacheScope.HOOK,
-      [hook.fk_model_id],
-      `${CacheScope.HOOK}:${id}`,
-    );
-
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta).then(async (hook) => {
+      await NocoCache.appendToList(
+        CacheScope.HOOK,
+        [hook.fk_model_id],
+        `${CacheScope.HOOK}:${id}`,
+      );
+      return hook;
+    });
   }
 
   public static async update(
@@ -237,7 +238,6 @@ export default class Hook implements HookType {
     );
     for (const filter of filterList) {
       await NocoCache.deepDel(
-        CacheScope.FILTER_EXP,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -245,7 +245,6 @@ export default class Hook implements HookType {
     }
     // Delete Hook
     await NocoCache.deepDel(
-      CacheScope.HOOK,
       `${CacheScope.HOOK}:${hookId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

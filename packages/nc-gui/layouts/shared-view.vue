@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { iconMap, navigateTo, useEventListener, useRouter } from '#imports'
+import { iconMap, onMounted, useEventListener, useGlobal, useRouter, useSharedView } from '#imports'
 
 const { isLoading, appInfo } = useGlobal()
 
@@ -50,14 +50,19 @@ export default {
   <a-layout id="nc-app">
     <a-layout class="!flex-col bg-white">
       <a-layout-header class="flex !bg-primary items-center text-white pl-3 pr-4 shadow-lg">
-        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105" @click="navigateTo('/')">
+        <a
+          class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105"
+          href="https://github.com/nocodb/nocodb"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <a-tooltip placement="bottom">
             <template #title>
               {{ appInfo.version }}
             </template>
             <img width="35" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
           </a-tooltip>
-        </div>
+        </a>
 
         <div>
           <div class="flex justify-center items-center">

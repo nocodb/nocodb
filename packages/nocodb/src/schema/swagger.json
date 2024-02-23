@@ -10026,6 +10026,188 @@
         }
       }
     },
+    "/api/v1/db/public/calendar-view/{sharedViewUuid}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List rows in Calendar View of a Table",
+        "operationId": "db-calendar-view-row-list",
+        "description": "List all rows in Calendar View of a Table",
+        "tags": [
+          "DB Calendar View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "responses": {
+        "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "list": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "okd8utzm9xqet"
+                    },
+                    "description": "List of calendar view rows",
+                    "items": {
+                      "x-stoplight": {
+                        "id": "j758lsjv53o4q"
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "pageInfo": {
+                    "$ref": "#/components/schemas/Paginated",
+                    "x-stoplight": {
+                      "id": "hylgqzgm8yhye"
+                    },
+                    "description": "Paginated Info"
+                  }
+                },
+                "required": [
+                  "list",
+                  "pageInfo"
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "list": [
+                      {
+                        "Id": 1,
+                        "Title": "baz",
+                        "SingleSelect": null,
+                        "Sheet-1 List": [
+                          {
+                            "Id": 1,
+                            "Title": "baz"
+                          }
+                        ],
+                        "LTAR": [
+                          {
+                            "Id": 1,
+                            "Title": "baz"
+                          }
+                        ]
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "foo",
+                        "SingleSelect": "a",
+                        "Sheet-1 List": [
+                          {
+                            "Id": 2,
+                            "Title": "foo"
+                          }
+                        ],
+                        "LTAR": [
+                          {
+                            "Id": 2,
+                            "Title": "foo"
+                          }
+                        ]
+                      },
+                      {
+                        "Id": 3,
+                        "Title": "bar",
+                        "SingleSelect": "b",
+                        "Sheet-1 List": [],
+                        "LTAR": []
+                      }
+                    ],
+                    "pageInfo": {
+                      "totalRows": 3,
+                      "page": 1,
+                      "pageSize": 25,
+                      "isFirstPage": true,
+                      "isLastPage": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        }
+      }
+    },
     "/api/v1/db/public/calendar-view/{sharedViewUuid}/countByDate": {
       "parameters": [
         {

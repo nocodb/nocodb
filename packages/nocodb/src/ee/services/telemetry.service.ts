@@ -41,6 +41,9 @@ export class TelemetryService {
       return;
     }
 
+    // skip if email belongs to nocodb
+    if (req?.user?.email?.endsWith('@nocodb.com')) return;
+
     const distinctId =
       clientId ||
       req?.headers?.['nc-client-id'] ||
@@ -72,6 +75,9 @@ export class TelemetryService {
     req: NcRequest;
   }) {
     if (!process.env.NC_CLOUD_POSTHOG_API_KEY) return;
+
+    // skip if email belongs to nocodb
+    if (param.req.user?.email?.endsWith('@nocodb.com')) return;
 
     for (const event of param.body.events) {
       const payload = {

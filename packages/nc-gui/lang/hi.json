@@ -212,7 +212,7 @@
     "page": "पृष्ठ",
     "pages": "पृष्ठों",
     "record": "अभिलेख",
-    "records": "records",
+    "records": "अभिलेख",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "राय",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} cannot be empty.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",

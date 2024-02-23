@@ -484,7 +484,7 @@ export const iconMap = {
   ncArrowUp: NcArrowUp,
   ncArrowDown: NcArrowDown,
   phoneCall: NcPhoneCall,
-  crop: NcCrop
+  crop: NcCrop,
 }
 
 export const getMdiIcon = (type: string): any => {

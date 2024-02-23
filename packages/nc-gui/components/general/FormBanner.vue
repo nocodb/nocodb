@@ -3,17 +3,19 @@ interface Props {
   bannerImageUrl?: string | null
 }
 const { bannerImageUrl } = defineProps<Props>()
+
+const { getPossibleAttachmentSrc } = useAttachment()
 </script>
 
 <template>
   <div
-    class="w-full max-w-screen-xl mx-auto bg-white border-1 border-gray-200 rounded-3xl overflow-hidden"
-    :style="
-      bannerImageUrl
-        ? { 'background-image': `url(${bannerImageUrl})`, 'background-size': 'cover', 'background-position': 'center' }
-        : {}
-    "
+    class="nc-form-banner-wrapper w-full max-w-screen-xl mx-auto bg-white border-1 border-gray-200 rounded-3xl overflow-hidden"
   >
+    <LazyCellAttachmentImage
+      v-if="bannerImageUrl"
+      :srcs="getPossibleAttachmentSrc(parseProp(bannerImageUrl))"
+      class="nc-form-banner-image object-cover w-full"
+    />
     <!-- Todo: aspect ratio and cover image uploader and image cropper to crop image in fixed aspect ratio  -->
     <div v-if="!bannerImageUrl" class="h-full flex items-stretch justify-between">
       <div class="flex">
@@ -29,3 +31,12 @@ const { bannerImageUrl } = defineProps<Props>()
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-form-banner-wrapper {
+  aspect-ratio: 468/60;
+  @media (max-width: 768px) {
+    aspect-ratio: 4/1;
+  }
+}
+</style>

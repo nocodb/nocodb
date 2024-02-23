@@ -212,7 +212,7 @@
     "page": "صفحه",
     "pages": "صفحات",
     "record": "سابقه",
-    "records": "records",
+    "records": "سوابق",
     "webhook": "وب‌هوک",
     "webhooks": "وب‌هوک‌ها",
     "view": "نمایش",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "نوع فایل های مورد قبول .xls, .xlsx, .xlm, .ods, .ots هستند",
       "parameterKeyCannotBeEmpty": "کلید پارامتر نمیتواند خالی باشد",
       "duplicateParameterKeysAreNotAllowed": "کلید های پارامتر تکراری مجاز نیستند",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} نمیتواند خالی باشد.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "کپی به کلیپ برد ناموفق",
       "pasteFromClipboardError": "Failed to paste from clipboard",

@@ -66,7 +66,7 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.28.0",
     "boxen": "^4.2.0",
     "chalk-pipe": "^4.0.0",
     "cli-table3": "0.6.1",

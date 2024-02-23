@@ -1510,6 +1510,92 @@ export interface KanbanUpdateReqType {
 }
 
 /**
+ * Model for Calendar
+ */
+export interface CalendarType {
+  /** Unique ID */
+  id?: IdType;
+  /** View ID */
+  fk_view_id?: IdType;
+  /** Cover Image Column ID */
+  fk_cover_image_col_id?: StringOrNullType;
+  /** Calendar Columns */
+  columns?: CalendarColumnType[];
+  /** Calendar Date Range */
+  calendar_range?: CalendarRangeType[];
+  /** Meta Info for Kanban */
+  meta?: MetaType;
+  /**
+   * Kanban Title
+   * @example My Kanban
+   */
+  title?: string;
+}
+
+/**
+ * Model for Calendar Column
+ */
+export interface CalendarColumnType {
+  /** Unique ID */
+  id?: IdType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Baes ID
+   *
+   */
+  source_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Base ID */
+  title?: string;
+  /** Is this column shown? */
+  show?: BoolType;
+  /** Is this column shown as bold? */
+  bold?: BoolType;
+  /** Is this column shown as italic? */
+  italic?: BoolType;
+  /** Is this column shown underlines? */
+  underline?: BoolType;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
+ * Model for Calendar Date Range
+ */
+export interface CalendarRangeType {
+  /** Foreign Key to Column */
+  fk_from_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: StringOrNullType;
+  /** Base ID */
+  label?: string;
+}
+
+/**
+ * Model for Calendar Update Request
+ */
+export interface CalendarUpdateReqType {
+  /** Foreign Key to Cover Image Column */
+  fk_cover_image_col_id?: StringOrNullType;
+  /**
+   * Calendar Title
+   * @example Calendar 01
+   */
+  title?: string;
+  /** Calendar Columns */
+  calendar_range?: CalendarRangeType[];
+  /** Meta Info */
+  meta?: MetaType;
+}
+
+/**
  * Model for Kanban Request
  */
 export interface LicenseReqType {
@@ -2327,6 +2413,12 @@ export interface SortReqType {
 export type TextOrNullType = string | null;
 
 /**
+ * Model for CalendarRangeOrNull
+ * @example [{"id":"kvc_2skkg5mi1eb37f","fk_from_column_id":"cl_hzos4ghyncqi4k","fk_to_column_id":"cl_hzos4ghyncqi4k","fk_view_id":"vw_wqs4zheuo5lgdy","label":"string"}]
+ */
+export type CalendarRangeOrNullType = null | CalendarRangeType[];
+
+/**
  * Model for StringOrNull
  */
 export type StringOrNullType = string | null;
@@ -2516,7 +2608,8 @@ export interface ViewType {
     | GridType
     | KanbanType
     | MapType
-    | (FormType & GalleryType & GridType & KanbanType & MapType);
+    | CalendarType
+    | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
 }
 
 /**
@@ -2546,6 +2639,8 @@ export interface ViewCreateReqType {
   fk_grp_col_id?: StringOrNullType;
   /** Foreign Key to Geo Data Column. Used in creating Map View. */
   fk_geo_data_col_id?: StringOrNullType;
+  /** Calendar Range or Null */
+  calendar_range?: CalendarRangeOrNullType;
 }
 
 /**
@@ -6818,6 +6913,102 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+ * @description Create a new Calendar View
+ * 
+ * @tags DB View
+ * @name CalendarCreate
+ * @summary Create Calendar View
+ * @request POST:/api/v1/db/meta/tables/{tableId}/calendars
+ * @response `200` `ViewType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    calendarCreate: (
+      tableId: IdType,
+      data: ViewCreateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        ViewType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/tables/${tableId}/calendars`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Update the Calendar View data with Calendar ID
+ * 
+ * @tags DB View
+ * @name CalendarUpdate
+ * @summary Update Calendar View
+ * @request PATCH:/api/v1/db/meta/calendars/{calendarViewId}
+ * @response `200` `number` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    calendarUpdate: (
+      calendarViewId: string,
+      data: CalendarUpdateReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        number,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/calendars/${calendarViewId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get the Calendar View data by Calendar ID
+ * 
+ * @tags DB View
+ * @name CalendarRead
+ * @summary Get Calendar View
+ * @request GET:/api/v1/db/meta/calendars/{calendarViewId}
+ * @response `200` `CalendarType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    calendarRead: (calendarViewId: string, params: RequestParams = {}) =>
+      this.request<
+        CalendarType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/calendars/${calendarViewId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
   };
   dbViewShare = {
     /**
@@ -8444,6 +8635,49 @@ export class Api<
       }),
 
     /**
+ * @description Get the count of table view rows grouped by the dates
+ * 
+ * @tags DB View Row
+ * @name CalendarCount
+ * @summary Count of Records in Dates in Calendar View
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    calendarCount: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      viewName: string,
+      query?: {
+        sort?: any[];
+        where?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/countByDate/`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get the table view rows grouped by the given query
  * 
  * @tags DB View Row
@@ -8775,6 +9009,46 @@ export class Api<
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * No description
+ * 
+ * @tags Public
+ * @name CalendarCount
+ * @summary Count of Records in Dates in Calendar View
+ * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/countByDate
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    calendarCount: (
+      sharedViewUuid: string,
+      query?: {
+        sort?: any[];
+        where?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/countByDate`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9778,6 +10052,8 @@ export class Api<
   galleryCount?: number,
   \** Kanban Count *\
   kanbanCount?: number,
+  \** Calendar Count *\
+  calendarCount?: number,
   \** Total View Count *\
   total?: number,
   \** Shared Form Count *\
@@ -9788,6 +10064,8 @@ export class Api<
   sharedGalleryCount?: number,
   \** Shared Kanban Count *\
   sharedKanbanCount?: number,
+  \** Shared Calendar Count *\
+  sharedCalendarCount?: number,
   \** Shared Total View Count *\
   sharedTotal?: number,
   \** Shared Locked View Count *\
@@ -9843,6 +10121,8 @@ export class Api<
               galleryCount?: number;
               /** Kanban Count */
               kanbanCount?: number;
+              /** Calendar Count */
+              calendarCount?: number;
               /** Total View Count */
               total?: number;
               /** Shared Form Count */
@@ -9853,6 +10133,8 @@ export class Api<
               sharedGalleryCount?: number;
               /** Shared Kanban Count */
               sharedKanbanCount?: number;
+              /** Shared Calendar Count */
+              sharedCalendarCount?: number;
               /** Shared Total View Count */
               sharedTotal?: number;
               /** Shared Locked View Count */

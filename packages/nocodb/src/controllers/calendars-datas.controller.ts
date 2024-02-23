@@ -22,7 +22,6 @@ export class CalendarDatasController {
   }
 
   @Get([
-    '/api/v1/db/calendar-data/:orgs/:baseName/:tableName/countByDate/',
     '/api/v1/db/calendar-data/:orgs/:baseName/:tableName/views/:viewName/countByDate/',
   ])
   @Acl('dataList')
@@ -43,5 +42,35 @@ export class CalendarDatasController {
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(data);
+  }
+
+  @Get([
+    '/api/v1/db/public/calendar-view/:sharedViewUuid/countByDate',
+    '/api/v2/public/calendar-view/:sharedViewUuid/countByDate',
+  ])
+  async countByDate(
+    @Req() req: Request,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    return await this.calendarDatasService.getPublicCalendarRecordCount({
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
+  }
+
+  @Get([
+    '/api/v1/db/public/calendar-view/:sharedViewUuid',
+    '/api/v2/public/calendar-view/:sharedViewUuid',
+  ])
+  async getPublicCalendarDataList(
+    @Req() req: Request,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    return await this.calendarDatasService.getPublicCalendarDataList({
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
   }
 }

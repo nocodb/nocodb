@@ -78,6 +78,8 @@ const workspacesOnThisServer: string[] = !process.env.NC_WORKSPACE_ID
   ? [] // If process.env.NC_WORKSPACE_ID is empty, set workspaceIds to an empty array
   : process.env.NC_WORKSPACE_ID.split(',').map((value) => value.trim());
 
+process.env.NC_DEBUG_USERS = 'p@nocodb.com,pranav@nocodb.com';
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
@@ -288,6 +290,25 @@ function getUserRoleForScope(user: any, scope: string) {
   }
 }
 
+function getReadonlyUserRoles(user: Record<string, any>) {
+  return {
+    workspace_roles: user.workspace_roles || {
+      [WorkspaceUserRoles.VIEWER]: true,
+    },
+    base_roles: user.base_roles || { [ProjectRoles.VIEWER]: true },
+    roles: user.roles || { [OrgUserRoles.VIEWER]: true },
+  };
+}
+
+export function isDebugUser(req: any) {
+  // if nocodb user and listed as debug user then allow readonly access
+  // todo: replace with proper debug user check in redis cache
+  return (
+    req.user?.email?.endsWith('@nocodb.com') &&
+    process.env.NC_DEBUG_USERS?.split(',').includes(req.user.email)
+  );
+}
+
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
@@ -328,6 +349,10 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
+    if (isDebugUser(req)) {
+      Object.assign(req.user, getReadonlyUserRoles(req.user));
+    }
+
     const userScopeRole = getUserRoleForScope(req.user, scope);
 
     if (!userScopeRole) {
@@ -358,7 +383,15 @@ export class AclMiddleware implements NestInterceptor {
         roles?.[OrgUserRoles.VIEWER]
       )
     ) {
+      // // if nocodb user and listed as debug user then allow readonly access
+      // // todo: replace with proper debug user check in redis cache
+      // if (
+      //   req.user?.email?.endsWith('@nocodb.com') &&
+      //   process.env.NC_DEBUG_USERS?.split(',').includes(req.user.email)
+      // ) {
+      // } else {
       NcError.unauthorized('Unauthorized access');
+      // }
     }
     // todo : verify user have access to base or not
 

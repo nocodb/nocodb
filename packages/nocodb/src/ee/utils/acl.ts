@@ -520,6 +520,7 @@ Object.entries(roleScopes).forEach(([scope, roles]) => {
       if (curr !== scope) {
         Object.assign(
           acc,
+
           permissionScopes[curr].reduce((acc, val) => {
             acc[val] = true;
             return acc;

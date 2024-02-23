@@ -1,8 +1,6 @@
 import {
   type ColumnType,
   type FilterType,
-  FormulaDataTypes,
-  type FormulaType,
   type LinkToAnotherRecordType,
   type LookupType,
   type ViewType,
@@ -499,6 +497,6 @@ export function useViewFilters(
     isComparisonSubOpAllowed,
     loadBtLookupTypes,
     btLookupTypesMap,
-    types
+    types,
   }
 }

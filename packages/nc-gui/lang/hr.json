@@ -212,7 +212,7 @@
     "page": "Stranica",
     "pages": "Stranicama",
     "record": "Snimiti",
-    "records": "records",
+    "records": "Zapisi",
     "webhook": "Web-dojavnik \"Webhook\"",
     "webhooks": "Web-dojavnici",
     "view": "Pogled",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Dozvoljeni tipovi datoteka su .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ključ parametra ne može biti prazan",
       "duplicateParameterKeysAreNotAllowed": "Duplicirani ključevi parametara nisu dopušteni",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} ne može biti prazno.",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Kopiranje u međuspremnik nije uspjelo",
       "pasteFromClipboardError": "Failed to paste from clipboard",

@@ -212,7 +212,7 @@
     "page": "Strana",
     "pages": "Stránky",
     "record": "záznam",
-    "records": "records",
+    "records": "záznamy",
     "webhook": "Webhook",
     "webhooks": "Webové háčiky",
     "view": "Zobraziť",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptované typy súborov sú .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Kľúč parametra nemôže byť prázdny",
       "duplicateParameterKeysAreNotAllowed": "Duplicitné kľúče parametrov nie sú povolené",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} nemôže byť prázdny.",
       "projectNotAccessible": "Projekt nie je prístupný",
       "copyToClipboardError": "Nepodarilo sa skopírovať do schránky",
       "pasteFromClipboardError": "Failed to paste from clipboard",

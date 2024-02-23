@@ -187,7 +187,7 @@ watch(editorDom, () => {
         'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
       }"
     >
-      <div class="nc-scrollbar-x-md">
+      <div class="nc-longtext-scrollbar">
         <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
       </div>
     </div>

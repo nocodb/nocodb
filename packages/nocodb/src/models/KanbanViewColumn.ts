@@ -121,11 +121,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
   ) {
     const updateObj = extractProps(body, [
       'order',
-      'show',
-      'width',
-      'group_by',
-      'group_by_order',
-      'group_by_sort',
+      'show'
     ]);
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW_COLUMN}:${columnId}`;

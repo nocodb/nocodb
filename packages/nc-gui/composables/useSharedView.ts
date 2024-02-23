@@ -175,7 +175,7 @@ export function useSharedView() {
     return await $api.dbCalendarViewRow.publicDataCalendarRowList(
       sharedView.value.uuid!,
       {
-        limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
+        limit: sharedView.value?.type === ViewTypes.CALENDAR ? 3000 : undefined,
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),

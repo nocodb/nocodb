@@ -32,6 +32,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       model,
       view,
       query,
+      ignorePagination: true,
     });
 
     if (!data) NcError.notFound('Data not found');

@@ -190,6 +190,7 @@ export class DatasService {
             await baseModel.list(listArgs, {
               ignoreViewFilterAndSort,
               throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+              ignorePagination: param.ignorePagination,
             }),
             {},
             listArgs,

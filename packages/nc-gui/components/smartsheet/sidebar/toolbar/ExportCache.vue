@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { saveAs } from 'file-saver'
 import { iconMap, message, useApi, useI18n } from '#imports'
 
 const { t } = useI18n()
@@ -6,8 +7,6 @@ const { t } = useI18n()
 const { api } = useApi()
 
 async function exportCache() {
-  const FileSaver = await import('file-saver')
-
   try {
     const data = await api.utils.cacheGet()
     if (!data) {
@@ -20,7 +19,7 @@ async function exportCache() {
       type: 'text/plain;charset=utf-8',
     })
 
-    FileSaver.saveAs(blob, 'cache_exported.json')
+    saveAs(blob, 'cache_exported.json')
 
     // Exported Cache Successfully
     message.info(t('msg.info.exportedCache'))

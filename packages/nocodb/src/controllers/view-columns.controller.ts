@@ -9,14 +9,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  APIContext, CalendarColumnReqType,
+import { APIContext, ViewColumnReqType } from 'nocodb-sdk';
+import type {
+  CalendarColumnReqType,
   FormColumnReqType,
   GalleryColumnReqType,
   GridColumnReqType,
   KanbanColumnReqType,
-  ViewColumnReqType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { ViewColumnsService } from '~/services/view-columns.service';
@@ -88,8 +88,22 @@ export class ViewColumnsController {
     @Param('viewId') viewId: string,
     @Body()
     body:
-      | GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType[]
-      | Record<APIContext.VIEW_COLUMNS, Record<string, GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType>>,
+      | GridColumnReqType
+      | GalleryColumnReqType
+      | KanbanColumnReqType
+      | FormColumnReqType
+      | CalendarColumnReqType[]
+      | Record<
+          APIContext.VIEW_COLUMNS,
+          Record<
+            string,
+            | GridColumnReqType
+            | GalleryColumnReqType
+            | KanbanColumnReqType
+            | FormColumnReqType
+            | CalendarColumnReqType
+          >
+        >,
   ) {
     return new PagedResponseImpl(
       await this.viewColumnsService.columnsUpdate({

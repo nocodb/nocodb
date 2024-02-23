@@ -221,9 +221,9 @@ export class DatasService {
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 
-    const { ranges } = await CalendarRange.read(view.id);
+    const calendarRange = await CalendarRange.read(view.id);
 
-    if (!ranges.length) NcError.badRequest('No ranges found');
+    if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
     const model = await Model.getByIdOrName({
       id: view.fk_model_id,
@@ -239,7 +239,7 @@ export class DatasService {
 
     const dates: Array<string> = [];
 
-    ranges.forEach((range: any) => {
+    calendarRange.ranges.forEach((range: any) => {
       data.list.forEach((date) => {
         const from =
           date[

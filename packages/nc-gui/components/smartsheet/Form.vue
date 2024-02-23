@@ -4,7 +4,7 @@ import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol, ProjectRoles } from 'nocodb-sdk'
+import { ProjectRoles, RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
   ActiveViewInj,
@@ -26,6 +26,7 @@ import {
   ref,
   useDebounceFn,
   useEventListener,
+  useFileDialog,
   useGlobal,
   useI18n,
   useNuxtApp,
@@ -33,7 +34,6 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   watch,
-  useFileDialog,
 } from '#imports'
 
 provide(IsFormInj, ref(true))
@@ -90,7 +90,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { fields, showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
+const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 
 const { state, row } = useProvideSmartsheetRowStore(
   meta,
@@ -247,7 +247,7 @@ function onMoveCallback(event: any) {
   }
 }
 
-function onMove(event: any, isVisibleFormFields = false) {
+async function onMove(event: any, isVisibleFormFields = false) {
   if (isLocked.value || !isEditable) return
 
   const { oldIndex } = event.moved
@@ -255,7 +255,7 @@ function onMove(event: any, isVisibleFormFields = false) {
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
-  if (fieldIndex === -1 || fieldIndex === undefined) return
+  if (fieldIndex === -1 || fieldIndex === undefined || !fields.value?.[fieldIndex]) return
 
   if (isVisibleFormFields) {
     element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
@@ -276,7 +276,11 @@ function onMove(event: any, isVisibleFormFields = false) {
     element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
   }
 
-  saveOrUpdate(element, fieldIndex)
+  await $api.dbView.formColumnUpdate(element.id, element)
+
+  fields.value[fieldIndex] = element as any
+
+  // saveOrUpdate(element, fieldIndex)
 
   $e('a:form-view:reorder')
 }
@@ -289,17 +293,21 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isSi
     !isSidePannel && message.info(t('msg.info.requriedFieldsCantBeMoved'))
     return
   }
-
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === column.fk_column_id)
 
-  if (fieldIndex !== -1 && fieldIndex !== undefined) {
-    await saveOrUpdate(
-      {
-        ...column,
-        show,
-      },
-      fieldIndex,
-    )
+  if (fieldIndex !== -1 && fieldIndex !== undefined && fields.value?.[fieldIndex]) {
+    console.log('column', column)
+    column.show = show
+    await $api.dbView.formColumnUpdate(column.id, column)
+
+    fields.value[fieldIndex] = column as any
+    // await saveOrUpdate(
+    //   {
+    //     ...column,
+    //     show,
+    //   },
+    //   fieldIndex,
+    // )
 
     reloadEventHook.trigger()
 
@@ -657,9 +665,9 @@ useEventListener(
           <div class="min-w-[616px] overflow-x-auto nc-form-scrollbar">
             <GeneralImageCropper
               v-model:show-cropper="showCropper"
-              :imageConfig="imageCropperData.imageConfig"
-              :cropperConfig="imageCropperData.cropperConfig"
-              :uploadConfig="imageCropperData.uploadConfig"
+              :image-config="imageCropperData.imageConfig"
+              :cropper-config="imageCropperData.cropperConfig"
+              :upload-config="imageCropperData.uploadConfig"
               @submit="handleOnUploadImage"
             ></GeneralImageCropper>
             <!-- for future implementation of cover image -->

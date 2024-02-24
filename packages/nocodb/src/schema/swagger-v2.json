@@ -13024,7 +13024,7 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/TextOrNull",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Banner Image URL. Not in use currently."
           },
           "columns": {
@@ -13067,7 +13067,7 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/TextOrNull",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Logo URL. Not in use currently."
           },
           "meta": {

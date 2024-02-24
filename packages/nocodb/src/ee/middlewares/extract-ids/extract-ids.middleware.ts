@@ -42,6 +42,8 @@ import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, CacheScope } from '~/utils/globals';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -77,8 +79,6 @@ const logger: Logger = new Logger('AclMiddleware');
 const workspacesOnThisServer: string[] = !process.env.NC_WORKSPACE_ID
   ? [] // If process.env.NC_WORKSPACE_ID is empty, set workspaceIds to an empty array
   : process.env.NC_WORKSPACE_ID.split(',').map((value) => value.trim());
-
-process.env.NC_DEBUG_USERS = 'p@nocodb.com,pranav@nocodb.com';
 
 // todo: refactor name since we are using it as auth guard
 @Injectable()
@@ -301,12 +301,20 @@ function getReadonlyUserRoles(user: Record<string, any>) {
 }
 
 export function isDebugUser(req: any) {
+  // if nocodb email not ends with nocodb.com then skip debug user check
+  if (!req.user?.email?.endsWith('@nocodb.com')) return false;
+
   // if nocodb user and listed as debug user then allow readonly access
-  // todo: replace with proper debug user check in redis cache
-  return (
-    req.user?.email?.endsWith('@nocodb.com') &&
-    process.env.NC_DEBUG_USERS?.split(',').includes(req.user.email)
+
+  const debugUsers = await NocoCache.get(
+    CacheScope.DEBUG_USER_EMAILS,
+    CacheGetType.TYPE_STRING,
   );
+
+  // if debug users are not set then skip debug user check
+  if (!debugUsers) return false;
+
+  return debugUsers?.split(',').includes(req.user.email);
 }
 
 @Injectable()

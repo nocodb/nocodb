@@ -177,6 +177,7 @@ export enum CacheScope {
   VIEW_ALIAS = 'viewAlias',
   SSO_CLIENT = 'ssoClient',
   SSO_CLIENT_PUBLIC_LIST = 'ssoClientPublicList',
+  DEBUG_USER_EMAILS = 'debugUserEmails',
 }
 
 export enum DbMuxStatus {

@@ -162,7 +162,7 @@ const getCurrencyValue = (modelValue: string | number | null, col: ColumnType) =
 
 const getUserValue = (modelValue: string | string[] | null | Array<any>) => {
   if (!modelValue) {
-    return 'Invalid User'
+    return ''
   }
   const baseUsers = meta?.value.base_id ? basesUser.value.get(meta?.value.base_id) || [] : []
 
@@ -277,7 +277,7 @@ const parseValue = (value: any, col: ColumnType): string => {
     return getTextAreaValue(value, col)
   }
   if (isBoolean(col, abstractType)) {
-    return getCheckBoxValue(value) ? 'Checked' : 'Un checked'
+    return getCheckBoxValue(value) ? 'Checked' : 'Unchecked'
   }
   if (isMultiSelect(col)) {
     return getMultiSelectValue(value, col)

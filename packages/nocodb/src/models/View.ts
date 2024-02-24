@@ -1554,10 +1554,16 @@ export default class View implements ViewType {
             'base_id',
             'source_id',
             'order',
-            'width',
-            'group_by',
-            'group_by_order',
-            'group_by_sort',
+            ...(view.type === ViewTypes.FORM
+              ? [
+                  'label',
+                  'help',
+                  'description',
+                  'required',
+                  'enable_scanner',
+                  'meta',
+                ]
+              : ['width', 'group_by', 'group_by_order', 'group_by_sort']),
           ]),
           fk_view_id: view.id,
           base_id: view.base_id,
@@ -1760,6 +1766,7 @@ export default class View implements ViewType {
 
     const copyFromView =
       view.copy_from_id && (await View.get(view.copy_from_id, ncMeta));
+    await copyFromView?.getView();
 
     // get base and base id if missing
     if (!(view.base_id && view.source_id)) {
@@ -1809,12 +1816,10 @@ export default class View implements ViewType {
         );
         break;
       case ViewTypes.FORM:
-        const copyFromFormView =
-          view.copy_from_id && (await FormView.get(view.copy_from_id, ncMeta));
         await FormView.insert(
           {
             heading: view.title,
-            ...(copyFromFormView || {}),
+            ...(copyFromView?.view || {}),
             ...view,
             fk_view_id: view_id,
           },

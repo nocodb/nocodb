@@ -1809,10 +1809,12 @@ export default class View implements ViewType {
         );
         break;
       case ViewTypes.FORM:
+        const copyFromFormView =
+          view.copy_from_id && (await FormView.get(view.copy_from_id, ncMeta));
         await FormView.insert(
           {
             heading: view.title,
-            ...(copyFromView?.view || {}),
+            ...(copyFromFormView || {}),
             ...view,
             fk_view_id: view_id,
           },

@@ -1,10 +1,5 @@
 // eslint-disable-file no-fallthrough
-import {
-  NcDataErrorCodes,
-  RelationTypes,
-  UITypes,
-  ViewTypes,
-} from 'nocodb-sdk';
+import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -941,6 +936,7 @@ export async function singleQueryList(ctx: {
   params;
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
+  ignorePagination?: boolean;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
@@ -1101,7 +1097,7 @@ export async function singleQueryList(ctx: {
     alias: ROOT_ALIAS,
   });
 
-  if (ctx.view?.type !== ViewTypes.CALENDAR) {
+  if (!ctx.ignorePagination) {
     if (skipCache) {
       rootQb.limit(+listArgs.limit);
       rootQb.offset(+listArgs.offset);
@@ -1112,7 +1108,6 @@ export async function singleQueryList(ctx: {
       rootQb.offset(9999);
     }
   }
-
   // apply the sort on final query to get the result in correct order
   if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
   else if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {

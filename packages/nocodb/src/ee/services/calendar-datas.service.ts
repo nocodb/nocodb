@@ -12,7 +12,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
   protected logger = new Logger(CalendarDatasService.name);
 
   async getCalendarRecordCount(param: { viewId: string; query: any }) {
-    const { viewId, query = {} } = param;
+    const { viewId } = param;
 
     const view = await View.get(viewId);
 
@@ -24,14 +24,12 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
 
     if (!ranges.length) NcError.badRequest('No ranges found');
 
-    const model = await Model.getByIdOrName({
-      id: view.fk_model_id,
-    });
+    const model = await Model.getByIdOrName({ id: view.fk_model_id });
 
-    const data = await this.datasService.getDataList({
-      model,
-      view,
-      query,
+    const data = await this.datasService.dataList({
+      ...param,
+      baseName: model.base_id,
+      tableName: model.id,
       ignorePagination: true,
     });
 
@@ -39,12 +37,14 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
 
     const dates: Array<string> = [];
 
+    const columns = await model.getColumns();
+
     ranges.forEach((range: CalendarRangeType) => {
-      const fromCol = model.columns.find(
+      const fromCol = columns.find(
         (c) => c.id === range.fk_from_column_id,
       )?.title;
       const toCol = range.fk_to_column_id
-        ? model.columns.find((c) => c.id === range.fk_to_column_id)?.title
+        ? columns.find((c) => c.id === range.fk_to_column_id)?.title
         : null;
 
       data.list.forEach((date) => {

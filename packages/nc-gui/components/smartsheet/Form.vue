@@ -666,6 +666,7 @@ useEventListener(
         >
           <div class="min-w-[616px] overflow-x-auto nc-form-scrollbar">
             <GeneralImageCropper
+              v-if="isEditable"
               v-model:show-cropper="showCropper"
               :image-config="imageCropperData.imageConfig"
               :cropper-config="imageCropperData.cropperConfig"
@@ -673,7 +674,7 @@ useEventListener(
               @submit="handleOnUploadImage"
             ></GeneralImageCropper>
             <!-- cover image -->
-            <div class="relative max-w-[688px] mx-auto">
+            <div class="relative max-w-[max(33%,688px)] mx-auto">
               <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
               <div class="absolute bottom-0 right-0">
                 <div class="flex items-center space-x-1 m-2">
@@ -717,7 +718,7 @@ useEventListener(
               </div>
             </div>
             <a-card
-              class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 max-w-[688px] !mx-auto"
+              class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 !max-w-[max(33%,688px)] !mx-auto"
               :body-style="{
                 margin: '0 auto',
                 padding: '0px !important',
@@ -729,14 +730,14 @@ useEventListener(
                   <!-- Form logo  -->
                   <div class="mb-4">
                     <div
-                      class="nc-form-logo-wrapper mx-6 group relative inline-block rounded-xl bg-gray-100 h-56px w-156px overflow-hidden"
-                      :class="formViewData.logo_url ? 'hover:w-189px' : ''"
-                      style="transition: width 0.1s ease-in-out"
+                      class="nc-form-logo-wrapper mx-6 group relative rounded-xl inline-block h-56px max-w-189px overflow-hidden"
+                      :class="formViewData.logo_url ? 'hover:(w-full bg-gray-100)' : 'bg-gray-100'"
+                      style="transition: all 0.3s ease-in"
                     >
                       <LazyCellAttachmentImage
                         v-if="formViewData.logo_url"
                         :srcs="getPossibleAttachmentSrc(parseProp(formViewData.logo_url))"
-                        class="nc-form-logo group object-contain w-full m-auto"
+                        class="nc-form-logo !object-contain object-left max-h-full max-w-full !m-0 rounded-xl"
                       />
                       <div
                         class="items-center space-x-1 flex-nowrap m-3"
@@ -779,6 +780,7 @@ useEventListener(
                       </div>
                     </div>
                   </div>
+
                   <!-- form title -->
                   <div
                     class="border-transparent px-4 lg:px-6"

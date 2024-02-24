@@ -365,6 +365,8 @@ function setFormData() {
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   formViewData.value = {
+    banner_image_url: '',
+    logo_url: '',
     ...formViewData.value,
     submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
@@ -670,9 +672,8 @@ useEventListener(
               :upload-config="imageCropperData.uploadConfig"
               @submit="handleOnUploadImage"
             ></GeneralImageCropper>
-            <!-- for future implementation of cover image -->
-            <!-- Todo: cover image uploader and image cropper to crop image in fixed aspect ratio  -->
-            <div class="relative max-w-screen-xl mx-auto">
+            <!-- cover image -->
+            <div class="relative max-w-[688px] mx-auto">
               <GeneralFormBanner
                 v-if="
                   formViewData.banner_image_url ||
@@ -681,18 +682,44 @@ useEventListener(
                 :banner-image-url="formViewData.banner_image_url"
               />
               <div class="absolute bottom-0 right-0">
-                <NcButton
-                  type="secondary"
-                  size="small"
-                  class="nc-form-upload-banner-btn m-3"
-                  data-testid="nc-form-upload-banner-btn"
-                  @click="openUploadImage(true)"
-                >
-                  <div class="flex gap-2 items-center">
-                    <component :is="iconMap.upload" class="w-4 h-4" />
-                    <span> Upload Banner </span>
-                  </div>
-                </NcButton>
+                <div class="flex items-center space-x-1 m-2">
+                  <NcButton
+                    type="secondary"
+                    size="small"
+                    class="nc-form-upload-banner-btn"
+                    data-testid="nc-form-upload-banner-btn"
+                    @click="openUploadImage(true)"
+                  >
+                    <div class="flex gap-2 items-center">
+                      <component :is="iconMap.upload" class="w-4 h-4" />
+                      <span>
+                        {{ formViewData.banner_image_url ? $t('general.replace') : $t('general.upload') }}
+                        {{ $t('general.banner') }}
+                      </span>
+                    </div>
+                  </NcButton>
+                  <NcTooltip v-if="formViewData.banner_image_url">
+                    <template #title> {{ $t('general.delete') }} {{ $t('general.banner') }} </template>
+                    <NcButton
+                      type="secondary"
+                      size="small"
+                      class="nc-form-delete-banner-btn"
+                      data-testid="nc-form-delete-banner-btn"
+                      @click="
+                              () => {
+                                if (isEditable) {
+                                  formViewData!.banner_image_url = ''
+                                  updateView()
+                                }
+                              }
+                            "
+                    >
+                      <div class="flex gap-2 items-center">
+                        <component :is="iconMap.delete" class="w-4 h-4" />
+                      </div>
+                    </NcButton>
+                  </NcTooltip>
+                </div>
               </div>
             </div>
             <a-card
@@ -709,26 +736,53 @@ useEventListener(
                   <div class="mb-4">
                     <div
                       class="nc-form-logo-wrapper mx-6 group relative inline-block rounded-xl bg-gray-100 h-56px w-156px overflow-hidden"
+                      :class="formViewData.logo_url ? 'hover:w-189px' : ''"
+                      style="transition: width 0.1s ease-in-out"
                     >
                       <LazyCellAttachmentImage
                         v-if="formViewData.logo_url"
                         :srcs="getPossibleAttachmentSrc(parseProp(formViewData.logo_url))"
                         class="nc-form-logo group object-contain w-full m-auto"
                       />
-                      <NcButton
-                        v-if="isEditable"
-                        type="secondary"
-                        size="small"
-                        class="nc-form-upload-logo-btn m-3"
-                        :class="formViewData.logo_url ? 'hidden group-hover:(block absolute top-0 left-0)' : 'block'"
-                        data-testid="nc-form-upload-log-btn"
-                        @click="openUploadImage(false)"
+                      <div
+                        class="items-center space-x-1 flex-nowrap m-3"
+                        :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
                       >
-                        <div class="flex gap-2 items-center">
-                          <component :is="iconMap.upload" class="w-4 h-4" />
-                          <span> Upload Logo </span>
-                        </div>
-                      </NcButton>
+                        <NcButton
+                          v-if="isEditable"
+                          type="secondary"
+                          size="small"
+                          class="nc-form-upload-logo-btn"
+                          data-testid="nc-form-upload-log-btn"
+                          @click="openUploadImage(false)"
+                        >
+                          <div class="flex gap-2 items-center">
+                            <component :is="iconMap.upload" class="w-4 h-4" />
+                            <span> {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span>
+                          </div>
+                        </NcButton>
+                        <NcTooltip v-if="formViewData.logo_url">
+                          <template #title> {{ $t('general.delete') }} {{ $t('general.logo') }} </template>
+                          <NcButton
+                            type="secondary"
+                            size="small"
+                            class="nc-form-delete-logo-btn"
+                            data-testid="nc-form-delete-logo-btn"
+                            @click="
+                              () => {
+                                if (isEditable) {
+                                  formViewData!.logo_url = ''
+                                  updateView()
+                                }
+                              }
+                            "
+                          >
+                            <div class="flex gap-2 items-center">
+                              <component :is="iconMap.delete" class="w-4 h-4" />
+                            </div>
+                          </NcButton>
+                        </NcTooltip>
+                      </div>
                     </div>
                   </div>
                   <!-- form title -->

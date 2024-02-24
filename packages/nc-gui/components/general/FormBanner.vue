@@ -9,7 +9,8 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 <template>
   <div
-    class="nc-form-banner-wrapper w-full max-w-screen-xl mx-auto bg-white border-1 border-gray-200 rounded-3xl overflow-hidden"
+    class="nc-form-banner-wrapper w-full max-w-[688px] mx-auto bg-white border-1 border-gray-200 rounded-2xl overflow-hidden"
+    :style="{ aspectRatio: 4 / 1 }"
   >
     <LazyCellAttachmentImage
       v-if="bannerImageUrl"
@@ -17,7 +18,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
       class="nc-form-banner-image object-cover w-full"
     />
     <!-- Todo: aspect ratio and cover image uploader and image cropper to crop image in fixed aspect ratio  -->
-    <div v-if="!bannerImageUrl" class="h-full flex items-stretch justify-between">
+    <div v-else class="h-full flex items-stretch justify-between">
       <div class="flex">
         <img src="~assets/img/form-banner-left.png" alt="form-banner-left'" />
       </div>
@@ -31,12 +32,3 @@ const { getPossibleAttachmentSrc } = useAttachment()
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-form-banner-wrapper {
-  aspect-ratio: 468/60;
-  @media (max-width: 768px) {
-    aspect-ratio: 4/1;
-  }
-}
-</style>

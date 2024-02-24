@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { iconMap, useSharedFormStoreOrThrow } from '#imports'
+import { iconMap, useSharedFormStoreOrThrow, useAttachment } from '#imports'
 
 const {
   sharedFormView,
@@ -18,6 +18,8 @@ const {
   isLoading,
   progress,
 } = useSharedFormStoreOrThrow()
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -79,7 +81,7 @@ const onDecode = async (scannedCodeValue: string) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col items-center">
+  <div class="h-full flex flex-col items-center w-full max-w-[max(33%,688px)] mx-auto">
     <GeneralFormBanner
       v-if="sharedFormView"
       :banner-image-url="sharedFormView.banner_image_url"
@@ -87,9 +89,21 @@ const onDecode = async (scannedCodeValue: string) => {
     />
 
     <div
-      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
     >
       <template v-if="sharedFormView">
+        <!-- Form logo  -->
+
+        <div
+          v-if="sharedFormView.logo_url"
+          class="mb-4 nc-shared-form-logo-wrapper rounded-xl inline-block h-56px max-w-189px overflow-hidden"
+        >
+          <LazyCellAttachmentImage
+            :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
+            class="nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0 rounded-xl"
+          />
+        </div>
+
         <div class="mb-4">
           <h1 class="text-2xl font-bold text-gray-900 mb-4">
             {{ sharedFormView.heading }}

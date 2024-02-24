@@ -9,7 +9,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 <template>
   <div
-    class="nc-form-banner-wrapper w-full max-w-[688px] mx-auto bg-white border-1 border-gray-200 rounded-2xl overflow-hidden"
+    class="nc-form-banner-wrapper w-full mx-auto bg-white border-1 border-gray-200 rounded-2xl overflow-hidden"
     :style="{ aspectRatio: 4 / 1 }"
   >
     <LazyCellAttachmentImage

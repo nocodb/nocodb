@@ -958,6 +958,7 @@ useEventListener(
                 </div>
 
                 <a-dropdown
+                  v-if="isUIAllowed('fieldAdd')"
                   v-model:visible="showColumnDropdown"
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-form-add-column"

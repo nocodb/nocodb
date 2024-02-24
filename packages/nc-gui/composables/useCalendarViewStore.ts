@@ -432,6 +432,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     async function loadCalendarData() {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
 
+      if (activeCalendarView.value === 'year') {
+        return
+      }
+
       let prevDate: string | null | dayjs.Dayjs = null
       let fromDate: dayjs.Dayjs | null | string = null
       let toDate: dayjs.Dayjs | null | string = null

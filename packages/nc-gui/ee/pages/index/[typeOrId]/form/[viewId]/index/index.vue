@@ -81,10 +81,7 @@ const onDecode = async (scannedCodeValue: string) => {
 <template>
   <div class="h-full flex flex-col items-center">
     <GeneralFormBanner
-      v-if="
-        sharedFormView &&
-        (sharedFormView.banner_image_url || !(parseProp(sharedFormView?.meta).hide_branding && !sharedFormView.banner_image_url))
-      "
+      v-if="sharedFormView"
       :banner-image-url="sharedFormView.banner_image_url"
       class="flex-none dark:border-none"
     />

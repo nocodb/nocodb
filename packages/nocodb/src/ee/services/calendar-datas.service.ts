@@ -12,7 +12,13 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
   protected logger = new Logger(CalendarDatasService.name);
 
   async getCalendarRecordCount(param: { viewId: string; query: any }) {
-    const { viewId } = param;
+    const { viewId, query } = param;
+
+    const from_date = query.from_date;
+    const to_date = query.to_date;
+
+    if (!from_date || !to_date)
+      NcError.badRequest('from_date and to_date are required');
 
     const view = await View.get(viewId);
 
@@ -23,6 +29,14 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const { ranges } = await CalendarRange.read(view.id);
 
     if (!ranges.length) NcError.badRequest('No ranges found');
+
+    const filterArr = await this.buildFilterArr({
+      viewId,
+      from_date,
+      to_date,
+    });
+
+    query.filterArr = [...(query.filterArr ? query.filterArr : []), filterArr];
 
     const model = await Model.getByIdOrName({ id: view.fk_model_id });
 

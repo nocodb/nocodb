@@ -674,13 +674,7 @@ useEventListener(
             ></GeneralImageCropper>
             <!-- cover image -->
             <div class="relative max-w-[688px] mx-auto">
-              <GeneralFormBanner
-                v-if="
-                  formViewData.banner_image_url ||
-                  !(parseProp(formViewData?.meta).hide_branding && !formViewData.banner_image_url)
-                "
-                :banner-image-url="formViewData.banner_image_url"
-              />
+              <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
               <div class="absolute bottom-0 right-0">
                 <div class="flex items-center space-x-1 m-2">
                   <NcButton

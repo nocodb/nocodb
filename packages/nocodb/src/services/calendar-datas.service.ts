@@ -20,6 +20,10 @@ export class CalendarDatasService {
     if (!from_date || !to_date)
       NcError.badRequest('from_date and to_date are required');
 
+    if (dayjs(to_date).diff(dayjs(from_date), 'days') > 42) {
+      NcError.badRequest('Date range should not exceed 42 days');
+    }
+
     const view = await View.get(viewId);
 
     if (!view) NcError.notFound('View not found');
@@ -99,6 +103,10 @@ export class CalendarDatasService {
 
     if (!from_date || !to_date)
       NcError.badRequest('from_date and to_date are required');
+
+    if (dayjs(to_date).diff(dayjs(from_date), 'days') > 395) {
+      NcError.badRequest('Date range should not exceed 395 days');
+    }
 
     const view = await View.get(viewId);
 

@@ -3,8 +3,8 @@ import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
 
-import { useApi, extractSdkResponseErrorMsg } from '#imports'
-import type { AttachmentReqType, FileReqType } from 'nocodb-sdk'
+import type { AttachmentReqType } from 'nocodb-sdk'
+import { extractSdkResponseErrorMsg, useApi } from '#imports'
 interface Props {
   imageConfig: {
     src: string
@@ -37,7 +37,7 @@ const previewImage = ref({
 const handleCropImage = () => {
   const { canvas } = cropperRef.value.getResult()
   previewImage.value = {
-    canvas: canvas,
+    canvas,
     src: canvas.toDataURL(),
   }
 }
@@ -98,7 +98,7 @@ watch(showCropper, () => {
 <template>
   <NcModal v-model:visible="showCropper" :mask-closable="false">
     <div class="nc-image-cropper-wrapper relative">
-      <cropper
+      <Cropper
         ref="cropperRef"
         class="nc-cropper relative"
         :src="imageConfig.src"

@@ -300,7 +300,7 @@ function getReadonlyUserRoles(user: Record<string, any>) {
   };
 }
 
-export function isDebugUser(req: any) {
+export async function isDebugUser(req: any) {
   // if nocodb email not ends with nocodb.com then skip debug user check
   if (!req.user?.email?.endsWith('@nocodb.com')) return false;
 
@@ -357,7 +357,7 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
-    if (isDebugUser(req)) {
+    if (await isDebugUser(req)) {
       Object.assign(req.user, getReadonlyUserRoles(req.user));
     }
 

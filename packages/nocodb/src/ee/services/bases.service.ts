@@ -84,7 +84,7 @@ export class BasesService extends BasesServiceCE {
     query?: any;
   }) {
     const bases =
-      isDebugUser(param.user) ||
+      await isDebugUser(param.user) ||
       (extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
         !['shared', 'starred', 'recent'].some((k) => k in param.query))
         ? await Base.list(param.query)

@@ -946,6 +946,7 @@ export async function singleQueryList(ctx: {
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
   ignorePagination?: boolean;
+  calendarLimitOverride?: number;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
@@ -1106,7 +1107,10 @@ export async function singleQueryList(ctx: {
   });
 
   if (!ctx.ignorePagination) {
-    if (skipCache) {
+    if (ctx.calendarLimitOverride) {
+      rootQb.limit(ctx.calendarLimitOverride);
+      rootQb.offset(+listArgs.offset);
+    } else if (skipCache) {
       rootQb.limit(+listArgs.limit);
       rootQb.offset(+listArgs.offset);
     } else {

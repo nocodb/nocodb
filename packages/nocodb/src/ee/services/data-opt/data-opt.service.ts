@@ -18,6 +18,7 @@ export class DataOptService {
     throwErrorIfInvalidParams?: boolean;
     validateFormula?: boolean;
     ignorePagination?: boolean;
+    calendarLimitOverride?: number;
   }): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };
 

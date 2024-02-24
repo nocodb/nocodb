@@ -48,6 +48,7 @@ export class CalendarDatasService {
       ...query,
       baseName: model.base_id,
       tableName: model.id,
+      calendarLimitOverride: 3000, // TODO: make this configurable in env
     });
   }
 

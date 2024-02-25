@@ -16,7 +16,7 @@ import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/modules/workspaces/workspaces.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -195,8 +195,10 @@ export class WorkspacesController {
       workspace.id,
     );
 
-    // clear cache
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspace.id}`);
+    await NocoCache.update(
+      `${CacheScope.WORKSPACE}:${workspace.id}`,
+      updateWorkspacePayload,
+    );
 
     return true;
   }

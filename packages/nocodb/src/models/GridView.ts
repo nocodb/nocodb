@@ -68,23 +68,25 @@ export default class GridView implements GridType {
     body: Partial<GridView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.GRID_VIEW}:${viewId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     const updateObj = extractProps(body, ['row_height', 'meta']);
 
     if (updateObj.meta && typeof updateObj.meta === 'object') {
       updateObj.meta = JSON.stringify(updateObj.meta ?? {});
     }
 
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // update meta
-    return await ncMeta.metaUpdate(null, null, MetaTable.GRID_VIEW, updateObj, {
-      fk_view_id: viewId,
-    });
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.GRID_VIEW,
+      updateObj,
+      {
+        fk_view_id: viewId,
+      },
+    );
+
+    await NocoCache.update(`${CacheScope.GRID_VIEW}:${viewId}`, updateObj);
+
+    return res;
   }
 }

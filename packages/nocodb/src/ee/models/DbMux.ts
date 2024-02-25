@@ -154,14 +154,7 @@ export default class DbMux {
 
     await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObj, this.id);
 
-    const cacheKey = `${CacheScope.DB_MUX}:${this.id}`;
-    let o = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(cacheKey, o);
-    }
+    await NocoCache.update(`${CacheScope.DB_MUX}:${this.id}`, updateObj);
 
     let sources: Source[] = [];
 

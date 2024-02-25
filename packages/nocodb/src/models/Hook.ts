@@ -209,19 +209,10 @@ export default class Hook implements HookType {
       updateObj.notification = JSON.stringify(updateObj.notification);
     }
 
-    // get existing cache
-    const key = `${CacheScope.HOOK}:${hookId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o = { ...o, ...updateObj };
-      // replace notification
-      o.notification = updateObj.notification;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.HOOKS, updateObj, hookId);
+
+    await NocoCache.update(`${CacheScope.HOOK}:${hookId}`, updateObj);
 
     return this.get(hookId, ncMeta);
   }

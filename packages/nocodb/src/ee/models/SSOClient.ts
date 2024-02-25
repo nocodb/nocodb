@@ -101,7 +101,8 @@ export default class SSOClient implements SSOClientType {
       updateObj,
       clientId,
     );
-    await NocoCache.del(PUBLIC_LIST_KEY);
+
+    await NocoCache.update(PUBLIC_LIST_KEY, updateObj);
 
     return true;
   }

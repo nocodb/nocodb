@@ -1084,38 +1084,6 @@ export default class Column<T = any> implements ColumnType {
       });
     }
 
-    // get existing cache
-    const key = `${CacheScope.COLUMN}:${colId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
-    // get model column list from cache
-    const columnListFromCache = await NocoCache.getList(CacheScope.COLUMN, [
-      oldCol.fk_model_id,
-    ]);
-
-    // update column list in cache if cache exists
-    if (!columnListFromCache.list?.length) {
-      const updatedColumnList = columnListFromCache.list.map((column: any) => {
-        if (column.id === colId) {
-          return {
-            ...column,
-            ...updateObj,
-          };
-        }
-        return column;
-      });
-      await NocoCache.setList(
-        CacheScope.COLUMN,
-        [oldCol.fk_model_id],
-        updatedColumnList,
-      );
-    }
-
     // set meta
     await ncMeta.metaUpdate(
       null,
@@ -1130,6 +1098,9 @@ export default class Column<T = any> implements ColumnType {
       },
       colId,
     );
+
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, updateObj);
+
     await this.insertColOption(column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache

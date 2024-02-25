@@ -132,10 +132,6 @@ export default class Workspace implements WorkspaceType {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    // get existing cache
-    const key = `${CacheScope.WORKSPACE}:${id}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     // extract props which is allowed to be inserted
     const updateObject = extractProps(workspaceAttr, [
       'title',
@@ -159,12 +155,16 @@ export default class Workspace implements WorkspaceType {
       id,
     );
 
-    // update cache after successful update
+    // get existing cache
+    const key = `${CacheScope.WORKSPACE}:${id}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+
     if (o) {
       Object.assign(o, updateObject);
       // set cache
       await NocoCache.set(key, o);
     }
+
     return res;
   }
 

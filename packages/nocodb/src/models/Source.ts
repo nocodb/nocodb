@@ -147,7 +147,14 @@ export default class Source implements SourceType {
       oldBase.id,
     );
 
-    await NocoCache.del(`${CacheScope.BASE}:${sourceId}`);
+    const cacheKey = `${CacheScope.BASE}:${sourceId}`;
+    let o = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o = { ...o, ...updateObj };
+      // set cache
+      await NocoCache.set(cacheKey, o);
+    }
 
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);

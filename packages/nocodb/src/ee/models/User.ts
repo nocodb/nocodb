@@ -106,7 +106,10 @@ export default class User extends UserCE implements UserType {
     const existingUser = await this.get(id, ncMeta);
 
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
-    await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
+    await NocoCache.deepDel(
+      `${CacheScope.USER}:${existingUser.email}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
 
     await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
 
@@ -449,7 +452,13 @@ export default class User extends UserCE implements UserType {
     }
 
     // clear all user related cache
-    await NocoCache.del(`${CacheScope.USER}:${userId}`);
-    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
+    await NocoCache.deepDel(
+      `${CacheScope.USER}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    await NocoCache.deepDel(
+      `${CacheScope.USER}:${user.email}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
   }
 }

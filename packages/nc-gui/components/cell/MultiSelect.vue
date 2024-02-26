@@ -353,154 +353,194 @@ const onFocus = () => {
 <template>
   <div
     class="nc-cell-field nc-multi-select h-full w-full flex items-center"
-    :class="{ 'read-only': readOnly }"
+    :class="{ 'read-only': readOnly, readOnly, 'max-w-full': isForm }"
     @click="toggleMenu"
   >
-    <div
-      v-if="!active"
-      class="flex flex-wrap"
-      :style="{
-        'display': '-webkit-box',
-        'max-width': '100%',
-        '-webkit-line-clamp': rowHeight || 1,
-        '-webkit-box-orient': 'vertical',
-        'overflow': 'hidden',
-      }"
-    >
-      <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-        <a-tag class="rounded-tag max-w-full" :color="selectedOpt.color">
-          <span
-            :style="{
-              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                ? '#fff'
-                : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
-            }"
-            :class="{ 'text-sm': isKanban }"
-          >
-            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-              <template #title>
-                {{ selectedOpt.title }}
-              </template>
-              <span
-                class="text-ellipsis overflow-hidden"
-                :style="{
-                  wordBreak: 'keep-all',
-                  whiteSpace: 'nowrap',
-                  display: 'inline',
-                }"
-              >
-                {{ selectedOpt.title }}
-              </span>
-            </NcTooltip>
-          </span>
-        </a-tag>
-      </template>
-    </div>
-
-    <a-select
-      v-else
-      ref="aselect"
-      v-model:value="vModel"
-      mode="multiple"
-      class="w-full overflow-hidden"
-      :placeholder="isEditColumn ? $t('labels.optional') : ''"
-      :bordered="false"
-      clear-icon
-      :show-search="!isMobileMode"
-      :show-arrow="editAllowed && !readOnly"
-      :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
-      :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
-      @search="search"
-      @keydown="onKeyDown"
-      @focus="onFocus"
-      @blur="isOpen = false"
-    >
-      <template #suffixIcon>
-        <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
-      </template>
-      <a-select-option
-        v-for="op of options"
-        :key="op.id || op.title"
-        :value="op.title"
-        :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-        :class="`nc-select-option-${column.title}-${op.title}`"
-        @click.stop
-      >
-        <a-tag class="rounded-tag max-w-full" :color="op.color">
-          <span
-            :style="{
-              'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                ? '#fff'
-                : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
-            }"
-            :class="{ 'text-sm': isKanban }"
-          >
-            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-              <template #title>
-                {{ op.title }}
-              </template>
-              <span
-                class="text-ellipsis overflow-hidden"
-                :style="{
-                  wordBreak: 'keep-all',
-                  whiteSpace: 'nowrap',
-                  display: 'inline',
-                }"
-              >
-                {{ op.title }}
-              </span>
-            </NcTooltip>
-          </span>
-        </a-tag>
-      </a-select-option>
-
-      <a-select-option
-        v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')"
-        :key="searchVal"
-        :value="searchVal"
-      >
-        <div class="flex gap-2 text-gray-500 items-center h-full">
-          <component :is="iconMap.plusThick" class="min-w-4" />
-          <div class="text-xs whitespace-normal">
-            {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
-          </div>
-        </div>
-      </a-select-option>
-
-      <template #tagRender="{ value: val, onClose }">
-        <a-tag
-          v-if="options.find((el) => el.title === val)"
-          class="rounded-tag nc-selected-option"
-          :style="{ display: 'flex', alignItems: 'center' }"
-          :color="options.find((el) => el.title === val)?.color"
-          :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
-          :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
-          @click="onTagClick($event, onClose)"
-          @close="onClose"
+    <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+      <a-checkbox-group v-model:value="vModel" class="nc-field-layout-list">
+        <a-checkbox
+          v-for="op of options"
+          :key="op.title"
+          :value="op.title"
+          :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+          :class="`nc-select-option-${column.title}-${op.title}`"
         >
-          <span
-            :style="{
-              'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
-                level: 'AA',
-                size: 'large',
-              })
-                ? '#fff'
-                : tinycolor
-                    .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
-                    .toHex8String(),
-              'font-size': '13px',
-            }"
-            :class="{ 'text-sm': isKanban }"
+          <a-tag class="rounded-tag max-w-full" :color="op.color">
+            <span
+              :style="{
+                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  ? '#fff'
+                  : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+            >
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ op.title }}
+                </template>
+                <span
+                  class="text-ellipsis overflow-hidden"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ op.title }}
+                </span>
+              </NcTooltip>
+            </span>
+          </a-tag>
+        </a-checkbox>
+      </a-checkbox-group>
+    </div>
+    <template v-else>
+      <div
+        v-if="!active"
+        class="flex flex-wrap"
+        :style="{
+          'display': '-webkit-box',
+          'max-width': '100%',
+          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-box-orient': 'vertical',
+          'overflow': 'hidden',
+        }"
+      >
+        <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
+          <a-tag class="rounded-tag max-w-full" :color="selectedOpt.color">
+            <span
+              :style="{
+                'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  ? '#fff'
+                  : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+              :class="{ 'text-sm': isKanban }"
+            >
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ selectedOpt.title }}
+                </template>
+                <span
+                  class="text-ellipsis overflow-hidden"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ selectedOpt.title }}
+                </span>
+              </NcTooltip>
+            </span>
+          </a-tag>
+        </template>
+      </div>
+
+      <a-select
+        v-else
+        ref="aselect"
+        v-model:value="vModel"
+        mode="multiple"
+        class="w-full overflow-hidden"
+        :placeholder="isEditColumn ? $t('labels.optional') : ''"
+        :bordered="false"
+        clear-icon
+        :show-search="!isMobileMode"
+        :show-arrow="editAllowed && !readOnly"
+        :open="isOpen && editAllowed"
+        :disabled="readOnly || !editAllowed"
+        :class="{ 'caret-transparent': !hasEditRoles }"
+        :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
+        @search="search"
+        @keydown="onKeyDown"
+        @focus="onFocus"
+        @blur="isOpen = false"
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
+        </template>
+        <a-select-option
+          v-for="op of options"
+          :key="op.id || op.title"
+          :value="op.title"
+          :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+          :class="`nc-select-option-${column.title}-${op.title}`"
+          @click.stop
+        >
+          <a-tag class="rounded-tag max-w-full" :color="op.color">
+            <span
+              :style="{
+                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  ? '#fff'
+                  : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+              :class="{ 'text-sm': isKanban }"
+            >
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ op.title }}
+                </template>
+                <span
+                  class="text-ellipsis overflow-hidden"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ op.title }}
+                </span>
+              </NcTooltip>
+            </span>
+          </a-tag>
+        </a-select-option>
+
+        <a-select-option
+          v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && isUIAllowed('fieldEdit')"
+          :key="searchVal"
+          :value="searchVal"
+        >
+          <div class="flex gap-2 text-gray-500 items-center h-full">
+            <component :is="iconMap.plusThick" class="min-w-4" />
+            <div class="text-xs whitespace-normal">
+              {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
+            </div>
+          </div>
+        </a-select-option>
+
+        <template #tagRender="{ value: val, onClose }">
+          <a-tag
+            v-if="options.find((el) => el.title === val)"
+            class="rounded-tag nc-selected-option"
+            :style="{ display: 'flex', alignItems: 'center' }"
+            :color="options.find((el) => el.title === val)?.color"
+            :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
+            :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+            @click="onTagClick($event, onClose)"
+            @close="onClose"
           >
-            {{ val }}
-          </span>
-        </a-tag>
-      </template>
-    </a-select>
+            <span
+              :style="{
+                'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+                  level: 'AA',
+                  size: 'large',
+                })
+                  ? '#fff'
+                  : tinycolor
+                      .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
+                      .toHex8String(),
+                'font-size': '13px',
+              }"
+              :class="{ 'text-sm': isKanban }"
+            >
+              {{ val }}
+            </span>
+          </a-tag>
+        </template>
+      </a-select>
+    </template>
   </div>
 </template>
 
@@ -569,6 +609,31 @@ const onFocus = () => {
 
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
+}
+
+.nc-field-layout-list {
+  @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
+
+  :deep(.ant-checkbox-wrapper) {
+    @apply !m-0 !h-9 !mr-0 !flex !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
+
+    &:hover {
+      .ant-checkbox-checked:after {
+        @apply !rounded;
+      }
+    }
+    .ant-checkbox {
+      @apply !top-0;
+
+      & + span {
+        @apply !flex !pl-4 max-w-[calc(100%_-_16px)];
+      }
+      .ant-checkbox-checked:after,
+      .ant-checkbox-inner {
+        @apply !rounded;
+      }
+    }
+  }
 }
 </style>
 

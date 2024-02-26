@@ -2256,12 +2256,10 @@ export class ColumnsService {
         break;
       }
       case UITypes.SingleSelect: {
-        if (column.uidt === UITypes.SingleSelect) {
-          if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
-            NcError.badRequest(
-              `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
-            );
-          }
+        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
+          );
         }
         /* falls through to default */
       }
@@ -2272,7 +2270,7 @@ export class ColumnsService {
             `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
           );
         }
-        break;
+        /* falls through to default */
       }
 
       // on deleting created/last modified columns, keep the column in table and delete the column from meta

@@ -190,7 +190,7 @@ const onDecode = async (scannedCodeValue: string) => {
                         v-model="formState[field.title]"
                         class="nc-input truncate"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
+                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { 'layout-list': parseProp(field?.meta)?.isList }]"
                         :column="field"
                         edit-enabled
                       />

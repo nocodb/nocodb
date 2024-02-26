@@ -109,6 +109,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       columns.value = viewMeta.model?.columns?.map((c) => ({
         ...c,
+        meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
         description: fieldById[c.id].description,
       }))
 

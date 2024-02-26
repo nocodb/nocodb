@@ -24,7 +24,8 @@ import {
   SyncSource,
   View,
 } from '~/models';
-import rolePermissions from '~/utils/acl';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import { NcError } from '~/middlewares/catchError';
 
 export const rolesLabel = {
@@ -40,6 +41,7 @@ export const rolesLabel = {
 };
 
 export function getRolesLabels(
+  allRoles: Array<{ name: string; label: string }>,
   roles: (OrgUserRoles | ProjectRoles | string)[],
 ) {
   return roles
@@ -49,7 +51,7 @@ export function getRolesLabels(
           role as OrgUserRoles,
         ),
     )
-    .map((role) => rolesLabel[role]);
+    .map((role) => allRoles.find((item) => item.name === role)?.label);
 }
 
 // todo: refactor name since we are using it as auth guard
@@ -255,39 +257,41 @@ export class AclMiddleware implements NestInterceptor {
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.forbidden('Not allowed with API token');
     }
+
+    const allRoles = await Noco.ncMeta
+      .knex(MetaTable.ROLES)
+      .select('name', 'label');
+
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
-      !(
-        roles?.creator ||
-        roles?.owner ||
-        roles?.editor ||
-        roles?.viewer ||
-        roles?.commenter ||
-        roles?.[OrgUserRoles.SUPER_ADMIN] ||
-        roles?.[OrgUserRoles.CREATOR] ||
-        roles?.[OrgUserRoles.VIEWER]
-      )
+      !allRoles.some((item) => Object.keys(roles).includes(item.name))
     ) {
       NcError.unauthorized('Unauthorized access');
     }
     // todo : verify user have access to base or not
 
-    const isAllowed =
-      roles &&
-      Object.entries(roles).some(([name, hasRole]) => {
-        return (
-          hasRole &&
-          rolePermissions[name] &&
-          (rolePermissions[name] === '*' ||
-            (rolePermissions[name].exclude &&
-              !rolePermissions[name].exclude[permissionName]) ||
-            (rolePermissions[name].include &&
-              rolePermissions[name].include[permissionName]))
-        );
-      });
+    const rolePermissions = await Noco.ncMeta
+      .knex(MetaTable.ROLES)
+      .join(
+        MetaTable.ROLES_PERMISSIONS,
+        `${MetaTable.ROLES_PERMISSIONS}.fk_role_id`,
+        `${MetaTable.ROLES}.id`,
+      )
+      .join(
+        MetaTable.PERMISSIONS,
+        `${MetaTable.PERMISSIONS}.id`,
+        `${MetaTable.ROLES_PERMISSIONS}.fk_permission_id`,
+      )
+      .whereIn(`${MetaTable.ROLES}.name`, Object.keys(roles))
+      .whereIn(`${MetaTable.PERMISSIONS}.name`, ['*', permissionName])
+      .pluck(`${MetaTable.PERMISSIONS}.name`);
+
+    const isAllowed = roles && rolePermissions.length;
+
     if (!isAllowed) {
       NcError.forbidden(
         `${permissionName} - ${getRolesLabels(
+          allRoles,
           Object.keys(roles).filter((k) => roles[k]),
         )} : Not allowed`,
       );

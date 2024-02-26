@@ -692,7 +692,10 @@
     "backgroundColor":"Background Color",
     "hideNocodbBranding":"Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
-    "showFieldOnConditionsMet":"Shows field only when conditions are met"
+    "showFieldOnConditionsMet":"Shows field only when conditions are met",
+    "limitOptions": "Limit ptions",
+    "limitOptionsSubtext": "Limit options visible to users by selecting available options",
+    "clearSelection": "Clear selection"
   },
   "activity": {
     "noRange": "Calendar view requires a date range",

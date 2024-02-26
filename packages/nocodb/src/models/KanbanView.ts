@@ -40,6 +40,9 @@ export default class KanbanView implements KanbanType {
       view = await ncMeta.metaGet2(null, null, MetaTable.KANBAN_VIEW, {
         fk_view_id: viewId,
       });
+
+      view = prepareForResponse(view);
+
       await NocoCache.set(`${CacheScope.KANBAN_VIEW}:${viewId}`, view);
     }
 

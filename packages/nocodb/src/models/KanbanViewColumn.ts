@@ -119,10 +119,17 @@ export default class KanbanViewColumn implements KanbanColumnType {
     body: Partial<KanbanViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(body, [
-      'order',
-      'show'
-    ]);
+    const updateObj = extractProps(body, ['order', 'show']);
+
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.KANBAN_VIEW_COLUMNS,
+      updateObj,
+      columnId,
+    );
+
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW_COLUMN}:${columnId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -132,14 +139,6 @@ export default class KanbanViewColumn implements KanbanColumnType {
       // set cache
       await NocoCache.set(key, o);
     }
-    // set meta
-    const res = await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.KANBAN_VIEW_COLUMNS,
-      updateObj,
-      columnId,
-    );
 
     // on view column update, delete any optimised single query cache
     {

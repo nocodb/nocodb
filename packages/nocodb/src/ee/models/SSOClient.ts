@@ -7,7 +7,12 @@ import type {
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 
 const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
@@ -76,7 +81,6 @@ export default class SSOClient implements SSOClientType {
     client: Partial<SSOClientType & { deleted?: boolean }>,
     ncMeta = Noco.ncMeta,
   ) {
-    const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
     const updateObj: Record<string, any> = extractProps(client, [
       'title',
       'type',
@@ -85,24 +89,19 @@ export default class SSOClient implements SSOClientType {
       'deleted',
     ]);
 
-    const cacheObj = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (cacheObj) {
-      Object.assign(cacheObj, updateObj);
-      await NocoCache.set(key, cacheObj);
-    }
-    if ('config' in updateObj) {
-      updateObj.config = stringifyMetaProp(updateObj, 'config');
-    }
-
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.SSO_CLIENT,
-      updateObj,
+      prepareForDb(updateObj, 'config'),
       clientId,
     );
 
-    await NocoCache.update(PUBLIC_LIST_KEY, updateObj);
+    await NocoCache.update(
+      `${CacheScope.SSO_CLIENT}:${clientId}`,
+      prepareForResponse(updateObj, 'config'),
+    );
+    await NocoCache.del(PUBLIC_LIST_KEY);
 
     return true;
   }

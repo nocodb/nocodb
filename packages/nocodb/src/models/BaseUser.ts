@@ -205,17 +205,8 @@ export default class BaseUser {
     roles: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.BASE_USER}:${baseId}:${userId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      o.roles = roles;
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.PROJECT_USERS,
@@ -227,6 +218,12 @@ export default class BaseUser {
         base_id: baseId,
       },
     );
+
+    await NocoCache.update(`${CacheScope.BASE_USER}:${baseId}:${userId}`, {
+      roles,
+    });
+
+    return res;
   }
 
   static async update(

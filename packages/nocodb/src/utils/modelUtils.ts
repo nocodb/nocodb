@@ -24,22 +24,37 @@ export function stringifyMetaProp(model: any, propName = 'meta'): string {
   }
 }
 
-export function prepareForDb(model: any) {
+export function prepareForDb(model: any, props: string | string[] = 'meta') {
   if (!model) return model;
 
-  if (model.meta) {
-    model.meta = stringifyMetaProp(model);
+  if (typeof props === 'string') {
+    props = [props];
   }
+
+  props.forEach((prop) => {
+    if (prop in model) {
+      model[prop] = stringifyMetaProp(model, prop);
+    }
+  });
 
   return model;
 }
 
-export function prepareForResponse(model: any) {
+export function prepareForResponse(
+  model: any,
+  props: string | string[] = 'meta',
+) {
   if (!model) return model;
 
-  if (model.meta) {
-    model.meta = parseMetaProp(model);
+  if (typeof props === 'string') {
+    props = [props];
   }
+
+  props.forEach((prop) => {
+    if (prop in model) {
+      model[prop] = parseMetaProp(model, prop);
+    }
+  });
 
   return model;
 }

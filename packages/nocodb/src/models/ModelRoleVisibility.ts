@@ -86,17 +86,8 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     role: string,
     body: { disabled: any },
   ) {
-    // get existing cache
-    const key = `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o.disabled = body.disabled;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
-    return await Noco.ncMeta.metaUpdate(
+    const res = await Noco.ncMeta.metaUpdate(
       null,
       null,
       MetaTable.MODEL_ROLE_VISIBILITY,
@@ -108,6 +99,15 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         role,
       },
     );
+
+    await NocoCache.update(
+      `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`,
+      {
+        disabled: body.disabled,
+      },
+    );
+
+    return res;
   }
 
   async delete() {

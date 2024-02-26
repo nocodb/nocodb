@@ -46,6 +46,9 @@ export enum MetaTable {
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
+  ROLES = 'nc_all_roles',
+  PERMISSIONS = 'nc_permissions',
+  ROLES_PERMISSIONS = 'nc_roles_permissions',
 }
 
 export enum MetaTableOldV2 {

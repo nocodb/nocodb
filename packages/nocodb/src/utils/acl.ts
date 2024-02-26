@@ -11,7 +11,7 @@ const roleScopes = {
   ],
 };
 
-const permissionScopes = {
+export const permissionScopes = {
   org: [
     // API Tokens
     'apiTokenList',
@@ -431,5 +431,86 @@ Object.values(rolePermissions).forEach((role) => {
     );
   }
 });
+
+// List of permissions that aren't assigned to any roles but are used in Acl function and work only for superadmin
+export const notAssignedPermissionsBE = {
+  org: [
+    'licenseGet',
+    'licenseSet',
+    'userSettings',
+    'appSettingsGet',
+    'appSettingsSet',
+    'webhookPluginList',
+  ],
+  base: [
+    'baseList',
+    'userList',
+    'nestedDataList',
+    'nestedDataLink',
+    'nestedDataUnlink',
+    'tableCreate',
+    'tableUpdate',
+    'tableGet',
+    'tableDelete',
+    'tableReorder',
+    'commentUpdate',
+    'auditList',
+    'userInvite',
+    'baseUserUpdate',
+    'baseUserDelete',
+    'baseUserInviteResend',
+    'baseUpdate',
+    'hasEmptyOrNullFilters',
+    'columnAdd',
+    'columnUpdate',
+    'columnDelete',
+    'columnGet',
+    'columnSetAsPrimary',
+    'columnsHash',
+    'columnBulk',
+    'relationDataDelete',
+    'hookFilterCreate',
+    'hookFilterList',
+    'formViewCreate',
+    'formViewUpdate',
+    'galleryViewCreate',
+    'galleryViewUpdate',
+    'gridColumnUpdate',
+    'gridViewCreate',
+    'gridViewUpdate',
+    'hookList',
+    'hookCreate',
+    'hookDelete',
+    'hookUpdate',
+    'hookTest',
+    'tableSampleData',
+    'hookLogList',
+    'kanbanViewCreate',
+    'kanbanViewUpdate',
+    'mapViewGet',
+    'mapViewCreate',
+    'mapViewUpdate',
+    'metaDiff',
+    'modelVisibilitySet',
+    'modelVisibilityList',
+    'createSharedBaseLink',
+    'updateSharedBaseLink',
+    'disableSharedBaseLink',
+    'getSharedBaseLink',
+    'sortGet',
+    'baseUpdate',
+    'sqlViewCreate',
+    'syncSourceList',
+    'syncSourceCreate',
+    'syncSourceDelete',
+    'syncSourceUpdate',
+    'viewUpdate',
+    'viewDelete',
+    'shareView',
+    'shareViewList',
+    'shareViewUpdate',
+    'shareViewDelete',
+  ],
+};
 
 export default rolePermissions;

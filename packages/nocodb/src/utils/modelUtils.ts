@@ -23,3 +23,23 @@ export function stringifyMetaProp(model: any, propName = 'meta'): string {
     return '{}';
   }
 }
+
+export function prepareForDb(model: any) {
+  if (!model) return model;
+
+  if (model.meta) {
+    model.meta = stringifyMetaProp(model);
+  }
+
+  return model;
+}
+
+export function prepareForResponse(model: any) {
+  if (!model) return model;
+
+  if (model.meta) {
+    model.meta = parseMetaProp(model);
+  }
+
+  return model;
+}

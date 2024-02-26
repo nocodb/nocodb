@@ -5,6 +5,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class GridView implements GridType {
   fk_view_id: string;
@@ -70,22 +71,21 @@ export default class GridView implements GridType {
   ) {
     const updateObj = extractProps(body, ['row_height', 'meta']);
 
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
-
     // update meta
     const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.GRID_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: viewId,
       },
     );
 
-    await NocoCache.update(`${CacheScope.GRID_VIEW}:${viewId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.GRID_VIEW}:${viewId}`,
+      prepareForResponse(res),
+    );
 
     return res;
   }

@@ -17,7 +17,12 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 
 // todo: hide credentials
 export default class Source implements SourceType {
@@ -130,10 +135,6 @@ export default class Source implements SourceType {
       ).toString();
     }
 
-    if ('meta' in updateObj) {
-      updateObj.meta = stringifyMetaProp(updateObj);
-    }
-
     // type property is undefined even if not provided
     if (!updateObj.type) {
       updateObj.type = oldBase.type;
@@ -143,11 +144,14 @@ export default class Source implements SourceType {
       source.baseId,
       null,
       MetaTable.BASES,
-      updateObj,
+      prepareForDb(updateObj),
       oldBase.id,
     );
 
-    await NocoCache.update(`${CacheScope.BASE}:${sourceId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.BASE}:${sourceId}`,
+      prepareForResponse(updateObj),
+    );
 
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);

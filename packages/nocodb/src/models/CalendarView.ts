@@ -2,9 +2,15 @@ import type { BoolType, MetaType } from 'nocodb-sdk';
 import type { CalendarType } from 'nocodb-sdk';
 import View from '~/models/View';
 import { extractProps } from '~/helpers/extractProps';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 import CalendarRange from '~/models/CalendarRange';
 
 export default class CalendarView implements CalendarType {
@@ -87,17 +93,12 @@ export default class CalendarView implements CalendarType {
   ) {
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
 
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
-
-    await NocoCache.update(
-      `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
-      updateObj,
-    );
-
     if (body.calendar_range) {
-      await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
+      // if calendar range is updated, delete cache
+      await NocoCache.deepDel(
+        `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
       await ncMeta.metaDelete(
         null,
         null,
@@ -116,15 +117,24 @@ export default class CalendarView implements CalendarType {
         }),
       );
     }
+
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.CALENDAR_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: calendarId,
       },
     );
+
+    // update cache
+    await NocoCache.update(
+      `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 }

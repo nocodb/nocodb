@@ -391,15 +391,7 @@ export class AclMiddleware implements NestInterceptor {
         roles?.[OrgUserRoles.VIEWER]
       )
     ) {
-      // // if nocodb user and listed as debug user then allow readonly access
-      // // todo: replace with proper debug user check in redis cache
-      // if (
-      //   req.user?.email?.endsWith('@nocodb.com') &&
-      //   process.env.NC_DEBUG_USERS?.split(',').includes(req.user.email)
-      // ) {
-      // } else {
       NcError.unauthorized('Unauthorized access');
-      // }
     }
     // todo : verify user have access to base or not
 

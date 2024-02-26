@@ -92,6 +92,7 @@ import Sort from '~icons/nc-icons/sort'
 
 // NocoDB Icons
 import NcEye from '~icons/nc-icons/eye'
+import NcEyeOff from '~icons/nc-icons/eye-off'
 import NcStar from '~icons/nc-icons/star'
 import NcUnStar from '~icons/nc-icons/star-remove'
 import NcSearch from '~icons/nc-icons/search'
@@ -417,7 +418,7 @@ export const iconMap = {
   calculator: h('span', { class: 'material-symbols' }, 'calculate'),
   rollup: h('span', { class: 'material-symbols' }, 'group_work'),
   eye: NcEye,
-  eyeSlash: h('span', { class: 'material-symbols' }, 'visibility_off'),
+  eyeSlash: NcEyeOff,
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   shrink: h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   check: NcCheck,

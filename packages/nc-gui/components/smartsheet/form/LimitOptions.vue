@@ -1,0 +1,267 @@
+<script setup lang="ts">
+import Draggable from 'vuedraggable'
+import tinycolor from 'tinycolor2'
+import { UITypes, type ColumnType, type SelectOptionType, type SelectOptionsType, type UserFieldRecordType } from 'nocodb-sdk'
+
+import { iconMap, MetaInj } from '#imports'
+
+interface LimitOptionsType {
+  id: string
+  order: number
+  show: boolean
+}
+
+const props = defineProps<{
+  modelValue: LimitOptionsType[]
+  column: ColumnType
+}>()
+
+const emit = defineEmits(['update:modelValue'])
+
+const meta = inject(MetaInj)!
+
+const column = toRef(props, 'column')
+
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
+const searchQuery = ref('')
+
+const drag = ref(false)
+
+const { t } = useI18n()
+
+const vModel = computed({
+  get: () => {
+    let order = 1
+    const limitOptionsById =
+      (props.modelValue || []).reduce((o: Record<string, LimitOptionsType>, f: LimitOptionsType) => {
+        if (f?.order !== undefined && order < f.order) {
+          order = f.order
+        }
+        return {
+          ...o,
+          [f.id]: f,
+        }
+      }, {} as Record<string, LimitOptionsType>) ?? {}
+
+    if (UITypes.User === column.value.uidt) {
+      const collaborators = ((baseUsers.value || []) as UserFieldRecordType[])
+        ?.filter((user) => !user?.deleted)
+        ?.map((user: any) => ({
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
+          show:
+            user.id && limitOptionsById[user.id]
+              ? limitOptionsById[user.id]?.show
+              : !(props.modelValue || []).length
+              ? true
+              : false,
+        }))
+
+      if ((props.modelValue || []).length !== collaborators.length) {
+        emit(
+          'update:modelValue',
+          collaborators.map((o) => ({ id: o.id, order: o.order, show: o.show })),
+        )
+      }
+      return collaborators
+    } else if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.value.uidt as UITypes)) {
+      const updateModelValue = ((column.value.colOptions as SelectOptionsType)?.options || []).map((c) => {
+        return {
+          ...c,
+          order: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.order ?? c.order : order++,
+          show: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.show : !(props.modelValue || []).length ? true : false,
+        } as SelectOptionType & { show?: boolean }
+      })
+
+      if ((props.modelValue || []).length !== ((column.value.colOptions as SelectOptionsType)?.options || []).length) {
+        emit(
+          'update:modelValue',
+          updateModelValue.map((o) => ({ id: o.id, order: o.order, show: o.show })),
+        )
+      }
+      return updateModelValue
+    }
+    return []
+  },
+  set: (val) => {
+    emit(
+      'update:modelValue',
+      val.map((o) => ({ id: o.id, order: o.order, show: o.show })),
+    )
+  },
+})
+
+const syncOptions = () => {
+  // set initial colOptions if not set
+}
+</script>
+
+<template>
+  <div class="w-full h-full nc-col-option-select-option nc-form-scrollbar">
+    <div v-if="vModel.length > 12">
+      <a-input
+        v-model:value="searchQuery"
+        class="!h-9 !px-3 !py-1 !rounded-lg mb-2"
+        :placeholder="`Search option...`"
+        name="nc-form-field-limit-option-search-input"
+        data-testid="nc-form-field-limit-option-search-input"
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+        </template>
+        <template #suffix>
+          <GeneralIcon
+            v-if="searchQuery.length > 0"
+            icon="close"
+            class="ml-2 h-4 w-4 text-gray-500 group-hover:text-black"
+            data-testid="nc-form-field-clear-search"
+            @click="searchQuery = ''"
+          />
+        </template>
+      </a-input>
+    </div>
+    <Draggable
+      v-if="vModel.length"
+      :list="vModel"
+      item-key="id"
+      handle=".nc-child-draggable-icon"
+      class="rounded-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
+      @change="syncOptions"
+      @start="drag = true"
+      @end="drag = false"
+    >
+      <template #item="{ element }">
+        <div
+          v-if="
+            column.uidt === UITypes.User
+              ? (element?.display_name?.trim() || element?.email)?.toLowerCase().includes(searchQuery.toLowerCase())
+              : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
+          "
+          :key="element.id"
+          class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-gray-200"
+          :class="[
+            `nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`,
+            `${element.show ? 'hover:bg-gray-50' : 'bg-gray-100'}`,
+          ]"
+          :data-testid="`nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`"
+        >
+          <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600" />
+
+          <div
+            @click="
+              () => {
+                element.show = !element.show
+                vModel = vModel
+              }
+            "
+          >
+            <component
+              :is="element.show ? iconMap.eye : iconMap.eyeSlash"
+              class="flex-none cursor-pointer !h-4 !w-4 text-gray-600"
+            />
+          </div>
+
+          <a-tag v-if="column.uidt === UITypes.User" class="rounded-tag max-w-[calc(100%_-_70px)] !pl-0" color="'#ccc'">
+            <span
+              :style="{
+                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  ? '#fff'
+                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+              class="flex items-stretch gap-2"
+            >
+              <div>
+                <GeneralUserIcon
+                  size="auto"
+                  :name="element.display_name?.trim() ? element.display_name?.trim() : ''"
+                  :email="element.email"
+                  class="!text-[0.65rem]"
+                />
+              </div>
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ element.display_name?.trim() || element?.email }}
+                </template>
+                <span
+                  class="text-ellipsis overflow-hidden"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ element.display_name?.trim() || element?.email }}
+                </span>
+              </NcTooltip>
+            </span>
+          </a-tag>
+          <a-tag v-else class="rounded-tag max-w-[calc(100%_-_70px)]" :color="element.color">
+            <span
+              :style="{
+                'color': tinycolor.isReadable(element.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  ? '#fff'
+                  : tinycolor.mostReadable(element.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+            >
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ element.title }}
+                </template>
+                <span
+                  class="text-ellipsis overflow-hidden"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ element.title }}
+                </span>
+              </NcTooltip>
+            </span>
+          </a-tag>
+        </div>
+      </template>
+      <template v-if="!vModel.length" #footer><div class="px-0.5 py-2 text-gray-500 text-center">No options found</div></template>
+      <template
+        v-else-if="
+          vModel.length &&
+          searchQuery &&
+          !vModel?.filter((el) => {
+            return column.uidt === UITypes.User
+              ? (element?.display_name?.trim() || element?.email)?.toLowerCase().includes(searchQuery.toLowerCase())
+              : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
+          })?.length
+        "
+        #footer
+      >
+        <div class="px-0.5 py-2 text-gray-500 text-center">No options found with title `{{ searchQuery }}`</div>
+      </template>
+    </Draggable>
+  </div>
+</template>
+
+<style scoped>
+.nc-form-scrollbar {
+  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
+  &::-webkit-scrollbar-thumb:hover {
+    @apply !scrollbar-thumb-gray-300;
+  }
+}
+.rounded-tag {
+  @apply py-0 px-[12px] rounded-[12px];
+}
+
+:deep(.ant-tag) {
+  @apply rounded-tag my-[2px];
+}
+</style>

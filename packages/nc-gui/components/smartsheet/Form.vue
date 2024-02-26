@@ -160,9 +160,7 @@ const imageCropperData = ref<{
   cropFor: 'banner',
 })
 
-const focusLabel: VNodeRef = (el) => {
-  return (el as HTMLInputElement)?.focus()
-}
+const focusLabel = ref<HTMLTextAreaElement>()
 
 const searchQuery = ref('')
 
@@ -514,7 +512,15 @@ const handleOnUploadImage = (data: Record<string, any> = {}) => {
   updateView()
 }
 
-onClickOutside(draggableRef, () => {
+onClickOutside(draggableRef, (e) => {
+  if (
+    (e.target as HTMLElement)?.closest(
+      '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell',
+    )
+  ) {
+    return
+  }
+
   activeRow.value = ''
   isTabPressed.value = false
 })
@@ -567,6 +573,12 @@ watch(activeRow, (newValue) => {
     document
       .querySelector(`.nc-form-field-item-${newValue?.replaceAll(' ', '')}`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+})
+
+watch([focusLabel, activeRow], () => {
+  if (activeRow && focusLabel.value) {
+    focusLabel.value?.focus()
   }
 })
 
@@ -991,7 +1003,7 @@ useEventListener(
                         <template v-if="activeRow === element.title">
                           <a-form-item class="my-0 !mb-2">
                             <a-textarea
-                              :ref="focusLabel"
+                              ref="focusLabel"
                               v-model:value="element.label"
                               :rows="1"
                               auto-size
@@ -1118,20 +1130,25 @@ useEventListener(
                           </div>
                         </div>
                         <!-- Limit options -->
-                        <div
-                          v-if="isSelectTypeCol(element.uidt)"
-                          class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg"
-                        >
-                          <a-switch
-                            v-model:checked="element.meta.isLimitOption"
-                            v-e="['a:form-view:field:limit-options']"
-                            size="small"
-                            @change="updateColMeta(element)"
-                          />
-                          <div>
+                        <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div class="flex items-start gap-3">
+                            <a-switch
+                              v-model:checked="element.meta.isLimitOption"
+                              v-e="['a:form-view:field:limit-options']"
+                              size="small"
+                              @change="updateColMeta(element)"
+                            />
                             <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
+                          </div>
+                          <div class="pl-8 flex-1 max-w-[calc(100%_-_40px)]">
                             <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
-                            <div v-if="element.meta.isLimitOption" class="mt-5"></div>
+                            <div v-if="element.meta.isLimitOption" class="mt-5 max-w-[80%]">
+                              <LazySmartsheetFormLimitOptions
+                                v-model:modelValue="element.meta.limitOptions"
+                                :column="element"
+                                @update:modelValue="updateColMeta(element)"
+                              ></LazySmartsheetFormLimitOptions>
+                            </div>
                           </div>
                         </div>
                       </div>

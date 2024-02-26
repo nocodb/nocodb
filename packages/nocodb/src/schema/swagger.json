@@ -24194,6 +24194,16 @@
           },
           "workspace_roles": {
             "description": "The workspace roles of the user"
+          },
+          "role_permissions": {
+            "description": "All permissions for user roles",
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         },
         "title": "User Info Model",

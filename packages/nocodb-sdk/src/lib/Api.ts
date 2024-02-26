@@ -2576,6 +2576,8 @@ export interface UserInfoType {
   base_roles?: any;
   /** The workspace roles of the user */
   workspace_roles?: any;
+  /** All permissions for user roles */
+  role_permissions?: Record<string, string[]>;
 }
 
 /**

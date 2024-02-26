@@ -2275,10 +2275,7 @@ export class ColumnsService {
         break;
       }
       case UITypes.SingleSelect: {
-        if (
-          column.uidt === UITypes.SingleSelect &&
-          (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id))
-        ) {
+        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
           );

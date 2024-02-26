@@ -84,7 +84,7 @@ export default class GridView implements GridType {
 
     await NocoCache.update(
       `${CacheScope.GRID_VIEW}:${viewId}`,
-      prepareForResponse(res),
+      prepareForResponse(updateObj),
     );
 
     return res;

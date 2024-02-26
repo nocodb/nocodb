@@ -1386,7 +1386,7 @@ export default class View implements ViewType {
         MetaTable.COLUMNS,
         col.fk_column_id,
       );
-      view_columns_meta.push(col_meta);
+      if (col_meta) view_columns_meta.push(col_meta);
     }
 
     const primary_value_column_meta = view_columns_meta.find((col) => col.pv);

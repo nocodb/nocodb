@@ -483,13 +483,6 @@ export default class Column<T = any> implements ColumnType {
     return this.model;
   }
 
-  public static async clearList({ fk_model_id }) {
-    await NocoCache.deepDel(
-      `${CacheScope.COLUMN}:${fk_model_id}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
-    );
-  }
-
   public static async list(
     {
       fk_model_id,
@@ -1336,10 +1329,7 @@ export default class Column<T = any> implements ColumnType {
       true,
     );
 
-    // insert column options if any
-    // for (const column of columns) {
     await Column.bulkInsertColOption(columns, ncMeta);
-    // }
 
     return columns;
   }

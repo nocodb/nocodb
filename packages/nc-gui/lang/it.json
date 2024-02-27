@@ -192,7 +192,10 @@
     "enter": "Invio",
     "seconds": "Secondi",
     "paste": "Incolla",
-    "restore": "Ripristino"
+    "restore": "Ripristino",
+    "replace": "Replace",
+    "banner": "Banner",
+    "logo": "Logo"
   },
   "objects": {
     "day": "Day",
@@ -1294,7 +1297,9 @@
       "notAvailableAtTheMoment": "Non disponibile al momento",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
       "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
-      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
       "fetchingCalendarData": "Error fetching calendar data",

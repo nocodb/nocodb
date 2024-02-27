@@ -697,7 +697,7 @@
     "hideNocodbBranding":"Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
     "showFieldOnConditionsMet":"Shows field only when conditions are met",
-    "limitOptions": "Limit ptions",
+    "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection"
   },

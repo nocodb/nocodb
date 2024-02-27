@@ -694,9 +694,9 @@ useEventListener(
               @submit="handleOnUploadImage"
             ></GeneralImageCropper>
             <!-- cover image -->
-            <div class="relative max-w-[max(33%,688px)] mx-auto">
-              <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
-              <div class="absolute bottom-0 right-0">
+            <div class="group relative max-w-[max(33%,688px)] mx-auto">
+              <GeneralFormBanner :banner-image-url="formViewData.banner_image_url"/>
+              <div class="absolute bottom-0 right-0 hidden group-hover:block">
                 <div class="flex items-center space-x-1 m-2">
                   <NcButton
                     type="secondary"
@@ -750,8 +750,8 @@ useEventListener(
                   <!-- Form logo  -->
                   <div class="mb-4">
                     <div
-                      class="nc-form-logo-wrapper mx-6 group relative rounded-xl inline-block h-56px max-w-189px overflow-hidden"
-                      :class="formViewData.logo_url ? 'hover:(w-full bg-gray-100)' : 'bg-gray-100'"
+                      class="nc-form-logo-wrapper mx-6 group relative rounded-xl inline-block h-56px overflow-hidden"
+                      :class="formViewData.logo_url ? 'hover:(w-full bg-gray-100) max-w-189px' : 'w-full bg-gray-100 max-w-148px'"
                       style="transition: all 0.3s ease-in"
                     >
                       <LazyCellAttachmentImage
@@ -761,7 +761,7 @@ useEventListener(
                       />
                       <div
                         class="items-center space-x-1 flex-nowrap m-3"
-                        :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
+                        :class="'hidden absolute top-0 left-0 group-hover:flex'"
                       >
                         <NcButton
                           v-if="isEditable"

@@ -212,7 +212,7 @@
     "page": "Stranica",
     "pages": "Stranicama",
     "record": "Snimiti",
-    "records": "Zapisi",
+    "records": "records",
     "webhook": "Web-dojavnik \"Webhook\"",
     "webhooks": "Web-dojavnici",
     "view": "Pogled",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Preklopi na način za mobilne uređaje",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "Pristup je ograničen lozinkom",
       "privateLink": "Ovaj prikaz se dijeli putem privatne veze",
       "privateLinkAdditionalInfo": "Osobe s privatnom vezom mogu vidjeti samo ćelije vidljive u ovom pogledu",
-      "afterFormSubmitted": "Nakon podnošenja obrasca",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Projekt pristupa putem",
       "submitAnotherForm": "Prikaži \"Pošalji još jedan obrazac\"",
       "showBlankForm": "Pokažite prazan obrazac nakon 5 sekundi",
       "emailForm": "E-mail me na",
       "showSysFields": "Prikaži polja sustava",
       "filterAutoApply": "Automatsko primjenjivanje",
-      "showMessage": "Pokažite ovu poruku",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Trenutni prikaz se ne dijeli!",
       "showAllViews": "Prikaži sve zajedničke poglede na ovu tablicu",
       "collabView": "Suradnici s uređivanjem dopuštenja ili više mogu promijeniti konfiguraciju prikaza.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Dozvoljeni tipovi datoteka su .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ključ parametra ne može biti prazan",
       "duplicateParameterKeysAreNotAllowed": "Duplicirani ključevi parametara nisu dopušteni",
-      "fieldRequired": "{value} ne može biti prazno.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Kopiranje u međuspremnik nije uspjelo",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

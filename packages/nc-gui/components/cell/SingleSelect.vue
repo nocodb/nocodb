@@ -94,7 +94,7 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
     const limitOptionsById =
       ((parseProp(column.value.meta)?.limitOptions || []).reduce(
         (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
-          if (f?.order !== undefined && order < f.order) {
+          if (order < (f?.order ?? 0)) {
             order = f.order
           }
           return {
@@ -112,18 +112,18 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
       (parseProp(column.value.meta)?.limitOptions || []).length
     ) {
       return opts
-        ?.filter((o: any) => {
+        .filter((o: SelectOptionType & { value: string }) => {
           if (limitOptionsById[o.id]?.show !== undefined) {
             return limitOptionsById[o.id]?.show
           }
           return false
         })
-        ?.map((o: any) => ({
+        .map((o: any) => ({
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
         }))
-        ?.sort((a, b) => a.order - b.order)
+        .sort((a, b) => a.order - b.order)
     } else {
       return opts.map((o: any) => ({ ...o, value: o.title }))
     }

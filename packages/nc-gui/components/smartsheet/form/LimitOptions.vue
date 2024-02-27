@@ -32,7 +32,7 @@ const vModel = computed({
     let order = 1
     const limitOptionsById =
       (props.modelValue || []).reduce((o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
-        if (f?.order !== undefined && order < f.order) {
+        if (order < (f?.order ?? 0)) {
           order = f.order
         }
         return {
@@ -43,12 +43,12 @@ const vModel = computed({
 
     if (UITypes.User === column.value.uidt) {
       const collaborators = ((baseUsers.value || []) as UserFieldRecordType[])
-        ?.filter((user) => !user?.deleted)
-        ?.map((user: any) => ({
+        .filter((user) => !user?.deleted)
+        .map((user: any) => ({
           id: user.id,
           email: user.email,
           display_name: user.display_name,
-          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? c.order : order++,
+          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
           show: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.show : !(props.modelValue || []).length,
         }))
         .sort((a, b) => a.order - b.order)
@@ -98,16 +98,6 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
   const {
     moved: { newIndex = 0, oldIndex = 0, element },
   } = _event
-
-  if (!vModel.value.length || vModel.value.length === 1) {
-    element.order = 1
-  } else if (vModel.value.length - 1 === newIndex) {
-    element.order = (vModel.value[newIndex - 1]?.order || 0) + 1
-  } else if (newIndex === 0) {
-    element.order = (vModel.value[1]?.order || 0) / 2
-  } else {
-    element.order = ((vModel.value[newIndex - 1]?.order || 0) + (vModel.value[newIndex + 1].order || 0)) / 2
-  }
 
   let nextOrder: number
 

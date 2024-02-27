@@ -83,7 +83,7 @@ const options = computed<UserFieldRecordType[]>(() => {
   const limitOptionsById =
     ((parseProp(column.value.meta)?.limitOptions || []).reduce(
       (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
-        if (f?.order !== undefined && order < f.order) {
+        if (order < (f?.order ?? 0)) {
           order = f.order
         }
         return {
@@ -103,34 +103,33 @@ const options = computed<UserFieldRecordType[]>(() => {
     (parseProp(column.value.meta)?.limitOptions || []).length
   ) {
     collaborators.push(
-      ...(
-        baseUsers.value
-          .filter((user) => {
-            if (limitOptionsById[user.id]?.show !== undefined) {
-              return limitOptionsById[user.id]?.show
-            }
-            return false
-          })
-          ?.map((user: any) => ({
-            id: user.id,
-            email: user.email,
-            display_name: user.display_name,
-            deleted: user.deleted,
-            order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
-          })) || []
-      ).sort((a, b) => a.order - b.order),
+      ...(baseUsers.value || [])
+        .filter((user) => {
+          if (limitOptionsById[user.id]?.show !== undefined) {
+            return limitOptionsById[user.id]?.show
+          }
+          return false
+        })
+        .map((user: any) => ({
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          deleted: user.deleted,
+          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
+        }))
+        .sort((a, b) => a.order - b.order),
     )
   } else {
     collaborators.push(
-      ...(
-        baseUsers.value?.map((user: any) => ({
+      ...(baseUsers.value || [])
+        .map((user: any) => ({
           id: user.id,
           email: user.email,
           display_name: user.display_name,
           deleted: user.deleted,
           order: order++,
-        })) || []
-      ).sort((a, b) => a.order - b.order),
+        }))
+        .sort((a, b) => a.order - b.order),
     )
   }
   return collaborators

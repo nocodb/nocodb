@@ -56,7 +56,7 @@ const emit = defineEmits(['resize-start'])
       class="block h-full min-h-5 w-1 rounded"
     ></div>
 
-    <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.1 h-7.1 absolute -left-4 resize">
+    <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.7 h-7.1 absolute -left-4 resize">
       <NcButton
         :class="{
           '!block z-1 !border-brand-500': selected || hover,
@@ -70,15 +70,20 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="overflow-hidden ml-2 h-8 absolute">
+    <div class="overflow-hidden flex w-full ml-2 h-8 absolute">
       <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
-      <span class="text-sm !w-[80%] text-gray-800">
+      <span
+        :class="{
+          'pr-7': position === 'leftRounded',
+        }"
+        class="text-sm pt-1.5 pr-3 mr-3 break-word space-x-2 whitespace-nowrap gap-2 overflow-hidden text-ellipsis w-full truncate text-gray-800"
+      >
         <slot />
       </span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
 
-    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.1 z-1 -right-4 resize">
+    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.3 z-1 -right-4 resize">
       <NcButton
         :class="{
           '!block !border-brand-500': selected || hover,

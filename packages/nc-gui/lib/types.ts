@@ -32,6 +32,9 @@ interface ProjectMetaInfo {
 interface Field {
   order: number
   show: number | boolean
+  bold: boolean | number
+  italic: boolean | number
+  underline: boolean | number
   title: string
   fk_column_id?: string
   system?: boolean

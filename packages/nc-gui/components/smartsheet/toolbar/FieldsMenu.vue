@@ -50,6 +50,7 @@ const {
   saveOrUpdate,
   metaColumnById,
   loadViewColumns,
+  toggleFieldStyles,
   toggleFieldVisibility,
 } = useViewColumnsOrThrow()
 
@@ -396,7 +397,41 @@ useMenuCloseOnEsc(open)
                       </template>
                       <template #default>{{ field.title }}</template>
                     </NcTooltip>
-
+                    <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
+                      <NcButton
+                        :class="{
+                          '!bg-gray-800 !text-white': field.bold,
+                        }"
+                        class="!rounded-r-none"
+                        size="xxsmall"
+                        type="secondary"
+                        @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
+                      >
+                        <component :is="iconMap.bold" />
+                      </NcButton>
+                      <NcButton
+                        :class="{
+                          '!bg-gray-800 !text-white': field.italic,
+                        }"
+                        class="!rounded-x-none !border-x-0"
+                        size="xxsmall"
+                        type="secondary"
+                        @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
+                      >
+                        <component :is="iconMap.italic" />
+                      </NcButton>
+                      <NcButton
+                        :class="{
+                          '!bg-gray-800 !text-white': field.underline,
+                        }"
+                        class="!rounded-l-none"
+                        size="xxsmall"
+                        type="secondary"
+                        @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
+                      >
+                        <component :is="iconMap.underline" />
+                      </NcButton>
+                    </div>
                     <NcSwitch :checked="field.show" :disabled="field.isViewEssentialField" @change="$t('a:fields:show-hide')" />
                   </div>
 

@@ -200,6 +200,7 @@ declare module 'vue' {
     PhFlowArrowThin: typeof import('~icons/ph/flow-arrow-thin')['default']
     PhMagnifyingGlassBold: typeof import('~icons/ph/magnifying-glass-bold')['default']
     PhPencilCircleThin: typeof import('~icons/ph/pencil-circle-thin')['default']
+    RichText: typeof import('~icons/ri/ch-text')['default']
     RiExternalLinkLine: typeof import('~icons/ri/external-link-line')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

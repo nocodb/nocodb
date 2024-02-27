@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
-import { computed, ref } from '#imports'
+import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
@@ -29,6 +29,23 @@ const { width: containerWidth } = useElementSize(container)
 const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
+
+const fields = inject(FieldsInj, ref())
+
+const { fields: _fields } = useViewColumnsOrThrow()
+
+const getFieldStyle = (field: ColumnType | undefined) => {
+  if (!field) return { underline: false, bold: false, italic: false }
+  const fi = _fields.value?.find((f) => f.title === field.title)
+
+  return {
+    underline: fi?.underline,
+    bold: fi?.bold,
+    italic: fi?.italic,
+  }
+}
+
+const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
@@ -68,7 +85,11 @@ const recordsAcrossAllRange = computed<{
     }
   }
 }>(() => {
-  if (!formattedData.value || !calendarRange.value || !container.value) return { records: [], count: {} }
+  if (!formattedData.value || !calendarRange.value || !container.value || !scrollContainer.value)
+    return {
+      records: [],
+      count: {},
+    }
 
   const { scrollHeight } = scrollContainer.value
 
@@ -746,27 +767,23 @@ const viewMore = (hour: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
             >
               <template v-if="!isRowEmpty(record, displayField)">
-                <div
-                  :class="{
-                      '!mt-2': displayField!.uidt === UITypes.SingleLineText,
-                      '!mt-1': displayField!.uidt === UITypes.MultiSelect || displayField!.uidt === UITypes.SingleSelect,
-                    }"
-                >
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(displayField!)"
-                    v-model="record.row[displayField!.title!]"
-                    :column="displayField"
-                    :row="record"
-                  />
-
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="record.row[displayField!.title!]"
-                    :column="displayField"
-                    :edit-enabled="false"
-                    :read-only="true"
-                  />
-                </div>
+                <LazySmartsheetCalendarCell
+                  v-if="!isRowEmpty(record, displayField!)"
+                  v-model="record.row[displayField!.title!]"
+                  :bold="getFieldStyle(displayField).bold"
+                  :column="displayField"
+                  :italic="getFieldStyle(displayField).italic"
+                  :underline="getFieldStyle(displayField).underline"
+                />
+              </template>
+              <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+                <LazySmartsheetCalendarCell
+                  v-model="record.row[field!.title!]"
+                  :bold="getFieldStyle(field).bold"
+                  :column="field"
+                  :italic="getFieldStyle(field).italic"
+                  :underline="getFieldStyle(field).underline"
+                />
               </template>
             </LazySmartsheetCalendarVRecordCard>
           </LazySmartsheetRow>

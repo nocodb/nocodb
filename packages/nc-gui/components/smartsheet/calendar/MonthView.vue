@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import type { Row } from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['new-record', 'expandRecord'])
@@ -60,6 +59,23 @@ const focusedDate = ref<dayjs.Dayjs | null>(null)
 const resizeDirection = ref<'right' | 'left'>()
 
 const resizeRecord = ref<Row>()
+
+const fields = inject(FieldsInj, ref())
+
+const { fields: _fields } = useViewColumnsOrThrow()
+
+const getFieldStyle = (field: ColumnType | undefined) => {
+  if (!field) return { underline: false, bold: false, italic: false }
+  const fi = _fields.value?.find((f) => f.title === field.title)
+
+  return {
+    underline: fi?.underline,
+    bold: fi?.bold,
+    italic: fi?.italic,
+  }
+}
+
+const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 const dates = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
@@ -331,8 +347,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const percentY = (event.clientY - top - window.scrollY) / height
   const percentX = (event.clientX - left - window.scrollX) / width
 
-  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
-  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
+  const fromCol = dragRecord.value?.rowMeta.range?.fk_from_col
+  const toCol = dragRecord.value?.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * dates.value.length)
   const day = Math.floor(percentX * 7)
@@ -345,7 +361,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const newRow = {
     ...dragRecord.value,
     row: {
-      ...dragRecord.value.row,
+      ...dragRecord.value?.row,
       [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
@@ -353,8 +369,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const updateProperty = [fromCol!.title!]
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol!.title!] ? dayjs(dragRecord.value.row[fromCol!.title!]) : null
-    const toDate = dragRecord.value.row[toCol!.title!] ? dayjs(dragRecord.value.row[toCol!.title!]) : null
+    const fromDate = dragRecord.value?.row[fromCol!.title!] ? dayjs(dragRecord.value.row[fromCol!.title!]) : null
+    const toDate = dragRecord.value?.row[toCol!.title!] ? dayjs(dragRecord.value?.row[toCol!.title!]) : null
 
     if (fromDate && toDate) {
       endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
@@ -366,7 +382,6 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    dragRecord.value = undefined
     newRow.row[toCol!.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
     updateProperty.push(toCol!.title!)
   }
@@ -440,7 +455,7 @@ const onResize = (event: MouseEvent) => {
         [toCol!.title!]: dayjs(newEndDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
-  } else if (resizeDirection.value === 'left') {
+  } else {
     let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
     updateProperty = [fromCol!.title!]
 
@@ -465,7 +480,9 @@ const onResize = (event: MouseEvent) => {
     return pk === newPk ? newRow : r
   })
 
-  useDebouncedRowUpdate(newRow, updateProperty, false)
+  if (newRow) {
+    useDebouncedRowUpdate(newRow, updateProperty, false)
+  }
 }
 
 const onResizeEnd = () => {
@@ -490,11 +507,14 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 }
 
 const stopDrag = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
-
-  event.preventDefault()
   clearTimeout(dragTimeout.value)
 
+  console.log('stopDrag')
+  console.log('stopDrag', dragRecord.value, isDragging.value)
+  if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
+
+  console.log('stopDrag')
+  event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
 
   const { newRow, updateProperty } = calculateNewRow(event, false)
@@ -769,30 +789,26 @@ const isDateSelected = (date: dayjs.Dayjs) => {
                 : false
             "
             @resize-start="onResizeStart"
-            @dblclick.stop="emit('expand-record', record)"
+            @dblclick.stop="emit('expandRecord', record)"
           >
             <template v-if="!isRowEmpty(record, displayField)">
-              <div
-                :class="{
-                  'mt-1.4': displayField!.uidt === UITypes.SingleLineText,
-                  'mt-1': displayField!.uidt === UITypes.MultiSelect || displayField!.uidt === UITypes.SingleSelect,
-                }"
-              >
-                <LazySmartsheetVirtualCell
-                  v-if="isVirtualCol(displayField!)"
-                  v-model="record.row[displayField!.title!]"
-                  :column="displayField"
-                  :row="record"
-                />
-
-                <LazySmartsheetCell
-                  v-else
-                  v-model="record.row[displayField!.title!]"
-                  :column="displayField"
-                  :edit-enabled="false"
-                  :read-only="true"
-                />
-              </div>
+              <LazySmartsheetCalendarCell
+                v-if="!isRowEmpty(record, displayField!)"
+                v-model="record.row[displayField!.title!]"
+                :bold="getFieldStyle(displayField).bold"
+                :column="displayField"
+                :italic="getFieldStyle(displayField).italic"
+                :underline="getFieldStyle(displayField).underline"
+              />
+            </template>
+            <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+              <LazySmartsheetCalendarCell
+                v-model="record.row[field!.title!]"
+                :bold="getFieldStyle(field).bold"
+                :column="field"
+                :italic="getFieldStyle(field).italic"
+                :underline="getFieldStyle(field).underline"
+              />
             </template>
           </LazySmartsheetCalendarRecordCard>
         </LazySmartsheetRow>
@@ -802,11 +818,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 </template>
 
 <style lang="scss" scoped>
-.hide {
-  transition: 0.01s;
-  transform: translateX(-9999px);
-}
-
 .prevent-select {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */

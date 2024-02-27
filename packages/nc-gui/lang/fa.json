@@ -212,7 +212,7 @@
     "page": "صفحه",
     "pages": "صفحات",
     "record": "سابقه",
-    "records": "سوابق",
+    "records": "records",
     "webhook": "وب‌هوک",
     "webhooks": "وب‌هوک‌ها",
     "view": "نمایش",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "تغییر وضعیت حالت موبایل",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "دسترسی با لزوم ورود کلمه عبور محدود شده",
       "privateLink": "این نمایش از طریق لینک خصوصی به اشتراک گذاشته شده",
       "privateLinkAdditionalInfo": "افراد با لینک خصوصی تنها می‌توانند سلول‌هایی که در این نمایش قابل مشاهده است را ببینند",
-      "afterFormSubmitted": "بعد از ارسال فرم",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "دسترسی به پروژه از طریق",
       "submitAnotherForm": "نمایش دکمه \"ارسال فرمی دیگر\"",
       "showBlankForm": "نمایش فرم خالی پس از 5 ثانیه",
       "emailForm": "به این آدرس پست الکترونیکی من پیام ارسال کنید",
       "showSysFields": "نمایش فیلدهای سیستم",
       "filterAutoApply": "اعمال خودکار",
-      "showMessage": "نمایش این پیام",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "نمایش فعلی به اشتراک گذاشته نشده!",
       "showAllViews": "مشاهده تمام نمایش های به اشتراک گذاشته شده از این جدول",
       "collabView": "همکاران با دسترسی ویرایش یا فراتر می‌توانند پیکربندی نمایش را تغییر دهند.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "نوع فایل های مورد قبول .xls, .xlsx, .xlm, .ods, .ots هستند",
       "parameterKeyCannotBeEmpty": "کلید پارامتر نمیتواند خالی باشد",
       "duplicateParameterKeysAreNotAllowed": "کلید های پارامتر تکراری مجاز نیستند",
-      "fieldRequired": "{value} نمیتواند خالی باشد.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "کپی به کلیپ برد ناموفق",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

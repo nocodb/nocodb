@@ -6,6 +6,7 @@ import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class MapView implements MapType {
   fk_view_id: string;
@@ -70,21 +71,7 @@ export default class MapView implements MapType {
     body: Partial<MapView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.MAP_VIEW}:${mapId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     const updateObj = extractProps(body, ['fk_geo_data_col_id', 'meta']);
-
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
-
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
 
     if (body.fk_geo_data_col_id != null) {
       const mapViewColumns = await MapViewColumn.list(mapId);
@@ -98,8 +85,21 @@ export default class MapView implements MapType {
     }
 
     // update meta
-    return await ncMeta.metaUpdate(null, null, MetaTable.MAP_VIEW, updateObj, {
-      fk_view_id: mapId,
-    });
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.MAP_VIEW,
+      prepareForDb(updateObj),
+      {
+        fk_view_id: mapId,
+      },
+    );
+
+    await NocoCache.update(
+      `${CacheScope.MAP_VIEW}:${mapId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 }

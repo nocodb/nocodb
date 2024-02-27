@@ -7,6 +7,7 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class FormView implements FormType {
   show: BoolType;
@@ -88,9 +89,6 @@ export default class FormView implements FormType {
     body: Partial<FormView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.FORM_VIEW}:${formId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     const updateObj = extractProps(body, [
       'heading',
       'subheading',
@@ -105,20 +103,23 @@ export default class FormView implements FormType {
       'meta',
     ]);
 
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
-    if (updateObj.meta) {
-      updateObj.meta = serializeJSON(updateObj.meta);
-    }
-
     // update meta
-    return await ncMeta.metaUpdate(null, null, MetaTable.FORM_VIEW, updateObj, {
-      fk_view_id: formId,
-    });
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.FORM_VIEW,
+      prepareForDb(updateObj),
+      {
+        fk_view_id: formId,
+      },
+    );
+
+    await NocoCache.update(
+      `${CacheScope.FORM_VIEW}:${formId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 
   async getColumns(ncMeta = Noco.ncMeta) {

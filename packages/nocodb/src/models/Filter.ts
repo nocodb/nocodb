@@ -234,15 +234,6 @@ export default class Filter implements FilterType {
     if (typeof updateObj.value === 'string')
       updateObj.value = updateObj.value.slice(0, 255);
 
-    // get existing cache
-    const key = `${CacheScope.FILTER_EXP}:${id}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    // update alias
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     const res = await ncMeta.metaUpdate(
       null,
@@ -251,6 +242,8 @@ export default class Filter implements FilterType {
       updateObj,
       id,
     );
+
+    await NocoCache.update(`${CacheScope.FILTER_EXP}:${id}`, updateObj);
 
     // on update delete any optimised single query cache
     {

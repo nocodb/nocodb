@@ -827,6 +827,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
       let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+      let aiPkCol: Column;
+      let agPkCol: Column;
 
       if (!raw) {
         const nestedCols = (await this.model.getColumns()).filter((c) =>
@@ -985,6 +987,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           insertDatas.push(insertObj);
         }
+
+        // used for post insert operations
+        aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+        agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
       }
 
       if ('beforeBulkInsert' in this) {
@@ -1017,9 +1023,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
-      const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
-
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
         // sqlite and mysql doesnt support returning, so insert one by one and return ids
@@ -1035,8 +1038,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         const returningArr: string[] = [];
 
-        for (const col of this.model.primaryKeys) {
-          returningArr.push(col.column_name);
+        if (!raw) {
+          for (const col of this.model.primaryKeys) {
+            returningArr.push(col.column_name);
+          }
         }
 
         for (let i = 0; i < insertDatas.length; i += chunkSize) {
@@ -1075,7 +1080,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let responses;
 
-      const postSingleRecordInsetionCbk = async (responses, trx?) => {
+      const postSingleRecordInsertionCbk = async (responses, trx?) => {
         // insert nested link data for single record insertion
         if (isSingleRecordInsertion) {
           let rowId;
@@ -1107,7 +1112,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if ((this.dbDriver as any).isExternal) {
         responses = await runExternal(queries, (this.dbDriver as any).extDb);
         responses = Array.isArray(responses) ? responses : [responses];
-        await postSingleRecordInsetionCbk(responses);
+        if (!raw) await postSingleRecordInsertionCbk(responses);
       } else {
         const trx = await this.dbDriver.transaction();
         try {
@@ -1115,7 +1120,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (const q of queries) {
             responses.push(...(await execAndGetRows(this, q, trx)));
           }
-          await postSingleRecordInsetionCbk(responses, trx);
+          if (!raw) await postSingleRecordInsertionCbk(responses, trx);
           await trx.commit();
         } catch (e) {
           await trx.rollback();

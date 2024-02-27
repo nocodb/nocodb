@@ -5,6 +5,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
@@ -39,6 +40,9 @@ export default class KanbanView implements KanbanType {
       view = await ncMeta.metaGet2(null, null, MetaTable.KANBAN_VIEW, {
         fk_view_id: viewId,
       });
+
+      view = prepareForResponse(view);
+
       await NocoCache.set(`${CacheScope.KANBAN_VIEW}:${viewId}`, view);
     }
 
@@ -99,34 +103,28 @@ export default class KanbanView implements KanbanType {
     body: Partial<KanbanView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     const updateObj = extractProps(body, [
       'fk_cover_image_col_id',
       'fk_grp_col_id',
       'meta',
     ]);
 
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
-
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.KANBAN_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: kanbanId,
       },
     );
+
+    await NocoCache.update(
+      `${CacheScope.KANBAN_VIEW}:${kanbanId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 }

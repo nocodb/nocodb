@@ -340,9 +340,7 @@ export default class WorkspaceUser {
     _updateData: Partial<WorkspaceUser>,
     ncMeta = Noco.ncMeta,
   ) {
-    const key = `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`;
-
-    const updateData = extractProps(_updateData, [
+    const updateObj = extractProps(_updateData, [
       'roles',
       'invite_token',
       'invite_accepted',
@@ -351,15 +349,16 @@ export default class WorkspaceUser {
       'order',
     ]);
 
-    await ncMeta.metaUpdate(null, null, MetaTable.WORKSPACE_USER, updateData, {
+    await ncMeta.metaUpdate(null, null, MetaTable.WORKSPACE_USER, updateObj, {
       fk_user_id: userId,
       fk_workspace_id: workspaceId,
     });
 
-    // clear existing cache
-    await NocoCache.del(key);
+    await NocoCache.update(
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+      updateObj,
+    );
 
-    // cache and return
     return this.get(workspaceId, userId, ncMeta);
   }
 

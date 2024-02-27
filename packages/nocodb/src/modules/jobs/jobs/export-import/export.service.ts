@@ -515,6 +515,8 @@ export class ExportService {
     if (hasLink) {
       linkStream.setEncoding('utf8');
 
+      let streamedHeaders = false;
+
       for (const mm of mmColumns) {
         if (handledMmList.includes(mm.colOptions?.fk_mm_model_id)) continue;
 
@@ -573,8 +575,11 @@ export class ExportService {
             mmOffset,
             mmLimit,
             mmFields,
-            true,
+            streamedHeaders ? false : true,
           );
+
+          // avoid writing headers for same model multiple times
+          streamedHeaders = true;
         } catch (e) {
           this.debugLog(e);
           throw e;

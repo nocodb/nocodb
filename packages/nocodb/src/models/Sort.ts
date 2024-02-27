@@ -148,16 +148,6 @@ export default class Sort {
   }
 
   public static async update(sortId, body, ncMeta = Noco.ncMeta) {
-    // get existing cache
-    const key = `${CacheScope.SORT}:${sortId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update fk_column_id & direction
-      o.fk_column_id = body.fk_column_id;
-      o.direction = body.direction;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     const res = await ncMeta.metaUpdate(
       null,
@@ -169,6 +159,11 @@ export default class Sort {
       },
       sortId,
     );
+
+    await NocoCache.update(`${CacheScope.SORT}:${sortId}`, {
+      fk_column_id: body.fk_column_id,
+      direction: body.direction,
+    });
 
     // on update, delete any optimised single query cache
     {

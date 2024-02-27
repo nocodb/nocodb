@@ -65,16 +65,6 @@ export default class Plugin implements PluginType {
       updateObj.input = JSON.stringify(updateObj.input);
     }
 
-    // get existing cache
-    const key = `${CacheScope.PLUGIN}:${pluginId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    // update alias
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-      await NocoCache.set(`${CacheScope.PLUGIN}:${o.title}`, o);
-    }
     // set meta
     await Noco.ncMeta.metaUpdate(
       null,
@@ -83,6 +73,9 @@ export default class Plugin implements PluginType {
       updateObj,
       pluginId,
     );
+
+    await NocoCache.update(`${CacheScope.PLUGIN}:${pluginId}`, updateObj);
+    await NocoCache.update(`${CacheScope.PLUGIN}:${plugin.title}`, updateObj);
 
     return this.get(pluginId);
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import { type LinkToAnotherRecordType, type TableType, UITypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useVModel } from '#imports'
 import type { TabType } from '#imports'
@@ -30,6 +30,8 @@ const baseStore = useBase()
 const { loadTables } = baseStore
 
 const { tables } = storeToRefs(baseStore)
+
+const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
@@ -74,6 +76,20 @@ const _duplicate = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
+            const sourceTable = await getMeta(props.table.id!)
+            if (sourceTable) {
+              for (const col of sourceTable.columns || []) {
+                if ([UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt as UITypes)) {
+                  if (col && col.colOptions) {
+                    const relatedTableId = (col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+                    if (relatedTableId) {
+                      await getMeta(relatedTableId, true)
+                    }
+                  }
+                }
+              }
+            }
+
             await loadTables()
             refreshCommandPalette()
             const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)

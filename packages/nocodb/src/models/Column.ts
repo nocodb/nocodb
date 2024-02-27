@@ -28,7 +28,11 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+} from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 
 const selectColors = [
@@ -477,13 +481,6 @@ export default class Column<T = any> implements ColumnType {
     }
 
     return this.model;
-  }
-
-  public static async clearList({ fk_model_id }) {
-    await NocoCache.deepDel(
-      `${CacheScope.COLUMN}:${fk_model_id}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
-    );
   }
 
   public static async list(
@@ -1084,52 +1081,20 @@ export default class Column<T = any> implements ColumnType {
       });
     }
 
-    // get existing cache
-    const key = `${CacheScope.COLUMN}:${colId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
-    // get model column list from cache
-    const columnListFromCache = await NocoCache.getList(CacheScope.COLUMN, [
-      oldCol.fk_model_id,
-    ]);
-
-    // update column list in cache if cache exists
-    if (!columnListFromCache.list?.length) {
-      const updatedColumnList = columnListFromCache.list.map((column: any) => {
-        if (column.id === colId) {
-          return {
-            ...column,
-            ...updateObj,
-          };
-        }
-        return column;
-      });
-      await NocoCache.setList(
-        CacheScope.COLUMN,
-        [oldCol.fk_model_id],
-        updatedColumnList,
-      );
-    }
-
     // set meta
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.COLUMNS,
-      {
-        ...updateObj,
-        meta:
-          updateObj.meta && typeof updateObj.meta === 'object'
-            ? JSON.stringify(updateObj.meta)
-            : updateObj.meta,
-      },
+      prepareForDb(updateObj),
       colId,
     );
+
+    await NocoCache.update(
+      `${CacheScope.COLUMN}:${colId}`,
+      prepareForResponse(updateObj),
+    );
+
     await this.insertColOption(column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache
@@ -1166,15 +1131,6 @@ export default class Column<T = any> implements ColumnType {
     { title }: { title: string },
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.COLUMN}:${colId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o.title = title;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     await ncMeta.metaUpdate(
       null, //column.base_id || column.source_id,
@@ -1185,6 +1141,8 @@ export default class Column<T = any> implements ColumnType {
       },
       colId,
     );
+
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { title });
 
     const column = await Column.get({ colId }, ncMeta);
 
@@ -1246,15 +1204,6 @@ export default class Column<T = any> implements ColumnType {
     system = true,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.COLUMN}:${colId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o.system = system;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // update system field in meta db
     await ncMeta.metaUpdate(
       null,
@@ -1265,6 +1214,8 @@ export default class Column<T = any> implements ColumnType {
       },
       colId,
     );
+
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { system });
   }
 
   static getMaxColumnNameLength(sqlClientType: string) {
@@ -1284,24 +1235,18 @@ export default class Column<T = any> implements ColumnType {
     { colId, meta }: { colId: string; meta: any },
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.COLUMN}:${colId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update meta
-      o.meta = meta;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.COLUMNS,
-      {
-        meta: stringifyMetaProp({ meta }),
-      },
+      prepareForDb({ meta }),
       colId,
+    );
+
+    await NocoCache.update(
+      `${CacheScope.COLUMN}:${colId}`,
+      prepareForResponse({ meta }),
     );
   }
 
@@ -1384,10 +1329,7 @@ export default class Column<T = any> implements ColumnType {
       true,
     );
 
-    // insert column options if any
-    // for (const column of columns) {
     await Column.bulkInsertColOption(columns, ncMeta);
-    // }
 
     return columns;
   }

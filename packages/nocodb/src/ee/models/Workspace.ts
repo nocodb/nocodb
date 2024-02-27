@@ -11,7 +11,12 @@ import {
 
 import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 import { Base } from '~/models';
 
 export default class Workspace implements WorkspaceType {
@@ -132,10 +137,6 @@ export default class Workspace implements WorkspaceType {
 
     if (!workspace) NcError.notFound('Workspace not found');
 
-    // get existing cache
-    const key = `${CacheScope.WORKSPACE}:${id}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     // extract props which is allowed to be inserted
     const updateObject = extractProps(workspaceAttr, [
       'title',
@@ -155,16 +156,16 @@ export default class Workspace implements WorkspaceType {
       null,
       null,
       MetaTable.WORKSPACE,
-      updateObject,
+      prepareForDb(updateObject),
       id,
     );
 
     // update cache after successful update
-    if (o) {
-      Object.assign(o, updateObject);
-      // set cache
-      await NocoCache.set(key, o);
-    }
+    await NocoCache.update(
+      `${CacheScope.WORKSPACE}:${id}`,
+      prepareForResponse(updateObject),
+    );
+
     return res;
   }
 
@@ -173,10 +174,6 @@ export default class Workspace implements WorkspaceType {
     workspace: Partial<Workspace>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.WORKSPACE}:${id}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     // extract props which is allowed to be inserted
     const updateObject = extractProps(workspace, [
       'status',
@@ -188,20 +185,16 @@ export default class Workspace implements WorkspaceType {
       null,
       null,
       MetaTable.WORKSPACE,
-      {
-        ...updateObject,
-        // stringify infra_meta if it is an object
-        infra_meta: stringifyMetaProp(updateObject, 'infra_meta'),
-      },
+      prepareForDb(updateObject, 'infra_meta'),
       id,
     );
 
     // update cache after successful update
-    if (o) {
-      Object.assign(o, updateObject);
-      // set cache
-      await NocoCache.set(key, o);
-    }
+    await NocoCache.update(
+      `${CacheScope.WORKSPACE}:${id}`,
+      prepareForResponse(updateObject, 'infra_meta'),
+    );
+
     return res;
   }
 

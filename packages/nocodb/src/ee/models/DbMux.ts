@@ -145,26 +145,20 @@ export default class DbMux {
     dbMux: Partial<DbMux>,
     ncMeta = Noco.ncMeta,
   ): Promise<{ se: DbMux; sources: Source[] }> {
-    const updateObject = extractProps(dbMux, [
+    const updateObj = extractProps(dbMux, [
       'domain',
       'status',
       'priority',
       'capacity',
     ]);
 
-    await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.DB_MUX,
-      updateObject,
-      this.id,
-    );
+    await ncMeta.metaUpdate(null, null, MetaTable.DB_MUX, updateObj, this.id);
 
-    await NocoCache.del(`${CacheScope.DB_MUX}:${this.id}`);
+    await NocoCache.update(`${CacheScope.DB_MUX}:${this.id}`, updateObj);
 
     let sources: Source[] = [];
 
-    if (updateObject.status === DbMuxStatus.INACTIVE) {
+    if (updateObj.status === DbMuxStatus.INACTIVE) {
       sources = await this.getSources(ncMeta);
 
       await Promise.all([
@@ -233,7 +227,10 @@ export default class DbMux {
       ncMeta,
     );
 
-    await NocoCache.del(`${CacheScope.DB_MUX}:${this.id}`);
+    await NocoCache.deepDel(
+      `${CacheScope.DB_MUX}:${this.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
 
     return DbMux.get(this.id, ncMeta);
   }

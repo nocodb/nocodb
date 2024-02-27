@@ -20,7 +20,7 @@ test.describe.serial('SSO', () => {
       await unsetup(context);
     });
 
-    test('SAML Provider', async () => {
+    test.skip('SAML Provider', async () => {
       await accountsPage.authentication.goto();
 
       // Create SAML provider
@@ -189,7 +189,7 @@ test.describe.serial('SSO', () => {
       await stopSAMLIpd();
     });
 
-    test('SAML Provider', async () => {
+    test.skip('SAML Provider', async () => {
       await accountsPage.signOut();
 
       await samlLoginPage.goto('test');

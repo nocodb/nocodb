@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="border-1 cursor-pointer border-gray-200 items-center px-2 py-3 rounded-lg">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center pl-1 gap-2">
       <span
         :class="{
           'bg-maroon-500': props.color === 'maroon',

@@ -36,6 +36,8 @@ const props = defineProps<Props>()
 
 const meta = inject(MetaInj)
 
+const { t } = useI18n()
+
 const { metas } = useMetas()
 
 const column = toRef(props, 'column')
@@ -74,7 +76,7 @@ const getMultiSelectValue = (modelValue: any, col: ColumnType): string => {
 const getDateValue = (modelValue: string | null | number, col: ColumnType, isSystemCol?: boolean) => {
   const dateFormat = !isSystemCol ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'
   if (!modelValue || !dayjs(modelValue).isValid()) {
-    return 'Invalid Date'
+    return ''
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
@@ -82,9 +84,9 @@ const getDateValue = (modelValue: string | null | number, col: ColumnType, isSys
 
 const getYearValue = (modelValue: string | null) => {
   if (!modelValue) {
-    return undefined
+    return ''
   } else if (!dayjs(modelValue).isValid()) {
-    return 'Invalid Date'
+    return ''
   } else {
     return dayjs(modelValue.toString(), 'YYYY').format('YYYY')
   }
@@ -92,7 +94,7 @@ const getYearValue = (modelValue: string | null) => {
 
 const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
   if (!modelValue || !dayjs(modelValue).isValid()) {
-    return 'Invalid Date'
+    return ''
   }
 
   const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0]
@@ -115,7 +117,7 @@ const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
 
 const getTimeValue = (modelValue: string | null) => {
   if (!modelValue) {
-    return undefined
+    return ''
   }
   let dateTime = dayjs(modelValue)
 
@@ -126,7 +128,7 @@ const getTimeValue = (modelValue: string | null) => {
     dateTime = dayjs(`1999-01-01 ${modelValue}`)
   }
   if (!dateTime.isValid()) {
-    return 'Invalid Date'
+    return ''
   }
 
   return dateTime.format('HH:mm')
@@ -138,10 +140,10 @@ const getDurationValue = (modelValue: string | null, col: ColumnType) => {
 }
 
 const getPercentValue = (modelValue: string | null) => {
-  return modelValue ? `${modelValue}%` : undefined
+  return modelValue ? `${modelValue}%` : ''
 }
 
-const getCurrencyValue = (modelValue: string | number | null, col: ColumnType) => {
+const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {
   const currencyMeta = {
     currency_locale: 'en-US',
     currency_code: 'USD',
@@ -149,14 +151,14 @@ const getCurrencyValue = (modelValue: string | number | null, col: ColumnType) =
   }
   try {
     if (modelValue === null || modelValue === undefined || isNaN(modelValue)) {
-      return modelValue
+      return modelValue === null || modelValue === undefined ? '' : (modelValue as string)
     }
     return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
       style: 'currency',
       currency: currencyMeta.currency_code || 'USD',
     }).format(+modelValue)
   } catch (e) {
-    return modelValue
+    return modelValue as string
   }
 }
 
@@ -184,14 +186,14 @@ const getUserValue = (modelValue: string | string[] | null | Array<any>) => {
         })
         .join(', ')
     } else {
-      return modelValue ? modelValue.display_name || modelValue.email : 'Invalid User'
+      return modelValue ? modelValue.display_name || modelValue.email : ''
     }
   }
 }
 
 const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
   if (!modelValue || isNaN(Number(modelValue))) {
-    return 'Invalid Number'
+    return ''
   }
   const columnMeta = parseProp(col.meta)
 
@@ -200,17 +202,17 @@ const getDecimalValue = (modelValue: string | null | number, col: ColumnType) =>
 
 const getIntValue = (modelValue: string | null | number) => {
   if (!modelValue || isNaN(Number(modelValue))) {
-    return 'Invalid Number'
+    return ''
   }
-  return Number(modelValue)
+  return Number(modelValue) as unknown as string
 }
 
 const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
   const isRichMode = typeof col.meta === 'string' ? JSON.parse(col.meta).richMode : col.meta?.richMode
   if (isRichMode) {
-    return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '')
+    return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
   }
-  return modelValue
+  return modelValue || ''
 }
 
 const getRollupValue = (modelValue: string | null | number, col: ColumnType) => {
@@ -218,7 +220,7 @@ const getRollupValue = (modelValue: string | null | number, col: ColumnType) => 
 
   const fns = ['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct']
   if (fns.includes(colOptions.rollup_function!)) {
-    return modelValue
+    return modelValue as string
   } else {
     const relationColumnOptions = colOptions.fk_relation_column_id
       ? meta?.value.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
@@ -229,7 +231,7 @@ const getRollupValue = (modelValue: string | null | number, col: ColumnType) => 
     const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id)
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    return parseValue(modelValue, childColumn)
+    return parseValue(modelValue, childColumn) as string
   }
 }
 
@@ -262,7 +264,22 @@ const getAttachmentValue = (modelValue: string | null | number | Array<any>) => 
   if (Array.isArray(modelValue)) {
     return modelValue.map((v) => `${v.title} (${getPossibleAttachmentSrc(v).join(', ')})`).join(', ')
   }
-  return modelValue
+  return modelValue as string
+}
+
+const getLinksValue = (modelValue: string, col: ColumnType) => {
+  if (typeof col.meta === 'string') {
+    col.meta = JSON.parse(col.meta)
+  }
+
+  const parsedValue = +modelValue || 0
+  if (!parsedValue) {
+    return ''
+  } else if (parsedValue === 1) {
+    return `1 ${col?.meta?.singular || t('general.link')}`
+  } else {
+    return `${parsedValue} ${col?.meta?.plural || t('general.links')}`
+  }
 }
 
 const parseValue = (value: any, col: ColumnType): string => {
@@ -271,7 +288,7 @@ const parseValue = (value: any, col: ColumnType): string => {
   }
   if (isGeoData(col)) {
     const [latitude, longitude] = ((value as string) || '').split(';')
-    return latitude && longitude ? `${latitude}; ${longitude}` : 'Invalid location'
+    return latitude && longitude ? `${latitude}; ${longitude}` : value
   }
   if (isTextArea(col)) {
     return getTextAreaValue(value, col)
@@ -304,7 +321,7 @@ const parseValue = (value: any, col: ColumnType): string => {
     return getCurrencyValue(value, col)
   }
   if (isUser(col)) {
-    return getUserValue(value, col, false)
+    return getUserValue(value)
   }
   if (isDecimal(col)) {
     return getDecimalValue(value, col)
@@ -329,6 +346,9 @@ const parseValue = (value: any, col: ColumnType): string => {
   }
   if (isAttachment(col)) {
     return getAttachmentValue(value)
+  }
+  if (isLink(col)) {
+    return getLinksValue(value, col)
   }
 
   return value as unknown as string

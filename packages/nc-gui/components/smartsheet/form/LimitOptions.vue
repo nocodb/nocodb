@@ -4,7 +4,7 @@ import tinycolor from 'tinycolor2'
 import type { ColumnType, SelectOptionType, SelectOptionsType, UserFieldRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib'
-import { iconMap, MetaInj } from '#imports'
+import { MetaInj, iconMap } from '#imports'
 
 const props = defineProps<{
   modelValue: FormFieldsLimitOptionsType[]
@@ -26,8 +26,6 @@ const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.
 const searchQuery = ref('')
 
 const drag = ref(false)
-
-const { t } = useI18n()
 
 const vModel = computed({
   get: () => {
@@ -51,12 +49,7 @@ const vModel = computed({
           email: user.email,
           display_name: user.display_name,
           order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? c.order : order++,
-          show:
-            user.id && limitOptionsById[user.id]
-              ? limitOptionsById[user.id]?.show
-              : !(props.modelValue || []).length
-              ? true
-              : false,
+          show: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.show : !(props.modelValue || []).length,
         }))
         .sort((a, b) => a.order - b.order)
 
@@ -73,7 +66,7 @@ const vModel = computed({
           return {
             ...c,
             order: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.order ?? c.order : order++,
-            show: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.show : !(props.modelValue || []).length ? true : false,
+            show: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.show : !(props.modelValue || []).length,
           } as SelectOptionType & { show?: boolean }
         })
         .sort((a, b) => {
@@ -136,7 +129,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
 
   element.order = _nextOrder
 
-  vModel.value = vModel.value
+  vModel.value = [...vModel.value]
 }
 </script>
 
@@ -146,7 +139,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
       <a-input
         v-model:value="searchQuery"
         class="!h-9 !px-3 !py-1 !rounded-lg mb-2"
-        :placeholder="`Search option...`"
+        :placeholder="`${$t('placeholder.searchOptions')}...`"
         name="nc-form-field-limit-option-search-input"
         data-testid="nc-form-field-limit-option-search-input"
       >
@@ -195,7 +188,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
             @click="
               () => {
                 element.show = !element.show
-                vModel = vModel
+                vModel = [...vModel]
               }
             "
           >
@@ -268,7 +261,9 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
           </a-tag>
         </div>
       </template>
-      <template v-if="!vModel.length" #footer><div class="px-0.5 py-2 text-gray-500 text-center">No options found</div></template>
+      <template v-if="!vModel.length" #footer
+        ><div class="px-0.5 py-2 text-gray-500 text-center">{{ $t('title.noOptionsFound') }}</div></template
+      >
       <template
         v-else-if="
           vModel.length &&
@@ -281,13 +276,13 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
         "
         #footer
       >
-        <div class="px-0.5 py-2 text-gray-500 text-center">No options found with title `{{ searchQuery }}`</div>
+        <div class="px-0.5 py-2 text-gray-500 text-center">{{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`</div>
       </template>
     </Draggable>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .nc-form-scrollbar {
   @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
   &::-webkit-scrollbar-thumb:hover {

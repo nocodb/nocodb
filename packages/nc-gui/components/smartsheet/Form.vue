@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
@@ -11,8 +10,8 @@ import {
   ViewTypes,
   getSystemColumns,
   isLinksOrLTAR,
-  isVirtualCol,
   isSelectTypeCol,
+  isVirtualCol,
 } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
@@ -816,6 +815,9 @@ useEventListener(
                         'hover:bg-gray-50': activeRow !== 'nc-form-heading' && isEditable,
                       },
                       {
+                        'bg-gray-50': activeRow === 'nc-form-heading' && isEditable,
+                      },
+                      {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                       },
                     ]"
@@ -861,6 +863,9 @@ useEventListener(
                       },
                       {
                         'hover:bg-gray-50': activeRow !== 'nc-form-sub-heading' && isEditable,
+                      },
+                      {
+                        'bg-gray-50': activeRow === 'nc-form-sub-heading' && isEditable,
                       },
                       {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
@@ -1144,9 +1149,9 @@ useEventListener(
                             <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
                             <div v-if="element.meta.isLimitOption" class="mt-5 max-w-[80%]">
                               <LazySmartsheetFormLimitOptions
-                                v-model:modelValue="element.meta.limitOptions"
+                                v-model:model-value="element.meta.limitOptions"
                                 :column="element"
-                                @update:modelValue="updateColMeta(element)"
+                                @update:model-value="updateColMeta(element)"
                               ></LazySmartsheetFormLimitOptions>
                             </div>
                           </div>

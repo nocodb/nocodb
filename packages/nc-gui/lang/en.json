@@ -425,7 +425,9 @@
       "setNull": "Set NULL",
       "setDefault": "Set Default"
     },
-    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
+    "noOptionsFound": "No options found"
+
   },
   "labels": {
     "selectYear": "Select Year",
@@ -1005,7 +1007,8 @@
     "noTokenCreated": "No API Tokens created",
     "noTokenCreatedLabel": "Looks like you haven’t generated any API tokens yet.",
     "inviteYourTeam": "Invite your team",
-    "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!"
+    "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!",
+    "searchOptions": "Search options"
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",

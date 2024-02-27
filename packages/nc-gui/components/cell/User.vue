@@ -193,7 +193,7 @@ const vModel = computed({
 })
 
 const vModelListLayout = computed(() => {
-  if (isMultiple) {
+  if (isMultiple.value) {
     return (vModel.value || []).map((item) => item.value)
   } else {
     return (vModel.value || [])?.[0]?.value || ''
@@ -323,11 +323,10 @@ const filterOption = (input: string, option: any) => {
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <component
         :is="isMultiple ? CheckboxGroup : RadioGroup"
-        :model-value:value="vModelListLayout"
+        v-model:value="vModelListLayout"
         class="nc-field-layout-list"
         @update:value="
           (value) => {
-            // Todo: fix update single select user issue
             vModel = isMultiple ? value : [value]
           }
         "
@@ -379,6 +378,9 @@ const filterOption = (input: string, option: any) => {
           </component>
         </template>
       </component>
+      <div v-if="!isMultiple && vModel.length" class="inline-block px-2 pt-2 cursor-pointer text-xs" @click="vModel = []">
+        {{ $t('labels.clearSelection') }}
+      </div>
     </div>
     <template v-else>
       <div

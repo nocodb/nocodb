@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import type { PathParams } from '~/modules/datas/helpers';
+import type { View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -19,13 +20,21 @@ export class DatasService extends DatasServiceCE {
   }
 
   async dataList(
-    param: PathParams & {
+    param: (PathParams | { view?: View; model: Model }) & {
       query: any;
       disableOptimization?: boolean;
       ignorePagination?: boolean;
     },
   ) {
-    const { model, view } = await getViewAndModelByAliasOrId(param);
+    let { model, view } = param as { view?: View; model?: Model };
+
+    if (!model) {
+      const modelAndView = await getViewAndModelByAliasOrId(
+        param as PathParams,
+      );
+      model = modelAndView.model;
+      view = modelAndView.view;
+    }
 
     let responseData;
     const source = await Source.get(model.source_id);

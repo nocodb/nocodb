@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { UITypes, type ColumnType, type SelectOptionType, type SelectOptionsType, type UserFieldRecordType } from 'nocodb-sdk'
-
+import type { ColumnType, SelectOptionType, SelectOptionsType, UserFieldRecordType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
+import type { FormFieldsLimitOptionsType } from '~/lib'
 import { iconMap, MetaInj } from '#imports'
 
-interface LimitOptionsType {
-  id: string
-  order: number
-  show: boolean
-}
-
 const props = defineProps<{
-  modelValue: LimitOptionsType[]
+  modelValue: FormFieldsLimitOptionsType[]
   column: ColumnType
 }>()
 
@@ -38,7 +33,7 @@ const vModel = computed({
   get: () => {
     let order = 1
     const limitOptionsById =
-      (props.modelValue || []).reduce((o: Record<string, LimitOptionsType>, f: LimitOptionsType) => {
+      (props.modelValue || []).reduce((o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
         if (f?.order !== undefined && order < f.order) {
           order = f.order
         }
@@ -46,7 +41,7 @@ const vModel = computed({
           ...o,
           [f.id]: f,
         }
-      }, {} as Record<string, LimitOptionsType>) ?? {}
+      }, {} as Record<string, FormFieldsLimitOptionsType>) ?? {}
 
     if (UITypes.User === column.value.uidt) {
       const collaborators = ((baseUsers.value || []) as UserFieldRecordType[])

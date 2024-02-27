@@ -4,6 +4,7 @@ import tinycolor from 'tinycolor2'
 import { CheckboxGroup, Checkbox, RadioGroup, Radio } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
+import type { FormFieldsLimitOptionsType } from '~/lib'
 import {
   ActiveCellInj,
   CellClickHookInj,
@@ -25,12 +26,6 @@ import {
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
-
-interface LimitOptionsType {
-  id: string
-  order: number
-  show: boolean
-}
 
 interface Props {
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
@@ -86,15 +81,18 @@ const { isUIAllowed } = useRoles()
 const options = computed<UserFieldRecordType[]>(() => {
   let order = 1
   const limitOptionsById =
-    ((parseProp(column.value.meta)?.limitOptions || []).reduce((o: Record<string, LimitOptionsType>, f: LimitOptionsType) => {
-      if (f?.order !== undefined && order < f.order) {
-        order = f.order
-      }
-      return {
-        ...o,
-        [f.id]: f,
-      }
-    }, {}) as Record<string, LimitOptionsType>) ?? {}
+    ((parseProp(column.value.meta)?.limitOptions || []).reduce(
+      (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
+        if (f?.order !== undefined && order < f.order) {
+          order = f.order
+        }
+        return {
+          ...o,
+          [f.id]: f,
+        }
+      },
+      {},
+    ) as Record<string, FormFieldsLimitOptionsType>) ?? {}
 
   const collaborators: UserFieldRecordType[] = []
 

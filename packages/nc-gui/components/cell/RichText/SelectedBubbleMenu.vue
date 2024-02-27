@@ -80,12 +80,16 @@ const onToggleLink = () => {
 
 <template>
   <div
-    class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1"
-    :class="{
-      'embed-mode': embedMode,
-      'full-mode': !embedMode,
-      'form-field-mode': isFormField,
-    }"
+    class="bubble-menu flex-row gap-x-1 py-1 rounded-lg"
+    :class="[
+      `${isFormField ? 'inline-flex !bg-transparent' : 'flex bg-gray-100 px-1'}`,
+      {
+        'embed-mode': embedMode,
+      },
+      {
+        'full-mode': !embedMode,
+      },
+    ]"
   >
     <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
       <template #title>
@@ -102,6 +106,7 @@ const onToggleLink = () => {
         :class="{ 'is-active': editor.isActive('bold') }"
         :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleBold().run()"
+        :tabindex="isFormField ? -1 : 0"
       >
         <MdiFormatBold />
       </NcButton>
@@ -122,6 +127,7 @@ const onToggleLink = () => {
         :disabled="editor.isActive('codeBlock')"
         :class="{ 'is-active': editor.isActive('italic') }"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
+        :tabindex="isFormField ? -1 : 0"
       >
         <MdiFormatItalic />
       </NcButton>
@@ -142,6 +148,7 @@ const onToggleLink = () => {
         :class="{ 'is-active': editor.isActive('underline') }"
         :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleUnderline().run()"
+        :tabindex="isFormField ? -1 : 0"
       >
         <MdiFormatUnderline />
       </NcButton>
@@ -161,6 +168,7 @@ const onToggleLink = () => {
         :class="{ 'is-active': editor.isActive('strike') }"
         :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleStrike().run()"
+        :tabindex="isFormField ? -1 : 0"
       >
         <MdiFormatStrikeThrough />
       </NcButton>
@@ -309,6 +317,7 @@ const onToggleLink = () => {
         :class="{ 'is-active': editor.isActive('link') }"
         :disabled="editor.isActive('codeBlock')"
         @click="onToggleLink"
+        :tabindex="isFormField ? -1 : 0"
       >
         <GeneralIcon v-if="isFormField" icon="link2"></GeneralIcon>
         <div v-else class="flex flex-row items-center px-0.5">

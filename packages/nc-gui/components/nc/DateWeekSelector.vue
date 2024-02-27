@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 
 interface Props {
+  size?: 'small' | 'medium'
   selectedDate?: dayjs.Dayjs | null
   isDisabled?: boolean
   pageDate?: dayjs.Dayjs
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  size: 'medium',
   selectedDate: null,
   isDisabled: false,
   isMondayFirst: true,
@@ -135,7 +137,7 @@ const paginate = (action: 'next' | 'prev') => {
 </script>
 
 <template>
-  <div class="px-4 pt-3 pb-4 flex flex-col gap-4">
+  <div class="flex flex-col gap-4">
     <div
       :class="{
         'justify-center': disablePagination,
@@ -163,12 +165,31 @@ const paginate = (action: 'next' | 'prev') => {
       </NcTooltip>
     </div>
     <div class="border-1 border-gray-200 rounded-y-xl max-w-[320px]">
-      <div class="flex flex-row bg-gray-100 gap-2 rounded-t-xl justify-between px-2">
-        <span v-for="(day, index) in days" :key="index" class="h-9 flex items-center justify-center w-9 text-gray-500">{{
-          day
-        }}</span>
+      <div
+        :class="{
+          'gap-1 px-1': size === 'small',
+          'gap-2 px-2': size === 'medium',
+        }"
+        class="flex flex-row bg-gray-100 rounded-t-xl justify-between"
+      >
+        <span
+          v-for="(day, index) in days"
+          :key="index"
+          :class="{
+            'w-9 h-9': size === 'medium',
+            'w-8 h-8': size === 'small',
+          }"
+          class="flex items-center justify-center text-gray-500"
+          >{{ day }}</span
+        >
       </div>
-      <div class="grid grid-cols-7 gap-2 p-2">
+      <div
+        :class="{
+          'gap-2 p-2': size === 'medium',
+          'gap-1 p-1': size === 'small',
+        }"
+        class="grid grid-cols-7"
+      >
         <span
           v-for="(date, index) in dates"
           :key="index"
@@ -181,12 +202,21 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md bg-brand-50 nc-calendar-today text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'h-9 w-9': size === 'medium',
+            'h-8 w-8': size === 'small',
           }"
-          class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
+          class="px-1 py-1 relative font-medium flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           @click="handleSelectDate(date)"
         >
-          <span v-if="isActiveDate(date)" class="absolute z-2 h-1.5 w-1.5 rounded-full bg-brand-500 top-1 right-1"></span>
+          <span
+            v-if="isActiveDate(date)"
+            :class="{
+              'h-1.5 w-1.5': size === 'medium',
+              'h-1 w-1': size === 'small',
+            }"
+            class="absolute z-2 rounded-full bg-brand-500 top-1 right-1"
+          ></span>
           <span class="z-2">
             {{ date.get('date') }}
           </span>

@@ -195,7 +195,9 @@
     "restore": "Restaurar",
     "replace": "Replace",
     "banner": "Banner",
-    "logo": "Logo"
+    "logo": "Logo",
+    "dropdown": "Dropdown",
+    "list": "List"
   },
   "objects": {
     "day": "Día",
@@ -425,7 +427,8 @@
       "setNull": "Establecer NULL",
       "setDefault": "Establecer por defecto"
     },
-    "selectFieldsFromRightPannelToAddHere": "Selecciona los campos del panel derecho para añadirlos aquí"
+    "selectFieldsFromRightPannelToAddHere": "Selecciona los campos del panel derecho para añadirlos aquí",
+    "noOptionsFound": "No options found"
   },
   "labels": {
     "selectYear": "Seleccionar Año",
@@ -692,7 +695,10 @@
     "backgroundColor": "Color de Fondo",
     "hideNocodbBranding": "Ocultar marca NocoDB",
     "showOnConditions": "Mostrar en condiciones",
-    "showFieldOnConditionsMet": "Muestra el campo sólo cuando se cumplen las condiciones"
+    "showFieldOnConditionsMet": "Muestra el campo sólo cuando se cumplen las condiciones",
+    "limitOptions": "Limit options",
+    "limitOptionsSubtext": "Limit options visible to users by selecting available options",
+    "clearSelection": "Clear selection"
   },
   "activity": {
     "noRange": "La vista del calendario requiere un rango de fechas",
@@ -1002,7 +1008,8 @@
     "noTokenCreated": "No API Tokens created",
     "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
     "inviteYourTeam": "Invite your team",
-    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
+    "searchOptions": "Search options"
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",

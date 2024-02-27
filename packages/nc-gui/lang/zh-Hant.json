@@ -212,7 +212,7 @@
     "page": "頁",
     "pages": "頁",
     "record": "記錄",
-    "records": "records",
+    "records": "記錄",
     "webhook": "Webhook",
     "webhooks": "Webhook",
     "view": "檢視",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "受支持的檔案類型包括 .xls、.xlsx、.xlsm、.ods 和 .ots",
       "parameterKeyCannotBeEmpty": "參數鍵不可為空",
       "duplicateParameterKeysAreNotAllowed": "不允許重複的參數鍵",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} 不能為空",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "複製到剪貼簿失敗",
       "pasteFromClipboardError": "Failed to paste from clipboard",

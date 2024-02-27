@@ -54,8 +54,8 @@ const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
-const getCheckBoxValue = (modelValue: any) => {
-  return !modelValue && modelValue !== '0' && modelValue !== 0 && modelValue !== 'false'
+const getCheckBoxValue = (modelValue: boolean | string | number | '0' | '1') => {
+  return !!modelValue && modelValue !== '0' && modelValue !== 0 && modelValue !== 'false'
 }
 
 const getMultiSelectValue = (modelValue: any, col: ColumnType): string => {
@@ -263,7 +263,7 @@ const getAttachmentValue = (modelValue: string | null | number | Array<any>) => 
 }
 
 const parseValue = (value: any, col: ColumnType): string => {
-  if (!value || !col) {
+  if (!col) {
     return undefined
   }
   if (isGeoData(col)) {
@@ -274,7 +274,7 @@ const parseValue = (value: any, col: ColumnType): string => {
     return getTextAreaValue(value, col)
   }
   if (isBoolean(col, abstractType)) {
-    return getCheckBoxValue(value) ? 'Checked' : 'UnChecked'
+    return getCheckBoxValue(value) ? 'Checked' : 'Un checked'
   }
   if (isMultiSelect(col)) {
     return getMultiSelectValue(value, col)
@@ -335,13 +335,13 @@ const parseValue = (value: any, col: ColumnType): string => {
 <template>
   <span
     :class="{
-      'font-bold': props.bold,
-      'italic': props.italic,
-      'underline': props.underline,
+      'font-bold': bold,
+      'italic': italic,
+      'underline': underline,
     }"
     data-testid="nc-calendar-cell"
   >
-    {{ parseValue(props.modelValue, column) }}
+    {{ parseValue(modelValue, column) }}
   </span>
 </template>
 

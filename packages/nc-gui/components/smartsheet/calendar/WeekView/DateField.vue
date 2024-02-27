@@ -22,26 +22,26 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType) => {
-  const fi = _fields.value.find((f) => f.title === field.title)
+const getFieldStyle = (field: ColumnType | undefined) => {
+  const fi = _fields.value?.find((f) => f.title === field.title)
 
   return {
-    underline: fi.underline,
-    bold: fi.bold,
-    italic: fi.italic,
+    underline: fi?.underline,
+    bold: fi?.bold,
+    italic: fi?.italic,
   }
 }
 
-const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 // Calculate the dates of the week
 const weekDates = computed(() => {
-  const startOfWeek = new Date(selectedDateRange.value.start!)
-  const endOfWeek = new Date(selectedDateRange.value.end!)
+  let startOfWeek = dayjs(selectedDateRange.value.start)
+  const endOfWeek = dayjs(selectedDateRange.value.end)
   const datesArray = []
-  while (startOfWeek.getTime() <= endOfWeek.getTime()) {
-    datesArray.push(new Date(startOfWeek))
-    startOfWeek.setDate(startOfWeek.getDate() + 1)
+  while (startOfWeek.isBefore(endOfWeek) || startOfWeek.isSame(endOfWeek, 'day')) {
+    datesArray.push(dayjs(startOfWeek))
+    startOfWeek = startOfWeek.add(1, 'day')
   }
   return datesArray
 })
@@ -592,10 +592,8 @@ const dropEvent = (event: DragEvent) => {
                 :underline="getFieldStyle(displayField).underline"
               />
             </template>
-            <template v-for="(field, index) in fieldsWithoutDisplay">
+            <template v-for="(field, index) in fieldsWithoutDisplay" :key="index">
               <LazySmartsheetCalendarCell
-                v-if="!isRowEmpty(record, field)"
-                :key="index"
                 v-model="record.row[field!.title!]"
                 :bold="getFieldStyle(field).bold"
                 :column="field"

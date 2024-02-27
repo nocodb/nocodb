@@ -110,7 +110,6 @@ watch(showCropper, () => {
               }
             : {}
         "
-        image-restriction="none"
       />
       <div v-if="previewImage.src" class="result_preview">
         <img :src="previewImage.src" alt="Preview Image" />

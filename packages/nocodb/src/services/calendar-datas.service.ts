@@ -12,10 +12,13 @@ export class CalendarDatasService {
 
   constructor(protected datasService: DatasService) {}
 
-  async getCalendarDataList(param: { viewId: string; query: any }) {
-    const { viewId, query } = param;
-    const from_date = query.from_date;
-    const to_date = query.to_date;
+  async getCalendarDataList(param: {
+    viewId: string;
+    query: any;
+    from_date: string;
+    to_date: string;
+  }) {
+    const { viewId, query, from_date, to_date } = param;
 
     if (!from_date || !to_date)
       NcError.badRequest('from_date and to_date are required');
@@ -60,6 +63,8 @@ export class CalendarDatasService {
     password: string;
     query: any;
     sharedViewUuid: string;
+    from_date: string;
+    to_date: string;
   }) {
     const { sharedViewUuid, password, query = {} } = param;
     const view = await View.getByUUID(sharedViewUuid);
@@ -73,13 +78,20 @@ export class CalendarDatasService {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
     }
 
-    return this.getCalendarRecordCount({ viewId: view.id, query });
+    return this.getCalendarRecordCount({
+      viewId: view.id,
+      query,
+      from_date: param.from_date,
+      to_date: param.to_date,
+    });
   }
 
   async getPublicCalendarDataList(param: {
     password: string;
     query: any;
     sharedViewUuid: string;
+    from_date: string;
+    to_date: string;
   }) {
     const { sharedViewUuid, password, query = {} } = param;
     const view = await View.getByUUID(sharedViewUuid);
@@ -93,13 +105,21 @@ export class CalendarDatasService {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
     }
 
-    return this.getCalendarDataList({ viewId: view.id, query });
+    return this.getCalendarDataList({
+      viewId: view.id,
+      query,
+      from_date: param.from_date,
+      to_date: param.to_date,
+    });
   }
 
-  async getCalendarRecordCount(param: { viewId: string; query: any }) {
-    const { viewId, query } = param;
-    const from_date = query.from_date;
-    const to_date = query.to_date;
+  async getCalendarRecordCount(param: {
+    viewId: string;
+    query: any;
+    from_date: string;
+    to_date: string;
+  }) {
+    const { viewId, query, from_date, to_date } = param;
 
     if (!from_date || !to_date)
       NcError.badRequest('from_date and to_date are required');

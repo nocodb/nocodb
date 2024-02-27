@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -14,10 +22,17 @@ export class CalendarDatasController {
 
   @Get(['/api/v1/db/calendar-data/:orgs/:baseName/:tableName/views/:viewName'])
   @Acl('dataList')
-  async dataList(@Req() req: Request, @Param('viewName') viewId: string) {
+  async dataList(
+    @Req() req: Request,
+    @Param('viewName') viewId: string,
+    @Query('from_date') fromDate: string,
+    @Query('to_date') toDate: string,
+  ) {
     return await this.calendarDatasService.getCalendarDataList({
       viewId: viewId,
       query: req.query,
+      from_date: fromDate,
+      to_date: toDate,
     });
   }
 
@@ -31,12 +46,16 @@ export class CalendarDatasController {
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
+    @Query('from_date') fromDate: string,
+    @Query('to_date') toDate: string,
   ) {
     const startTime = process.hrtime();
 
     const data = await this.calendarDatasService.getCalendarRecordCount({
       query: req.query,
       viewId: viewName,
+      from_date: fromDate,
+      to_date: toDate,
     });
 
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
@@ -51,11 +70,15 @@ export class CalendarDatasController {
   async countByDate(
     @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
+    @Query('from_date') fromDate: string,
+    @Query('to_date') toDate: string,
   ) {
     return await this.calendarDatasService.getPublicCalendarRecordCount({
       query: req.query,
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid,
+      from_date: fromDate,
+      to_date: toDate,
     });
   }
 
@@ -66,11 +89,15 @@ export class CalendarDatasController {
   async getPublicCalendarDataList(
     @Req() req: Request,
     @Param('sharedViewUuid') sharedViewUuid: string,
+    @Query('from_date') fromDate: string,
+    @Query('to_date') toDate: string,
   ) {
     return await this.calendarDatasService.getPublicCalendarDataList({
       query: req.query,
       password: req.headers?.['xc-password'] as string,
       sharedViewUuid,
+      from_date: fromDate,
+      to_date: toDate,
     });
   }
 }

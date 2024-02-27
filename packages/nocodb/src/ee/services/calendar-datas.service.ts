@@ -11,11 +11,13 @@ import { NcError } from '~/helpers/catchError';
 export class CalendarDatasService extends CalendarDatasServiceCE {
   protected logger = new Logger(CalendarDatasService.name);
 
-  async getCalendarRecordCount(param: { viewId: string; query: any }) {
-    const { viewId, query } = param;
-
-    const from_date = query.from_date;
-    const to_date = query.to_date;
+  async getCalendarRecordCount(param: {
+    viewId: string;
+    query: any;
+    from_date: string;
+    to_date: string;
+  }) {
+    const { viewId, query, from_date, to_date } = param;
 
     if (!from_date || !to_date)
       NcError.badRequest('from_date and to_date are required');

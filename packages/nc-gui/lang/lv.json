@@ -212,7 +212,7 @@
     "page": "Lapa",
     "pages": "Lapas",
     "record": "Ieraksts",
-    "records": "records",
+    "records": "Ieraksti",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Skatījums",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Pieņemtie failu tipi ir .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "Parametra atslēga nedrīkst būt tukša",
       "duplicateParameterKeysAreNotAllowed": "Parametru taustiņu dublēšanās nav atļauta",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} nevar būt tukšs.",
       "projectNotAccessible": "Projekts nav pieejams",
       "copyToClipboardError": "Neizdevās kopēt uz starpliktuvi",
       "pasteFromClipboardError": "Failed to paste from clipboard",

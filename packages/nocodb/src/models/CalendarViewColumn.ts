@@ -162,21 +162,20 @@ export default class CalendarViewColumn {
       'italic',
     ]);
 
-    // get existing cache
-    const key = `${CacheScope.CALENDAR_VIEW_COLUMN}:${columnId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      Object.assign(o, updateObj);
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.CALENDAR_VIEW_COLUMNS,
       updateObj,
       columnId,
     );
+
+    await NocoCache.update(
+      `${CacheScope.CALENDAR_VIEW_COLUMN}:${columnId}`,
+      updateObj,
+    );
+
+    return res;
   }
 }

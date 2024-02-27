@@ -26,7 +26,12 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import Noco from '~/Noco';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -981,15 +986,7 @@ export default class View implements ViewType {
     if (!view.uuid) {
       const uuid = uuidv4();
       view.uuid = uuid;
-      // get existing cache
-      const key = `${CacheScope.VIEW}:${view.id}`;
-      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        // update data
-        o.uuid = uuid;
-        // set cache
-        await NocoCache.set(key, o);
-      }
+
       // set meta
       await ncMeta.metaUpdate(
         null,
@@ -1000,32 +997,35 @@ export default class View implements ViewType {
         },
         viewId,
       );
+
+      await NocoCache.update(`${CacheScope.VIEW}:${view.id}`, {
+        uuid: view.uuid,
+      });
     }
     if (!view.meta || !('allowCSVDownload' in view.meta)) {
       const defaultMeta = {
         ...(view.meta ?? {}),
         allowCSVDownload: true,
       };
-      // get existing cache
-      const key = `${CacheScope.VIEW}:${view.id}`;
-      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        // update data
-        o.meta = defaultMeta;
-        // set cache
-        await NocoCache.set(key, o);
-      }
+      view.meta = defaultMeta;
+
       // set meta
       await ncMeta.metaUpdate(
         null,
         null,
         MetaTable.VIEWS,
-        {
-          meta: JSON.stringify(defaultMeta),
-        },
+        prepareForDb({
+          meta: defaultMeta,
+        }),
         viewId,
       );
-      view.meta = defaultMeta;
+
+      await NocoCache.update(
+        `${CacheScope.VIEW}:${view.id}`,
+        prepareForResponse({
+          meta: defaultMeta,
+        }),
+      );
     }
     return view;
   }
@@ -1035,15 +1035,6 @@ export default class View implements ViewType {
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.VIEW}:${viewId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o.password = password;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     await ncMeta.metaUpdate(
       null,
@@ -1054,18 +1045,13 @@ export default class View implements ViewType {
       },
       viewId,
     );
+
+    await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
+      password,
+    });
   }
 
   static async sharedViewDelete(viewId, ncMeta = Noco.ncMeta) {
-    // get existing cache
-    const key = `${CacheScope.VIEW}:${viewId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o.uuid = null;
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     await ncMeta.metaUpdate(
       null,
@@ -1076,6 +1062,10 @@ export default class View implements ViewType {
       },
       viewId,
     );
+
+    await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
+      uuid: null,
+    });
   }
 
   static async update(
@@ -1101,37 +1091,33 @@ export default class View implements ViewType {
       'uuid',
     ]);
 
-    // get existing cache
-    const key = `${CacheScope.VIEW}:${viewId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    let oldView = { ...o };
-    if (o) {
-      // update data
-      o = {
-        ...o,
-        ...updateObj,
-      };
-      if (o.is_default) {
-        await NocoCache.set(`${CacheScope.VIEW}:${o.fk_model_id}:default`, o);
-      }
-      // set cache
-      await NocoCache.set(key, o);
-    } else {
-      oldView = await this.get(viewId);
-    }
+    const oldView = await this.get(viewId, ncMeta);
+
+    // set meta
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.VIEWS,
+      prepareForDb(updateObj),
+      viewId,
+    );
 
     // reset alias cache
     await NocoCache.del(
       `${CacheScope.VIEW}:${oldView.fk_model_id}:${oldView.title}`,
     );
 
-    // if meta data defined then stringify it
-    if ('meta' in updateObj) {
-      updateObj.meta = stringifyMetaProp(updateObj);
-    }
+    await NocoCache.update(
+      `${CacheScope.VIEW}:${viewId}`,
+      prepareForResponse(updateObj),
+    );
 
-    // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);
+    if (oldView.is_default) {
+      await NocoCache.update(
+        `${CacheScope.VIEW}:${oldView.fk_model_id}:default`,
+        prepareForResponse(updateObj),
+      );
+    }
 
     const view = await this.get(viewId);
 

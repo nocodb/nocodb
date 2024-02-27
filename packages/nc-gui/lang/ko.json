@@ -212,7 +212,7 @@
     "page": "페이지",
     "pages": "페이지",
     "record": "레코드",
-    "records": "records",
+    "records": "레코드",
     "webhook": "웹훅",
     "webhooks": "웹훅",
     "view": "뷰",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "허용되는 파일 형식은 .xls, .xlsx, .xlsm, .ods, .ots입니다",
       "parameterKeyCannotBeEmpty": "매개 변수 키는 비워 둘 수 없습니다.",
       "duplicateParameterKeysAreNotAllowed": "중복 매개 변수 키는 허용되지 않습니다.",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
       "pasteFromClipboardError": "Failed to paste from clipboard",

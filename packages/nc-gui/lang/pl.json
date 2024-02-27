@@ -192,7 +192,10 @@
     "enter": "Wprowadź",
     "seconds": "Sekundy",
     "paste": "Wklej",
-    "restore": "Przywróć"
+    "restore": "Przywróć",
+    "replace": "Replace",
+    "banner": "Banner",
+    "logo": "Logo"
   },
   "objects": {
     "day": "Day",
@@ -421,7 +424,8 @@
       "restrict": "Ogranicz",
       "setNull": "Ustaw NULL",
       "setDefault": "Ustaw domyślne"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,9 +687,15 @@
       "incompleteConfiguration": "Niekompletna konfiguracja",
       "selectField": "Wybierz pole",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -907,7 +917,10 @@
       "openInOpenStreetMap": "Otwórz w OpenStreetMap"
     },
     "toggleMobileMode": "Przełącz tryb mobilny",
-    "startCommenting": "Rozpocznij komentowanie"
+    "startCommenting": "Rozpocznij komentowanie",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Ograniczenie do jednego źródła danych w tej chwili",
@@ -1166,14 +1179,14 @@
       "afterEnablePwd": "Dostęp jest ograniczony hasłem",
       "privateLink": "Ten widok jest współdzielony przez prywatny link",
       "privateLinkAdditionalInfo": "Ludzie z prywatnym ogniwem mogą widzieć tylko komórki widoczne w tym widoku",
-      "afterFormSubmitted": "Po złożeniu formularza",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Dostęp do projektu przez",
       "submitAnotherForm": "Pokaż przycisk \"Prześlij inny formularz\"",
       "showBlankForm": "Pokaż pustą formę po 5 sekundach",
       "emailForm": "E-mail mnie",
       "showSysFields": "Pokaż pola systemowe.",
       "filterAutoApply": "Automatyczne zastosowanie",
-      "showMessage": "Pokaż tę wiadomość",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Aktualny widok nie jest udostępniany!",
       "showAllViews": "Pokaż wszystkie wspólne widoki na tę tabelę",
       "collabView": "Współpracownicy z uprawnieniami edycji lub wyższe mogą zmienić konfigurację widoku.",
@@ -1283,9 +1296,14 @@
       "editingSystemKeyNotSupported": "Edycja klucza systemowego nie jest obsługiwana",
       "notAvailableAtTheMoment": "Obecnie niedostępne",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1376,7 +1394,8 @@
       "multiFieldSaveValidation": "Proszę zakończyć konfigurację wszystkich pól przed zapisaniem",
       "somethingWentWrong": "Coś poszło nie tak",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

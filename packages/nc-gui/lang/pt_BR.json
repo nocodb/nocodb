@@ -1,28 +1,28 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
+    "create_new_dashboard_project": "Criar nova interface",
+    "connect_data_sources": "Conectar fontes de dados",
     "alert": "Alert",
     "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Bases that you want to link to this Interface.",
-    "create_interface": "Create interface",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Selecione as bases de dados que você deseja vincular a esta interface.",
+    "create_interface": "Criar interface",
     "project_name": "Base Name",
-    "connect": "Connect",
+    "connect": "Conectar",
     "buttonActionTypes": {
-      "open_external_url": "Open external link",
-      "delete_record": "Delete record",
-      "update_record": "Update record",
-      "open_layout": "Open layout"
+      "open_external_url": "Abrir link externo",
+      "delete_record": "Excluir registro",
+      "update_record": "Atualizar registro",
+      "open_layout": "Abrir layout"
     },
     "widgets": {
-      "static_text": "Text",
-      "chart": "Chart",
-      "table": "Table",
-      "image": "Image",
+      "static_text": "Texto",
+      "chart": "Gráfico",
+      "table": "Tabela",
+      "image": "Imagem",
       "map": "Map",
-      "button": "Button",
-      "number": "Number",
-      "bar_chart": "Bar Chart",
+      "button": "Botão",
+      "number": "Número",
+      "bar_chart": "Gráfico de barras",
       "line_chart": "Line Chart",
       "area_chart": "Area Chart",
       "pie_chart": "Pie Chart",
@@ -39,7 +39,7 @@
     }
   },
   "general": {
-    "quit": "Quit",
+    "quit": "Sair",
     "home": "Início",
     "load": "Carregar",
     "open": "Abrir",
@@ -47,7 +47,7 @@
     "yes": "Sim",
     "no": "Não",
     "ok": "OK",
-    "back": "Back",
+    "back": "Voltar",
     "and": "E",
     "or": "Ou",
     "add": "Adicionar",
@@ -55,16 +55,16 @@
     "link": "Link",
     "links": "Links",
     "remove": "Remover",
-    "import": "Import",
-    "logout": "Log Out",
+    "import": "Importar",
+    "logout": "Encerrar Sessão",
     "empty": "Empty",
-    "changeIcon": "Change Icon",
+    "changeIcon": "Alterar Ícone",
     "save": "Salvar",
-    "available": "Available",
-    "abort": "Abort",
+    "available": "Disponível",
+    "abort": "Abortar",
     "saving": "Saving",
     "cancel": "Cancelar",
-    "null": "Null",
+    "null": "Nulo",
     "escape": "Escape",
     "hex": "Hex",
     "clear": "Clear",
@@ -164,17 +164,17 @@
     "sortDesc": "Ordenar Descendente",
     "move": "Move",
     "geoDataField": "Campo GeoData",
-    "type": "Type",
-    "name": "Name",
-    "changes": "Changes",
-    "new": "New",
-    "old": "Old",
-    "data": "Data",
-    "source": "Source",
-    "destination": "Destination",
-    "active": "Active",
-    "inactive": "Inactive",
-    "linked": "linked",
+    "type": "Tipo",
+    "name": "Nome",
+    "changes": "Mudanças",
+    "new": "Novo",
+    "old": "Antigo",
+    "data": "Dados",
+    "source": "Fonte",
+    "destination": "Destino",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "linked": "vinculado",
     "finish": "Finish",
     "min": "Min",
     "max": "Max",
@@ -190,15 +190,18 @@
     "useSurveyMode": "Use Survey Mode",
     "shift": "Shift",
     "enter": "Enter",
-    "seconds": "Seconds",
-    "paste": "Paste",
-    "restore": "Restore"
+    "seconds": "Segundos",
+    "paste": "Colar",
+    "restore": "Restaurar",
+    "replace": "Substituir",
+    "banner": "Banner",
+    "logo": "Logo"
   },
   "objects": {
-    "day": "Day",
-    "week": "Week",
-    "month": "Month",
-    "year": "Year",
+    "day": "Dia",
+    "week": "Semana",
+    "month": "Mês",
+    "year": "Ano",
     "workspace": "Workspace",
     "workspaces": "Workspaces",
     "project": "Projeto",
@@ -217,7 +220,7 @@
     "webhooks": "WebHooks.",
     "view": "Visualizar",
     "views": "Vizualizações",
-    "sidebar": "Sidebar",
+    "sidebar": "Barra lateral",
     "viewType": {
       "grid": "Grade",
       "gallery": "Galeria",
@@ -230,7 +233,7 @@
     "users": "Usuários",
     "role": "Função",
     "roles": "Funções",
-    "developer": "Developer",
+    "developer": "Desenvolvedor",
     "roleType": {
       "owner": "Proprietário",
       "creator": "Criador",
@@ -238,7 +241,7 @@
       "commenter": "Comentarista",
       "viewer": "Visualizador",
       "noaccess": "No Access",
-      "superAdmin": "Super Admin",
+      "superAdmin": "Super Administrador",
       "orgLevelCreator": "Criador de Nível da Organização",
       "orgLevelViewer": "Visualizador de nível da organização"
     },
@@ -250,7 +253,7 @@
       "tall": "Tall",
       "extra": "Extra"
     },
-    "externalDb": "External Database"
+    "externalDb": "Banco de Dados externo"
   },
   "datatype": {
     "ID": "ID",
@@ -305,7 +308,7 @@
     "isNotNull": "não é nulo"
   },
   "title": {
-    "sso": "Authentication (SSO)",
+    "sso": "Autenticação (SSO)",
     "docs": "Docs",
     "forum": "Forum",
     "parameter": "Parameter",
@@ -421,7 +424,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,9 +687,15 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -907,7 +917,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Alternar o modo móvel",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1179,14 @@
       "afterEnablePwd": "O acesso está protegido por uma senha",
       "privateLink": "Esta vizualização é compartilhada através de uma conexão privada",
       "privateLinkAdditionalInfo": "As pessoas com acesso a conexão privada só podem ver as células visíveis nesta vizualização",
-      "afterFormSubmitted": "Após o formulário é submetido",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Acesse o projeto via",
       "submitAnotherForm": "Mostrar 'enviar outro formulário' botão",
       "showBlankForm": "Mostre um formulário em branco após 5 segundos",
       "emailForm": "E-mail para",
       "showSysFields": "Mostrar campos do sistema",
       "filterAutoApply": "Aplicar automaticamente",
-      "showMessage": "Mostre esta mensagem",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "A visão atual não é compartilhada!",
       "showAllViews": "Mostrar todas as vistas compartilhadas desta mesa",
       "collabView": "Colaboradores com permissões de edição ou maiores podem alterar a configuração da visualização.",
@@ -1283,9 +1296,14 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1376,7 +1394,8 @@
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",

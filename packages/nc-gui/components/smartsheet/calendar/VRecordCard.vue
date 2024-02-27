@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 interface Props {
   record: Record<string, string>
+
   color?: string
   resize?: boolean
   selected?: boolean
@@ -26,14 +27,14 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex border-1 rounded-lg border-brand-500': selected || hover,
+        '!flex rounded-lg border-brand-500': selected || hover,
       }"
-      class="!group-hover:(border-brand-500) !border-1 cursor-ns-resize"
+      class="!group-hover:(border-brand-500) !border-1 text-gray-400 cursor-ns-resize"
       size="xsmall"
       type="secondary"
       @mousedown.stop="emit('resize-start', 'left', $event, record)"
     >
-      <component :is="iconMap.drag" class="text-gray-400"></component>
+      <component :is="iconMap.drag" class="mt-0.5" />
     </NcButton>
   </div>
   <div
@@ -70,10 +71,7 @@ const emit = defineEmits(['resize-start'])
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
     <span
-      :class="{
-        '!h-[40%]': position === 'none',
-      }"
-      class="mt-1.5 pl-4 pr-1 text-sm h-[70%] text-gray-800 leading-7 space-x-2 break-all whitespace-normal truncate w-full overflow-y-hidden absolute"
+      class="mt-1.5 pl-4 pr-1 text-sm h-[100%] text-gray-800 leading-7 space-x-2 break-all whitespace-normal truncate w-full overflow-y-hidden absolute"
     >
       <slot />
     </span>
@@ -87,12 +85,12 @@ const emit = defineEmits(['resize-start'])
       :class="{
         '!flex border-1 rounded-lg z-1 cursor-ns-resize	border-brand-500': selected || hover,
       }"
-      class="!group-hover:(border-brand-500) !border-1"
+      class="!group-hover:(border-brand-500) text-gray-400 !border-1"
       size="xsmall"
       type="secondary"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"
     >
-      <component :is="iconMap.drag" class="text-gray-400"></component>
+      <component :is="iconMap.drag" class="mt-0.5" />
     </NcButton>
   </div>
 </template>

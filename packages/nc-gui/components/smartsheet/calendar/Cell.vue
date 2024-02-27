@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {
+  type BoolType,
   type ColumnType,
   type LookupType,
   type RollupType,
@@ -26,9 +27,9 @@ import {
 interface Props {
   column: ColumnType
   modelValue: any
-  bold?: boolean
-  italic?: boolean
-  underline?: boolean
+  bold?: BoolType
+  italic?: BoolType
+  underline?: BoolType
 }
 
 const props = defineProps<Props>()

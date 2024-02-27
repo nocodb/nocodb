@@ -7,6 +7,7 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class FormView implements FormType {
   show: BoolType;
@@ -102,22 +103,21 @@ export default class FormView implements FormType {
       'meta',
     ]);
 
-    if (updateObj.meta) {
-      updateObj.meta = serializeJSON(updateObj.meta);
-    }
-
     // update meta
     const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.FORM_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: formId,
       },
     );
 
-    await NocoCache.update(`${CacheScope.FORM_VIEW}:${formId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.FORM_VIEW}:${formId}`,
+      prepareForResponse(updateObj),
+    );
 
     return res;
   }

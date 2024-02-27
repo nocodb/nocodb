@@ -28,7 +28,12 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 
 const selectColors = [
@@ -1089,17 +1094,14 @@ export default class Column<T = any> implements ColumnType {
       null,
       null,
       MetaTable.COLUMNS,
-      {
-        ...updateObj,
-        meta:
-          updateObj.meta && typeof updateObj.meta === 'object'
-            ? JSON.stringify(updateObj.meta)
-            : updateObj.meta,
-      },
+      prepareForDb(updateObj),
       colId,
     );
 
-    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.COLUMN}:${colId}`,
+      prepareForResponse(updateObj),
+    );
 
     await this.insertColOption(column, colId, ncMeta);
 

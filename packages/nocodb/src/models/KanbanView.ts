@@ -5,6 +5,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
@@ -105,22 +106,21 @@ export default class KanbanView implements KanbanType {
       'meta',
     ]);
 
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
-
     // update meta
     const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.KANBAN_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: kanbanId,
       },
     );
 
-    await NocoCache.update(`${CacheScope.KANBAN_VIEW}:${kanbanId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.KANBAN_VIEW}:${kanbanId}`,
+      prepareForResponse(updateObj),
+    );
 
     return res;
   }

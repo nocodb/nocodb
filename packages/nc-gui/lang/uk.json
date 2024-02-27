@@ -212,7 +212,7 @@
     "page": "Сторінка",
     "pages": "Сторінки",
     "record": "запис",
-    "records": "записи",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Вебхуки",
     "view": "Вигляд",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "Відкрити в Google Maps"
     },
     "toggleMobileMode": "Ввімкнути мобільний режим",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "Доступ обмежено паролем",
       "privateLink": "Цей перегляд доступний за приватним посиланням",
       "privateLinkAdditionalInfo": "Люди з приватним посиланням можуть бачити лише клітини, видимі в цьому вигляді",
-      "afterFormSubmitted": "Після надсилання форми",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Доступ до проєкту через",
       "submitAnotherForm": "Показати кнопку \"Надіслати іншу форму\"",
       "showBlankForm": "Показати порожню форму через 5 секунд",
       "emailForm": "Надішліть мені повідомлення на пошту",
       "showSysFields": "Показати системні поля",
       "filterAutoApply": "Автоматичне застосування",
-      "showMessage": "Показати це повідомлення",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "До поточного вигляду немає доступу!",
       "showAllViews": "Показати усі спільні вигляди цієї таблиці",
       "collabView": "Учасники з дозволом на редагування або вище можуть змінювати конфігурацію перегляду.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Дозволені типи файлів: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Ключ параметра не може бути порожнім",
       "duplicateParameterKeysAreNotAllowed": "Дублювання ключів параметрів неприпустимо",
-      "fieldRequired": "{value} не може бути порожнім.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Проєкт недоступний",
       "copyToClipboardError": "Не вдалося скопіювати в буфер обміну",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

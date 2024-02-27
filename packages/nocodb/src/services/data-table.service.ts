@@ -22,14 +22,8 @@ export class DataTableService {
     ignorePagination?: boolean;
   }) {
     const { model, view } = await this.getModelAndView(param);
-
-    return await this.datasService.getDataList({
-      model,
-      view,
-      query: param.query,
-      throwErrorIfInvalidParams: true,
-      ignorePagination: param.ignorePagination,
-    });
+    const { modelId, viewId, baseId, ...rest } = param;
+    return await this.datasService.dataList({ ...rest, model, view });
   }
 
   async dataRead(param: {

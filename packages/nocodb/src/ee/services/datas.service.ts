@@ -19,13 +19,21 @@ export class DatasService extends DatasServiceCE {
   }
 
   async dataList(
-    param: PathParams & {
+    param: (PathParams | { view?: View; model: Model }) & {
       query: any;
       disableOptimization?: boolean;
       ignorePagination?: boolean;
     },
   ) {
-    const { model, view } = await getViewAndModelByAliasOrId(param);
+    let { model, view } = param;
+
+    if (!model) {
+      const modelAndView = await getViewAndModelByAliasOrId(
+        param as PathParams,
+      );
+      model = modelAndView.model;
+      view = modelAndView.view;
+    }
 
     let responseData;
     const source = await Source.get(model.source_id);

@@ -3,6 +3,7 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
+import type { FormFieldsLimitOptionsType } from '~/lib'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -88,7 +89,44 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
-    return opts.map((o: any) => ({ ...o, value: o.title }))
+
+    let order = 1
+    const limitOptionsById =
+      ((parseProp(column.value.meta)?.limitOptions || []).reduce(
+        (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
+          if (f?.order !== undefined && order < f.order) {
+            order = f.order
+          }
+          return {
+            ...o,
+            [f.id]: f,
+          }
+        },
+        {},
+      ) as Record<string, FormFieldsLimitOptionsType>) ?? {}
+
+    if (
+      !isEditColumn.value &&
+      isForm.value &&
+      parseProp(column.value.meta)?.isLimitOption &&
+      (parseProp(column.value.meta)?.limitOptions || []).length
+    ) {
+      return opts
+        ?.filter((o: any) => {
+          if (limitOptionsById[o.id]?.show !== undefined) {
+            return limitOptionsById[o.id]?.show
+          }
+          return false
+        })
+        ?.map((o: any) => ({
+          ...o,
+          value: o.title,
+          order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
+        }))
+        ?.sort((a, b) => a.order - b.order)
+    } else {
+      return opts.map((o: any) => ({ ...o, value: o.title }))
+    }
   }
   return []
 })

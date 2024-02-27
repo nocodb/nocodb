@@ -802,6 +802,9 @@ export default class View implements ViewType {
     colData: {
       order?: number;
       show?: BoolType;
+      underline?: BoolType;
+      bold?: BoolType;
+      italic?: BoolType;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -833,10 +836,10 @@ export default class View implements ViewType {
         table = MetaTable.CALENDAR_VIEW_COLUMNS;
         cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
     }
-    const updateObj = extractProps(colData, ['order', 'show']);
+    let updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
-    if (view.type === ViewTypes.GRID || view.type === ViewTypes.CALENDAR) {
+    if (view.type === ViewTypes.GRID) {
       const primary_value_column_meta = await ncMeta.metaGet2(
         null,
         null,
@@ -861,6 +864,12 @@ export default class View implements ViewType {
         updateObj.order = 1;
         updateObj.show = true;
       }
+    }
+    if (view.type === ViewTypes.CALENDAR) {
+      updateObj = {
+        ...updateObj,
+        ...extractProps(colData, ['underline', 'bold', 'italic']),
+      };
     }
 
     // set meta

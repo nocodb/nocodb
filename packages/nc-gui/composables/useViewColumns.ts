@@ -1,8 +1,8 @@
-import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 import type { Field } from '#imports'
+import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -278,6 +278,13 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       saveOrUpdate(field, fieldIndex)
     }
 
+    const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
+      const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+      if (!fieldIndex && fieldIndex !== 0) return
+      field[style] = status
+      saveOrUpdate(field, fieldIndex, true)
+    }
+
     // reload view columns when active view changes
     // or when columns changes(delete/add)
     watch(
@@ -351,6 +358,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       showSystemFields,
       metaColumnById,
       toggleFieldVisibility,
+      toggleFieldStyles,
       isViewColumnsLoading,
       updateGridViewColumn,
       gridViewCols,

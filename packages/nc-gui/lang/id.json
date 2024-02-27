@@ -212,7 +212,7 @@
     "page": "Halaman",
     "pages": "Halaman",
     "record": "Catatan",
-    "records": "Catatan",
+    "records": "records",
     "webhook": "WebHook.",
     "webhooks": "WebHooks.",
     "view": "Melihat",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "Akses dibatasi kata sandi",
       "privateLink": "Tampilan ini dibagikan melalui tautan pribadi",
       "privateLinkAdditionalInfo": "Orang dengan tautan pribadi hanya dapat melihat sel yang terlihat dalam pandangan ini",
-      "afterFormSubmitted": "Setelah formulir dikirimkan",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "PROYEK AKSES VIA.",
       "submitAnotherForm": "Tampilkan tombol 'Kirim formulir lain'",
       "showBlankForm": "Tampilkan formulir kosong setelah 5 detik",
       "emailForm": "E-mail saya di",
       "showSysFields": "Tampilkan bidang sistem",
       "filterAutoApply": "Terapkan secara otomatis",
-      "showMessage": "Tampilkan pesan ini",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Tampilan saat ini tidak dibagikan!",
       "showAllViews": "Tampilkan semua tampilan bersama dari tabel ini",
       "collabView": "Kolaborator dengan izin edit atau lebih tinggi dapat mengubah konfigurasi tampilan.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Jenis file yang diterima adalah .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Kunci parameter tidak boleh kosong",
       "duplicateParameterKeysAreNotAllowed": "Kunci parameter duplikat tidak diperbolehkan",
-      "fieldRequired": "{value} tidak boleh kosong.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Proyek tidak dapat diakses",
       "copyToClipboardError": "Gagal menyalin ke papan klip",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

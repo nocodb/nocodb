@@ -688,11 +688,11 @@
       "selectField": "Select a field",
       "selectFieldLabel": "Make changes to field properties by selecting a field from the list"
     },
-    "appearanceSettings": "Appearance Settings",
-    "backgroundColor": "Background Color",
-    "hideNocodbBranding": "Hide NocoDB Branding",
+    "appearanceSettings":"Appearance Settings",
+    "backgroundColor":"Background Color",
+    "hideNocodbBranding":"Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
-    "showFieldOnConditionsMet": "Shows field only when conditions are met"
+    "showFieldOnConditionsMet":"Shows field only when conditions are met"
   },
   "activity": {
     "noRange": "Calendar view requires a date range",
@@ -1110,7 +1110,7 @@
     "tooLargeFieldEntity": "The field is too large to be converted to {entity}",
     "roleRequired": "Role required",
     "warning": {
-      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",
+      "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
       "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
       "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
@@ -1388,7 +1388,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Base not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",

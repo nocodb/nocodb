@@ -4,7 +4,16 @@ import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import { ProjectRoles, RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  ProjectRoles,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+  getSystemColumns,
+  isLinksOrLTAR,
+  isVirtualCol,
+  isSelectTypeCol,
+} from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
   ActiveViewInj,
@@ -156,8 +165,6 @@ const focusLabel: VNodeRef = (el) => {
 }
 
 const searchQuery = ref('')
-
-const selectTypeFields = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
 
 const { t } = useI18n()
 
@@ -1090,7 +1097,7 @@ useEventListener(
                         class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
                       >
                         <!-- Layout  -->
-                        <div v-if="selectTypeFields.includes(element.uidt)">
+                        <div v-if="isSelectTypeCol(element.uidt)">
                           <div>Layout</div>
 
                           <a-radio-group
@@ -1112,13 +1119,19 @@ useEventListener(
                         </div>
                         <!-- Limit options -->
                         <div
-                          v-if="selectTypeFields.includes(element.uidt)"
+                          v-if="isSelectTypeCol(element.uidt)"
                           class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg"
                         >
-                          <a-switch v-e="['a:form-view:field:limit-options']" size="small" />
+                          <a-switch
+                            v-model:checked="element.meta.isLimitOption"
+                            v-e="['a:form-view:field:limit-options']"
+                            size="small"
+                            @change="updateColMeta(element)"
+                          />
                           <div>
                             <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
                             <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
+                            <div v-if="element.meta.isLimitOption" class="mt-5"></div>
                           </div>
                         </div>
                       </div>

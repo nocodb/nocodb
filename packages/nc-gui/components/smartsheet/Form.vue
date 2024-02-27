@@ -1122,18 +1122,20 @@ useEventListener(
                             class="nc-form-field-layout !mt-2"
                             @change="updateColMeta(element)"
                           >
-                            <a-radio :value="false">Dropdown</a-radio>
-                            <a-radio :value="true">List</a-radio>
+                            <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
+                            <a-radio :value="true">{{ $t('general.list') }}</a-radio>
                           </a-radio-group>
                         </div>
                         <!-- Todo: Show on conditions,... -->
-                        <div class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
+                        <!-- eslint-disable vue/no-constant-condition -->
+                        <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
                           <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" />
                           <div>
                             <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
                             <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
                           </div>
                         </div>
+
                         <!-- Limit options -->
                         <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
                           <div class="flex items-start gap-3">

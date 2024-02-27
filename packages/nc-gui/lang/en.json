@@ -195,7 +195,9 @@
     "restore": "Restore",
     "replace": "Replace",
     "banner": "Banner",
-    "logo": "Logo"
+    "logo": "Logo",
+    "dropdown":"Dropdown",
+    "list":"List"
   },
   "objects": {
     "day": "Day",

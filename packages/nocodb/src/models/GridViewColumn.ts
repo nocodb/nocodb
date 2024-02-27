@@ -140,15 +140,7 @@ export default class GridViewColumn implements GridColumnType {
       'group_by_order',
       'group_by_sort',
     ]);
-    // get existing cache
-    const key = `${CacheScope.GRID_VIEW_COLUMN}:${columnId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
+
     // set meta
     const res = await ncMeta.metaUpdate(
       null,
@@ -156,6 +148,11 @@ export default class GridViewColumn implements GridColumnType {
       MetaTable.GRID_VIEW_COLUMNS,
       updateObj,
       columnId,
+    );
+
+    await NocoCache.update(
+      `${CacheScope.GRID_VIEW_COLUMN}:${columnId}`,
+      updateObj,
     );
 
     // on view column update, delete any optimised single query cache

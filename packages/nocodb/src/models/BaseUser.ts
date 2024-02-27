@@ -3,7 +3,7 @@ import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
 import Base from '~/models/Base';
 import {
-  // CacheDelDirection,
+  CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
@@ -205,17 +205,8 @@ export default class BaseUser {
     roles: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.BASE_USER}:${baseId}:${userId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      o.roles = roles;
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
     // set meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.PROJECT_USERS,
@@ -227,6 +218,12 @@ export default class BaseUser {
         base_id: baseId,
       },
     );
+
+    await NocoCache.update(`${CacheScope.BASE_USER}:${baseId}:${userId}`, {
+      roles,
+    });
+
+    return res;
   }
 
   static async update(
@@ -237,18 +234,17 @@ export default class BaseUser {
   ) {
     const updateObj = extractProps(baseUser, ['starred', 'hidden', 'order']);
 
-    const key = `${CacheScope.BASE_USER}:${baseId}:${userId}`;
-
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.PROJECT_USERS, updateObj, {
       fk_user_id: userId,
       base_id: baseId,
     });
 
-    // delete cache
-    await NocoCache.del(key);
+    await NocoCache.update(
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      updateObj,
+    );
 
-    // cache and return
     return await this.get(baseId, userId, ncMeta);
   }
 
@@ -265,8 +261,10 @@ export default class BaseUser {
     );
 
     // delete list cache to refresh list
-    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:${userId}`);
-    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:list`);
+    await NocoCache.deepDel(
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
 
     return response;
   }

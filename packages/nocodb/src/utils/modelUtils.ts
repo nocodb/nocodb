@@ -23,3 +23,38 @@ export function stringifyMetaProp(model: any, propName = 'meta'): string {
     return '{}';
   }
 }
+
+export function prepareForDb(model: any, props: string | string[] = 'meta') {
+  if (!model) return model;
+
+  if (typeof props === 'string') {
+    props = [props];
+  }
+
+  props.forEach((prop) => {
+    if (prop in model) {
+      model[prop] = stringifyMetaProp(model, prop);
+    }
+  });
+
+  return model;
+}
+
+export function prepareForResponse(
+  model: any,
+  props: string | string[] = 'meta',
+) {
+  if (!model) return model;
+
+  if (typeof props === 'string') {
+    props = [props];
+  }
+
+  props.forEach((prop) => {
+    if (prop in model) {
+      model[prop] = parseMetaProp(model, prop);
+    }
+  });
+
+  return model;
+}

@@ -17,7 +17,12 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 
 // todo: hide credentials
 export default class Source implements SourceType {
@@ -130,10 +135,6 @@ export default class Source implements SourceType {
       ).toString();
     }
 
-    if ('meta' in updateObj) {
-      updateObj.meta = stringifyMetaProp(updateObj);
-    }
-
     // type property is undefined even if not provided
     if (!updateObj.type) {
       updateObj.type = oldBase.type;
@@ -143,11 +144,14 @@ export default class Source implements SourceType {
       source.baseId,
       null,
       MetaTable.BASES,
-      updateObj,
+      prepareForDb(updateObj),
       oldBase.id,
     );
 
-    await NocoCache.del(`${CacheScope.BASE}:${sourceId}`);
+    await NocoCache.update(
+      `${CacheScope.BASE}:${sourceId}`,
+      prepareForResponse(updateObj),
+    );
 
     // call before reorder to update cache
     const returnBase = await this.get(oldBase.id, false, ncMeta);
@@ -474,15 +478,7 @@ export default class Source implements SourceType {
     if (!this.erd_uuid) {
       const uuid = uuidv4();
       this.erd_uuid = uuid;
-      // get existing cache
-      const key = `${CacheScope.BASE}:${this.id}`;
-      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        // update data
-        o.erd_uuid = uuid;
-        // set cache
-        await NocoCache.set(key, o);
-      }
+
       // set meta
       await ncMeta.metaUpdate(
         null,
@@ -493,6 +489,10 @@ export default class Source implements SourceType {
         },
         this.id,
       );
+
+      await NocoCache.update(`${CacheScope.BASE}:${this.id}`, {
+        erd_uuid: this.erd_uuid,
+      });
     }
     return this;
   }
@@ -500,15 +500,7 @@ export default class Source implements SourceType {
   async disableShareErd(ncMeta = Noco.ncMeta) {
     if (this.erd_uuid) {
       this.erd_uuid = null;
-      // get existing cache
-      const key = `${CacheScope.BASE}:${this.id}`;
-      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        // update data
-        o.erd_uuid = null;
-        // set cache
-        await NocoCache.set(key, o);
-      }
+
       // set meta
       await ncMeta.metaUpdate(
         null,
@@ -519,6 +511,10 @@ export default class Source implements SourceType {
         },
         this.id,
       );
+
+      await NocoCache.update(`${CacheScope.BASE}:${this.id}`, {
+        erd_uuid: this.erd_uuid,
+      });
     }
     return this;
   }

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
 import tinycolor from 'tinycolor2'
+import { CheckboxGroup, Checkbox, RadioGroup, Radio } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
 import {
@@ -146,6 +147,14 @@ const vModel = computed({
   },
 })
 
+const vModelListLayout = computed(() => {
+  if (isMultiple) {
+    return (vModel.value || []).map((item) => item.value)
+  } else {
+    return (vModel.value || [])?.[0]?.value || ''
+  }
+})
+
 watch(isOpen, (n, _o) => {
   if (!n) searchVal.value = ''
 
@@ -266,87 +275,79 @@ const filterOption = (input: string, option: any) => {
     :class="{ 'read-only': readOnly }"
     @click="toggleMenu"
   >
-    <div
-      v-if="!active"
-      class="flex flex-wrap"
-      :style="{
-        'display': '-webkit-box',
-        'max-width': '100%',
-        '-webkit-line-clamp': rowHeight || 1,
-        '-webkit-box-orient': 'vertical',
-        'overflow': 'hidden',
-      }"
-    >
-      <template v-for="selectedOpt of vModel" :key="selectedOpt.value">
-        <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
-          <span
-            :style="{
-              'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                ? '#fff'
-                : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
-            }"
-            class="flex items-stretch gap-2"
-            :class="{ 'text-sm': isKanban }"
+    <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
+      <component
+        :is="isMultiple ? CheckboxGroup : RadioGroup"
+        :model-value:value="vModelListLayout"
+        class="nc-field-layout-list"
+        @update:value="
+          (value) => {
+            // Todo: fix update single select user issue
+            vModel = isMultiple ? value : [value]
+          }
+        "
+      >
+        <template v-for="op of options" :key="op.id || op.email">
+          <component
+            v-if="!op.deleted"
+            :is="isMultiple ? Checkbox : Radio"
+            :key="op.id || op.email"
+            :value="op.id"
+            :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+            :class="`nc-select-option-${column.title}-${op.email}`"
           >
-            <div class="flex-none">
-              <GeneralUserIcon
-                size="auto"
-                :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
-                :email="selectedOpt.label"
-                class="!text-[0.65rem]"
-              />
-            </div>
-            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-              <template #title>
-                {{ selectedOpt.label }}
-              </template>
+            <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
               <span
-                class="text-ellipsis overflow-hidden"
                 :style="{
-                  wordBreak: 'keep-all',
-                  whiteSpace: 'nowrap',
-                  display: 'inline',
+                  'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                    ? '#fff'
+                    : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                  'font-size': '13px',
                 }"
+                class="flex items-stretch gap-2"
               >
-                {{ selectedOpt.label }}
+                <div>
+                  <GeneralUserIcon
+                    size="auto"
+                    :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
+                    :email="op.email"
+                    class="!text-[0.65rem]"
+                  />
+                </div>
+                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                  <template #title>
+                    {{ op.display_name?.trim() || op.email }}
+                  </template>
+                  <span
+                    class="text-ellipsis overflow-hidden"
+                    :style="{
+                      wordBreak: 'keep-all',
+                      whiteSpace: 'nowrap',
+                      display: 'inline',
+                    }"
+                  >
+                    {{ op.display_name?.trim() || op.email }}
+                  </span>
+                </NcTooltip>
               </span>
-            </NcTooltip>
-          </span>
-        </a-tag>
-      </template>
+            </a-tag>
+          </component>
+        </template>
+      </component>
     </div>
-
-    <a-select
-      v-else
-      ref="aselect"
-      v-model:value="vModel"
-      mode="multiple"
-      class="w-full overflow-hidden"
-      :placeholder="isEditColumn ? $t('labels.optional') : ''"
-      :bordered="false"
-      clear-icon
-      :show-search="!isMobileMode"
-      :show-arrow="editAllowed && !readOnly"
-      :open="isOpen && editAllowed"
-      :disabled="readOnly || !editAllowed"
-      :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
-      :filter-option="filterOption"
-      @search="search"
-      @keydown.stop
-    >
-      <template #suffixIcon>
-        <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
-      </template>
-      <template v-for="op of options" :key="op.id || op.email">
-        <a-select-option
-          v-if="!op.deleted"
-          :value="op.id"
-          :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.email}`"
-          @click.stop
-        >
+    <template v-else>
+      <div
+        v-if="!active"
+        class="flex flex-wrap"
+        :style="{
+          'display': '-webkit-box',
+          'max-width': '100%',
+          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-box-orient': 'vertical',
+          'overflow': 'hidden',
+        }"
+      >
+        <template v-for="selectedOpt of vModel" :key="selectedOpt.value">
           <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
             <span
               :style="{
@@ -358,17 +359,17 @@ const filterOption = (input: string, option: any) => {
               class="flex items-stretch gap-2"
               :class="{ 'text-sm': isKanban }"
             >
-              <div>
+              <div class="flex-none">
                 <GeneralUserIcon
                   size="auto"
-                  :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
-                  :email="op.email"
+                  :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
+                  :email="selectedOpt.label"
                   class="!text-[0.65rem]"
                 />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
-                  {{ op.display_name?.trim() || op.email }}
+                  {{ selectedOpt.label }}
                 </template>
                 <span
                   class="text-ellipsis overflow-hidden"
@@ -378,51 +379,121 @@ const filterOption = (input: string, option: any) => {
                     display: 'inline',
                   }"
                 >
-                  {{ op.display_name?.trim() || op.email }}
+                  {{ selectedOpt.label }}
                 </span>
               </NcTooltip>
             </span>
           </a-tag>
-        </a-select-option>
-      </template>
+        </template>
+      </div>
 
-      <template #tagRender="{ label, value: val, onClose }">
-        <a-tag
-          v-if="options.find((el) => el.id === val)"
-          class="rounded-tag nc-selected-option !pl-0"
-          :style="{ display: 'flex', alignItems: 'center' }"
-          color="'#ccc'"
-          :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
-          :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
-          @click="onTagClick($event, onClose)"
-          @close="onClose"
-        >
-          <span
-            :style="{
-              'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
-                level: 'AA',
-                size: 'large',
-              })
-                ? '#fff'
-                : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
-            }"
-            class="flex items-stretch gap-2"
-            :class="{ 'text-sm': isKanban }"
+      <a-select
+        v-else
+        ref="aselect"
+        v-model:value="vModel"
+        mode="multiple"
+        class="w-full overflow-hidden"
+        :placeholder="isEditColumn ? $t('labels.optional') : ''"
+        :bordered="false"
+        clear-icon
+        :show-search="!isMobileMode"
+        :show-arrow="editAllowed && !readOnly"
+        :open="isOpen && editAllowed"
+        :disabled="readOnly || !editAllowed"
+        :class="{ 'caret-transparent': !hasEditRoles }"
+        :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
+        :filter-option="filterOption"
+        @search="search"
+        @keydown.stop
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
+        </template>
+        <template v-for="op of options" :key="op.id || op.email">
+          <a-select-option
+            v-if="!op.deleted"
+            :value="op.id"
+            :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+            :class="`nc-select-option-${column.title}-${op.email}`"
+            @click.stop
           >
-            <div>
-              <GeneralUserIcon
-                size="auto"
-                :name="!label?.includes('@') ? label.trim() : ''"
-                :email="label"
-                class="!text-[0.65rem]"
-              />
-            </div>
-            {{ label }}
-          </span>
-        </a-tag>
-      </template>
-    </a-select>
+            <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
+              <span
+                :style="{
+                  'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                    ? '#fff'
+                    : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                  'font-size': '13px',
+                }"
+                class="flex items-stretch gap-2"
+                :class="{ 'text-sm': isKanban }"
+              >
+                <div>
+                  <GeneralUserIcon
+                    size="auto"
+                    :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
+                    :email="op.email"
+                    class="!text-[0.65rem]"
+                  />
+                </div>
+                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                  <template #title>
+                    {{ op.display_name?.trim() || op.email }}
+                  </template>
+                  <span
+                    class="text-ellipsis overflow-hidden"
+                    :style="{
+                      wordBreak: 'keep-all',
+                      whiteSpace: 'nowrap',
+                      display: 'inline',
+                    }"
+                  >
+                    {{ op.display_name?.trim() || op.email }}
+                  </span>
+                </NcTooltip>
+              </span>
+            </a-tag>
+          </a-select-option>
+        </template>
+
+        <template #tagRender="{ label, value: val, onClose }">
+          <a-tag
+            v-if="options.find((el) => el.id === val)"
+            class="rounded-tag nc-selected-option !pl-0"
+            :style="{ display: 'flex', alignItems: 'center' }"
+            color="'#ccc'"
+            :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
+            :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+            @click="onTagClick($event, onClose)"
+            @close="onClose"
+          >
+            <span
+              :style="{
+                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
+                  level: 'AA',
+                  size: 'large',
+                })
+                  ? '#fff'
+                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'font-size': '13px',
+              }"
+              class="flex items-stretch gap-2"
+              :class="{ 'text-sm': isKanban }"
+            >
+              <div>
+                <GeneralUserIcon
+                  size="auto"
+                  :name="!label?.includes('@') ? label.trim() : ''"
+                  :email="label"
+                  class="!text-[0.65rem]"
+                />
+              </div>
+              {{ label }}
+            </span>
+          </a-tag>
+        </template>
+      </a-select>
+    </template>
   </div>
 </template>
 
@@ -491,5 +562,39 @@ const filterOption = (input: string, option: any) => {
 
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
+}
+
+.nc-field-layout-list {
+  @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
+
+  :deep(.ant-checkbox-wrapper) {
+    @apply !m-0 !h-9 !mr-0 !flex !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
+
+    &:hover {
+      .ant-checkbox-checked:after {
+        @apply !rounded;
+      }
+    }
+    .ant-checkbox {
+      @apply !top-0;
+
+      & + span {
+        @apply !flex !pl-4 max-w-[calc(100%_-_16px)];
+      }
+      .ant-checkbox-checked:after,
+      .ant-checkbox-inner {
+        @apply !rounded;
+      }
+    }
+  }
+  :deep(.ant-radio-wrapper) {
+    @apply !m-0 !h-9 !mr-0 !flex !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
+    .ant-radio {
+      @apply !top-0;
+    }
+    .ant-radio + span {
+      @apply !flex !pl-4 max-w-[calc(100%_-_16px)];
+    }
+  }
 }
 </style>

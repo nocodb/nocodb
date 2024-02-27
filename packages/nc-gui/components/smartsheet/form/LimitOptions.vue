@@ -50,7 +50,7 @@ const vModel = computed({
           id: user.id,
           email: user.email,
           display_name: user.display_name,
-          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
+          order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? c.order : order++,
           show:
             user.id && limitOptionsById[user.id]
               ? limitOptionsById[user.id]?.show
@@ -58,6 +58,7 @@ const vModel = computed({
               ? true
               : false,
         }))
+        .sort((a, b) => a.order - b.order)
 
       if ((props.modelValue || []).length !== collaborators.length) {
         emit(
@@ -67,13 +68,20 @@ const vModel = computed({
       }
       return collaborators
     } else if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(column.value.uidt as UITypes)) {
-      const updateModelValue = ((column.value.colOptions as SelectOptionsType)?.options || []).map((c) => {
-        return {
-          ...c,
-          order: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.order ?? c.order : order++,
-          show: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.show : !(props.modelValue || []).length ? true : false,
-        } as SelectOptionType & { show?: boolean }
-      })
+      const updateModelValue = ((column.value.colOptions as SelectOptionsType)?.options || [])
+        .map((c) => {
+          return {
+            ...c,
+            order: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.order ?? c.order : order++,
+            show: c.id && limitOptionsById[c.id] ? limitOptionsById[c.id]?.show : !(props.modelValue || []).length ? true : false,
+          } as SelectOptionType & { show?: boolean }
+        })
+        .sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order
+          }
+          return 0
+        })
 
       if ((props.modelValue || []).length !== ((column.value.colOptions as SelectOptionsType)?.options || []).length) {
         emit(
@@ -93,8 +101,42 @@ const vModel = computed({
   },
 })
 
-const syncOptions = () => {
-  // set initial colOptions if not set
+async function onMove(_event: { moved: { newIndex: number; oldIndex: number; element: any } }) {
+  const {
+    moved: { newIndex = 0, oldIndex = 0, element },
+  } = _event
+
+  if (!vModel.value.length || vModel.value.length === 1) {
+    element.order = 1
+  } else if (vModel.value.length - 1 === newIndex) {
+    element.order = (vModel.value[newIndex - 1]?.order || 0) + 1
+  } else if (newIndex === 0) {
+    element.order = (vModel.value[1]?.order || 0) / 2
+  } else {
+    element.order = ((vModel.value[newIndex - 1]?.order || 0) + (vModel.value[newIndex + 1].order || 0)) / 2
+  }
+
+  let nextOrder: number
+
+  // set new order value based on the new order of the items
+  if (!vModel.value.length || vModel.value.length === 1) {
+    nextOrder = 1
+  } else if (vModel.value.length - 1 === newIndex) {
+    // If moving to the end, set nextOrder greater than the maximum order in the list
+    nextOrder = Math.max(...vModel.value.map((item) => item?.order ?? 0)) + 1
+  } else if (newIndex === 0) {
+    // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+    nextOrder = Math.min(...vModel.value.map((item) => item?.order ?? 0)) / 2
+  } else {
+    nextOrder =
+      (parseFloat(String(vModel.value[newIndex - 1]?.order ?? 0)) + parseFloat(String(vModel.value[newIndex + 1]?.order ?? 0))) /
+      2
+  }
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+  element.order = _nextOrder
+
+  vModel.value = vModel.value
 }
 </script>
 
@@ -124,11 +166,11 @@ const syncOptions = () => {
     </div>
     <Draggable
       v-if="vModel.length"
-      :list="vModel"
+      :model-value="vModel"
       item-key="id"
       handle=".nc-child-draggable-icon"
       class="rounded-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
-      @change="syncOptions"
+      @change="onMove($event)"
       @start="drag = true"
       @end="drag = false"
     >
@@ -147,7 +189,7 @@ const syncOptions = () => {
           ]"
           :data-testid="`nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`"
         >
-          <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600" />
+          <component :is="iconMap.drag" class="nc-child-draggable-icon flex-none cursor-move !h-4 !w-4 text-gray-600" />
 
           <div
             @click="

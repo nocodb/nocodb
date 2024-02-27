@@ -212,7 +212,7 @@
     "page": "Lapa",
     "pages": "Lapas",
     "record": "Ieraksts",
-    "records": "Ieraksti",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Skatījums",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "Piekļuve ir ierobežota ar paroli",
       "privateLink": "Šis skats ir koplietots izmantojot privātu saiti",
       "privateLinkAdditionalInfo": "Cilvēkiar privātu saiti var redzēt tikai šūnas šajā skatā",
-      "afterFormSubmitted": "Pēc formas iesniegšanas",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Piekļūt projektam caur",
       "submitAnotherForm": "Parādīt 'Iesniegt vēl vienu formu' pogu",
       "showBlankForm": "Parādīt tukšu formu pēc 5 sekundēm",
       "emailForm": "Nosūtīt epastu man uz",
       "showSysFields": "Parādīt sistēmas laukus",
       "filterAutoApply": "Automātiski pielietot",
-      "showMessage": "Parādīt šo ziņojumu",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Esošais skats nav koplietots!",
       "showAllViews": "Parādīt visus šīs tabulas koplietotos skatus",
       "collabView": "Līdzautori ar rediģēšanas vai augstākām atļaujām var mainīt šī skata konfigurāciju.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Pieņemtie failu tipi ir .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "Parametra atslēga nedrīkst būt tukša",
       "duplicateParameterKeysAreNotAllowed": "Parametru taustiņu dublēšanās nav atļauta",
-      "fieldRequired": "{value} nevar būt tukšs.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Projekts nav pieejams",
       "copyToClipboardError": "Neizdevās kopēt uz starpliktuvi",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

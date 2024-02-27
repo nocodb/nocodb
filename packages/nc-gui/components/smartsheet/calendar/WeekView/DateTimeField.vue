@@ -99,7 +99,7 @@ const recordsAcrossAllRange = computed<{
   const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
   const scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
 
-  // We need to keep track of the overlaps for each day and hour in the week to calculate the width and left position of each record
+  // We need to keep track of the overlaps for each day and hour, minute in the week to calculate the width and left position of each record
   // The first key is the date, the second key is the hour, and the value is an object containing the ids of the records that overlap
   // The key is in the format YYYY-MM-DD and the hour is in the format HH:mm
   const overlaps: {
@@ -137,47 +137,57 @@ const recordsAcrossAllRange = computed<{
     sortedFormattedData.forEach((record: Row) => {
       if (!toCol && fromCol) {
         // If there is no toColumn chosen in the range
-        const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
-        if (!startDate) return
+        const ogStartDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+        if (!ogStartDate) return
 
-        // Hour Key currently is set as start of the hour
-        // TODO:  Need to work on the granularity of the hour
-        const dateKey = startDate?.format('YYYY-MM-DD')
-        const hourKey = startDate?.startOf('hour').format('HH:mm')
+        const endDate = ogStartDate.clone().add(1, 'hour')
 
         const id = record.rowMeta.id ?? generateRandomNumber()
 
+        let startDate = ogStartDate.clone()
+
         let style: Partial<CSSStyleDeclaration> = {}
 
-        // If the dateKey and hourKey are valid, we add the id to the overlaps object
-        if (dateKey && hourKey) {
-          if (!overlaps[dateKey]) {
-            overlaps[dateKey] = {}
-          }
-          if (!overlaps[dateKey][hourKey]) {
-            overlaps[dateKey][hourKey] = {
-              id: [],
-              overflow: false,
-              overflowCount: 0,
+        while (startDate.isBefore(endDate, 'minutes')) {
+          const dateKey = startDate?.format('YYYY-MM-DD')
+          const hourKey = startDate?.format('HH:mm')
+
+          // If the dateKey and hourKey are valid, we add the id to the overlaps object
+          if (dateKey && hourKey) {
+            if (!overlaps[dateKey]) {
+              overlaps[dateKey] = {}
             }
+            if (!overlaps[dateKey][hourKey]) {
+              overlaps[dateKey][hourKey] = {
+                id: [],
+                overflow: false,
+                overflowCount: 0,
+              }
+            }
+            overlaps[dateKey][hourKey].id.push(id)
           }
-          overlaps[dateKey][hourKey].id.push(id)
+
+          // If the number of records that overlap in a single hour is more than 4, we hide the record and set the overflow flag to true
+          // We also keep track of the number of records that overflow
+          if (overlaps[dateKey][hourKey].id.length > 4) {
+            overlaps[dateKey][hourKey].overflow = true
+            style.display = 'none'
+            overlaps[dateKey][hourKey].overflowCount += 1
+          }
+
+          // TODO: dayIndex is not calculated perfectly
+          // Should revisit this part in next iteration
+          let dayIndex = dayjs(dateKey).day() - 1
+          if (dayIndex === -1) {
+            dayIndex = 6
+          }
+
+          startDate = startDate.add(1, 'minute')
         }
 
-        // If the number of records that overlap in a single hour is more than 4, we hide the record and set the overflow flag to true
-        // We also keep track of the number of records that overflow
-        if (overlaps[dateKey][hourKey].id.length > 4) {
-          overlaps[dateKey][hourKey].overflow = true
-          style.display = 'none'
-          overlaps[dateKey][hourKey].overflowCount += 1
-        }
+        const dayIndex = ogStartDate.day() - 1
 
-        // TODO: dayIndex is not calculated perfectly
-        // Should revisit this part in next iteration
-        let dayIndex = dayjs(dateKey).day() - 1
-        if (dayIndex === -1) {
-          dayIndex = 6
-        }
+        const hourKey = ogStartDate.format('HH:mm')
 
         // We calculate the index of the hour in the day and set the top and height of the record
         const hourIndex = Math.min(
@@ -188,10 +198,14 @@ const recordsAcrossAllRange = computed<{
           23,
         )
 
+        const minutes = ogStartDate.minute() + ogStartDate.hour() * 60
+
+        const topPx = (minutes * perHeight) / 60
+
         style = {
           ...style,
-          top: `${hourIndex * perHeight - hourIndex - hourIndex * 0.15}px`,
-          height: `${perHeight - 2}px`,
+          top: `${topPx - hourIndex - hourIndex * 0.15}px`,
+          height: `${perHeight - 4}px`,
         }
 
         recordsToDisplay.push({
@@ -514,7 +528,9 @@ const calculateNewRow = (
   const day = Math.max(0, Math.min(6, Math.floor(percentX * 7)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
-  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
+  const minutes = Math.floor(((percentY * 22 - hour) * 60) / 15) * 15
+
+  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate) return { newRow: null, updatedProperty: [] }
 
   let endDate
@@ -678,6 +694,36 @@ const viewMore = (hour: dayjs.Dayjs) => {
   selectedTime.value = hour
   showSideMenu.value = true
 }
+
+const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
+  let startOfHour = hour.startOf('hour')
+  const endOfHour = hour.endOf('hour')
+
+  const ids: Array<string> = []
+
+  let isOverflow = false
+  let overflowCount = 0
+
+  while (startOfHour.isBefore(endOfHour, 'minute')) {
+    const dateKey = startOfHour.format('YYYY-MM-DD')
+    const hourKey = startOfHour.format('HH:mm')
+    if (recordsAcrossAllRange.value?.count?.[dateKey]?.[hourKey]?.overflow) {
+      isOverflow = true
+
+      recordsAcrossAllRange.value?.count?.[dateKey]?.[hourKey]?.id.forEach((id) => {
+        if (!ids.includes(id)) {
+          ids.push(id)
+          overflowCount += 1
+        }
+      })
+    }
+    startOfHour = startOfHour.add(1, 'minute')
+  }
+
+  overflowCount = overflowCount > 4 ? overflowCount - 4 : 0
+
+  return { isOverflow, overflowCount }
+}
 </script>
 
 <template>
@@ -726,7 +772,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
           "
         >
           <NcButton
-            v-if="recordsAcrossAllRange?.count?.[hour.format('YYYY-MM-DD')]?.[hour.format('HH:mm')]?.overflow"
+            v-if="isOverflowAcrossHourRange(hour).isOverflow"
             class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
             size="xxsmall"
             type="secondary"
@@ -734,7 +780,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
           >
             <span class="text-xs">
               +
-              {{ recordsAcrossAllRange?.count[hour.format('YYYY-MM-DD')][hour.format('HH:mm')]?.overflowCount }}
+              {{ isOverflowAcrossHourRange(hour).overflowCount }}
               more
             </span>
           </NcButton>

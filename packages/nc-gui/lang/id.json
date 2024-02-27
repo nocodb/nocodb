@@ -212,7 +212,7 @@
     "page": "Halaman",
     "pages": "Halaman",
     "record": "Catatan",
-    "records": "records",
+    "records": "Catatan",
     "webhook": "WebHook.",
     "webhooks": "WebHooks.",
     "view": "Melihat",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Jenis file yang diterima adalah .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Kunci parameter tidak boleh kosong",
       "duplicateParameterKeysAreNotAllowed": "Kunci parameter duplikat tidak diperbolehkan",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} tidak boleh kosong.",
       "projectNotAccessible": "Proyek tidak dapat diakses",
       "copyToClipboardError": "Gagal menyalin ke papan klip",
       "pasteFromClipboardError": "Failed to paste from clipboard",

@@ -647,31 +647,6 @@ const onFocus = () => {
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
 }
-
-.nc-field-layout-list {
-  @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
-
-  :deep(.ant-checkbox-wrapper) {
-    @apply !m-0 !h-9 !mr-0 !flex !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
-
-    &:hover {
-      .ant-checkbox-checked:after {
-        @apply !rounded;
-      }
-    }
-    .ant-checkbox {
-      @apply !top-0;
-
-      & + span {
-        @apply !flex !pl-4 max-w-[calc(100%_-_16px)];
-      }
-      .ant-checkbox-checked:after,
-      .ant-checkbox-inner {
-        @apply !rounded;
-      }
-    }
-  }
-}
 </style>
 
 <style lang="scss">

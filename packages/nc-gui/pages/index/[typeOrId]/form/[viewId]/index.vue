@@ -66,8 +66,16 @@ p {
 }
 
 .nc-form-view {
+  .nc-data-cell {
+    @apply !border-none rounded-none;
+
+    &:focus-within {
+      @apply !border-none;
+    }
+  }
+
   .nc-cell {
-    @apply bg-white dark:bg-slate-500;
+    @apply bg-white dark:bg-slate-500 appearance-none;
 
     &.nc-cell-checkbox {
       @apply color-transition !border-0;
@@ -89,7 +97,18 @@ p {
       @apply bg-white dark:bg-slate-500;
 
       &.nc-input {
-        @apply w-full rounded p-2 min-h-[40px] flex items-center;
+        @apply w-full;
+
+        &:not(.layout-list) {
+          @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+
+          & > div {
+            @apply !bg-transparent;
+          }
+        }
+        &.layout-list {
+          @apply h-auto !pl-0 !py-1 !bg-transparent !dark:bg-none;
+        }
 
         .duration-cell-wrapper {
           @apply w-full;
@@ -105,10 +124,21 @@ p {
 
         input,
         textarea,
-        &.nc-virtual-cell,
-        > div {
+        &.nc-virtual-cell {
           @apply bg-white dark:(bg-slate-500 text-white);
 
+          .ant-btn {
+            @apply dark:(bg-slate-300);
+          }
+
+          .chip {
+            @apply dark:(bg-slate-700 text-white);
+          }
+        }
+        &:not(.layout-list) > div {
+          @apply bg-white dark:(bg-slate-500 text-white);
+        }
+        &.layout-list > div {
           .ant-btn {
             @apply dark:(bg-slate-300);
           }
@@ -132,7 +162,7 @@ p {
           }
         }
         &:not(.nc-cell-longtext) {
-          @apply px-2 py-2;
+          @apply p-2;
         }
 
         textarea {

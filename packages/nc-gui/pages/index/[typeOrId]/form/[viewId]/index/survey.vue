@@ -292,6 +292,7 @@ onMounted(() => {
                 v-else
                 v-model="formState[field.title]"
                 class="nc-input h-auto"
+                :class="parseProp(field?.meta)?.isList ? 'layout-list' : ''"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
                 edit-enabled
@@ -479,33 +480,6 @@ onMounted(() => {
 
   .nc-form-column-label__checkbox {
     @apply flex items-center justify-center gap-2 text-left;
-  }
-
-  .nc-input {
-    @apply appearance-none w-full !bg-white !rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
-    &.nc-cell-rating,
-    &.nc-cell-geodata {
-      @apply !py-1;
-    }
-
-    :deep(input) {
-      @apply !px-1;
-    }
-    &.nc-cell-longtext {
-      @apply p-0 h-auto overflow-hidden;
-    }
-    &:not(.nc-cell-longtext) {
-      @apply px-2 py-2;
-      :deep(textarea) {
-        @apply !p-2;
-      }
-    }
-
-    &.nc-cell-checkbox {
-      > * {
-        @apply justify-center flex items-center;
-      }
-    }
   }
 
   .nc-form-data-cell.nc-data-cell {

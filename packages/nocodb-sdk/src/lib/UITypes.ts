@@ -202,4 +202,11 @@ export const getEquivalentUIType = ({
   }
 };
 
+export const isSelectTypeCol = (
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) => {
+  return [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User].includes(
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+};
 export default UITypes;

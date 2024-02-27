@@ -59,6 +59,9 @@ const getCheckBoxValue = (modelValue: boolean | string | number | '0' | '1') => 
 }
 
 const getMultiSelectValue = (modelValue: any, col: ColumnType): string => {
+  if (!modelValue) {
+    return ''
+  }
   return modelValue
     ? Array.isArray(modelValue)
       ? modelValue.join(', ')
@@ -264,7 +267,7 @@ const getAttachmentValue = (modelValue: string | null | number | Array<any>) => 
 
 const parseValue = (value: any, col: ColumnType): string => {
   if (!col) {
-    return undefined
+    return ''
   }
   if (isGeoData(col)) {
     const [latitude, longitude] = ((value as string) || '').split(';')

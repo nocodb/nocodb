@@ -2105,7 +2105,8 @@ class BaseModelSqlv2 {
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(
       Math.min(
-        +(args.limit || args.l) || BaseModelSqlv2.config.limitDefault,
+        Math.max(+(args.limit || args.l), 0) ||
+          BaseModelSqlv2.config.limitDefault,
         BaseModelSqlv2.config.limitMax,
       ),
       BaseModelSqlv2.config.limitMin,
@@ -6371,7 +6372,8 @@ export function getListArgs(
   obj.conditionGraph = args.conditionGraph || {};
   obj.limit = Math.max(
     Math.min(
-      +(args?.limit || args?.l) || BaseModelSqlv2.config.limitDefault,
+      Math.max(+(args?.limit || args?.l), 0) ||
+        BaseModelSqlv2.config.limitDefault,
       BaseModelSqlv2.config.limitMax,
     ),
     BaseModelSqlv2.config.limitMin,

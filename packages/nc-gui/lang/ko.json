@@ -192,7 +192,10 @@
     "enter": "Enter",
     "seconds": "초",
     "paste": "Paste",
-    "restore": "Restore"
+    "restore": "Restore",
+    "replace": "Replace",
+    "banner": "Banner",
+    "logo": "Logo"
   },
   "objects": {
     "day": "Day",
@@ -421,7 +424,8 @@
       "restrict": "제한",
       "setNull": "null 설정",
       "setDefault": "기본값 설정"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,9 +687,15 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -907,7 +917,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "모바일 모드 전환",
-    "startCommenting": "댓글 달기"
+    "startCommenting": "댓글 달기",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "데이터 소스 제한에 도달했습니다.",
@@ -1166,14 +1179,14 @@
       "afterEnablePwd": "엑세스 비밀번호 제한",
       "privateLink": "비공개 링크로 현재 뷰 공유",
       "privateLinkAdditionalInfo": "비공개 링크가 있는 사용자는 현재 보기에서 표시되는 셀만 볼 수 있습니다.",
-      "afterFormSubmitted": "양식이 제출 된 후",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "API 옵션",
       "submitAnotherForm": "다른 양식 제출",
       "showBlankForm": "5 초 후에 빈 양식을 보여줍니다",
       "emailForm": "이메일로 공유",
       "showSysFields": "시스템 필드 표시",
       "filterAutoApply": "자동 적용",
-      "showMessage": "아래 메시지 표시",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "현재 뷰가 공유되지 않습니다!",
       "showAllViews": "테이블의 공유된 모든 뷰 표시",
       "collabView": "편집 권한 이상의 권한을 보유한 공동 작업자는 뷰 구성을 변경할 수 있습니다.",
@@ -1283,9 +1296,14 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1376,7 +1394,8 @@
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다.",

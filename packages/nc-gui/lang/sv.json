@@ -192,7 +192,10 @@
     "enter": "Enter",
     "seconds": "Seconds",
     "paste": "Paste",
-    "restore": "Restore"
+    "restore": "Restore",
+    "replace": "Replace",
+    "banner": "Banner",
+    "logo": "Logo"
   },
   "objects": {
     "day": "Day",
@@ -421,7 +424,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,9 +687,15 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -907,7 +917,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1179,14 @@
       "afterEnablePwd": "Åtkomst är lösenordsbegränsad",
       "privateLink": "Denna uppfattning delas via en privat länk",
       "privateLinkAdditionalInfo": "Människor med privat länk kan bara se celler synliga i den här vyn",
-      "afterFormSubmitted": "Efter formuläret skickas in",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Åtkomstprojekt via",
       "submitAnotherForm": "Visa \"Skicka en annan formulär\" -knapp",
       "showBlankForm": "Visa en tom form efter 5 sekunder",
       "emailForm": "E-posta mig på",
       "showSysFields": "Visa systemfält",
       "filterAutoApply": "Auto ansöker",
-      "showMessage": "Visa det här meddelandet",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Aktuell vy är inte delad!",
       "showAllViews": "Visa alla delade utsikt över denna tabell",
       "collabView": "Samarbetare med redigeringsbehörigheter eller högre kan ändra visningskonfigurationen.",
@@ -1283,9 +1296,14 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1376,7 +1394,8 @@
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",

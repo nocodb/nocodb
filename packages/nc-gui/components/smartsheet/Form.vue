@@ -157,6 +157,8 @@ const focusLabel: VNodeRef = (el) => {
 
 const searchQuery = ref('')
 
+const selectTypeFields = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
+
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
@@ -893,13 +895,13 @@ useEventListener(
                       :class="[
                         `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                         {
-                          'rounded-2xl overflow-hidden border-2 cursor-pointer my-1': isEditable,
+                          'rounded-2xl overflow-hidden border-2 my-1': isEditable,
                         },
                         {
                           'p-4 lg:p-6 border-transparent my-0': !isEditable,
                         },
                         {
-                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 ':
+                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 cursor-pointer':
                             activeRow !== element.title && isEditable,
                         },
 
@@ -1069,7 +1071,10 @@ useEventListener(
                                 v-else
                                 v-model="formState[element.title]"
                                 class="nc-input truncate"
-                                :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                :class="[
+                                  `nc-form-input-${element.title.replaceAll(' ', '')}`,
+                                  { 'layout-list': element.meta.isList },
+                                ]"
                                 :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                 :column="element"
                                 :edit-enabled="true"
@@ -1080,17 +1085,40 @@ useEventListener(
                       </div>
 
                       <!-- Field Settings  -->
-                      <!-- eslint-disable vue/no-constant-condition -->
                       <div
-                        v-if="activeRow === element.title && false"
-                        class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6"
+                        v-if="activeRow === element.title"
+                        class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
                       >
-                        <!-- Todo: Show on conditions, options limit,... -->
+                        <!-- Layout  -->
+                        <div v-if="selectTypeFields.includes(element.uidt)">
+                          <div>Layout</div>
+
+                          <a-radio-group
+                            v-model:value="element.meta.isList"
+                            class="nc-form-field-layout !mt-2"
+                            @change="updateColMeta(element)"
+                          >
+                            <a-radio :value="false">Dropdown</a-radio>
+                            <a-radio :value="true">List</a-radio>
+                          </a-radio-group>
+                        </div>
+                        <!-- Todo: Show on conditions,... -->
                         <div class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
                           <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" />
                           <div>
                             <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
                             <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+                          </div>
+                        </div>
+                        <!-- Limit options -->
+                        <div
+                          v-if="selectTypeFields.includes(element.uidt)"
+                          class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg"
+                        >
+                          <a-switch v-e="['a:form-view:field:limit-options']" size="small" />
+                          <div>
+                            <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
+                            <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
                           </div>
                         </div>
                       </div>
@@ -1469,7 +1497,13 @@ useEventListener(
 }
 
 .nc-input {
-  @apply appearance-none w-full !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  @apply appearance-none w-full;
+  &:not(.layout-list) {
+    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  }
+  &.layout-list {
+    @apply h-auto !pl-0;
+  }
   &.nc-cell-rating,
   &.nc-cell-geodata {
     @apply !py-1;
@@ -1575,5 +1609,15 @@ useEventListener(
 }
 :deep(.nc-form-input-required + button):focus {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}
+.nc-form-field-layout {
+  @apply !flex !items-center w-full space-x-3;
+
+  :deep(.ant-radio-wrapper) {
+    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center;
+    .ant-radio {
+      @apply !top-0;
+    }
+  }
 }
 </style>

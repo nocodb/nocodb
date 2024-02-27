@@ -192,7 +192,10 @@
     "enter": "回车键",
     "seconds": "秒",
     "paste": "粘贴",
-    "restore": "还原"
+    "restore": "还原",
+    "replace": "Replace",
+    "banner": "Banner",
+    "logo": "Logo"
   },
   "objects": {
     "day": "Day",
@@ -1294,7 +1297,9 @@
       "notAvailableAtTheMoment": "当前不可用。",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
       "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
-      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
       "fetchingCalendarData": "Error fetching calendar data",

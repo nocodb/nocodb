@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
-import { iconMap, useSharedFormStoreOrThrow, useAttachment } from '#imports'
+import { iconMap, useAttachment, useSharedFormStoreOrThrow } from '#imports'
 
 const {
   sharedFormView,
@@ -190,7 +190,10 @@ const onDecode = async (scannedCodeValue: string) => {
                         v-model="formState[field.title]"
                         class="nc-input truncate"
                         :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { 'layout-list': parseProp(field?.meta)?.isList }]"
+                        :class="[
+                          `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                          { 'layout-list': parseProp(field?.meta)?.isList },
+                        ]"
                         :column="field"
                         edit-enabled
                       />

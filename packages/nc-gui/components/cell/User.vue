@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
 import tinycolor from 'tinycolor2'
-import { CheckboxGroup, Checkbox, RadioGroup, Radio } from 'ant-design-vue'
+import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib'
@@ -333,8 +333,8 @@ const filterOption = (input: string, option: any) => {
       >
         <template v-for="op of options" :key="op.id || op.email">
           <component
-            v-if="!op.deleted"
             :is="isMultiple ? Checkbox : Radio"
+            v-if="!op.deleted"
             :key="op.id || op.email"
             :value="op.id"
             :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"

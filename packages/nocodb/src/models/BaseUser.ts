@@ -3,7 +3,7 @@ import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
 import Base from '~/models/Base';
 import {
-  // CacheDelDirection,
+  CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
@@ -245,8 +245,13 @@ export default class BaseUser {
       base_id: baseId,
     });
 
-    // delete cache
-    await NocoCache.del(key);
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o = { ...o, ...updateObj };
+      // set cache
+      await NocoCache.set(key, o);
+    }
 
     // cache and return
     return await this.get(baseId, userId, ncMeta);
@@ -265,8 +270,10 @@ export default class BaseUser {
     );
 
     // delete list cache to refresh list
-    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:${userId}`);
-    await NocoCache.del(`${CacheScope.BASE_USER}:${baseId}:list`);
+    await NocoCache.deepDel(
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
 
     return response;
   }

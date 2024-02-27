@@ -103,13 +103,7 @@ watch(showCropper, () => {
         class="nc-cropper relative"
         :src="imageConfig.src"
         :auto-zoom="true"
-        :stencil-props="
-          cropperConfig?.aspectRatio
-            ? {
-                aspectRatio: cropperConfig.aspectRatio,
-              }
-            : {}
-        "
+        :stencil-props="cropperConfig?.aspectRatio ? { aspectRatio: cropperConfig.aspectRatio } : {}"
       />
       <div v-if="previewImage.src" class="result_preview">
         <img :src="previewImage.src" alt="Preview Image" />

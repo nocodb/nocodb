@@ -100,7 +100,7 @@ const options = computed<(SelectOptionType & { value?: string })[]>(() => {
     const limitOptionsById =
       ((parseProp(column.value.meta)?.limitOptions || []).reduce(
         (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
-          if (f?.order !== undefined && order < f.order) {
+          if (order < (f?.order ?? 0)) {
             order = f.order
           }
           return {
@@ -118,18 +118,18 @@ const options = computed<(SelectOptionType & { value?: string })[]>(() => {
       (parseProp(column.value.meta)?.limitOptions || []).length
     ) {
       return opts
-        ?.filter((o: SelectOptionType) => {
+        .filter((o: SelectOptionType) => {
           if (limitOptionsById[o.id!]?.show !== undefined) {
             return limitOptionsById[o.id!]?.show
           }
           return false
         })
-        ?.map((o) => ({
+        .map((o) => ({
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
         }))
-        ?.sort((a, b) => a.order - b.order)
+        .sort((a, b) => a.order - b.order)
     } else {
       return opts.map((o: SelectOptionType) => ({ ...o, value: o.title }))
     }
@@ -390,7 +390,7 @@ const onFocus = () => {
 <template>
   <div
     class="nc-cell-field nc-multi-select h-full w-full flex items-center"
-    :class="{ 'read-only': readOnly, readOnly, 'max-w-full': isForm }"
+    :class="{ 'read-only': readOnly, 'max-w-full': isForm }"
     @click="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">

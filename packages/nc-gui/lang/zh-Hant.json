@@ -212,7 +212,7 @@
     "page": "頁",
     "pages": "頁",
     "record": "記錄",
-    "records": "記錄",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhook",
     "view": "檢視",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "切換到手機模式",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "存取受密碼限制",
       "privateLink": "此檢視通過私人連結共享",
       "privateLinkAdditionalInfo": "具有私有連結的人只能看到此檢視中可見的儲存格",
-      "afterFormSubmitted": "表格提交後",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "存取專案方式",
       "submitAnotherForm": "顯示“提交另一個表格”按鈕",
       "showBlankForm": "5 秒後顯示空白表格",
       "emailForm": "發電子郵件給我",
       "showSysFields": "顯示系統欄位",
       "filterAutoApply": "自動申請",
-      "showMessage": "顯示此消息",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "當前檢視不共享！",
       "showAllViews": "顯示此表的所有共享視圖",
       "collabView": "擁有編輯權限或更高權限的協作者可以更改檢視配置。",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "受支持的檔案類型包括 .xls、.xlsx、.xlsm、.ods 和 .ots",
       "parameterKeyCannotBeEmpty": "參數鍵不可為空",
       "duplicateParameterKeysAreNotAllowed": "不允許重複的參數鍵",
-      "fieldRequired": "{value} 不能為空",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "複製到剪貼簿失敗",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

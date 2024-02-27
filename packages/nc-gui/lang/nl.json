@@ -212,7 +212,7 @@
     "page": "Pagina",
     "pages": "Pagina's",
     "record": "Record",
-    "records": "records",
+    "records": "Records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Weergave",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "De geaccepteerde bestandstypen zijn .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parametersleutel kan niet leeg zijn",
       "duplicateParameterKeysAreNotAllowed": "Dubbele parametersleutels zijn niet toegestaan",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} kan niet leeg zijn.",
       "projectNotAccessible": "Project niet toegankelijk",
       "copyToClipboardError": "Kopiëren naar klembord mislukt",
       "pasteFromClipboardError": "Failed to paste from clipboard",

@@ -938,16 +938,20 @@ useEventListener(
                               v-model:value="element.label"
                               is-form-field
                               read-only
+                              sync-value-change
                               class="nc-form-help-text text-gray-500 text-sm mt-2"
                               data-testid="nc-form-help-text"
+                              @update:value="updateColMeta(element)"
                             />
                             <LazyCellRichText
                               v-else
                               v-model:value="element.title"
                               is-form-field
                               read-only
+                              sync-value-change
                               class="nc-form-help-text text-gray-500 text-sm mt-2"
                               data-testid="nc-form-help-text"
+                              @update:value="updateColMeta(element)"
                             />
                           </span>
                           <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
@@ -960,8 +964,10 @@ useEventListener(
                           v-model:value="element.description"
                           is-form-field
                           read-only
+                          sync-value-change
                           class="nc-form-help-text text-gray-500 text-sm mt-2"
                           data-testid="nc-form-help-text"
+                          @update:value="updateColMeta(element)"
                         />
                       </div>
 
@@ -1343,6 +1349,7 @@ useEventListener(
                                       v-model:value="field.label"
                                       is-form-field
                                       read-only
+                                      sync-value-change
                                       class="text-xs font-normal text-gray-700"
                                       data-testid="nc-form-help-text"
                                     />

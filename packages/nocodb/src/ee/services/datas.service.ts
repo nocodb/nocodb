@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import type { PathParams } from '~/modules/datas/helpers';
+import type { View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -25,7 +26,7 @@ export class DatasService extends DatasServiceCE {
       ignorePagination?: boolean;
     },
   ) {
-    let { model, view } = param;
+    let { model, view } = param as { view?: View; model?: Model };
 
     if (!model) {
       const modelAndView = await getViewAndModelByAliasOrId(

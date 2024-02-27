@@ -27,7 +27,7 @@ export class DatasService {
       throwErrorIfInvalidParams?: boolean;
     },
   ) {
-    let { model, view } = param;
+    let { model, view } = param as { view?: View; model?: Model };
 
     if (!model) {
       const modelAndView = await getViewAndModelByAliasOrId(

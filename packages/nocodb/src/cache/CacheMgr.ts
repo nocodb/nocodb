@@ -500,6 +500,17 @@ export default abstract class CacheMgr {
     });
   }
 
+  async update(key: string, value: any): Promise<boolean> {
+    let o = await this.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      // update data
+      o = { ...o, ...value };
+      // set cache
+      await this.set(key, o);
+    }
+    return true;
+  }
+
   // wrap value with metadata
   prepareValue(args: {
     value: any;

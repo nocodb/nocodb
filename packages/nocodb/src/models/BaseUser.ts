@@ -237,23 +237,17 @@ export default class BaseUser {
   ) {
     const updateObj = extractProps(baseUser, ['starred', 'hidden', 'order']);
 
-    const key = `${CacheScope.BASE_USER}:${baseId}:${userId}`;
-
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.PROJECT_USERS, updateObj, {
       fk_user_id: userId,
       base_id: baseId,
     });
 
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
+    await NocoCache.update(
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      updateObj,
+    );
 
-    // cache and return
     return await this.get(baseId, userId, ncMeta);
   }
 

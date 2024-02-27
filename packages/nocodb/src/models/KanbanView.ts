@@ -99,10 +99,6 @@ export default class KanbanView implements KanbanType {
     body: Partial<KanbanView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     const updateObj = extractProps(body, [
       'fk_cover_image_col_id',
       'fk_grp_col_id',
@@ -113,13 +109,8 @@ export default class KanbanView implements KanbanType {
       updateObj.meta = JSON.stringify(updateObj.meta ?? {});
     }
 
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.KANBAN_VIEW,
@@ -128,5 +119,9 @@ export default class KanbanView implements KanbanType {
         fk_view_id: kanbanId,
       },
     );
+
+    await NocoCache.update(`${CacheScope.KANBAN_VIEW}:${kanbanId}`, updateObj);
+
+    return res;
   }
 }

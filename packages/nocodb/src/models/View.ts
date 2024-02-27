@@ -858,17 +858,10 @@ export default class View implements ViewType {
       }
     }
 
-    // get existing cache
-    const key = `${cacheScope}:${colId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // set meta
     const res = await ncMeta.metaUpdate(null, null, table, updateObj, colId);
+
+    await NocoCache.update(`${cacheScope}:${colId}`, updateObj);
 
     // on view column update, delete corresponding single query cache
     await View.clearSingleQueryCache(view.fk_model_id, [view]);

@@ -85,21 +85,16 @@ export default class CalendarView implements CalendarType {
     body: Partial<CalendarView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.CALENDAR_VIEW}:${calendarId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
 
     if (updateObj.meta && typeof updateObj.meta === 'object') {
       updateObj.meta = JSON.stringify(updateObj.meta ?? {});
     }
 
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
+    await NocoCache.update(
+      `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
+      updateObj,
+    );
 
     if (body.calendar_range) {
       await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);

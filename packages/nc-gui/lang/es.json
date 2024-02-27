@@ -212,7 +212,7 @@
     "page": "Página",
     "pages": "Páginas",
     "record": "Registro",
-    "records": "records",
+    "records": "Registros",
     "webhook": "Gancho web",
     "webhooks": "Webhooks",
     "view": "Vista",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Los tipos de archivo aceptados son .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La clave del parámetro no puede estar vacía",
       "duplicateParameterKeysAreNotAllowed": "No se permiten claves de parámetros duplicadas",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} no puede estar vacía.",
       "projectNotAccessible": "Proyecto no accesible",
       "copyToClipboardError": "Fallo al copiar al portapapeles",
       "pasteFromClipboardError": "Failed to paste from clipboard",

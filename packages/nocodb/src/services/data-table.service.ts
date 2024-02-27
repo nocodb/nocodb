@@ -21,8 +21,12 @@ export class DataTableService {
     viewId?: string;
     ignorePagination?: boolean;
   }) {
-    const { model, view } = await this.getModelAndView(param);
     const { modelId, viewId, baseId, ...rest } = param;
+    const { model, view } = await this.getModelAndView({
+      modelId,
+      viewId,
+      baseId,
+    });
     return await this.datasService.dataList({ ...rest, model, view });
   }
 

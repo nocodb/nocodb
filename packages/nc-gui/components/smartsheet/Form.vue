@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import { ProjectRoles, RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  ProjectRoles,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+  getSystemColumns,
+  isLinksOrLTAR,
+  isSelectTypeCol,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
   ActiveViewInj,
@@ -151,9 +159,7 @@ const imageCropperData = ref<{
   cropFor: 'banner',
 })
 
-const focusLabel: VNodeRef = (el) => {
-  return (el as HTMLInputElement)?.focus()
-}
+const focusLabel = ref<HTMLTextAreaElement>()
 
 const searchQuery = ref('')
 
@@ -164,6 +170,7 @@ const { betaFeatureToggleState } = useBetaFeatureToggle()
 const { open, onChange: onChangeFile } = useFileDialog({
   accept: 'image/*',
   multiple: false,
+  reset: true,
 })
 
 const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
@@ -505,7 +512,15 @@ const handleOnUploadImage = (data: Record<string, any> = {}) => {
   updateView()
 }
 
-onClickOutside(draggableRef, () => {
+onClickOutside(draggableRef, (e) => {
+  if (
+    (e.target as HTMLElement)?.closest(
+      '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell',
+    )
+  ) {
+    return
+  }
+
   activeRow.value = ''
   isTabPressed.value = false
 })
@@ -558,6 +573,12 @@ watch(activeRow, (newValue) => {
     document
       .querySelector(`.nc-form-field-item-${newValue?.replaceAll(' ', '')}`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+})
+
+watch([focusLabel, activeRow], () => {
+  if (activeRow && focusLabel.value) {
+    focusLabel.value?.focus()
   }
 })
 
@@ -674,9 +695,9 @@ useEventListener(
               @submit="handleOnUploadImage"
             ></GeneralImageCropper>
             <!-- cover image -->
-            <div class="relative max-w-[max(33%,688px)] mx-auto">
+            <div class="group relative max-w-[max(33%,688px)] mx-auto">
               <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
-              <div class="absolute bottom-0 right-0">
+              <div class="absolute bottom-0 right-0 hidden group-hover:block">
                 <div class="flex items-center space-x-1 m-2">
                   <NcButton
                     type="secondary"
@@ -795,6 +816,9 @@ useEventListener(
                         'hover:bg-gray-50': activeRow !== 'nc-form-heading' && isEditable,
                       },
                       {
+                        'bg-gray-50': activeRow === 'nc-form-heading' && isEditable,
+                      },
+                      {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                       },
                     ]"
@@ -840,6 +864,9 @@ useEventListener(
                       },
                       {
                         'hover:bg-gray-50': activeRow !== 'nc-form-sub-heading' && isEditable,
+                      },
+                      {
+                        'bg-gray-50': activeRow === 'nc-form-sub-heading' && isEditable,
                       },
                       {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
@@ -893,13 +920,13 @@ useEventListener(
                       :class="[
                         `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                         {
-                          'rounded-2xl overflow-hidden border-2 cursor-pointer my-1': isEditable,
+                          'rounded-2xl overflow-hidden border-2 my-1': isEditable,
                         },
                         {
                           'p-4 lg:p-6 border-transparent my-0': !isEditable,
                         },
                         {
-                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 ':
+                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 cursor-pointer':
                             activeRow !== element.title && isEditable,
                         },
 
@@ -982,7 +1009,7 @@ useEventListener(
                         <template v-if="activeRow === element.title">
                           <a-form-item class="my-0 !mb-2">
                             <a-textarea
-                              :ref="focusLabel"
+                              ref="focusLabel"
                               v-model:value="element.label"
                               :rows="1"
                               auto-size
@@ -1069,7 +1096,10 @@ useEventListener(
                                 v-else
                                 v-model="formState[element.title]"
                                 class="nc-input truncate"
-                                :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                :class="[
+                                  `nc-form-input-${element.title.replaceAll(' ', '')}`,
+                                  { 'layout-list': element.meta.isList },
+                                ]"
                                 :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                 :column="element"
                                 :edit-enabled="true"
@@ -1080,17 +1110,53 @@ useEventListener(
                       </div>
 
                       <!-- Field Settings  -->
-                      <!-- eslint-disable vue/no-constant-condition -->
                       <div
-                        v-if="activeRow === element.title && false"
-                        class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6"
+                        v-if="activeRow === element.title"
+                        class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
                       >
-                        <!-- Todo: Show on conditions, options limit,... -->
-                        <div class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
+                        <!-- Layout  -->
+                        <div v-if="isSelectTypeCol(element.uidt)">
+                          <div>Layout</div>
+
+                          <a-radio-group
+                            v-model:value="element.meta.isList"
+                            class="nc-form-field-layout !mt-2"
+                            @change="updateColMeta(element)"
+                          >
+                            <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
+                            <a-radio :value="true">{{ $t('general.list') }}</a-radio>
+                          </a-radio-group>
+                        </div>
+                        <!-- Todo: Show on conditions,... -->
+                        <!-- eslint-disable vue/no-constant-condition -->
+                        <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
                           <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" />
                           <div>
                             <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
                             <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+                          </div>
+                        </div>
+
+                        <!-- Limit options -->
+                        <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div class="flex items-center gap-3">
+                            <a-switch
+                              v-model:checked="element.meta.isLimitOption"
+                              v-e="['a:form-view:field:limit-options']"
+                              size="small"
+                              @change="updateColMeta(element)"
+                            />
+                            <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
+                          </div>
+                          <div class="pl-10 mt-2 flex-1 max-w-[calc(100%_-_40px)]">
+                            <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
+                            <div v-if="element.meta.isLimitOption" class="mt-5 max-w-[80%]">
+                              <LazySmartsheetFormLimitOptions
+                                v-model:model-value="element.meta.limitOptions"
+                                :column="element"
+                                @update:model-value="updateColMeta(element)"
+                              ></LazySmartsheetFormLimitOptions>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1145,7 +1211,7 @@ useEventListener(
           </div>
         </div>
         <div class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200">
-          <Splitpanes horizontal class="w-full nc-form-right-splitpane">
+          <Splitpanes v-if="formViewData" horizontal class="w-full nc-form-right-splitpane">
             <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <div class="flex gap-3">
@@ -1298,12 +1364,7 @@ useEventListener(
                 </template>
               </div>
             </Pane>
-            <Pane
-              v-if="formViewData"
-              min-size="20"
-              size="50"
-              class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar"
-            >
+            <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar">
               <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
                 <!-- Appearance Settings -->
                 <div class="text-base font-bold text-gray-900">{{ $t('labels.appearanceSettings') }}</div>
@@ -1474,7 +1535,13 @@ useEventListener(
 }
 
 .nc-input {
-  @apply appearance-none w-full !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  @apply appearance-none w-full;
+  &:not(.layout-list) {
+    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  }
+  &.layout-list {
+    @apply h-auto !pl-0 !py-1;
+  }
   &.nc-cell-rating,
   &.nc-cell-geodata {
     @apply !py-1;
@@ -1523,6 +1590,12 @@ useEventListener(
   :deep(.ant-form-item-explain-error) {
     @apply mt-2;
   }
+}
+:deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
+:deep(.ant-form-item-has-success .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
 }
 
 :deep(.nc-cell-attachment) {
@@ -1580,5 +1653,15 @@ useEventListener(
 }
 :deep(.nc-form-input-required + button):focus {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}
+.nc-form-field-layout {
+  @apply !flex !items-center w-full space-x-3;
+
+  :deep(.ant-radio-wrapper) {
+    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center;
+    .ant-radio {
+      @apply !top-0;
+    }
+  }
 }
 </style>

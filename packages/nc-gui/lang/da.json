@@ -212,7 +212,7 @@
     "page": "Side",
     "pages": "sider",
     "record": "Optage",
-    "records": "records",
+    "records": "Optegnelser.",
     "webhook": "WebHook.",
     "webhooks": "Webhooks.",
     "view": "Visning",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "De accepterede filtyper er .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameternøglen kan ikke være tom",
       "duplicateParameterKeysAreNotAllowed": "Det er ikke tilladt at duplikere parameternøgler",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} kan ikke være tom.",
       "projectNotAccessible": "Projektet er ikke tilgængeligt",
       "copyToClipboardError": "Kopiering til udklipsholderen mislykkedes",
       "pasteFromClipboardError": "Failed to paste from clipboard",

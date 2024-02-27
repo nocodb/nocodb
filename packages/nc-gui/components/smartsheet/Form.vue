@@ -1145,7 +1145,7 @@ useEventListener(
           </div>
         </div>
         <div class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200">
-          <Splitpanes horizontal class="w-full nc-form-right-splitpane">
+          <Splitpanes v-if="formViewData" horizontal class="w-full nc-form-right-splitpane">
             <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <div class="flex gap-3">
@@ -1298,12 +1298,7 @@ useEventListener(
                 </template>
               </div>
             </Pane>
-            <Pane
-              v-if="formViewData"
-              min-size="20"
-              size="50"
-              class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar"
-            >
+            <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar">
               <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
                 <!-- Appearance Settings -->
                 <div class="text-base font-bold text-gray-900">{{ $t('labels.appearanceSettings') }}</div>

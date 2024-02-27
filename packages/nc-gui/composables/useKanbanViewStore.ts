@@ -211,7 +211,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
 
-      stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
+      stackMetaObj.value = parseProp(stack_meta) || {}
 
       if (stackMetaObj.value && fk_grp_col_id && stackMetaObj.value[fk_grp_col_id]) {
         // keep the existing order (index of the array) but update the values done outside kanban

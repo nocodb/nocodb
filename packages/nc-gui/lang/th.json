@@ -212,7 +212,7 @@
     "page": "หน้าหนังสือ",
     "pages": "หน้า",
     "record": "บันทึก",
-    "records": "บันทึก",
+    "records": "records",
     "webhook": "webhook",
     "webhooks": "เว็บฮุค",
     "view": "ดู",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "การเข้าถึงคือรหัสผ่านที่ จำกัด",
       "privateLink": "มุมมองนี้ใช้ร่วมกันผ่านลิงค์ส่วนตัว",
       "privateLinkAdditionalInfo": "ผู้ที่มีลิงค์ส่วนตัวสามารถเห็นเซลล์ที่มองเห็นได้ในมุมมองนี้เท่านั้น",
-      "afterFormSubmitted": "หลังจากส่งแบบฟอร์มแล้ว",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "เข้าถึงโครงการผ่านทาง",
       "submitAnotherForm": "แสดงปุ่ม 'ส่งฟอร์มอื่น'",
       "showBlankForm": "แสดงแบบฟอร์มเปล่าหลังจาก 5 วินาที",
       "emailForm": "ส่งอีเมลถึงฉันที่",
       "showSysFields": "แสดงฟิลด์ระบบ",
       "filterAutoApply": "ใช้อัตโนมัติ",
-      "showMessage": "แสดงข้อความนี้",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "มุมมองปัจจุบันไม่ได้แชร์!",
       "showAllViews": "แสดงมุมมองที่แชร์ทั้งหมดของตารางนี้",
       "collabView": "ผู้ทำงานร่วมกันที่มีสิทธิ์แก้ไขหรือสูงกว่าสามารถเปลี่ยนการกำหนดค่ามุมมอง",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Project not accessible",
       "copyToClipboardError": "Failed to copy to clipboard",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

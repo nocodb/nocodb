@@ -1583,6 +1583,12 @@ useEventListener(
     @apply mt-2;
   }
 }
+:deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
+:deep(.ant-form-item-has-success .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
 
 :deep(.nc-cell-attachment) {
   @apply p-0;

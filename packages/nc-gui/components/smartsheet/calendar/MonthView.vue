@@ -497,7 +497,7 @@ const onResizeEnd = () => {
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit') || draggingId.value) return
 
-  selectedDate.value = null
+  // selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -556,7 +556,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
     })
 
     dragRecord.value = record
-    selectedDate.value = null
+    // selectedDate.value = null
 
     isDragging.value = true
     dragElement.value = target

@@ -212,7 +212,7 @@
     "page": "Page",
     "pages": "Pages",
     "record": "Ligne",
-    "records": "Lignes",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Vue",
@@ -421,7 +421,8 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "(Dés-)activer le mode Mobile",
-    "startCommenting": "Commencez à commenter !"
+    "startCommenting": "Commencez à commenter !",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limité à une seule source de données pour le moment",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "L’accès est restreint par un mot de passe",
       "privateLink": "Cette vue est partagée avec un lien privé",
       "privateLinkAdditionalInfo": "Les personnes ayant le lien privé peuvent voir uniquement les cellules visibles de cette vue",
-      "afterFormSubmitted": "Après que le formulaire a été soumis",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Accéder au projet via",
       "submitAnotherForm": "Afficher le bouton \"Soumettre un autre formulaire\"",
       "showBlankForm": "Montrer un formulaire vierge après 5 secondes",
       "emailForm": "Écrivez-moi à",
       "showSysFields": "Afficher les champs système",
       "filterAutoApply": "Appliquer automatiquement",
-      "showMessage": "Montrer ce message ",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "La vue actuelle n'est pas partagée!",
       "showAllViews": "Montrer toutes les vues partagées sur cette table",
       "collabView": "Les collaborateurs avec des autorisations d'édition ou plus peuvent modifier la configuration de la vue.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Les types de fichiers acceptés sont .xls, .xlsx, .xlsm, .ods, .ots.",
       "parameterKeyCannotBeEmpty": "La clé de paramètre ne peut pas être vide",
       "duplicateParameterKeysAreNotAllowed": "Les doublons de clés de paramètres ne sont pas autorisés",
-      "fieldRequired": "{value} ne peut pas être vide.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "Projet non accessible",
       "copyToClipboardError": "Échec de la copie dans le presse-papiers",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",

@@ -212,7 +212,7 @@
     "page": "Strona",
     "pages": "Strony",
     "record": "Rekord",
-    "records": "records",
+    "records": "Rekordy",
     "webhook": "WebHook",
     "webhooks": "WebHooki",
     "view": "Widok",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptowane typy plików to: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Klucz parametru nie może być pusty",
       "duplicateParameterKeysAreNotAllowed": "Zduplikowane klucze parametrów są niedozwolone",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} nie może być puste.",
       "projectNotAccessible": "Projekt niedostępny",
       "copyToClipboardError": "Nie udało się skopiować do schowka",
       "pasteFromClipboardError": "Nie udało się wkleić ze schowka",

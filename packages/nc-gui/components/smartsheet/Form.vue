@@ -1502,7 +1502,7 @@ useEventListener(
     @apply !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
   }
   &.layout-list {
-    @apply h-auto !pl-0;
+    @apply h-auto !pl-0 !py-1;
   }
   &.nc-cell-rating,
   &.nc-cell-geodata {

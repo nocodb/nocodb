@@ -212,7 +212,7 @@
     "page": "페이지",
     "pages": "페이지",
     "record": "레코드",
-    "records": "레코드",
+    "records": "records",
     "webhook": "웹훅",
     "webhooks": "웹훅",
     "view": "뷰",
@@ -421,7 +421,8 @@
       "restrict": "제한",
       "setNull": "null 설정",
       "setDefault": "기본값 설정"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,7 +684,12 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
     "goToToday": "Go to Today",
@@ -907,7 +913,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "모바일 모드 전환",
-    "startCommenting": "댓글 달기"
+    "startCommenting": "댓글 달기",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "데이터 소스 제한에 도달했습니다.",
@@ -1166,14 +1175,14 @@
       "afterEnablePwd": "엑세스 비밀번호 제한",
       "privateLink": "비공개 링크로 현재 뷰 공유",
       "privateLinkAdditionalInfo": "비공개 링크가 있는 사용자는 현재 보기에서 표시되는 셀만 볼 수 있습니다.",
-      "afterFormSubmitted": "양식이 제출 된 후",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "API 옵션",
       "submitAnotherForm": "다른 양식 제출",
       "showBlankForm": "5 초 후에 빈 양식을 보여줍니다",
       "emailForm": "이메일로 공유",
       "showSysFields": "시스템 필드 표시",
       "filterAutoApply": "자동 적용",
-      "showMessage": "아래 메시지 표시",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "현재 뷰가 공유되지 않습니다!",
       "showAllViews": "테이블의 공유된 모든 뷰 표시",
       "collabView": "편집 권한 이상의 권한을 보유한 공동 작업자는 뷰 구성을 변경할 수 있습니다.",
@@ -1283,7 +1292,8 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
       "scopesRequired": "Scopes required",
@@ -1369,14 +1379,15 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "허용되는 파일 형식은 .xls, .xlsx, .xlsm, .ods, .ots입니다",
       "parameterKeyCannotBeEmpty": "매개 변수 키는 비워 둘 수 없습니다.",
       "duplicateParameterKeysAreNotAllowed": "중복 매개 변수 키는 허용되지 않습니다.",
-      "fieldRequired": "{value}은(는) 비워 둘 수 없습니다.",
+      "fieldRequired": "{value} cannot be empty",
       "projectNotAccessible": "프로젝트에 액세스할 수 없습니다.",
       "copyToClipboardError": "클립 보드에 복사할 수 없습니다.",
       "pasteFromClipboardError": "Failed to paste from clipboard",
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다.",

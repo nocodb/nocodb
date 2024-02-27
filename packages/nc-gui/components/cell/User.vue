@@ -377,7 +377,11 @@ const filterOption = (input: string, option: any) => {
           </component>
         </template>
       </component>
-      <div v-if="!isMultiple && vModel.length" class="inline-block px-2 pt-2 cursor-pointer text-xs" @click="vModel = []">
+      <div
+        v-if="!isMultiple && vModel.length"
+        class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
+        @click="vModel = []"
+      >
         {{ $t('labels.clearSelection') }}
       </div>
     </div>

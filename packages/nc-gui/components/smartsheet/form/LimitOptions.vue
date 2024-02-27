@@ -124,7 +124,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
 </script>
 
 <template>
-  <div class="w-full h-full nc-col-option-select-option nc-form-scrollbar">
+  <div class="w-full h-full nc-col-select-option nc-form-scrollbar">
     <div v-if="vModel.length > 12">
       <a-input
         v-model:value="searchQuery"
@@ -152,6 +152,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
       :model-value="vModel"
       item-key="id"
       handle=".nc-child-draggable-icon"
+      ghost-class="nc-form-field-limit-option-ghost"
       class="rounded-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
       @change="onMove($event)"
       @start="drag = true"
@@ -258,7 +259,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
         v-else-if="
           vModel.length &&
           searchQuery &&
-          !vModel?.filter((el) => {
+          !vModel?.filter((element) => {
             return column.uidt === UITypes.User
               ? (element?.display_name?.trim() || element?.email)?.toLowerCase().includes(searchQuery.toLowerCase())
               : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -272,7 +273,7 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .nc-form-scrollbar {
   @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
   &::-webkit-scrollbar-thumb:hover {
@@ -285,5 +286,8 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
 
 :deep(.ant-tag) {
   @apply rounded-tag my-[2px];
+}
+.nc-form-field-limit-option-ghost {
+  @apply bg-gray-50;
 }
 </style>

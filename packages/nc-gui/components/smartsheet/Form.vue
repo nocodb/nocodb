@@ -1139,7 +1139,7 @@ useEventListener(
 
                         <!-- Limit options -->
                         <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
-                          <div class="flex items-start gap-3">
+                          <div class="flex items-center gap-3">
                             <a-switch
                               v-model:checked="element.meta.isLimitOption"
                               v-e="['a:form-view:field:limit-options']"
@@ -1148,7 +1148,7 @@ useEventListener(
                             />
                             <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
                           </div>
-                          <div class="pl-8 flex-1 max-w-[calc(100%_-_40px)]">
+                          <div class="pl-10 mt-2 flex-1 max-w-[calc(100%_-_40px)]">
                             <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
                             <div v-if="element.meta.isLimitOption" class="mt-5 max-w-[80%]">
                               <LazySmartsheetFormLimitOptions

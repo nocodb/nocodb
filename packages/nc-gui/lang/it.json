@@ -212,7 +212,7 @@
     "page": "Pagina",
     "pages": "Pagine",
     "record": "Record",
-    "records": "records",
+    "records": "Records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Vista",
@@ -692,6 +692,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -1296,6 +1297,8 @@
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1379,7 +1382,7 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "I tipi di file accettati sono .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "La chiave del parametro non può essere vuota",
       "duplicateParameterKeysAreNotAllowed": "Le chiavi dei parametri duplicate non sono consentite",
-      "fieldRequired": "{value} cannot be empty",
+      "fieldRequired": "{value} non può essere vuoto.",
       "projectNotAccessible": "Progetto non accessibile",
       "copyToClipboardError": "Non è riuscito a copiare negli appunti",
       "pasteFromClipboardError": "Impossibile incollare dagli appunti",

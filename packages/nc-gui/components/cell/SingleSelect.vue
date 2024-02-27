@@ -351,7 +351,11 @@ const onFocus = () => {
           </a-tag></a-radio
         >
       </a-radio-group>
-      <div v-if="vModel" class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800" @click="vModel = ''">
+      <div
+        v-if="vModel"
+        class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
+        @click="vModel = ''"
+      >
         {{ $t('labels.clearSelection') }}
       </div>
     </div>

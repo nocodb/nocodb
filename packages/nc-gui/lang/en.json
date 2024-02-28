@@ -1306,6 +1306,7 @@
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
       "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "thisFeatureIsOnlyAvailableInEnterpriseEdition": "This feature is only available in enterprise edition",
       "yourCurrentRoleIs": "Your current role is",
       "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",
       "preventHideAllOptions": "You cannot hide all options if field is required"

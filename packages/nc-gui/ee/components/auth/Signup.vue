@@ -118,7 +118,7 @@ const subDomain = location.host?.split('.')[0]
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <NuxtLayout>
       <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
         <div

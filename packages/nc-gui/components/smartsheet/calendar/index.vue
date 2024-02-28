@@ -242,7 +242,9 @@ const headerText = computed(() => {
             type="secondary"
             @click="goToToday"
           >
-            {{ $t('activity.goToToday') }}
+            <span class="text-gray-700">
+              {{ $t('activity.goToToday') }}
+            </span>
           </NcButton>
           <span class="opacity-0" data-testid="nc-active-calendar-view">
             {{ activeCalendarView }}

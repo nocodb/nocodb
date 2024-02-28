@@ -160,6 +160,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
 
     const saveOrUpdate = async (field: any, index: number, disableDataReload: boolean = false) => {
+      console.log('saveOrUpdate', field, index, disableDataReload)
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {

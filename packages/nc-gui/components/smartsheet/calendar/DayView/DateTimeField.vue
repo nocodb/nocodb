@@ -709,7 +709,6 @@ const viewMore = (hour: dayjs.Dayjs) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
-              :view="activeCalendarView"
               :hover="hoverRecord === record.rowMeta.id"
               :position="record.rowMeta!.position"
               :record="record"

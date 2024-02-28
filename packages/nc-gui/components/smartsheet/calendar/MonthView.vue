@@ -793,7 +793,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
           >
             <template v-if="!isRowEmpty(record, displayField)">
               <LazySmartsheetCalendarCell
-                v-if="!isRowEmpty(record, displayField!)"
                 v-model="record.row[displayField!.title!]"
                 :bold="getFieldStyle(displayField).bold"
                 :column="displayField"

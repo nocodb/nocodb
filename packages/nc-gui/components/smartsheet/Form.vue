@@ -1188,6 +1188,7 @@ useEventListener(
                               <LazySmartsheetFormLimitOptions
                                 v-model:model-value="element.meta.limitOptions"
                                 :column="element"
+                                :is-required="isRequired(element, element.required)"
                                 @update:model-value="updateColMeta(element)"
                               ></LazySmartsheetFormLimitOptions>
                             </div>

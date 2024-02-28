@@ -180,6 +180,16 @@ if (props.syncValueChange) {
   })
 }
 
+if (props.isFormField) {
+  watch([props, editor], () => {
+    if (props.readOnly) {
+      editor.value?.setEditable(false)
+    } else {
+      editor.value?.setEditable(true)
+    }
+  })
+}
+
 watch(editorDom, () => {
   if (!editorDom.value) return
 

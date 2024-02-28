@@ -629,7 +629,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-500"
+        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-100 font-semibold text-gray-500"
       >
         {{ day }}
       </div>
@@ -653,7 +653,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
-          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
         >

@@ -51,7 +51,7 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500)': resize,
       '!border-brand-500 border-1': selected || hover,
     }"
-    class="relative flex items-center h-full ml-0.25 border-1 border-gray-50"
+    class="relative flex items-center h-full ml-0.25 border-1 border-transparent"
   >
     <div class="h-full py-1">
       <div

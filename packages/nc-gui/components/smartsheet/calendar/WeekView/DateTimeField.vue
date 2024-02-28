@@ -189,7 +189,11 @@ const recordsAcrossAllRange = computed<{
           startDate = startDate.add(1, 'minute')
         }
 
-        const dayIndex = ogStartDate.day() - 1
+        let dayIndex = ogStartDate.day() - 1
+
+        if (dayIndex === -1) {
+          dayIndex = 6
+        }
 
         const hourKey = ogStartDate.format('HH:mm')
 
@@ -208,7 +212,7 @@ const recordsAcrossAllRange = computed<{
 
         style = {
           ...style,
-          top: `${topPx - hourIndex - hourIndex * 0.15}px`,
+          top: `${topPx - hourIndex - hourIndex * 0.15 + 0.7}px`,
           height: `${perHeight - 4}px`,
         }
 
@@ -371,14 +375,14 @@ const recordsAcrossAllRange = computed<{
           overlapIndex = Math.max(overlapIndex, overlaps[dateKey][hours].id.indexOf(record.rowMeta.id!))
         }
       }
-      const spacing = 1
+      const spacing = 0.1
       const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps / 7
       const leftPerRecord = widthPerRecord * overlapIndex
 
       record.rowMeta.style = {
         ...record.rowMeta.style,
-        left: `calc(${dayIndex * perWidth}px + ${leftPerRecord}%)`,
-        width: `calc(${widthPerRecord}%)`,
+        left: `calc(${dayIndex * perWidth}px + ${leftPerRecord}% )`,
+        width: `calc(${widthPerRecord - 0.1}%)`,
       }
       return record
     })
@@ -744,7 +748,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
         :class="{
           'text-brand-500': date[0].isSame(dayjs(), 'date'),
         }"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-0 border-l-1 border-r-0 bg-gray-50"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-100 last:border-r-0 border-b-0 border-l-1 border-r-0 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
@@ -766,7 +770,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
           :class="{
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
           }"
-          class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-200 border-t-gray-200"
+          class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
           data-testid="nc-calendar-week-hour"
           @click="
             () => {

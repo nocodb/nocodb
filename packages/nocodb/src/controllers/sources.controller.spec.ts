@@ -3,7 +3,7 @@ import { BasesService } from '../services/bases.service';
 import { BasesController } from './bases.controller';
 import type { TestingModule } from '@nestjs/testing';
 
-describe('ProjectsController', () => {
+describe('BasesController', () => {
   let controller: BasesController;
 
   beforeEach(async () => {

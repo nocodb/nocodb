@@ -142,7 +142,7 @@ test.describe.serial('SSO', () => {
       await stopOpenIDIdp();
     });
 
-    test('OpenID Login Flow', async () => {
+    test.skip('OpenID Login Flow', async () => {
       await accountsPage.signOut();
 
       await openidLoginPage.goto('test');

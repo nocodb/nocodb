@@ -103,8 +103,8 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
         :disabled="editor.isActive('codeBlock')"
-        @click="editor!.chain().focus().toggleBold().run()"
         :tabindex="isFormField ? -1 : 0"
+        @click="editor!.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
       </NcButton>
@@ -124,8 +124,8 @@ const onToggleLink = () => {
         type="text"
         :disabled="editor.isActive('codeBlock')"
         :class="{ 'is-active': editor.isActive('italic') }"
-        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
         :tabindex="isFormField ? -1 : 0"
+        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
       </NcButton>
@@ -145,8 +145,8 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('underline') }"
         :disabled="editor.isActive('codeBlock')"
-        @click="editor!.chain().focus().toggleUnderline().run()"
         :tabindex="isFormField ? -1 : 0"
+        @click="editor!.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
       </NcButton>
@@ -165,8 +165,8 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
         :disabled="editor.isActive('codeBlock')"
-        @click="editor!.chain().focus().toggleStrike().run()"
         :tabindex="isFormField ? -1 : 0"
+        @click="editor!.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
       </NcButton>
@@ -314,8 +314,8 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('link') }"
         :disabled="editor.isActive('codeBlock')"
-        @click="onToggleLink"
         :tabindex="isFormField ? -1 : 0"
+        @click="onToggleLink"
       >
         <GeneralIcon v-if="isFormField" icon="link2"></GeneralIcon>
         <div v-else class="flex flex-row items-center px-0.5">

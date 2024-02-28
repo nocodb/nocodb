@@ -394,7 +394,7 @@ onMounted(() => {
                     {{ $t('msg.info.thankYou') }}
                   </span>
                 </template>
-                <template #description v-if="!sharedFormView?.success_msg?.trim()">
+                <template v-if="!sharedFormView?.success_msg?.trim()" #description>
                   {{ $t('msg.info.submittedFormData') }}
                 </template>
               </a-alert>

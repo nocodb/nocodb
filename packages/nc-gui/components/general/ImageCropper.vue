@@ -12,7 +12,11 @@ interface Props {
     name: string
   }
   cropperConfig: {
-    aspectRatio?: number
+    stencilProps?: {
+      aspectRatio?: number
+    }
+    minHeight?: number
+    minWidth?: number
   }
   uploadConfig?: {
     path?: string
@@ -20,7 +24,6 @@ interface Props {
   showCropper: boolean
 }
 const { imageConfig, cropperConfig, uploadConfig, ...props } = defineProps<Props>()
-
 const emit = defineEmits(['update:showCropper', 'submit'])
 
 const showCropper = useVModel(props, 'showCropper', emit)
@@ -103,7 +106,9 @@ watch(showCropper, () => {
         class="nc-cropper relative"
         :src="imageConfig.src"
         :auto-zoom="true"
-        :stencil-props="cropperConfig?.aspectRatio ? { aspectRatio: cropperConfig.aspectRatio } : {}"
+        :stencil-props="cropperConfig?.stencilProps || {}"
+        :min-height="cropperConfig?.minHeight"
+        :min-width="cropperConfig?.minWidth"
       />
       <div v-if="previewImage.src" class="result_preview">
         <img :src="previewImage.src" alt="Preview Image" />

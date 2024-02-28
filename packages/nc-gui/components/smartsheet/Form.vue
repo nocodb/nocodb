@@ -1188,7 +1188,7 @@ useEventListener(
                         <!-- Todo: Show on conditions,... -->
                         <!-- eslint-disable vue/no-constant-condition -->
                         <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
-                          <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" />
+                          <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
                           <div>
                             <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
                             <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
@@ -1202,6 +1202,7 @@ useEventListener(
                               v-model:checked="element.meta.isLimitOption"
                               v-e="['a:form-view:field:limit-options']"
                               size="small"
+                              class="nc-form-switch-focus"
                               @change="updateColMeta(element)"
                             />
                             <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
@@ -1710,6 +1711,9 @@ useEventListener(
 :deep(.nc-form-input-required + button):focus {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
+:deep(.nc-form-switch-focus):focus {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}
 .nc-form-field-layout {
   @apply !flex !items-center w-full space-x-3;
 
@@ -1717,6 +1721,10 @@ useEventListener(
     @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center;
     .ant-radio {
       @apply !top-0;
+
+      &:focus-within .ant-radio-inner {
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+      }
     }
   }
 }

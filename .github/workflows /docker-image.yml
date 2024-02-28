@@ -10,7 +10,7 @@ env:
   AWS_REGION: ap-northeast-1
   VERSION: v1.0.0
   ECR_REPO: dev-nocodb
-  #AWS_ACCOUNT_ID: 590184069778
+  AWS_ACCOUNT_ID: 590184069778
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:

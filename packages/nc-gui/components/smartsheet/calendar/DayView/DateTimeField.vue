@@ -336,7 +336,7 @@ const calculateNewRow = (event: MouseEvent) => {
   // We calculate the hour based on the percentage of the mouse position in the scroll container
   // It can be between 0 and 23 (inclusive)
   const hour = Math.max(Math.floor(percentY * 23), 0)
-  const minutes = Math.max(0, Math.min(59, Math.floor(((percentY * 22 - hour) * 60) / 15) * 15))
+  const minutes = Math.max(0, Math.min(59, Math.floor(((percentY * 22 - hour) * 60) / 15 + 0.5) * 15))
 
   // We calculate the new startDate by adding the hour to the start of the selected date
   const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')

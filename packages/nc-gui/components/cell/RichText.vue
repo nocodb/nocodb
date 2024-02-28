@@ -140,9 +140,10 @@ const editor = useEditor({
   onFocus: () => {
     isFocused.value = true
   },
-  onBlur: () => {
+  onBlur: (e) => {
     if (props.isTabPressed) {
       isFocused.value = false
+      e?.editor?.setEditable(false)
     }
   },
 })
@@ -171,16 +172,6 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
     ;(editor.value!.state as any).history$.prevRanges = null
     ;(editor.value!.state as any).history$.done.eventCount = 0
   }, 100)
-}
-
-if (props.isFormField) {
-  watch([props, editor], () => {
-    if (props.readOnly) {
-      editor.value?.setEditable(false)
-    } else {
-      editor.value?.setEditable(true)
-    }
-  })
 }
 
 if (props.syncValueChange) {

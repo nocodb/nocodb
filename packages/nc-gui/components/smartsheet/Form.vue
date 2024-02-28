@@ -694,18 +694,30 @@ useEventListener(
                 {{ formViewData.heading }}
               </h1>
 
-              <h2 v-if="formViewData.subheading" class="font-medium text-base text-gray-500 mb-4">
-                {{ formViewData.subheading }}
-              </h2>
+              <div v-if="formViewData.subheading?.trim()">
+                <LazyCellRichText
+                  :value="formViewData.subheading"
+                  class="font-medium text-base text-gray-500 !h-auto mb-4 -ml-1"
+                  is-form-field
+                  read-only
+                  sync-value-change
+                />
+              </div>
             </div>
 
             <div class="flex justify-center">
               <div class="w-full lg:w-[95%]">
-                <a-alert type="success" class="!my-4 text-center !rounded-lg">
+                <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                   <template #message>
-                    <div class="text-center">
-                      {{ formViewData.success_msg || $t('msg.successfullySubmittedFormData') }}
-                    </div>
+                    <LazyCellRichText
+                      v-if="formViewData?.success_msg?.trim()"
+                      :value="formViewData?.success_msg"
+                      class="!h-auto -ml-1"
+                      is-form-field
+                      read-only
+                      sync-value-change
+                    />
+                    <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
                   </template>
                 </a-alert>
 
@@ -1629,10 +1641,6 @@ useEventListener(
   }
   &:not(.nc-cell-longtext) {
     @apply px-2 py-2;
-
-    :deep(textarea) {
-      @apply !p-2;
-    }
   }
 
   &.nc-cell-json {
@@ -1640,6 +1648,13 @@ useEventListener(
     & > div {
       @apply w-full;
     }
+  }
+
+  :deep(.ant-picker) {
+    @apply !py-0;
+  }
+  :deep(input.nc-cell-field) {
+    @apply !py-0;
   }
 }
 

@@ -18,7 +18,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18.19.0"
+    "node": ">=18.19.1"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],
@@ -44,8 +44,8 @@
     "dayjs": "^1.11.10"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.20.0",
-    "@typescript-eslint/parser": "^6.20.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "@types/jest": "^29.5.12",
     "cspell": "^4.2.8",
     "eslint": "^8.56.0",

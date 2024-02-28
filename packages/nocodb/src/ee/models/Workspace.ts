@@ -15,7 +15,6 @@ import {
   parseMetaProp,
   prepareForDb,
   prepareForResponse,
-  stringifyMetaProp,
 } from '~/utils/modelUtils';
 import { Base } from '~/models';
 

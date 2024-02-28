@@ -120,13 +120,13 @@ const onDecode = async (scannedCodeValue: string) => {
           </div>
         </div>
 
-        <a-alert v-if="notFound" type="warning" class="my-4 text-left" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full lg:w-[95%]">
               <a-alert
-                class="!my-4 !py-4 text-center !rounded-lg"
+                class="!my-4 !py-4 text-left !rounded-lg"
                 type="success"
                 data-testid="nc-survey-form__success-msg"
                 outlined

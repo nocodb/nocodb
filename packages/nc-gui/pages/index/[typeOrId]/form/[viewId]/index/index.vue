@@ -112,7 +112,7 @@ const onDecode = async (scannedCodeValue: string) => {
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full lg:w-[95%]">
               <a-alert
-                class="!my-4 !py-4 text-center !rounded-lg"
+                class="!my-4 !py-4 text-left !rounded-lg"
                 type="success"
                 data-testid="nc-survey-form__success-msg"
                 outlined

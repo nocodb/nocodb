@@ -605,7 +605,8 @@ useEventListener(
   (e: FocusEvent) => {
     const nextActiveFieldTitle =
       (e?.relatedTarget as HTMLElement)?.getAttribute('data-title') ||
-      (e?.relatedTarget as HTMLElement)?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title')
+      (e?.relatedTarget as HTMLElement)?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title') ||
+      (e?.relatedTarget as HTMLElement)?.closest('.nc-form-focus-element')?.getAttribute('data-title')
 
     if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
       if (isTabPressed.value) {

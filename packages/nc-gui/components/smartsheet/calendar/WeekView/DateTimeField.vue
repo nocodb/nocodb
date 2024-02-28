@@ -140,7 +140,11 @@ const recordsAcrossAllRange = computed<{
         const ogStartDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
         if (!ogStartDate) return
 
-        const endDate = ogStartDate.clone().add(1, 'hour')
+        let endDate = ogStartDate.clone().add(1, 'hour')
+
+        if (endDate.isAfter(scheduleEnd, 'minutes')) {
+          endDate = scheduleEnd
+        }
 
         const id = record.rowMeta.id ?? generateRandomNumber()
 
@@ -518,7 +522,7 @@ const calculateNewRow = (
   const { scrollHeight } = container.value
 
   const percentX = (event.clientX - left - window.scrollX) / width
-  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
+  const percentY = (event.clientY - top + container.value.scrollTop - 36.8) / scrollHeight
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
@@ -528,7 +532,7 @@ const calculateNewRow = (
   const day = Math.max(0, Math.min(6, Math.floor(percentX * 7)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
-  const minutes = Math.max(0, Math.min(59, Math.floor(((percentY * 22 - hour) * 60) / 15 + 0.5) * 15))
+  const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
 
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate) return { newRow: null, updatedProperty: [] }
@@ -755,14 +759,14 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
       </div>
     </div>
     <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
-      <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7" data-testid="nc-calendar-week-day">
+      <div v-for="(date, index) in datesHours" :key="index" class="h-full w-1/7 mt-7.1" data-testid="nc-calendar-week-day">
         <div
           v-for="(hour, hourIndex) in date"
           :key="hourIndex"
           :class="{
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
           }"
-          class="text-center relative first:mt-7.1 h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-200 border-t-gray-200"
+          class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-200 border-t-gray-200"
           data-testid="nc-calendar-week-hour"
           @click="
             () => {

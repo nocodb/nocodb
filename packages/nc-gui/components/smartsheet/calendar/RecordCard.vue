@@ -28,8 +28,8 @@ const emit = defineEmits(['resize-start'])
     :class="{
       'min-h-9': size === 'small',
       'h-full': size === 'auto',
-      'rounded-l-lg ml-1': position === 'leftRounded',
-      'rounded-r-lg mr-1': position === 'rightRounded',
+      'rounded-l-lg': position === 'leftRounded',
+      'rounded-r-lg': position === 'rightRounded',
       'rounded-lg mx-1': position === 'rounded',
       'rounded-none': position === 'none',
       'bg-maroon-50': color === 'maroon',
@@ -53,7 +53,7 @@ const emit = defineEmits(['resize-start'])
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
       }"
-      class="block h-full min-h-5 w-1 rounded"
+      class="w-1 min-h-5 bg-blue-500 rounded-x rounded-y-sm"
     ></div>
 
     <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.7 h-7.1 absolute -left-4 resize">
@@ -70,13 +70,13 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="overflow-hidden flex w-full ml-2 h-8 absolute">
+    <div class="overflow-hidden items-center flex w-full ml-2 h-8">
       <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
       <span
         :class="{
           'pr-7': position === 'leftRounded',
         }"
-        class="text-sm pt-1.5 pr-3 mr-3 break-word space-x-2 whitespace-nowrap gap-2 overflow-hidden text-ellipsis w-full truncate text-gray-800"
+        class="text-sm pr-3 mr-3 break-word space-x-2 whitespace-nowrap gap-2 overflow-hidden text-ellipsis w-full truncate text-gray-800"
       >
         <slot />
       </span>

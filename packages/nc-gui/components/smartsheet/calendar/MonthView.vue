@@ -497,7 +497,7 @@ const onResizeEnd = () => {
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit') || draggingId.value) return
 
-  selectedDate.value = null
+  // selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -508,12 +508,8 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
 const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value)
-
-  console.log('stopDrag')
-  console.log('stopDrag', dragRecord.value, isDragging.value)
   if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
 
-  console.log('stopDrag')
   event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
 
@@ -560,7 +556,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
     })
 
     dragRecord.value = record
-    selectedDate.value = null
+    // selectedDate.value = null
 
     isDragging.value = true
     dragElement.value = target
@@ -633,7 +629,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-500"
+        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-100 font-semibold text-gray-500"
       >
         {{ day }}
       </div>
@@ -657,7 +653,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
             '!text-gray-400': !isDayInPagedMonth(day),
           }"
-          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
         >
@@ -793,7 +789,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
           >
             <template v-if="!isRowEmpty(record, displayField)">
               <LazySmartsheetCalendarCell
-                v-if="!isRowEmpty(record, displayField!)"
                 v-model="record.row[displayField!.title!]"
                 :bold="getFieldStyle(displayField).bold"
                 :column="displayField"

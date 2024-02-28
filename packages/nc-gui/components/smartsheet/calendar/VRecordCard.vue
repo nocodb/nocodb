@@ -51,9 +51,9 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500)': resize,
       '!border-brand-500 border-1': selected || hover,
     }"
-    class="relative h-full ml-0.25 border-1 border-gray-50"
+    class="relative flex items-center h-full ml-0.25 border-1 border-transparent"
   >
-    <div class="h-full absolute py-2">
+    <div class="h-full py-1">
       <div
         :class="{
           'bg-maroon-500': color === 'maroon',
@@ -63,14 +63,14 @@ const emit = defineEmits(['resize-start'])
           'bg-pink-500': color === 'pink',
           'bg-purple-500': color === 'purple',
         }"
-        class="block h-full min-h-5 ml-1 w-1 rounded mr-2"
+        class="block h-full min-h-5 ml-1 w-1 rounded"
       ></div>
     </div>
 
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
     <span
-      class="mt-1.5 pl-4 pr-1 text-sm h-[80%] text-gray-800 leading-7 space-x-2 break-all whitespace-normal truncate w-full overflow-y-hidden absolute"
+      class="pl-1 pr-1 text-sm h-[80%] text-gray-800 leading-7 space-x-2 break-all whitespace-normal truncate w-full overflow-y-hidden"
     >
       <slot />
     </span>

@@ -827,6 +827,7 @@ useEventListener(
                     <LazyCellRichText
                       v-if="isEditable && !isLocked"
                       v-model:value="formViewData.heading"
+                      :placeholder="$t('msg.info.formTitle')"
                       class="nc-form-focus-element font-bold text-2xl text-gray-900"
                       is-form-field
                       :autofocus="activeRow === 'nc-form-heading'"
@@ -837,10 +838,12 @@ useEventListener(
                     />
                     <LazyCellRichText
                       v-else
-                      v-model:value="formViewData.heading"
+                      :value="formViewData.heading"
+                      placeholder="Form Title"
                       class="font-bold text-2xl text-gray-900"
                       is-form-field
                       read-only
+                      sync-value-change
                     />
                   </div>
 
@@ -869,6 +872,7 @@ useEventListener(
                     <LazyCellRichText
                       v-if="isEditable && !isLocked"
                       v-model:value="formViewData.subheading"
+                      :placeholder="$t('msg.info.formDesc')"
                       class="nc-form-focus-element font-medium text-base !text-gray-500"
                       is-form-field
                       :autofocus="activeRow === 'nc-form-sub-heading'"
@@ -878,11 +882,12 @@ useEventListener(
                       @update:value="updateView"
                     />
                     <LazyCellRichText
-                      v-else
-                      v-model:value="formViewData.subheading"
+                      v-else-if="formViewData.subheading"
+                      :value="formViewData.subheading"
                       class="font-medium text-base !text-gray-500"
                       is-form-field
                       read-only
+                      sync-value-change
                     />
                   </div>
                 </div>
@@ -935,7 +940,7 @@ useEventListener(
                           <span data-testid="nc-form-input-label">
                             <LazyCellRichText
                               v-if="element.label"
-                              v-model:value="element.label"
+                              :value="element.label"
                               is-form-field
                               read-only
                               sync-value-change
@@ -945,7 +950,7 @@ useEventListener(
                             />
                             <LazyCellRichText
                               v-else
-                              v-model:value="element.title"
+                              :value="element.title"
                               is-form-field
                               read-only
                               sync-value-change
@@ -961,7 +966,7 @@ useEventListener(
 
                         <LazyCellRichText
                           v-if="element.description"
-                          v-model:value="element.description"
+                          :value="element.description"
                           is-form-field
                           read-only
                           sync-value-change
@@ -1019,24 +1024,29 @@ useEventListener(
 
                       <div class="nc-form-field-body" :class="activeRow === element.title ? 'p-4 lg:p-6' : ''">
                         <template v-if="activeRow === element.title">
-                          <LazyCellRichText
-                            v-model:value="element.label"
-                            is-form-field
-                            autofocus
-                            :is-tab-pressed="isTabPressed"
-                            class="form-meta-input nc-form-input-label mb-2"
-                            data-testid="nc-form-input-label"
-                            @update:value="updateColMeta(element)"
-                          />
+                          <a-form-item class="my-0 !mb-2">
+                            <LazyCellRichText
+                              v-model:value="element.label"
+                              :placeholder="$t('msg.info.formInput')"
+                              autofocus
+                              is-form-field
+                              :is-tab-pressed="isTabPressed"
+                              class="form-meta-input nc-form-input-label"
+                              data-testid="nc-form-input-label"
+                              @update:value="updateColMeta(element)"
+                            />
+                          </a-form-item>
 
-                          <LazyCellRichText
-                            v-model:value="element.description"
-                            class="form-meta-input nc-form-input-help-text mb-3"
-                            is-form-field
-                            :is-tab-pressed="isTabPressed"
-                            data-testid="nc-form-input-help-text"
-                            @update:value="updateColMeta(element)"
-                          />
+                          <a-form-item class="my-0 !mb-3">
+                            <LazyCellRichText
+                              v-model:value="element.description"
+                              :placeholder="$t('msg.info.formHelpText')"
+                              class="form-meta-input nc-form-input-help-text"
+                              is-form-field
+                              :is-tab-pressed="isTabPressed"
+                              data-testid="nc-form-input-help-text"
+                              @update:value="updateColMeta(element)"
+                          /></a-form-item>
 
                           <a-form-item
                             v-if="columnSupportsScanning(element.uidt)"
@@ -1346,10 +1356,11 @@ useEventListener(
                                   </template>
                                   <span data-testid="nc-field-label">
                                     <LazyCellRichText
-                                      v-model:value="field.label"
+                                      :value="field.label"
                                       is-form-field
                                       read-only
                                       sync-value-change
+                                      render-as-text
                                       class="text-xs font-normal text-gray-700"
                                       data-testid="nc-form-help-text"
                                     />

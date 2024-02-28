@@ -928,9 +928,6 @@ useEventListener(
                           '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                         },
                       ]"
-                      :style="{
-                        transition: 'height 1s ease-in',
-                      }"
                       :data-title="element.title"
                       data-testid="nc-form-fields"
                       @click.stop="onFormItemClick(element)"

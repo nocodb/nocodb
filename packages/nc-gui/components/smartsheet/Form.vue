@@ -63,6 +63,11 @@ const hiddenColTypes = [
   UITypes.LastModifiedBy,
 ]
 
+const enum NcForm {
+  heading = 'nc-form-heading',
+  subheading = 'nc-form-sub-heading',
+}
+
 const { isMobileMode, user } = useGlobal()
 
 const formRef = ref()
@@ -339,7 +344,7 @@ function shouldSkipColumn(col: Record<string, any>) {
   )
 }
 
-async function handleAddOrRemoveAllColumns(value: boolean) {
+async function handleAddOrRemoveAllColumns<T>(value: T) {
   if (isLocked.value || !isEditable) return
 
   if (value) {
@@ -607,8 +612,11 @@ useEventListener(
       (e?.relatedTarget as HTMLElement)?.getAttribute('data-title') ||
       (e?.relatedTarget as HTMLElement)?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title') ||
       (e?.relatedTarget as HTMLElement)?.closest('.nc-form-focus-element')?.getAttribute('data-title')
-
-    if (activeRow.value && nextActiveFieldTitle && activeRow.value !== nextActiveFieldTitle) {
+    if (
+      (activeRow.value || [NcForm.heading, NcForm.subheading].includes(nextActiveFieldTitle as NcForm)) &&
+      nextActiveFieldTitle &&
+      activeRow.value !== nextActiveFieldTitle
+    ) {
       if (isTabPressed.value) {
         activeRow.value = nextActiveFieldTitle
       }
@@ -720,7 +728,7 @@ useEventListener(
         </div>
       </div>
 
-      <div v-else class="h-full w-full flex" data-testid="nc-form-wrapper">
+      <div v-else class="nc-form-wrapper h-full w-full flex" data-testid="nc-form-wrapper">
         <div v-if="isLoadingFormView" class="flex-1"></div>
         <div
           v-else-if="formViewData"
@@ -868,16 +876,16 @@ useEventListener(
                         'mb-4 py-0 lg:py-0': !isEditable,
                       },
                       {
-                        'hover:bg-gray-50': activeRow !== 'nc-form-heading' && isEditable,
+                        'hover:bg-gray-50': activeRow !== NcForm.heading && isEditable,
                       },
                       {
-                        'bg-gray-50': activeRow === 'nc-form-heading' && isEditable,
+                        'bg-gray-50': activeRow === NcForm.heading && isEditable,
                       },
                       {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                       },
                     ]"
-                    @click.stop="onFormItemClick({ title: 'nc-form-heading' })"
+                    @click.stop="onFormItemClick({ title: NcForm.heading })"
                   >
                     <a-form-item v-if="isEditable" class="!my-0">
                       <a-textarea
@@ -895,8 +903,8 @@ useEventListener(
                         :disabled="isLocked"
                         placeholder="Form Title"
                         :bordered="false"
-                        data-testid="nc-form-heading"
-                        data-title="nc-form-heading"
+                        :data-testid="NcForm.heading"
+                        :data-title="NcForm.heading"
                         @blur="updateView"
                         @keydown.enter="updateView"
                       />
@@ -918,16 +926,16 @@ useEventListener(
                         'mb-4 py-0 lg:py-0': !isEditable,
                       },
                       {
-                        'hover:bg-gray-50': activeRow !== 'nc-form-sub-heading' && isEditable,
+                        'hover:bg-gray-50': activeRow !== NcForm.subheading && isEditable,
                       },
                       {
-                        'bg-gray-50': activeRow === 'nc-form-sub-heading' && isEditable,
+                        'bg-gray-50': activeRow === NcForm.subheading && isEditable,
                       },
                       {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                       },
                     ]"
-                    @click.stop="onFormItemClick({ title: 'nc-form-sub-heading' })"
+                    @click.stop="onFormItemClick({ title: NcForm.subheading })"
                   >
                     <LazyCellRichText
                       v-if="isEditable && !isLocked"
@@ -935,9 +943,9 @@ useEventListener(
                       :placeholder="$t('msg.info.formDesc')"
                       class="nc-form-focus-element font-medium text-base !text-gray-500"
                       is-form-field
-                      :autofocus="activeRow === 'nc-form-sub-heading'"
-                      data-testid="nc-form-sub-heading"
-                      data-title="nc-form-sub-heading"
+                      :autofocus="activeRow === NcForm.subheading"
+                      :data-testid="NcForm.subheading"
+                      :data-title="NcForm.subheading"
                       @update:value="updateView"
                     />
                     <LazyCellRichText
@@ -1348,8 +1356,9 @@ useEventListener(
                     <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
                       <div class="flex-1 font-base my-1.5">{{ $t('activity.selectAllFields') }}</div>
                       <div class="flex items-center px-2">
-                        <NcSwitch
+                        <a-switch
                           :checked="visibleColumns.length === localColumns.length"
+                          size="small"
                           @change="handleAddOrRemoveAllColumns"
                         />
                       </div>
@@ -1406,7 +1415,7 @@ useEventListener(
                               <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top">&nbsp;*</span>
                             </div>
                           </div>
-                          <NcSwitch :checked="!!field.show" :disabled="field.required || isLocked || !isEditable" />
+                          <a-switch :checked="!!field.show" :disabled="field.required || isLocked || !isEditable" size="small" />
                         </div>
                       </div>
                     </template>
@@ -1723,6 +1732,16 @@ useEventListener(
       &:focus-within .ant-radio-inner {
         box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
       }
+    }
+  }
+}
+
+.nc-form-wrapper {
+  .ant-switch:focus,
+  .ant-switch-checked:focus {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+    &:hover {
+      box-shadow: none;
     }
   }
 }

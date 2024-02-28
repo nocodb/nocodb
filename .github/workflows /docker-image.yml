@@ -2,9 +2,9 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 env:
   AWS_REGION: ap-northeast-1

@@ -314,7 +314,10 @@ export async function isDebugUser(req: any) {
   // if debug users are not set then skip debug user check
   if (!debugUsers) return false;
 
-  return debugUsers?.split(',').includes(req.user.email);
+  return debugUsers
+    ?.trim?.()
+    .split(/\s*,\s*/)
+    .includes(req.user.email);
 }
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
-  AppEvents, BaseType,
+  AppEvents,
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
@@ -11,7 +11,7 @@ import {
 import AWS from 'aws-sdk';
 import { ConfigService } from '@nestjs/config';
 import type { OnApplicationBootstrap } from '@nestjs/common';
-import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';

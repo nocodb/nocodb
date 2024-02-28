@@ -140,6 +140,11 @@ const goToToday = () => {
     start: dayjs().startOf('week'),
     end: dayjs().endOf('week'),
   }
+
+  document?.querySelector('.nc-calendar-today')?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
 }
 
 const headerText = computed(() => {

@@ -192,7 +192,7 @@ const recordsAcrossAllRange = computed<{
         // We calculate the index of the hour in the day and set the top and height of the record
         const hourIndex = Math.min(
           Math.max(
-            datesHours.value[dayIndex].findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
+            datesHours.value[dayIndex]?.findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
             0,
           ),
           23,

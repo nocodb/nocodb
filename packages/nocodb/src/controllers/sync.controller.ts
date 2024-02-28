@@ -14,6 +14,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { SyncService } from '~/services/sync.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -48,7 +49,7 @@ export class SyncController {
   async syncCreate(
     @Param('baseId') baseId: string,
     @Body() body: any,
-    @Req() req: Request,
+    @Req() req: NcRequest,
     @Param('sourceId') sourceId?: string,
   ) {
     return await this.syncService.syncCreate({
@@ -62,7 +63,7 @@ export class SyncController {
 
   @Delete(['/api/v1/db/meta/syncs/:syncId', '/api/v2/meta/syncs/:syncId'])
   @Acl('syncSourceDelete')
-  async syncDelete(@Param('syncId') syncId: string, @Req() req: Request) {
+  async syncDelete(@Param('syncId') syncId: string, @Req() req: NcRequest) {
     return await this.syncService.syncDelete({
       syncId: syncId,
       req,
@@ -74,7 +75,7 @@ export class SyncController {
   async syncUpdate(
     @Param('syncId') syncId: string,
     @Body() body: any,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return await this.syncService.syncUpdate({
       syncId: syncId,

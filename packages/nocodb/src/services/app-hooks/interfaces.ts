@@ -16,8 +16,9 @@ import type {
   UserType,
   ViewType,
 } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 
-export interface NcBaseEvent extends NcBaseEvent {
+export interface NcBaseEvent {
   req: NcRequest;
   clientId?: string;
 }

@@ -12,6 +12,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -37,7 +38,7 @@ export class GridColumnsController {
     @Param('gridViewColumnId') gridViewColumnId: string,
     @Body() body: GridColumnReqType,
 
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     return this.gridColumnsService.gridColumnUpdate({
       gridViewColumnId,

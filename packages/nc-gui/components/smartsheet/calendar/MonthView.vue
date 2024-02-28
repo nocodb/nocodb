@@ -508,12 +508,8 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
 const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value)
-
-  console.log('stopDrag')
-  console.log('stopDrag', dragRecord.value, isDragging.value)
   if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
 
-  console.log('stopDrag')
   event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
 

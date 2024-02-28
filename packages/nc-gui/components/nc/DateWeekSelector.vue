@@ -188,7 +188,7 @@ const paginate = (action: 'next' | 'prev') => {
         :class="{
           'gap-1 px-1': size === 'medium',
           'gap-2 px-2': size === 'large',
-          'px-1 py-1 !rounded-t-lg': size === 'small',
+          'px-2 py-1 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
         class="flex flex-row bg-gray-100 justify-between"
@@ -202,7 +202,7 @@ const paginate = (action: 'next' | 'prev') => {
             'text-[10px]': size === 'small',
           }"
           class="flex items-center uppercase justify-center text-gray-500"
-          >{{ day }}</span
+          >{{ size === 'small' ? day[0] : day }}</span
         >
       </div>
       <div
@@ -228,7 +228,7 @@ const paginate = (action: 'next' | 'prev') => {
             'rounded-md bg-brand-50 nc-calendar-today text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'h-9 w-9': size === 'large',
             'h-8 w-8': size === 'medium',
-            'text-xs': size === 'small',
+            'h-6 w-6 text-[10px]': size === 'small',
           }"
           class="px-1 py-1 relative border-1 font-large flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
@@ -240,8 +240,10 @@ const paginate = (action: 'next' | 'prev') => {
               'h-1.5 w-1.5': size === 'large',
               'h-1 w-1': size === 'medium',
               'h-0.75 w-0.75': size === 'small',
+              'top-1 right-1': size != 'small',
+              'top-0.5 right-0.5': size === 'small',
             }"
-            class="absolute z-2 rounded-full bg-brand-500 top-1 right-1"
+            class="absolute z-2 rounded-full bg-brand-500"
           ></span>
           <span class="z-2">
             {{ date.get('date') }}

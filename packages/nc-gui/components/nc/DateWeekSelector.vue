@@ -180,7 +180,7 @@ const paginate = (action: 'next' | 'prev') => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md bg-brand-50 text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'rounded-md bg-brand-50 nc-calendar-today text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
           }"
           class="h-9 w-9 px-1 py-2 relative font-medium flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"

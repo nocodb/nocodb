@@ -56,7 +56,7 @@ const recordsAcrossAllRange = computed<{
   record: Row[]
   count: {
     [key: string]: {
-      id: string
+      id: string[]
       overflow: boolean
       overflowCount: number
     }
@@ -167,7 +167,7 @@ const recordsAcrossAllRange = computed<{
             style.display = 'none'
             overlaps[timeKey].overflowCount += 1
           }
-          _startDate = _startDate.add(15, 'minutes')
+          _startDate = _startDate.add(1, 'minutes')
         }
 
         // This property is used to determine which side the record should be rounded. It can be top, bottom, both or none
@@ -205,16 +205,21 @@ const recordsAcrossAllRange = computed<{
         const id = generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[fromCol.title!]).add(15, 'minutes')
+
+        let endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
+
+        if (endDate.isAfter(scheduleEnd, 'minutes')) {
+          endDate = scheduleEnd
+        }
 
         const startHour = startDate.hour()
 
         let style: Partial<CSSStyleDeclaration> = {}
         let _startDate = startDate.clone()
 
-        // We loop through every 15 minutes between the start and end date and keep track of the number of records that overlap at a given time
+        // We loop through every minute between the start and end date and keep track of the number of records that overlap at a given time
         while (_startDate.isBefore(endDate)) {
-          const timeKey = _startDate.startOf('hour').format('HH:mm')
+          const timeKey = _startDate.format('HH:mm')
 
           if (!overlaps[timeKey]) {
             overlaps[timeKey] = {
@@ -234,15 +239,20 @@ const recordsAcrossAllRange = computed<{
               display: 'none',
             }
           }
-          _startDate = _startDate.add(15, 'minutes')
+          _startDate = _startDate.add(1, 'minute')
         }
 
-        const topInPixels = (startDate.hour() + startDate.startOf('hour').minute() / 60) * 80
+        // The top of the record is calculated based on the start hour
+        // Update such that it is also based on Minutes
+
+        const minutes = startDate.minute() + startDate.hour() * 60
+
+        const updatedTopInPixels = (minutes * 80) / 60
 
         // A minimum height of 80px is set for each record
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
 
-        const finalTopInPixels = topInPixels + startHour * 2
+        const finalTopInPixels = updatedTopInPixels + startHour * 2
 
         style = {
           ...style,
@@ -332,8 +342,9 @@ const calculateNewRow = (event: MouseEvent) => {
   // It can be between 0 and 23 (inclusive)
   const hour = Math.max(Math.floor(percentY * 23), 0)
 
+  const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
-  const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour')
+  const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
   let endDate
@@ -570,6 +581,35 @@ const dragStart = (event: MouseEvent, record: Row) => {
   document.addEventListener('mouseup', onMouseUp)
 }
 
+const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
+  let startOfHour = hour.startOf('hour')
+  const endOfHour = hour.endOf('hour')
+
+  const ids: Array<string> = []
+
+  let isOverflow = false
+  let overflowCount = 0
+
+  while (startOfHour.isBefore(endOfHour, 'minute')) {
+    const hourKey = startOfHour.format('HH:mm')
+    if (recordsAcrossAllRange.value?.count?.[hourKey]?.overflow) {
+      isOverflow = true
+
+      recordsAcrossAllRange.value?.count?.[hourKey]?.id.forEach((id) => {
+        if (!ids.includes(id)) {
+          ids.push(id)
+          overflowCount += 1
+        }
+      })
+    }
+    startOfHour = startOfHour.add(1, 'minute')
+  }
+
+  overflowCount = overflowCount > 8 ? overflowCount - 8 : 0
+
+  return { isOverflow, overflowCount }
+}
+
 const viewMore = (hour: dayjs.Dayjs) => {
   sideBarFilterOption.value = 'selectedHours'
   selectedTime.value = hour
@@ -680,7 +720,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
       </NcButton>
 
       <NcButton
-        v-if="recordsAcrossAllRange?.count?.[hour.format('HH:mm')]?.overflow"
+        v-if="isOverflowAcrossHourRange(hour).isOverflow"
         class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
         size="xxsmall"
         type="secondary"
@@ -688,7 +728,7 @@ const viewMore = (hour: dayjs.Dayjs) => {
       >
         <span class="text-xs">
           +
-          {{ recordsAcrossAllRange?.count[hour.format('HH:mm')]?.overflowCount }}
+          {{ isOverflowAcrossHourRange(hour).overflowCount }}
           more
         </span>
       </NcButton>
@@ -709,7 +749,6 @@ const viewMore = (hour: dayjs.Dayjs) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
-              :view="activeCalendarView"
               :hover="hoverRecord === record.rowMeta.id"
               :position="record.rowMeta!.position"
               :record="record"

@@ -25,6 +25,7 @@ import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { isDebugUser } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -83,8 +84,9 @@ export class BasesService extends BasesServiceCE {
     query?: any;
   }) {
     const bases =
-      extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
-      !['shared', 'starred', 'recent'].some((k) => k in param.query)
+      await isDebugUser(param.user) ||
+      (extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN] &&
+        !['shared', 'starred', 'recent'].some((k) => k in param.query))
         ? await Base.list(param.query)
         : await BaseUser.getProjectsList(param.user.id, param.query);
 

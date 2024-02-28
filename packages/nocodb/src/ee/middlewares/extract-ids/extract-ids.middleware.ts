@@ -42,6 +42,8 @@ import rolePermissions from '~/utils/acl';
 import { NcError } from '~/middlewares/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, CacheScope } from '~/utils/globals';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -288,6 +290,33 @@ function getUserRoleForScope(user: any, scope: string) {
   }
 }
 
+function getReadonlyUserRoles(user: Record<string, any>) {
+  return {
+    workspace_roles: user.workspace_roles || {
+      [WorkspaceUserRoles.VIEWER]: true,
+    },
+    base_roles: user.base_roles || { [ProjectRoles.VIEWER]: true },
+    roles: user.roles || { [OrgUserRoles.VIEWER]: true },
+  };
+}
+
+export async function isDebugUser(req: any) {
+  // if nocodb email not ends with nocodb.com then skip debug user check
+  if (!req.user?.email?.endsWith('@nocodb.com')) return false;
+
+  // if nocodb user and listed as debug user then allow readonly access
+
+  const debugUsers = await NocoCache.get(
+    CacheScope.DEBUG_USER_EMAILS,
+    CacheGetType.TYPE_STRING,
+  );
+
+  // if debug users are not set then skip debug user check
+  if (!debugUsers) return false;
+
+  return debugUsers?.split(',').includes(req.user.email);
+}
+
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
@@ -326,6 +355,10 @@ export class AclMiddleware implements NestInterceptor {
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
+    }
+
+    if (await isDebugUser(req)) {
+      Object.assign(req.user, getReadonlyUserRoles(req.user));
     }
 
     const userScopeRole = getUserRoleForScope(req.user, scope);

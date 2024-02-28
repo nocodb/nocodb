@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { CognitoStrategy } from './cognito.strategy';
 import type { TestingModule } from '@nestjs/testing';
 
-describe('OpenidStrategy', () => {
+describe('CognitoStrategy', () => {
   let provider: CognitoStrategy;
 
   beforeEach(async () => {

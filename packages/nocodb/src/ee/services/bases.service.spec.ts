@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { BasesService } from './bases.service';
 import type { TestingModule } from '@nestjs/testing';
 
-describe('ProjectsService', () => {
+describe('BasesService', () => {
   let service: BasesService;
 
   beforeEach(async () => {

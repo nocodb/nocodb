@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { selectedDate, activeDates } = useCalendarViewStoreOrThrow()
+const { selectedDate, activeDates, calendarMetaData } = useCalendarViewStoreOrThrow()
 
 const months = computed(() => {
   const months = []
@@ -8,6 +8,8 @@ const months = computed(() => {
   }
   return months
 })
+
+const size = computed(() => calendarMetaData.value?.meta?.yearViewSize ?? 'small')
 </script>
 
 <template>
@@ -21,7 +23,7 @@ const months = computed(() => {
       v-model:active-dates="activeDates"
       v-model:page-date="months[index]"
       v-model:selected-date="selectedDate"
-      size="xsmall"
+      :size="size"
       data-testid="nc-calendar-year-view-month-selector"
       disable-pagination
     />

@@ -1,0 +1,29 @@
+name: Build and Push to ECR
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  AWS_REGION: ap-northeast-1
+  VERSION: v1.0.0
+  ECR_REPO: dev-nocodb
+  #AWS_ACCOUNT_ID: 590184069778
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker image
+        run: |
+          ./build-local-docker-image.sh

@@ -144,7 +144,6 @@ const editor = useEditor({
   onBlur: (e) => {
     if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
-      e?.editor?.setEditable(false)
     }
   },
 })
@@ -209,7 +208,6 @@ useEventListener(
   (e: FocusEvent) => {
     if (!(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
-      editor.value?.setEditable(false)
     }
   },
   true,

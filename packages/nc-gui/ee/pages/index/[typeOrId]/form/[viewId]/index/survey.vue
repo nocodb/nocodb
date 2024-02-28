@@ -239,20 +239,27 @@ onMounted(() => {
     <div
       v-if="sharedFormView"
       style="height: max(40vh, 225px); min-height: 225px"
-      class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
+      class="w-full max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="text-2xl font-bold text-gray-900 self-center my-4" data-testid="nc-survey-form__heading">
-          {{ sharedFormView.heading }}
-        </h1>
-
-        <h2
-          v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
-          class="font-medium text-base text-gray-500 dark:text-gray-300 self-center mb-4"
-          data-testid="nc-survey-form__sub-heading"
-        >
-          {{ sharedFormView?.subheading }}
-        </h2>
+        <LazyCellRichText
+          :value="sharedFormView.heading"
+          class="text-2xl font-bold text-gray-900 !h-auto mb-4 -ml-1"
+          is-form-field
+          read-only
+          sync-value-change
+          data-testid="nc-survey-form__heading"
+        />
+        <div v-if="sharedFormView.subheading?.trim()" class="w-full">
+          <LazyCellRichText
+            :value="sharedFormView.subheading"
+            class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
+            is-form-field
+            read-only
+            sync-value-change
+            data-testid="nc-survey-form__sub-heading"
+          />
+        </div>
       </div>
     </div>
 
@@ -265,9 +272,15 @@ onMounted(() => {
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="nc-form-column-label text-sm font-semibold text-gray-800" data-testid="nc-form-column-label">
-              <span>
-                {{ field.label || field.title }}
-              </span>
+              <div>
+                <LazyCellRichText
+                  :value="field.label || field.title"
+                  class="!h-auto -ml-1"
+                  is-form-field
+                  read-only
+                  sync-value-change
+                />
+              </div>
               <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
             </div>
             <div
@@ -275,7 +288,7 @@ onMounted(() => {
               class="nc-form-column-description text-gray-500 text-sm"
               data-testid="nc-survey-form__field-description"
             >
-              {{ field?.description }}
+              <LazyCellRichText :value="field?.description" class="!h-auto -ml-1" is-form-field read-only sync-value-change />
             </div>
 
             <LazySmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">

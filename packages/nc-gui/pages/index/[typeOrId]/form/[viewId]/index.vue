@@ -100,7 +100,7 @@ p {
         @apply w-full;
 
         &:not(.layout-list) {
-          @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+          @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500 overflow-hidden;
 
           & > div {
             @apply !bg-transparent;

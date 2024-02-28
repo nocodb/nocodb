@@ -173,15 +173,15 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
-watch([props, editor], () => {
-  if (props.isFormField) {
-    if (props.readOnly && editor.value?.isEditable) {
+if (props.isFormField) {
+  watch([props, editor], () => {
+    if (props.readOnly) {
       editor.value?.setEditable(false)
-    } else if (!editor.value?.isEditable) {
+    } else {
       editor.value?.setEditable(true)
     }
-  }
-})
+  })
+}
 
 if (props.syncValueChange) {
   watch([vModel, editor], () => {

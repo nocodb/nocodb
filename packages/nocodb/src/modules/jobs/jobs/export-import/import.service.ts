@@ -1,5 +1,5 @@
 import { isLinksOrLTAR, isVirtualCol, UITypes, ViewTypes } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import papaparse from 'papaparse';
 import debug from 'debug';
 import { elapsedTime, initTime } from '../../helpers';
@@ -44,7 +44,8 @@ import { sanitizeColumnName } from '~/helpers';
 
 @Injectable()
 export class ImportService {
-  private readonly debugLog = debug('nc:jobs:import');
+  protected readonly debugLog = debug('nc:jobs:import');
+  protected readonly logger = new Logger(ImportService.name);
 
   constructor(
     private tablesService: TablesService,
@@ -1515,7 +1516,7 @@ export class ImportService {
                     raw: true,
                   });
                 } catch (e) {
-                  this.debugLog(e);
+                  this.logger.error(e);
                 }
                 chunk = [];
                 parser.resume();
@@ -1536,7 +1537,7 @@ export class ImportService {
                 raw: true,
               });
             } catch (e) {
-              this.debugLog(e);
+              this.logger.error(e);
             }
             chunk = [];
           }
@@ -1573,7 +1574,7 @@ export class ImportService {
           });
           lChunks[k] = [];
         } catch (e) {
-          this.debugLog(e);
+          this.logger.error(e);
         }
       }
     };

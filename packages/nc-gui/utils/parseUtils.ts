@@ -1,7 +1,7 @@
 export function parseProp(v: any): any {
   if (!v) return {}
   try {
-    return typeof v === 'string' ? JSON.parse(v) : v
+    return typeof v === 'string' ? JSON.parse(v) ?? {} : v
   } catch {
     return {}
   }

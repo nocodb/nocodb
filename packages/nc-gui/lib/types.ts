@@ -32,6 +32,9 @@ interface ProjectMetaInfo {
 interface Field {
   order: number
   show: number | boolean
+  bold: boolean | number
+  italic: boolean | number
+  underline: boolean | number
   title: string
   fk_column_id?: string
   system?: boolean
@@ -198,6 +201,12 @@ interface UsersSortType {
 
 type CommandPaletteType = 'cmd-k' | 'cmd-j' | 'cmd-l'
 
+interface FormFieldsLimitOptionsType {
+  id: string
+  order: number
+  show: boolean
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -226,4 +235,5 @@ export type {
   UsersSortType,
   CommandPaletteType,
   CalendarRangeType,
+  FormFieldsLimitOptionsType,
 }

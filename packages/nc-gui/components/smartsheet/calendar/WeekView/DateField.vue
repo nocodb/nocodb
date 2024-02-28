@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
-import { ref } from '#imports'
+import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord'])
@@ -18,14 +18,30 @@ const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 
+const fields = inject(FieldsInj, ref())
+
+const { fields: _fields } = useViewColumnsOrThrow()
+
+const getFieldStyle = (field: ColumnType | undefined) => {
+  const fi = _fields.value?.find((f) => f.title === field.title)
+
+  return {
+    underline: fi?.underline,
+    bold: fi?.bold,
+    italic: fi?.italic,
+  }
+}
+
+const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
+
 // Calculate the dates of the week
 const weekDates = computed(() => {
-  const startOfWeek = new Date(selectedDateRange.value.start!)
-  const endOfWeek = new Date(selectedDateRange.value.end!)
+  let startOfWeek = dayjs(selectedDateRange.value.start)
+  const endOfWeek = dayjs(selectedDateRange.value.end)
   const datesArray = []
-  while (startOfWeek.getTime() <= endOfWeek.getTime()) {
-    datesArray.push(new Date(startOfWeek))
-    startOfWeek.setDate(startOfWeek.getDate() + 1)
+  while (startOfWeek.isBefore(endOfWeek) || startOfWeek.isSame(endOfWeek, 'day')) {
+    datesArray.push(dayjs(startOfWeek))
+    startOfWeek = startOfWeek.add(1, 'day')
   }
   return datesArray
 })
@@ -567,27 +583,22 @@ const dropEvent = (event: DragEvent) => {
             @resize-start="onResizeStart"
           >
             <template v-if="!isRowEmpty(record, displayField)">
-              <div
-                :class="{
-                  'mt-2': displayField.uidt === UITypes.SingleLineText,
-                  'mt-1': displayField.uidt === UITypes.MultiSelect || displayField.uidt === UITypes.SingleSelect,
-                }"
-              >
-                <LazySmartsheetVirtualCell
-                  v-if="isVirtualCol(displayField)"
-                  v-model="record.row[displayField.title]"
-                  :column="displayField"
-                  :row="record"
-                />
-
-                <LazySmartsheetCell
-                  v-else
-                  v-model="record.row[displayField.title]"
-                  :column="displayField"
-                  :edit-enabled="false"
-                  :read-only="true"
-                />
-              </div>
+              <LazySmartsheetCalendarCell
+                v-model="record.row[displayField!.title!]"
+                :bold="getFieldStyle(displayField).bold"
+                :column="displayField"
+                :italic="getFieldStyle(displayField).italic"
+                :underline="getFieldStyle(displayField).underline"
+              />
+            </template>
+            <template v-for="(field, index) in fieldsWithoutDisplay" :key="index">
+              <LazySmartsheetCalendarCell
+                v-model="record.row[field!.title!]"
+                :bold="getFieldStyle(field).bold"
+                :column="field"
+                :italic="getFieldStyle(field).italic"
+                :underline="getFieldStyle(field).underline"
+              />
             </template>
           </LazySmartsheetCalendarRecordCard>
         </LazySmartsheetRow>

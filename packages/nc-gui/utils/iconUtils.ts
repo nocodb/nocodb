@@ -92,6 +92,7 @@ import Sort from '~icons/nc-icons/sort'
 
 // NocoDB Icons
 import NcEye from '~icons/nc-icons/eye'
+import NcEyeOff from '~icons/nc-icons/eye-off'
 import NcStar from '~icons/nc-icons/star'
 import NcUnStar from '~icons/nc-icons/star-remove'
 import NcSearch from '~icons/nc-icons/search'
@@ -121,8 +122,15 @@ import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
-import NcProjectGray from '~icons/nc-icons/project-gray'
+// import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
+import NcItalic from '~icons/nc-icons/italic'
+import NcBold from '~icons/nc-icons/bold'
+import NcUnderline from '~icons/nc-icons/underline'
+import NcCrop from '~icons/nc-icons/crop'
+import NcItalic from '~icons/nc-icons/italic'
+import NcBold from '~icons/nc-icons/bold'
+import NcUnderline from '~icons/nc-icons/underline'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -416,7 +424,7 @@ export const iconMap = {
   calculator: h('span', { class: 'material-symbols' }, 'calculate'),
   rollup: h('span', { class: 'material-symbols' }, 'group_work'),
   eye: NcEye,
-  eyeSlash: h('span', { class: 'material-symbols' }, 'visibility_off'),
+  eyeSlash: NcEyeOff,
   expand: h('span', { class: 'material-symbols' }, 'open_in_full'),
   shrink: h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   check: NcCheck,
@@ -482,7 +490,11 @@ export const iconMap = {
   ncEdit: NcEdit,
   ncArrowUp: NcArrowUp,
   ncArrowDown: NcArrowDown,
+  underline: NcUnderline,
+  bold: NcBold,
+  italic: NcItalic,
   phoneCall: NcPhoneCall,
+  crop: NcCrop,
 }
 
 export const getMdiIcon = (type: string): any => {

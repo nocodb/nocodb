@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, populateUniqueFileName } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { isBt, isMm, parseProp } from '#imports'
 
@@ -203,7 +203,11 @@ export default function convertCellData(
         for (const att of attachments) {
           newAttachments.push({
             ...att,
-            title: populateUniqueFileName(att?.title, [...oldAttachments, ...newAttachments], att?.mimetype),
+            title: populateUniqueFileName(
+              att?.title,
+              [...oldAttachments, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
+              att?.mimetype,
+            ),
           })
         }
         return JSON.stringify([...oldAttachments, ...newAttachments])

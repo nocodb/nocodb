@@ -11,7 +11,15 @@ import type {
   UserFieldRecordType,
   ViewType,
 } from 'nocodb-sdk'
-import { UITypes, dateFormats, isDateMonthFormat, isSystemColumn, isVirtualCol, timeFormats } from 'nocodb-sdk'
+import {
+  UITypes,
+  dateFormats,
+  isDateMonthFormat,
+  isSystemColumn,
+  isVirtualCol,
+  populateUniqueFileName,
+  timeFormats,
+} from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
@@ -777,7 +785,7 @@ export function useMultiSelect(
               if (columnObj.uidt === UITypes.LongText) {
                 if (rowObj.row[columnObj.title] === '<br />') {
                   rowObj.row[columnObj.title] = e.key
-                } else {
+                } else if (parseProp(columnObj.meta).richMode) {
                   rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
                 }
               } else {
@@ -1253,7 +1261,7 @@ export function useMultiSelect(
           ...uploadedFile,
           title: populateUniqueFileName(
             uploadedFile?.title,
-            [...handleParseAttachmentCellData(oldValue), ...newAttachments],
+            [...handleParseAttachmentCellData(oldValue), ...newAttachments].map((fn) => fn?.title || fn?.fileName),
             uploadedFile?.mimetype,
           ),
         })

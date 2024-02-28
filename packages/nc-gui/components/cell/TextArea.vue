@@ -61,7 +61,7 @@ const mousePosition = ref<
 const isDragging = ref(false)
 
 const focus: VNodeRef = (el) =>
-  !isExpandedFormOpen.value && !isEditColumn.value && isForm.value && (el as HTMLTextAreaElement)?.focus()
+  !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLTextAreaElement)?.focus()
 
 const height = computed(() => {
   if (isExpandedFormOpen.value) return 36 * 4
@@ -173,7 +173,7 @@ const dragStart = (e: MouseEvent) => {
 }
 
 watch(editEnabled, () => {
-  if (editEnabled.value) {
+  if (editEnabled.value && isRichMode.value) {
     isVisible.value = true
   }
 })
@@ -226,15 +226,15 @@ watch(inputWrapperRef, () => {
         v-else-if="editEnabled && !isVisible"
         :ref="focus"
         v-model="vModel"
-        rows="4"
-        class="h-full w-full outline-none border-none nc-scrollbar-lg"
+        :rows="isForm ? 5 : 4"
+        class="h-full w-full outline-none border-none nc-longtext-scrollbar"
         :class="{
           'p-2': editEnabled,
           'py-1 h-full': isForm,
           'px-2': isExpandedFormOpen,
         }"
         :style="{
-          minHeight: `${height}px`,
+          minHeight: isForm ? '117px' : `${height}px`,
         }"
         :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :disabled="readOnly"
@@ -270,8 +270,8 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible"
         placement="bottom"
-        class="!absolute right-0 hidden nc-text-area-expand-btn group-hover:block z-3"
-        :class="isExpandedFormOpen || isForm ? 'top-1' : 'bottom-1'"
+        class="!absolute top-1 hidden nc-text-area-expand-btn group-hover:block z-3"
+        :class="isForm ? 'right-1' : 'right-0'"
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
@@ -296,6 +296,7 @@ watch(inputWrapperRef, () => {
         :class="{
           'cursor-move': isDragging,
         }"
+        @keydown.enter.stop
       >
         <div
           v-if="column"
@@ -317,7 +318,7 @@ watch(inputWrapperRef, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'both' }"
             :disabled="readOnly"
@@ -346,6 +347,9 @@ textarea:focus {
     @apply rounded-lg;
   }
 }
+.nc-longtext-scrollbar {
+  @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
+}
 </style>
 
 <style lang="scss">
@@ -366,6 +370,10 @@ textarea:focus {
 
       max-width: min(1280px, 100vw - 100px);
       max-height: min(864px, 100vh - 100px);
+
+      .nc-longtext-scrollbar {
+        @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
+      }
     }
   }
 }

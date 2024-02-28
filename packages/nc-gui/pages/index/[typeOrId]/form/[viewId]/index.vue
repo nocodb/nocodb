@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
+import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedViewMeta } = useSharedFormStoreOrThrow()
+const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
 
 const isDark = useDark()
-
-const { setTheme } = useTheme()
 
 const route = useRoute()
 
 const router = useRouter()
 
-watch(
-  () => sharedViewMeta.value.withTheme,
-  (hasTheme) => {
-    if (hasTheme && sharedViewMeta.value.theme) setTheme(sharedViewMeta.value.theme)
-  },
-  { immediate: true },
-)
+// For now dark theme is disabled
+// const onClick = () => {
+//   isDark.value = !isDark.value
+// }
 
-const onClick = () => {
-  isDark.value = !isDark.value
-}
+onMounted(() => {
+  isDark.value = false
+})
 
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
@@ -38,11 +33,14 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="scrollbar-thin-dull overflow-y-auto overflow-x-hidden flex flex-col color-transition nc-form-view relative bg-primary bg-opacity-10 dark:(bg-slate-900) h-[100vh] min-h-[600px] py-4"
+    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-10 nc-form-view relative min-h-[600px]"
+    :style="{
+      background: parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA',
+    }"
   >
     <NuxtPage />
 
-    <div
+    <!-- <div
       class="color-transition flex items-center justify-center cursor-pointer absolute top-4 md:top-15 right-4 md:right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"
       @click="onClick"
     >
@@ -50,7 +48,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
         <MaterialSymbolsDarkModeOutline v-if="isDark" />
         <MaterialSymbolsLightModeOutline v-else />
       </Transition>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -69,11 +67,15 @@ p {
 
 .nc-form-view {
   .nc-data-cell {
-    @apply border-solid border-1 !border-gray-300 dark:!border-slate-200;
+    @apply !border-none rounded-none;
+
+    &:focus-within {
+      @apply !border-none;
+    }
   }
 
   .nc-cell {
-    @apply bg-white dark:bg-slate-500;
+    @apply bg-white dark:bg-slate-500 appearance-none;
 
     &.nc-cell-checkbox {
       @apply color-transition !border-0;
@@ -95,14 +97,17 @@ p {
       @apply bg-white dark:bg-slate-500;
 
       &.nc-input {
-        @apply w-full px-3 min-h-[40px] flex items-center;
+        @apply w-full;
 
-        &.nc-cell-longtext {
-          @apply !px-1;
+        &:not(.layout-list) {
+          @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+
+          & > div {
+            @apply !bg-transparent;
+          }
         }
-
-        &.nc-cell-json {
-          @apply !h-auto;
+        &.layout-list {
+          @apply h-auto !pl-0 !py-1 !bg-transparent !dark:bg-none;
         }
 
         .duration-cell-wrapper {
@@ -119,8 +124,7 @@ p {
 
         input,
         textarea,
-        &.nc-virtual-cell,
-        > div {
+        &.nc-virtual-cell {
           @apply bg-white dark:(bg-slate-500 text-white);
 
           .ant-btn {
@@ -131,10 +135,48 @@ p {
             @apply dark:(bg-slate-700 text-white);
           }
         }
+        &:not(.layout-list) > div {
+          @apply bg-white dark:(bg-slate-500 text-white);
+        }
+        &.layout-list > div {
+          .ant-btn {
+            @apply dark:(bg-slate-300);
+          }
+
+          .chip {
+            @apply dark:(bg-slate-700 text-white);
+          }
+        }
+
+        &.nc-cell-longtext {
+          @apply p-0 h-auto;
+          & > div {
+            @apply w-full;
+          }
+          :deep(textarea) {
+            @apply !p-2;
+
+            &:focus {
+              box-shadow: none !important;
+            }
+          }
+        }
+        &:not(.nc-cell-longtext) {
+          @apply p-2;
+        }
 
         textarea {
+          @apply px-4 py-2 rounded;
+
           &:focus {
             box-shadow: none !important;
+          }
+        }
+
+        &.nc-cell-json {
+          @apply h-auto;
+          & > div {
+            @apply w-full;
           }
         }
       }

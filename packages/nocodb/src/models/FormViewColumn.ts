@@ -10,6 +10,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class FormViewColumn implements FormColumnType {
   id?: string;
@@ -168,26 +169,20 @@ export default class FormViewColumn implements FormColumnType {
       'enable_scanner',
     ]);
 
-    // get existing cache
-    const key = `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      Object.assign(o, updateObj);
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
-    if (updateObj.meta) {
-      updateObj.meta = serializeJSON(updateObj.meta);
-    }
-
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,
-      updateObj,
+      prepareForDb(updateObj),
       columnId,
     );
+
+    await NocoCache.update(
+      `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 }

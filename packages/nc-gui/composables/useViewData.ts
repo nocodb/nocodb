@@ -278,16 +278,16 @@ export function useViewData(
     if (!viewMeta?.value?.id) return
     try {
       const { columns, ...view } = await $api.dbView.formRead(viewMeta.value.id)
-
-      const fieldById = (columns || []).reduce(
-        (o: Record<string, any>, f: Record<string, any>) => ({
+      let order = 1
+      const fieldById = (columns || []).reduce((o: Record<string, any>, f: Record<string, any>) => {
+        if (order < f.order) {
+          order = f.order
+        }
+        return {
           ...o,
           [f.fk_column_id]: f,
-        }),
-        {} as Record<string, FormColumnType>,
-      )
-
-      let order = 1
+        }
+      }, {} as Record<string, FormColumnType>)
 
       formViewData.value = view
 
@@ -297,6 +297,7 @@ export function useViewData(
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
+          meta: { ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) }, // TODO: discuss with @pranav
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
         }))

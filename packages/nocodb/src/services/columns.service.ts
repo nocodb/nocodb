@@ -2091,6 +2091,17 @@ export class ColumnsService {
       ProjectMgrv2.getSqlMgr({ id: source.base_id }, ncMeta),
     );
 
+    /**
+     * @Note: When using 'falls through to default' cases in a switch statement,
+     * it is crucial to place them after cases with break statements.
+     * Additionally, include a check for column.uidt inside these 'falls through to default' cases
+     * to conditionally execute logic based on the value of column.uidt.
+     *
+     * This check becomes essential when there are multiple 'falls through to default' cases.
+     * By adding the column.uidt check, we ensure that each case has its own specific conditions.
+     * This prevents unintended execution of logic from subsequent cases due to fall-through,
+     * providing a more controlled and predictable behavior in the switch statement.
+     */
     switch (column.uidt) {
       case UITypes.Lookup:
       case UITypes.Rollup:
@@ -2099,6 +2110,14 @@ export class ColumnsService {
       case UITypes.Formula:
         await Column.delete(param.columnId, ncMeta);
         break;
+      // on deleting created/last modified columns, keep the column in table and delete the column from meta
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
+      case UITypes.CreatedBy:
+      case UITypes.LastModifiedBy: {
+        await Column.delete(param.columnId, ncMeta);
+        break;
+      }
       // Since Links is just an extended version of LTAR, we can use the same logic
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
@@ -2256,34 +2275,25 @@ export class ColumnsService {
         break;
       }
       case UITypes.SingleSelect: {
-        if (column.uidt === UITypes.SingleSelect) {
-          if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
-            NcError.badRequest(
-              `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
-            );
-          }
+        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
+          );
         }
         /* falls through to default */
       }
       case UITypes.DateTime:
       case UITypes.Date: {
-        if (await CalendarRange.IsColumnBeingUsedAsRange(column.id, ncMeta)) {
+        if (
+          [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
+          (await CalendarRange.IsColumnBeingUsedAsRange(column.id, ncMeta))
+        ) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
           );
         }
-        break;
+        /* falls through to default */
       }
-
-      // on deleting created/last modified columns, keep the column in table and delete the column from meta
-      case UITypes.CreatedTime:
-      case UITypes.LastModifiedTime:
-      case UITypes.CreatedBy:
-      case UITypes.LastModifiedBy:
-        {
-          await Column.delete(param.columnId, ncMeta);
-        }
-        break;
       default: {
         const tableUpdateBody = {
           ...table,

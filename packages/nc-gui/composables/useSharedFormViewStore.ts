@@ -76,7 +76,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const fieldRequired = (fieldName = 'Value') => helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
+  const fieldRequired = (fieldName = 'This field') =>
+    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
     columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
@@ -108,6 +109,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       columns.value = viewMeta.model?.columns?.map((c) => ({
         ...c,
+        meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
         description: fieldById[c.id].description,
       }))
 
@@ -158,7 +160,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
-        obj.localState[column.title!] = { required: fieldRequired(column.label || column.title) }
+        obj.localState[column.title!] = { required: fieldRequired() }
       } else if (
         isLinksOrLTAR(column) &&
         column.colOptions &&
@@ -168,13 +170,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
         if ((col && col.rqd && !col.cdf) || column.required) {
           if (col) {
-            obj.virtual[column.title!] = { required: fieldRequired(column.label || column.title) }
+            obj.virtual[column.title!] = { required: fieldRequired() }
           }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title!] = {
           minLength: minLength(1),
-          required: fieldRequired(column.label || column.title),
+          required: fieldRequired(),
         }
       }
     }
@@ -190,6 +192,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const submitForm = async () => {
     try {
       if (!(await v$.value?.$validate())) {
+        message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
         return
       }
 
@@ -224,6 +227,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       await message.error(await extractSdkResponseErrorMsg(e))
     }
     progress.value = false
+  }
+
+  const clearForm = async () => {
+    formResetHook.trigger()
+
+    additionalState.value = {}
+    formState.value = {}
+    v$.value?.$reset()
   }
 
   /** reset form if show_blank_form is true */
@@ -261,6 +272,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadSharedView,
     columns,
     submitForm,
+    clearForm,
     progress,
     meta,
     validators,

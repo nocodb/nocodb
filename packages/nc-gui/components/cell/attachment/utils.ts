@@ -1,5 +1,7 @@
 import type { AttachmentReqType, AttachmentType } from 'nocodb-sdk'
+import { populateUniqueFileName } from 'nocodb-sdk'
 import DOMPurify from 'isomorphic-dompurify'
+import { saveAs } from 'file-saver'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -161,7 +163,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         } else {
           const fileName = populateUniqueFileName(
             (file as AttachmentReqType).fileName ?? '',
-            [...attachments.value, ...imageUrls],
+            [...attachments.value, ...imageUrls].map((fn) => fn?.title || fn?.fileName),
             (file as File)?.type || (file as AttachmentReqType)?.mimetype || '',
           )
 
@@ -225,7 +227,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               ...uploadedFile,
               title: populateUniqueFileName(
                 uploadedFile?.title,
-                [...attachments.value, ...newAttachments],
+                [...attachments.value, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
                 uploadedFile?.mimetype,
               ),
             })
@@ -316,7 +318,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     async function downloadFile(item: AttachmentType) {
       const src = await getAttachmentSrc(item)
       if (src) {
-        ;(await import('file-saver')).saveAs(src, item.title)
+        saveAs(src, item.title)
       } else {
         message.error('Failed to download file')
       }

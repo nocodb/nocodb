@@ -223,12 +223,10 @@ export class PageDao {
     if ('parent_page_id' in attributes) {
       const page = await this.get({ id: pageId, baseId });
 
-      await NocoCache.deepDel(
+      await NocoCache.update(
         `${CacheScope.DOCS_PAGE}:${baseId}:${pageId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
+        page,
       );
-
-      await NocoCache.set(`${CacheScope.DOCS_PAGE}:${baseId}:${pageId}`, page);
 
       await this.appendToAllPagesCacheList({
         pageId,

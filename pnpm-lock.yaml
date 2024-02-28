@@ -41,16 +41,16 @@ importers:
         version: 0.5.1(vue@3.3.13)
       '@tiptap/extension-link':
         specifier: 2.2.4
-        version: 2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4)
+        version: 2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4)
       '@tiptap/extension-task-list':
         specifier: 2.2.4
-        version: 2.2.4(@tiptap/core@2.2.2)
+        version: 2.2.4(@tiptap/core@2.2.4)
       '@tiptap/extension-underline':
         specifier: ^2.2.4
-        version: 2.2.4(@tiptap/core@2.2.2)
+        version: 2.2.4(@tiptap/core@2.2.4)
       '@tiptap/html':
         specifier: 2.2.4
-        version: 2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4)
+        version: 2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4)
       '@tiptap/pm':
         specifier: ^2.2.4
         version: 2.2.4
@@ -59,7 +59,7 @@ importers:
         version: 2.2.4(@tiptap/pm@2.2.4)
       '@tiptap/vue-3':
         specifier: 2.2.4
-        version: 2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4)(vue@3.3.13)
+        version: 2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4)(vue@3.3.13)
       '@vue-flow/additional-components':
         specifier: ^1.3.3
         version: 1.3.3(@vue-flow/core@1.31.0)(vue@3.3.13)
@@ -8675,14 +8675,6 @@ packages:
     resolution: {integrity: sha512-7qSgZbincDDDFyRweCIEvZULFAw5iz/DeunhvuxpL31nfntX3P4Yd4HkHBRg9H8CdqY1e5WFN1PZIz/REL9MVQ==}
     dev: false
 
-  /@tiptap/core@2.2.2(@tiptap/pm@2.2.4):
-    resolution: {integrity: sha512-fec26LtNgYFGhKzEA9+Of+qLKIKUxDL/XZQofoPcxP71NffcmpZ+ZjAx9NjnvuYtvylUSySZiPauY6WhN3aprw==}
-    peerDependencies:
-      '@tiptap/pm': ^2.0.0
-    dependencies:
-      '@tiptap/pm': 2.2.4
-    dev: false
-
   /@tiptap/core@2.2.4(@tiptap/pm@2.2.4):
     resolution: {integrity: sha512-cRrI8IlLIhCE1hacBQzXIC8dsRvGq6a4lYWQK/BaHuZg21CG7szp3Vd8Ix+ra1f5v0xPOT+Hy+QFNQooRMKMCw==}
     peerDependencies:
@@ -8707,13 +8699,13 @@ packages:
       '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
     dev: false
 
-  /@tiptap/extension-bubble-menu@2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4):
+  /@tiptap/extension-bubble-menu@2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4):
     resolution: {integrity: sha512-Nx1fS9jcFlhxaTDYlnayz2UulhK6CMaePc36+7PQIVI+u20RhgTCRNr25zKNemvsiM0RPZZVUjlHkxC0l5as1Q==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
       '@tiptap/pm': 2.2.4
       tippy.js: 6.3.7
     dev: false
@@ -8762,13 +8754,13 @@ packages:
       '@tiptap/pm': 2.2.4
     dev: false
 
-  /@tiptap/extension-floating-menu@2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4):
+  /@tiptap/extension-floating-menu@2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4):
     resolution: {integrity: sha512-U25l7PEzOmlAPugNRl8t8lqyhQZS6W/+3f92+FdwW9qXju3i62iX/3OGCC3Gv+vybmQ4fbZmMjvl+VDfenNi3A==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
       '@tiptap/pm': 2.2.4
       tippy.js: 6.3.7
     dev: false
@@ -8827,13 +8819,13 @@ packages:
       '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
     dev: false
 
-  /@tiptap/extension-link@2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4):
+  /@tiptap/extension-link@2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4):
     resolution: {integrity: sha512-Qsx0cFZm4dxbkToXs5TcXbSoUdicv8db1gV1DYIZdETqjBm4wFjlzCUP7hPHFlvNfeSy1BzAMRt+RpeuiwvxWQ==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
       '@tiptap/pm': 2.2.4
       linkifyjs: 4.1.3
     dev: false
@@ -8870,12 +8862,12 @@ packages:
       '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
     dev: false
 
-  /@tiptap/extension-task-list@2.2.4(@tiptap/core@2.2.2):
+  /@tiptap/extension-task-list@2.2.4(@tiptap/core@2.2.4):
     resolution: {integrity: sha512-URh1Yzj/YZBOMkobK4/U8s1QYwIIqHm4b0YadLPPZx9IzTjyV/2bvIakphCmBtxWxeTXW5TbO9eNod3qatq21w==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
     dev: false
 
   /@tiptap/extension-text@2.2.4(@tiptap/core@2.2.4):
@@ -8886,21 +8878,21 @@ packages:
       '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
     dev: false
 
-  /@tiptap/extension-underline@2.2.4(@tiptap/core@2.2.2):
+  /@tiptap/extension-underline@2.2.4(@tiptap/core@2.2.4):
     resolution: {integrity: sha512-jCHgIJMwtXlGHVy/j3L8/QvglHCikkHJw7YS5yf8E/8HlPh1tZfVy/IxdgacDOpUN30X+UPJZQDdVKymafgwdA==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
     dev: false
 
-  /@tiptap/html@2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4):
+  /@tiptap/html@2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4):
     resolution: {integrity: sha512-a6ORgv+X5CExUOdLVjAd4uIPPTrETLylyed/4vhaPIhe3fZKc+2oJrj87lxfUGasY4LV7Gpn+s08XM5fXyB61g==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
       '@tiptap/pm': 2.2.4
       zeed-dom: 0.10.11
     dev: false
@@ -8954,16 +8946,16 @@ packages:
       - '@tiptap/pm'
     dev: false
 
-  /@tiptap/vue-3@2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4)(vue@3.3.13):
+  /@tiptap/vue-3@2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4)(vue@3.3.13):
     resolution: {integrity: sha512-6Rue56OUmDl/OT07QcLsH1UvYGUmV8OFSDCrLrUyku/2lAYHwHz6+KhAB5paZt70nEGIw03G1KCT074negj6NQ==}
     peerDependencies:
       '@tiptap/core': ^2.0.0
       '@tiptap/pm': ^2.0.0
       vue: 3.3.13
     dependencies:
-      '@tiptap/core': 2.2.2(@tiptap/pm@2.2.4)
-      '@tiptap/extension-bubble-menu': 2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4)
-      '@tiptap/extension-floating-menu': 2.2.4(@tiptap/core@2.2.2)(@tiptap/pm@2.2.4)
+      '@tiptap/core': 2.2.4(@tiptap/pm@2.2.4)
+      '@tiptap/extension-bubble-menu': 2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4)
+      '@tiptap/extension-floating-menu': 2.2.4(@tiptap/core@2.2.4)(@tiptap/pm@2.2.4)
       '@tiptap/pm': 2.2.4
       vue: 3.3.13
     dev: false

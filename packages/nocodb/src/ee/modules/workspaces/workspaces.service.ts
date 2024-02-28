@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
-  AppEvents,
+  AppEvents, BaseType,
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
@@ -27,6 +27,7 @@ import { TablesService } from '~/services/tables.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
+import { isDebugUser } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 const mockUser = {
   id: '1',
@@ -539,9 +540,14 @@ export class WorkspacesService implements OnApplicationBootstrap {
     workspaceId: string;
   }) {
     const { workspaceId, user } = param;
-    const bases = await Base.listByWorkspaceAndUser(workspaceId, user.id);
+    let bases: Base[];
+    if (await isDebugUser(param)) {
+      bases = await Base.listByWorkspace(workspaceId);
+    } else {
+      bases = await Base.listByWorkspaceAndUser(workspaceId, user.id);
+    }
 
-    return new PagedResponseImpl<WorkspaceType>(bases, {
+    return new PagedResponseImpl<BaseType>(bases, {
       count: bases.length,
     });
   }

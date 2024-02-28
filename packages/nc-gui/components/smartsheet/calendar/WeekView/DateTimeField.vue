@@ -528,7 +528,7 @@ const calculateNewRow = (
   const day = Math.max(0, Math.min(6, Math.floor(percentX * 7)))
   const hour = Math.max(0, Math.min(23, Math.floor(percentY * 24)))
 
-  const minutes = Math.max(0, Math.min(59, Math.floor(((percentY * 22 - hour) * 60) / 15) * 15))
+  const minutes = Math.max(0, Math.min(59, Math.floor(((percentY * 22 - hour) * 60) / 15 + 0.5) * 15))
 
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate) return { newRow: null, updatedProperty: [] }

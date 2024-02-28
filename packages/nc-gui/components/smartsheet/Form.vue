@@ -612,6 +612,30 @@ useEventListener(
   },
   true,
 )
+
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+    switch (e.key.toLowerCase()) {
+      case 's':
+        if (
+          cmdOrCtrl &&
+          !(
+            ['input', 'textarea'].includes((e.target as any).nodeName.toLowerCase()) ||
+            (e.target as any)?.getAttribute('contenteditable')
+          )
+        ) {
+          e.preventDefault()
+          updateView()
+        }
+        break
+    }
+  },
+  true,
+)
 </script>
 
 <template>

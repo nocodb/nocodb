@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 
 interface Props {
-  size?: 'small' | 'medium'
+  size?: 'small' | 'medium' | 'xsmall'
   selectedDate?: dayjs.Dayjs | null
   isDisabled?: boolean
   pageDate?: dayjs.Dayjs
@@ -137,7 +137,13 @@ const paginate = (action: 'next' | 'prev') => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div
+    :class="{
+      'gap-1': size === 'xsmall',
+      'gap-4': size === 'small' || size === 'medium',
+    }"
+    class="flex flex-col"
+  >
     <div
       :class="{
         'justify-center': disablePagination,
@@ -169,6 +175,7 @@ const paginate = (action: 'next' | 'prev') => {
         :class="{
           'gap-1 px-1': size === 'small',
           'gap-2 px-2': size === 'medium',
+          'px-1': size === 'xsmall',
         }"
         class="flex flex-row bg-gray-100 rounded-t-xl justify-between"
       >
@@ -205,7 +212,7 @@ const paginate = (action: 'next' | 'prev') => {
             'h-9 w-9': size === 'medium',
             'h-8 w-8': size === 'small',
           }"
-          class="px-1 py-1 relative font-medium flex items-center cursor-pointer justify-center"
+          class="px-1 py-1 relative border-1 border-transparent font-medium flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           @click="handleSelectDate(date)"
         >
@@ -213,7 +220,7 @@ const paginate = (action: 'next' | 'prev') => {
             v-if="isActiveDate(date)"
             :class="{
               'h-1.5 w-1.5': size === 'medium',
-              'h-1 w-1': size === 'small',
+              'h-1 w-1': size === 'small' || size === 'xsmall',
             }"
             class="absolute z-2 rounded-full bg-brand-500 top-1 right-1"
           ></span>

@@ -21,8 +21,7 @@ const months = computed(() => {
       v-model:active-dates="activeDates"
       v-model:page-date="months[index]"
       v-model:selected-date="selectedDate"
-      size="small"
-      class="max-w-[350px]"
+      size="xsmall"
       data-testid="nc-calendar-year-view-month-selector"
       disable-pagination
     />

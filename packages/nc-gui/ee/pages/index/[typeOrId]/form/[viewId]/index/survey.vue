@@ -242,15 +242,10 @@ onMounted(() => {
       class="w-full max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <LazyCellRichText
-          :value="sharedFormView.heading"
-          class="text-2xl font-bold text-gray-900 !h-auto mb-4 -ml-1"
-          is-form-field
-          read-only
-          sync-value-change
-          data-testid="nc-survey-form__heading"
-        />
-        <div v-if="sharedFormView.subheading?.trim()" class="w-full">
+        <h1 class="text-2xl font-bold text-gray-900 self-center text-center my-4" data-testid="nc-survey-form__heading">
+          {{ sharedFormView.heading }}
+        </h1>
+        <div v-if="sharedFormView.subheading?.trim()" class="w-full text-center">
           <LazyCellRichText
             :value="sharedFormView.subheading"
             class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
@@ -272,15 +267,9 @@ onMounted(() => {
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="nc-form-column-label text-sm font-semibold text-gray-800" data-testid="nc-form-column-label">
-              <div>
-                <LazyCellRichText
-                  :value="field.label || field.title"
-                  class="!h-auto -ml-1"
-                  is-form-field
-                  read-only
-                  sync-value-change
-                />
-              </div>
+              <span>
+                {{ field.label || field.title }}
+              </span>
               <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
             </div>
             <div
@@ -387,13 +376,28 @@ onMounted(() => {
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <a-alert
-                type="success"
                 class="!my-4 !py-4 text-center !rounded-lg"
+                type="success"
                 data-testid="nc-survey-form__success-msg"
                 outlined
-                :message="sharedFormView?.success_msg || $t('msg.info.thankYou')"
-                :description="sharedFormView?.success_msg ? undefined : $t('msg.info.submittedFormData')"
-              />
+              >
+                <template #message>
+                  <LazyCellRichText
+                    v-if="sharedFormView?.success_msg?.trim()"
+                    :value="sharedFormView?.success_msg"
+                    class="!h-auto -ml-1"
+                    is-form-field
+                    read-only
+                    sync-value-change
+                  />
+                  <span v-else>
+                    {{ $t('msg.info.thankYou') }}
+                  </span>
+                </template>
+                <template #description v-if="!sharedFormView?.success_msg?.trim()">
+                  {{ $t('msg.info.submittedFormData') }}
+                </template>
+              </a-alert>
 
               <div v-if="sharedFormView" class="mt-3">
                 <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">

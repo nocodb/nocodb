@@ -24,7 +24,6 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
     "paths": {
       "src/*": [
         "src/*"
@@ -42,5 +41,5 @@
     ]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/ee", "src/ee-on-prem"],
+  "exclude": ["src/ee", "src/ee-on-prem"]
 }

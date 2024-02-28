@@ -205,7 +205,12 @@ const recordsAcrossAllRange = computed<{
         const id = generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
-        const endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
+
+        let endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
+
+        if (endDate.isAfter(scheduleEnd, 'minutes')) {
+          endDate = scheduleEnd
+        }
 
         const startHour = startDate.hour()
 
@@ -336,8 +341,8 @@ const calculateNewRow = (event: MouseEvent) => {
   // We calculate the hour based on the percentage of the mouse position in the scroll container
   // It can be between 0 and 23 (inclusive)
   const hour = Math.max(Math.floor(percentY * 23), 0)
-  const minutes = Math.max(0, Math.min(59, Math.floor(((percentY * 22 - hour) * 60) / 15 + 0.5) * 15))
 
+  const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
   const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }

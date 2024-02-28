@@ -19,7 +19,6 @@ const props = defineProps<{
   fullMode?: boolean
   isFormField?: boolean
   autofocus?: boolean
-  isTabPressed?: boolean
   placeholder?: string
   renderAsText?: boolean
 }>()
@@ -141,7 +140,7 @@ const editor = useEditor({
     isFocused.value = true
   },
   onBlur: (e) => {
-    if (props.isTabPressed) {
+    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
       e?.editor?.setEditable(false)
     }
@@ -202,13 +201,17 @@ watch(editorDom, () => {
   }, 50)
 })
 
-onClickOutside(editorDom, (e) => {
-  if ((e.target as HTMLElement)?.closest('.bubble-menu')) {
-    return
-  }
-
-  isFocused.value = false
-})
+useEventListener(
+  editorDom,
+  'focusout',
+  (e: FocusEvent) => {
+    if (!(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+      isFocused.value = false
+      editor.value?.setEditable(false)
+    }
+  },
+  true,
+)
 </script>
 
 <template>

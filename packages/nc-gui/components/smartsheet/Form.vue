@@ -936,7 +936,6 @@ useEventListener(
                       class="nc-form-focus-element font-medium text-base !text-gray-500"
                       is-form-field
                       :autofocus="activeRow === 'nc-form-sub-heading'"
-                      :is-tab-pressed="isTabPressed"
                       data-testid="nc-form-sub-heading"
                       data-title="nc-form-sub-heading"
                       @update:value="updateView"
@@ -1083,7 +1082,6 @@ useEventListener(
                               :placeholder="$t('msg.info.formHelpText')"
                               class="form-meta-input nc-form-input-help-text"
                               is-form-field
-                              :is-tab-pressed="isTabPressed"
                               data-testid="nc-form-input-help-text"
                               @update:value="updateColMeta(element)"
                           /></a-form-item>

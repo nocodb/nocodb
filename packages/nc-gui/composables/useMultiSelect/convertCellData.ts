@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
-import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName, validateDateWithUnknownFormat } from 'nocodb-sdk'
+import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { isBt, isMm, parseProp } from '#imports'
 

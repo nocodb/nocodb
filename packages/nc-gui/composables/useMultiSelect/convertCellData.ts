@@ -56,8 +56,14 @@ export default function convertCellData(
       }
       return null
     case UITypes.Date: {
-      const parsedDate = dayjs(value, getDateFormat(value))
-      if (!(validateDateWithUnknownFormat(value) && parsedDate.isValid())) {
+      const isValid = validateDateWithUnknownFormat(value)
+      let parsedDate = dayjs(value, getDateTimeFormat(value))
+
+      if (isValid && !parsedDate.isValid()) {
+        parsedDate = dayjs(value, getDateFormat(value))
+      }
+
+      if (!(isValid && parsedDate.isValid())) {
         if (isMultiple) {
           return null
         } else {
@@ -67,8 +73,13 @@ export default function convertCellData(
       return parsedDate.format('YYYY-MM-DD')
     }
     case UITypes.DateTime: {
-      const parsedDateTime = dayjs(value, getDateTimeFormat(value))
-      if (!(validateDateWithUnknownFormat(value) && parsedDateTime.isValid())) {
+      const isValid = validateDateWithUnknownFormat(value)
+      let parsedDateTime = dayjs(value, getDateTimeFormat(value))
+      if (isValid && !parsedDateTime.isValid()) {
+        parsedDateTime = dayjs(value, getDateFormat(value))
+      }
+
+      if (!(isValid && parsedDateTime.isValid())) {
         if (isMultiple) {
           return null
         } else {

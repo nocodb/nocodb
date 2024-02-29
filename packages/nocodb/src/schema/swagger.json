@@ -9955,10 +9955,10 @@
       ],
       "get": {
         "summary": "Count of Records in Dates in Calendar View",
-        "operationId": "db-view-row-calendar-count",
+        "operationId": "db-calendar-view-row-count",
         "description": "Get the count of table view rows grouped by the dates",
         "tags": [
-          "DB View Row"
+          "DB Calendar View Row Count"
         ],
         "parameters": [
           {
@@ -10049,7 +10049,7 @@
       ],
       "get": {
         "summary": "List rows in Calendar View of a Table",
-        "operationId": "db-calendar-view-row-list",
+        "operationId": "public-data-calendar-row-list",
         "description": "List all rows in Calendar View of a Table",
         "tags": [
           "DB Calendar View Row"
@@ -10231,7 +10231,7 @@
       ],
       "get": {
         "summary": "Count of Records in Dates in Calendar View",
-        "operationId": "public-calendar-count",
+        "operationId": "public-data-calendar-row-count",
         "parameters": [
           {
             "schema": {

@@ -200,6 +200,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  childrenListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
 })
 </script>

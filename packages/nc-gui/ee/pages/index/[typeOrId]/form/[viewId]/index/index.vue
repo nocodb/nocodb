@@ -96,11 +96,11 @@ const onDecode = async (scannedCodeValue: string) => {
 
         <div
           v-if="sharedFormView.logo_url"
-          class="mb-4 nc-shared-form-logo-wrapper rounded-xl inline-block h-56px max-w-189px overflow-hidden"
+          class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
         >
           <LazyCellAttachmentImage
             :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
-            class="nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0 rounded-xl"
+            class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
           />
         </div>
 

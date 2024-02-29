@@ -486,7 +486,7 @@ const openUploadImage = (isUploadBanner: boolean) => {
       stencilProps: {
         aspectRatio: 4 / 1,
       },
-      minHeight: 0,
+      minHeight: 100,
       minWidth: 0,
     }
     imageCropperData.value.cropFor = 'banner'
@@ -829,14 +829,18 @@ useEventListener(
                     <!-- Form logo  -->
                     <div class="mb-4">
                       <div
-                        class="nc-form-logo-wrapper mx-6 group relative rounded-xl inline-block h-56px max-w-189px overflow-hidden"
-                        :class="formViewData.logo_url ? 'hover:(w-full bg-gray-100)' : 'bg-gray-100'"
+                        class="nc-form-logo-wrapper mx-6 group relative inline-block h-56px overflow-hidden flex items-center"
+                        :class="
+                          formViewData.logo_url
+                            ? 'max-w-189px hover:(w-full bg-gray-100 rounded-xl) '
+                            : 'bg-gray-100 max-w-147px rounded-xl'
+                        "
                         style="transition: all 0.3s ease-in"
                       >
                         <LazyCellAttachmentImage
                           v-if="formViewData.logo_url"
                           :srcs="getPossibleAttachmentSrc(parseProp(formViewData.logo_url))"
-                          class="nc-form-logo !object-contain object-left max-h-full max-w-full !m-0 rounded-xl"
+                          class="flex-none nc-form-logo !object-contain object-left max-h-full max-w-full !m-0"
                         />
                         <div
                           class="items-center space-x-1 flex-nowrap m-3"

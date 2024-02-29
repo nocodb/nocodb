@@ -13,6 +13,7 @@ import {
   isSelectTypeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
+import type { VNodeRef } from '@vue/runtime-core'
 import type { Permission } from '#imports'
 import {
   ActiveViewInj,
@@ -43,7 +44,6 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import type { VNodeRef } from '@vue/runtime-core'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -915,8 +915,8 @@ useEventListener(
                     >
                       <a-form-item v-if="isEditable" class="!my-0">
                         <a-textarea
-                          v-model:value="formViewData.heading"
                           :ref="focusFormTitle"
+                          v-model:value="formViewData.heading"
                           class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
                           :style="{
                             'borderRightWidth': '0px !important',

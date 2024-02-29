@@ -16,6 +16,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { SortsService } from '~/services/sorts.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -44,7 +45,7 @@ export class SortsController {
   async sortCreate(
     @Param('viewId') viewId: string,
     @Body() body: SortReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const sort = await this.sortsService.sortCreate({
       sort: body,
@@ -68,7 +69,7 @@ export class SortsController {
   async sortUpdate(
     @Param('sortId') sortId: string,
     @Body() body: SortReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const sort = await this.sortsService.sortUpdate({
       sortId,
@@ -80,7 +81,7 @@ export class SortsController {
 
   @Delete(['/api/v1/db/meta/sorts/:sortId', '/api/v2/meta/sorts/:sortId'])
   @Acl('sortDelete')
-  async sortDelete(@Param('sortId') sortId: string, @Req() req: Request) {
+  async sortDelete(@Param('sortId') sortId: string, @Req() req: NcRequest) {
     const sort = await this.sortsService.sortDelete({
       sortId,
       req,

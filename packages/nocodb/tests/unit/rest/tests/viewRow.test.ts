@@ -1575,7 +1575,7 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}/countByDate/`,
+        `/api/v1/db/-calendardata/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}/countByDate/`,
       )
       .set('xc-auth', context.token)
       .expect(expectStatus);

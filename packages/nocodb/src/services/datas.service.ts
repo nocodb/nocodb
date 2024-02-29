@@ -23,6 +23,7 @@ export class DatasService {
       query: any;
       disableOptimization?: boolean;
       ignorePagination?: boolean;
+      calendarLimitOverride?: number;
       throwErrorIfInvalidParams?: boolean;
     },
   ) {
@@ -42,6 +43,7 @@ export class DatasService {
       query: param.query,
       throwErrorIfInvalidParams: true,
       ignorePagination: param.ignorePagination,
+      calendarLimitOverride: param.calendarLimitOverride,
     });
   }
 
@@ -151,6 +153,7 @@ export class DatasService {
     throwErrorIfInvalidParams?: boolean;
     ignoreViewFilterAndSort?: boolean;
     ignorePagination?: boolean;
+    calendarLimitOverride?: number;
   }) {
     const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
@@ -190,6 +193,7 @@ export class DatasService {
               ignoreViewFilterAndSort,
               throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
               ignorePagination: param.ignorePagination,
+              calendarLimitOverride: param.calendarLimitOverride,
             }),
             {},
             listArgs,

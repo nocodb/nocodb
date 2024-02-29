@@ -86,7 +86,6 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
   if (rowId) {
     router.push({
       query: {

@@ -377,6 +377,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               filtersArr: activeDateFilter,
             })
         activeDates.value = res.dates.map((dateObj: unknown) => dayjs(dateObj))
+
+        if (res.count > 3000 && activeCalendarView.value !== 'year') {
+          message.warning(
+            'This current date range has more than 3000 records. Some records may not be displayed. To get complete records, contact support',
+          )
+        }
       } catch (e) {
         activeDates.value = []
         message.error(`${t('msg.error.fetchingActiveDates')} ${await extractSdkResponseErrorMsg(e)}`)
@@ -665,17 +671,21 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     watch(selectedDate, async (value, oldValue) => {
       if (activeCalendarView.value === 'month' || activeCalendarView.value === 'week') {
-        if (sideBarFilterOption.value === 'selectedDate') {
+        if (sideBarFilterOption.value === 'selectedDate' && showSideMenu.value) {
           await loadSidebarData()
         }
       } else if (activeCalendarView.value === 'year') {
         if (value.year() !== oldValue.year()) {
           await Promise.all([loadCalendarData(), loadSidebarData(), await fetchActiveDates()])
-        } else if (sideBarFilterOption.value === 'selectedDate') {
+        } else if (sideBarFilterOption.value === 'selectedDate' && showSideMenu.value) {
           await loadSidebarData()
         }
       } else {
-        await Promise.all([loadSidebarData(), loadCalendarData()])
+        if (showSideMenu.value) {
+          await Promise.all([loadSidebarData(), loadCalendarData()])
+        } else {
+          await Promise.all([loadCalendarData()])
+        }
       }
 
       if (activeCalendarView.value === 'year' && value.year() !== oldValue.year()) {
@@ -684,7 +694,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(selectedTime, async () => {
-      if (calDataType.value !== UITypes.Date) {
+      if (calDataType.value !== UITypes.Date && showSideMenu.value) {
         await loadSidebarData()
       }
     })
@@ -733,7 +743,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       }
       sideBarFilterOption.value = activeCalendarView.value ?? 'allRecords'
-      await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
+      if (activeCalendarView.value === 'year') {
+        await Promise.all([loadSidebarData(), fetchActiveDates()])
+      } else {
+        await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
+      }
+    })
+
+    watch(showSideMenu, async (val) => {
+      if (val) await loadSidebarData()
     })
 
     watch(sideBarFilterOption, async () => {

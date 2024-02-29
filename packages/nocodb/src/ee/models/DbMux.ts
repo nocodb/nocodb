@@ -227,10 +227,11 @@ export default class DbMux {
       ncMeta,
     );
 
-    await NocoCache.deepDel(
-      `${CacheScope.DB_MUX}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
-    );
+    this.sourceCount = await DbMux.sourceCount(this.id, ncMeta);
+
+    await NocoCache.update(`${CacheScope.DB_MUX}:${this.id}`, {
+      sourceCount: this.sourceCount,
+    });
 
     return DbMux.get(this.id, ncMeta);
   }

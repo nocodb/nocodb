@@ -112,9 +112,6 @@ const recordsAcrossAllRange = computed<{
         let startDate = dayjs(record.row[fromCol.title!])
         let endDate = dayjs(record.row[endCol.title!])
 
-        // If no start date is provided or startDate is after the endDate, we skip the record
-        if (!startDate.isValid() || startDate.isAfter(endDate)) continue
-
         // If there is no end date, we add 30 minutes to the start date and use that as the end date
         if (!endDate.isValid()) {
           endDate = startDate.clone().add(30, 'minutes')
@@ -122,13 +119,13 @@ const recordsAcrossAllRange = computed<{
 
         // If the start date is before the opened date, we use the schedule start as the start date
         // This is to ensure the generated style of the record is not outside the bounds of the calendar
-        if (startDate.isBefore(scheduleStart, 'minutes')) {
+        if (startDate.isBefore(scheduleStart)) {
           startDate = scheduleStart
         }
 
         // If the end date is after the schedule end, we use the schedule end as the end date
         // This is to ensure the generated style of the record is not outside the bounds of the calendar
-        if (endDate.isAfter(scheduleEnd, 'minutes')) {
+        if (endDate.isAfter(scheduleEnd)) {
           endDate = scheduleEnd
         }
 
@@ -208,7 +205,7 @@ const recordsAcrossAllRange = computed<{
 
         let endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
 
-        if (endDate.isAfter(scheduleEnd, 'minutes')) {
+        if (endDate.isAfter(scheduleEnd)) {
           endDate = scheduleEnd
         }
 
@@ -328,6 +325,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 // When the user is dragging a record, we calculate the new start and end date based on the mouse position
 const calculateNewRow = (event: MouseEvent) => {
   if (!container.value || !dragRecord.value) return { newRow: null, updateProperty: [] }
+
   const { top } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
@@ -405,10 +403,9 @@ const calculateNewRow = (event: MouseEvent) => {
 }
 
 const onResize = (event: MouseEvent) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (!container.value || !resizeRecord.value) return
-  const { top, bottom } = container.value.getBoundingClientRect()
+  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
 
+  const { top, bottom } = container.value.getBoundingClientRect()
   const { scrollHeight } = container.value
 
   // If the mouse position is near the top or bottom of the scroll container, we scroll the container
@@ -422,26 +419,28 @@ const onResize = (event: MouseEvent) => {
 
   const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
+
   if (!fromCol || !toCol) return
 
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const hour = Math.max(Math.floor(percentY * 23), 0)
+  const hour = Math.floor(percentY * 24) // Round down to the nearest hour
+  const minutes = Math.round((percentY * 24 * 60) % 60)
 
   let newRow: Row | null = null
   let updateProperty: string[] = []
 
   if (resizeDirection.value === 'right') {
     // If the user is resizing the record to the right, we calculate the new end date based on the mouse position
-    let newEndDate = dayjs(selectedDate.value).add(hour, 'hour')
+    let newEndDate = dayjs(selectedDate.value).add(hour, 'hour').add(minutes, 'minute')
 
     updateProperty = [toCol.title!]
 
     // If the new end date is before the start date, we set the new end date to the start date
     // This is to ensure the end date is always same or after the start date
-    if (dayjs(newEndDate).isBefore(ogStartDate, 'day')) {
-      newEndDate = ogStartDate.clone()
+    if (dayjs(newEndDate).isBefore(ogStartDate.add(1, 'hour'))) {
+      newEndDate = ogStartDate.clone().add(1, 'hour')
     }
 
     if (!newEndDate.isValid()) return
@@ -454,14 +453,14 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else if (resizeDirection.value === 'left') {
-    let newStartDate = dayjs(selectedDate.value).add(hour, 'hour')
+    let newStartDate = dayjs(selectedDate.value).add(hour, 'hour').add(minutes, 'minute')
 
     updateProperty = [fromCol.title!]
 
     // If the new start date is after the end date, we set the new start date to the end date
     // This is to ensure the start date is always before or same the end date
-    if (dayjs(newStartDate).isAfter(ogEndDate)) {
-      newStartDate = dayjs(dayjs(ogEndDate)).clone()
+    if (dayjs(newStartDate).isAfter(ogEndDate.subtract(1, 'hour'))) {
+      newStartDate = dayjs(dayjs(ogEndDate)).clone().add(-1, 'hour')
     }
     if (!newStartDate) return
 

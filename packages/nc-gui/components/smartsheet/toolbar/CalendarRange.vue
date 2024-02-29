@@ -28,7 +28,7 @@ const IsPublic = inject(IsPublicInj, ref(false))
 
 const { loadViewColumns } = useViewColumnsOrThrow()
 
-const { loadCalendarMeta, loadCalendarData, loadSidebarData } = useCalendarViewStoreOrThrow()
+const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
@@ -71,7 +71,7 @@ const saveCalendarRanges = async () => {
         calendar_range: calRanges as CalendarRangeType[],
       })
       await loadCalendarMeta()
-      await Promise.all([loadCalendarData(), loadSidebarData()])
+      await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
     } catch (e) {
       console.log(e)
       message.error('There was an error while updating view!')

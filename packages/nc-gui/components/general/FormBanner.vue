@@ -8,7 +8,11 @@ const { getPossibleAttachmentSrc } = useAttachment()
 </script>
 
 <template>
-  <div class="nc-form-banner-wrapper w-full mx-auto rounded-2xl overflow-hidden" :style="{ aspectRatio: 4 / 1 }">
+  <div
+    class="nc-form-banner-wrapper w-full mx-auto rounded-2xl overflow-hidden"
+    :class="!bannerImageUrl ? 'shadow-sm' : ''"
+    :style="{ aspectRatio: 4 / 1 }"
+  >
     <LazyCellAttachmentImage
       v-if="bannerImageUrl"
       :srcs="getPossibleAttachmentSrc(parseProp(bannerImageUrl))"

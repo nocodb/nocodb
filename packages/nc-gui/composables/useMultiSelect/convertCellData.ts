@@ -55,38 +55,24 @@ export default function convertCellData(
         if (strval === 'false' || strval === '0' || strval === '') return false
       }
       return null
-    case UITypes.Date: {
-      const isValid = validateDateWithUnknownFormat(value)
-      let parsedDate = dayjs(value, getDateTimeFormat(value))
-
-      if (isValid && !parsedDate.isValid()) {
-        parsedDate = dayjs(value, getDateFormat(value))
-      }
-
-      if (!(isValid && parsedDate.isValid())) {
-        if (isMultiple) {
-          return null
-        } else {
-          throw new Error('Not a valid date')
-        }
-      }
-      return parsedDate.format('YYYY-MM-DD')
-    }
+    case UITypes.Date:
     case UITypes.DateTime: {
-      const isValid = validateDateWithUnknownFormat(value)
-      let parsedDateTime = dayjs(value, getDateTimeFormat(value))
-      if (isValid && !parsedDateTime.isValid()) {
-        parsedDateTime = dayjs(value, getDateFormat(value))
+      let parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value))
+
+      if (!parsedDateOrDateTime.isValid()) {
+        parsedDateOrDateTime = dayjs(value, getDateFormat(value))
       }
 
-      if (!(isValid && parsedDateTime.isValid())) {
+      if (!parsedDateOrDateTime.isValid()) {
         if (isMultiple) {
           return null
         } else {
-          throw new Error('Not a valid datetime value')
+          throw new Error(`Not a valid '${to}' value`)
         }
       }
-      return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+      return to === UITypes.Date
+        ? parsedDateOrDateTime.format('YYYY-MM-DD')
+        : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)

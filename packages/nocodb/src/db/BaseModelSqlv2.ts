@@ -434,7 +434,7 @@ class BaseModelSqlv2 {
       if (!calendarLimitOverride) {
         applyPaginate(qb, rest);
       } else {
-        applyPaginate(qb, { limit: calendarLimitOverride, ...rest });
+        applyPaginate(qb, { ...rest, limit: calendarLimitOverride });
       }
     }
     const proto = await this.getProto();

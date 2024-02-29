@@ -19,7 +19,7 @@
     "fs": "0.0.1-security",
     "lerna": "^7.4.2",
     "husky": "^8.0.3",
-    "xlsx": "^0.17.4"
+    "xlsx": "^0.17.5"
   },
   "husky": {
     "hooks": {

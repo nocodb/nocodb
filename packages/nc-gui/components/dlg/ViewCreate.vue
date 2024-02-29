@@ -376,7 +376,7 @@ onMounted(async () => {
         <a
           v-if="!form.copy_from_id"
           class="text-sm !text-gray-600 !hover:text-gray-600"
-          href="https://docs.nocodb.com/views/view-types/calendar/"
+          :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
           target="_blank"
         >
           Go to Docs

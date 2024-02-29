@@ -256,11 +256,11 @@ Akses dasbor menggunakan : [http://localhost:8080/dashboard](http://localhost:80
 
 ### Sinkronisasi Skema
 
-Kami memungkinkan Anda untuk menyinkronkan perubahan skema jika Anda telah melakukan perubahan di luar antarmuka NocoDB GUI. Namun, perlu diperhatikan bahwa Anda harus menyediakan migrasi skema sendiri untuk berpindah dari satu lingkungan ke lingkungan lainnya. Lihat [Sinkronisasi Skema](https://docs.nocodb.com/setup-and-usages/sync-schema/) untuk detail lebih lanjut.
+Kami memungkinkan Anda untuk menyinkronkan perubahan skema jika Anda telah melakukan perubahan di luar antarmuka NocoDB GUI. Namun, perlu diperhatikan bahwa Anda harus menyediakan migrasi skema sendiri untuk berpindah dari satu lingkungan ke lingkungan lainnya. Lihat [Sinkronisasi Skema](https://docs.nocodb.com/data-sources/sync-with-data-source) untuk detail lebih lanjut.
 
 ### Audit
 
-Kami menyimpan semua log operasi pengguna di satu tempat. Lihat [Audit](https://docs.nocodb.com/setup-and-usages/audit) untuk detail lebih lanjut.
+Kami menyimpan semua log operasi pengguna di satu tempat. Lihat [Audit](https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs) untuk detail lebih lanjut.
 
 # Pengaturan Produksi
 
@@ -268,7 +268,7 @@ Secara default, SQLite digunakan untuk menyimpan metadata. Namun, Anda dapat men
 
 ## Environment variables
 
-Silakan lihat [Environment Variables](https://docs.nocodb.com/getting-started/environment-variables) untuk informasi lebih lanjut. 
+Silakan lihat [Environment Variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables) untuk informasi lebih lanjut. 
 
 # Pengaturan Pengembangan
 

@@ -323,6 +323,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 3,
+        type: FormulaDataTypes.DATE,
       },
       custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
@@ -378,7 +379,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.DATE,
       },
     },
     syntax: 'DATESTR(date | datetime)',
@@ -390,7 +390,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.DATE,
       },
     },
     syntax: 'DAY(date | datetime)',
@@ -402,7 +401,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.DATE,
       },
     },
     syntax: 'MONTH(date | datetime)',
@@ -414,7 +412,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.DATE,
       },
     },
     syntax: 'DAY(time | datetime)',
@@ -430,6 +427,7 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         min: 2,
         max: 3,
+        type: FormulaDataTypes.DATE,
       },
       custom: (_argTypes: FormulaDataTypes[], parsedTree: any) => {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {
@@ -820,6 +818,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 0,
+        type: FormulaDataTypes.DATE,
       },
     },
     description: 'Retrieve the current time and day.',
@@ -887,29 +886,8 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
-      custom(argTypes: FormulaDataTypes[], parsedTree) {
-        if (argTypes[0] !== FormulaDataTypes.STRING) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.stringTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'String type is expected'
-          );
-        }
-        if (argTypes[1] !== FormulaDataTypes.NUMERIC) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.numericTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'Numeric type is expected'
-          );
-        }
-      }
     },
     description: 'Retrieve the last n characters from the input string.',
     syntax: 'RIGHT(str, n)',
@@ -923,29 +901,8 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
+        type: FormulaDataTypes.STRING,
       },
-      custom(argTypes: FormulaDataTypes[], parsedTree) {
-        if (argTypes[0] !== FormulaDataTypes.STRING) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.stringTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'String type is expected'
-          );
-        }
-        if (argTypes[1] !== FormulaDataTypes.NUMERIC) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.numericTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'Numeric type is expected'
-          );
-        }
-      }
     },
     description: 'Retrieve the first n characters from the input string.',
     syntax: 'LEFT(str, n)',
@@ -990,30 +947,6 @@ export const formulas: Record<string, FormulaMeta> = {
           FormulaDataTypes.NUMERIC,
         ],
       },
-      custom(argTypes: FormulaDataTypes[], parsedTree) {
-        if (argTypes[0] !== FormulaDataTypes.STRING) {
-          throw new FormulaError(
-            FormulaErrorType.INVALID_ARG,
-            {
-              key: 'msg.formula.stringTypeIsExpected',
-              calleeName: parsedTree.callee?.name?.toUpperCase(),
-            },
-            'String type is expected'
-          );
-        }
-        for(const i of [1,2]) {
-          if (argTypes[i] !== FormulaDataTypes.NUMERIC) {
-            throw new FormulaError(
-              FormulaErrorType.INVALID_ARG,
-              {
-                key: 'msg.formula.numericTypeIsExpected',
-                calleeName: parsedTree.callee?.name?.toUpperCase(),
-              },
-              'Numeric type is expected'
-            );
-          }
-        }
-      }
     },
     description: 'Extracts a substring; an alias for SUBSTR.',
     syntax: 'MID(str, position, [count])',
@@ -1131,6 +1064,7 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         min: 1,
         max: 2,
+        type: FormulaDataTypes.NUMERIC,
       },
       custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
         if (parsedTree.arguments[0].type === JSEPNode.LITERAL) {

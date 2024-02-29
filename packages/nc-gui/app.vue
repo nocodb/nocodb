@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { message } from 'ant-design-vue'
+import { extractSdkResponseErrorMsg } from './utils'
 import { applyNonSelectable, computed, isEeUI, isMac, useCommandPalette, useRouter, useTheme } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 
@@ -96,27 +98,70 @@ onMounted(() => {
     refreshCommandPalette()
   })
 })
+
+let errorCount = 0
+
+const handleError = async (error, clearError) => {
+  console.error('UI ERROR', error.value)
+  // if error is api error, show toast message with error message
+  if (error.value?.response) {
+    message.warn(await extractSdkResponseErrorMsg(error.value))
+  } else {
+    // else show generic error message
+    message.warn('Something went wrong. Please reload the page if page is not functioning properly.')
+  }
+  clearError()
+
+  // if error count is more than 3 within 3 second, navigate to home
+  // since it's likely endless loop of errors due to some UI issue in certain page
+  errorCount++
+  if (errorCount > 3) {
+    router.push('/')
+  }
+
+  // reset error count after 1 second
+  setTimeout(() => {
+    errorCount = 0
+  }, 3000)
+}
 </script>
 
 <template>
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
-      <NuxtPage :key="key" :transition="false" />
+      <NuxtErrorBoundary>
+        <NuxtPage :key="key" :transition="false" />
+
+        <!-- on error, clear error and show toast message -->
+        <template #error="{ error, clearError }">
+          {{ handleError(error, clearError) }}
+        </template>
+      </NuxtErrorBoundary>
     </NuxtLayout>
   </a-config-provider>
-  <!-- Command Menu -->
-  <CmdK
-    ref="commandPalette"
-    v-model:open="cmdK"
-    :scope="activeScope.scope"
-    :data="cmdData"
-    :placeholder="cmdPlaceholder"
-    :load-temporary-scope="loadTemporaryScope"
-    :set-active-cmd-view="setActiveCmdView"
-    @scope="onScope"
-  />
-  <!-- Recent Views. Cycles through recently visited Views -->
-  <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
-  <!-- Documentation. Integrated NocoDB Docs directlt inside the Product -->
-  <CmdJ />
+
+  <NuxtErrorBoundary>
+    <div>
+      <!-- Command Menu -->
+      <CmdK
+        ref="commandPalette"
+        v-model:open="cmdK"
+        :scope="activeScope.scope"
+        :data="cmdData"
+        :placeholder="cmdPlaceholder"
+        :load-temporary-scope="loadTemporaryScope"
+        :set-active-cmd-view="setActiveCmdView"
+        @scope="onScope"
+      />
+      <!-- Recent Views. Cycles through recently visited Views -->
+      <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
+      <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
+      <CmdJ />
+    </div>
+
+    <!-- on error, clear error and show toast message -->
+    <template #error="{ error, clearError }">
+      {{ handleError(error, clearError) }}
+    </template>
+  </NuxtErrorBoundary>
 </template>

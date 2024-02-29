@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
-import { UITypes, populateUniqueFileName } from 'nocodb-sdk'
+import { UITypes, getDateFormat, populateUniqueFileName, validateDateWithUnknownFormat } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { isBt, isMm, parseProp } from '#imports'
 
@@ -56,8 +56,8 @@ export default function convertCellData(
       }
       return null
     case UITypes.Date: {
-      const parsedDate = dayjs(value, parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD')
-      if (!parsedDate.isValid()) {
+      const parsedDate = dayjs(value, getDateFormat(value))
+      if (!(validateDateWithUnknownFormat(value) && parsedDate.isValid())) {
         if (isMultiple) {
           return null
         } else {

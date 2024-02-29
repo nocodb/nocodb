@@ -173,6 +173,7 @@ export class CalendarDatasService {
       model,
       view,
       query,
+      ignorePagination: true,
     });
 
     if (!data) NcError.notFound('Data not found');

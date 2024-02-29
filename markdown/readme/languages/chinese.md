@@ -189,11 +189,11 @@ docker-compose up -d
 
 ### 架构同步
 
-如果您在 NocoDB GUI 之外进行了更改，我们允许您同步架构更改。 但是，必须注意的是，您必须附有自己的迁移架构才能从一个环境迁移到其他环境。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">同步架构</a>。
+如果您在 NocoDB GUI 之外进行了更改，我们允许您同步架构更改。 但是，必须注意的是，您必须附有自己的迁移架构才能从一个环境迁移到其他环境。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">同步架构</a>。
 
 ### 审计
 
-我们将所有用户操作日志保存在一起。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">审计</a>。
+我们将所有用户操作日志保存在一起。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">审计</a>。
 
 # 生产部署
 
@@ -201,7 +201,7 @@ docker-compose up -d
 
 ## 环境变量
 
-参见[环境变量](https://docs.nocodb.com/getting-started/environment-variables)
+参见[环境变量](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # 开发
 

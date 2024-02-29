@@ -12,6 +12,7 @@ import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 import { PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class AttachmentsService {
@@ -33,6 +34,10 @@ export class AttachmentsService {
 
     const attachments = [];
     const errors = [];
+
+    if (!param.files?.length) {
+      NcError.badRequest('No attachment provided!');
+    }
 
     queue.addAll(
       param.files?.map((file) => async () => {
@@ -126,6 +131,10 @@ export class AttachmentsService {
 
     const attachments = [];
     const errors = [];
+
+    if (!param.urls?.length) {
+      NcError.badRequest('No attachment provided!');
+    }
 
     queue.addAll(
       param.urls?.map?.((urlMeta) => async () => {

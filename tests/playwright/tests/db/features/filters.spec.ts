@@ -848,7 +848,7 @@ test.describe('Filter Tests: Date based', () => {
     await dateTimeBasedFilterTest('Date', 0);
   });
 
-  test.only('Date : filters-2', async () => {
+  test('Date : filters-2', async () => {
     await dateTimeBasedFilterTest('Date', 1);
   });
 });

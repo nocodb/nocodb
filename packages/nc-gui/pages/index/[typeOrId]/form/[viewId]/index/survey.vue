@@ -376,7 +376,7 @@ onMounted(() => {
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <a-alert
-                class="!my-4 !py-4 !rounded-lg text-left"
+                class="!my-4 !py-4 !rounded-lg text-left w-full"
                 type="success"
                 data-testid="nc-survey-form__success-msg"
                 outlined
@@ -399,12 +399,12 @@ onMounted(() => {
                 </template>
               </a-alert>
 
-              <div v-if="sharedFormView" class="mt-3">
-                <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
+              <div v-if="sharedFormView" class="mt-3 w-full">
+                <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-left my-4">
                   {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds') }}
                 </p>
 
-                <div v-if="sharedFormView?.submit_another_form" class="text-center">
+                <div v-if="sharedFormView?.submit_another_form" class="text-right">
                   <NcButton type="primary" size="medium" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
                     {{ $t('activity.submitAnotherForm') }}
                   </NcButton>

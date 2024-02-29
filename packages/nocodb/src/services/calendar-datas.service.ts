@@ -122,10 +122,10 @@ export class CalendarDatasService {
       id: view.fk_model_id,
     });
 
-    const data = await this.datasService.getDataList({
-      model,
-      view,
-      query,
+    const data = await this.datasService.dataList({
+      ...param,
+      baseName: model.base_id,
+      tableName: model.id,
       ignorePagination: true,
     });
 
@@ -133,8 +133,10 @@ export class CalendarDatasService {
 
     const dates: Array<string> = [];
 
+    const columns = await model.getColumns();
+
     ranges.forEach((range: CalendarRangeType) => {
-      const fromCol = model.columns.find(
+      const fromCol = columns.find(
         (c) => c.id === range.fk_from_column_id,
       )?.title;
 

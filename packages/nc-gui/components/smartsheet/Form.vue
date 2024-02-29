@@ -13,7 +13,6 @@ import {
   isSelectTypeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
-import type { VNodeRef } from '@vue/runtime-core'
 import type { Permission } from '#imports'
 import {
   ActiveViewInj,
@@ -174,8 +173,6 @@ const imageCropperData = ref<{
 })
 
 const focusLabel = ref<HTMLTextAreaElement>()
-
-const focusFormTitle: VNodeRef = (el) => el && activeRow.value === NcForm.heading && (el as HTMLTextAreaElement)?.focus()
 
 const searchQuery = ref('')
 
@@ -559,8 +556,6 @@ onMounted(async () => {
   await loadFormView()
   setFormData()
   isLoadingFormView.value = false
-
-  activeRow.value = NcForm.heading
 })
 
 watch(submitted, (v) => {
@@ -915,7 +910,6 @@ useEventListener(
                     >
                       <a-form-item v-if="isEditable" class="!my-0">
                         <a-textarea
-                          :ref="focusFormTitle"
                           v-model:value="formViewData.heading"
                           class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
                           :style="{

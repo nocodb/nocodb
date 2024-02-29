@@ -33,6 +33,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "dev": "nest start --path tsconfig.json",
+    "dev:ee": "nest start --path tsconfig.ee.json",
     "watch:run": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:ee": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/ee/run/docker --log-error --project tsconfig.ee.json\" | pino-pretty",
     "watch:run:ee-on-prem": "cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/ee/run/docker --log-error --project tsconfig.ee-on-prem.json\" | pino-pretty",

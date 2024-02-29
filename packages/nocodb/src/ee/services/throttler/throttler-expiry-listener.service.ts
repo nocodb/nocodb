@@ -109,7 +109,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
       `status|${expiredKey}`,
       expiredKey.replace('throttler', 'exec'),
       Date.now(),
-      Date.now() - config.ttl * 1000,
+      Date.now() - config.meta.ttl * 1000,
     );
 
     if (+result[0]) {
@@ -130,7 +130,7 @@ export class ThrottlerExpiryListenerService implements OnModuleInit {
 
       this.clickHouseService.execute(`
         INSERT INTO ${ClickhouseTables.API_COUNT} (id,fk_workspace_id, api_token,count, created_at, ttl, max_apis, exec_time)
-        VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.ttl}, ${config.max_apis}, ${execTime})
+        VALUES (generateUUIDv4(), '${workspaceId}', '${token}', ${count}, now(), ${config.meta.ttl}, ${config.meta.max_apis}, ${execTime})
       `);
     }
   }

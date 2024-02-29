@@ -20,5 +20,11 @@
       "./src/types",
       "./node_modules/@types"
     ]
-  }
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./src/ee-on-prem"
+  ]
 }

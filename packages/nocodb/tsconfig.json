@@ -26,18 +26,20 @@
     "esModuleInterop": true,
     "paths": {
       "src/*": [
-        "./src/*"
+        "src/*"
       ],
       "~/*": [
-        "./src/*"
+        "src/*"
       ],
       "@/*": [
-        "./src/*"
+        "src/*"
       ]
     },
     "typeRoots": [
-      "./src/types",
-      "./node_modules/@types"
+      "src/types",
+      "node_modules/@types"
     ]
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/ee", "src/ee-on-prem"]
 }

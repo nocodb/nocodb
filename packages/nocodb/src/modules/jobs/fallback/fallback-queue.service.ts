@@ -22,7 +22,7 @@ export class QueueService {
   static queueIdCounter = 1;
   static processed = 0;
   static queueMemory: Job[] = [];
-  static emitter = new Emittery();
+  static _emitter: Emittery = new Emittery();
 
   constructor(
     protected readonly jobsEventService: JobsEventService,
@@ -103,8 +103,8 @@ export class QueueService {
     }
   }
 
-  get emitter() {
-    return QueueService.emitter;
+  get emitter(): Emittery {
+    return QueueService._emitter;
   }
 
   get queue() {

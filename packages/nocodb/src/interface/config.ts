@@ -4,6 +4,7 @@ import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
 import type { User } from '~/models';
+import type { IncomingHttpHeaders } from 'http';
 
 export interface Route {
   path: string;

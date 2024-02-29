@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import type { MiddlewareConsumer } from '@nestjs/common';
 import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
-import { GlobalModule } from '~/modules/global/global.module';
 import { UsersService } from '~/services/users/users.service';
 import { AuthController } from '~/controllers/auth/auth.controller';
 import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.strategy';
@@ -15,12 +14,7 @@ import { SSOAuthController } from '~/controllers/auth/sso-auth.controller';
 import { SSOPassportMiddleware } from '~/middlewares/sso-paasport/sso-passport.middleware';
 
 @Module({
-  imports: [
-    forwardRef(() => GlobalModule),
-    PassportModule,
-    forwardRef(() => MetasModule),
-    WorkspacesModule,
-  ],
+  imports: [PassportModule, forwardRef(() => MetasModule), WorkspacesModule],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [AuthController, SSOAuthController]

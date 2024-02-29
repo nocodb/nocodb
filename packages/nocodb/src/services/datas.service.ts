@@ -180,16 +180,6 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    let options = {};
-
-    if (view && view.type === ViewTypes.CALENDAR && param.ignorePagination) {
-      {
-        options = {
-          ignorePagination: true,
-        };
-      }
-    }
-
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
@@ -200,7 +190,6 @@ export class DatasService {
             await baseModel.list(listArgs, {
               ignoreViewFilterAndSort,
               throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
-              ...options,
             }),
             {},
             listArgs,
@@ -1053,44 +1042,5 @@ export class DatasService {
       NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
 
     return column;
-  }
-
-  async getDataAggregateBy(param: {
-    viewId: string;
-    query?: any;
-    aggregateColumnName: string;
-    aggregateFunction: string;
-    groupByColumnName?: string;
-    ignoreFilters?: boolean;
-    sort?: {
-      column_name: string;
-      direction: 'asc' | 'desc';
-    };
-  }) {
-    const { viewId, query = {} } = param;
-
-    const view = await View.get(viewId);
-
-    const source = await Source.get(view.source_id);
-
-    const baseModel = await Model.getBaseModelSQL({
-      id: view.fk_model_id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    const data = await baseModel.groupByAndAggregate(
-      param.aggregateColumnName,
-      param.aggregateFunction,
-      {
-        groupByColumnName: param.groupByColumnName,
-        sortBy: param.sort,
-        ...query,
-      },
-    );
-
-    return new PagedResponseImpl(data, {
-      ...query,
-    });
   }
 }

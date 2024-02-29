@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ViewTypes } from 'nocodb-sdk';
+import { ErrorMessages, ViewTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
 import dayjs from 'dayjs';
 import type { CalendarRangeType, FilterType } from 'nocodb-sdk';
@@ -96,6 +96,46 @@ export class CalendarDatasService {
       ...query,
       count,
     });
+  }
+
+  async getPublicCalendarRecordCount(param: {
+    password: string;
+    query: any;
+    sharedViewUuid: string;
+  }) {
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+    if (view.type !== ViewTypes.CALENDAR) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== password) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    return this.getCalendarRecordCount({ viewId: view.id, query });
+  }
+
+  async getPublicCalendarDataList(param: {
+    password: string;
+    query: any;
+    sharedViewUuid: string;
+  }) {
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+    if (view.type !== ViewTypes.CALENDAR) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== password) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    return this.getCalendarDataList({ viewId: view.id, query });
   }
 
   async getCalendarRecordCount(param: { viewId: string; query: any }) {

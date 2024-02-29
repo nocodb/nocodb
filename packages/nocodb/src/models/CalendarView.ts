@@ -5,12 +5,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import CalendarRange from '~/models/CalendarRange';
 
 export default class CalendarView implements CalendarType {
@@ -94,11 +89,6 @@ export default class CalendarView implements CalendarType {
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
 
     if (body.calendar_range) {
-      // if calendar range is updated, delete cache
-      await NocoCache.deepDel(
-        `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
       await ncMeta.metaDelete(
         null,
         null,
@@ -108,6 +98,8 @@ export default class CalendarView implements CalendarType {
           fk_view_id: calendarId,
         },
       );
+      // if calendar range is updated, delete cache
+      await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
       await CalendarRange.bulkInsert(
         body.calendar_range.map((range) => {
           return {

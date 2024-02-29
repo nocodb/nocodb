@@ -1,13 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ErrorMessages, ViewTypes } from 'nocodb-sdk';
-import { nocoExecute } from 'nc-help';
 import dayjs from 'dayjs';
 import type { CalendarRangeType, FilterType } from 'nocodb-sdk';
-import { CalendarRange, Model, Source, View } from '~/models';
-import { NcBaseError, NcError } from '~/helpers/catchError';
-import getAst from '~/helpers/getAst';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { CalendarRange, Model, View } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
 
 @Injectable()
@@ -47,54 +43,11 @@ export class CalendarDatasService {
       id: view.fk_model_id,
     });
 
-    const source = await Source.get(model.source_id);
-
-    const baseModel = await Model.getBaseModelSQL({
-      id: model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    const { ast, dependencyFields } = await getAst({
-      model,
-      query,
-      view,
-    });
-
-    const listArgs: any = dependencyFields;
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-
-    const [count, data] = await Promise.all([
-      baseModel.count(listArgs, false),
-      (async () => {
-        let data = [];
-        try {
-          data = await nocoExecute(
-            ast,
-            await baseModel.list(listArgs, {
-              ignoreViewFilterAndSort: false,
-            }),
-            {},
-            listArgs,
-          );
-        } catch (e) {
-          if (e instanceof NcBaseError) throw e;
-          this.logger.error(e);
-          NcError.internalServerError(
-            'Please check server log for more details',
-          );
-        }
-        return data;
-      })(),
-    ]);
-    return new PagedResponseImpl(data, {
+    return await this.datasService.dataList({
+      ...param,
       ...query,
-      count,
+      baseName: model.base_id,
+      tableName: model.id,
     });
   }
 

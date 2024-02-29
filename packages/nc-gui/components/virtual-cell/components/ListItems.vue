@@ -230,6 +230,10 @@ const linkedShortcuts = (e: KeyboardEvent) => {
     try {
       e.target?.previousElementSibling?.focus()
     } catch (e) {}
+  } else if (!expandedFormDlg.value && e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Enter' && e.key !== ' ') {
+    try {
+      filterQueryRef.value?.focus()
+    } catch (e) {}
   }
 }
 

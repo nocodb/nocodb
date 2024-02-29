@@ -64,7 +64,7 @@ export function getDateTimeFormat(v: string) {
       }
     }
   }
-  return 'YYYY/MM/DD';
+  return 'YYYY/MM/DD HH:mm';
 }
 
 export function parseStringDate(v: string, dateFormat: string) {

@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type CalendarRangeType, ViewTypes } from 'nocodb-sdk';
 import { CalendarDatasService as CalendarDatasServiceCE } from 'src/services/calendar-datas.service';
 import dayjs from 'dayjs';
-import type { FilterType } from 'nocodb-sdk';
 import { Model, View } from '~/models';
 import CalendarRange from '~/models/CalendarRange';
 import { NcError } from '~/helpers/catchError';
@@ -98,11 +97,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const calendarRange = await CalendarRange.read(viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
-    const filterArr: FilterType = {
-      is_group: true,
-      logical_op: 'and',
-      children: [],
-    };
+    const filterArr: any = [];
 
     const prevDate = dayjs(from_date)
       .add(1, 'day')
@@ -157,7 +152,12 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
         ];
       }
 
-      if (rangeFilter.length > 0) filterArr.children.push(rangeFilter);
+      if (rangeFilter.length > 0)
+        filterArr.push({
+          is_group: true,
+          logical_op: 'or',
+          children: rangeFilter,
+        });
     });
 
     return filterArr;

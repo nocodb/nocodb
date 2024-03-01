@@ -90,19 +90,25 @@ const recordsAcrossAllRange = computed<{
 
     // We fetch all the records that match the calendar ranges in a single time.
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
-    const sortedFormattedData = [...formattedData.value].filter((record) => {
-      const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
+    const sortedFormattedData = [...formattedData.value]
+      .filter((record) => {
+        const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
 
-      if (fromCol && endCol) {
-        const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
-        const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
+        if (fromCol && endCol) {
+          const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+          const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
 
-        return fromDate && toDate?.isValid() ? fromDate.isBefore(toDate) : true
-      } else if (fromCol && !endCol) {
-        return !!fromDate
-      }
-      return false
-    })
+          return fromDate && toDate?.isValid() ? fromDate.isBefore(toDate) : true
+        } else if (fromCol && !endCol) {
+          return !!fromDate
+        }
+        return false
+      })
+      .sort((a, b) => {
+        const aDate = dayjs(a.row[fromCol!.title!])
+        const bDate = dayjs(b.row[fromCol!.title!])
+        return aDate.isBefore(bDate) ? -1 : 1
+      })
 
     // If there is a start and end column, we calculate the top and height of the record based on the start and end date
     if (fromCol && endCol) {
@@ -145,7 +151,7 @@ const recordsAcrossAllRange = computed<{
           top: `${topInPixels + 5 + startHour * 2}px`,
         }
 
-        // We loop through every 15 minutes between the start and end date and keep track of the number of records that overlap at a given time
+        // We loop through every 1 minutes between the start and end date and keep track of the number of records that overlap at a given time
         // If the number of records exceeds 4, we hide the record and show a button to view more records
         while (_startDate.isBefore(endDate)) {
           const timeKey = _startDate.format('HH:mm')
@@ -203,7 +209,7 @@ const recordsAcrossAllRange = computed<{
 
         const startDate = dayjs(record.row[fromCol.title!])
 
-        let endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour')
+        let endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour').add(1, 'minute')
 
         if (endDate.isAfter(scheduleEnd)) {
           endDate = scheduleEnd
@@ -215,7 +221,7 @@ const recordsAcrossAllRange = computed<{
         let _startDate = startDate.clone()
 
         // We loop through every minute between the start and end date and keep track of the number of records that overlap at a given time
-        while (_startDate.isBefore(endDate)) {
+        while (_startDate.isBefore(endDate, 'minute')) {
           const timeKey = _startDate.format('HH:mm')
 
           if (!overlaps[timeKey]) {

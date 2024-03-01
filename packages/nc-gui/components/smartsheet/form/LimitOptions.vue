@@ -127,14 +127,12 @@ const showOrHideAll = (showAll: boolean) => {
   if (props.isRequired && !showAll) {
     return
   }
-  vModel.value = [
-    ...vModel.value.map((o) => {
-      return {
-        ...o,
-        show: showAll,
-      }
-    }),
-  ]
+  vModel.value = vModel.value.map((o) => {
+    return {
+      ...o,
+      show: showAll,
+    }
+  })
 }
 </script>
 
@@ -170,7 +168,7 @@ const showOrHideAll = (showAll: boolean) => {
         <NcButton
           type="secondary"
           size="xxsmall"
-          class="!border-none !px-2 !text-xs !text-gray-500 disabled:!text-gray-300"
+          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
           :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
           @click="showOrHideAll(false)"
         >
@@ -182,7 +180,7 @@ const showOrHideAll = (showAll: boolean) => {
         <NcButton
           type="secondary"
           size="xxsmall"
-          class="!border-none !px-2 !text-xs !text-gray-500 disabled:!text-gray-300"
+          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
           :disabled="vModel.filter((o) => o.show).length === vModel.length"
           @click="showOrHideAll(true)"
         >

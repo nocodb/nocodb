@@ -883,7 +883,7 @@ export interface FormType {
  */
 export interface FormUpdateReqType {
   /** Banner Image URL. Not in use currently. */
-  banner_image_url?: TextOrNullType;
+  banner_image_url?: StringOrNullType;
   /** Email to sned after form is submitted */
   email?: StringOrNullType;
   /**
@@ -892,7 +892,7 @@ export interface FormUpdateReqType {
    */
   heading?: string;
   /** Logo URL. Not in use currently. */
-  logo_url?: TextOrNullType;
+  logo_url?: StringOrNullType;
   /** Meta Info for this view */
   meta?: MetaType;
   /** The numbers of seconds to redirect after form submission */

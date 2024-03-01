@@ -5714,7 +5714,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "banner_image_url": null,
+                    "banner_image_url": "{\"path\":\"download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//7XeRtAlAOch-9THAFI.png\",\"title\":\"Screenshot 2024-03-01 at 11.24.39 AM.png\",\"mimetype\":\"image/png\",\"size\":392533}",
                     "email": "user@example.com",
                     "heading": "My Form",
                     "lock_type": "collaborative",
@@ -5755,7 +5755,7 @@
                   "Example 1": {
                     "value": {
                       "source_id": "ds_g4ccx6e77h1dmi",
-                      "banner_image_url": null,
+                      "banner_image_url": "{\"path\":\"download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//7XeRtAlAOch-9THAFI.png\",\"title\":\"Screenshot 2024-03-01 at 11.24.39 AM.png\",\"mimetype\":\"image/png\",\"size\":392533,\"signedPath\":\"dltemp/93tI0NcweqZcn7qH/1709286000000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//7XeRtAlAOch-9THAFI.png\"}",
                       "columns": [
                         {
                           "id": "fvc_ugj9zo5bzocxtl",
@@ -13152,7 +13152,7 @@
         "examples": [
           {
             "source_id": "ds_g4ccx6e77h1dmi",
-            "banner_image_url": null,
+            "banner_image_url": "{\"path\":\"download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//7XeRtAlAOch-9THAFI.png\",\"title\":\"Screenshot 2024-03-01 at 11.24.39 AM.png\",\"mimetype\":\"image/png\",\"size\":392533}",
             "columns": [
               {
                 "id": "fvc_ugj9zo5bzocxtl",
@@ -13176,7 +13176,7 @@
             "fk_model_id": "md_rsu68aqjsbyqtl",
             "heading": "My Form",
             "lock_type": "collaborative",
-            "logo_url": null,
+            "logo_url": "{\"path\":\"download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//7XeRtAlAOch-9THAFI.png\",\"title\":\"Screenshot 2024-03-01 at 11.24.39 AM.png\",\"mimetype\":\"image/png\",\"size\":392533}",
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
@@ -13198,8 +13198,15 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "description": "Banner Image URL",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "columns": {
             "type": "array",
@@ -13241,8 +13248,15 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Logo URL. Not in use currently."
+            "description": "Logo URL.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -13287,7 +13301,7 @@
         "description": "Model for Form Update Request",
         "examples": [
           {
-            "banner_image_url": null,
+            "banner_image_url": "{\"path\":\"download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//7XeRtAlAOch-9THAFI.png\",\"title\":\"Screenshot 2024-03-01 at 11.24.39 AM.png\",\"mimetype\":\"image/png\",\"size\":392533}",
             "email": "user@example.com",
             "heading": "My Form",
             "logo_url": null,
@@ -13304,8 +13318,15 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "description": "Banner Image URL",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "email": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -13318,8 +13339,15 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Logo URL. Not in use currently."
+            "description": "Logo URL.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",

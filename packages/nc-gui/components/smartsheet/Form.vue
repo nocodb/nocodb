@@ -281,22 +281,26 @@ async function onMove(event: any, isVisibleFormFields = false) {
         visibleColumns.value[newIndex > oldIndex ? newIndex - 1 : newIndex < oldIndex ? newIndex + 1 : newIndex].fk_column_id,
     )
   }
-
   if (!localColumns.value.length || localColumns.value.length === 1) {
     element.order = 1
   } else if (localColumns.value.length - 1 === newIndex) {
-    element.order = (localColumns.value[newIndex - 1]?.order || 0) + 1
+    element.order = Math.max(...localColumns.value.map((e) => e?.order ?? 0)) + 1
   } else if (newIndex === 0) {
-    element.order = (localColumns.value[1]?.order || 0) / 2
+    element.order = Math.min(...localColumns.value.map((e) => e?.order ?? 0)) / 2
   } else {
-    element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
+    element.order = ((localColumns.value[newIndex - 1]?.order ?? 0) + (localColumns.value[newIndex + 1].order ?? 0)) / 2
   }
 
   await $api.dbView.formColumnUpdate(element.id, element)
 
   fields.value[fieldIndex] = element as any
 
-  // saveOrUpdate(element, fieldIndex)
+  localColumns.value = localColumns.value.sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order
+    }
+    return 0
+  })
 
   $e('a:form-view:reorder')
 }

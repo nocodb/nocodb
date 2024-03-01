@@ -20,10 +20,10 @@ devDependencies:
     specifier: ^29.5.12
     version: 29.5.12
   '@typescript-eslint/eslint-plugin':
-    specifier: ^6.20.0
+    specifier: ^6.21.0
     version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.56.0)(typescript@5.3.3)
   '@typescript-eslint/parser':
-    specifier: ^6.20.0
+    specifier: ^6.21.0
     version: 6.21.0(eslint@8.56.0)(typescript@5.3.3)
   cspell:
     specifier: ^4.2.8

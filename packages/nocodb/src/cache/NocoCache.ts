@@ -106,6 +106,14 @@ export default class NocoCache {
     );
   }
 
+  public static async update(
+    key: string,
+    updateObj: Record<string, any>,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.update(`${this.prefix}:${key}`, updateObj);
+  }
+
   public static async destroy(): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.destroy();

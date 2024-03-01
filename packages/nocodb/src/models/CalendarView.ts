@@ -2,6 +2,7 @@ import type { BoolType, MetaType } from 'nocodb-sdk';
 import type { CalendarType } from 'nocodb-sdk';
 import View from '~/models/View';
 import { extractProps } from '~/helpers/extractProps';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
@@ -85,24 +86,9 @@ export default class CalendarView implements CalendarType {
     body: Partial<CalendarView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.CALENDAR_VIEW}:${calendarId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
 
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
-
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
-
     if (body.calendar_range) {
-      await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
       await ncMeta.metaDelete(
         null,
         null,
@@ -112,6 +98,8 @@ export default class CalendarView implements CalendarType {
           fk_view_id: calendarId,
         },
       );
+      // if calendar range is updated, delete cache
+      await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
       await CalendarRange.bulkInsert(
         body.calendar_range.map((range) => {
           return {
@@ -121,15 +109,24 @@ export default class CalendarView implements CalendarType {
         }),
       );
     }
+
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.CALENDAR_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: calendarId,
       },
     );
+
+    // update cache
+    await NocoCache.update(
+      `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 }

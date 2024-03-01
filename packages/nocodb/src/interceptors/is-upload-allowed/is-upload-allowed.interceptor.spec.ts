@@ -1,7 +1,7 @@
-import { IsUploadAllowedInterceptor } from './is-upload-allowed.interceptor';
+import { UploadAllowedInterceptor } from './is-upload-allowed.interceptor';
 
-describe('IsUploadAllowedInterceptor', () => {
+describe('UploadAllowedInterceptor', () => {
   it('should be defined', () => {
-    expect(new IsUploadAllowedInterceptor()).toBeDefined();
+    expect(new UploadAllowedInterceptor()).toBeDefined();
   });
 });

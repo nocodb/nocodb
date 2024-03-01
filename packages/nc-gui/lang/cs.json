@@ -192,7 +192,12 @@
     "enter": "Enter",
     "seconds": "Seconds",
     "paste": "Paste",
-    "restore": "Restore"
+    "restore": "Restore",
+    "replace": "Replace",
+    "banner": "Banner",
+    "logo": "Logo",
+    "dropdown": "Dropdown",
+    "list": "List"
   },
   "objects": {
     "day": "Day",
@@ -421,7 +426,9 @@
       "restrict": "Restrict",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
+    "noOptionsFound": "No options found"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -683,9 +690,18 @@
       "incompleteConfiguration": "Incomplete configuration",
       "selectField": "Select a field",
       "selectFieldLabel": "Begin by selecting a field to customise its properties and structure."
-    }
+    },
+    "appearanceSettings": "Appearance Settings",
+    "backgroundColor": "Background Color",
+    "hideNocodbBranding": "Hide NocoDB Branding",
+    "showOnConditions": "Show on condtions",
+    "showFieldOnConditionsMet": "Shows field only when conditions are met",
+    "limitOptions": "Limit options",
+    "limitOptionsSubtext": "Limit options visible to users by selecting available options",
+    "clearSelection": "Clear selection"
   },
   "activity": {
+    "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -907,7 +923,10 @@
       "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Přepnout Mobilní režim",
-    "startCommenting": "Start commenting!"
+    "startCommenting": "Start commenting!",
+    "clearForm": "Clear Form",
+    "addFieldFromFormView": "Add Field",
+    "selectAllFields": "Select all fields"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -989,7 +1008,8 @@
     "noTokenCreated": "No API Tokens created",
     "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
     "inviteYourTeam": "Invite your team",
-    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace."
+    "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
+    "searchOptions": "Search options"
   },
   "msg": {
     "clickToCopyFieldId": "Click to copy Field Id",
@@ -1166,14 +1186,14 @@
       "afterEnablePwd": "Přístup je omezen heslem",
       "privateLink": "Tento pohled je sdílen prostřednictvím soukromého odkazu",
       "privateLinkAdditionalInfo": "Lidé se soukromým odkazem mohou vidět pouze buňky viditelné v tomto zobrazení.",
-      "afterFormSubmitted": "Po odeslání formuláře",
+      "postFormSubmissionSettings": "Post Form Submission Settings",
       "apiOptions": "Přístup k projektu přes",
       "submitAnotherForm": "Zobrazit tlačítko \"Odeslat další formulář",
       "showBlankForm": "Zobrazení prázdného formuláře po 5 sekundách",
       "emailForm": "Pošlete mi e-mail na adresu",
       "showSysFields": "Zobrazit systémová pole",
       "filterAutoApply": "Automatické použití",
-      "showMessage": "Zobrazit tuto zprávu",
+      "formDisplayMessage": "Display Message",
       "viewNotShared": "Současný pohled není sdílený!",
       "showAllViews": "Zobrazit všechna sdílená zobrazení této tabulky",
       "collabView": "Spolupracovníci s oprávněním k úpravám nebo vyšším mohou měnit konfiguraci zobrazení.",
@@ -1283,9 +1303,14 @@
       "editingSystemKeyNotSupported": "Editing system key not supported",
       "notAvailableAtTheMoment": "Not available at the moment",
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
-      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column"
+      "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
+      "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "yourCurrentRoleIs": "Your current role is",
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
     },
     "error": {
+      "fetchingCalendarData": "Error fetching calendar data",
+      "fetchingActiveDates": "Error fetching active dates",
       "scopesRequired": "Scopes required",
       "authUrlRequired": "Auth URL is required",
       "userNameAttributeRequired": "Username attribute is required",
@@ -1376,7 +1401,8 @@
       "multiFieldSaveValidation": "Please complete the configuration of all fields before saving",
       "somethingWentWrong": "Something went wrong",
       "draggedContentIsNotTypeOfImage": "Dragged content is not type of image",
-      "fieldToParseImageData": "Field to parse image data"
+      "fieldToParseImageData": "Field to parse image data",
+      "someOfTheRequiredFieldsAreEmpty": "Some of the required fields are empty"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat projektu",

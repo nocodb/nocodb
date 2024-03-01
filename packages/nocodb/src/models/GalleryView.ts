@@ -10,6 +10,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class GalleryView implements GalleryType {
   fk_view_id?: string;
@@ -98,29 +99,24 @@ export default class GalleryView implements GalleryType {
     body: Partial<GalleryView>,
     ncMeta = Noco.ncMeta,
   ) {
-    // get existing cache
-    const key = `${CacheScope.GALLERY_VIEW}:${galleryId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
-    }
 
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
     // update meta
-    return await ncMeta.metaUpdate(
+    const res = await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.GALLERY_VIEW,
-      updateObj,
+      prepareForDb(updateObj),
       {
         fk_view_id: galleryId,
       },
     );
+
+    await NocoCache.update(
+      `${CacheScope.GALLERY_VIEW}:${galleryId}`,
+      prepareForResponse(updateObj),
+    );
+
+    return res;
   }
 }

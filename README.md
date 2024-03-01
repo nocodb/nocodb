@@ -15,7 +15,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 <div align="center">
 
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.0-brightgreen)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.1-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
@@ -265,11 +265,11 @@ We provide the following ways to let users programmatically invoke actions. You 
 
 ### Sync Schema
 
-We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to another. See <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">Sync Schema</a> for details.
+We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to another. See <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">Sync Schema</a> for details.
 
 ### Audit
 
-We are keeping all the user operation logs in one place. See <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">Audit</a> for details.
+We are keeping all the user operation logs in one place. See <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">Audit</a> for details.
 
 # Production Setup
 
@@ -277,7 +277,7 @@ By default, SQLite is used for storing metadata. However, you can specify your d
 
 ## Environment variables
 
-Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
+Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # Development Setup
 

@@ -2105,7 +2105,8 @@ class BaseModelSqlv2 {
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(
       Math.min(
-        args.limit || args.l || BaseModelSqlv2.config.limitDefault,
+        Math.max(+(args.limit || args.l), 0) ||
+          BaseModelSqlv2.config.limitDefault,
         BaseModelSqlv2.config.limitMax,
       ),
       BaseModelSqlv2.config.limitMin,
@@ -3039,6 +3040,8 @@ class BaseModelSqlv2 {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
       let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+      let aiPkCol: Column;
+      let agPkCol: Column;
 
       if (!raw) {
         const nestedCols = (await this.model.getColumns()).filter((c) =>
@@ -3194,6 +3197,9 @@ class BaseModelSqlv2 {
 
           insertDatas.push(insertObj);
         }
+
+        aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+        agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
       }
 
       if ('beforeBulkInsert' in this) {
@@ -3218,9 +3224,6 @@ class BaseModelSqlv2 {
       }
 
       let responses;
-
-      const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
-      const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
 
       // insert one by one as fallback to get ids for sqlite and mysql
       if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
@@ -3248,8 +3251,10 @@ class BaseModelSqlv2 {
       } else {
         const returningArr: string[] = [];
 
-        for (const col of this.model.primaryKeys) {
-          returningArr.push(col.column_name);
+        if (!raw) {
+          for (const col of this.model.primaryKeys) {
+            returningArr.push(col.column_name);
+          }
         }
 
         responses =
@@ -6367,7 +6372,8 @@ export function getListArgs(
   obj.conditionGraph = args.conditionGraph || {};
   obj.limit = Math.max(
     Math.min(
-      args?.limit || args?.l || BaseModelSqlv2.config.limitDefault,
+      Math.max(+(args?.limit || args?.l), 0) ||
+        BaseModelSqlv2.config.limitDefault,
       BaseModelSqlv2.config.limitMax,
     ),
     BaseModelSqlv2.config.limitMin,

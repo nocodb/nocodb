@@ -41,6 +41,7 @@ provide(IsKanbanInj, ref(false))
 provide(IsCalendarInj, ref(true))
 
 const {
+  activeCalendarView,
   calendarRange,
   calDataType,
   loadCalendarMeta,
@@ -53,7 +54,6 @@ const {
   pageDate,
   showSideMenu,
   selectedDateRange,
-  activeCalendarView,
   paginateCalendarView,
 } = useCalendarViewStoreOrThrow()
 
@@ -140,6 +140,11 @@ const goToToday = () => {
     start: dayjs().startOf('week'),
     end: dayjs().endOf('week'),
   }
+
+  document?.querySelector('.nc-calendar-today')?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  })
 }
 
 const headerText = computed(() => {
@@ -181,8 +186,8 @@ const headerText = computed(() => {
           </NcTooltip>
 
           <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
-            <NcButton :class="{ '!w-24': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
-              <div class="flex w-full px-3 py-1 w-full items-center justify-between">
+            <NcButton :class="{ '!w-22': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
+              <div class="flex px-2 w-full items-center justify-between">
                 <span class="font-bold text-center text-brand-500" data-testid="nc-calendar-active-date">{{ headerText }}</span>
                 <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
               </div>
@@ -237,7 +242,9 @@ const headerText = computed(() => {
             type="secondary"
             @click="goToToday"
           >
-            {{ $t('activity.goToToday') }}
+            <span class="text-gray-700">
+              {{ $t('activity.goToToday') }}
+            </span>
           </NcButton>
           <span class="opacity-0" data-testid="nc-active-calendar-view">
             {{ activeCalendarView }}

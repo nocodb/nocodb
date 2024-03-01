@@ -788,6 +788,15 @@ test.describe('Filter Tests: Date based', () => {
       }
 
       // "is within" filter list
+      // if today is Feb 29, then past year will have 1 more record and next year will have 1 less record
+      const dateToday = new Date();
+      if (dateToday.getMonth() === 1 && dateToday.getDate() === 29) {
+        // past year
+        isWithinFilterList[2].rowCount += 1;
+        // next year
+        isWithinFilterList[5].rowCount -= 1;
+      }
+
       for (let i = 0; i < isWithinFilterList.length; i++) {
         await verifyFilter_withFixedModal({
           column: dataType,

@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  ProjectRoles,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+  getSystemColumns,
+  isLinksOrLTAR,
+  isSelectTypeCol,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
   ActiveViewInj,
@@ -26,6 +34,7 @@ import {
   ref,
   useDebounceFn,
   useEventListener,
+  useFileDialog,
   useGlobal,
   useI18n,
   useNuxtApp,
@@ -62,6 +71,10 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
+const { base } = storeToRefs(useBase())
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
 let formState = reactive<Record<string, any>>({})
 
 const secondsRemain = ref(0)
@@ -85,7 +98,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { fields, showAll, hideAll, saveOrUpdate } = useViewColumnsOrThrow()
+const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 
 const { state, row } = useProvideSmartsheetRowStore(
   meta,
@@ -118,15 +131,47 @@ const isTabPressed = ref(false)
 
 const isLoadingFormView = ref(false)
 
-const focusLabel: VNodeRef = (el) => {
-  return (el as HTMLInputElement)?.focus()
-}
+const showCropper = ref(false)
+
+const imageCropperData = ref<{
+  imageConfig: {
+    src: string
+    type: string
+    name: string
+  }
+  cropperConfig: {
+    aspectRatio?: number
+  }
+  uploadConfig?: {
+    path?: string
+  }
+  cropFor: 'banner' | 'logo'
+}>({
+  imageConfig: {
+    src: '',
+    type: '',
+    name: '',
+  },
+  cropperConfig: {},
+  uploadConfig: {
+    path: '',
+  },
+  cropFor: 'banner',
+})
+
+const focusLabel = ref<HTMLTextAreaElement>()
 
 const searchQuery = ref('')
 
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
+
+const { open, onChange: onChangeFile } = useFileDialog({
+  accept: 'image/*',
+  multiple: false,
+  reset: true,
+})
 
 const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
 
@@ -139,6 +184,8 @@ const updateView = useDebounceFn(
 )
 
 async function submitForm() {
+  if (isLocked.value || !isUIAllowed('dataInsert')) return
+
   try {
     await formRef.value?.validateFields()
   } catch (e: any) {
@@ -158,6 +205,8 @@ async function submitForm() {
 }
 
 async function clearForm() {
+  if (isLocked.value || !isUIAllowed('dataInsert')) return
+
   formState = reactive<Record<string, any>>({})
   state.value = {}
   await formRef.value.clearValidate()
@@ -205,14 +254,15 @@ function onMoveCallback(event: any) {
   }
 }
 
-// Todo: reorder visible form fields
-function onMove(event: any, isVisibleFormFields = false) {
+async function onMove(event: any, isVisibleFormFields = false) {
+  if (isLocked.value || !isEditable) return
+
   const { oldIndex } = event.moved
   let { newIndex, element } = event.moved
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
-  if (fieldIndex === -1 || fieldIndex === undefined) return
+  if (fieldIndex === -1 || fieldIndex === undefined || !fields.value?.[fieldIndex]) return
 
   if (isVisibleFormFields) {
     element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
@@ -233,28 +283,38 @@ function onMove(event: any, isVisibleFormFields = false) {
     element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
   }
 
-  saveOrUpdate(element, fieldIndex)
+  await $api.dbView.formColumnUpdate(element.id, element)
+
+  fields.value[fieldIndex] = element as any
+
+  // saveOrUpdate(element, fieldIndex)
 
   $e('a:form-view:reorder')
 }
 
 async function showOrHideColumn(column: Record<string, any>, show: boolean, isSidePannel = false) {
+  if (isLocked.value || !isEditable) return
+
   if (shouldSkipColumn(column)) {
     // Required field can't be moved
     !isSidePannel && message.info(t('msg.info.requriedFieldsCantBeMoved'))
     return
   }
-
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === column.fk_column_id)
 
-  if (fieldIndex !== -1 && fieldIndex !== undefined) {
-    await saveOrUpdate(
-      {
-        ...column,
-        show,
-      },
-      fieldIndex,
-    )
+  if (fieldIndex !== -1 && fieldIndex !== undefined && fields.value?.[fieldIndex]) {
+    console.log('column', column)
+    column.show = show
+    await $api.dbView.formColumnUpdate(column.id, column)
+
+    fields.value[fieldIndex] = column as any
+    // await saveOrUpdate(
+    //   {
+    //     ...column,
+    //     show,
+    //   },
+    //   fieldIndex,
+    // )
 
     reloadEventHook.trigger()
 
@@ -273,6 +333,8 @@ function shouldSkipColumn(col: Record<string, any>) {
 }
 
 async function handleAddOrRemoveAllColumns(value: boolean) {
+  if (isLocked.value || !isEditable) return
+
   if (value) {
     for (const col of (localColumns as Record<string, any>)?.value) {
       col.show = true
@@ -310,6 +372,8 @@ function setFormData() {
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   formViewData.value = {
+    banner_image_url: '',
+    logo_url: '',
     ...formViewData.value,
     submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
@@ -383,11 +447,14 @@ const columnSupportsScanning = (elementType: UITypes) =>
 
 const onFormItemClick = (element: any) => {
   if (isLocked.value || !isEditable) return
+
   activeRow.value = element.title
   isTabPressed.value = false
 }
 
 const handleChangeBackground = (color: string) => {
+  if (isLocked.value || !isEditable) return
+
   const tcolor = tinycolor(color)
   if (tcolor.isValid()) {
     ;(formViewData.value?.meta as Record<string, any>).background_color = color
@@ -395,12 +462,74 @@ const handleChangeBackground = (color: string) => {
   }
 }
 
-onClickOutside(draggableRef, () => {
+const openUploadImage = (isUploadBanner: boolean) => {
+  if (!isEditable) return
+
+  imageCropperData.value.uploadConfig = {
+    path: [NOCO, base.value.id, meta.value?.id, formViewData.value?.id].join('/'),
+  }
+  if (isUploadBanner) {
+    imageCropperData.value.cropperConfig = {
+      aspectRatio: 4 / 1,
+    }
+    imageCropperData.value.cropFor = 'banner'
+  } else {
+    imageCropperData.value.cropperConfig = {
+      aspectRatio: undefined,
+    }
+    imageCropperData.value.cropFor = 'logo'
+  }
+
+  open()
+}
+
+onChangeFile((files) => {
+  if (files && files[0]) {
+    // 1. Revoke the object URL, to allow the garbage collector to destroy the uploaded before file
+    if (imageCropperData.value.imageConfig.src) {
+      URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
+    }
+    // 2. Create the blob link to the file to optimize performance:
+    const blob = URL.createObjectURL(files[0])
+
+    // 3. Update the image. The type will be derived from the extension
+    imageCropperData.value.imageConfig = {
+      src: blob,
+      type: files[0].type,
+      name: files[0].name,
+    }
+
+    showCropper.value = true
+  }
+})
+
+const handleOnUploadImage = (data: Record<string, any> = {}) => {
+  if (imageCropperData.value.cropFor === 'banner') {
+    formViewData.value!.banner_image_url = stringifyProp(data) ?? ''
+  } else {
+    formViewData.value!.logo_url = stringifyProp(data) ?? ''
+  }
+  updateView()
+}
+
+onClickOutside(draggableRef, (e) => {
+  if (
+    (e.target as HTMLElement)?.closest(
+      '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell',
+    )
+  ) {
+    return
+  }
+
   activeRow.value = ''
   isTabPressed.value = false
 })
 
 onMounted(async () => {
+  if (imageCropperData.value.src) {
+    URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
+  }
+
   isLoadingFormView.value = true
   await loadFormView()
   setFormData()
@@ -447,6 +576,12 @@ watch(activeRow, (newValue) => {
   }
 })
 
+watch([focusLabel, activeRow], () => {
+  if (activeRow && focusLabel.value) {
+    focusLabel.value?.focus()
+  }
+})
+
 useEventListener(
   formRef,
   'focusout',
@@ -480,7 +615,7 @@ useEventListener(
 </script>
 
 <template>
-  <div class="h-full">
+  <div class="h-full relative">
     <template v-if="isMobileMode">
       <div class="pl-6 pr-[120px] py-6 bg-white flex-col justify-start items-start gap-2.5 inline-flex">
         <div class="text-gray-500 text-5xl font-semibold leading-16">
@@ -550,18 +685,61 @@ useEventListener(
           class="flex-1 h-full overflow-auto nc-form-scrollbar p-6"
           :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
         >
-          <div :class="isEditable ? 'min-w-[616px] overflow-x-auto nc-form-scrollbar' : ''">
-            <!-- for future implementation of cover image -->
-            <!-- Todo: cover image uploader and image cropper to crop image in fixed aspect ratio  -->
-            <GeneralFormBanner
-              v-if="
-                formViewData.banner_image_url || !(parseProp(formViewData?.meta).hide_branding && !formViewData.banner_image_url)
-              "
-              :banner-image-url="formViewData.banner_image_url"
-            />
-
+          <div class="min-w-[616px] overflow-x-auto nc-form-scrollbar">
+            <GeneralImageCropper
+              v-if="isEditable"
+              v-model:show-cropper="showCropper"
+              :image-config="imageCropperData.imageConfig"
+              :cropper-config="imageCropperData.cropperConfig"
+              :upload-config="imageCropperData.uploadConfig"
+              @submit="handleOnUploadImage"
+            ></GeneralImageCropper>
+            <!-- cover image -->
+            <div class="group relative max-w-[max(33%,688px)] mx-auto">
+              <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
+              <div class="absolute bottom-0 right-0 hidden group-hover:block">
+                <div class="flex items-center space-x-1 m-2">
+                  <NcButton
+                    type="secondary"
+                    size="small"
+                    class="nc-form-upload-banner-btn"
+                    data-testid="nc-form-upload-banner-btn"
+                    @click="openUploadImage(true)"
+                  >
+                    <div class="flex gap-2 items-center">
+                      <component :is="iconMap.upload" class="w-4 h-4" />
+                      <span>
+                        {{ formViewData.banner_image_url ? $t('general.replace') : $t('general.upload') }}
+                        {{ $t('general.banner') }}
+                      </span>
+                    </div>
+                  </NcButton>
+                  <NcTooltip v-if="formViewData.banner_image_url">
+                    <template #title> {{ $t('general.delete') }} {{ $t('general.banner') }} </template>
+                    <NcButton
+                      type="secondary"
+                      size="small"
+                      class="nc-form-delete-banner-btn"
+                      data-testid="nc-form-delete-banner-btn"
+                      @click="
+                              () => {
+                                if (isEditable) {
+                                  formViewData!.banner_image_url = ''
+                                  updateView()
+                                }
+                              }
+                            "
+                    >
+                      <div class="flex gap-2 items-center">
+                        <component :is="iconMap.delete" class="w-4 h-4" />
+                      </div>
+                    </NcButton>
+                  </NcTooltip>
+                </div>
+              </div>
+            </div>
             <a-card
-              class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 max-w-[688px] !mx-auto"
+              class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 !max-w-[max(33%,688px)] !mx-auto"
               :body-style="{
                 margin: '0 auto',
                 padding: '0px !important',
@@ -571,16 +749,59 @@ useEventListener(
                 <!-- form header -->
                 <div class="flex flex-col px-4 lg:px-6">
                   <!-- Form logo  -->
-                  <!-- <div v-if="isEditable">
-                    <div class="inline-block rounded-xl bg-gray-100 p-3">
-                      <NcButton type="secondary" size="small" class="nc-form-upload-logo" data-testid="nc-form-upload-log">
-                        <div class="flex gap-2 items-center">
-                          <component :is="iconMap.upload" class="w-4 h-4" />
-                          <span> Upload Logo </span>
-                        </div>
-                      </NcButton>
+                  <div class="mb-4">
+                    <div
+                      class="nc-form-logo-wrapper mx-6 group relative rounded-xl inline-block h-56px max-w-189px overflow-hidden"
+                      :class="formViewData.logo_url ? 'hover:(w-full bg-gray-100)' : 'bg-gray-100'"
+                      style="transition: all 0.3s ease-in"
+                    >
+                      <LazyCellAttachmentImage
+                        v-if="formViewData.logo_url"
+                        :srcs="getPossibleAttachmentSrc(parseProp(formViewData.logo_url))"
+                        class="nc-form-logo !object-contain object-left max-h-full max-w-full !m-0 rounded-xl"
+                      />
+                      <div
+                        class="items-center space-x-1 flex-nowrap m-3"
+                        :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
+                      >
+                        <NcButton
+                          v-if="isEditable"
+                          type="secondary"
+                          size="small"
+                          class="nc-form-upload-logo-btn"
+                          data-testid="nc-form-upload-log-btn"
+                          @click="openUploadImage(false)"
+                        >
+                          <div class="flex gap-2 items-center">
+                            <component :is="iconMap.upload" class="w-4 h-4" />
+                            <span> {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span>
+                          </div>
+                        </NcButton>
+                        <NcTooltip v-if="formViewData.logo_url">
+                          <template #title> {{ $t('general.delete') }} {{ $t('general.logo') }} </template>
+                          <NcButton
+                            type="secondary"
+                            size="small"
+                            class="nc-form-delete-logo-btn"
+                            data-testid="nc-form-delete-logo-btn"
+                            @click="
+                              () => {
+                                if (isEditable) {
+                                  formViewData!.logo_url = ''
+                                  updateView()
+                                }
+                              }
+                            "
+                          >
+                            <div class="flex gap-2 items-center">
+                              <component :is="iconMap.delete" class="w-4 h-4" />
+                            </div>
+                          </NcButton>
+                        </NcTooltip>
+                      </div>
                     </div>
-                  </div> -->
+                  </div>
+
                   <!-- form title -->
                   <div
                     class="border-transparent px-4 lg:px-6"
@@ -593,6 +814,9 @@ useEventListener(
                       },
                       {
                         'hover:bg-gray-50': activeRow !== 'nc-form-heading' && isEditable,
+                      },
+                      {
+                        'bg-gray-50': activeRow === 'nc-form-heading' && isEditable,
                       },
                       {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
@@ -640,6 +864,9 @@ useEventListener(
                       },
                       {
                         'hover:bg-gray-50': activeRow !== 'nc-form-sub-heading' && isEditable,
+                      },
+                      {
+                        'bg-gray-50': activeRow === 'nc-form-sub-heading' && isEditable,
                       },
                       {
                         '!hover:bg-white !ring-0 !cursor-auto': isLocked,
@@ -693,13 +920,13 @@ useEventListener(
                       :class="[
                         `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                         {
-                          'rounded-2xl overflow-hidden border-2 cursor-pointer my-1': isEditable,
+                          'rounded-2xl overflow-hidden border-2 my-1': isEditable,
                         },
                         {
                           'p-4 lg:p-6 border-transparent my-0': !isEditable,
                         },
                         {
-                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 ':
+                          'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) p-4 lg:p-6 cursor-pointer':
                             activeRow !== element.title && isEditable,
                         },
 
@@ -782,7 +1009,7 @@ useEventListener(
                         <template v-if="activeRow === element.title">
                           <a-form-item class="my-0 !mb-2">
                             <a-textarea
-                              :ref="focusLabel"
+                              ref="focusLabel"
                               v-model:value="element.label"
                               :rows="1"
                               auto-size
@@ -869,7 +1096,10 @@ useEventListener(
                                 v-else
                                 v-model="formState[element.title]"
                                 class="nc-input truncate"
-                                :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                :class="[
+                                  `nc-form-input-${element.title.replaceAll(' ', '')}`,
+                                  { 'layout-list': element.meta.isList },
+                                ]"
                                 :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                                 :column="element"
                                 :edit-enabled="true"
@@ -880,17 +1110,53 @@ useEventListener(
                       </div>
 
                       <!-- Field Settings  -->
-                      <!-- eslint-disable vue/no-constant-condition -->
                       <div
-                        v-if="activeRow === element.title && false"
-                        class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6"
+                        v-if="activeRow === element.title"
+                        class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
                       >
-                        <!-- Todo: Show on conditions, options limit,... -->
-                        <div class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
+                        <!-- Layout  -->
+                        <div v-if="isSelectTypeCol(element.uidt)">
+                          <div>Layout</div>
+
+                          <a-radio-group
+                            v-model:value="element.meta.isList"
+                            class="nc-form-field-layout !mt-2"
+                            @change="updateColMeta(element)"
+                          >
+                            <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
+                            <a-radio :value="true">{{ $t('general.list') }}</a-radio>
+                          </a-radio-group>
+                        </div>
+                        <!-- Todo: Show on conditions,... -->
+                        <!-- eslint-disable vue/no-constant-condition -->
+                        <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
                           <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" />
                           <div>
                             <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
                             <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+                          </div>
+                        </div>
+
+                        <!-- Limit options -->
+                        <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div class="flex items-center gap-3">
+                            <a-switch
+                              v-model:checked="element.meta.isLimitOption"
+                              v-e="['a:form-view:field:limit-options']"
+                              size="small"
+                              @change="updateColMeta(element)"
+                            />
+                            <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
+                          </div>
+                          <div class="pl-10 mt-2 flex-1 max-w-[calc(100%_-_40px)]">
+                            <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
+                            <div v-if="element.meta.isLimitOption" class="mt-5 max-w-[80%]">
+                              <LazySmartsheetFormLimitOptions
+                                v-model:model-value="element.meta.limitOptions"
+                                :column="element"
+                                @update:model-value="updateColMeta(element)"
+                              ></LazySmartsheetFormLimitOptions>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -944,8 +1210,8 @@ useEventListener(
             </a-card>
           </div>
         </div>
-        <div v-if="isEditable" class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200">
-          <Splitpanes horizontal class="w-full nc-form-right-splitpane">
+        <div class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200">
+          <Splitpanes v-if="formViewData" horizontal class="w-full nc-form-right-splitpane">
             <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
               <div class="flex flex-wrap justify-between items-center gap-2">
                 <div class="flex gap-3">
@@ -958,6 +1224,7 @@ useEventListener(
                 </div>
 
                 <a-dropdown
+                  v-if="isUIAllowed('fieldAdd')"
                   v-model:visible="showColumnDropdown"
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-form-add-column"
@@ -1035,6 +1302,7 @@ useEventListener(
                     item-key="id"
                     ghost-class="nc-form-field-ghost"
                     :style="{ height: 'calc(100% - 64px)' }"
+                    :disabled="isLocked || !isEditable"
                     @change="onMove($event)"
                     @start="drag = true"
                     @end="drag = false"
@@ -1080,7 +1348,7 @@ useEventListener(
                               <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top">&nbsp;*</span>
                             </div>
                           </div>
-                          <NcSwitch :checked="!!field.show" :disabled="field.required" />
+                          <NcSwitch :checked="!!field.show" :disabled="field.required || isLocked || !isEditable" />
                         </div>
                       </div>
                     </template>
@@ -1096,17 +1364,12 @@ useEventListener(
                 </template>
               </div>
             </Pane>
-            <Pane
-              v-if="isEditable && !isLocked && formViewData"
-              min-size="20"
-              size="50"
-              class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar"
-            >
+            <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar">
               <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
                 <!-- Appearance Settings -->
                 <div class="text-base font-bold text-gray-900">{{ $t('labels.appearanceSettings') }}</div>
 
-                <div>
+                <div :class="isLocked || !isEditable ? 'pointer-events-none' : ''">
                   <div class="text-gray-800">{{ $t('labels.backgroundColor') }}</div>
                   <div class="flex justify-start">
                     <LazyGeneralColorPicker
@@ -1149,8 +1412,11 @@ useEventListener(
                     size="small"
                     class="nc-form-hide-branding"
                     data-testid="nc-form-hide-branding"
+                    :disabled="isLocked || !isEditable"
                     @change="
                       (value) => {
+                        if (isLocked || !isEditable) return
+
                         (formViewData!.meta as Record<string,any>).hide_branding = value
                         updateView()
                       }
@@ -1183,6 +1449,7 @@ useEventListener(
                     hide-details
                     class="nc-form-after-submit-msg !rounded-lg !px-3 !py-1"
                     data-testid="nc-form-after-submit-msg"
+                    :disabled="isLocked || !isEditable"
                     @change="updateView"
                   />
                 </div>
@@ -1197,6 +1464,7 @@ useEventListener(
                       size="small"
                       class="nc-form-checkbox-submit-another-form"
                       data-testid="nc-form-checkbox-submit-another-form"
+                      :disabled="isLocked || !isEditable"
                       @change="updateView"
                     />
                     <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
@@ -1210,6 +1478,7 @@ useEventListener(
                       size="small"
                       class="nc-form-checkbox-show-blank-form"
                       data-testid="nc-form-checkbox-show-blank-form"
+                      :disabled="isLocked || !isEditable"
                       @change="updateView"
                     />
 
@@ -1223,6 +1492,7 @@ useEventListener(
                       size="small"
                       class="nc-form-checkbox-send-email"
                       data-testid="nc-form-checkbox-send-email"
+                      :disabled="isLocked || !isEditable"
                       @change="onEmailChange"
                     />
 
@@ -1239,6 +1509,21 @@ useEventListener(
         </div>
       </div>
     </template>
+    <div
+      v-if="user?.base_roles?.viewer || user?.base_roles?.commenter"
+      class="absolute inset-0 bg-black/40 z-500 grid place-items-center"
+    >
+      <div class="text-center bg-white px-6 py-8 rounded-xl max-w-lg">
+        <div class="text-2xl text-gray-800 font-bold">
+          {{ $t('msg.info.yourCurrentRoleIs') }}
+          '<span class="capitalize"> {{ Object.keys(user.base_roles)?.[0] ?? ProjectRoles.NO_ACCESS }}</span
+          >'.
+        </div>
+        <div class="text-sm text-gray-700 pt-6">
+          {{ $t('msg.info.pleaseRequestAccessForView', { viewName: 'form view' }) }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1250,7 +1535,13 @@ useEventListener(
 }
 
 .nc-input {
-  @apply appearance-none w-full !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  @apply appearance-none w-full;
+  &:not(.layout-list) {
+    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+  }
+  &.layout-list {
+    @apply h-auto !pl-0 !py-1;
+  }
   &.nc-cell-rating,
   &.nc-cell-geodata {
     @apply !py-1;
@@ -1299,6 +1590,12 @@ useEventListener(
   :deep(.ant-form-item-explain-error) {
     @apply mt-2;
   }
+}
+:deep(.ant-form-item-has-error .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
+:deep(.ant-form-item-has-success .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
 }
 
 :deep(.nc-cell-attachment) {
@@ -1356,5 +1653,15 @@ useEventListener(
 }
 :deep(.nc-form-input-required + button):focus {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}
+.nc-form-field-layout {
+  @apply !flex !items-center w-full space-x-3;
+
+  :deep(.ant-radio-wrapper) {
+    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center;
+    .ant-radio {
+      @apply !top-0;
+    }
+  }
 }
 </style>

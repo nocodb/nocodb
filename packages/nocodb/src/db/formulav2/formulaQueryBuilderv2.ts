@@ -16,7 +16,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type Column from '~/models/Column';
 import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 import { Base, BaseUser } from '~/models';
@@ -1217,13 +1217,9 @@ export default async function formulaQueryBuilderv2(
         error: e.message,
       });
       // update cache to reflect the error in UI
-      const key = `${CacheScope.COL_FORMULA}:${column.id}`;
-      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-      if (o) {
-        o = { ...o, error: e.message };
-        // set cache
-        await NocoCache.set(key, o);
-      }
+      await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
+        error: e.message,
+      });
     }
     throw new Error(`Formula error: ${e.message}`);
   }

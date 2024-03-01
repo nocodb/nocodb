@@ -15,7 +15,7 @@ Nocodb перетворює будь-яку базу даних MySQL, PostgreSQ
 
 <div align="center">
 
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.0-brightgreen)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.1-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
@@ -238,11 +238,11 @@ npm start
 
 ### Синхронізація схеми
 
-Ми дозволяємо вам синхронізувати зміни схеми, якщо ви внесли зміни поза NocoDB GUI. Проте слід зауважити, що вам доведеться мати власні міграції схеми для переміщення з одного середовища в інше. Деталі дивіться у <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">Sync Schema</a>.
+Ми дозволяємо вам синхронізувати зміни схеми, якщо ви внесли зміни поза NocoDB GUI. Проте слід зауважити, що вам доведеться мати власні міграції схеми для переміщення з одного середовища в інше. Деталі дивіться у <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">Sync Schema</a>.
 
 ### Аудит
 
-Ми зберігаємо всі журнали операцій користувача в одному місці. Деталі дивіться у <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">Audit</a>.
+Ми зберігаємо всі журнали операцій користувача в одному місці. Деталі дивіться у <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">Audit</a>.
 
 # Налаштування продукції
 
@@ -250,7 +250,7 @@ npm start
 
 ## Змінні середовища
 
-Будь ласка, звертайтеся до [Змінні середовища](https://docs.nocodb.com/getting-started/environment-variables)
+Будь ласка, звертайтеся до [Змінні середовища](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # Налаштування розробки
 

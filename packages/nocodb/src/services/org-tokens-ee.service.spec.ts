@@ -1,16 +1,16 @@
 import { Test } from '@nestjs/testing';
-import { OrgTokensEeService } from './org-tokens.service';
+import { OrgTokensService } from './org-tokens.service';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('OrgTokensService', () => {
-  let service: OrgTokensEeService;
+  let service: OrgTokensService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrgTokensEeService],
+      providers: [OrgTokensService],
     }).compile();
 
-    service = module.get<OrgTokensEeService>(OrgTokensEeService);
+    service = module.get<OrgTokensService>(OrgTokensService);
   });
 
   it('should be defined', () => {

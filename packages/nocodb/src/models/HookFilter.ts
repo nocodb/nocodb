@@ -152,17 +152,12 @@ export default class Filter {
       'is_group',
       'logical_op',
     ]);
-    // get existing cache
-    const key = `${CacheScope.FILTER_EXP}:${id}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    // update alias
-    if (o) {
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
+
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.FILTER_EXP, updateObj, id);
+
+    // update cache
+    await NocoCache.update(`${CacheScope.FILTER_EXP}:${id}`, updateObj);
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {

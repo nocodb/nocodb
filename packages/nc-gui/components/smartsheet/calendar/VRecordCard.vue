@@ -26,14 +26,14 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex border-1 rounded-lg border-brand-500': selected || hover,
+        '!flex rounded-lg border-brand-500': selected || hover,
       }"
-      class="!group-hover:(border-brand-500) !border-1 cursor-ns-resize"
+      class="!group-hover:(border-brand-500) !border-1 text-gray-400 cursor-ns-resize"
       size="xsmall"
       type="secondary"
       @mousedown.stop="emit('resize-start', 'left', $event, record)"
     >
-      <component :is="iconMap.drag" class="text-gray-400"></component>
+      <component :is="iconMap.drag" class="mt-0.5" />
     </NcButton>
   </div>
   <div
@@ -51,9 +51,9 @@ const emit = defineEmits(['resize-start'])
       'group-hover:(border-brand-500)': resize,
       '!border-brand-500 border-1': selected || hover,
     }"
-    class="relative h-full ml-0.25 border-1 border-gray-50"
+    class="relative flex items-center h-full ml-0.25 border-1 border-transparent"
   >
-    <div class="h-full absolute py-2">
+    <div class="h-full py-1">
       <div
         :class="{
           'bg-maroon-500': color === 'maroon',
@@ -63,17 +63,18 @@ const emit = defineEmits(['resize-start'])
           'bg-pink-500': color === 'pink',
           'bg-purple-500': color === 'purple',
         }"
-        class="block h-full min-h-5 ml-1 w-1 rounded mr-2"
+        class="block h-full min-h-5 ml-1 w-1 rounded"
       ></div>
     </div>
 
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
-    <div class="ml-3 pr-3 text-ellipsis overflow-hidden w-full h-8 absolute">
-      <span class="text-sm text-gray-800">
-        <slot />
-      </span>
-    </div>
+    <span
+      class="pl-1 pr-1 text-sm h-[80%] text-gray-800 leading-7 space-x-2 break-all whitespace-normal truncate w-full overflow-y-hidden"
+    >
+      <slot />
+    </span>
+
     <div v-if="position === 'topRounded' || position === 'none'" class="h-full pb-7 flex items-end ml-3">....</div>
   </div>
   <div
@@ -84,12 +85,12 @@ const emit = defineEmits(['resize-start'])
       :class="{
         '!flex border-1 rounded-lg z-1 cursor-ns-resize	border-brand-500': selected || hover,
       }"
-      class="!group-hover:(border-brand-500) !border-1"
+      class="!group-hover:(border-brand-500) text-gray-400 !border-1"
       size="xsmall"
       type="secondary"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"
     >
-      <component :is="iconMap.drag" class="text-gray-400"></component>
+      <component :is="iconMap.drag" class="mt-0.5" />
     </NcButton>
   </div>
 </template>

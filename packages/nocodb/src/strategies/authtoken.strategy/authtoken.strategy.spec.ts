@@ -1,16 +1,16 @@
 import { Test } from '@nestjs/testing';
-import { AuthtokenStrategy } from './authtoken.strategy';
+import { AuthTokenStrategy } from './authtoken.strategy';
 import type { TestingModule } from '@nestjs/testing';
 
 describe('AuthtokenStrategy', () => {
-  let provider: AuthtokenStrategy;
+  let provider: AuthTokenStrategy;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthtokenStrategy],
+      providers: [AuthTokenStrategy],
     }).compile();
 
-    provider = module.get<AuthtokenStrategy>(AuthtokenStrategy);
+    provider = module.get<AuthTokenStrategy>(AuthTokenStrategy);
   });
 
   it('should be defined', () => {

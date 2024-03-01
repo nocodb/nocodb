@@ -43,6 +43,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
+import type { ImageCropperConfig } from '~/lib'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -144,13 +145,7 @@ const imageCropperData = ref<{
     type: string
     name: string
   }
-  cropperConfig: {
-    stencilProps: {
-      aspectRatio?: number
-    }
-    minHeight: number
-    minWidth: number
-  }
+  cropperConfig: ImageCropperConfig
   uploadConfig?: {
     path?: string
   }
@@ -165,6 +160,7 @@ const imageCropperData = ref<{
     stencilProps: {},
     minHeight: 0,
     minWidth: 0,
+    imageRestriction: 'none',
   },
   uploadConfig: {
     path: '',

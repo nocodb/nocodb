@@ -207,6 +207,15 @@ interface FormFieldsLimitOptionsType {
   show: boolean
 }
 
+interface ImageCropperConfig {
+  stencilProps?: {
+    aspectRatio?: number
+  }
+  minHeight?: number
+  minWidth?: number
+  imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -236,4 +245,5 @@ export type {
   CommandPaletteType,
   CalendarRangeType,
   FormFieldsLimitOptionsType,
+  ImageCropperConfig
 }

@@ -104,7 +104,7 @@ const onDecode = async (scannedCodeValue: string) => {
           />
         </div>
 
-        <div class="mb-4">
+        <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-4">
             {{ sharedFormView.heading }}
           </h1>
@@ -120,12 +120,12 @@ const onDecode = async (scannedCodeValue: string) => {
           </div>
         </div>
 
-        <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" message="Not found" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full">
-              <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
+              <a-alert class="!mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
                   <LazyCellRichText
                     v-if="sharedFormView?.success_msg?.trim()"
@@ -139,7 +139,7 @@ const onDecode = async (scannedCodeValue: string) => {
                 </template>
               </a-alert>
 
-              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
+              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 my-4">
                 {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 

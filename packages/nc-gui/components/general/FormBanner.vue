@@ -1,6 +1,8 @@
 <script lang="ts" setup>
+import type { AttachmentResType } from 'nocodb-sdk';
+
 interface Props {
-  bannerImageUrl?: string | null
+  bannerImageUrl?: AttachmentResType
 }
 const { bannerImageUrl } = defineProps<Props>()
 

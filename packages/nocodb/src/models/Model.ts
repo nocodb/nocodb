@@ -230,13 +230,16 @@ export default class Model implements TableType {
         model.meta = parseMetaProp(model);
       }
 
-      await NocoCache.setList(
-        CacheScope.MODEL,
-        [base_id, source_id],
-        modelList,
-      );
-
-      await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
+      // set cache based on source_id presence
+      if (source_id) {
+        await NocoCache.setList(
+          CacheScope.MODEL,
+          [base_id, source_id],
+          modelList,
+        );
+      } else {
+        await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
+      }
     }
     modelList.sort(
       (a, b) =>

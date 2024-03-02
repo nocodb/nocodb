@@ -14,7 +14,12 @@ import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-export default class FormView implements FormType {
+type FormViewType = Omit<FormType, 'banner_image_url' | 'logo_url'> & {
+  banner_image_url?: AttachmentResType | string;
+  logo_url?: AttachmentResType | string;
+};
+
+export default class FormView implements FormViewType {
   show: BoolType;
   is_default: BoolType;
   order: number;
@@ -168,7 +173,7 @@ export default class FormView implements FormType {
     return form;
   }
 
-  static serializeAttachmentJSON(attachment: AttachmentResType) {
+  static serializeAttachmentJSON(attachment): string | null {
     if (attachment) {
       return serializeJSON(
         extractProps(deserializeJSON(attachment), [
@@ -193,7 +198,7 @@ export default class FormView implements FormType {
 
         for (const key in formAttachments) {
           if (
-            formAttachments[key]?.trim() &&
+            formAttachments[key] &&
             typeof formAttachments[key] === 'string'
           ) {
             formAttachments[key] = deserializeJSON(formAttachments[key]);

@@ -11567,10 +11567,7 @@
             "type": "null"
           }
         ],
-        "title": "Attachment Response Model",
-        "x-stoplight": {
-          "id": ""
-        }
+        "title": "Attachment Response Model"
       },
       "Audit": {
         "description": "Model for Audit",

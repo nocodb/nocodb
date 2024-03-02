@@ -17163,10 +17163,7 @@
             "type": "null"
           }
         ],
-        "title": "Attachment Response Model",
-        "x-stoplight": {
-          "id": ""
-        }
+        "title": "Attachment Response Model"
       },
       "FileReq": {
         "description": "Model for File Request",

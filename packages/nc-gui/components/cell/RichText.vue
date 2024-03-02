@@ -6,6 +6,7 @@ import TurndownService from 'turndown'
 import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
+import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
 import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj, onClickOutside } from '#imports'
@@ -19,6 +20,8 @@ const props = defineProps<{
   isFormField?: boolean
   autofocus?: boolean
   isTabPressed?: boolean
+  placeholder?: string
+  renderAsText?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -117,6 +120,10 @@ const tiptapExtensions = [
   }),
   Underline,
   Link,
+  Placeholder.configure({
+    emptyEditorClass: 'is-editor-empty',
+    placeholder: props.placeholder,
+  }),
 ]
 
 const editor = useEditor({
@@ -138,16 +145,6 @@ const editor = useEditor({
       isFocused.value = false
     }
   },
-})
-
-watch(props, () => {
-  if (props.isFormField) {
-    if (props.readOnly) {
-      editor.value?.setEditable(false)
-    } else {
-      editor.value?.setEditable(true)
-    }
-  }
 })
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
@@ -176,8 +173,18 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
+watch([props, editor], () => {
+  if (props.isFormField) {
+    if (props.readOnly && editor.value?.isEditable) {
+      editor.value?.setEditable(false)
+    } else if (!editor.value?.isEditable) {
+      editor.value?.setEditable(true)
+    }
+  }
+})
+
 if (props.syncValueChange) {
-  watch(vModel, () => {
+  watch([vModel, editor], () => {
     setEditorContent(vModel.value)
   })
 }
@@ -214,34 +221,39 @@ onClickOutside(editorDom, (e) => {
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
   >
-    <div
-      v-if="showMenu && !readOnly && !isFormField"
-      class="absolute top-0 right-0.5 xs:hidden"
-      :class="{
-        'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
-      }"
-    >
-      <div class="nc-longtext-scrollbar">
-        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
+    <div v-if="renderAsText" class="truncate">
+      <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
+    </div>
+    <template v-else>
+      <div
+        v-if="showMenu && !readOnly && !isFormField"
+        class="absolute top-0 right-0.5 xs:hidden"
+        :class="{
+          'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
+        }"
+      >
+        <div class="nc-longtext-scrollbar">
+          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
+        </div>
       </div>
-    </div>
-    <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
-    <CellRichTextLinkOptions v-if="editor" :editor="editor" />
-    <EditorContent
-      ref="editorDom"
-      :editor="editor"
-      class="flex flex-col nc-textarea-rich-editor w-full"
-      :class="{
-        'mt-2.5 flex-grow': fullMode,
-        'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
-        'flex-grow': isExpandedFormOpen,
-        [`!overflow-hidden children:line-clamp-${rowHeight}`]:
-          !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
-      }"
-    />
-    <div v-if="isFormField && !readOnly && isFocused">
-      <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
-    </div>
+      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
+      <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+      <EditorContent
+        ref="editorDom"
+        :editor="editor"
+        class="flex flex-col nc-textarea-rich-editor w-full"
+        :class="{
+          'mt-2.5 flex-grow': fullMode,
+          'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
+          'flex-grow': isExpandedFormOpen,
+          [`!overflow-hidden children:line-clamp-${rowHeight}`]:
+            !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
+        }"
+      />
+      <div v-if="isFormField && !readOnly && isFocused">
+        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -302,6 +314,13 @@ onClickOutside(editorDom, (e) => {
 }
 
 .nc-textarea-rich-editor {
+  .tiptap p.is-editor-empty:first-child::before {
+    color: #6a7184;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
   .ProseMirror {
     @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg;
 

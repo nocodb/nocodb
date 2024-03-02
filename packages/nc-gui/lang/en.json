@@ -1181,6 +1181,7 @@
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",
       "onlyCreator": "Only visible to Creator",
+      "formTitle": "Add form Title",
       "formDesc": "Add form description",
       "beforeEnablePwd": "Restrict access with a password",
       "afterEnablePwd": "Access is password restricted",

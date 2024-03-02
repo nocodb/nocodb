@@ -49,8 +49,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns =
-    ref<(ColumnType & { required?: BoolType; show?: BoolType; label?: StringOrNullType; enable_scanner?: BoolType })[]>()
+  const columns = ref<
+    (ColumnType & {
+      required?: BoolType
+      show?: BoolType
+      label?: StringOrNullType
+      enable_scanner?: BoolType
+      read_only?: boolean
+    })[]
+  >()
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 
@@ -82,14 +89,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const fieldRequired = (fieldName = 'This field') =>
     helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
-  const formColumns = computed(() => {
-    const filterdFormColumns = columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt))
-    // if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
-
-    // }
-
-    return filterdFormColumns
-  })
+  const formColumns = computed(() =>
+    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+  )
 
   const loadSharedView = async () => {
     passwordError.value = null
@@ -125,6 +127,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
 
       await setMeta(viewMeta.model)
+
+      handlePreFillForm()
 
       // if base is not defined then set it with an object containing source
       if (!base.value?.sources)
@@ -243,6 +247,52 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     additionalState.value = {}
     formState.value = {}
     v$.value?.$reset()
+  }
+
+  function handlePreFillForm() {
+    // http://localhost:3000/#/nc/form/070dbc84-f3ca-43a3-808a-3547a873933f?Multiselect=a,b
+    if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
+      console.log('router', route.query)
+      columns.value = columns.value?.map((c) => {
+        if ((c.label || c.title) && route.query?.[c.label!] === undefined && route.query?.[c.title!] === undefined) {
+          return c
+        }
+
+        switch (sharedViewMeta.value.preFilledMode) {
+          case PreFilledMode.Hidden: {
+            c.show = false
+          }
+          case PreFilledMode.Locked: {
+            c.read_only = true
+          }
+        }
+        switch (c.uidt) {
+          case UITypes.SingleSelect:
+          case UITypes.MultiSelect: {
+            const allValues = (c.dtxp as string)?.split(',').map((o) => o?.replace(/^['"]|['"]$/g, ''))
+            let options = ((route.query?.[c.label!] || route.query?.[c.title!]) as string)?.split(',').filter((op) => {
+              console.log('options', op, allValues, allValues.includes(op))
+              if (allValues.includes(op)) return true
+            })
+            console.log('c', options, c)
+            if (options.length) {
+              formState.value[c.title!] = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
+            }
+            break
+          }
+          case UITypes.User: {
+            break
+          }
+          default: {
+            formState.value[c.title!] = route.query?.[c.label!] || route.query?.[c.title!]
+          }
+        }
+
+        return c
+      })
+
+      console.log('column', columns.value)
+    }
   }
 
   /** reset form if show_blank_form is true */

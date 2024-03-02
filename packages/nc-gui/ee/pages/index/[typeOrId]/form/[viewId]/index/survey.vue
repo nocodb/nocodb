@@ -297,7 +297,8 @@ onMounted(() => {
                 :class="parseProp(field?.meta)?.isList ? 'layout-list' : ''"
                 :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
-                edit-enabled
+                :edit-enabled="!field?.read_only"
+                :read-only="field?.read_only"
               />
 
               <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">

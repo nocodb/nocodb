@@ -200,7 +200,8 @@ const onDecode = async (scannedCodeValue: string) => {
                           { 'layout-list': parseProp(field?.meta)?.isList },
                         ]"
                         :column="field"
-                        edit-enabled
+                        :edit-enabled="!field?.read_only"
+                        :read-only="field?.read_only"
                       />
                       <a-button
                         v-if="field.enable_scanner"

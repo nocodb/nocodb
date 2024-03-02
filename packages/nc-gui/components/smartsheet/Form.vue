@@ -1551,7 +1551,6 @@ useEventListener(
                   <div class="flex items-center">
                     <!-- Hide Banner -->
                     <a-switch
-                      v-if="isEeUI"
                       v-e="[`a:form-view:hide-banner`]"
                       :checked="parseProp(formViewData.meta)?.hide_banner"
                       size="small"

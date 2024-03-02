@@ -9,7 +9,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj, onClickOutside } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
@@ -112,7 +112,9 @@ const editorDom = ref<HTMLElement | null>(null)
 const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
-  StarterKit,
+  StarterKit.configure({
+    heading: props.isFormField ? false : undefined,
+  }),
   TaskList,
   TaskItem.configure({
     nested: true,

@@ -111,8 +111,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const calendarRange = ref<
       Array<{
-        fk_from_col: ColumnType | null
-        fk_to_col: ColumnType | null
+        fk_from_col: ColumnType
+        fk_to_col?: ColumnType | null
         id: string
       }>
     >([])

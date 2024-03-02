@@ -52,6 +52,143 @@ const hours = computed(() => {
   return hours
 })
 
+const calculateNewDates = ({
+  endDate,
+  startDate,
+  scheduleStart,
+  scheduleEnd,
+}: {
+  endDate: dayjs.Dayjs
+  startDate: dayjs.Dayjs
+  scheduleStart: dayjs.Dayjs
+  scheduleEnd: dayjs.Dayjs
+}) => {
+  // If there is no end date, we add 15 minutes to the start date and use that as the end date
+  if (!endDate.isValid()) {
+    endDate = startDate.clone().add(15, 'minutes')
+  }
+
+  // If the start date is before the opened date, we use the schedule start as the start date
+  // This is to ensure the generated style of the record is not outside the bounds of the calendar
+  if (startDate.isBefore(scheduleStart)) {
+    startDate = scheduleStart
+  }
+
+  // If the end date is after the schedule end, we use the schedule end as the end date
+  // This is to ensure the generated style of the record is not outside the bounds of the calendar
+  if (endDate.isAfter(scheduleEnd)) {
+    endDate = scheduleEnd
+  }
+
+  return { endDate, startDate }
+}
+
+const getGridTime = (date: dayjs.Dayjs, round = false) => {
+  const gridCalc = date.hour() * 60 + date.minute()
+  if (round) {
+    return Math.ceil(gridCalc)
+  } else {
+    return Math.floor(gridCalc)
+  }
+}
+
+const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => {
+  return {
+    from: getGridTime(from, false),
+    to: getGridTime(to, true) - 1,
+  }
+}
+
+const hasSlotForRecord = (
+  record: Row,
+  columnArray: Row[],
+  dates: {
+    fromDate: dayjs.Dayjs
+    toDate: dayjs.Dayjs
+  },
+) => {
+  const { fromDate, toDate } = dates
+
+  if (!fromDate || !toDate) return false
+
+  for (const column of columnArray) {
+    const columnFromCol = column.rowMeta.range.fk_from_col
+    const columnToCol = column.rowMeta.range.fk_to_col
+
+    const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
+      startDate: dayjs(column.row[columnFromCol.title!]),
+      endDate: columnToCol ? dayjs(column.row[columnToCol.title!]) : dayjs(column.row[columnFromCol.title!]).add(1, 'hour'),
+      scheduleStart: dayjs(selectedDate.value).startOf('day'),
+      scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+    })
+
+    if (
+      fromDate.isBetween(columnFromDate, columnToDate, null, '[]') ||
+      toDate.isBetween(columnFromDate, columnToDate, null, '[]')
+    ) {
+      return false
+    }
+  }
+  return true
+}
+
+const getMaxOfGrid = (
+  {
+    fromDate,
+    toDate,
+  }: {
+    fromDate: dayjs.Dayjs
+    toDate: dayjs.Dayjs
+  },
+  gridTimeMap: Map<number, number>,
+) => {
+  let max = 0
+  const gridTimes = getGridTimeSlots(fromDate, toDate)
+
+  for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
+    if (gridTimeMap.has(gridCounter) && gridTimeMap.get(gridCounter) > max) {
+      max = gridTimeMap.get(gridCounter)
+    }
+  }
+  return max
+}
+const isOverlaps = (row1: Row, row2: Row) => {
+  const fromCol1 = row1.rowMeta.range?.fk_from_col
+  const toCol1 = row1.rowMeta.range?.fk_to_col
+  const fromCol2 = row2.rowMeta.range?.fk_from_col
+  const toCol2 = row2.rowMeta.range?.fk_to_col
+
+  if (!fromCol1 || !fromCol2) return false
+
+  const { startDate: startDate1, endDate: endDate1 } = calculateNewDates({
+    endDate: toCol1 ? dayjs(row1.row[toCol1.title!]) : dayjs(row1.row[fromCol1.title!]).add(1, 'hour'),
+    startDate: dayjs(row1.row[fromCol1.title!]),
+    scheduleStart: dayjs(selectedDate.value).startOf('day'),
+    scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+  })
+
+  const { startDate: startDate2, endDate: endDate2 } = calculateNewDates({
+    endDate: toCol2 ? dayjs(row2.row[toCol2.title!]) : dayjs(row2.row[fromCol2.title!]).add(1, 'hour'),
+    startDate: dayjs(row2.row[fromCol2.title!]),
+    scheduleStart: dayjs(selectedDate.value).startOf('day'),
+    scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+  })
+
+  return startDate1.isBetween(startDate2, endDate2, null, '[]') || endDate1.isBetween(startDate2, endDate2, null, '[]')
+}
+
+const getMaxOverlaps = ({ row, rowArray }: { row: Row; rowArray: Row[] }) => {
+  let maxOverlaps = row.rowMeta.numberOfOverlaps
+  for (const record of rowArray) {
+    if (isOverlaps(row, record)) {
+      if (record.rowMeta.numberOfOverlaps > row.rowMeta.numberOfOverlaps) {
+        maxOverlaps = record.rowMeta.numberOfOverlaps
+      }
+    }
+  }
+  return maxOverlaps
+}
+
 const recordsAcrossAllRange = computed<{
   record: Row[]
   count: {
@@ -82,7 +219,10 @@ const recordsAcrossAllRange = computed<{
 
   const perRecordHeight = 80
 
-  let recordsByRange: Array<Row> = []
+  const columnArray: Array<Array<Row>> = [[]]
+  const gridTimeMap = new Map()
+
+  const recordsByRange: Array<Row> = []
 
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
@@ -107,34 +247,19 @@ const recordsAcrossAllRange = computed<{
       .sort((a, b) => {
         const aDate = dayjs(a.row[fromCol!.title!])
         const bDate = dayjs(b.row[fromCol!.title!])
-        return aDate.isBefore(bDate) ? -1 : 1
+        return aDate.isBefore(bDate) ? 1 : -1
       })
 
-    // If there is a start and end column, we calculate the top and height of the record based on the start and end date
-    if (fromCol && endCol) {
-      for (const record of sortedFormattedData) {
-        // We use this id during the drag and drop operation and to keep track of the number of records that overlap at a given time
-        const id = record.rowMeta?.id ?? generateRandomNumber()
-        let startDate = dayjs(record.row[fromCol.title!])
-        let endDate = dayjs(record.row[endCol.title!])
+    for (const record of sortedFormattedData) {
+      const id = generateRandomNumber()
 
-        // If there is no end date, we add 30 minutes to the start date and use that as the end date
-        if (!endDate.isValid()) {
-          endDate = startDate.clone().add(30, 'minutes')
-        }
-
-        // If the start date is before the opened date, we use the schedule start as the start date
-        // This is to ensure the generated style of the record is not outside the bounds of the calendar
-        if (startDate.isBefore(scheduleStart)) {
-          startDate = scheduleStart
-        }
-
-        // If the end date is after the schedule end, we use the schedule end as the end date
-        // This is to ensure the generated style of the record is not outside the bounds of the calendar
-        if (endDate.isAfter(scheduleEnd)) {
-          endDate = scheduleEnd
-        }
-
+      if (fromCol && endCol) {
+        const { endDate, startDate } = calculateNewDates({
+          endDate: dayjs(record.row[endCol.title!]),
+          startDate: dayjs(record.row[fromCol.title!]),
+          scheduleStart,
+          scheduleEnd,
+        })
         // The top of the record is calculated based on the start hour and minute
         const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
 
@@ -143,7 +268,6 @@ const recordsAcrossAllRange = computed<{
         const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
 
         const startHour = startDate.hour()
-
         let _startDate = startDate.clone()
 
         const style: Partial<CSSStyleDeclaration> = {
@@ -202,18 +326,13 @@ const recordsAcrossAllRange = computed<{
             range: range as any,
           },
         })
-      }
-    } else if (fromCol) {
-      for (const record of sortedFormattedData) {
-        const id = record.rowMeta?.id ?? generateRandomNumber()
-
-        const startDate = dayjs(record.row[fromCol.title!])
-
-        let endDate = dayjs(record.row[fromCol.title!]).add(1, 'hour').add(1, 'minute')
-
-        if (endDate.isAfter(scheduleEnd)) {
-          endDate = scheduleEnd
-        }
+      } else if (fromCol) {
+        const { startDate, endDate } = calculateNewDates({
+          startDate: dayjs(record.row[fromCol.title!]),
+          endDate: dayjs(record.row[fromCol.title!]).add(1, 'hour'),
+          scheduleStart,
+          scheduleEnd,
+        })
 
         const startHour = startDate.hour()
 
@@ -242,6 +361,7 @@ const recordsAcrossAllRange = computed<{
               display: 'none',
             }
           }
+
           _startDate = _startDate.add(1, 'minute')
         }
 
@@ -277,32 +397,98 @@ const recordsAcrossAllRange = computed<{
     }
   })
 
-  // We can't calculate the width & left of the records without knowing the number of records that overlap at a given time
-  // So we loop through the records again and calculate the width & left of the records based on the number of records that overlap at a given time
-  recordsByRange = recordsByRange.map((record) => {
-    // MaxOverlaps is the number of records that overlap at a given time
-    // overlapIndex is the index of the record in the list of records that overlap at a given time
-    let maxOverlaps = 1
-    let overlapIndex = 0
-    for (const minutes in overlaps) {
-      if (overlaps[minutes].id.includes(record.rowMeta.id!)) {
-        maxOverlaps = Math.max(maxOverlaps, overlaps[minutes].id.length - overlaps[minutes].overflowCount)
-        overlapIndex = Math.max(overlaps[minutes].id.indexOf(record.rowMeta.id!), overlapIndex)
+  recordsByRange.sort((a, b) => {
+    const fromColA = a.rowMeta.range?.fk_from_col
+    const fromColB = b.rowMeta.range?.fk_from_col
+    if (!fromColA || !fromColB) return 0
+    return dayjs(a.row[fromColA.title!]).isBefore(dayjs(b.row[fromColB.title!])) ? -1 : 1
+  })
+
+  for (const record of recordsByRange) {
+    const fromCol = record.rowMeta.range?.fk_from_col
+    const toCol = record.rowMeta.range?.fk_to_col
+
+    if (!fromCol) continue
+
+    const { startDate, endDate } = calculateNewDates({
+      startDate: dayjs(record.row[fromCol.title!]),
+      endDate: toCol ? dayjs(record.row[toCol.title!]) : dayjs(record.row[fromCol.title!]).add(1, 'hour'),
+      scheduleStart,
+      scheduleEnd,
+    })
+
+    const gridTimes = getGridTimeSlots(startDate, endDate)
+
+    for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
+      if (gridTimeMap.has(gridCounter)) {
+        gridTimeMap.set(gridCounter, gridTimeMap.get(gridCounter) + 1)
+      } else {
+        gridTimeMap.set(gridCounter, 1)
       }
     }
 
-    const spacing = 0.25
-    const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps
+    let foundAColumn = false
 
-    const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
+    for (const column in columnArray) {
+      if (
+        hasSlotForRecord(record, columnArray[column], {
+          fromDate: startDate,
+          toDate: endDate,
+        })
+      ) {
+        columnArray[column].push(record)
+        foundAColumn = true
+        break
+      }
+    }
+
+    if (!foundAColumn) {
+      columnArray.push([record])
+    }
+  }
+
+  for (const columnIndex in columnArray) {
+    for (const record of columnArray[columnIndex]) {
+      const recordRange = record.rowMeta.range
+      const fromCol = recordRange.fk_from_col
+      const toCol = recordRange.fk_to_col
+
+      const { startDate, endDate } = calculateNewDates({
+        startDate: dayjs(record.row[fromCol.title!]),
+        endDate: toCol ? dayjs(record.row[toCol.title!]) : dayjs(record.row[fromCol.title!]).add(1, 'hour'),
+        scheduleStart: dayjs(selectedDate.value).startOf('day'),
+        scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+      })
+
+      record.rowMeta.numberOfOverlaps =
+        getMaxOfGrid(
+          {
+            fromDate: startDate,
+            toDate: endDate,
+          },
+          gridTimeMap,
+        ) - 1
+      record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
+    }
+  }
+
+  for (const record of recordsByRange) {
+    record.rowMeta.numberOfOverlaps = getMaxOverlaps({
+      row: record,
+      rowArray: recordsByRange,
+    })
+
+    const width = 100 / columnArray.length
+    const left = width * (record.rowMeta.overLapIteration - 1)
 
     record.rowMeta.style = {
       ...record.rowMeta.style,
-      left: `${leftPerRecord - 0.08}%`,
-      width: `calc(${widthPerRecord}%)`,
+      width: `${width.toFixed(2)}%`,
+      left: `${left}%`,
     }
-    return record
-  })
+  }
+
+  console.log(columnArray)
 
   return {
     count: overlaps,
@@ -783,7 +969,7 @@ const newRecord = (hour: dayjs.Dayjs) => {
                   v-if="!isRowEmpty(record, displayField!)"
                   v-model="record.row[displayField!.title!]"
                   :bold="getFieldStyle(displayField!).bold"
-                  :column="displayField"
+                  :column="displayField!"
                   :italic="getFieldStyle(displayField!).italic"
                   :underline="getFieldStyle(displayField!).underline"
                 />

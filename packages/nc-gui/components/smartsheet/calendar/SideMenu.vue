@@ -269,18 +269,18 @@ const newRecord = () => {
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
 }
 
-const height = ref(0)
+const width = ref(0)
 
-const heightListener = () => {
-  height.value = window.innerHeight
+const widthListener = () => {
+  width.value = window.innerWidth
 }
 
 onMounted(() => {
-  window.addEventListener('resize', heightListener)
+  window.addEventListener('resize', widthListener)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', heightListener)
+  window.removeEventListener('resize', widthListener)
 })
 </script>
 
@@ -295,7 +295,8 @@ onUnmounted(() => {
   >
     <div
       :class="{
-        '!hidden': height < 918,
+        '!hidden': width < 1440,
+        'px-4 pt-3 pb-4 ': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
       }"
       class="flex flex-col"
     >
@@ -327,7 +328,7 @@ onUnmounted(() => {
 
     <div
       :class="{
-        '!border-t-0': height < 918,
+        '!border-t-0': width < 1440,
       }"
       class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
     >
@@ -369,9 +370,9 @@ onUnmounted(() => {
         v-if="calendarRange"
         :ref="sideBarListRef"
         :class="{
-          '!h-[calc(100vh-10.5rem)]': height < 918,
-        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && height > 918,
-        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && height > 918,
+          '!h-[calc(100vh-10.5rem)]': width < 1440,
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width > 1440,
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width > 1440,
       }"
         class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
         data-testid="nc-calendar-side-menu-list"

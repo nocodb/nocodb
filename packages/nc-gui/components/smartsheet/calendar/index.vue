@@ -194,7 +194,14 @@ const headerText = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <div v-if="calendarRangeDropdown" class="min-w-[22.1rem]" @click.stop>
+              <div
+                v-if="calendarRangeDropdown"
+                :class="{
+                  'px-4 pt-3 pb-4 ': activeCalendarView === 'week' || activeCalendarView === 'day',
+                }"
+                class="min-w-[22.1rem]"
+                @click.stop
+              >
                 <NcDateWeekSelector
                   v-if="activeCalendarView === ('day' as const)"
                   v-model:active-dates="activeDates"

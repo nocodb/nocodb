@@ -1,7 +1,7 @@
 import type { MetaType } from 'nocodb-sdk';
 import type { BoolType, FormType } from 'nocodb-sdk';
-import FormViewColumn from '~/models/FormViewColumn';
 import { PresignedUrl } from '~/models';
+import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -53,13 +53,14 @@ export default class FormView implements FormType {
         await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
       }
     }
-    const convertedAtt = await this._convertAttachmentType({
+
+    const convertedAttachment = await this.convertAttachmentType({
       banner_image_url: view?.banner_image_url,
       logo_url: view?.logo_url,
     });
 
-    view.banner_image_url = serializeJSON(convertedAtt.banner_image_url);
-    view.logo_url = serializeJSON(convertedAtt.logo_url);
+    view.banner_image_url = serializeJSON(convertedAttachment.banner_image_url);
+    view.logo_url = serializeJSON(convertedAttachment.logo_url);
 
     return view && new FormView(view);
   }
@@ -84,6 +85,17 @@ export default class FormView implements FormType {
     if (insertObj.meta) {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
+
+    if (insertObj?.logo_url) {
+      insertObj.logo_url = this.serializeAttachmentJSON(insertObj.logo_url);
+    }
+    
+    if (insertObj?.banner_image_url) {
+      insertObj.banner_image_url = this.serializeAttachmentJSON(
+        insertObj.banner_image_url,
+      );
+    }
+
     if (!(view.base_id && view.source_id)) {
       const viewRef = await View.get(view.fk_view_id);
       insertObj.base_id = viewRef.base_id;
@@ -112,6 +124,16 @@ export default class FormView implements FormType {
       'show_blank_form',
       'meta',
     ]);
+
+    if (updateObj?.logo_url) {
+      updateObj.logo_url = this.serializeAttachmentJSON(updateObj.logo_url);
+    }
+
+    if (updateObj?.banner_image_url) {
+      updateObj.banner_image_url = this.serializeAttachmentJSON(
+        updateObj.banner_image_url,
+      );
+    }
 
     // update meta
     const res = await ncMeta.metaUpdate(
@@ -142,7 +164,23 @@ export default class FormView implements FormType {
     return form;
   }
 
-  protected static async _convertAttachmentType(
+  static serializeAttachmentJSON(attachment: string) {
+    if (attachment?.trim()) {
+      return serializeJSON(
+        extractProps(deserializeJSON(attachment), [
+          'url',
+          'path',
+          'title',
+          'mimetype',
+          'size',
+          'icon',
+        ]),
+      );
+    }
+    return '';
+  }
+
+  protected static async convertAttachmentType(
     formAttachments: Record<string, any>,
   ) {
     try {
@@ -151,7 +189,7 @@ export default class FormView implements FormType {
 
         for (const key in formAttachments) {
           if (
-            formAttachments[key] &&
+            formAttachments[key]?.trim() &&
             typeof formAttachments[key] === 'string'
           ) {
             formAttachments[key] = deserializeJSON(formAttachments[key]);

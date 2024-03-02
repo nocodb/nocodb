@@ -220,6 +220,8 @@ const paginate = (action: 'next' | 'prev') => {
             'bg-brand-50 border-1 !border-brand-500': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
             'nc-selected-week z-1': isDateInSelectedWeek(date) && isWeekPicker,
+            'border-none': isWeekPicker,
+            'border-transparent': !isWeekPicker,
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
@@ -228,7 +230,7 @@ const paginate = (action: 'next' | 'prev') => {
             'h-8 w-8': size === 'medium',
             'text-xs': size === 'small',
           }"
-          class="px-1 py-1 relative border-1 border-transparent font-large flex items-center cursor-pointer justify-center"
+          class="px-1 py-1 relative border-1 font-large flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           @click="handleSelectDate(date)"
         >

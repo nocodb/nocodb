@@ -202,7 +202,7 @@ const paginate = (action: 'next' | 'prev') => {
             'text-[10px]': size === 'small',
           }"
           class="flex items-center uppercase justify-center text-gray-500"
-          >{{ size === 'small' ? day[0] : day }}</span
+          >{{ day[0] }}</span
         >
       </div>
       <div
@@ -240,7 +240,7 @@ const paginate = (action: 'next' | 'prev') => {
               'h-1.5 w-1.5': size === 'large',
               'h-1 w-1': size === 'medium',
               'h-0.75 w-0.75': size === 'small',
-              'top-1 right-1': size != 'small',
+              'top-1 right-1': size !== 'small',
               'top-0.5 right-0.5': size === 'small',
             }"
             class="absolute z-2 rounded-full bg-brand-500"

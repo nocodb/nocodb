@@ -245,5 +245,5 @@ export type {
   CommandPaletteType,
   CalendarRangeType,
   FormFieldsLimitOptionsType,
-  ImageCropperConfig
+  ImageCropperConfig,
 }

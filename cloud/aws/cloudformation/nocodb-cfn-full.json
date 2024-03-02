@@ -7,19 +7,9 @@
             "Description": "Specifies the ECS Cluster Name with which the resources would be associated",
             "Default": "nocodb-alpha"
         },
-        "SecurityGroupIds": {
-            "Type": "CommaDelimitedList",
-            "Description": "Optional - Specifies the Comma separated list of the Security Group Id of an existing Security Group.",
-            "Default": "sg-0c29a6921b7622e13"
-        },
-        "DefaultSecurityGroupId": {
-            "Type": "String",
-            "Description": "sg-00c97063",
-            "Default": "sg-00c97063"
-        },
         "VpcId": {
             "Type": "String",
-            "Description": "Optional - Specifies the ID of an existing VPC in which to launch your container instances. If you specify a VPC ID, you must specify a list of existing subnets in that VPC. If you do not specify a VPC ID, a new VPC is created with at least 1 subnet.",
+            "Description": "ID of an existing VPC in which to launch your container instances.",
             "Default": "vpc-84a5b0ec",
             "AllowedPattern": "^(?:vpc-[0-9a-f]{8,17}|)$",
             "ConstraintDescription": "VPC Id must begin with 'vpc-' and have a valid uuid"
@@ -28,16 +18,6 @@
             "Type": "CommaDelimitedList",
             "Description": "Optional - Specifies the Comma separated list of existing VPC Subnet Ids where ECS instances will run",
             "Default": "subnet-d697a5be,subnet-c1a7c48d"
-        },
-        "LatestECSOptimizedAMI": {
-            "Description": "AMI ID",
-            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
-            "Default": "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
-        },
-        "IamRoleInstanceProfile": {
-            "Type": "String",
-            "Description": "Specifies the Name or the Amazon Resource Name (ARN) of the instance profile associated with the IAM role for the instance",
-            "Default": "arn:aws:iam::249717198246:instance-profile/ecsInstanceRole"
         },
         "ECSServiceName": {
             "Type": "String",
@@ -68,9 +48,90 @@
             "Type": "String",
             "Default": "nocohub-001-app-attachments",
             "Description": "NC_CLOUD_S3_BUCKET_NAME"
+        },
+        "NCCLOUDSESFROM": {
+            "Type": "String",
+            "Default": "admin@nocodb.com",
+            "Description": "NC_CLOUD_SES_FROM"
+        },
+        "LatestECSOptimizedAMI": {
+            "Description": "AMI ID",
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
         }
     },
     "Resources": {
+        "DefaultSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-default-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
+        "DefaultSecurityGroupIngress": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "GroupName": "nocodb-default-sg",
+                "SourceSecurityGroupId": {
+                    "Ref": "DefaultSecurityGroup"
+                },
+                "SourceSecurityGroupOwnerId": {
+                    "Ref": "AWS::AccountId"
+                },
+                "FromPort": 0,
+                "IpProtocol": "tcp",
+                "ToPort": 65535
+            }
+        },
+        "EC2SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-ec2-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "DefaultSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    },
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "LBSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
+                    }
+                ]
+            }
+        },
         "ECSLaunchTemplate": {
             "Type": "AWS::EC2::LaunchTemplate",
             "DependsOn": "ECSCluster",
@@ -79,14 +140,16 @@
                     "ImageId": {
                         "Ref": "LatestECSOptimizedAMI"
                     },
-                    "SecurityGroupIds": {
-                        "Ref": "SecurityGroupIds"
-                    },
+                    "SecurityGroupIds": [
+                        {
+                            "Ref": "EC2SecurityGroup"
+                        }
+                    ],
                     "InstanceType": "t2.micro",
                     "KeyName": "nocodb-key",
                     "IamInstanceProfile": {
                         "Arn": {
-                            "Ref": "IamRoleInstanceProfile"
+                            "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:instance-profile/ecsInstanceRole"
                         }
                     },
                     "UserData": {
@@ -246,76 +309,100 @@
         "NocodbMainServiceTaskDefinition": {
             "Type": "AWS::ECS::TaskDefinition",
             "Properties": {
-                "containerDefinitions": [
+                "ContainerDefinitions": [
                     {
-                        "name": "nocohub",
-                        "image": "249717198246.dkr.ecr.us-east-2.amazonaws.com/nocohub:ws",
-                        "cpu": 0,
-                        "memory": 918,
-                        "portMappings": [
+                        "Name": "nocohub",
+                        "Image": "249717198246.dkr.ecr.us-east-2.amazonaws.com/nocohub:ws",
+                        "Cpu": 0,
+                        "Memory": 918,
+                        "PortMappings": [
                             {
-                                "name": "nocohub-8080-tcp",
-                                "containerPort": 8080,
-                                "hostPort": 80,
-                                "protocol": "tcp"
+                                "Name": "nocohub-8080-tcp",
+                                "ContainerPort": 8080,
+                                "HostPort": 80,
+                                "Protocol": "tcp"
                             }
                         ],
-                        "essential": true,
-                        "environment": [
+                        "Essential": true,
+                        "Environment": [
                             {
-                                "name": "NC_CLOUD",
-                                "value": true
+                                "Name": "NC_CLOUD",
+                                "Value": true
                             },
                             {
-                                "name": "NC_REDIS_URL",
-                                "value": {
+                                "Name": "NC_REDIS_URL",
+                                "Value": {
                                     "Fn::Sub": "redis://${ElastiCacheCacheCluster.RedisEndpoint.Address}:6379/4"
                                 }
                             },
                             {
-                                "name": "NC_DB",
-                                "value": {
+                                "Name": "NC_DB",
+                                "Value": {
                                     "Fn::Sub": "pg://${RDSDBInstance.Endpoint.Address}:5432?u=postgres&password=${MetaDBPassword}&d=nocodb_meta"
                                 }
                             },
                             {
-                                "name": "NC_CLOUD_S3_ACCESS_KEY",
-                                "value": {
+                                "Name": "NC_CLOUD_S3_ACCESS_KEY",
+                                "Value": {
                                     "Ref": "NCCLOUDS3ACCESSKEY"
                                 }
                             },
                             {
-                                "name": "NC_CLOUD_S3_ACCESS_SECRET",
-                                "value": {
+                                "Name": "NC_CLOUD_S3_ACCESS_SECRET",
+                                "Value": {
                                     "Ref": "NCCLOUDS3ACCESSSECRET"
                                 }
                             },
                             {
-                                "name": "NC_CLOUD_S3_BUCKET_NAME",
-                                "value": {
+                                "Name": "NC_CLOUD_S3_BUCKET_NAME",
+                                "Value": {
                                     "Ref": "NCCLOUDS3BUCKETNAME"
                                 }
                             },
                             {
-                                "name": "NC_CLOUD_S3_REGION",
-                                "value": {
-                                    "Ref": "${AWS::Region}"
+                                "Name": "NC_CLOUD_S3_REGION",
+                                "Value": {
+                                    "Fn::Sub": "${AWS::Region}"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_REGION",
+                                "Value": {
+                                    "Fn::Sub": "${AWS::Region}"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_FROM",
+                                "Value": {
+                                    "Ref": "NCCLOUDSESFROM"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_ACCESS_KEY",
+                                "Value": {
+                                    "Ref": "NCCLOUDS3ACCESSKEY"
+                                }
+                            },
+                            {
+                                "Name": "NC_CLOUD_SES_ACCESS_SECRET",
+                                "Value": {
+                                    "Ref": "NCCLOUDS3ACCESSSECRET"
                                 }
                             }
                         ],
-                        "secrets": [
+                        "Secrets": [
                             {
-                                "name": "NC_CREDENTIALS",
-                                "valueFrom": {
+                                "Name": "NC_CREDENTIALS",
+                                "ValueFrom": {
                                     "Ref": "NocodbSecrets"
                                 }
                             }
                         ],
-                        "volumesFrom": [],
-                        "dockerLabels": {},
-                        "logConfiguration": {
-                            "logDriver": "awslogs",
-                            "options": {
+                        "VolumesFrom": [],
+                        "DockerLabels": {},
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
                                 "awslogs-group": {
                                     "Ref": "NocodbMainServiceLogGroup"
                                 },
@@ -327,20 +414,63 @@
                         }
                     }
                 ],
-                "family": "nocodb-001-task-definition",
-                "taskRoleArn": {
+                "Family": "nocodb-001-task-definition",
+                "TaskRoleArn": {
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
                 },
-                "executionRoleArn": {
+                "ExecutionRoleArn": {
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/ecsTaskExecutionRole"
                 },
-                "networkMode": "bridge",
-                "cpu": "1024",
-                "memory": "922",
-                "tags": [
+                "NetworkMode": "bridge",
+                "Cpu": "1024",
+                "Memory": "922",
+                "Tags": [
                     {
-                        "key": "nocodb-001",
-                        "value": "true"
+                        "Key": "nocodb-001",
+                        "Value": "true"
+                    }
+                ]
+            }
+        },
+        "LBSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "created by nocodb cfn template",
+                "GroupName": "nocodb-lb-sg",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "DefaultSecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 0,
+                        "IpProtocol": "tcp",
+                        "ToPort": 65535
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "used only for redirection",
+                        "FromPort": 80,
+                        "IpProtocol": "tcp",
+                        "ToPort": 80
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": "ssl",
+                        "FromPort": 8443,
+                        "IpProtocol": "tcp",
+                        "ToPort": 8443
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "IpProtocol": "-1"
                     }
                 ]
             }
@@ -368,9 +498,11 @@
                 "Subnets": {
                     "Ref": "SubnetIds"
                 },
-                "SecurityGroups": {
-                    "Ref": "SecurityGroupIds"
-                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "LBSecurityGroup"
+                    }
+                ],
                 "IpAddressType": "ipv4",
                 "LoadBalancerAttributes": [
                     {
@@ -569,21 +701,23 @@
                 ]
             },
             "DependsOn": [
-                "ElasticLoadBalancingV2Listener443"
+                "ElasticLoadBalancingV2Listener443",
+                "RDSDBCluster",
+                "ElastiCacheCacheCluster"
             ]
         },
         "RDSSecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "GroupDescription": "created by nocodb cfn template",
-                "GroupName": "nocohub-rds-sg",
+                "GroupName": "nocodb-rds-sg",
                 "VpcId": {
                     "Ref": "VpcId"
                 },
                 "SecurityGroupIngress": [
                     {
                         "SourceSecurityGroupId": {
-                            "Ref": "DefaultSecurityGroupId"
+                            "Ref": "DefaultSecurityGroup"
                         },
                         "SourceSecurityGroupOwnerId": {
                             "Ref": "AWS::AccountId"
@@ -591,6 +725,17 @@
                         "FromPort": 0,
                         "IpProtocol": "tcp",
                         "ToPort": 65535
+                    },
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "EC2SecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "FromPort": 5432,
+                        "IpProtocol": "tcp",
+                        "ToPort": 5432
                     }
                 ],
                 "SecurityGroupEgress": [
@@ -639,7 +784,7 @@
                 "PreferredMaintenanceWindow": "wed:00:10-wed:00:40",
                 "VpcSecurityGroupIds": [
                     {
-                        "Ref": "DefaultSecurityGroupId"
+                        "Ref": "DefaultSecurityGroup"
                     },
                     {
                         "Ref": "RDSSecurityGroup"
@@ -698,19 +843,30 @@
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "GroupDescription": "security group for redis",
-                "GroupName": "nocodb-001-redis",
+                "GroupName": "nocodb-redis-sg",
                 "VpcId": {
                     "Ref": "VpcId"
                 },
                 "SecurityGroupIngress": [
                     {
                         "SourceSecurityGroupId": {
-                            "Ref": "DefaultSecurityGroupId"
+                            "Ref": "DefaultSecurityGroup"
                         },
                         "SourceSecurityGroupOwnerId": {
                             "Ref": "AWS::AccountId"
                         },
                         "Description": "allow everything within vpc.",
+                        "FromPort": 6379,
+                        "IpProtocol": "tcp",
+                        "ToPort": 6379
+                    },
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "EC2SecurityGroup"
+                        },
+                        "SourceSecurityGroupOwnerId": {
+                            "Ref": "AWS::AccountId"
+                        },
                         "FromPort": 6379,
                         "IpProtocol": "tcp",
                         "ToPort": 6379

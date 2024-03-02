@@ -89,7 +89,7 @@ export default class FormView implements FormType {
     if (insertObj?.logo_url) {
       insertObj.logo_url = this.serializeAttachmentJSON(insertObj.logo_url);
     }
-    
+
     if (insertObj?.banner_image_url) {
       insertObj.banner_image_url = this.serializeAttachmentJSON(
         insertObj.banner_image_url,

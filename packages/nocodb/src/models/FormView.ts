@@ -68,8 +68,8 @@ export default class FormView implements FormViewType {
       logo_url: view?.logo_url,
     });
 
-    view.banner_image_url = convertedAttachment.banner_image_url;
-    view.logo_url = convertedAttachment.logo_url;
+    view.banner_image_url = convertedAttachment.banner_image_url || null;
+    view.logo_url = convertedAttachment.logo_url || null;
 
     return view && new FormView(view);
   }

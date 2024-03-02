@@ -250,8 +250,16 @@ onClickOutside(editorDom, (e) => {
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
       />
-      <div v-if="isFormField && !readOnly && isFocused">
-        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+      <div v-if="isFormField && !readOnly">
+        <div
+          class="overflow-hidden"
+          :class="isFocused ? 'max-h-[50px]' : 'max-h-0'"
+          :style="{
+            transition: 'max-height 0.2s ease-in-out',
+          }"
+        >
+          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+        </div>
       </div>
     </template>
   </div>

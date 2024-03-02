@@ -1,6 +1,7 @@
 import type { MetaType } from 'nocodb-sdk';
 import type { BoolType, FormType } from 'nocodb-sdk';
 import FormViewColumn from '~/models/FormViewColumn';
+import { PresignedUrl } from '~/models';
 import View from '~/models/View';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -46,11 +47,20 @@ export default class FormView implements FormType {
       view = await ncMeta.metaGet2(null, null, MetaTable.FORM_VIEW, {
         fk_view_id: viewId,
       });
+
       if (view) {
         view.meta = deserializeJSON(view.meta);
         await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
       }
     }
+    const convertedAtt = await this._convertAttachmentType({
+      banner_image_url: view?.banner_image_url,
+      logo_url: view?.logo_url,
+    });
+
+    view.banner_image_url = serializeJSON(convertedAtt.banner_image_url);
+    view.logo_url = serializeJSON(convertedAtt.logo_url);
+
     return view && new FormView(view);
   }
 
@@ -130,5 +140,46 @@ export default class FormView implements FormType {
     const form = await this.get(formViewId, ncMeta);
     await form.getColumns(ncMeta);
     return form;
+  }
+
+  protected static async _convertAttachmentType(
+    formAttachments: Record<string, any>,
+  ) {
+    try {
+      if (formAttachments) {
+        const promises = [];
+
+        for (const key in formAttachments) {
+          if (
+            formAttachments[key] &&
+            typeof formAttachments[key] === 'string'
+          ) {
+            formAttachments[key] = deserializeJSON(formAttachments[key]);
+          }
+
+          if (formAttachments[key]?.path) {
+            promises.push(
+              PresignedUrl.getSignedUrl({
+                path: formAttachments[key].path.replace(/^download\//, ''),
+              }).then((r) => (formAttachments[key].signedPath = r)),
+            );
+          } else if (formAttachments[key]?.url) {
+            if (formAttachments[key].url.includes('.amazonaws.com/')) {
+              const relativePath = decodeURI(
+                formAttachments[key].url.split('.amazonaws.com/')[1],
+              );
+              promises.push(
+                PresignedUrl.getSignedUrl({
+                  path: relativePath,
+                  s3: true,
+                }).then((r) => (formAttachments[key].signedUrl = r)),
+              );
+            }
+          }
+        }
+        await Promise.all(promises);
+      }
+    } catch {}
+    return formAttachments;
   }
 }

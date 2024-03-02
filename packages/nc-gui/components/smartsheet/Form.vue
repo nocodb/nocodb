@@ -43,6 +43,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
+import type { VNodeRef } from '@vue/runtime-core'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -173,6 +174,8 @@ const imageCropperData = ref<{
 })
 
 const focusLabel = ref<HTMLTextAreaElement>()
+
+const focusFormTitle: VNodeRef = (el) => el && activeRow.value === NcForm.heading && (el as HTMLTextAreaElement)?.focus()
 
 const searchQuery = ref('')
 
@@ -556,6 +559,8 @@ onMounted(async () => {
   await loadFormView()
   setFormData()
   isLoadingFormView.value = false
+
+  activeRow.value = NcForm.heading
 })
 
 watch(submitted, (v) => {
@@ -909,6 +914,7 @@ useEventListener(
                       <a-form-item v-if="isEditable" class="!my-0">
                         <a-textarea
                           v-model:value="formViewData.heading"
+                          :ref="focusFormTitle"
                           class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
                           :style="{
                             'borderRightWidth': '0px !important',

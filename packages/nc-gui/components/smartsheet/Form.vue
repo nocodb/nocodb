@@ -140,7 +140,11 @@ const imageCropperData = ref<{
     name: string
   }
   cropperConfig: {
-    aspectRatio?: number
+    stencilProps: {
+      aspectRatio?: number
+    }
+    minHeight: number
+    minWidth: number
   }
   uploadConfig?: {
     path?: string
@@ -152,7 +156,11 @@ const imageCropperData = ref<{
     type: '',
     name: '',
   },
-  cropperConfig: {},
+  cropperConfig: {
+    stencilProps: {},
+    minHeight: 0,
+    minWidth: 0,
+  },
   uploadConfig: {
     path: '',
   },
@@ -470,12 +478,22 @@ const openUploadImage = (isUploadBanner: boolean) => {
   }
   if (isUploadBanner) {
     imageCropperData.value.cropperConfig = {
-      aspectRatio: 4 / 1,
+      ...imageCropperData.value.cropperConfig,
+      stencilProps: {
+        aspectRatio: 4 / 1,
+      },
+      minHeight: 0,
+      minWidth: 0,
     }
     imageCropperData.value.cropFor = 'banner'
   } else {
     imageCropperData.value.cropperConfig = {
-      aspectRatio: undefined,
+      ...imageCropperData.value.cropperConfig,
+      stencilProps: {
+        aspectRatio: undefined,
+      },
+      minHeight: 150,
+      minWidth: 150,
     }
     imageCropperData.value.cropFor = 'logo'
   }

@@ -1,5 +1,9 @@
-import type { MetaType } from 'nocodb-sdk';
-import type { BoolType, FormType } from 'nocodb-sdk';
+import type {
+  MetaType,
+  BoolType,
+  FormType,
+  AttachmentResType,
+} from 'nocodb-sdk';
 import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
@@ -21,8 +25,8 @@ export default class FormView implements FormType {
   redirect_url?: string;
   redirect_after_secs?: string;
   email?: string;
-  banner_image_url?: string;
-  logo_url?: string;
+  banner_image_url?: AttachmentResType;
+  logo_url?: AttachmentResType;
   submit_another_form?: BoolType;
   show_blank_form?: BoolType;
 
@@ -59,8 +63,8 @@ export default class FormView implements FormType {
       logo_url: view?.logo_url,
     });
 
-    view.banner_image_url = serializeJSON(convertedAttachment.banner_image_url);
-    view.logo_url = serializeJSON(convertedAttachment.logo_url);
+    view.banner_image_url = convertedAttachment.banner_image_url;
+    view.logo_url = convertedAttachment.logo_url;
 
     return view && new FormView(view);
   }
@@ -164,8 +168,8 @@ export default class FormView implements FormType {
     return form;
   }
 
-  static serializeAttachmentJSON(attachment: string) {
-    if (attachment?.trim()) {
+  static serializeAttachmentJSON(attachment: AttachmentResType) {
+    if (attachment) {
       return serializeJSON(
         extractProps(deserializeJSON(attachment), [
           'url',
@@ -177,7 +181,7 @@ export default class FormView implements FormType {
         ]),
       );
     }
-    return '';
+    return attachment;
   }
 
   protected static async convertAttachmentType(

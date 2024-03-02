@@ -18,6 +18,7 @@ import {
   extractSortsObject,
   getColumnName,
   getListArgs,
+  _wherePk,
 } from '~/db/BaseModelSqlv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
@@ -957,7 +958,8 @@ export async function singleQueryList(ctx: {
     'w' in ctx.params ||
     'fields' in ctx.params ||
     'f' in ctx.params ||
-    'nested' in ctx.params
+    'nested' in ctx.params ||
+    'pks' in ctx.params
   ) {
     skipCache = true;
   }
@@ -1074,6 +1076,16 @@ export async function singleQueryList(ctx: {
     } /*else if (ctx.model.primaryKey) {
       rootQb.orderBy(ctx.model.primaryKey.column_name);
     }*/
+  }
+
+  if (listArgs.pks) {
+    const pks = listArgs.pks.split(',');
+    rootQb.where((qb) => {
+      pks.forEach((pk) => {
+        qb.orWhere(_wherePk(ctx.model.primaryKeys, pk));
+      });
+      return qb;
+    });
   }
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));

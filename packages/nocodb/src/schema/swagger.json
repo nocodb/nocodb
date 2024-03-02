@@ -9041,6 +9041,14 @@
             "description": "Used for multiple filter queries"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -12761,6 +12769,14 @@
             "in": "query",
             "name": "filterArrJson",
             "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
           }
         ],
         "description": "List all shared view rows"
@@ -16326,6 +16342,14 @@
             "in": "query",
             "name": "filterArrJson",
             "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
           },
           {
             "$ref": "#/components/parameters/xc-auth"

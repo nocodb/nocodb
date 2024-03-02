@@ -1085,6 +1085,16 @@ export async function singleQueryList(ctx: {
     }
   }
 
+  if (listArgs.pks) {
+    const pks = listArgs.pks.split(',');
+    rootQb.where((qb) => {
+      pks.forEach((pk) => {
+        qb.orWhere(_wherePk(ctx.model.primaryKeys, pk));
+      });
+      return qb;
+    });
+  }
+
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
   const { ast } = await getAst({

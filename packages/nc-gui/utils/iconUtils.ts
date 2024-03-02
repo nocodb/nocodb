@@ -128,6 +128,7 @@ import NcItalic from '~icons/nc-icons/italic'
 import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
 import NcCrop from '~icons/nc-icons/crop'
+import NcLink from '~icons/nc-icons/link'
 
 // keep it for reference
 // todo: remove it after all icons are migrated

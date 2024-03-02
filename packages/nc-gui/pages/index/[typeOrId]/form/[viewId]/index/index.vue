@@ -91,13 +91,10 @@ const onDecode = async (scannedCodeValue: string) => {
     >
       <template v-if="sharedFormView">
         <div class="mb-4">
-          <LazyCellRichText
-            :value="sharedFormView.heading"
-            class="text-2xl font-bold text-gray-900 !h-auto mb-4 -ml-1"
-            is-form-field
-            read-only
-            sync-value-change
-          />
+          <h1 class="text-2xl font-bold text-gray-900 mb-4">
+            {{ sharedFormView.heading }}
+          </h1>
+
           <div v-if="sharedFormView.subheading">
             <LazyCellRichText
               :value="sharedFormView.subheading"
@@ -115,11 +112,23 @@ const onDecode = async (scannedCodeValue: string) => {
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full lg:w-[95%]">
               <a-alert
+                class="!my-4 !py-4 text-center !rounded-lg"
                 type="success"
-                class="!my-4 text-center !rounded-lg"
+                data-testid="nc-survey-form__success-msg"
                 outlined
-                :message="sharedFormView.success_msg || 'Successfully submitted form data'"
-              />
+              >
+                <template #message>
+                  <LazyCellRichText
+                    v-if="sharedFormView?.success_msg?.trim()"
+                    :value="sharedFormView?.success_msg"
+                    class="!h-auto -ml-1"
+                    is-form-field
+                    read-only
+                    sync-value-change
+                  />
+                  <span v-else> Successfully submitted form data </span>
+                </template>
+              </a-alert>
 
               <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
                 {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
@@ -127,8 +136,8 @@ const onDecode = async (scannedCodeValue: string) => {
 
               <div v-if="sharedFormView.submit_another_form" class="text-center">
                 <NcButton type="primary" size="medium" @click="submitted = false">
-                  {{ $t('activity.submitAnotherForm') }}</NcButton
-                >
+                  {{ $t('activity.submitAnotherForm') }}
+                </NcButton>
               </div>
             </div>
           </div>
@@ -160,15 +169,9 @@ const onDecode = async (scannedCodeValue: string) => {
               <div class="flex flex-col gap-3 md:gap-6">
                 <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
                   <div class="nc-form-column-label text-sm font-semibold text-gray-800">
-                    <div>
-                      <LazyCellRichText
-                        :value="field.label || field.title"
-                        class="!h-auto -ml-1"
-                        is-form-field
-                        read-only
-                        sync-value-change
-                      />
-                    </div>
+                    <span>
+                      {{ field.label || field.title }}
+                    </span>
                     <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
                   </div>
                   <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">

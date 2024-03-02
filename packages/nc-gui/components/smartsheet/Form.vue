@@ -879,27 +879,32 @@ useEventListener(
                     ]"
                     @click.stop="onFormItemClick({ title: 'nc-form-heading' })"
                   >
-                    <LazyCellRichText
-                      v-if="isEditable && !isLocked"
-                      v-model:value="formViewData.heading"
-                      :placeholder="$t('msg.info.formTitle')"
-                      class="nc-form-focus-element font-bold text-2xl text-gray-900"
-                      is-form-field
-                      :autofocus="activeRow === 'nc-form-heading'"
-                      :is-tab-pressed="isTabPressed"
-                      data-testid="nc-form-heading"
-                      data-title="nc-form-heading"
-                      @update:value="updateView"
-                    />
-                    <LazyCellRichText
-                      v-else
-                      :value="formViewData.heading"
-                      placeholder="Form Title"
-                      class="font-bold text-2xl text-gray-900"
-                      is-form-field
-                      read-only
-                      sync-value-change
-                    />
+                    <a-form-item v-if="isEditable" class="!my-0">
+                      <a-textarea
+                        v-model:value="formViewData.heading"
+                        class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
+                        :style="{
+                          'borderRightWidth': '0px !important',
+                          'height': '70px',
+                          'max-height': '250px',
+                          'resize': 'vertical',
+                        }"
+                        auto-size
+                        size="large"
+                        hide-details
+                        :disabled="isLocked"
+                        placeholder="Form Title"
+                        :bordered="false"
+                        data-testid="nc-form-heading"
+                        data-title="nc-form-heading"
+                        @blur="updateView"
+                        @keydown.enter="updateView"
+                      />
+                    </a-form-item>
+
+                    <div v-else class="font-bold text-2xl text-gray-900">
+                      {{ formViewData.heading }}
+                    </div>
                   </div>
 
                   <!-- form description  -->
@@ -990,26 +995,7 @@ useEventListener(
                       <div v-if="activeRow !== element.title">
                         <div class="text-sm font-semibold text-gray-800">
                           <span data-testid="nc-form-input-label">
-                            <LazyCellRichText
-                              v-if="element.label"
-                              :value="element.label"
-                              is-form-field
-                              read-only
-                              sync-value-change
-                              class="nc-form-help-text text-gray-500 text-sm mt-2"
-                              data-testid="nc-form-help-text"
-                              @update:value="updateColMeta(element)"
-                            />
-                            <LazyCellRichText
-                              v-else
-                              :value="element.title"
-                              is-form-field
-                              read-only
-                              sync-value-change
-                              class="nc-form-help-text text-gray-500 text-sm mt-2"
-                              data-testid="nc-form-help-text"
-                              @update:value="updateColMeta(element)"
-                            />
+                            {{ element.label || element.title }}
                           </span>
                           <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
                             >&nbsp;*</span
@@ -1077,15 +1063,17 @@ useEventListener(
                       <div class="nc-form-field-body" :class="activeRow === element.title ? 'p-4 lg:p-6' : ''">
                         <template v-if="activeRow === element.title">
                           <a-form-item class="my-0 !mb-2">
-                            <LazyCellRichText
+                            <a-textarea
+                              ref="focusLabel"
                               v-model:value="element.label"
-                              :placeholder="$t('msg.info.formInput')"
-                              autofocus
-                              is-form-field
-                              :is-tab-pressed="isTabPressed"
+                              :rows="1"
+                              auto-size
+                              hide-details
                               class="form-meta-input nc-form-input-label"
                               data-testid="nc-form-input-label"
-                              @update:value="updateColMeta(element)"
+                              :placeholder="$t('msg.info.formInput')"
+                              @keydown.enter.prevent
+                              @change="updateColMeta(element)"
                             />
                           </a-form-item>
 
@@ -1184,9 +1172,14 @@ useEventListener(
                           <div>Layout</div>
 
                           <a-radio-group
-                            v-model:value="element.meta.isList"
+                            :value="!!element.meta.isList"
                             class="nc-form-field-layout !mt-2"
-                            @change="updateColMeta(element)"
+                            @update:value="
+                              (value) => {
+                                element.meta.isList = value
+                                updateColMeta(element)
+                              }
+                            "
                           >
                             <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
                             <a-radio :value="true">{{ $t('general.list') }}</a-radio>
@@ -1407,17 +1400,7 @@ useEventListener(
                                   <template #title>
                                     {{ field.label }}
                                   </template>
-                                  <span data-testid="nc-field-label">
-                                    <LazyCellRichText
-                                      :value="field.label"
-                                      is-form-field
-                                      read-only
-                                      sync-value-change
-                                      render-as-text
-                                      class="text-xs font-normal text-gray-700"
-                                      data-testid="nc-form-help-text"
-                                    />
-                                  </span>
+                                  <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
                                 </NcTooltip>
                                 <span>)</span>
                               </div>
@@ -1519,15 +1502,22 @@ useEventListener(
                   <div class="text-gray-800 mb-2">
                     {{ $t('msg.info.formDisplayMessage') }}
                   </div>
-                  <a-textarea
-                    v-model:value="formViewData.success_msg"
-                    :rows="3"
-                    hide-details
-                    class="nc-form-after-submit-msg !rounded-lg !px-3 !py-1"
-                    data-testid="nc-form-after-submit-msg"
-                    :disabled="isLocked || !isEditable"
-                    @change="updateView"
-                  />
+                  <a-form-item class="!my-0">
+                    <LazyCellRichText
+                      v-if="!isLocked && isEditable"
+                      v-model:value="formViewData.success_msg"
+                      class="nc-form-after-submit-msg"
+                      :is-form-field="true"
+                      data-testid="nc-form-after-submit-msg"
+                      @update:value="updateView" />
+                    <LazyCellRichText
+                      v-else
+                      :value="formViewData.success_msg"
+                      class="nc-form-after-submit-msg"
+                      is-form-field
+                      read-only
+                      data-testid="nc-form-after-submit-msg"
+                  /></a-form-item>
                 </div>
 
                 <!-- Other options -->
@@ -1645,10 +1635,8 @@ useEventListener(
   }
 }
 
-.form-meta-input {
-  &::placeholder {
-    @apply !text-gray-500;
-  }
+.nc-form-input-label {
+  @apply !px-4 !py-2 font-semibold text-gray-800 !rounded-lg !text-sm;
 }
 
 .nc-form-help-text,
@@ -1745,6 +1733,14 @@ useEventListener(
   }
   &.nc-form-input-help-text .nc-textarea-rich-editor {
     @apply pt-1 text-gray-700;
+  }
+}
+.nc-form-after-submit-msg {
+  .nc-textarea-rich-editor {
+    @apply pl-1 pr-2 pt-2 pb-1 !rounded-lg !text-sm border-1 border-gray-200 focus-within:border-brand-500;
+    .ProseMirror {
+      min-height: 5rem;
+    }
   }
 }
 </style>

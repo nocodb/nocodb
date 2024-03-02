@@ -17157,9 +17157,6 @@
             }
           },
           {
-            "type": "string"
-          },
-          {
             "type": "null"
           }
         ],
@@ -18861,7 +18858,7 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/AttachmentRes",
+            "$ref": "#/components/schemas/AttachmentReq",
             "description": "Banner Image URL"
           },
           "email": {
@@ -18875,7 +18872,7 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/AttachmentRes",
+            "$ref": "#/components/schemas/AttachmentReq",
             "description": "Logo URL"
           },
           "meta": {

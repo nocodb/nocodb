@@ -824,35 +824,13 @@ useEventListener(
                     ]"
                     @click.stop="onFormItemClick({ title: 'nc-form-heading' })"
                   >
-                    <!-- <a-form-item v-if="isEditable" class="!my-0">
-                      <a-textarea
-                        v-model:value="formViewData.heading"
-                        class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
-                        :style="{
-                          'borderRightWidth': '0px !important',
-                          'height': '70px',
-                          'max-height': '250px',
-                          'resize': 'vertical',
-                        }"
-                        auto-size
-                        size="large"
-                        hide-details
-                        :disabled="isLocked"
-                        placeholder="Form Title"
-                        :bordered="false"
-                        data-testid="nc-form-heading"
-                        data-title="nc-form-heading"
-                        @blur="updateView"
-                        @keydown.enter="updateView"
-                      />
-                    </a-form-item> -->
-
                     <LazyCellRichText
-                      v-if="isEditable"
+                      v-if="isEditable && !isLocked"
                       v-model:value="formViewData.heading"
                       class="nc-form-focus-element font-bold text-2xl text-gray-900"
                       is-form-field
-                      :read-only="activeRow !== 'nc-form-heading'"
+                      :autofocus="activeRow === 'nc-form-heading'"
+                      :is-tab-pressed="isTabPressed"
                       data-testid="nc-form-heading"
                       data-title="nc-form-heading"
                       @update:value="updateView"
@@ -888,30 +866,24 @@ useEventListener(
                     ]"
                     @click.stop="onFormItemClick({ title: 'nc-form-sub-heading' })"
                   >
-                    <a-form-item v-if="isEditable" class="w-full !my-0">
-                      <a-textarea
-                        v-model:value="formViewData.subheading"
-                        class="nc-form-focus-element w-full !px-0 !m-0 !border-0 !rounded-none font-medium text-base !text-gray-500"
-                        :style="{
-                          borderRightWidth: '0px !important',
-                          resize: 'vertical',
-                        }"
-                        size="large"
-                        auto-size
-                        hide-details
-                        :placeholder="$t('msg.info.formDesc')"
-                        :bordered="false"
-                        :disabled="!isEditable || isLocked"
-                        data-testid="nc-form-sub-heading"
-                        data-title="nc-form-sub-heading"
-                        @blur="updateView"
-                        @click="updateView"
-                      />
-                    </a-form-item>
-
-                    <div v-else class="font-medium text-base text-gray-500">
-                      {{ formViewData.subheading || '---' }}
-                    </div>
+                    <LazyCellRichText
+                      v-if="isEditable && !isLocked"
+                      v-model:value="formViewData.subheading"
+                      class="nc-form-focus-element font-medium text-base !text-gray-500"
+                      is-form-field
+                      :autofocus="activeRow === 'nc-form-sub-heading'"
+                      :is-tab-pressed="isTabPressed"
+                      data-testid="nc-form-sub-heading"
+                      data-title="nc-form-sub-heading"
+                      @update:value="updateView"
+                    />
+                    <LazyCellRichText
+                      v-else
+                      v-model:value="formViewData.subheading"
+                      class="font-medium text-base !text-gray-500"
+                      is-form-field
+                      read-only
+                    />
                   </div>
                 </div>
 
@@ -961,16 +933,36 @@ useEventListener(
                       <div v-if="activeRow !== element.title">
                         <div class="text-sm font-semibold text-gray-800">
                           <span data-testid="nc-form-input-label">
-                            {{ element.label || element.title }}
+                            <LazyCellRichText
+                              v-if="element.label"
+                              v-model:value="element.label"
+                              is-form-field
+                              read-only
+                              class="nc-form-help-text text-gray-500 text-sm mt-2"
+                              data-testid="nc-form-help-text"
+                            />
+                            <LazyCellRichText
+                              v-else
+                              v-model:value="element.title"
+                              is-form-field
+                              read-only
+                              class="nc-form-help-text text-gray-500 text-sm mt-2"
+                              data-testid="nc-form-help-text"
+                            />
                           </span>
                           <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
                             >&nbsp;*</span
                           >
                         </div>
 
-                        <div class="nc-form-help-text text-gray-500 text-sm mt-2" data-testid="nc-form-help-text">
-                          {{ element.description }}
-                        </div>
+                        <LazyCellRichText
+                          v-if="element.description"
+                          v-model:value="element.description"
+                          is-form-field
+                          read-only
+                          class="nc-form-help-text text-gray-500 text-sm mt-2"
+                          data-testid="nc-form-help-text"
+                        />
                       </div>
 
                       <!-- Field Header  -->
@@ -1021,34 +1013,25 @@ useEventListener(
 
                       <div class="nc-form-field-body" :class="activeRow === element.title ? 'p-4 lg:p-6' : ''">
                         <template v-if="activeRow === element.title">
-                          <a-form-item class="my-0 !mb-2">
-                            <a-textarea
-                              ref="focusLabel"
-                              v-model:value="element.label"
-                              :rows="1"
-                              auto-size
-                              hide-details
-                              class="form-meta-input nc-form-input-label"
-                              data-testid="nc-form-input-label"
-                              :placeholder="$t('msg.info.formInput')"
-                              @keydown.enter.prevent
-                              @change="updateColMeta(element)"
-                            />
-                          </a-form-item>
+                          <LazyCellRichText
+                            v-model:value="element.label"
+                            is-form-field
+                            autofocus
+                            :is-tab-pressed="isTabPressed"
+                            class="form-meta-input nc-form-input-label mb-2"
+                            data-testid="nc-form-input-label"
+                            @update:value="updateColMeta(element)"
+                          />
 
-                          <a-form-item class="!my-0 !mb-3">
-                            <a-textarea
-                              v-model:value="element.description"
-                              :rows="1"
-                              auto-size
-                              hide-details
-                              class="form-meta-input nc-form-input-help-text"
-                              data-testid="nc-form-input-help-text"
-                              :placeholder="$t('msg.info.formHelpText')"
-                              @keydown.enter.prevent
-                              @change="updateColMeta(element)"
-                            />
-                          </a-form-item>
+                          <LazyCellRichText
+                            v-model:value="element.description"
+                            class="form-meta-input nc-form-input-help-text mb-3"
+                            is-form-field
+                            :is-tab-pressed="isTabPressed"
+                            data-testid="nc-form-input-help-text"
+                            @update:value="updateColMeta(element)"
+                          />
+
                           <a-form-item
                             v-if="columnSupportsScanning(element.uidt)"
                             class="!my-0 !mb-3 nc-form-input-enable-scanner-form-item"
@@ -1125,7 +1108,7 @@ useEventListener(
 
                       <!-- Field Settings  -->
                       <div
-                        v-if="activeRow === element.title"
+                        v-if="activeRow === element.title && isSelectTypeCol(element.uidt)"
                         class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
                       >
                         <!-- Layout  -->
@@ -1355,7 +1338,15 @@ useEventListener(
                                   <template #title>
                                     {{ field.label }}
                                   </template>
-                                  <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
+                                  <span data-testid="nc-field-label">
+                                    <LazyCellRichText
+                                      v-model:value="field.label"
+                                      is-form-field
+                                      read-only
+                                      class="text-xs font-normal text-gray-700"
+                                      data-testid="nc-form-help-text"
+                                    />
+                                  </span>
                                 </NcTooltip>
                                 <span>)</span>
                               </div>
@@ -1551,7 +1542,7 @@ useEventListener(
 .nc-input {
   @apply appearance-none w-full;
   &:not(.layout-list) {
-    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500;
+    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 !focus-within:border-brand-500;
   }
   &.layout-list {
     @apply h-auto !pl-0 !py-1;
@@ -1584,17 +1575,9 @@ useEventListener(
 }
 
 .form-meta-input {
-  @apply !rounded-lg !text-sm;
   &::placeholder {
     @apply !text-gray-500;
   }
-}
-
-.nc-form-input-label {
-  @apply !px-4 !py-2 font-semibold text-gray-800;
-}
-.nc-form-input-help-text {
-  @apply !px-4 !py-1 text-gray-700;
 }
 
 .nc-form-help-text,
@@ -1676,6 +1659,21 @@ useEventListener(
     .ant-radio {
       @apply !top-0;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.form-meta-input {
+  .nc-textarea-rich-editor {
+    @apply pl-3 pr-4 !rounded-lg !text-sm border-1 border-gray-200 focus-within:border-brand-500;
+  }
+
+  &.nc-form-input-label .nc-textarea-rich-editor {
+    @apply pt-2 pb-1 font-semibold text-gray-800;
+  }
+  &.nc-form-input-help-text .nc-textarea-rich-editor {
+    @apply pt-1 text-gray-700;
   }
 }
 </style>

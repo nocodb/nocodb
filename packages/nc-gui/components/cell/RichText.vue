@@ -8,7 +8,7 @@ import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj, onClickOutside } from '#imports'
 
 const props = defineProps<{
   value?: string | null
@@ -17,6 +17,8 @@ const props = defineProps<{
   showMenu?: boolean
   fullMode?: boolean
   isFormField?: boolean
+  autofocus?: boolean
+  isTabPressed?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -28,6 +30,8 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 const readOnlyCell = inject(ReadonlyInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isFocused = ref(false)
 
 const turndownService = new TurndownService({})
 
@@ -122,27 +126,28 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = markdown
+    vModel.value = props.isFormField && markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
+  autofocus: props.autofocus,
+  onFocus: () => {
+    isFocused.value = true
+  },
+  onBlur: () => {
+    if (props.isTabPressed) {
+      isFocused.value = false
+    }
+  },
 })
 
 watch(props, () => {
-  console.log('readonly node')
   if (props.isFormField) {
     if (props.readOnly) {
       editor.value?.setEditable(false)
     } else {
       editor.value?.setEditable(true)
-      setTimeout(() => {
-        editor.value?.chain().focus().run()
-      }, 50)
     }
   }
-})
-
-watchEffect(() => {
-  console.log('read only ', props.readOnly)
 })
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
@@ -182,10 +187,19 @@ watch(editorDom, () => {
 
   setEditorContent(vModel.value, true)
 
+  if (props.isFormField) return
   // Focus editor after editor is mounted
   setTimeout(() => {
     editor.value?.chain().focus().run()
   }, 50)
+})
+
+onClickOutside(editorDom, (e) => {
+  if ((e.target as HTMLElement)?.closest('.bubble-menu')) {
+    return
+  }
+
+  isFocused.value = false
 })
 </script>
 
@@ -198,7 +212,7 @@ watch(editorDom, () => {
       'readonly': readOnly,
       'nc-form-rich-text-field !p-0': isFormField,
     }"
-    :tabindex="readOnlyCell ? -1 : 0"
+    :tabindex="readOnlyCell || isFormField ? -1 : 0"
   >
     <div
       v-if="showMenu && !readOnly && !isFormField"
@@ -225,7 +239,7 @@ watch(editorDom, () => {
           !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
       }"
     />
-    <div v-if="isFormField && !readOnly">
+    <div v-if="isFormField && !readOnly && isFocused">
       <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
     </div>
   </div>
@@ -250,6 +264,11 @@ watch(editorDom, () => {
   &:not(.nc-form-rich-text-field) {
     .ProseMirror {
       min-height: 8rem;
+    }
+  }
+  &.nc-form-rich-text-field {
+    .ProseMirror {
+      padding: 0;
     }
   }
   &.readonly {

@@ -772,7 +772,9 @@ useEventListener(
                   <div class="flex items-center space-x-1 m-2">
                     <NcTooltip :disabled="isEeUI">
                       <template #title>
-                        {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                        <div class="text-center">
+                          {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                        </div>
                       </template>
 
                       <NcButton
@@ -848,7 +850,9 @@ useEventListener(
                         >
                           <NcTooltip :disabled="isEeUI">
                             <template #title>
-                              {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                              <div class="text-center">
+                                {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                              </div>
                             </template>
                             <NcButton
                               v-if="isEditable"
@@ -1057,7 +1061,11 @@ useEventListener(
                             <SmartsheetHeaderCellIcon v-else :column-meta="element" />
 
                             <NcTooltip class="truncate max-w-3/5" show-on-truncate-only>
-                              <template #title> {{ element.title }} </template>
+                              <template #title>
+                                <div class="text-center">
+                                  {{ element.title }}
+                                </div>
+                              </template>
                               <span data-testid="nc-form-input-label">
                                 {{ element.title }}
                               </span>
@@ -1423,7 +1431,9 @@ useEventListener(
                                 <div class="ml-1 inline-block max-w-1/2">
                                   <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
                                     <template #title>
-                                      {{ field.title }}
+                                      <div class="text-center">
+                                        {{ field.title }}
+                                      </div>
                                     </template>
                                     <span data-testid="nc-field-title"> {{ field.title }} </span>
                                   </NcTooltip>
@@ -1432,7 +1442,9 @@ useEventListener(
                                   <span>&nbsp;(</span>
                                   <NcTooltip class="truncate" :disabled="drag" show-on-truncate-only>
                                     <template #title>
-                                      {{ field.label }}
+                                      <div class="text-center">
+                                        {{ field.label }}
+                                      </div>
                                     </template>
                                     <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
                                   </NcTooltip>
@@ -1524,7 +1536,9 @@ useEventListener(
                     />
                     <NcTooltip v-else placement="top">
                       <template #title>
-                        {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                        <div class="text-center">
+                          {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                        </div>
                       </template>
                       <a-switch :checked="false" size="small" :disabled="true" />
                     </NcTooltip>

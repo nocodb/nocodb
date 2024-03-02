@@ -213,7 +213,7 @@ export default class Filter implements FilterType {
       if (filter.fk_view_id) {
         const view = await View.get(filter.fk_view_id, ncMeta);
 
-        await View.clearSingleQueryCache(view.fk_model_id, [view]);
+        await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
       }
     }
 
@@ -253,7 +253,7 @@ export default class Filter implements FilterType {
         const view = await View.get(filter.fk_view_id, ncMeta);
         await View.clearSingleQueryCache(view.fk_model_id, [
           { id: filter.fk_view_id },
-        ]);
+        ], ncMeta);
       }
     }
 
@@ -283,7 +283,7 @@ export default class Filter implements FilterType {
 
         await View.clearSingleQueryCache(view.fk_model_id, [
           { id: filter.fk_view_id },
-        ]);
+        ], ncMeta);
       }
     }
   }
@@ -437,7 +437,7 @@ export default class Filter implements FilterType {
     // on update delete any optimised single query cache
     {
       const view = await View.get(viewId, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
   }
 

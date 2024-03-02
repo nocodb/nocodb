@@ -878,7 +878,7 @@ export default class View implements ViewType {
     await NocoCache.update(`${cacheScope}:${colId}`, updateObj);
 
     // on view column update, delete corresponding single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
     return res;
   }
@@ -920,7 +920,7 @@ export default class View implements ViewType {
       );
 
       // on view column update, delete any optimised single query cache
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
       return { ...existingCol, ...colData };
     } else {
@@ -1137,7 +1137,7 @@ export default class View implements ViewType {
     }
 
     // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
     return view;
   }
@@ -1188,7 +1188,7 @@ export default class View implements ViewType {
     ]);
 
     // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
     await Model.getNonDefaultViewsCountAndReset(
       { modelId: view.fk_model_id },
@@ -1472,37 +1472,11 @@ export default class View implements ViewType {
   }
 
   public static async clearSingleQueryCache(
-    modelId: string,
-    views?: { id?: string }[],
-    ncMeta = Noco.ncMeta,
+    _modelId: string,
+    _views?: { id?: string }[],
+    _ncMeta = Noco.ncMeta,
   ) {
-    // get all views of the model
-    let viewsList =
-      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
-
-    if (!views && !viewsList?.length) {
-      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
-        condition: {
-          fk_model_id: modelId,
-        },
-      });
-    }
-
-    const deleteKeys = [];
-
-    for (const view of viewsList) {
-      deleteKeys.push(
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
-      );
-    }
-
-    deleteKeys.push(
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
-    );
-
-    await NocoCache.del(deleteKeys);
+    // do nothing
   }
 
   static async bulkColumnInsertToViews(

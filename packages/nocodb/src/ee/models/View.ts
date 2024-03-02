@@ -11,8 +11,9 @@ import Noco from '~/Noco';
 import Model from '~/models/Model';
 import { NcError } from '~/helpers/catchError';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
-import { MetaTable } from '~/utils/globals';
+import {CacheScope, MetaTable} from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import NocoCache from "../../cache/NocoCache";
 
 export default class View extends ViewCE implements ViewType {
   static async insert(
@@ -68,5 +69,39 @@ export default class View extends ViewCE implements ViewType {
       return Array.from(calIds) as Array<string>;
     }
     return [];
+  }
+
+  public static async clearSingleQueryCache(
+    modelId: string,
+    views?: { id?: string }[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    // get all views of the model
+    let viewsList =
+      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
+
+    if (!views && !viewsList?.length) {
+      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
+        condition: {
+          fk_model_id: modelId,
+        },
+      });
+    }
+
+    const deleteKeys = [];
+
+    for (const view of viewsList) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+      );
+    }
+
+    deleteKeys.push(
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+    );
+
+    await NocoCache.del(deleteKeys);
   }
 }

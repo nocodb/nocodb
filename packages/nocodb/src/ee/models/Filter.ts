@@ -190,7 +190,7 @@ export default class Filter extends FilterCE implements FilterType {
         const view = await View.get(filter.fk_view_id, ncMeta);
         await View.clearSingleQueryCache(view.fk_model_id, [
           { id: filter.fk_view_id },
-        ]);
+        ], ncMeta);
       }
     }
 

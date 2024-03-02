@@ -216,7 +216,7 @@ export default class Column<T = any> implements ColumnType {
       ncMeta,
     );
 
-    await View.clearSingleQueryCache(column.fk_model_id);
+    await View.clearSingleQueryCache(column.fk_model_id, null, ncMeta);
 
     return col;
   }
@@ -914,7 +914,7 @@ export default class Column<T = any> implements ColumnType {
 
     // on column delete, delete any optimised single query cache
     {
-      await View.clearSingleQueryCache(col.fk_model_id);
+      await View.clearSingleQueryCache(col.fk_model_id, null, ncMeta);
     }
   }
 
@@ -1074,11 +1074,16 @@ export default class Column<T = any> implements ColumnType {
       column.column_order.view_id
     ) {
       const viewColumn = (
-        await View.getColumns(column.column_order.view_id)
+        await View.getColumns(column.column_order.view_id, ncMeta)
       ).find((col) => col.fk_column_id === column.id);
-      await View.updateColumn(column.column_order.view_id, viewColumn.id, {
-        order: column.column_order.order,
-      });
+      await View.updateColumn(
+        column.column_order.view_id,
+        viewColumn.id,
+        {
+          order: column.column_order.order,
+        },
+        ncMeta,
+      );
     }
 
     // set meta
@@ -1098,16 +1103,22 @@ export default class Column<T = any> implements ColumnType {
     await this.insertColOption(column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache
-    await View.clearSingleQueryCache(oldCol.fk_model_id);
+    await View.clearSingleQueryCache(oldCol.fk_model_id, null, ncMeta);
 
-    const updatedColumn = await Column.get({ colId });
+    const updatedColumn = await Column.get({ colId }, ncMeta);
     if (!skipFormulaInvalidate) {
       // invalidate formula parsed-tree in which current column is used
       // whenever a new request comes for that formula, it will be populated again
-      getFormulasReferredTheColumn({
-        column: updatedColumn,
-        columns: await Column.list({ fk_model_id: oldCol.fk_model_id }, ncMeta),
-      })
+      getFormulasReferredTheColumn(
+        {
+          column: updatedColumn,
+          columns: await Column.list(
+            { fk_model_id: oldCol.fk_model_id },
+            ncMeta,
+          ),
+        },
+        ncMeta,
+      )
         .then(async (formulas) => {
           for (const formula of formulas) {
             await FormulaColumn.update(
@@ -1146,7 +1157,7 @@ export default class Column<T = any> implements ColumnType {
 
     const column = await Column.get({ colId }, ncMeta);
 
-    await View.clearSingleQueryCache(column.fk_model_id);
+    await View.clearSingleQueryCache(column.fk_model_id, null, ncMeta);
   }
 
   public getValidators(): any {

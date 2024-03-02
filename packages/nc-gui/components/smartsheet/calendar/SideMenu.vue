@@ -287,15 +287,17 @@ onUnmounted(() => {
 <template>
   <div
     :class="{
-      'w-0': !props.visible,
-      'w-1/6 min-w-[22.1rem] nc-calendar-side-menu-open': props.visible,
+      '!w-0': !props.visible,
+      'min-w-[356px]': width > 1440 && props.visible,
+      'min-w-[264px]': width <= 1440 && props.visible,
+      'nc-calendar-side-menu-open': props.visible,
     }"
     class="h-full border-l-1 border-gray-200 transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div
       :class="{
-        '!hidden': width < 1440,
+        '!hidden': width <= 1440,
         'px-4 pt-3 pb-4 ': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
       }"
       class="flex flex-col"
@@ -328,11 +330,11 @@ onUnmounted(() => {
 
     <div
       :class="{
-        '!border-t-0': width < 1440,
+        '!border-t-0': width <= 1440,
       }"
-      class="px-4 border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
+      class="border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
     >
-      <div class="flex items-center gap-2">
+      <div class="flex px-4 items-center gap-2">
         <a-input
           v-model:value="searchQuery.value"
           :class="{
@@ -370,11 +372,12 @@ onUnmounted(() => {
         v-if="calendarRange"
         :ref="sideBarListRef"
         :class="{
-          '!h-[calc(100vh-10.5rem)]': width < 1440,
-        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width > 1440,
-        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width > 1440,
+         '!h-[calc(100vh-10.5rem)]': width <= 1440,
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
+   
       }"
-        class="gap-2 flex flex-col nc-scrollbar-md overflow-y-auto nc-calendar-top-height"
+        class="nc-scrollbar-md pl-4 pr-4 overflow-y-auto"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >
@@ -398,56 +401,58 @@ onUnmounted(() => {
           </div>
         </div>
         <template v-else-if="renderData.length > 0">
-          <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
-            <LazySmartsheetCalendarSideRecordCard
-              :draggable="sideBarFilterOption === 'withoutDates' && activeCalendarView !== 'year'"
-              :from-date="
+          <div class="gap-2 flex flex-col">
+            <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
+              <LazySmartsheetCalendarSideRecordCard
+                :draggable="sideBarFilterOption === 'withoutDates' && activeCalendarView !== 'year'"
+                :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
                     ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM')
                     : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('DD MMM•HH:mm A')
                   : null
               "
-              :invalid="
+                :invalid="
                 record.rowMeta.range!.fk_to_col &&
                 dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
                   dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]),
                 )
               "
-              :row="record"
-              :to-date="
+                :row="record"
+                :to-date="
                 record.rowMeta.range!.fk_to_col
                   ? calDataType === UITypes.Date
                     ? dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
                     : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM•HH:mm A')
                   : null
               "
-              color="blue"
-              data-testid="nc-sidebar-record-card"
-              @click="emit('expand-record', record)"
-              @dragstart="dragStart($event, record)"
-              @dragover.prevent
-            >
-              <template v-if="!isRowEmpty(record, displayField)">
-                <div :class="{}">
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(displayField)"
-                    v-model="record.row[displayField.title]"
-                    :column="displayField"
-                    :row="record"
-                  />
+                color="blue"
+                data-testid="nc-sidebar-record-card"
+                @click="emit('expand-record', record)"
+                @dragstart="dragStart($event, record)"
+                @dragover.prevent
+              >
+                <template v-if="!isRowEmpty(record, displayField)">
+                  <div :class="{}">
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(displayField)"
+                      v-model="record.row[displayField.title]"
+                      :column="displayField"
+                      :row="record"
+                    />
 
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="record.row[displayField.title]"
-                    :column="displayField"
-                    :edit-enabled="false"
-                    :read-only="true"
-                  />
-                </div>
-              </template>
-            </LazySmartsheetCalendarSideRecordCard>
-          </LazySmartsheetRow>
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="record.row[displayField.title]"
+                      :column="displayField"
+                      :edit-enabled="false"
+                      :read-only="true"
+                    />
+                  </div>
+                </template>
+              </LazySmartsheetCalendarSideRecordCard>
+            </LazySmartsheetRow>
+          </div>
         </template>
       </div>
     </div>

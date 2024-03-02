@@ -19,6 +19,7 @@ import {
   useI18n,
   useNuxtApp,
   watch,
+  isEeUI
 } from '#imports'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
@@ -75,7 +76,7 @@ let hookRef = reactive<
   version: 'v2',
 })
 
-const isBodyShown = ref(hookRef.version === 'v1')
+const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
 
 const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
 
@@ -318,7 +319,7 @@ function setHook(newHook: HookType) {
       payload: notification.payload,
     },
   })
-  if (hookRef.version === 'v1') {
+  if (hookRef.version === 'v1' || isEeUI) {
     urlTabKey.value = 'body'
     eventList.value = [
       { text: ['After', 'Insert'], value: ['after', 'insert'] },

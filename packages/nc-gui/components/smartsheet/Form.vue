@@ -968,7 +968,7 @@ useEventListener(
                         v-if="isEditable && !isLocked"
                         v-model:value="formViewData.subheading"
                         :placeholder="$t('msg.info.formDesc')"
-                        class="nc-form-focus-element font-medium text-base !text-gray-500"
+                        class="nc-form-focus-element font-medium text-base !text-gray-500 -ml-1"
                         is-form-field
                         :autofocus="activeRow === NcForm.subheading"
                         :data-testid="NcForm.subheading"
@@ -978,7 +978,7 @@ useEventListener(
                       <LazyCellRichText
                         v-else-if="formViewData.subheading"
                         :value="formViewData.subheading"
-                        class="font-medium text-base !text-gray-500"
+                        class="font-medium text-base !text-gray-500 -ml-1"
                         is-form-field
                         read-only
                         sync-value-change
@@ -1042,7 +1042,7 @@ useEventListener(
                             is-form-field
                             read-only
                             sync-value-change
-                            class="nc-form-help-text text-gray-500 text-sm mt-2"
+                            class="nc-form-help-text text-gray-500 text-sm mt-2 -ml-1"
                             data-testid="nc-form-help-text"
                             @update:value="updateColMeta(element)"
                           />
@@ -1386,6 +1386,7 @@ useEventListener(
                           <a-switch
                             :checked="visibleColumns.length === localColumns.length"
                             size="small"
+                            class="nc-switch"
                             @change="handleAddOrRemoveAllColumns"
                           />
                         </div>
@@ -1447,6 +1448,7 @@ useEventListener(
                             <a-switch
                               :checked="!!field.show"
                               :disabled="field.required || isLocked || !isEditable"
+                              class="nc-switch"
                               size="small"
                             />
                           </div>

@@ -326,6 +326,7 @@ export const iconMap = {
   translate: h('span', { class: 'material-symbols' }, 'translate'),
   preview: h('span', { class: 'material-symbols' }, 'visibility'),
   link: h('span', { class: 'material-symbols' }, 'link'),
+  link2: NcLink,
   returnKey: h('span', { class: 'material-symbols' }, 'keyboard_return'),
   keyboard: h('span', { class: 'material-symbols' }, 'keyboard'),
   accountPlus: h('span', { class: 'material-symbols' }, 'person_add'),

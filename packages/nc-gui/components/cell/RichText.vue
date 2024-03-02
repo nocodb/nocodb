@@ -16,6 +16,7 @@ const props = defineProps<{
   syncValueChange?: boolean
   showMenu?: boolean
   fullMode?: boolean
+  isFormField?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -126,6 +127,24 @@ const editor = useEditor({
   editable: !props.readOnly,
 })
 
+watch(props, () => {
+  console.log('readonly node')
+  if (props.isFormField) {
+    if (props.readOnly) {
+      editor.value?.setEditable(false)
+    } else {
+      editor.value?.setEditable(true)
+      setTimeout(() => {
+        editor.value?.chain().focus().run()
+      }, 50)
+    }
+  }
+})
+
+watchEffect(() => {
+  console.log('read only ', props.readOnly)
+})
+
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
 
@@ -177,21 +196,22 @@ watch(editorDom, () => {
       'flex flex-col flex-grow nc-rich-text-full': fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
       'readonly': readOnly,
+      'nc-form-rich-text-field !p-0': isFormField,
     }"
     :tabindex="readOnlyCell ? -1 : 0"
   >
     <div
-      v-if="showMenu && !readOnly"
+      v-if="showMenu && !readOnly && !isFormField"
       class="absolute top-0 right-0.5 xs:hidden"
       :class="{
         'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
       }"
     >
       <div class="nc-longtext-scrollbar">
-        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode />
+        <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
       </div>
     </div>
-    <CellRichTextSelectedBubbleMenuPopup v-if="editor" :editor="editor" />
+    <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
     <CellRichTextLinkOptions v-if="editor" :editor="editor" />
     <EditorContent
       ref="editorDom"
@@ -205,6 +225,9 @@ watch(editorDom, () => {
           !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
       }"
     />
+    <div v-if="isFormField && !readOnly">
+      <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+    </div>
   </div>
 </template>
 
@@ -223,7 +246,11 @@ watch(editorDom, () => {
 .nc-rich-text-embed {
   .ProseMirror {
     @apply !border-transparent max-h-full;
-    min-height: 8rem;
+  }
+  &:not(.nc-form-rich-text-field) {
+    .ProseMirror {
+      min-height: 8rem;
+    }
   }
   &.readonly {
     .nc-textarea-rich-editor {

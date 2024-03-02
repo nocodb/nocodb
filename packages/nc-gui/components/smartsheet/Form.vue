@@ -515,7 +515,7 @@ const handleOnUploadImage = (data: Record<string, any> = {}) => {
 onClickOutside(draggableRef, (e) => {
   if (
     (e.target as HTMLElement)?.closest(
-      '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell',
+      '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell, .nc-form-rich-text-field',
     )
   ) {
     return
@@ -824,7 +824,7 @@ useEventListener(
                     ]"
                     @click.stop="onFormItemClick({ title: 'nc-form-heading' })"
                   >
-                    <a-form-item v-if="isEditable" class="!my-0">
+                    <!-- <a-form-item v-if="isEditable" class="!my-0">
                       <a-textarea
                         v-model:value="formViewData.heading"
                         class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
@@ -845,11 +845,25 @@ useEventListener(
                         @blur="updateView"
                         @keydown.enter="updateView"
                       />
-                    </a-form-item>
+                    </a-form-item> -->
 
-                    <div v-else class="font-bold text-2xl text-gray-900">
-                      {{ formViewData.heading }}
-                    </div>
+                    <LazyCellRichText
+                      v-if="isEditable"
+                      v-model:value="formViewData.heading"
+                      class="nc-form-focus-element font-bold text-2xl text-gray-900"
+                      is-form-field
+                      :read-only="activeRow !== 'nc-form-heading'"
+                      data-testid="nc-form-heading"
+                      data-title="nc-form-heading"
+                      @update:value="updateView"
+                    />
+                    <LazyCellRichText
+                      v-else
+                      v-model:value="formViewData.heading"
+                      class="font-bold text-2xl text-gray-900"
+                      is-form-field
+                      read-only
+                    />
                   </div>
 
                   <!-- form description  -->

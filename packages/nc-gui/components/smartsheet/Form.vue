@@ -392,6 +392,7 @@ function setFormData() {
     meta: {
       hide_branding: false,
       background_color: '#F9F9FA',
+      hide_banner: false,
       ...(parseProp(formViewData.value?.meta) ?? {}),
     },
   }
@@ -684,7 +685,10 @@ useEventListener(
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
-          <GeneralFormBanner :banner-image-url="formViewData?.banner_image_url" />
+          <GeneralFormBanner
+            v-if="!parseProp(formViewData?.meta).hide_banner"
+            :banner-image-url="formViewData?.banner_image_url"
+          />
 
           <div
             class="transition-all duration-300 ease-in relative my-6 bg-white rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
@@ -766,7 +770,7 @@ useEventListener(
                 @submit="handleOnUploadImage"
               ></GeneralImageCropper>
               <!-- cover image -->
-              <div class="group relative max-w-[max(33%,688px)] mx-auto">
+              <div v-if="!parseProp(formViewData?.meta).hide_banner" class="group relative max-w-[max(33%,688px)] mx-auto">
                 <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
                 <div class="absolute bottom-0 right-0 hidden group-hover:block">
                   <div class="flex items-center space-x-1 m-2">
@@ -1519,7 +1523,7 @@ useEventListener(
                     <!-- Hide NocoDB Branding -->
                     <a-switch
                       v-if="isEeUI"
-                      v-e="[`a:form-view:submit-another-form`]"
+                      v-e="[`a:form-view:hide-branding`]"
                       :checked="parseProp(formViewData.meta)?.hide_branding"
                       size="small"
                       class="nc-form-hide-branding"
@@ -1543,6 +1547,28 @@ useEventListener(
                       <a-switch :checked="false" size="small" :disabled="true" />
                     </NcTooltip>
                     <span class="ml-4">{{ $t('labels.hideNocodbBranding') }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <!-- Hide Banner -->
+                    <a-switch
+                      v-if="isEeUI"
+                      v-e="[`a:form-view:hide-banner`]"
+                      :checked="parseProp(formViewData.meta)?.hide_banner"
+                      size="small"
+                      class="nc-form-hide-banner"
+                      data-testid="nc-form-hide-banner"
+                      :disabled="isLocked || !isEditable"
+                      @change="
+                      (value) => {
+                        if (isLocked || !isEditable) return
+
+                        (formViewData!.meta as Record<string,any>).hide_banner = value
+                        updateView()
+                      }
+                    "
+                    />
+
+                    <span class="ml-4">{{ $t('general.hide') }} {{ $t('general.banner') }}</span>
                   </div>
                 </div>
 

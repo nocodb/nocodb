@@ -311,7 +311,6 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isSi
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === column.fk_column_id)
 
   if (fieldIndex !== -1 && fieldIndex !== undefined && fields.value?.[fieldIndex]) {
-    console.log('column', column)
     column.show = show
     await $api.dbView.formColumnUpdate(column.id, column)
 

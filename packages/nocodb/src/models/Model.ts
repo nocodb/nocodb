@@ -687,7 +687,11 @@ export default class Model implements TableType {
 
       if (colOptions.fk_related_model_id === tableId) continue;
 
-      await View.clearSingleQueryCache(colOptions.fk_related_model_id, null, ncMeta);
+      await View.clearSingleQueryCache(
+        colOptions.fk_related_model_id,
+        null,
+        ncMeta,
+      );
     }
 
     return res;

@@ -95,7 +95,7 @@ export default class Sort {
     // on insert, delete any optimised single query cache
     {
       const view = await View.get(row.fk_view_id, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view],ncMeta);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
 
     return this.get(row.id, ncMeta).then(async (sort) => {

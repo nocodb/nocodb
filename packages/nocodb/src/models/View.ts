@@ -1472,11 +1472,39 @@ export default class View implements ViewType {
   }
 
   public static async clearSingleQueryCache(
-    _modelId: string,
-    _views?: { id?: string }[],
-    _ncMeta = Noco.ncMeta,
+    modelId: string,
+    views?: { id?: string }[],
+    ncMeta = Noco.ncMeta,
   ) {
-    // do nothing
+    if (!Noco.isEE()) return;
+
+    // get all views of the model
+    let viewsList =
+      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
+
+    if (!views && !viewsList?.length) {
+      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
+        condition: {
+          fk_model_id: modelId,
+        },
+      });
+    }
+
+    const deleteKeys = [];
+
+    for (const view of viewsList) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+      );
+    }
+
+    deleteKeys.push(
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+    );
+
+    await NocoCache.del(deleteKeys);
   }
 
   static async bulkColumnInsertToViews(

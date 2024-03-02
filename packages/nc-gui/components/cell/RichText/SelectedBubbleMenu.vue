@@ -79,15 +79,12 @@ const onToggleLink = () => {
 <template>
   <div
     class="bubble-menu flex-row gap-x-1 py-1 rounded-lg"
-    :class="[
-      `${isFormField ? 'inline-flex !bg-transparent' : 'flex bg-gray-100 px-1'}`,
-      {
-        'embed-mode': embedMode,
-      },
-      {
-        'full-mode': !embedMode,
-      },
-    ]"
+    :class="{
+      'inline-flex !bg-transparent': isFormField,
+      'flex bg-gray-100 px-1': !isFormField,
+      'embed-mode': embedMode,
+      'full-mode': !embedMode,
+    }"
   >
     <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
       <template #title>

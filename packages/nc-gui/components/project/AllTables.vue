@@ -80,7 +80,12 @@ const onCreateBaseClick = () => {
 
 <template>
   <div class="nc-all-tables-view">
-    <div class="flex flex-row gap-x-6 pb-3 pt-6" :class="base?.isLoading ? 'pointer-events-none' : ''">
+    <div
+      class="flex flex-row gap-x-6 pb-3 pt-6"
+      :class="{
+        'pointer-events-none': base?.isLoading,
+      }"
+    >
       <div
         v-if="isUIAllowed('tableCreate')"
         role="button"

@@ -110,7 +110,7 @@ const onDecode = async (scannedCodeValue: string) => {
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
-            <div v-if="sharedFormView" class="w-full lg:w-[95%]">
+            <div v-if="sharedFormView" class="w-full">
               <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
                   <LazyCellRichText
@@ -129,7 +129,7 @@ const onDecode = async (scannedCodeValue: string) => {
                 {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 
-              <div v-if="sharedFormView.submit_another_form" class="text-center">
+              <div v-if="sharedFormView.submit_another_form" class="text-right">
                 <NcButton type="primary" size="medium" @click="submitted = false">
                   {{ $t('activity.submitAnotherForm') }}
                 </NcButton>

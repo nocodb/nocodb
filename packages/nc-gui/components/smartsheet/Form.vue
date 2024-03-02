@@ -688,56 +688,58 @@ useEventListener(
         :style="{ background: parseProp(formViewData?.meta)?.background_color || '#F9F9FA' }"
         data-testid="nc-form-wrapper-submit"
       >
-        <GeneralFormBanner :banner-image-url="formViewData?.banner_image_url" />
+        <div class="max-w-[max(33%,688px)] mx-auto">
+          <GeneralFormBanner :banner-image-url="formViewData?.banner_image_url" />
 
-        <div
-          class="transition-all duration-300 ease-in relative max-w-[max(33%,688px)] mx-auto my-6 bg-white rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
-        >
-          <div v-if="formViewData" class="items-center justify-center text-center mt-2">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900 mb-4">
-                {{ formViewData.heading }}
-              </h1>
+          <div
+            class="transition-all duration-300 ease-in relative my-6 bg-white rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+          >
+            <div v-if="formViewData" class="items-center justify-center text-left mt-2">
+              <div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                  {{ formViewData.heading }}
+                </h1>
 
-              <div v-if="formViewData.subheading?.trim()">
-                <LazyCellRichText
-                  :value="formViewData.subheading"
-                  class="font-medium text-base text-gray-500 !h-auto mb-4 -ml-1"
-                  is-form-field
-                  read-only
-                  sync-value-change
-                />
-              </div>
-            </div>
-
-            <div class="flex justify-center">
-              <div class="w-full lg:w-[95%]">
-                <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
-                  <template #message>
-                    <LazyCellRichText
-                      v-if="formViewData?.success_msg?.trim()"
-                      :value="formViewData?.success_msg"
-                      class="!h-auto -ml-1"
-                      is-form-field
-                      read-only
-                      sync-value-change
-                    />
-                    <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
-                  </template>
-                </a-alert>
-
-                <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
-                  {{
-                    $t('msg.newFormWillBeLoaded', {
-                      seconds: secondsRemain,
-                    })
-                  }}
+                <div v-if="formViewData.subheading?.trim()">
+                  <LazyCellRichText
+                    :value="formViewData.subheading"
+                    class="font-medium text-base text-gray-500 !h-auto mb-4 -ml-1"
+                    is-form-field
+                    read-only
+                    sync-value-change
+                  />
                 </div>
+              </div>
 
-                <div v-if="formViewData.submit_another_form || !isPublic" class="text-center mt-4">
-                  <NcButton type="primary" size="medium" @click="submitted = false">
-                    {{ $t('activity.submitAnotherForm') }}
-                  </NcButton>
+              <div class="flex justify-center">
+                <div class="w-full">
+                  <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
+                    <template #message>
+                      <LazyCellRichText
+                        v-if="formViewData?.success_msg?.trim()"
+                        :value="formViewData?.success_msg"
+                        class="!h-auto -ml-1"
+                        is-form-field
+                        read-only
+                        sync-value-change
+                      />
+                      <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
+                    </template>
+                  </a-alert>
+
+                  <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
+                    {{
+                      $t('msg.newFormWillBeLoaded', {
+                        seconds: secondsRemain,
+                      })
+                    }}
+                  </div>
+
+                  <div v-if="formViewData.submit_another_form || !isPublic" class="text-right mt-4">
+                    <NcButton type="primary" size="medium" @click="submitted = false">
+                      {{ $t('activity.submitAnotherForm') }}
+                    </NcButton>
+                  </div>
                 </div>
               </div>
             </div>

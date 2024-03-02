@@ -79,7 +79,7 @@ const onDecode = async (scannedCodeValue: string) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col items-center">
+  <div class="h-full flex flex-col items-center w-full max-w-[max(33%,688px)] mx-auto">
     <GeneralFormBanner
       v-if="sharedFormView"
       :banner-image-url="sharedFormView.banner_image_url"
@@ -87,17 +87,26 @@ const onDecode = async (scannedCodeValue: string) => {
     />
 
     <div
-      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,688px)] mx-auto my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
     >
       <template v-if="sharedFormView">
         <div class="mb-4">
-          <h1 class="text-2xl font-bold text-gray-900 mb-4">
-            {{ sharedFormView.heading }}
-          </h1>
-
-          <h2 v-if="sharedFormView.subheading" class="font-medium text-base text-gray-500 dark:text-slate-300 mb-4">
-            {{ sharedFormView.subheading }}
-          </h2>
+          <LazyCellRichText
+            :value="sharedFormView.heading"
+            class="text-2xl font-bold text-gray-900 !h-auto mb-4 -ml-1"
+            is-form-field
+            read-only
+            sync-value-change
+          />
+          <div v-if="sharedFormView.subheading">
+            <LazyCellRichText
+              :value="sharedFormView.subheading"
+              class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
+              is-form-field
+              read-only
+              sync-value-change
+            />
+          </div>
         </div>
 
         <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
@@ -151,13 +160,25 @@ const onDecode = async (scannedCodeValue: string) => {
               <div class="flex flex-col gap-3 md:gap-6">
                 <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
                   <div class="nc-form-column-label text-sm font-semibold text-gray-800">
-                    <span>
-                      {{ field.label || field.title }}
-                    </span>
+                    <div>
+                      <LazyCellRichText
+                        :value="field.label || field.title"
+                        class="!h-auto -ml-1"
+                        is-form-field
+                        read-only
+                        sync-value-change
+                      />
+                    </div>
                     <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
                   </div>
                   <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
-                    {{ field?.description }}
+                    <LazyCellRichText
+                      :value="field?.description"
+                      class="!h-auto -ml-1"
+                      is-form-field
+                      read-only
+                      sync-value-change
+                    />
                   </div>
 
                   <div>

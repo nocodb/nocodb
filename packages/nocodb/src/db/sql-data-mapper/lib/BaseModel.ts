@@ -1514,6 +1514,7 @@ export interface XcFilter {
   fields?: string;
   filterArr?: Filter[];
   sortArr?: Sort[];
+  pks?: string;
 }
 
 export interface XcFilterWithAlias extends XcFilter {

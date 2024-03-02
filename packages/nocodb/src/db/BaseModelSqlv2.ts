@@ -426,7 +426,24 @@ class BaseModelSqlv2 {
       if (createdCol) qb.orderBy(createdCol.column_name);
     }
 
-    if (!ignorePagination) applyPaginate(qb, rest);
+    if (rest.pks) {
+      const pks = rest.pks.split(',');
+      qb.where((qb) => {
+        pks.forEach((pk) => {
+          qb.orWhere(_wherePk(this.model.primaryKeys, pk));
+        });
+        return qb;
+      });
+    }
+
+    // For calendar View, if calendarLimitOverride is provided, use it as limit for the query
+    if (!ignorePagination) {
+      if (!calendarLimitOverride) {
+        applyPaginate(qb, rest);
+      } else {
+        applyPaginate(qb, { ...rest, limit: calendarLimitOverride });
+      }
+    }
     const proto = await this.getProto();
 
     let data;
@@ -2114,6 +2131,7 @@ class BaseModelSqlv2 {
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
+    obj.pks = args.pks;
     return obj;
   }
 
@@ -6382,6 +6400,7 @@ export function getListArgs(
   obj.fields =
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
+  obj.pks = args?.pks;
   return obj;
 }
 

@@ -5,19 +5,15 @@ import 'vue-advanced-cropper/dist/theme.classic.css'
 
 import type { AttachmentReqType } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useApi } from '#imports'
+import type { ImageCropperConfig } from '~/lib'
+
 interface Props {
   imageConfig: {
     src: string
     type: string
     name: string
   }
-  cropperConfig: {
-    stencilProps?: {
-      aspectRatio?: number
-    }
-    minHeight?: number
-    minWidth?: number
-  }
+  cropperConfig: ImageCropperConfig
   uploadConfig?: {
     path?: string
   }
@@ -109,6 +105,7 @@ watch(showCropper, () => {
         :stencil-props="cropperConfig?.stencilProps || {}"
         :min-height="cropperConfig?.minHeight"
         :min-width="cropperConfig?.minWidth"
+        :image-restriction="cropperConfig?.imageRestriction"
       />
       <div v-if="previewImage.src" class="result_preview">
         <img :src="previewImage.src" alt="Preview Image" />

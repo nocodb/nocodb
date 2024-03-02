@@ -25,8 +25,8 @@ export default class FormView implements FormType {
   redirect_url?: string;
   redirect_after_secs?: string;
   email?: string;
-  banner_image_url?: AttachmentResType;
-  logo_url?: AttachmentResType;
+  banner_image_url?: AttachmentResType | string;
+  logo_url?: AttachmentResType | string;
   submit_another_form?: BoolType;
   show_blank_form?: BoolType;
 

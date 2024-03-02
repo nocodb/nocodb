@@ -19,9 +19,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const editor = computed(() => props.editor)
-
-const embedMode = computed(() => props.embedMode)
+const { editor, embedMode } = toRefs(props)
 
 const cmdOrCtrlKey = computed(() => {
   return isMac() ? '⌘' : 'CTRL'

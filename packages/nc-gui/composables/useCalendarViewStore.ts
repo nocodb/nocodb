@@ -620,11 +620,23 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('dataEdit') || isPublic.value) return
+
+      const updateValue = {
+        ...(typeof calendarMetaData.value.meta === 'string'
+          ? JSON.parse(calendarMetaData.value.meta)
+          : calendarMetaData.value.meta),
+        ...(typeof updateObj.meta === 'string' ? JSON.parse(updateObj.meta) : updateObj.meta),
+      }
+
       try {
-        await $api.dbView.calendarUpdate(viewMeta.value.id, updateObj)
+        await $api.dbView.calendarUpdate(viewMeta.value.id, {
+          ...updateObj,
+          meta: JSON.stringify(updateValue),
+        })
         calendarMetaData.value = {
           ...calendarMetaData.value,
           ...updateObj,
+          meta: updateValue,
         }
       } catch (e) {
         message.error('Error updating changes')

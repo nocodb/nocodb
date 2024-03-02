@@ -54,6 +54,7 @@ const {
   pageDate,
   showSideMenu,
   selectedDateRange,
+  updateCalendarMeta,
   paginateCalendarView,
 } = useCalendarViewStoreOrThrow()
 
@@ -165,6 +166,14 @@ const headerText = computed(() => {
       return dayjs(selectedDate.value).format('YYYY')
   }
 })
+
+const updateCalendarSize = async (size: string) => {
+  await updateCalendarMeta({
+    meta: {
+      yearViewSize: size,
+    },
+  })
+}
 </script>
 
 <template>
@@ -242,7 +251,6 @@ const headerText = computed(() => {
             </NcButton>
           </NcTooltip>
           <NcButton
-            v-if="!isMobileMode"
             v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
             data-testid="nc-calendar-today-btn"
             size="small"
@@ -253,6 +261,30 @@ const headerText = computed(() => {
               {{ $t('activity.goToToday') }}
             </span>
           </NcButton>
+          <NcDropdown v-if="activeCalendarView === 'year'" :auto-close="false" :trigger="['click']">
+            <NcButton
+              v-if="!isMobileMode"
+              v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"
+              data-testid="nc-calendar-side-bar-btn"
+              size="small"
+              type="secondary"
+            >
+              Calendar Size
+            </NcButton>
+            <template #overlay>
+              <NcMenu>
+                <NcMenuItem
+                  v-for="size in ['small', 'medium', 'large']"
+                  :key="size"
+                  class="capitalize"
+                  data-testid="nc-calendar-view-size"
+                  @click="updateCalendarSize(size)"
+                >
+                  {{ size }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
           <span class="opacity-0" data-testid="nc-active-calendar-view">
             {{ activeCalendarView }}
           </span>

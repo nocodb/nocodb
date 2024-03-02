@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 
 interface Props {
-  size?: 'small' | 'medium' | 'xsmall'
+  size?: 'medium' | 'large' | 'small'
   selectedDate?: dayjs.Dayjs | null
   isDisabled?: boolean
   pageDate?: dayjs.Dayjs
@@ -17,7 +17,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'medium',
+  size: 'large',
   selectedDate: null,
   isDisabled: false,
   isMondayFirst: true,
@@ -139,8 +139,8 @@ const paginate = (action: 'next' | 'prev') => {
 <template>
   <div
     :class="{
-      'gap-1': size === 'xsmall',
-      'gap-4': size === 'small' || size === 'medium',
+      'gap-1': size === 'small',
+      'gap-4': size === 'medium' || size === 'large',
     }"
     class="flex flex-col"
   >
@@ -152,7 +152,7 @@ const paginate = (action: 'next' | 'prev') => {
       class="flex items-center"
     >
       <NcTooltip>
-        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
+        <NcButton v-if="!disablePagination" size="medium" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
         </NcButton>
         <template #title>
@@ -160,9 +160,16 @@ const paginate = (action: 'next' | 'prev') => {
         </template>
       </NcTooltip>
 
-      <span class="font-bold text-gray-700">{{ currentMonthYear }}</span>
+      <span
+        :class="{
+          'text-xs': size === 'small',
+          'text-sm': size === 'medium',
+        }"
+        class="font-bold text-gray-700"
+        >{{ currentMonthYear }}</span
+      >
       <NcTooltip>
-        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
+        <NcButton v-if="!disablePagination" size="medium" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
         </NcButton>
         <template #title>
@@ -170,30 +177,38 @@ const paginate = (action: 'next' | 'prev') => {
         </template>
       </NcTooltip>
     </div>
-    <div class="border-1 border-gray-200 rounded-y-xl max-w-[320px]">
+    <div
+      :class="{
+        'rounded-lg': size === 'small',
+        'rounded-y-xl': size !== 'small',
+      }"
+      class="border-1 border-gray-200 max-w-[320px]"
+    >
       <div
         :class="{
-          'gap-1 px-1': size === 'small',
-          'gap-2 px-2': size === 'medium',
-          'px-1': size === 'xsmall',
+          'gap-1 px-1': size === 'medium',
+          'gap-2 px-2': size === 'large',
+          'px-1 py-1 !rounded-t-lg': size === 'small',
+          'rounded-t-xl': size !== 'small',
         }"
-        class="flex flex-row bg-gray-100 rounded-t-xl justify-between"
+        class="flex flex-row bg-gray-100 justify-between"
       >
         <span
           v-for="(day, index) in days"
           :key="index"
           :class="{
-            'w-9 h-9': size === 'medium',
-            'w-8 h-8': size === 'small',
+            'w-9 h-9': size === 'large',
+            'w-8 h-8': size === 'medium',
+            'text-[10px]': size === 'small',
           }"
-          class="flex items-center justify-center text-gray-500"
+          class="flex items-center uppercase justify-center text-gray-500"
           >{{ day }}</span
         >
       </div>
       <div
         :class="{
-          'gap-2 p-2': size === 'medium',
-          'gap-1 p-1': size === 'small',
+          'gap-2 p-2': size === 'large',
+          'gap-1 p-1': size === 'medium',
         }"
         class="grid grid-cols-7"
       >
@@ -209,18 +224,20 @@ const paginate = (action: 'next' | 'prev') => {
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
             'rounded-md bg-brand-50 nc-calendar-today text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
-            'h-9 w-9': size === 'medium',
-            'h-8 w-8': size === 'small',
+            'h-9 w-9': size === 'large',
+            'h-8 w-8': size === 'medium',
+            'text-xs': size === 'small',
           }"
-          class="px-1 py-1 relative border-1 border-transparent font-medium flex items-center cursor-pointer justify-center"
+          class="px-1 py-1 relative border-1 border-transparent font-large flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           @click="handleSelectDate(date)"
         >
           <span
             v-if="isActiveDate(date)"
             :class="{
-              'h-1.5 w-1.5': size === 'medium',
-              'h-1 w-1': size === 'small' || size === 'xsmall',
+              'h-1.5 w-1.5': size === 'large',
+              'h-1 w-1': size === 'medium',
+              'h-0.75 w-0.75': size === 'small',
             }"
             class="absolute z-2 rounded-full bg-brand-500 top-1 right-1"
           ></span>

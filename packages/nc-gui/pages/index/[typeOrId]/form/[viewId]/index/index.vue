@@ -111,12 +111,7 @@ const onDecode = async (scannedCodeValue: string) => {
         <template v-else-if="submitted">
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full lg:w-[95%]">
-              <a-alert
-                class="!my-4 !py-4 text-left !rounded-lg"
-                type="success"
-                data-testid="nc-survey-form__success-msg"
-                outlined
-              >
+              <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
                   <LazyCellRichText
                     v-if="sharedFormView?.success_msg?.trim()"
@@ -126,7 +121,7 @@ const onDecode = async (scannedCodeValue: string) => {
                     read-only
                     sync-value-change
                   />
-                  <span v-else> Successfully submitted form data </span>
+                  <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
                 </template>
               </a-alert>
 

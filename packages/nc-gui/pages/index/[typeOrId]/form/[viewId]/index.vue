@@ -9,11 +9,6 @@ const route = useRoute()
 
 const router = useRouter()
 
-// For now dark theme is disabled
-// const onClick = () => {
-//   isDark.value = !isDark.value
-// }
-
 onMounted(() => {
   isDark.value = false
 })
@@ -39,16 +34,6 @@ router.afterEach((to) => shouldRedirect(to.name as string))
     }"
   >
     <NuxtPage />
-
-    <!-- <div
-      class="color-transition flex items-center justify-center cursor-pointer absolute top-4 md:top-15 right-4 md:right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"
-      @click="onClick"
-    >
-      <Transition name="slide-left" duration="250" mode="out-in">
-        <MaterialSymbolsDarkModeOutline v-if="isDark" />
-        <MaterialSymbolsLightModeOutline v-else />
-      </Transition>
-    </div> -->
   </div>
 </template>
 
@@ -153,24 +138,13 @@ p {
           & > div {
             @apply w-full;
           }
-          :deep(textarea) {
-            @apply !p-2;
 
-            &:focus {
-              box-shadow: none !important;
-            }
+          textarea {
+            @apply px-3;
           }
         }
         &:not(.nc-cell-longtext) {
           @apply p-2;
-        }
-
-        textarea {
-          @apply px-4 py-2 rounded;
-
-          &:focus {
-            box-shadow: none !important;
-          }
         }
 
         &.nc-cell-json {
@@ -178,6 +152,11 @@ p {
           & > div {
             @apply w-full;
           }
+        }
+
+        .ant-picker,
+        input.nc-cell-field {
+          @apply !py-0 !px-1;
         }
       }
     }

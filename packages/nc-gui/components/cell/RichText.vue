@@ -291,6 +291,18 @@ onClickOutside(editorDom, (e) => {
     .ProseMirror {
       padding: 0;
     }
+    &.readonly {
+      ul[data-type='taskList'] li input[type='checkbox'] {
+        background-color: #d5d5d9 !important;
+        &:not(:checked) {
+          @apply !border-gray-400;
+        }
+        &:focus {
+          box-shadow: none !important;
+          background-color: #d5d5d9 !important;
+        }
+      }
+    }
   }
   &.readonly {
     .nc-textarea-rich-editor {

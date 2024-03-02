@@ -245,7 +245,7 @@ onMounted(() => {
         <h1 class="text-2xl font-bold text-gray-900 self-center text-center my-4" data-testid="nc-survey-form__heading">
           {{ sharedFormView.heading }}
         </h1>
-        <div v-if="sharedFormView.subheading?.trim()" class="w-full text-center">
+        <div v-if="sharedFormView.subheading?.trim()" class="w-full">
           <LazyCellRichText
             :value="sharedFormView.subheading"
             class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
@@ -376,7 +376,7 @@ onMounted(() => {
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <a-alert
-                class="!my-4 !py-4 text-center !rounded-lg"
+                class="!my-4 !py-4 !rounded-lg text-left"
                 type="success"
                 data-testid="nc-survey-form__success-msg"
                 outlined

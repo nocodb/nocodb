@@ -18858,7 +18858,14 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/AttachmentReq",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
             "description": "Banner Image URL"
           },
           "email": {
@@ -18872,7 +18879,14 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/AttachmentReq",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
             "description": "Logo URL"
           },
           "meta": {

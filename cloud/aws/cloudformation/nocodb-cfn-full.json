@@ -36,12 +36,12 @@
         },
         "NCCLOUDS3ACCESSKEY": {
             "Type": "String",
-            "Default": "",
+            "Default": "AKIATUJCOBWTKOMQ5JMU",
             "Description": "NC_CLOUD_S3_ACCESS_KEY"
         },
         "NCCLOUDS3ACCESSSECRET": {
             "Type": "String",
-            "Default": "",
+            "Default": "8g8DdBss3jLTHi3L0XArmeB2wcOOqCuBYTCXiTTg",
             "Description": "NC_CLOUD_S3_ACCESS_SECRET"
         },
         "NCCLOUDS3BUCKETNAME": {
@@ -132,6 +132,13 @@
                 ]
             }
         },
+        "nocodbSshKey": {
+            "Type": "AWS::EC2::KeyPair",
+            "Properties": {
+                "KeyName": "nocodb-key",
+                "KeyType": "rsa"
+            }
+        },
         "ECSLaunchTemplate": {
             "Type": "AWS::EC2::LaunchTemplate",
             "DependsOn": "ECSCluster",
@@ -146,7 +153,9 @@
                         }
                     ],
                     "InstanceType": "t2.micro",
-                    "KeyName": "nocodb-key",
+                    "KeyName": {
+                        "Ref": "nocodbSshKey"
+                    },
                     "IamInstanceProfile": {
                         "Arn": {
                             "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:instance-profile/ecsInstanceRole"
@@ -292,7 +301,7 @@
                 "Description": "nocodb secrets",
                 "GenerateSecretString": {
                     "SecretStringTemplate": {
-                        "Fn::Sub": "{ \"NC_CLOUD_S3_ACCESS_KEY\":\"${NCCLOUDS3ACCESSKEY}\",\"NC_CLOUD_S3_ACCESS_SECRET\":\"${NCCLOUDS3ACCESSSECRET}\", \"NC_DB\": \"pg://${RDSDBInstance.Endpoint.Address}:5432?u=postgres&password=${MetaDBPassword}&d=nocodb_meta\"}"
+                        "Fn::Sub": "{ \"NC_CLOUD_SES_ACCESS_KEY\":\"${NCCLOUDS3ACCESSKEY}\",\"NC_CLOUD_SES_ACCESS_SECRET\":\"${NCCLOUDS3ACCESSSECRET}\", \"NC_CLOUD_S3_ACCESS_KEY\":\"${NCCLOUDS3ACCESSKEY}\",\"NC_CLOUD_S3_ACCESS_SECRET\":\"${NCCLOUDS3ACCESSSECRET}\", \"NC_DB\": \"pg://${RDSDBInstance.Endpoint.Address}:5432?u=postgres&password=${MetaDBPassword}&d=nocodb_meta\"}"
                     },
                     "GenerateStringKey": "password",
                     "PasswordLength": 16,
@@ -312,7 +321,7 @@
                 "ContainerDefinitions": [
                     {
                         "Name": "nocohub",
-                        "Image": "249717198246.dkr.ecr.us-east-2.amazonaws.com/nocohub:ws",
+                        "Image": "249717198246.dkr.ecr.us-east-2.amazonaws.com/nocohub:cfn",
                         "Cpu": 0,
                         "Memory": 918,
                         "PortMappings": [
@@ -334,7 +343,7 @@
                                 "Value": {
                                     "Fn::Sub": "redis://${ElastiCacheCacheCluster.RedisEndpoint.Address}:6379/4"
                                 }
-                            },                            
+                            },
                             {
                                 "Name": "NC_CLOUD_S3_BUCKET_NAME",
                                 "Value": {
@@ -907,6 +916,12 @@
             "Description": "The created Task Definition.",
             "Value": {
                 "Ref": "NocodbMainServiceTaskDefinition"
+            }
+        },
+        "nocodbSshKey": {
+            "Description": "key pair for ec2 instances",
+            "Value": {
+                "Ref": "nocodbSshKey"
             }
         }
     }

@@ -292,7 +292,7 @@
                 "Description": "nocodb secrets",
                 "GenerateSecretString": {
                     "SecretStringTemplate": {
-                        "Fn::Sub": "{\"MetaDBPassword\": \"${MetaDBPassword}\"}"
+                        "Fn::Sub": "{ \"NC_CLOUD_S3_ACCESS_KEY\":\"${NCCLOUDS3ACCESSKEY}\",\"NC_CLOUD_S3_ACCESS_SECRET\":\"${NCCLOUDS3ACCESSSECRET}\", \"NC_DB\": \"pg://${RDSDBInstance.Endpoint.Address}:5432?u=postgres&password=${MetaDBPassword}&d=nocodb_meta\"}"
                     },
                     "GenerateStringKey": "password",
                     "PasswordLength": 16,
@@ -334,25 +334,7 @@
                                 "Value": {
                                     "Fn::Sub": "redis://${ElastiCacheCacheCluster.RedisEndpoint.Address}:6379/4"
                                 }
-                            },
-                            {
-                                "Name": "NC_DB",
-                                "Value": {
-                                    "Fn::Sub": "pg://${RDSDBInstance.Endpoint.Address}:5432?u=postgres&password=${MetaDBPassword}&d=nocodb_meta"
-                                }
-                            },
-                            {
-                                "Name": "NC_CLOUD_S3_ACCESS_KEY",
-                                "Value": {
-                                    "Ref": "NCCLOUDS3ACCESSKEY"
-                                }
-                            },
-                            {
-                                "Name": "NC_CLOUD_S3_ACCESS_SECRET",
-                                "Value": {
-                                    "Ref": "NCCLOUDS3ACCESSSECRET"
-                                }
-                            },
+                            },                            
                             {
                                 "Name": "NC_CLOUD_S3_BUCKET_NAME",
                                 "Value": {
@@ -392,7 +374,7 @@
                         ],
                         "Secrets": [
                             {
-                                "Name": "NC_CREDENTIALS",
+                                "Name": "NC_PROPERTIES_JSON",
                                 "ValueFrom": {
                                     "Ref": "NocodbSecrets"
                                 }

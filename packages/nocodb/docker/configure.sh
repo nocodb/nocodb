@@ -22,7 +22,7 @@ source_from_json(){
   do 
     local value=""
     value=$(echo $NC_PROPERTIES_JSON | jq -r .${key})
-    echo "$key"="$value"
+    export "$key"="$value"
   done
 }
 

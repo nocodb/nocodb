@@ -22,7 +22,7 @@ source_from_json(){
   do 
     local value=""
     value=$(echo $NC_PROPERTIES_JSON | jq -r .${key})
-    export "$key"="$value"
+    echo "$key"="$value"
   done
 }
 
@@ -45,5 +45,5 @@ do_source ${CONFIG_DIR}/master_config.env
 do_source ${CONFIG_DIR}/$(get_ws_name)/cluster.env
 
 # Assume NC_PROPERTIES_JSON contains your JSON map
-source_from_json "${NC_PROPERTIES_JSON:-'{}'}"
+source_from_json "${NC_PROPERTIES_JSON}"
 echo "completed configure"

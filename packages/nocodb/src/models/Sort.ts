@@ -37,7 +37,7 @@ export default class Sort {
     // on delete, delete any optimised single query cache
     {
       const view = await View.get(viewId, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
   }
 
@@ -95,7 +95,7 @@ export default class Sort {
     // on insert, delete any optimised single query cache
     {
       const view = await View.get(row.fk_view_id, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
 
     return this.get(row.id, ncMeta).then(async (sort) => {
@@ -169,7 +169,7 @@ export default class Sort {
     {
       const sort = await this.get(sortId, ncMeta);
       const view = await View.get(sort.fk_view_id, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
 
     return res;
@@ -188,7 +188,7 @@ export default class Sort {
     // on delete, delete any optimised single query cache
     if (sort?.fk_view_id) {
       const view = await View.get(sort.fk_view_id, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
   }
 

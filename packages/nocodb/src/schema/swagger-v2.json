@@ -5714,7 +5714,12 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "banner_image_url": null,
+                    "banner_image_url": {
+                      "mimetype": "image/jpg",
+                      "size": 32903,
+                      "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                      "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+                    },
                     "email": "user@example.com",
                     "heading": "My Form",
                     "lock_type": "collaborative",
@@ -5755,7 +5760,13 @@
                   "Example 1": {
                     "value": {
                       "source_id": "ds_g4ccx6e77h1dmi",
-                      "banner_image_url": null,
+                      "banner_image_url": {
+                        "mimetype": "image/jpg",
+                        "size": 32903,
+                        "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                        "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+                        "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+                      },
                       "columns": [
                         {
                           "id": "fvc_ugj9zo5bzocxtl",
@@ -11671,6 +11682,64 @@
           "id": "6cr1iwhbyxncd"
         }
       },
+      "AttachmentRes": {
+        "description": "Model for Attachment Response",
+        "oneOf": [
+          {
+            "type": "object",
+            "x-examples": {
+              "Example 1": {
+                "mimetype": "image/jpg",
+                "size": 32903,
+                "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+                "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+              },
+              "Example 2" :{
+                "mimetype": "image/jpeg",
+                "size": 146143,
+                "title": "2 be loved.jpeg",
+                "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+              }
+            },
+            "properties": {
+              "mimetype": {
+                "type": "string",
+                "description": "The mimetype of the attachment"
+              },
+              "path": {
+                "type": "string",
+                "description": "The attachment stored path"
+              },
+              "size": {
+                "type": "number",
+                "description": "The size of the attachment"
+              },
+              "title": {
+                "type": "string",
+                "description": "The title of the attachment used in UI"
+              },
+              "url": {
+                "type": "string",
+                "description": "The attachment stored url"
+              },
+              "signedPath": {
+                "type": "string",
+                "description": "Attachment signedPath will allow to access attachment directly"
+              },
+              "signedUrl": {
+                "type": "string",
+                "description": "Attachment signedUrl will allow to access attachment directly"
+              }
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Attachment Response Model"
+      },
       "Audit": {
         "description": "Model for Audit",
         "examples": [
@@ -13152,7 +13221,13 @@
         "examples": [
           {
             "source_id": "ds_g4ccx6e77h1dmi",
-            "banner_image_url": null,
+            "banner_image_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+              "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "columns": [
               {
                 "id": "fvc_ugj9zo5bzocxtl",
@@ -13176,7 +13251,13 @@
             "fk_model_id": "md_rsu68aqjsbyqtl",
             "heading": "My Form",
             "lock_type": "collaborative",
-            "logo_url": null,
+            "logo_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+              "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
@@ -13198,8 +13279,8 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "$ref": "#/components/schemas/AttachmentRes",
+            "description": "Banner Image URL"
           },
           "columns": {
             "type": "array",
@@ -13241,8 +13322,8 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Logo URL. Not in use currently."
+            "$ref": "#/components/schemas/AttachmentRes",
+            "description": "Logo URL."
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -13287,7 +13368,12 @@
         "description": "Model for Form Update Request",
         "examples": [
           {
-            "banner_image_url": null,
+            "banner_image_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "email": "user@example.com",
             "heading": "My Form",
             "logo_url": null,
@@ -13304,8 +13390,15 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
+            "description": "Banner Image URL"
           },
           "email": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -13318,8 +13411,15 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Logo URL. Not in use currently."
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
+            "description": "Logo URL."
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",

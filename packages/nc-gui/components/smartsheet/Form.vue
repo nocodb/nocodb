@@ -12,6 +12,7 @@ import {
   isLinksOrLTAR,
   isSelectTypeCol,
   isVirtualCol,
+type AttachmentResType,
 } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
@@ -372,8 +373,8 @@ function setFormData() {
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   formViewData.value = {
-    banner_image_url: '',
-    logo_url: '',
+    banner_image_url: null,
+    logo_url: null,
     ...formViewData.value,
     submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
@@ -503,11 +504,11 @@ onChangeFile((files) => {
   }
 })
 
-const handleOnUploadImage = (data: Record<string, any> = {}) => {
+const handleOnUploadImage = (data: AttachmentResType = null) => {
   if (imageCropperData.value.cropFor === 'banner') {
-    formViewData.value!.banner_image_url = stringifyProp(data) ?? ''
+    formViewData.value!.banner_image_url = data 
   } else {
-    formViewData.value!.logo_url = stringifyProp(data) ?? ''
+    formViewData.value!.logo_url = data
   }
   updateView()
 }
@@ -724,7 +725,7 @@ useEventListener(
                       @click="
                               () => {
                                 if (isEditable) {
-                                  formViewData!.banner_image_url = ''
+                                  formViewData!.banner_image_url = null
                                   updateView()
                                 }
                               }
@@ -787,7 +788,7 @@ useEventListener(
                             @click="
                               () => {
                                 if (isEditable) {
-                                  formViewData!.logo_url = ''
+                                  formViewData!.logo_url = null
                                   updateView()
                                 }
                               }

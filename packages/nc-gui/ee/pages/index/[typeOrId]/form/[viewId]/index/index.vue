@@ -83,7 +83,7 @@ const onDecode = async (scannedCodeValue: string) => {
 <template>
   <div class="h-full flex flex-col items-center w-full max-w-[max(33%,688px)] mx-auto">
     <GeneralFormBanner
-      v-if="sharedFormView"
+      v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
       :banner-image-url="sharedFormView.banner_image_url"
       class="flex-none dark:border-none"
     />
@@ -96,41 +96,54 @@ const onDecode = async (scannedCodeValue: string) => {
 
         <div
           v-if="sharedFormView.logo_url"
-          class="mb-4 nc-shared-form-logo-wrapper rounded-xl inline-block h-56px max-w-189px overflow-hidden"
+          class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
         >
           <LazyCellAttachmentImage
             :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
-            class="nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0 rounded-xl"
+            class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
           />
         </div>
 
-        <div class="mb-4">
+        <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-4">
             {{ sharedFormView.heading }}
           </h1>
 
-          <h2 v-if="sharedFormView.subheading" class="font-medium text-base text-gray-500 dark:text-slate-300 mb-4">
-            {{ sharedFormView.subheading }}
-          </h2>
+          <div v-if="sharedFormView.subheading">
+            <LazyCellRichText
+              :value="sharedFormView.subheading"
+              class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
+              is-form-field
+              read-only
+              sync-value-change
+            />
+          </div>
         </div>
 
-        <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="!mt-2 !mb-4 text-center" message="Not found" />
 
         <template v-else-if="submitted">
           <div class="flex justify-center">
-            <div v-if="sharedFormView" class="w-full lg:w-[95%]">
-              <a-alert
-                type="success"
-                class="!my-4 text-center !rounded-lg"
-                outlined
-                :message="sharedFormView.success_msg || 'Successfully submitted form data'"
-              />
+            <div v-if="sharedFormView" class="w-full">
+              <a-alert class="!mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
+                <template #message>
+                  <LazyCellRichText
+                    v-if="sharedFormView?.success_msg?.trim()"
+                    :value="sharedFormView?.success_msg"
+                    class="!h-auto -ml-1"
+                    is-form-field
+                    read-only
+                    sync-value-change
+                  />
+                  <span v-else> {{ $t('msg.successfullySubmittedFormData') }} </span>
+                </template>
+              </a-alert>
 
-              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
+              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 my-4">
                 {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
               </p>
 
-              <div v-if="sharedFormView.submit_another_form" class="text-center">
+              <div v-if="sharedFormView.submit_another_form" class="text-right">
                 <NcButton type="primary" size="medium" @click="submitted = false">
                   {{ $t('activity.submitAnotherForm') }}
                 </NcButton>
@@ -171,7 +184,13 @@ const onDecode = async (scannedCodeValue: string) => {
                     <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
                   </div>
                   <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
-                    {{ field?.description }}
+                    <LazyCellRichText
+                      :value="field?.description"
+                      class="!h-auto -ml-1"
+                      is-form-field
+                      read-only
+                      sync-value-change
+                    />
                   </div>
 
                   <div>

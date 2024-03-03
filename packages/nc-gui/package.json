@@ -41,6 +41,7 @@
     "@iconify/vue": "^4.1.1",
     "@pinia/nuxt": "^0.5.1",
     "@tiptap/extension-link": "2.2.4",
+    "@tiptap/extension-placeholder": "^2.2.4",
     "@tiptap/extension-task-list": "2.2.4",
     "@tiptap/extension-underline": "^2.2.4",
     "@tiptap/html": "2.2.4",

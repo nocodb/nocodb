@@ -202,7 +202,7 @@ onUnmounted(() => {
       {
         'text-brand-500': isPrimary(column) && !props.virtual && !isForm && !isCalendar,
         'nc-grid-numeric-cell-right': isGrid && isNumericField && !isEditColumnMenu && !isForm && !isExpandedFormOpen,
-        'h-10': isForm && !isSurveyForm && !isAttachment(column) && !props.virtual,
+        'h-10': isForm && !isSurveyForm && !isAttachment(column) && !isTextArea(column) && !isJSON(column) && !props.virtual,
         'nc-grid-numeric-cell-left': (isForm && isNumericField && isExpandedFormOpen) || isEditColumnMenu,
         '!min-h-30': isTextArea(column) && (isForm || isSurveyForm),
       },

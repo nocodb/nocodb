@@ -93,7 +93,7 @@ export default class CalendarViewColumn {
 
     {
       const view = await View.get(column.fk_view_id, ncMeta);
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
     }
 
     return this.get(id, ncMeta).then(async (viewColumn) => {

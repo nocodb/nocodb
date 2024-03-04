@@ -195,7 +195,7 @@
     "nuxt": "^3.10.2",
     "nuxt-windicss": "^2.6.1",
     "prettier": "^2.8.8",
-    "sass": "^1.70.0",
+    "sass": "^1.71.1",
     "ts-loader": "^9.5.1",
     "unplugin-icons": "^0.18.3",
     "unplugin-vue-components": "^0.26.0",

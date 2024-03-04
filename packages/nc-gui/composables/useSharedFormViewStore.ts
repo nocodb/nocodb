@@ -104,7 +104,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
-    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+    columns.value?.filter((c) => c.show).filter((col) => !isSystemColumn(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))),
   )
 
   const loadSharedView = async () => {
@@ -313,7 +313,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       case UITypes.SingleSelect:
       case UITypes.MultiSelect:
       case UITypes.User: {
-        const limitOptions = (parseProp(c.meta).limitOptions || []).reduce((ac, op) => {
+        const limitOptions = (parseProp(c.meta).isLimitOption ? parseProp(c.meta).limitOptions || [] : []).reduce((ac, op) => {
           if (op?.id) {
             ac[op.id] = op
           }
@@ -331,7 +331,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 op?.id &&
                 op?.title &&
                 queryOptions.includes(op.title) &&
-                (limitOptions[op.id] ? limitOptions[op.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
+                (limitOptions[op.id]
+                  ? limitOptions[op.id]?.show
+                  : parseProp(c.meta).isLimitOption
+                  ? !(parseProp(c.meta).limitOptions || []).length
+                  : true)
               ) {
                 return true
               }
@@ -349,7 +353,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 user?.id &&
                 user?.email &&
                 queryOptions.includes(user.email) &&
-                (limitOptions[user.id] ? limitOptions[user.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
+                (limitOptions[user.id]
+                  ? limitOptions[user.id]?.show
+                  : parseProp(c.meta).isLimitOption
+                  ? !(parseProp(c.meta).limitOptions || []).length
+                  : true)
               ) {
                 return true
               }
@@ -421,8 +429,22 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (parsedTime.isValid()) {
           preFillValue = parsedTime.format(baseStore.isMysql(c.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
         }
+        break
       }
       case UITypes.LinkToAnotherRecord: {
+        if (isBt(c)) {
+          const queryOptions = value.split(',')
+
+          // console.log('column bt', queryOptions, c)
+        }
+        break
+      }
+      case UITypes.Links: {
+        if (isMm(c)) {
+          const queryOptions = value.split(',')
+
+          // console.log('column mm', queryOptions, c)
+        }
         break
       }
       default: {

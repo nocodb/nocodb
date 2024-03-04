@@ -7,7 +7,7 @@ import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { Strategy as OpenIDConnectStrategy } from '@govtechsg/passport-openidconnect';
+import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
@@ -173,7 +173,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       clientSecret: config.clientSecret,
       scope: config.scopes || ['profile', 'email'],
       callbackURL: req.ncSiteUrl + `/sso/${client.id}/redirect`,
-        pkce: 'S256' as const,
+        pkce: 'S256',
       // cache based store for managing the state of the authorization request
       store: {
         store: async (req, meta, callback) => {

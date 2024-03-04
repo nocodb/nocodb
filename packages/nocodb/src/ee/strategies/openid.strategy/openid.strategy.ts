@@ -3,7 +3,7 @@ import process from 'process';
 import { Injectable, Optional } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy as OpenIDConnectStrategy } from '@govtechsg/passport-openidconnect';
+import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import boxen from 'boxen';
@@ -27,12 +27,12 @@ export class OpenidStrategy extends PassportStrategy(
     private configService: ConfigService<AppConfig>,
     private usersService: UsersService,
   ) {
-    super(clientConfig, (_issuer, profile, done) =>
-        this.validate(_issuer, profile, done),
+    super(clientConfig, (_issuer, _subject, profile, done) =>
+        this.validate(_issuer, _subject, profile, done),
     );
   }
 
-  async validate(_issuer, profile, done) {
+  async validate(_issuer, _subject,  profile, done) {
     const email = profile.email || profile?._json?.email;
 
     if (!email) {

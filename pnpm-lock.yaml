@@ -568,9 +568,6 @@ importers:
       '@google-cloud/storage':
         specifier: ^7.7.0
         version: 7.7.0
-      '@govtechsg/passport-openidconnect':
-        specifier: ^1.0.2
-        version: 1.0.2
       '@graphql-tools/merge':
         specifier: ^6.2.17
         version: 6.2.17(graphql@15.8.0)
@@ -628,6 +625,9 @@ importers:
       '@sentry/node':
         specifier: ^6.19.7
         version: 6.19.7
+      '@techpass/passport-openidconnect':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@types/chai':
         specifier: ^4.3.12
         version: 4.3.12
@@ -1057,7 +1057,7 @@ importers:
         version: 6.3.4
       ts-jest:
         specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.24.0)(jest@29.7.0)(typescript@5.2.2)
+        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.2.2)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.1(typescript@5.2.2)(webpack@5.90.3)
@@ -1133,7 +1133,7 @@ importers:
         version: 5.0.5
       ts-jest:
         specifier: ^29.1.2
-        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.2.2)
+        version: 29.1.2(@babel/core@7.24.0)(jest@29.7.0)(typescript@5.2.2)
       tsc-alias:
         specifier: ^1.8.8
         version: 1.8.8
@@ -8138,14 +8138,6 @@ packages:
       - supports-color
     dev: false
 
-  /@govtechsg/passport-openidconnect@1.0.2:
-    resolution: {integrity: sha512-uE685U40/mUHw189D9HNwu2EDb53bhNan7jDO0k3DElLTvmZVl2je49lI5+f1w8qR39xYKBgwMPFQk0WIvZVrQ==}
-    engines: {node: '>= 0.6.0'}
-    dependencies:
-      oauth: 0.10.0
-      passport-strategy: 1.0.0
-    dev: false
-
   /@graphql-tools/merge@6.2.17(graphql@15.8.0):
     resolution: {integrity: sha512-G5YrOew39fZf16VIrc49q3c8dBqQDD0ax5LYPiNja00xsXDi0T9zsEWVt06ApjtSdSF6HDddlu5S12QjeN8Tow==}
     peerDependencies:
@@ -13019,6 +13011,15 @@ packages:
 
   /@socket.io/component-emitter@3.1.0:
     resolution: {integrity: sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==}
+
+  /@techpass/passport-openidconnect@1.0.0:
+    resolution: {integrity: sha512-jcTny/3ZUlp1wN9xrUPjPQpVOfMtZ9ehSF/1T6AXse/FvgiWXDIVZUPW/QcoDsXXqYeI6huWPMGM4AwxtMe8bA==}
+    engines: {node: '>= 0.6.0'}
+    deprecated: Package has been renamed '@govtechsg/passport-openidconnect'. All future releases will be published with new name.
+    dependencies:
+      oauth: 0.9.15
+      passport-strategy: 1.0.0
+    dev: false
 
   /@techteamer/ocsp@1.0.0:
     resolution: {integrity: sha512-lNAOoFHaZN+4huo30ukeqVrUmfC+avoEBYQ11QAnAw1PFhnI5oBCg8O/TNiCoEWix7gNGBIEjrQwtPREqKMPog==}
@@ -18264,6 +18265,25 @@ packages:
       readable-stream: 3.6.2
     dev: true
 
+  /create-jest@29.7.0:
+    resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
+    dependencies:
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      exit: 0.1.2
+      graceful-fs: 4.2.11
+      jest-config: 29.7.0(@types/node@20.11.16)
+      jest-util: 29.7.0
+      prompts: 2.4.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    dev: true
+
   /create-jest@29.7.0(@types/node@20.11.16)(ts-node@10.9.2):
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -22692,6 +22712,7 @@ packages:
 
   /ip@2.0.1:
     resolution: {integrity: sha512-lJUL9imLTNi1ZfXT+DU6rBBdbiKGBuay9B6xGSPVjUeQwaH1RIGqef8RZkUtHioLmSNpPR5M4HVKJGm1j8FWVQ==}
+    requiresBuild: true
 
   /ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -23477,10 +23498,10 @@ packages:
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
+      create-jest: 29.7.0
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
+      jest-config: 29.7.0(@types/node@20.11.16)
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -27146,10 +27167,6 @@ packages:
 
   /oauth-sign@0.9.0:
     resolution: {integrity: sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==}
-    dev: false
-
-  /oauth@0.10.0:
-    resolution: {integrity: sha512-1orQ9MT1vHFGQxhuy7E/0gECD3fd2fCC+PIX+/jgmU/gI3EpRocXtmtvxCO5x3WZ443FLTLFWNDjl5MPJf9u+Q==}
     dev: false
 
   /oauth@0.9.15:
@@ -31621,7 +31638,7 @@ packages:
       '@babel/core': 7.23.7
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0
+      jest: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -31655,7 +31672,7 @@ packages:
       '@babel/core': 7.24.0
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
+      jest: 29.7.0
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2

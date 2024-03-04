@@ -30,6 +30,7 @@ export function parseBody(template: string, data: any): string {
 
   return Handlebars.compile(template, { noEscape: true })({
     data,
+    event: data,
   });
 }
 

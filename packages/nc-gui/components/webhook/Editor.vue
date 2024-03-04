@@ -9,6 +9,7 @@ import {
   fieldRequiredValidator,
   iconMap,
   inject,
+  isEeUI,
   message,
   onMounted,
   parseProp,
@@ -19,7 +20,6 @@ import {
   useI18n,
   useNuxtApp,
   watch,
-  isEeUI
 } from '#imports'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
@@ -65,7 +65,7 @@ let hookRef = reactive<
     type: 'URL',
     payload: {
       method: 'POST',
-      body: '{{ json data }}',
+      body: '{{ json event }}',
       headers: [{}],
       parameters: [{}],
       path: '',
@@ -76,9 +76,10 @@ let hookRef = reactive<
   version: 'v2',
 })
 
+const isBodyShownEasterEgg = ref(false)
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
 
-const urlTabKey = ref(isBodyShown.value ? 'body' : 'params')
+const urlTabKey = ref(isBodyShownEasterEgg.value && isBodyShown.value ? 'body' : 'params')
 
 const apps: Record<string, any> = ref()
 
@@ -302,7 +303,8 @@ function onNotificationTypeChange(reset = false) {
   }
 
   if (hookRef.notification.type === 'URL') {
-    hookRef.notification.payload.body = hookRef.notification.payload.body || '{{ json data }}'
+    const body = hookRef.notification.payload.body
+    hookRef.notification.payload.body = body ? (body === '{{ json data }}' ? '{{ json event }}' : body) : '{{ json event }}'
     hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
     hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
     hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
@@ -655,6 +657,7 @@ onMounted(async () => {
                 size="large"
                 class="nc-select-hook-url-method"
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                @dblclick="isBodyShownEasterEgg = !isBodyShownEasterEgg"
               >
                 <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
                   <div class="flex items-center gap-2 justify-between">
@@ -684,7 +687,7 @@ onMounted(async () => {
 
             <a-col :span="24">
               <NcTabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="border-1 !pb-2 !rounded-lg">
-                <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
+                <a-tab-pane v-if="isBodyShown && isBodyShownEasterEgg" key="body" tab="Body">
                   <LazyMonacoEditor
                     v-model="hookRef.notification.payload.body"
                     disable-deep-compare
@@ -804,7 +807,7 @@ onMounted(async () => {
 
           <a-row>
             <a-col :span="24">
-              <div v-if="isBodyShown" class="text-gray-600">
+              <div v-if="isBodyShown && isBodyShownEasterEgg" class="text-gray-600">
                 <div class="flex items-center">
                   <em
                     >{{ $t('msg.webhookBodyMsg1') }} <strong>{{ $t('msg.webhookBodyMsg2') }}</strong>

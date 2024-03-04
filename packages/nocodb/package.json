@@ -185,7 +185,7 @@
     "sqlite3": "^5.1.7",
     "tedious": "^16.6.1",
     "tinycolor2": "^1.6.0",
-    "twilio": "^3.84.1",
+    "twilio": "^4.23.0",
     "unique-names-generator": "^4.7.1",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",

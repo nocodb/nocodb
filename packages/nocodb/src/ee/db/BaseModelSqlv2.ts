@@ -30,7 +30,7 @@ import type { Knex } from 'knex';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Audit, Column, Filter, Model, ModelStat, Source } from '~/models';
-import { getSingleQueryReadFn } from '~/services/data-opt/helpers';
+import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery } from '~/utils';
 import {
   UPDATE_MODEL_STAT,

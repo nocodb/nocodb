@@ -935,24 +935,6 @@ export async function singleQueryList(ctx: {
   let dbQueryTime;
   const skipCache = shouldSkipCache(ctx);
 
-  // skip using cached query if sortArr or filterArr is present since it will be different query
-  if (
-    'sortArr' in ctx.params ||
-    'filterArr' in ctx.params ||
-    'sort' in ctx.params ||
-    'filter' in ctx.params ||
-    'where' in ctx.params ||
-    'w' in ctx.params ||
-    'fields' in ctx.params ||
-    'f' in ctx.params ||
-    'nested' in ctx.params ||
-    'pks' in ctx.params ||
-    'nested' in ctx.params ||
-    'shuffle' in ctx.params ||
-    'r' in ctx.params
-  ) {
-    skipCache = true;
-  }
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
   const getAlias = getAliasGenerator();

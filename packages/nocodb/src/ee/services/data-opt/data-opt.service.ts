@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { Model, Source, View } from '~/models';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { singleQueryList, singleQueryRead } from '~/services/data-opt/helpers';
+import {
+  singleQueryList,
+  singleQueryRead,
+} from '~/services/data-opt/pg-helpers';
 import {
   singleQueryList as mysqlSingleQueryList,
   singleQueryRead as mysqlSingleQueryRead,

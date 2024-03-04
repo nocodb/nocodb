@@ -626,8 +626,8 @@ importers:
         specifier: ^6.19.7
         version: 6.19.7
       '@techpass/passport-openidconnect':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^0.3.3
+        version: 0.3.3
       '@types/chai':
         specifier: ^4.3.12
         version: 4.3.12
@@ -1057,7 +1057,7 @@ importers:
         version: 6.3.4
       ts-jest:
         specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.2.2)
+        version: 29.1.2(@babel/core@7.24.0)(jest@29.7.0)(typescript@5.2.2)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.1(typescript@5.2.2)(webpack@5.90.3)
@@ -1133,7 +1133,7 @@ importers:
         version: 5.0.5
       ts-jest:
         specifier: ^29.1.2
-        version: 29.1.2(@babel/core@7.24.0)(jest@29.7.0)(typescript@5.2.2)
+        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.2.2)
       tsc-alias:
         specifier: ^1.8.8
         version: 1.8.8
@@ -13012,13 +13012,15 @@ packages:
   /@socket.io/component-emitter@3.1.0:
     resolution: {integrity: sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==}
 
-  /@techpass/passport-openidconnect@1.0.0:
-    resolution: {integrity: sha512-jcTny/3ZUlp1wN9xrUPjPQpVOfMtZ9ehSF/1T6AXse/FvgiWXDIVZUPW/QcoDsXXqYeI6huWPMGM4AwxtMe8bA==}
+  /@techpass/passport-openidconnect@0.3.3:
+    resolution: {integrity: sha512-i2X/CofjnGBqpTmw6b+Ex3Co/NrR2xjnIHvnOJk62XIlJJHNSTwmhJ1PkXoA5RGKlxZWchADFGjLTJnebvRj7A==}
     engines: {node: '>= 0.6.0'}
-    deprecated: Package has been renamed '@govtechsg/passport-openidconnect'. All future releases will be published with new name.
     dependencies:
+      base64url: 3.0.1
       oauth: 0.9.15
       passport-strategy: 1.0.0
+      request: 2.88.0
+      webfinger: 0.4.2
     dev: false
 
   /@techteamer/ocsp@1.0.0:
@@ -18265,25 +18267,6 @@ packages:
       readable-stream: 3.6.2
     dev: true
 
-  /create-jest@29.7.0:
-    resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    hasBin: true
-    dependencies:
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@20.11.16)
-      jest-util: 29.7.0
-      prompts: 2.4.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-    dev: true
-
   /create-jest@29.7.0(@types/node@20.11.16)(ts-node@10.9.2):
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -23498,10 +23481,10 @@ packages:
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0
+      create-jest: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@20.11.16)
+      jest-config: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -30732,6 +30715,10 @@ packages:
     resolution: {integrity: sha512-JPbdCEQLj1w5GilpiHAx3qJvFndqybBysA3qUOnznweH4QbNYUsW/ea8QzSrnh0vNsezMMw5bcVool8lM0gwzg==}
     dev: true
 
+  /step@0.0.6:
+    resolution: {integrity: sha512-qSSeQinUJk2w38vUFobjFoE307GqsozMC8VisOCkJLpklvKPT0ptPHwWOrENoag8rgLudvTkfP3bancwP93/Jw==}
+    dev: false
+
   /stoppable@1.1.0:
     resolution: {integrity: sha512-KXDYZ9dszj6bzvnEMRYvxgeTHU74QBFL54XKtP3nyMuJ81CFYtABZ3bAzL2EdFUaEwJOBOgENyFj3R7oTzDyyw==}
     engines: {node: '>=4', npm: '>=6'}
@@ -31638,7 +31625,7 @@ packages:
       '@babel/core': 7.23.7
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
+      jest: 29.7.0
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -31672,7 +31659,7 @@ packages:
       '@babel/core': 7.24.0
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0
+      jest: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -33498,6 +33485,14 @@ packages:
       '@zxing/text-encoding': 0.9.0
     dev: false
 
+  /webfinger@0.4.2:
+    resolution: {integrity: sha512-PvvQ/k74HkC3q5G7bGu4VYeKDt3ePZMzT5qFPtEnOL8eyIU1/06OtDn9X5vlkQ23BlegA3eN89rDLiYUife3xQ==}
+    engines: {node: '>=0.8.x'}
+    dependencies:
+      step: 0.0.6
+      xml2js: 0.1.14
+    dev: false
+
   /webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
@@ -34168,6 +34163,12 @@ packages:
   /xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
+    dev: false
+
+  /xml2js@0.1.14:
+    resolution: {integrity: sha512-pbdws4PPPNc1HPluSUKamY4GWMk592K7qwcj6BExbVOhhubub8+pMda/ql68b6L3luZs/OGjGSB5goV7SnmgnA==}
+    dependencies:
+      sax: 1.2.4
     dev: false
 
   /xml2js@0.5.0:

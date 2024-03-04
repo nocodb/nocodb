@@ -32,7 +32,7 @@ export class OpenidStrategy extends PassportStrategy(
     );
   }
 
-  async validate(_issuer, _subject,  profile, done) {
+  async validate(_issuer, _subject, profile, done) {
     const email = profile.email || profile?._json?.email;
 
     if (!email) {

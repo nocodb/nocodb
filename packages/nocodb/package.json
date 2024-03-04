@@ -78,7 +78,7 @@
     "@node-saml/passport-saml": "^4.0.4",
     "@ntegral/nestjs-sentry": "^4.0.1",
     "@sentry/node": "^6.19.7",
-    "@techpass/passport-openidconnect": "^1.0.0",
+    "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.3.12",
     "airtable": "^0.12.2",
     "ajv": "^8.12.0",

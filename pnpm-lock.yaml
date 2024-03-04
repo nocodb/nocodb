@@ -239,8 +239,8 @@ importers:
         specifier: ^1.1.23
         version: 1.1.23
       '@iconify-json/carbon':
-        specifier: ^1.1.30
-        version: 1.1.30
+        specifier: ^1.1.31
+        version: 1.1.31
       '@iconify-json/cil':
         specifier: ^1.1.8
         version: 1.1.8
@@ -263,11 +263,11 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       '@iconify-json/lucide':
-        specifier: ^1.1.170
-        version: 1.1.170
+        specifier: ^1.1.171
+        version: 1.1.171
       '@iconify-json/material-symbols':
-        specifier: ^1.1.73
-        version: 1.1.73
+        specifier: ^1.1.74
+        version: 1.1.74
       '@iconify-json/mdi':
         specifier: ^1.1.64
         version: 1.1.64
@@ -281,8 +281,8 @@ importers:
         specifier: ^1.1.20
         version: 1.1.20
       '@iconify-json/simple-icons':
-        specifier: ^1.1.93
-        version: 1.1.93
+        specifier: ^1.1.94
+        version: 1.1.94
       '@iconify-json/system-uicons':
         specifier: ^1.1.12
         version: 1.1.12
@@ -4472,8 +4472,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/carbon@1.1.30:
-    resolution: {integrity: sha512-tEvEmxCO0J0t0p2NT2IvJ+iiSNqqnabygSo/S8wkeh2Guhc4tQOgl9dxvDMpy6RqwtKRTKsaROPtnRfu/bl+Tg==}
+  /@iconify-json/carbon@1.1.31:
+    resolution: {integrity: sha512-CAvECFfiwGyZmlcuM2JLMRDEN3VsIEZv6lml7Xf+3giQ5oXloADm0b5wiVPFZmONKM5jXERmx+E7YSvAtFJIbw==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4520,14 +4520,14 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.170:
-    resolution: {integrity: sha512-PRo/1IbIKE6O++XJjPUNM/+enA4sVOZLS8ykpy3ztPziNfmKgrgzx/1+fe6O6Zhy51C7RPQFkVuYPsCLiUiKFQ==}
+  /@iconify-json/lucide@1.1.171:
+    resolution: {integrity: sha512-qYOXqnmYBHwH6yGVHOyNgLQ2WFz3UrZpBou37jFe1OWtTKbu/8fDixZuv/rBEhyQcX1mw+dFY+dguYNlGjYAmQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/material-symbols@1.1.73:
-    resolution: {integrity: sha512-3ioEMQvxUR0eWg3jCxeydowS7xlqJzUHqeKJg29Z5HN15ZBYniQhHYrDCRpmFjopgwxox9OIsoonBiBSLV4EMA==}
+  /@iconify-json/material-symbols@1.1.74:
+    resolution: {integrity: sha512-cuQKvpGWrMNJq0i3ynO+V6yus0Smiupw92GW8Gq/4MHfYfbl1MrbVmafKQAd8RJVqiEXq4/F084OEcigf77UqQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4556,8 +4556,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/simple-icons@1.1.93:
-    resolution: {integrity: sha512-rPsEIJlNZQJekCy5Qj6QHhrCJyCF0UAAql5PEz+B8iNvEn/BDyqq2zgpfxsU2KQn2NdCui8xnjZiuyTc5nwIqw==}
+  /@iconify-json/simple-icons@1.1.94:
+    resolution: {integrity: sha512-2UwwbEJeZ/aMpACG/dZoOhNszKFO+IjcRCbYB+lMqd+6fA5ewykRy63IP8//UdviazOPamGJ/XbNBJH/o1YFdQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true

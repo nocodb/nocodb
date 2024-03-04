@@ -7284,7 +7284,7 @@
         "description": "List Shared View Grouped Data"
       }
     },
-    "/api/v2/public/shared-view/{sharedViewUuid}/countByDate": {
+    "/api/v2/public/calendar-view/{sharedViewUuid}/countByDate": {
       "parameters": [
         {
           "schema": {
@@ -7360,6 +7360,180 @@
           "Public"
         ]
       }
+    },
+    "/api/v2/public/calendar-view/{sharedViewUuid}/": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Rows",
+        "operationId": "public-calendar-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:46:31",
+                          "fk_model_id": "md_mhs9z4r2ak98x0",
+                          "id": "vw_lg052cnc1c26kf",
+                          "is_default": 1,
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "base_id": "p_xm3thidrblw4n7",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "title": "Sheet-1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:46:31",
+                          "uuid": null,
+                          "view": {
+                            "source_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:46:31",
+                            "fk_view_id": "vw_lg052cnc1c26kf",
+                            "meta": null,
+                            "base_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:46:31",
+                            "uuid": null
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "from_date",
+            "description": "From Date"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "to_date",
+            "description": "To Date"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          }
+        ],
+        "description": "List all shared view rows"
+      },
     },
     "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AttachmentResType } from 'nocodb-sdk';
+import type { AttachmentResType } from 'nocodb-sdk'
 
 interface Props {
   bannerImageUrl?: AttachmentResType

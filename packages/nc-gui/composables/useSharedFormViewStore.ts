@@ -349,7 +349,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
               if (
                 user?.id &&
                 user?.email &&
-                queryOptions.includes(user.email) &&
+                (queryOptions.includes(user.email) || queryOptions.includes(user.id)) &&
                 (limitOptions[user.id]
                   ? limitOptions[user.id]?.show
                   : parseProp(c.meta).isLimitOption

@@ -214,12 +214,26 @@ async function submitForm() {
   submitted.value = true
 }
 
+async function getPreFilledLink() {
+  if (isLocked.value || !isUIAllowed('dataInsert')) return
+
+  const preFilledData = { ...formState, ...state.value }
+
+  console.log('preFilled Data', preFilledData)
+
+  for (const c of visibleColumns.value) {
+    if (c.title && preFilledData[c.title] && preFilledData[c.title].trim()) {
+      
+    }
+  }
+}
+
 async function clearForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
   formState = reactive<Record<string, any>>({})
   state.value = {}
-  await formRef.value.clearValidate()
+  await formRef.value?.clearValidate()
   reloadEventHook.trigger()
 }
 
@@ -566,6 +580,7 @@ watch(submitted, (v) => {
     const intvl = setInterval(() => {
       if (--secondsRemain.value < 0) {
         submitted.value = false
+        clearForm()
         clearInterval(intvl)
       }
     }, 1000)
@@ -736,7 +751,16 @@ useEventListener(
                   </div>
 
                   <div v-if="formViewData.submit_another_form || !isPublic" class="text-right mt-4">
-                    <NcButton type="primary" size="medium" @click="submitted = false">
+                    <NcButton
+                      type="primary"
+                      size="medium"
+                      @click="
+                        () => {
+                          submitted = false
+                          clearForm()
+                        }
+                      "
+                    >
                       {{ $t('activity.submitAnotherForm') }}
                     </NcButton>
                   </div>
@@ -1289,18 +1313,31 @@ useEventListener(
                     >
                       {{ $t('activity.clearForm') }}
                     </NcButton>
-                    <NcButton
-                      html-type="submit"
-                      type="primary"
-                      size="small"
-                      :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
-                      class="nc-form-submit nc-form-focus-element"
-                      data-testid="nc-form-submit"
-                      data-title="nc-form-submit"
-                      @click="submitForm"
-                    >
-                      {{ $t('general.submit') }}
-                    </NcButton>
+                    <div class="flex items-center gap-3">
+                      <NcButton
+                        type="primary"
+                        size="small"
+                        :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isLocked"
+                        class="nc-form-get-pre-filled-link nc-form-focus-element"
+                        data-testid="nc-form-get-pre-filled-link"
+                        data-title="nc-form-get-pre-filled-link"
+                        @click="getPreFilledLink"
+                      >
+                        {{ $t('activity.getPreFilledLink') }}
+                      </NcButton>
+                      <NcButton
+                        html-type="submit"
+                        type="primary"
+                        size="small"
+                        :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
+                        class="nc-form-submit nc-form-focus-element"
+                        data-testid="nc-form-submit"
+                        data-title="nc-form-submit"
+                        @click="submitForm"
+                      >
+                        {{ $t('general.submit') }}
+                      </NcButton>
+                    </div>
                   </div>
                 </a-form>
 

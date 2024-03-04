@@ -15,6 +15,7 @@ overrides:
   axios@>=0.8.1 <0.28.0: '>=0.28.0'
   ip@<1.1.9: '>=1.1.9'
   ip@=2.0.0: '>=2.0.1'
+  xml2js@<0.5.0: '>=0.5.0'
 
 importers:
 
@@ -33490,7 +33491,7 @@ packages:
     engines: {node: '>=0.8.x'}
     dependencies:
       step: 0.0.6
-      xml2js: 0.1.14
+      xml2js: 0.6.2
     dev: false
 
   /webidl-conversions@3.0.1:
@@ -34163,12 +34164,6 @@ packages:
   /xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
-    dev: false
-
-  /xml2js@0.1.14:
-    resolution: {integrity: sha512-pbdws4PPPNc1HPluSUKamY4GWMk592K7qwcj6BExbVOhhubub8+pMda/ql68b6L3luZs/OGjGSB5goV7SnmgnA==}
-    dependencies:
-      sax: 1.2.4
     dev: false
 
   /xml2js@0.5.0:

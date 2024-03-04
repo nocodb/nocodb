@@ -6,7 +6,6 @@ import { SharedFormPage } from '../../../pages/SharedForm';
 import { Api, UITypes } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
 import { getDefaultPwd } from '../../../tests/utils/general';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
 import { enableQuickRun, isEE } from '../../../setup/db';
 
 // todo: Move most of the ui actions to page object and await on the api response

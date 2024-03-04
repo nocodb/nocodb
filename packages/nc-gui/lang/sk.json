@@ -694,7 +694,7 @@
     "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
-    "showOnConditions": "Show on condtions",
+    "showOnConditions": "Show on conditions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
@@ -1181,6 +1181,7 @@
       "formInput": "Zadajte vstupný štítok formulára",
       "formHelpText": "Pridanie textu nápovedy",
       "onlyCreator": "Viditeľné len pre Stvoriteľa",
+      "formTitle": "Add form Title",
       "formDesc": "Pridanie popisu formulára",
       "beforeEnablePwd": "Obmedzenie prístupu pomocou hesla",
       "afterEnablePwd": "Prístup je obmedzený heslom",
@@ -1305,8 +1306,10 @@
       "groupPasteIsNotSupportedOnLinksColumn": "Group paste operation is not supported on Links/LinkToAnotherRecord column",
       "groupClearIsNotSupportedOnLinksColumn": "Group clear operation is not supported on Links/LinkToAnotherRecord column",
       "upgradeToEnterpriseEdition": "Upgrade to Enterprise Edition {extraInfo}",
+      "thisFeatureIsOnlyAvailableInEnterpriseEdition": "This feature is only available in enterprise edition",
       "yourCurrentRoleIs": "Your current role is",
-      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}"
+      "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",
+      "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
       "fetchingCalendarData": "Error fetching calendar data",

@@ -1,9 +1,11 @@
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import {
+  IsPublicInj,
   NOCO,
+  type Row,
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
@@ -22,7 +24,6 @@ import {
   useSharedView,
   useUndoRedo,
 } from '#imports'
-import type { Row } from '#imports'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, _row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -30,6 +31,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
 
   const { t } = useI18n()
+
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const commentsOnly = ref(false)
 
@@ -301,6 +304,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string, onlyVirtual = false) => {
+    if (isPublic.value) return
     let record = await $api.dbTableRow.read(
       NOCO,
       // todo: base_id missing on view type

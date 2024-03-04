@@ -239,20 +239,22 @@ onMounted(() => {
     <div
       v-if="sharedFormView"
       style="height: max(40vh, 225px); min-height: 225px"
-      class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
+      class="w-full max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="text-2xl font-bold text-gray-900 self-center my-4" data-testid="nc-survey-form__heading">
+        <h1 class="text-2xl font-bold text-gray-900 self-center text-center my-4" data-testid="nc-survey-form__heading">
           {{ sharedFormView.heading }}
         </h1>
-
-        <h2
-          v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
-          class="font-medium text-base text-gray-500 dark:text-gray-300 self-center mb-4"
-          data-testid="nc-survey-form__sub-heading"
-        >
-          {{ sharedFormView?.subheading }}
-        </h2>
+        <div v-if="sharedFormView.subheading?.trim()" class="w-full">
+          <LazyCellRichText
+            :value="sharedFormView.subheading"
+            class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
+            is-form-field
+            read-only
+            sync-value-change
+            data-testid="nc-survey-form__sub-heading"
+          />
+        </div>
       </div>
     </div>
 
@@ -275,7 +277,7 @@ onMounted(() => {
               class="nc-form-column-description text-gray-500 text-sm"
               data-testid="nc-survey-form__field-description"
             >
-              {{ field?.description }}
+              <LazyCellRichText :value="field?.description" class="!h-auto -ml-1" is-form-field read-only sync-value-change />
             </div>
 
             <LazySmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">
@@ -374,20 +376,35 @@ onMounted(() => {
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <a-alert
+                class="!my-4 !py-4 !rounded-lg text-left w-full"
                 type="success"
-                class="!my-4 !py-4 text-center !rounded-lg"
                 data-testid="nc-survey-form__success-msg"
                 outlined
-                :message="sharedFormView?.success_msg || $t('msg.info.thankYou')"
-                :description="sharedFormView?.success_msg ? undefined : $t('msg.info.submittedFormData')"
-              />
+              >
+                <template #message>
+                  <LazyCellRichText
+                    v-if="sharedFormView?.success_msg?.trim()"
+                    :value="sharedFormView?.success_msg"
+                    class="!h-auto -ml-1"
+                    is-form-field
+                    read-only
+                    sync-value-change
+                  />
+                  <span v-else>
+                    {{ $t('msg.info.thankYou') }}
+                  </span>
+                </template>
+                <template v-if="!sharedFormView?.success_msg?.trim()" #description>
+                  {{ $t('msg.info.submittedFormData') }}
+                </template>
+              </a-alert>
 
-              <div v-if="sharedFormView" class="mt-3">
-                <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
+              <div v-if="sharedFormView" class="mt-3 w-full">
+                <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-left my-4">
                   {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds') }}
                 </p>
 
-                <div v-if="sharedFormView?.submit_another_form" class="text-center">
+                <div v-if="sharedFormView?.submit_another_form" class="text-right">
                   <NcButton type="primary" size="medium" data-testid="nc-survey-form__btn-submit-another-form" @click="resetForm">
                     {{ $t('activity.submitAnotherForm') }}
                   </NcButton>

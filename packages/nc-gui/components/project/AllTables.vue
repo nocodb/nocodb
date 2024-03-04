@@ -7,6 +7,8 @@ const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
 const { openedProject } = storeToRefs(useBases())
 
+const { base } = useBase()
+
 const isNewBaseModalOpen = ref(false)
 
 const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 1)
@@ -78,7 +80,12 @@ const onCreateBaseClick = () => {
 
 <template>
   <div class="nc-all-tables-view">
-    <div class="flex flex-row gap-x-6 pb-3 pt-6">
+    <div
+      class="flex flex-row gap-x-6 pb-3 pt-6"
+      :class="{
+        'pointer-events-none': base?.isLoading,
+      }"
+    >
       <div
         v-if="isUIAllowed('tableCreate')"
         role="button"
@@ -121,7 +128,21 @@ const onCreateBaseClick = () => {
         </div>
       </component>
     </div>
-    <template v-if="activeTables.length">
+    <div
+      v-if="base?.isLoading"
+      class="flex items-center justify-center text-center"
+      :style="{
+        height: 'calc(100vh - var(--topbar-height) - 18rem)',
+      }"
+    >
+      <div>
+        <GeneralLoader size="xlarge" />
+        <div class="mt-2">
+          {{ $t('general.loading') }}
+        </div>
+      </div>
+    </div>
+    <template v-else-if="activeTables.length">
       <div class="flex flex-row w-full text-gray-400 border-b-1 border-gray-50 py-3 px-2.5">
         <div class="w-2/5">{{ $t('objects.table') }}</div>
         <div class="w-1/5">{{ $t('general.source') }}</div>

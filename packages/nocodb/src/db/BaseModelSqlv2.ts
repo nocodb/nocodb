@@ -318,12 +318,14 @@ class BaseModelSqlv2 {
       sortArr?: Sort[];
       sort?: string | string[];
       fieldsSet?: Set<string>;
+      calendarLimitOverride?: number;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
       ignorePagination?: boolean;
       validateFormula?: boolean;
       throwErrorIfInvalidParams?: boolean;
+      calendarLimitOverride?: number;
     } = {},
   ): Promise<any> {
     const {
@@ -331,6 +333,7 @@ class BaseModelSqlv2 {
       ignorePagination = false,
       validateFormula = false,
       throwErrorIfInvalidParams = false,
+      calendarLimitOverride,
     } = options;
 
     const { where, fields, ...rest } = this._getListArgs(args as any);

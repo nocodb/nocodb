@@ -45,7 +45,6 @@ export class DataAliasController {
       tableName: tableName,
       viewName: viewName,
       disableOptimization: opt === 'false',
-      ignorePagination: req.headers?.['xc-ignore-pagination'] === 'true',
     });
     const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
       process.hrtime(startTime),
@@ -116,30 +115,6 @@ export class DataAliasController {
     });
 
     res.json(countResult);
-  }
-
-  @Get([
-    '/api/v1/db/data/:orgs/:baseName/:tableName/countByDate/',
-    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/countByDate/',
-  ])
-  @Acl('dataList')
-  async calendarDataCount(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Param('baseName') baseName: string,
-    @Param('tableName') tableName: string,
-    @Param('viewName') viewName: string,
-  ) {
-    const startTime = process.hrtime();
-
-    const data = await this.datasService.getCalendarRecordCount({
-      query: req.query,
-      viewId: viewName,
-    });
-
-    const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-    res.setHeader('xc-db-response', elapsedSeconds);
-    res.json(data);
   }
 
   @Post([

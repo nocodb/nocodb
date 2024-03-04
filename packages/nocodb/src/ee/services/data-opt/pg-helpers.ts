@@ -15,11 +15,11 @@ import type {
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { Column, Filter, Model, Sort } from '~/models';
 import {
+  _wherePk,
   extractFilterFromXwhere,
   extractSortsObject,
   getColumnName,
   getListArgs,
-  _wherePk,
 } from '~/db/BaseModelSqlv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';

@@ -18,6 +18,7 @@ export function shouldSkipCache(
         'nested',
         'shuffle',
         'r',
+        'pks',
       ]
     : ['filterArr', 'filter', 'where', 'w', 'fields', 'f', 'nested'];
   return (

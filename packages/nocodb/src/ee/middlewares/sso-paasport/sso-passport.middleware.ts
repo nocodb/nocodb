@@ -173,7 +173,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       clientSecret: config.clientSecret,
       scope: config.scopes || ['profile', 'email'],
       callbackURL: req.ncSiteUrl + `/sso/${client.id}/redirect`,
-      pkce: 'S256',
+        pkce: 'S256' as const,
       // cache based store for managing the state of the authorization request
       store: {
         store: async (req, meta, callback) => {

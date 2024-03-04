@@ -1,21 +1,21 @@
-import { promisify } from 'util';
+import {promisify} from 'util';
 import process from 'process';
-import { Injectable, Optional } from '@nestjs/common';
+import {Injectable, Optional} from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
-import { v4 as uuidv4 } from 'uuid';
-import { ConfigService } from '@nestjs/config';
+import {PassportStrategy} from '@nestjs/passport';
+import {Strategy as OpenIDConnectStrategy} from '@govtechsg/passport-openidconnect';
+import {v4 as uuidv4} from 'uuid';
+import {ConfigService} from '@nestjs/config';
 import boxen from 'boxen';
-import type { Request } from 'express';
-import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
-import type { AppConfig } from '~/interface/config';
-import { User } from '~/models';
+import type {Request} from 'express';
+import type {FactoryProvider} from '@nestjs/common/interfaces/modules/provider.interface';
+import type {AppConfig} from '~/interface/config';
+import {User} from '~/models';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
-import { UsersService } from '~/services/users/users.service';
-import { sanitiseUserObj } from '~/utils';
+import {CacheGetType} from '~/utils/globals';
+import {UsersService} from '~/services/users/users.service';
+import {sanitiseUserObj} from '~/utils';
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(

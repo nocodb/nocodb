@@ -560,6 +560,9 @@ importers:
       '@google-cloud/storage':
         specifier: ^7.7.0
         version: 7.7.0
+      '@govtechsg/passport-openidconnect':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@graphql-tools/merge':
         specifier: ^6.2.17
         version: 6.2.17(graphql@15.8.0)
@@ -617,9 +620,6 @@ importers:
       '@sentry/node':
         specifier: ^6.19.7
         version: 6.19.7
-      '@techpass/passport-openidconnect':
-        specifier: ^0.3.3
-        version: 0.3.3
       '@types/chai':
         specifier: ^4.3.12
         version: 4.3.12
@@ -902,9 +902,6 @@ importers:
       reflect-metadata:
         specifier: ^0.2.1
         version: 0.2.1
-      request:
-        specifier: ^2.88.2
-        version: 2.88.2
       request-filtering-agent:
         specifier: ^1.1.2
         version: 1.1.2
@@ -7942,6 +7939,14 @@ packages:
       - supports-color
     dev: false
 
+  /@govtechsg/passport-openidconnect@1.0.2:
+    resolution: {integrity: sha512-uE685U40/mUHw189D9HNwu2EDb53bhNan7jDO0k3DElLTvmZVl2je49lI5+f1w8qR39xYKBgwMPFQk0WIvZVrQ==}
+    engines: {node: '>= 0.6.0'}
+    dependencies:
+      oauth: 0.10.0
+      passport-strategy: 1.0.0
+    dev: false
+
   /@graphql-tools/merge@6.2.17(graphql@15.8.0):
     resolution: {integrity: sha512-G5YrOew39fZf16VIrc49q3c8dBqQDD0ax5LYPiNja00xsXDi0T9zsEWVt06ApjtSdSF6HDddlu5S12QjeN8Tow==}
     peerDependencies:
@@ -12745,17 +12750,6 @@ packages:
 
   /@socket.io/component-emitter@3.1.0:
     resolution: {integrity: sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==}
-
-  /@techpass/passport-openidconnect@0.3.3:
-    resolution: {integrity: sha512-i2X/CofjnGBqpTmw6b+Ex3Co/NrR2xjnIHvnOJk62XIlJJHNSTwmhJ1PkXoA5RGKlxZWchADFGjLTJnebvRj7A==}
-    engines: {node: '>= 0.6.0'}
-    dependencies:
-      base64url: 3.0.1
-      oauth: 0.9.15
-      passport-strategy: 1.0.0
-      request: 2.88.2
-      webfinger: 0.4.2
-    dev: false
 
   /@techteamer/ocsp@1.0.0:
     resolution: {integrity: sha512-lNAOoFHaZN+4huo30ukeqVrUmfC+avoEBYQ11QAnAw1PFhnI5oBCg8O/TNiCoEWix7gNGBIEjrQwtPREqKMPog==}
@@ -26860,6 +26854,10 @@ packages:
     resolution: {integrity: sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==}
     dev: false
 
+  /oauth@0.10.0:
+    resolution: {integrity: sha512-1orQ9MT1vHFGQxhuy7E/0gECD3fd2fCC+PIX+/jgmU/gI3EpRocXtmtvxCO5x3WZ443FLTLFWNDjl5MPJf9u+Q==}
+    dev: false
+
   /oauth@0.9.15:
     resolution: {integrity: sha512-a5ERWK1kh38ExDEfoO6qUHJb32rd7aYmPHuyCu3Fta/cnICvYmgd2uhuKXvPD+PXB+gCEYYEaQdIRAjCOwAKNA==}
     dev: false
@@ -29226,33 +29224,6 @@ packages:
       uuid: 3.4.0
     dev: false
 
-  /request@2.88.2:
-    resolution: {integrity: sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==}
-    engines: {node: '>= 6'}
-    deprecated: request has been deprecated, see https://github.com/request/request/issues/3142
-    dependencies:
-      aws-sign2: 0.7.0
-      aws4: 1.12.0
-      caseless: 0.12.0
-      combined-stream: 1.0.8
-      extend: 3.0.2
-      forever-agent: 0.6.1
-      form-data: 2.3.3
-      har-validator: 5.1.5
-      http-signature: 1.2.0
-      is-typedarray: 1.0.0
-      isstream: 0.1.2
-      json-stringify-safe: 5.0.1
-      mime-types: 2.1.35
-      oauth-sign: 0.9.0
-      performance-now: 2.1.0
-      qs: 6.5.3
-      safe-buffer: 5.2.1
-      tough-cookie: 2.5.0
-      tunnel-agent: 0.6.0
-      uuid: 3.4.0
-    dev: false
-
   /require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
@@ -30469,10 +30440,6 @@ packages:
     resolution: {integrity: sha512-JPbdCEQLj1w5GilpiHAx3qJvFndqybBysA3qUOnznweH4QbNYUsW/ea8QzSrnh0vNsezMMw5bcVool8lM0gwzg==}
     dev: true
 
-  /step@0.0.6:
-    resolution: {integrity: sha512-qSSeQinUJk2w38vUFobjFoE307GqsozMC8VisOCkJLpklvKPT0ptPHwWOrENoag8rgLudvTkfP3bancwP93/Jw==}
-    dev: false
-
   /stoppable@1.1.0:
     resolution: {integrity: sha512-KXDYZ9dszj6bzvnEMRYvxgeTHU74QBFL54XKtP3nyMuJ81CFYtABZ3bAzL2EdFUaEwJOBOgENyFj3R7oTzDyyw==}
     engines: {node: '>=4', npm: '>=6'}
@@ -31269,14 +31236,6 @@ packages:
     dependencies:
       psl: 1.9.0
       punycode: 1.4.1
-    dev: false
-
-  /tough-cookie@2.5.0:
-    resolution: {integrity: sha512-nlLsUzgm1kfLXSXfRZMc1KLAugd4hqJHDTvc2hDIwS3mZAfMEuMbc03SujMF+GEcpaX/qboeycw6iO8JwVv2+g==}
-    engines: {node: '>=0.8'}
-    dependencies:
-      psl: 1.9.0
-      punycode: 2.3.0
     dev: false
 
   /tough-cookie@4.1.3:
@@ -33188,14 +33147,6 @@ packages:
       '@zxing/text-encoding': 0.9.0
     dev: false
 
-  /webfinger@0.4.2:
-    resolution: {integrity: sha512-PvvQ/k74HkC3q5G7bGu4VYeKDt3ePZMzT5qFPtEnOL8eyIU1/06OtDn9X5vlkQ23BlegA3eN89rDLiYUife3xQ==}
-    engines: {node: '>=0.8.x'}
-    dependencies:
-      step: 0.0.6
-      xml2js: 0.1.14
-    dev: false
-
   /webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
@@ -33825,12 +33776,6 @@ packages:
   /xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
     engines: {node: '>=18'}
-    dev: false
-
-  /xml2js@0.1.14:
-    resolution: {integrity: sha512-pbdws4PPPNc1HPluSUKamY4GWMk592K7qwcj6BExbVOhhubub8+pMda/ql68b6L3luZs/OGjGSB5goV7SnmgnA==}
-    dependencies:
-      sax: 1.2.4
     dev: false
 
   /xml2js@0.5.0:

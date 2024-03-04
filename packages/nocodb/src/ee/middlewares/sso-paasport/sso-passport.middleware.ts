@@ -1,30 +1,27 @@
 import process from 'process';
-import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
-import { Strategy as SAMLStrategy } from '@node-saml/passport-saml';
+import {promisify} from 'util';
+import type {NestMiddleware} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
+import {Strategy as SAMLStrategy} from '@node-saml/passport-saml';
 import * as jwt from 'jsonwebtoken';
-import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
+import {ConfigService} from '@nestjs/config';
+import {v4 as uuidv4} from 'uuid';
 import bcrypt from 'bcryptjs';
-import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import {Strategy as OpenIDConnectStrategy} from '@govtechsg/passport-openidconnect';
+import {Strategy as GoogleStrategy} from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
-import type { NestMiddleware } from '@nestjs/common';
-import type { NextFunction, Request, Response } from 'express';
-import type {
-  GoogleClientConfigType,
-  OpenIDClientConfigType,
-} from 'nocodb-sdk';
-import type { AppConfig } from '~/interface/config';
+import type {NextFunction, Request, Response} from 'express';
+import type {GoogleClientConfigType, OpenIDClientConfigType,} from 'nocodb-sdk';
+import type {AppConfig} from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 
-import { BaseUser, User } from '~/models';
-import { sanitiseUserObj } from '~/utils';
+import {BaseUser, User} from '~/models';
+import {sanitiseUserObj} from '~/utils';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
-import { UsersService } from '~/services/users/users.service';
-import { MetaService } from '~/meta/meta.service';
+import {CacheGetType} from '~/utils/globals';
+import {UsersService} from '~/services/users/users.service';
+import {MetaService} from '~/meta/meta.service';
 
 // this middleware is used to authenticate user using passport
 // in which we decide which strategy to use based on client type

@@ -1,9 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import { OrgUserRoles } from 'nocodb-sdk';
-import init from '../../../init';
 import type { OpenIDClientConfigType } from 'nocodb-sdk';
+import init from '../../../init';
 
 // Test case list in this file
 // 1. Get client list

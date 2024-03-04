@@ -1,8 +1,10 @@
 // ref: https://github.com/magnolia-cms/mock-oidc-user-server/blob/master/server.js
 // require('dotenv').config();
-const assert = require('assert')
 
-const Provider = require('oidc-provider')
+import Provider from "oidc-provider";
+import { strict as assert } from "assert";
+
+
 const host = process.env.HOST || 'localhost'
 const port = process.env.PORT || 4000
 

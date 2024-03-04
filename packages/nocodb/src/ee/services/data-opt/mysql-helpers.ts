@@ -1,6 +1,7 @@
 // eslint-disable-file no-fallthrough
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { shouldSkipCache } from './common-helpers';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -762,20 +763,7 @@ export async function singleQueryRead(ctx: {
     throw new Error('Source is not mysql');
   }
 
-  let skipCache =
-    process.env.NC_DISABLE_CACHE === 'true' || ctx.validateFormula;
-
-  // skip using cached query if  filterArr is present since it will be different query
-  if (
-    'filterArr' in ctx.params ||
-    'filter' in ctx.params ||
-    'where' in ctx.params ||
-    'fields' in ctx.params ||
-    'f' in ctx.params ||
-    'nested' in ctx.params
-  ) {
-    skipCache = true;
-  }
+  const skipCache = shouldSkipCache(ctx, false);
 
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.source);
@@ -952,25 +940,7 @@ export async function singleQueryList(ctx: {
     throw new Error('Source is not mysql');
   }
 
-  let skipCache =
-    process.env.NC_DISABLE_CACHE === 'true' || ctx.validateFormula;
-
-  // skip using cached query if sortArr or filterArr is present since it will be different query
-  if (
-    'sortArr' in ctx.params ||
-    'filterArr' in ctx.params ||
-    'sort' in ctx.params ||
-    'filter' in ctx.params ||
-    'where' in ctx.params ||
-    'w' in ctx.params ||
-    'fields' in ctx.params ||
-    'f' in ctx.params ||
-    'nested' in ctx.params ||
-    'shuffle' in ctx.params ||
-    'r' in ctx.params
-  ) {
-    skipCache = true;
-  }
+  const skipCache = shouldSkipCache(ctx);
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
@@ -1023,11 +993,6 @@ export async function singleQueryList(ctx: {
 
   const countQb = knex(baseModel.getTnPath(ctx.model));
   countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
-
-  // handle shuffle if query param preset
-  if (+listArgs?.shuffle) {
-    await baseModel.shuffle({ qb: rootQb });
-  }
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
   let sorts = extractSortsObject(

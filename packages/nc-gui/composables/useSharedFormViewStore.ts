@@ -1,5 +1,6 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
+import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type {
   BoolType,
@@ -11,7 +12,16 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  ErrorMessages,
+  RelationTypes,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
@@ -258,9 +268,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
       console.log('router', route.query)
       columns.value = columns.value?.map((c) => {
-        if (!c.title || !route.query?.[c.title] || isSystemColumn(c) || (isVirtualCol(c) && !isLinksOrLTAR(c)) || isAttachment(c))
+        if (
+          !c.title ||
+          !route.query?.[c.title] ||
+          isSystemColumn(c) ||
+          (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+          isAttachment(c)
+        ) {
           return c
+        }
 
+        // Update column
         switch (sharedViewMeta.value.preFilledMode) {
           case PreFilledMode.Hidden: {
             c.show = false
@@ -272,83 +290,152 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           }
         }
 
-        switch (c.uidt) {
-          case UITypes.SingleSelect:
-          case UITypes.MultiSelect:
-          case UITypes.User: {
-            const limitOptions = (parseProp(c.meta).limitOptions || []).reduce((ac, op) => {
-              if (op?.id) {
-                ac[op.id] = op
-              }
-              return ac
-            }, {})
-
-            const queryOptions = (route.query?.[c.title] as string)?.split(',')
-
-            let options: string[] = []
-
-            if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(c.uidt as UITypes)) {
-              options = ((c.colOptions as SelectOptionsType)?.options || [])
-                .filter((op) => {
-                  if (
-                    op?.id &&
-                    op?.title &&
-                    queryOptions.includes(op.title) &&
-                    (limitOptions[op.id] ? limitOptions[op.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
-                  ) {
-                    return true
-                  }
-                  return false
-                })
-                .map((op) => op.title as string)
-
-              if (options.length) {
-                formState.value[c.title] = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
-              }
-            } else {
-              options = (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : [])
-                .filter((user) => {
-                  if (
-                    user?.id &&
-                    user?.email &&
-                    queryOptions.includes(user.email) &&
-                    (limitOptions[user.id] ? limitOptions[user.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
-                  ) {
-                    return true
-                  }
-                  return false
-                })
-                .map((user) => user.email)
-
-              if (options.length) {
-                formState.value[c.title] = !parseProp(c.meta)?.is_multi ? options[0] : options.join(',')
-              }
-            }
-            break
-          }
-          default: {
-            if (isNumericFieldType(c, getColAbstractType(c))) {
-              if (!isNaN(parseInt(route.query?.[c.title] as string))) {
-                formState.value[c.title] = parseInt(route.query?.[c.title] as string)
-              }
-            } else {
-              formState.value[c.title] = route.query?.[c.title]
-            }
-          }
+        // Prefill form state
+        const preFillValue = getPreFillValue(c, (route.query?.[c.title] as string).trim())
+        if (preFillValue !== undefined) {
+          formState.value[c.title] = preFillValue
         }
-        console.log('c', c)
-
-        console.log('form state', formState.value)
 
         return c
       })
-
+      console.log('form state', formState.value)
       console.log('column', columns.value)
     }
   }
 
   function getColAbstractType(c: ColumnType) {
     return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0]).getAbstractType(c)
+  }
+
+  function getPreFillValue(c: ColumnType, value: string) {
+    let preFillValue: any = ''
+    switch (c.uidt) {
+      case UITypes.SingleSelect:
+      case UITypes.MultiSelect:
+      case UITypes.User: {
+        const limitOptions = (parseProp(c.meta).limitOptions || []).reduce((ac, op) => {
+          if (op?.id) {
+            ac[op.id] = op
+          }
+          return ac
+        }, {})
+
+        const queryOptions = value.split(',')
+
+        let options: string[] = []
+
+        if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(c.uidt as UITypes)) {
+          options = ((c.colOptions as SelectOptionsType)?.options || [])
+            .filter((op) => {
+              if (
+                op?.id &&
+                op?.title &&
+                queryOptions.includes(op.title) &&
+                (limitOptions[op.id] ? limitOptions[op.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
+              ) {
+                return true
+              }
+              return false
+            })
+            .map((op) => op.title as string)
+
+          if (options.length) {
+            preFillValue = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
+          }
+        } else {
+          options = (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : [])
+            .filter((user) => {
+              if (
+                user?.id &&
+                user?.email &&
+                queryOptions.includes(user.email) &&
+                (limitOptions[user.id] ? limitOptions[user.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
+              ) {
+                return true
+              }
+              return false
+            })
+            .map((user) => user.email)
+
+          if (options.length) {
+            preFillValue = !parseProp(c.meta)?.is_multi ? options[0] : options.join(',')
+          }
+        }
+        break
+      }
+      case UITypes.Checkbox: {
+        if (['true', '1'].includes(value.toLowerCase())) {
+          preFillValue = true
+        } else if (['false', '0'].includes(value.toLowerCase())) {
+          preFillValue = false
+        }
+        break
+      }
+      case UITypes.Rating: {
+        if (!isNaN(Number(value))) {
+          preFillValue = Number(value) > parseProp(c.meta).max ? parseProp(c.meta).max : Number(preFillValue)
+        }
+        break
+      }
+      case UITypes.URL: {
+        if (parseProp(c.meta).validate) {
+          if (isValidURL(value)) {
+            preFillValue = value
+          }
+        } else {
+          preFillValue = value
+        }
+        break
+      }
+      case UITypes.Year: {
+        if (/^\d+$/.test(preFillValue)) {
+          preFillValue = Number(value)
+        }
+        break
+      }
+      case UITypes.Date:
+      case UITypes.DateTime: {
+        let parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value))
+
+        if (!parsedDateOrDateTime.isValid()) {
+          parsedDateOrDateTime = dayjs(value, getDateFormat(value))
+        }
+
+        if (parsedDateOrDateTime.isValid()) {
+          preFillValue =
+            c.uidt === UITypes.Date
+              ? parsedDateOrDateTime.format('YYYY-MM-DD')
+              : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+        }
+        break
+      }
+      case UITypes.Time: {
+        let parsedTime = dayjs(value)
+
+        if (!parsedTime.isValid()) {
+          parsedTime = dayjs(value, 'HH:mm:ss')
+        }
+        if (!parsedTime.isValid()) {
+          parsedTime = dayjs(`1999-01-01 ${value}`)
+        }
+        if (parsedTime.isValid()) {
+          preFillValue = parsedTime.format(baseStore.isMysql(c.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+        }
+      }
+      case UITypes.LinkToAnotherRecord: {
+        break
+      }
+      default: {
+        if (isNumericFieldType(c, getColAbstractType(c))) {
+          if (!isNaN(Number(value))) {
+            preFillValue = Number(value)
+          }
+        } else {
+          preFillValue = value
+        }
+      }
+    }
+    return preFillValue
   }
 
   /** reset form if show_blank_form is true */

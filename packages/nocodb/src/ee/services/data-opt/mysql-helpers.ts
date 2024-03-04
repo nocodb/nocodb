@@ -965,7 +965,9 @@ export async function singleQueryList(ctx: {
     'w' in ctx.params ||
     'fields' in ctx.params ||
     'f' in ctx.params ||
-    'nested' in ctx.params
+    'nested' in ctx.params ||
+    'shuffle' in ctx.params ||
+    'r' in ctx.params
   ) {
     skipCache = true;
   }
@@ -1021,6 +1023,11 @@ export async function singleQueryList(ctx: {
 
   const countQb = knex(baseModel.getTnPath(ctx.model));
   countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
+
+  // handle shuffle if query param preset
+  if (+listArgs?.shuffle) {
+    await baseModel.shuffle({ qb: rootQb });
+  }
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap();
   let sorts = extractSortsObject(

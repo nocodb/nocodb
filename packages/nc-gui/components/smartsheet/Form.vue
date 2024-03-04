@@ -4,6 +4,7 @@ import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import {
+  type AttachmentResType,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -12,7 +13,6 @@ import {
   isLinksOrLTAR,
   isSelectTypeCol,
   isVirtualCol,
-type AttachmentResType,
 } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
@@ -529,7 +529,7 @@ onChangeFile((files) => {
 
 const handleOnUploadImage = (data: AttachmentResType = null) => {
   if (imageCropperData.value.cropFor === 'banner') {
-    formViewData.value!.banner_image_url = data 
+    formViewData.value!.banner_image_url = data
   } else {
     formViewData.value!.logo_url = data
   }

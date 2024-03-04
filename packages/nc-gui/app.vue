@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg } from './utils'
+import ErrorBoundary from './components/nc/ErrorBoundary.vue'
 import { applyNonSelectable, computed, isEeUI, isMac, useCommandPalette, useRouter, useTheme } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 
@@ -98,49 +97,18 @@ onMounted(() => {
     refreshCommandPalette()
   })
 })
-
-let errorCount = 0
-
-const handleError = async (error, clearError) => {
-  console.error('UI ERROR', error.value)
-  // if error is api error, show toast message with error message
-  if (error.value?.response) {
-    message.warn(await extractSdkResponseErrorMsg(error.value))
-  } else {
-    // else show generic error message
-    message.warn('Something went wrong. Please reload the page if page is not functioning properly.')
-  }
-  clearError()
-
-  // if error count is more than 3 within 3 second, navigate to home
-  // since it's likely endless loop of errors due to some UI issue in certain page
-  errorCount++
-  if (errorCount > 3) {
-    router.push('/')
-  }
-
-  // reset error count after 1 second
-  setTimeout(() => {
-    errorCount = 0
-  }, 3000)
-}
 </script>
 
 <template>
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
-      <NuxtErrorBoundary>
+      <ErrorBoundary>
         <NuxtPage :key="key" :transition="false" />
-
-        <!-- on error, clear error and show toast message -->
-        <template #error="{ error, clearError }">
-          {{ handleError(error, clearError) }}
-        </template>
-      </NuxtErrorBoundary>
+      </ErrorBoundary>
     </NuxtLayout>
   </a-config-provider>
 
-  <NuxtErrorBoundary>
+  <ErrorBoundary>
     <div>
       <!-- Command Menu -->
       <CmdK
@@ -158,10 +126,5 @@ const handleError = async (error, clearError) => {
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
       <CmdJ />
     </div>
-
-    <!-- on error, clear error and show toast message -->
-    <template #error="{ error, clearError }">
-      {{ handleError(error, clearError) }}
-    </template>
-  </NuxtErrorBoundary>
+  </ErrorBoundary>
 </template>

@@ -1,5 +1,7 @@
 import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { message } from 'ant-design-vue'
+import { extractSdkResponseErrorMsg } from '../utils'
 import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useViewColumnsOrThrow } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
@@ -178,152 +180,160 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   }
 
   async function loadGroups(params: any = {}, group?: Group) {
-    group = group || rootGroup.value
+    try {
+      group = group || rootGroup.value
 
-    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
+      if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
 
-    if (groupBy.value.length === 0) {
-      group.children = []
-      return
-    }
-
-    if (group.nestedIn.length > groupBy.value.length) return
-
-    if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
-    const groupby = groupBy.value[group.nestedIn.length]
-
-    const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-    if (!groupby || !groupby.column.title) return
-
-    if (isPublic.value && !sharedView.value?.uuid) {
-      return
-    }
-
-    const response = !isPublic.value
-      ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-          limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: `${nestedWhere}`,
-          sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-          column_name: groupby.column.title,
-        } as any)
-      : await api.public.dataGroupBy(sharedView.value!.uuid!, {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-          limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-          ...params,
-          where: nestedWhere,
-          sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-          column_name: groupby.column.title,
-          sortsArr: sorts.value,
-          filtersArr: nestedFilters.value,
-        })
-
-    const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-      const keyExists = acc.find(
-        (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
-      )
-      if (keyExists) {
-        keyExists.count += +curr.count
-        keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
-        return acc
+      if (groupBy.value.length === 0) {
+        group.children = []
+        return
       }
-      if (groupby.column.title && groupby.column.uidt) {
-        acc.push({
-          key: valueToTitle(curr[groupby.column.title!], groupby.column),
-          column: groupby.column,
-          count: +curr.count,
-          color: findKeyColor(curr[groupby.column.title!], groupby.column),
-          nestedIn: [
-            ...group!.nestedIn,
-            {
-              title: groupby.column.title,
-              column_name: groupby.column.title!,
-              key: valueToTitle(curr[groupby.column.title!], groupby.column),
-              column_uidt: groupby.column.uidt,
-            },
-          ],
-          paginationData: {
-            page: 1,
-            pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
-            totalRows: +curr.count,
-          },
-          nested: group!.nestedIn.length < groupBy.value.length - 1,
-        })
+
+      if (group.nestedIn.length > groupBy.value.length) return
+
+      if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
+      const groupby = groupBy.value[group.nestedIn.length]
+
+      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+      if (!groupby || !groupby.column.title) return
+
+      if (isPublic.value && !sharedView.value?.uuid) {
+        return
       }
-      return acc
-    }, [])
 
-    if (!group.children) group.children = []
+      const response = !isPublic.value
+        ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+            limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: `${nestedWhere}`,
+            sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+            column_name: groupby.column.title,
+          } as any)
+        : await api.public.dataGroupBy(sharedView.value!.uuid!, {
+            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+            limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+            ...params,
+            where: nestedWhere,
+            sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+            column_name: groupby.column.title,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+          })
 
-    for (const temp of tempList) {
-      const keyExists = group.children?.find((a) => a.key === temp.key)
-      if (keyExists) {
-        temp.paginationData = {
-          page: keyExists.paginationData.page || temp.paginationData.page,
-          pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
-          totalRows: temp.count,
+      const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
+        const keyExists = acc.find(
+          (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
+        )
+        if (keyExists) {
+          keyExists.count += +curr.count
+          keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
+          return acc
         }
-        temp.color = keyExists.color
-        // update group
-        Object.assign(keyExists, temp)
-        continue
+        if (groupby.column.title && groupby.column.uidt) {
+          acc.push({
+            key: valueToTitle(curr[groupby.column.title!], groupby.column),
+            column: groupby.column,
+            count: +curr.count,
+            color: findKeyColor(curr[groupby.column.title!], groupby.column),
+            nestedIn: [
+              ...group!.nestedIn,
+              {
+                title: groupby.column.title,
+                column_name: groupby.column.title!,
+                key: valueToTitle(curr[groupby.column.title!], groupby.column),
+                column_uidt: groupby.column.uidt,
+              },
+            ],
+            paginationData: {
+              page: 1,
+              pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
+              totalRows: +curr.count,
+            },
+            nested: group!.nestedIn.length < groupBy.value.length - 1,
+          })
+        }
+        return acc
+      }, [])
+
+      if (!group.children) group.children = []
+
+      for (const temp of tempList) {
+        const keyExists = group.children?.find((a) => a.key === temp.key)
+        if (keyExists) {
+          temp.paginationData = {
+            page: keyExists.paginationData.page || temp.paginationData.page,
+            pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
+            totalRows: temp.count,
+          }
+          temp.color = keyExists.color
+          // update group
+          Object.assign(keyExists, temp)
+          continue
+        }
+        group.children.push(temp)
       }
-      group.children.push(temp)
-    }
 
-    // clear rest of the children
-    group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
+      // clear rest of the children
+      group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
 
-    if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
-      group.children.sort((a, b) => {
-        const orderA = tempList.findIndex((t) => t.key === a.key)
-        const orderB = tempList.findIndex((t) => t.key === b.key)
-        return orderA - orderB
-      })
-    }
+      if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
+        group.children.sort((a, b) => {
+          const orderA = tempList.findIndex((t) => t.key === a.key)
+          const orderB = tempList.findIndex((t) => t.key === b.key)
+          return orderA - orderB
+        })
+      }
 
-    group.paginationData = response.pageInfo
+      group.paginationData = response.pageInfo
 
-    // to cater the case like when querying with a non-zero offset
-    // the result page may point to the target page where the actual returned data don't display on
-    const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
-    if (expectedPage < group.paginationData.page!) {
-      await groupWrapperChangePage(expectedPage, group)
+      // to cater the case like when querying with a non-zero offset
+      // the result page may point to the target page where the actual returned data don't display on
+      const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
+      if (expectedPage < group.paginationData.page!) {
+        await groupWrapperChangePage(expectedPage, group)
+      }
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
   async function loadGroupData(group: Group, force = false, params: any = {}) {
-    if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+    try {
+      if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
 
-    if (group.children && !force) return
+      if (group.children && !force) return
 
-    if (!group.paginationData) {
-      group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
+      if (!group.paginationData) {
+        group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
+      }
+
+      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+
+      const query = {
+        offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByRecordLimit.value),
+        limit: group.paginationData.pageSize ?? groupByRecordLimit.value,
+        where: `${nestedWhere}`,
+      }
+
+      const response = !isPublic.value
+        ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+            ...query,
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          } as any)
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query })
+
+      group.count = response.pageInfo.totalRows ?? 0
+      group.rows = formatData(response.list)
+      group.paginationData = response.pageInfo
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
     }
-
-    const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-
-    const query = {
-      offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByRecordLimit.value),
-      limit: group.paginationData.pageSize ?? groupByRecordLimit.value,
-      where: `${nestedWhere}`,
-    }
-
-    const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-          ...query,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        } as any)
-      : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query })
-
-    group.count = response.pageInfo.totalRows ?? 0
-    group.rows = formatData(response.list)
-    group.paginationData = response.pageInfo
   }
 
   const loadGroupPage = async (group: Group, p: number) => {

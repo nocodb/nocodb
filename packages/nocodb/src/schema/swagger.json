@@ -7426,7 +7426,12 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "banner_image_url": null,
+                    "banner_image_url": {
+                      "mimetype": "image/jpg",
+                      "size": 32903,
+                      "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                      "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+                    },
                     "email": "user@example.com",
                     "heading": "My Form",
                     "lock_type": "collaborative",
@@ -7467,7 +7472,13 @@
                   "Example 1": {
                     "value": {
                       "source_id": "ds_g4ccx6e77h1dmi",
-                      "banner_image_url": null,
+                      "banner_image_url": {
+                        "mimetype": "image/jpg",
+                        "size": 32903,
+                        "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                        "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+                        "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+                      },
                       "columns": [
                         {
                           "id": "fvc_ugj9zo5bzocxtl",
@@ -9716,6 +9727,591 @@
         }
       }
     },
+    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "List rows in Calendar View of a Table",
+        "operationId": "db-calendar-view-row-list",
+        "description": "List all rows in Calendar View of a Table",
+        "tags": [
+          "DB Calendar View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "responses": {
+        "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "list": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "okd8utzm9xqet"
+                    },
+                    "description": "List of calendar view rows",
+                    "items": {
+                      "x-stoplight": {
+                        "id": "j758lsjv53o4q"
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "pageInfo": {
+                    "$ref": "#/components/schemas/Paginated",
+                    "x-stoplight": {
+                      "id": "hylgqzgm8yhye"
+                    },
+                    "description": "Paginated Info"
+                  }
+                },
+                "required": [
+                  "list",
+                  "pageInfo"
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "list": [
+                      {
+                        "Id": 1,
+                        "Title": "baz",
+                        "SingleSelect": null,
+                        "Sheet-1 List": [
+                          {
+                            "Id": 1,
+                            "Title": "baz"
+                          }
+                        ],
+                        "LTAR": [
+                          {
+                            "Id": 1,
+                            "Title": "baz"
+                          }
+                        ]
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "foo",
+                        "SingleSelect": "a",
+                        "Sheet-1 List": [
+                          {
+                            "Id": 2,
+                            "Title": "foo"
+                          }
+                        ],
+                        "LTAR": [
+                          {
+                            "Id": 2,
+                            "Title": "foo"
+                          }
+                        ]
+                      },
+                      {
+                        "Id": 3,
+                        "Title": "bar",
+                        "SingleSelect": "b",
+                        "Sheet-1 List": [],
+                        "LTAR": []
+                      }
+                    ],
+                    "pageInfo": {
+                      "totalRows": 3,
+                      "page": 1,
+                      "pageSize": 25,
+                      "isFirstPage": true,
+                      "isLastPage": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        }
+      }
+    },
+    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/" : {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Count of Records in Dates in Calendar View",
+        "operationId": "db-calendar-view-row-count",
+        "description": "Get the count of table view rows grouped by the dates",
+        "tags": [
+          "DB Calendar View Row Count"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v1/db/public/calendar-view/{sharedViewUuid}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List rows in Calendar View of a Table",
+        "operationId": "public-data-calendar-row-list",
+        "description": "List all rows in Calendar View of a Table",
+        "tags": [
+          "DB Calendar View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "responses": {
+        "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "list": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "okd8utzm9xqet"
+                    },
+                    "description": "List of calendar view rows",
+                    "items": {
+                      "x-stoplight": {
+                        "id": "j758lsjv53o4q"
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "pageInfo": {
+                    "$ref": "#/components/schemas/Paginated",
+                    "x-stoplight": {
+                      "id": "hylgqzgm8yhye"
+                    },
+                    "description": "Paginated Info"
+                  }
+                },
+                "required": [
+                  "list",
+                  "pageInfo"
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "list": [
+                      {
+                        "Id": 1,
+                        "Title": "baz",
+                        "SingleSelect": null,
+                        "Sheet-1 List": [
+                          {
+                            "Id": 1,
+                            "Title": "baz"
+                          }
+                        ],
+                        "LTAR": [
+                          {
+                            "Id": 1,
+                            "Title": "baz"
+                          }
+                        ]
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "foo",
+                        "SingleSelect": "a",
+                        "Sheet-1 List": [
+                          {
+                            "Id": 2,
+                            "Title": "foo"
+                          }
+                        ],
+                        "LTAR": [
+                          {
+                            "Id": 2,
+                            "Title": "foo"
+                          }
+                        ]
+                      },
+                      {
+                        "Id": 3,
+                        "Title": "bar",
+                        "SingleSelect": "b",
+                        "Sheet-1 List": [],
+                        "LTAR": []
+                      }
+                    ],
+                    "pageInfo": {
+                      "totalRows": 3,
+                      "page": 1,
+                      "pageSize": 25,
+                      "isFirstPage": true,
+                      "isLastPage": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequest"
+        }
+      }
+    },
+    "/api/v1/db/public/calendar-view/{sharedViewUuid}/countByDate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Count of Records in Dates in Calendar View",
+        "operationId": "public-data-calendar-row-count",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
     "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}": {
       "parameters": [
         {
@@ -10045,101 +10641,6 @@
                     }
                   }
                 }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/" : {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Count of Records in Dates in Calendar View",
-        "operationId": "db-view-row-calendar-count",
-        "description": "Get the count of table view rows grouped by the dates",
-        "tags": [
-          "DB View Row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
               }
             }
           },
@@ -12116,83 +12617,6 @@
           }
         ],
         "description": "List Shared View Grouped Data"
-      }
-    },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/countByDate": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true,
-          "description": "Shared View UUID"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "header",
-          "name": "xc-password",
-          "description": "Shared view password"
-        }
-      ],
-      "get": {
-        "summary": "Count of Records in Dates in Calendar View",
-        "operationId": "public-calendar-count",
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Public"
-        ]
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
@@ -17093,6 +17517,64 @@
           "id": "6cr1iwhbyxncd"
         }
       },
+      "AttachmentRes": {
+        "description": "Model for Attachment Response",
+        "oneOf": [
+          {
+            "type": "object",
+            "x-examples": {
+              "Example 1": {
+                "mimetype": "image/jpg",
+                "size": 32903,
+                "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+                "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+              },
+              "Example 2" :{
+                "mimetype": "image/jpeg",
+                "size": 146143,
+                "title": "2 be loved.jpeg",
+                "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+              }
+            },
+            "properties": {
+              "mimetype": {
+                "type": "string",
+                "description": "The mimetype of the attachment"
+              },
+              "path": {
+                "type": "string",
+                "description": "The attachment stored path"
+              },
+              "size": {
+                "type": "number",
+                "description": "The size of the attachment"
+              },
+              "title": {
+                "type": "string",
+                "description": "The title of the attachment used in UI"
+              },
+              "url": {
+                "type": "string",
+                "description": "The attachment stored url"
+              },
+              "signedPath": {
+                "type": "string",
+                "description": "Attachment signedPath will allow to access attachment directly"
+              },
+              "signedUrl": {
+                "type": "string",
+                "description": "Attachment signedUrl will allow to access attachment directly"
+              }
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Attachment Response Model"
+      },
       "FileReq": {
         "description": "Model for File Request",
         "type": "object",
@@ -18620,7 +19102,13 @@
         "examples": [
           {
             "source_id": "ds_g4ccx6e77h1dmi",
-            "banner_image_url": null,
+            "banner_image_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+              "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "columns": [
               {
                 "id": "fvc_ugj9zo5bzocxtl",
@@ -18644,7 +19132,13 @@
             "fk_model_id": "md_rsu68aqjsbyqtl",
             "heading": "My Form",
             "lock_type": "collaborative",
-            "logo_url": null,
+            "logo_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+              "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
@@ -18666,8 +19160,8 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "$ref": "#/components/schemas/AttachmentRes",
+            "description": "Banner Image URL"
           },
           "columns": {
             "type": "array",
@@ -18709,8 +19203,8 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Logo URL. Not in use currently."
+            "$ref": "#/components/schemas/AttachmentRes",
+            "description": "Logo URL"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -18755,7 +19249,12 @@
         "description": "Model for Form Update Request",
         "examples": [
           {
-            "banner_image_url": null,
+            "banner_image_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "email": "user@example.com",
             "heading": "My Form",
             "logo_url": null,
@@ -18772,8 +19271,15 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
+            "description": "Banner Image URL"
           },
           "email": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -18786,8 +19292,15 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Logo URL. Not in use currently."
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
+            "description": "Logo URL"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",

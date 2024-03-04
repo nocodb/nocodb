@@ -144,7 +144,7 @@ const isEaster = ref(false)
         {{ $t('general.duplicate') }} {{ $t('objects.table') }}
       </div>
 
-      <div class="mt-4">{{ $t('msg.warning.duplicateProject') }}</div>
+      <div class="mt-4">{{ $t('msg.warning.duplicateTable') }}</div>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 

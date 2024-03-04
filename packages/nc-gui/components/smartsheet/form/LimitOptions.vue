@@ -9,6 +9,7 @@ import { MetaInj, iconMap } from '#imports'
 const props = defineProps<{
   modelValue: FormFieldsLimitOptionsType[]
   column: ColumnType
+  isRequired?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -121,6 +122,18 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
 
   vModel.value = [...vModel.value]
 }
+
+const showOrHideAll = (showAll: boolean) => {
+  if (props.isRequired && !showAll) {
+    return
+  }
+  vModel.value = vModel.value.map((o) => {
+    return {
+      ...o,
+      show: showAll,
+    }
+  })
+}
 </script>
 
 <template>
@@ -147,13 +160,42 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
         </template>
       </a-input>
     </div>
+
+    <div v-if="vModel.length" class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-gray-200">
+      <NcTooltip class="truncate max-w-full" :disabled="!isRequired">
+        <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
+
+        <NcButton
+          type="secondary"
+          size="xxsmall"
+          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
+          :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
+          @click="showOrHideAll(false)"
+        >
+          Hide all
+        </NcButton>
+      </NcTooltip>
+
+      <div>
+        <NcButton
+          type="secondary"
+          size="xxsmall"
+          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
+          :disabled="vModel.filter((o) => o.show).length === vModel.length"
+          @click="showOrHideAll(true)"
+        >
+          Show all
+        </NcButton>
+      </div>
+    </div>
+
     <Draggable
       v-if="vModel.length"
       :model-value="vModel"
       item-key="id"
       handle=".nc-child-draggable-icon"
       ghost-class="nc-form-field-limit-option-ghost"
-      class="rounded-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
+      class="rounded-b-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
       @change="onMove($event)"
       @start="drag = true"
       @end="drag = false"
@@ -175,19 +217,25 @@ async function onMove(_event: { moved: { newIndex: number; oldIndex: number; ele
         >
           <component :is="iconMap.drag" class="nc-child-draggable-icon flex-none cursor-move !h-4 !w-4 text-gray-600" />
 
-          <div
-            @click="
-              () => {
-                element.show = !element.show
-                vModel = [...vModel]
-              }
-            "
-          >
-            <component
-              :is="element.show ? iconMap.eye : iconMap.eyeSlash"
-              class="flex-none cursor-pointer !h-4 !w-4 text-gray-600"
-            />
-          </div>
+          <NcTooltip :disabled="!isRequired || !(element.show && isRequired && vModel.filter((o) => o.show).length === 1)">
+            <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
+
+            <div
+              class="!border-none !px-2"
+              @click="
+                () => {
+                  if (element.show && isRequired && vModel.filter((o) => o.show).length === 1) return
+                  element.show = !element.show
+                  vModel = [...vModel]
+                }
+              "
+            >
+              <component
+                :is="element.show ? iconMap.eye : iconMap.eyeSlash"
+                class="flex-none cursor-pointer !h-4 !w-4 text-gray-600"
+              />
+            </div>
+          </NcTooltip>
 
           <a-tag v-if="column.uidt === UITypes.User" class="rounded-tag max-w-[calc(100%_-_70px)] !pl-0" color="'#ccc'">
             <span

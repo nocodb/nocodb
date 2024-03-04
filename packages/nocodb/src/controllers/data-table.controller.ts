@@ -38,7 +38,6 @@ export class DataTableController {
       query: req.query,
       modelId: modelId,
       viewId: viewId,
-      ignorePagination: req.headers?.['xc-ignore-pagination'] === 'true',
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);

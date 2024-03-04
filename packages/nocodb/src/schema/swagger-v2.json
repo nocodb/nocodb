@@ -5714,7 +5714,12 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "banner_image_url": null,
+                    "banner_image_url": {
+                      "mimetype": "image/jpg",
+                      "size": 32903,
+                      "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                      "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+                    },
                     "email": "user@example.com",
                     "heading": "My Form",
                     "lock_type": "collaborative",
@@ -5755,7 +5760,13 @@
                   "Example 1": {
                     "value": {
                       "source_id": "ds_g4ccx6e77h1dmi",
-                      "banner_image_url": null,
+                      "banner_image_url": {
+                        "mimetype": "image/jpg",
+                        "size": 32903,
+                        "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                        "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+                        "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+                      },
                       "columns": [
                         {
                           "id": "fvc_ugj9zo5bzocxtl",
@@ -7273,7 +7284,7 @@
         "description": "List Shared View Grouped Data"
       }
     },
-    "/api/v2/public/shared-view/{sharedViewUuid}/countByDate": {
+    "/api/v2/public/calendar-view/{sharedViewUuid}/countByDate": {
       "parameters": [
         {
           "schema": {
@@ -7349,6 +7360,180 @@
           "Public"
         ]
       }
+    },
+    "/api/v2/public/calendar-view/{sharedViewUuid}/": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "List Shared View Rows",
+        "operationId": "public-calendar-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:46:31",
+                          "fk_model_id": "md_mhs9z4r2ak98x0",
+                          "id": "vw_lg052cnc1c26kf",
+                          "is_default": 1,
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "base_id": "p_xm3thidrblw4n7",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "title": "Sheet-1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:46:31",
+                          "uuid": null,
+                          "view": {
+                            "source_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:46:31",
+                            "fk_view_id": "vw_lg052cnc1c26kf",
+                            "meta": null,
+                            "base_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:46:31",
+                            "uuid": null
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "from_date",
+            "description": "From Date"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "to_date",
+            "description": "To Date"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          }
+        ],
+        "description": "List all shared view rows"
+      },
     },
     "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
@@ -11497,6 +11682,64 @@
           "id": "6cr1iwhbyxncd"
         }
       },
+      "AttachmentRes": {
+        "description": "Model for Attachment Response",
+        "oneOf": [
+          {
+            "type": "object",
+            "x-examples": {
+              "Example 1": {
+                "mimetype": "image/jpg",
+                "size": 32903,
+                "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+                "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+                "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+              },
+              "Example 2" :{
+                "mimetype": "image/jpeg",
+                "size": 146143,
+                "title": "2 be loved.jpeg",
+                "url": "https://some-s3-server.com/nc/uploads/2023/10/16/some-key/3niqHLngUKiU2Hupe8.jpeg",
+                "signedUrl": "https://some-s3-server.com/nc/uploads/2023/10/16/signed-url-misc-info"
+              }
+            },
+            "properties": {
+              "mimetype": {
+                "type": "string",
+                "description": "The mimetype of the attachment"
+              },
+              "path": {
+                "type": "string",
+                "description": "The attachment stored path"
+              },
+              "size": {
+                "type": "number",
+                "description": "The size of the attachment"
+              },
+              "title": {
+                "type": "string",
+                "description": "The title of the attachment used in UI"
+              },
+              "url": {
+                "type": "string",
+                "description": "The attachment stored url"
+              },
+              "signedPath": {
+                "type": "string",
+                "description": "Attachment signedPath will allow to access attachment directly"
+              },
+              "signedUrl": {
+                "type": "string",
+                "description": "Attachment signedUrl will allow to access attachment directly"
+              }
+            }
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Attachment Response Model"
+      },
       "Audit": {
         "description": "Model for Audit",
         "examples": [
@@ -12978,7 +13221,13 @@
         "examples": [
           {
             "source_id": "ds_g4ccx6e77h1dmi",
-            "banner_image_url": null,
+            "banner_image_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+              "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "columns": [
               {
                 "id": "fvc_ugj9zo5bzocxtl",
@@ -13002,7 +13251,13 @@
             "fk_model_id": "md_rsu68aqjsbyqtl",
             "heading": "My Form",
             "lock_type": "collaborative",
-            "logo_url": null,
+            "logo_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
+              "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "meta": null,
             "redirect_after_secs": null,
             "redirect_url": null,
@@ -13024,8 +13279,8 @@
             }
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "$ref": "#/components/schemas/AttachmentRes",
+            "description": "Banner Image URL"
           },
           "columns": {
             "type": "array",
@@ -13067,8 +13322,8 @@
             "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Logo URL. Not in use currently."
+            "$ref": "#/components/schemas/AttachmentRes",
+            "description": "Logo URL."
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -13113,7 +13368,12 @@
         "description": "Model for Form Update Request",
         "examples": [
           {
-            "banner_image_url": null,
+            "banner_image_url": {
+              "mimetype": "image/jpg",
+              "size": 32903,
+              "title": "Random-Pictures-of-Conceptual-and-Creative-Ideas-02.jpg",
+              "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
+            },
             "email": "user@example.com",
             "heading": "My Form",
             "logo_url": null,
@@ -13130,8 +13390,15 @@
         "type": "object",
         "properties": {
           "banner_image_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Banner Image URL. Not in use currently."
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
+            "description": "Banner Image URL"
           },
           "email": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -13144,8 +13411,15 @@
             "type": "string"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/TextOrNull",
-            "description": "Logo URL. Not in use currently."
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              {
+                "type" : "null"
+              }
+            ],
+            "description": "Logo URL."
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",

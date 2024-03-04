@@ -117,6 +117,10 @@ watch(picked, (n, _o) => {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
 }
+.color-selector:focus.new-design {
+  outline: none;
+  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+}
 .color-selector.selected.new-design {
   box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
 }

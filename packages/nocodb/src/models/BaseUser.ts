@@ -262,8 +262,8 @@ export default class BaseUser {
 
     // delete list cache to refresh list
     await NocoCache.deepDel(
-      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
+      `${CacheScope.BASE_USER}:${baseId}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
 
     return response;

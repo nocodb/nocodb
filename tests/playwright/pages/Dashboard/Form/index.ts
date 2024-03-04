@@ -10,8 +10,7 @@ export class FormPage extends BasePage {
   readonly topbar: TopbarPage;
 
   // todo: All the locator should be private
-  readonly addAllButton: Locator;
-  readonly removeAllButton: Locator;
+  readonly addOrRemoveAllButton: Locator;
   readonly submitButton: Locator;
 
   readonly showAnotherFormRadioButton: Locator;
@@ -30,8 +29,10 @@ export class FormPage extends BasePage {
     this.toolbar = new ToolbarPage(this);
     this.topbar = new TopbarPage(this);
 
-    this.addAllButton = dashboard.get().locator('[data-testid="nc-form-show-all-fields"]').locator('.nc-switch');
-    this.removeAllButton = dashboard.get().locator('[data-testid="nc-form-show-all-fields"]').locator('.nc-switch');
+    this.addOrRemoveAllButton = dashboard
+      .get()
+      .locator('[data-testid="nc-form-show-all-fields"]')
+      .locator('.nc-switch');
     this.submitButton = dashboard.get().locator('[data-testid="nc-form-submit"]');
 
     this.showAnotherFormRadioButton = dashboard.get().locator('[data-testid="nc-form-checkbox-submit-another-form"]');
@@ -40,8 +41,8 @@ export class FormPage extends BasePage {
       .locator('[data-testid="nc-form-checkbox-show-blank-form"]');
     this.emailMeRadioButton = dashboard.get().locator('[data-testid="nc-form-checkbox-send-email"]');
     this.formHeading = dashboard.get().locator('[data-testid="nc-form-heading"]');
-    this.formSubHeading = dashboard.get().locator('[data-testid="nc-form-sub-heading"]');
-    this.afterSubmitMsg = dashboard.get().locator('[data-testid="nc-form-after-submit-msg"]');
+    this.formSubHeading = dashboard.get().locator('[data-testid="nc-form-sub-heading"] .tiptap.ProseMirror');
+    this.afterSubmitMsg = dashboard.get().locator('[data-testid="nc-form-after-submit-msg"] .tiptap.ProseMirror');
 
     this.formFields = dashboard.get().locator('.nc-form-fields-list');
   }
@@ -67,7 +68,7 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsInputHelpText() {
-    return this.get().locator('textarea[data-testid="nc-form-input-help-text"]:visible');
+    return this.get().locator('[data-testid="nc-form-input-help-text"] .tiptap.ProseMirror:visible');
   }
 
   async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {
@@ -83,7 +84,7 @@ export class FormPage extends BasePage {
   }
 
   async verifyAfterSubmitMsg({ msg }: { msg: string }) {
-    expect((await this.afterSubmitMsg.inputValue()).includes(msg)).toBeTruthy();
+    expect((await this.afterSubmitMsg.textContent()).includes(msg)).toBeTruthy();
   }
 
   async verifyFormViewFieldsOrder({ fields }: { fields: string[] }) {
@@ -136,11 +137,18 @@ export class FormPage extends BasePage {
   }
 
   async removeAllFields() {
-    await this.removeAllButton.click();
+    if (await this.addOrRemoveAllButton.isChecked()) {
+      await this.addOrRemoveAllButton.click();
+    } else {
+      await this.addOrRemoveAllButton.click();
+      await this.addOrRemoveAllButton.click();
+    }
   }
 
   async addAllFields() {
-    await this.addAllButton.click();
+    if (!(await this.addOrRemoveAllButton.isChecked())) {
+      await this.addOrRemoveAllButton.click();
+    }
   }
 
   async configureHeader(param: { subtitle: string; title: string }) {
@@ -166,7 +174,7 @@ export class FormPage extends BasePage {
 
   async verifyHeader(param: { subtitle: string; title: string }) {
     await expect.poll(async () => await this.formHeading.inputValue()).toBe(param.title);
-    await expect.poll(async () => await this.formSubHeading.inputValue()).toBe(param.subtitle);
+    await expect.poll(async () => await this.formSubHeading.textContent()).toBe(param.subtitle);
   }
 
   async fillForm(param: { field: string; value: string }[]) {
@@ -233,7 +241,7 @@ export class FormPage extends BasePage {
 
     const fieldHelpText = this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-testid="nc-form-input-help-text-label"]');
+      .locator('div[data-testid="nc-form-input-help-text-label"] .tiptap.ProseMirror');
     await expect(fieldHelpText).toHaveText(helpText);
   }
 

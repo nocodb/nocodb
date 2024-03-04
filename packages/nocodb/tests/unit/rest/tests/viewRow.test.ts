@@ -1554,6 +1554,39 @@ function viewRowTests() {
     await testViewRowNotExists(ViewTypes.CALENDAR);
   });
 
+  const testCalendarDataApi = async () => {
+    const table = rentalTable;
+    const calendar_range = {
+      fk_from_column_id: rentalColumns.find((c) => c.title === 'RentalDate').id,
+    };
+
+    const view = await createView(context, {
+      title: 'View',
+      table: table,
+      type: ViewTypes.CALENDAR,
+      range: calendar_range,
+    });
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/calendar-data/noco/${sakilaProject.id}/${table.id}/views/${view.id}`,
+      )
+      .query({
+        from_date: '2005-05-25',
+        to_date: '2005-05-26',
+      })
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (response.body.list.length !== 137) {
+      throw new Error('Wrong calendar data');
+    }
+  };
+
+  it('Calendar data', async function () {
+    await testCalendarDataApi();
+  });
+
   const testCountDatesByRange = async (viewType: ViewTypes) => {
     let calendar_range = {};
     let expectStatus = 400;
@@ -1575,12 +1608,20 @@ function viewRowTests() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}/countByDate/`,
+        `/api/v1/db/calendar-data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}/countByDate/`,
       )
+      .query({
+        from_date: '2005-05-25',
+        to_date: '2005-05-26',
+      })
       .set('xc-auth', context.token)
       .expect(expectStatus);
 
-    if (expectStatus === 200 && response.body.length !== 25) {
+    if (
+      expectStatus === 200 &&
+      response.body.count !== 137 &&
+      response.body.dates.length !== 137
+    ) {
       throw new Error('Wrong count');
     } else if (
       expectStatus === 400 &&

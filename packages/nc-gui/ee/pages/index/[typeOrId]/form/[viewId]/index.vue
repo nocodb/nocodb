@@ -87,6 +87,10 @@ p {
         &:not(.layout-list) {
           @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500 overflow-hidden;
 
+          &.readonly {
+            @apply bg-gray-50 cursor-not-allowed;
+          }
+
           & > div {
             @apply !bg-transparent;
           }
@@ -110,7 +114,7 @@ p {
         input,
         textarea,
         &.nc-virtual-cell {
-          @apply bg-white dark:(bg-slate-500 text-white);
+          @apply bg-white dark:(bg-slate-500 text-white) disabled:bg-transparent;
 
           .ant-btn {
             @apply dark:(bg-slate-300);
@@ -120,9 +124,7 @@ p {
             @apply dark:(bg-slate-700 text-white);
           }
         }
-        &:not(.layout-list) > div {
-          @apply bg-white dark:(bg-slate-500 text-white);
-        }
+
         &.layout-list > div {
           .ant-btn {
             @apply dark:(bg-slate-300);

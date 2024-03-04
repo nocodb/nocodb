@@ -191,7 +191,7 @@ function sharedViewUrl() {
     dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
   }
 
-  return encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}`)
+  return encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)
 }
 
 const toggleViewShare = async () => {

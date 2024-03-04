@@ -11,15 +11,18 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
+  PreFilledMode,
   SharedViewPasswordInj,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  isNumericFieldType,
   message,
+  parseProp,
   provide,
   ref,
   storeToRefs,
@@ -31,7 +34,6 @@ import {
   useProvideSmartsheetRowStore,
   useViewsStore,
   watch,
-  PreFilledMode,
 } from '#imports'
 import type { SharedViewMeta } from '#imports'
 
@@ -67,9 +69,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const { metas, setMeta } = useMetas()
 
   const baseStore = useBase()
-  const { base } = storeToRefs(baseStore)
+  const { base, sqlUis } = storeToRefs(baseStore)
 
   const basesStore = useBases()
+
   const { basesUser } = storeToRefs(basesStore)
 
   const { t } = useI18n()
@@ -129,8 +132,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       await setMeta(viewMeta.model)
 
-      handlePreFillForm()
-
       // if base is not defined then set it with an object containing source
       if (!base.value?.sources)
         baseStore.setProject({
@@ -149,6 +150,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if (viewMeta.users) {
         basesUser.value.set(viewMeta.base_id, viewMeta.users)
       }
+
+      handlePreFillForm()
     } catch (e: any) {
       if (e.response && e.response.status === 404) {
         notFound.value = true
@@ -255,53 +258,97 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
       console.log('router', route.query)
       columns.value = columns.value?.map((c) => {
-        if (!c.title || !route.query?.[c.title]) return c
+        if (!c.title || !route.query?.[c.title] || isSystemColumn(c) || (isVirtualCol(c) && !isLinksOrLTAR(c)) || isAttachment(c))
+          return c
 
         switch (sharedViewMeta.value.preFilledMode) {
           case PreFilledMode.Hidden: {
             c.show = false
+            break
           }
           case PreFilledMode.Locked: {
             c.read_only = true
-          }
-        }
-        switch (c.uidt) {
-          case UITypes.SingleSelect:
-          case UITypes.MultiSelect: {
-            const limitOptions = Array.isArray(parseProp(c.meta).limitOptions)
-              ? parseProp(c.meta).limitOptions.reduce((ac, op) => {
-                  if (op?.id) {
-                    ac[op.id] = op
-                  }
-                  return ac
-                }, {})
-              : {}
-            const queryOptions = (route.query?.[c.title] as string)?.split(',')
-            let options = ((c.colOptions || []) as SelectOptionsType).options
-              .filter((op) => {
-                if (queryOptions.includes(op?.title!) && (limitOptions[op?.id!] ? limitOptions[op?.id!]?.show : true)) return true
-              })
-              .map((op) => op.title)
-            console.log('c', options, c)
-            if (options.length) {
-              formState.value[c.title] = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
-            }
-            console.log('form state', formState.value[c.title])
             break
           }
+        }
+
+        switch (c.uidt) {
+          case UITypes.SingleSelect:
+          case UITypes.MultiSelect:
           case UITypes.User: {
+            const limitOptions = (parseProp(c.meta).limitOptions || []).reduce((ac, op) => {
+              if (op?.id) {
+                ac[op.id] = op
+              }
+              return ac
+            }, {})
+
+            const queryOptions = (route.query?.[c.title] as string)?.split(',')
+
+            let options: string[] = []
+
+            if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(c.uidt as UITypes)) {
+              options = ((c.colOptions as SelectOptionsType)?.options || [])
+                .filter((op) => {
+                  if (
+                    op?.id &&
+                    op?.title &&
+                    queryOptions.includes(op.title) &&
+                    (limitOptions[op.id] ? limitOptions[op.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
+                  ) {
+                    return true
+                  }
+                  return false
+                })
+                .map((op) => op.title as string)
+
+              if (options.length) {
+                formState.value[c.title] = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
+              }
+            } else {
+              options = (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : [])
+                .filter((user) => {
+                  if (
+                    user?.id &&
+                    user?.email &&
+                    queryOptions.includes(user.email) &&
+                    (limitOptions[user.id] ? limitOptions[user.id]?.show : !(parseProp(c.meta).limitOptions || []).length)
+                  ) {
+                    return true
+                  }
+                  return false
+                })
+                .map((user) => user.email)
+
+              if (options.length) {
+                formState.value[c.title] = !parseProp(c.meta)?.is_multi ? options[0] : options.join(',')
+              }
+            }
             break
           }
           default: {
-            formState.value[c.title] = route.query?.[c.title]
+            if (isNumericFieldType(c, getColAbstractType(c))) {
+              if (!isNaN(parseInt(route.query?.[c.title] as string))) {
+                formState.value[c.title] = parseInt(route.query?.[c.title] as string)
+              }
+            } else {
+              formState.value[c.title] = route.query?.[c.title]
+            }
           }
         }
+        console.log('c', c)
+
+        console.log('form state', formState.value)
 
         return c
       })
 
       console.log('column', columns.value)
     }
+  }
+
+  function getColAbstractType(c: ColumnType) {
+    return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0]).getAbstractType(c)
   }
 
   /** reset form if show_blank_form is true */

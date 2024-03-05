@@ -116,6 +116,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // Used for Grid View Pagination
   const isPaginationLoading = ref(true)
 
+  const preFillFormSearchParams = ref('')
+
   const loadViews = async ({
     tableId,
     ignoreLoading,
@@ -282,6 +284,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!view) return
     if (!view.base_id) return
 
+    preFillFormSearchParams.value = ''
+
     const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
 
     const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
@@ -322,6 +326,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeSorts,
     activeNestedFilters,
     isActiveViewLocked,
+    preFillFormSearchParams,
   }
 })
 

@@ -111,6 +111,7 @@ interface SharedViewMeta extends Record<string, any> {
   theme?: Partial<ThemeConfig>
   allowCSVDownload?: boolean
   rtl?: boolean
+  preFillEnabled?: boolean
   preFilledMode?: PreFilledMode
 }
 

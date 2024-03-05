@@ -928,9 +928,7 @@
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",
     "preFilledFields": {
-      "title": "Pre-filled Fields",
-      "default": "Allow pre-filling fields",
-      "disabled": "Disable pre-filling fields",
+      "title": "Enable Pre-fill",
       "locked": "Lock pre-filled fields as read-only",
       "hidden": "Hide pre-filled fields",
       "lockedFieldTooltip": "Pre-filled value"
@@ -966,7 +964,7 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "formIsNotShared": "Form is not shared"
+    "fillTheFormFieldFirst": "Fill the form fields first"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

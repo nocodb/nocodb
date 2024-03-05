@@ -93,7 +93,6 @@
     "body-parser": "^1.20.2",
     "boxen": "^5.1.2",
     "bull": "^4.12.2",
-    "bullmq": "^1.91.1",
     "clear": "^0.1.0",
     "clickhouse": "^2.6.0",
     "clickhouse-migrations": "^0.1.14",
@@ -174,7 +173,6 @@
     "posthog-node": "^3.1.2",
     "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.1",
-    "request": "^2.88.2",
     "request-filtering-agent": "^1.1.2",
     "request-ip": "^3.3.0",
     "rmdir": "^1.2.0",
@@ -186,12 +184,12 @@
     "sqlite3": "^5.1.7",
     "tedious": "^16.6.1",
     "tinycolor2": "^1.6.0",
-    "twilio": "^3.84.1",
+    "twilio": "^4.23.0",
     "unique-names-generator": "^4.7.1",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
     "xc-core-ts": "^0.1.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",

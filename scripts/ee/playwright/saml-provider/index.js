@@ -1,6 +1,6 @@
 // ref: https://github.com/mcguinness/saml-idp
 require('dotenv').config()
-const { runServer } = require('saml-idp')
+const {runServer} = require('@smartlook/saml-idp')
 
 runServer({
   port: process.env.PORT || 7000,

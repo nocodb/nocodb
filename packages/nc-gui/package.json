@@ -137,7 +137,7 @@
     "vue3-grid-layout-next": "^1.0.6",
     "vue3-text-clamp": "^0.1.2",
     "vuedraggable": "^4.1.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.3",
@@ -192,10 +192,10 @@
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-prettier": "^4.2.1",
     "happy-dom": "^6.0.4",
-    "nuxt": "^3.10.2",
+    "nuxt": "^3.10.3",
     "nuxt-windicss": "^2.6.1",
     "prettier": "^2.8.8",
-    "sass": "^1.70.0",
+    "sass": "^1.71.1",
     "ts-loader": "^9.5.1",
     "unplugin-icons": "^0.18.3",
     "unplugin-vue-components": "^0.26.0",

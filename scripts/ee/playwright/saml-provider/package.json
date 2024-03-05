@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.1",
-    "saml-idp": "^1.2.1"
+    "@smartlook/saml-idp": "^1.3.0"
   },
   "keywords": [],
   "author": "",

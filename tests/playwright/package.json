@@ -48,7 +48,7 @@
     "knex": "^2.4.2",
     "nocodb-sdk": "workspace:^",
     "sqlite3": "^5.1.6",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
   },
   "devDependencies": {
     "@playwright/test": "1.38.0",

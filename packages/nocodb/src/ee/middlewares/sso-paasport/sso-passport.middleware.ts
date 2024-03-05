@@ -1,5 +1,6 @@
 import process from 'process';
 import { promisify } from 'util';
+import type { NestMiddleware } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { Strategy as SAMLStrategy } from '@node-saml/passport-saml';
 import * as jwt from 'jsonwebtoken';
@@ -10,12 +11,8 @@ import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconn
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
-import type { NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import type {
-  GoogleClientConfigType,
-  OpenIDClientConfigType,
-} from 'nocodb-sdk';
+import type { GoogleClientConfigType, OpenIDClientConfigType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 

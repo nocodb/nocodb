@@ -108,7 +108,7 @@ const recordsAcrossAllRange = computed<{
     if (fromCol && endCol) {
       for (const record of sortedFormattedData) {
         // We use this id during the drag and drop operation and to keep track of the number of records that overlap at a given time
-        const id = generateRandomNumber()
+        const id = record.rowMeta?.id ?? generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         let endDate = dayjs(record.row[endCol.title!])
 
@@ -202,7 +202,7 @@ const recordsAcrossAllRange = computed<{
       }
     } else if (fromCol) {
       for (const record of sortedFormattedData) {
-        const id = generateRandomNumber()
+        const id = record.rowMeta?.id ?? generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
 
@@ -611,11 +611,26 @@ const viewMore = (hour: dayjs.Dayjs) => {
   selectedTime.value = hour
   showSideMenu.value = true
 }
+
+const selectHour = (hour: dayjs.Dayjs) => {
+  selectedTime.value = hour
+  dragRecord.value = null
+}
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const newRecord = (hour: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  const record = {
+    row: {
+      [calendarRange.value[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emit('newRecord', record)
+}
 </script>
 
 <template>
   <div
-    v-if="recordsAcrossAllRange.record.length"
     ref="container"
     class="w-full relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
@@ -628,7 +643,8 @@ const viewMore = (hour: dayjs.Dayjs) => {
       }"
       class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
       data-testid="nc-calendar-day-hour"
-      @click="selectedTime = hour"
+      @click="selectHour(hour)"
+      @dblclick="newRecord(hour)"
     >
       <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
         {{ dayjs(hour).format('H A') }}
@@ -778,8 +794,6 @@ const viewMore = (hour: dayjs.Dayjs) => {
       </div>
     </div>
   </div>
-
-  <div v-else class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center">No records in this day</div>
 </template>
 
 <style lang="scss" scoped>

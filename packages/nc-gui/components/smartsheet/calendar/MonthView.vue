@@ -620,6 +620,19 @@ const isDateSelected = (date: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
   return dayjs(date).isSame(selectedDate.value, 'day')
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const addRecord = (date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  const fromCol = calendarRange.value[0].fk_from_col
+  if (!fromCol) return
+  const newRecord = {
+    row: {
+      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emit('newRecord', newRecord)
+}
 </script>
 
 <template>
@@ -655,6 +668,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
           class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
+          @dblclick="addRecord(day)"
         >
           <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
             <span

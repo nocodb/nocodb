@@ -19,6 +19,6 @@ export const getScrollbarWidth = () => {
   outer.appendChild(inner)
 
   const widthWithScroll = inner.offsetWidth
-  outer.parentNode.removeChild(outer)
+  outer?.parentNode?.removeChild(outer)
   return widthNoScroll - widthWithScroll
 }

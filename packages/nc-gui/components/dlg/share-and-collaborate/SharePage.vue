@@ -391,7 +391,7 @@ async function savePreFilledMode() {
             <a-switch
               v-e="['c:share:view:surver-mode:toggle']"
               :checked="formPreFill.preFillEnabled"
-              data-testid="nc-modal-share-view__surveyMode"
+              data-testid="nc-modal-share-view__preFill"
               @update:checked="
                 (value) => {
                   formPreFill = {
@@ -404,13 +404,12 @@ async function savePreFilledMode() {
             </a-switch>
           </div>
           <div v-if="formPreFill.preFillEnabled">
-            <!-- <div class="text-black">{{ $t('activity.preFilledFields.title') }}</div> -->
-
             <a-select
               :value="formPreFill.preFilledMode"
               :allow-clear="formPreFill.preFilledMode !== t('general.default')"
               class="nc-pre-filled-mode !rounded-md w-full"
               dropdown-class-name="nc-dropdown-pre-filled-mode border-1 !rounded-md border-gray-200"
+              data-testid="nc-modal-share-view__preFillMode"
               @update:value="
                 (value) => {
                   formPreFill = {

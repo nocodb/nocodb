@@ -553,6 +553,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         :key="dateIndex"
         :class="{
           '!border-1 !border-t-0 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
+          'bg-crossed-lines': date.get('day') === 0 || date.get('day') === 6,
         }"
         class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         data-testid="nc-calendar-week-day"

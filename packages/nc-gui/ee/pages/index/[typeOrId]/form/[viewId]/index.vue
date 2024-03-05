@@ -89,6 +89,11 @@ p {
 
           &.readonly {
             @apply bg-gray-50 cursor-not-allowed;
+
+            input,
+            textarea {
+              @apply !bg-transparent;
+            }
           }
 
           & > div {
@@ -111,11 +116,17 @@ p {
           }
         }
 
+        &:not(.readonly) {
+          input,
+          textarea,
+          &.nc-virtual-cell {
+            @apply bg-white !disabled:bg-transparent;
+          }
+        }
+
         input,
         textarea,
         &.nc-virtual-cell {
-          @apply bg-white dark:(bg-slate-500 text-white) disabled:bg-transparent;
-
           .ant-btn {
             @apply dark:(bg-slate-300);
           }

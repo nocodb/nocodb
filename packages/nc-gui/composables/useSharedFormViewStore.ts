@@ -276,8 +276,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ) {
           return c
         }
-
-        const preFillValue = getPreFillValue(c, (route.query?.[c.title] as string).trim())
+        const preFillValue = getPreFillValue(c, decodeURIComponent(route.query?.[c.title] as string).trim())
         if (preFillValue !== undefined) {
           // Prefill form state
           formState.value[c.title] = preFillValue
@@ -399,21 +398,20 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         break
       }
       case UITypes.Date: {
-        const parsedDate = dayjs(value, 'YYYY-MM-DD')
-        if (parsedDate.isValid()) {
-          preFillValue = parsedDate.format('YYYY-MM-DD')
+        const parsedDate = dayjs(value)
+        if ((parsedDate.isValid() && parsedDate.toISOString() === value) || dayjs(value, 'YYYY-MM-DD').isValid()) {
+          preFillValue = dayjs(value).format('YYYY-MM-DD')
         }
         break
       }
       case UITypes.DateTime: {
-        let parsedDateTime = dayjs(value, 'YYYY-MM-DD HH:mm:ss')
+        const parsedDateTime = dayjs(value)
 
-        if (parsedDateTime.isValid()) {
-          preFillValue = parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
-        } else if (dayjs(value).toISOString() === value) {
-          if (parsedDateTime.isValid() && parsedDateTime.toISOString() === value) {
-            preFillValue = dayjs(value).format('YYYY-MM-DD HH:mm:ssZ')
-          }
+        if (
+          (parsedDateTime.isValid() && parsedDateTime.toISOString() === value) ||
+          dayjs(value, 'YYYY-MM-DD HH:mm:ss').isValid()
+        ) {
+          preFillValue = dayjs(value).utc().format('YYYY-MM-DD HH:mm:ssZ')
         }
         break
       }

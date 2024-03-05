@@ -360,13 +360,6 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isSi
     await $api.dbView.formColumnUpdate(column.id, column)
 
     fields.value[fieldIndex] = column as any
-    // await saveOrUpdate(
-    //   {
-    //     ...column,
-    //     show,
-    //   },
-    //   fieldIndex,
-    // )
 
     reloadEventHook.trigger()
 

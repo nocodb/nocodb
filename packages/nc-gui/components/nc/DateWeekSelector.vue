@@ -152,7 +152,7 @@ const paginate = (action: 'next' | 'prev') => {
       class="flex items-center"
     >
       <NcTooltip>
-        <NcButton v-if="!disablePagination" size="medium" type="secondary" @click="paginate('prev')">
+        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
         </NcButton>
         <template #title>
@@ -169,7 +169,7 @@ const paginate = (action: 'next' | 'prev') => {
         >{{ currentMonthYear }}</span
       >
       <NcTooltip>
-        <NcButton v-if="!disablePagination" size="medium" type="secondary" @click="paginate('next')">
+        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
         </NcButton>
         <template #title>

@@ -30,7 +30,7 @@
     "@nestjs/common": "^10.3.3",
     "@nestjs/core": "^10.3.3",
     "express": "^4.18.3",
-    "nocodb": "0.204.3"
+    "nocodb": "0.204.4"
   },
   "overrides": {
     "sqlite3": "5.1.7"

@@ -394,8 +394,6 @@ const recordsAcrossAllRange = computed<{
   }
 })
 
-const dragElement = ref<HTMLElement | null>(null)
-
 const resizeInProgress = ref(false)
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
@@ -520,7 +518,6 @@ const calculateNewRow = (
   newRow: Row | null
   updatedProperty: string[]
 } => {
-  if (!isUIAllowed('dataEdit') || !container.value || !dragRecord.value) return { newRow: null, updatedProperty: [] }
   const { width, left, top } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
@@ -620,11 +617,6 @@ const stopDrag = (event: MouseEvent) => {
     el.style.opacity = '100%'
   })
 
-  if (dragElement.value) {
-    dragElement.value.style.boxShadow = 'none'
-    dragElement.value = null
-  }
-
   if (newRow) {
     updateRowProperty(newRow, updatedProperty, false)
   }
@@ -654,10 +646,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
       }
     })
 
-    dragRecord.value = record
-
     isDragging.value = true
-    dragElement.value = target
     dragRecord.value = record
 
     document.addEventListener('mousemove', onDrag)
@@ -776,6 +765,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
             () => {
               selectedTime = hour
               selectedDate = hour
+              dragRecord = undefined
             }
           "
         >
@@ -806,18 +796,19 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
           :data-unique-id="record.rowMeta!.id"
           :style="record.rowMeta!.style "
           class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
-          @mousedown="dragStart($event, record)"
+          @mousedown.stop="dragStart($event, record)"
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @dragover.prevent
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
-              :hover="hoverRecord === record.rowMeta.id"
+              :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
               :position="record.rowMeta!.position"
-              :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              :record="record"
               color="blue"
+              :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
               @resize-start="onResizeStart"
             >
               <template v-if="!isRowEmpty(record, displayField)">

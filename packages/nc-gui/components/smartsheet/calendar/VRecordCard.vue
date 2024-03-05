@@ -26,7 +26,7 @@ const emit = defineEmits(['resize-start'])
   >
     <NcButton
       :class="{
-        '!flex rounded-lg border-brand-500': selected || hover,
+        '!flex rounded-md border-brand-500': selected || hover,
       }"
       class="!group-hover:(border-brand-500) !border-1 text-gray-400 cursor-ns-resize"
       size="xsmall"
@@ -38,9 +38,9 @@ const emit = defineEmits(['resize-start'])
   </div>
   <div
     :class="{
-      'rounded-t-lg': position === 'topRounded',
-      'rounded-b-lg': position === 'bottomRounded',
-      'rounded-lg': position === 'rounded',
+      'rounded-t-md': position === 'topRounded',
+      'rounded-b-md': position === 'bottomRounded',
+      'rounded-md': position === 'rounded',
       'rounded-none': position === 'none',
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
@@ -49,7 +49,8 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500)': resize,
-      '!border-brand-500 border-1': selected || hover,
+      '!border-brand-500 border-1': selected,
+      'shadow-md': hover,
     }"
     class="relative flex items-center h-full ml-0.25 border-1 border-transparent"
   >

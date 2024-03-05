@@ -247,7 +247,7 @@ const headerText = computed(() => {
             type="secondary"
             @click="goToToday"
           >
-            <span class="text-gray-700">
+            <span class="text-gray-600 !text-sm">
               {{ $t('activity.goToToday') }}
             </span>
           </NcButton>

@@ -391,10 +391,7 @@ const calculateNewRow = (event: MouseEvent) => {
   if (dragElement.value) {
     formattedData.value = formattedData.value.map((r) => {
       const pk = extractPkFromRow(r.row, meta.value!.columns!)
-      if (pk === newPk) {
-        return newRow
-      }
-      return r
+      return pk === newPk ? newRow : r
     })
   } else {
     // If the old row is not found, we add the new row to the formattedData array and remove the old row from the formattedSideBarData array
@@ -564,7 +561,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
     dragRecord.value = record
 
     dragElement.value = target
-    dragRecord.value = record
 
     document.addEventListener('mousemove', onDrag)
     document.addEventListener('mouseup', stopDrag)
@@ -749,7 +745,8 @@ const viewMore = (hour: dayjs.Dayjs) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarVRecordCard
-              :hover="hoverRecord === record.rowMeta.id"
+              :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
+              :selected="record.rowMeta.id === dragRecord?.rowMeta?.id"
               :position="record.rowMeta!.position"
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"

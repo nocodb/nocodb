@@ -66,7 +66,7 @@ export default {
 <template>
   <slot :key="key"></slot>
   <slot name="error">
-    <NcModal v-model:visible="errModal" :class="{ active: errModal }" :centered="true" :closable="false" :footer="null">
+    <NcModal v-if="error" v-model:visible="errModal" :class="{ active: errModal }" :centered="true" :closable="false" :footer="null">
       <div class="w-full flex flex-col gap-1">
         <h2 class="text-xl font-semibold">Oops! Something unexpected happened :/</h2>
 

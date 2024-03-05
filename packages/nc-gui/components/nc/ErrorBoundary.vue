@@ -29,7 +29,7 @@ export default {
 
     const copyError = async () => {
       try {
-        if (error.value) await copy(`message: ${error.value?.message}\n\n${error.value?.stack}`)
+        if (error.value) await copy(`message: ${error.value.message}\n\n${error.value.stack}`)
         message.info('Error message copied to clipboard.')
       } catch (e) {
         message.error('Something went wrong while copying to clipboard, please copy from browser console.')
@@ -95,9 +95,9 @@ export default {
         >
           <div class="nc-left-vertical-bar"></div>
           <div class="nc-error-content">
-            <span class="font-weight-bold">Message: {{ error?.message }}</span>
+            <span class="font-weight-bold">Message: {{ error.message }}</span>
             <br />
-            <div class="text-gray-500 mt-2">{{ error?.stack }}</div>
+            <div class="text-gray-500 mt-2">{{ error.stack }}</div>
           </div>
         </div>
         <div class="flex justify-end gap-2">
@@ -107,7 +107,7 @@ export default {
               Copy Error
             </div>
           </NcButton>
-          <NcButton v-if="!prevError || error?.message !== prevError?.message" size="small" @click="reload">
+          <NcButton v-if="!prevError || error.message !== prevError.message" size="small" @click="reload">
             <div class="flex items-center gap-1">
               <GeneralIcon icon="reload" />
               Reload

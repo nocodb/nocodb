@@ -7533,7 +7533,7 @@
           }
         ],
         "description": "List all shared view rows"
-      },
+      }
     },
     "/api/v2/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [

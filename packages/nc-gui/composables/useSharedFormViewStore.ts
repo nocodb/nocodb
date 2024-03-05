@@ -277,22 +277,22 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           return c
         }
 
-        // Update column
-        switch (sharedViewMeta.value.preFilledMode) {
-          case PreFilledMode.Hidden: {
-            c.show = false
-            break
-          }
-          case PreFilledMode.Locked: {
-            c.read_only = true
-            break
-          }
-        }
-
-        // Prefill form state
         const preFillValue = getPreFillValue(c, (route.query?.[c.title] as string).trim())
         if (preFillValue !== undefined) {
+          // Prefill form state
           formState.value[c.title] = preFillValue
+
+          // Update column
+          switch (sharedViewMeta.value.preFilledMode) {
+            case PreFilledMode.Hidden: {
+              c.show = false
+              break
+            }
+            case PreFilledMode.Locked: {
+              c.read_only = true
+              break
+            }
+          }
         }
 
         return c
@@ -398,19 +398,22 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         }
         break
       }
-      case UITypes.Date:
-      case UITypes.DateTime: {
-        let parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value))
-
-        if (!parsedDateOrDateTime.isValid()) {
-          parsedDateOrDateTime = dayjs(value, getDateFormat(value))
+      case UITypes.Date: {
+        const parsedDate = dayjs(value, 'YYYY-MM-DD')
+        if (parsedDate.isValid()) {
+          preFillValue = parsedDate.format('YYYY-MM-DD')
         }
+        break
+      }
+      case UITypes.DateTime: {
+        let parsedDateTime = dayjs(value, 'YYYY-MM-DD HH:mm:ss')
 
-        if (parsedDateOrDateTime.isValid()) {
-          preFillValue =
-            c.uidt === UITypes.Date
-              ? parsedDateOrDateTime.format('YYYY-MM-DD')
-              : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+        if (parsedDateTime.isValid()) {
+          preFillValue = parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+        } else if (dayjs(value).toISOString() === value) {
+          if (parsedDateTime.isValid() && parsedDateTime.toISOString() === value) {
+            preFillValue = dayjs(value).format('YYYY-MM-DD HH:mm:ssZ')
+          }
         }
         break
       }

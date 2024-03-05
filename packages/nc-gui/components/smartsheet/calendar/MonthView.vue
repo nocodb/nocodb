@@ -112,7 +112,7 @@ const recordsToDisplay = computed<{
   const perHeight = gridContainerHeight.value / dates.value.length
   const perRecordHeight = 40
 
-  const spaceBetweenRecords = 35
+  const spaceBetweenRecords = 30
 
   // This object is used to keep track of the number of records in a day
   // The key is the date in the format YYYY-MM-DD
@@ -528,6 +528,7 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value = null
   }
 
+  dragRecord.value = undefined
   updateRowProperty(newRow, updateProperty, false)
   focusedDate.value = null
 
@@ -550,12 +551,10 @@ const dragStart = (event: MouseEvent, record: Row) => {
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        // el.style.visibility = 'hidden'
         el.style.opacity = '30%'
       }
     })
 
-    dragRecord.value = record
     // selectedDate.value = null
 
     isDragging.value = true
@@ -672,7 +671,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
                   '!block': isDateSelected(day),
                   '!hidden': !isDateSelected(day),
                 }"
-                class="!group-hover:block"
+                class="!group-hover:block rounded"
                 size="small"
                 type="secondary"
               >
@@ -709,8 +708,8 @@ const isDateSelected = (date: dayjs.Dayjs) => {
                 '!block': isDateSelected(day),
                 '!hidden': !isDateSelected(day),
               }"
-              class="!group-hover:block"
-              size="small"
+              class="!group-hover:block !w-6 !h-6 !rounded"
+              size="xsmall"
               type="secondary"
               @click="
                 () => {
@@ -723,13 +722,13 @@ const isDateSelected = (date: dayjs.Dayjs) => {
                 }
               "
             >
-              <component :is="iconMap.plus" class="h-4 w-4" />
+              <component :is="iconMap.plus" />
             </NcButton>
             <span
               :class="{
                 'bg-brand-50 text-brand-500': day.isSame(dayjs(), 'date'),
               }"
-              class="px-1.5 rounded-lg py-1 my-1"
+              class="px-1.3 py-1 text-xs rounded-lg"
             >
               {{ day.format('DD') }}
             </span>
@@ -761,10 +760,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
         :style="{
           ...record.rowMeta.style,
           zIndex: record.rowMeta.id === draggingId ? 100 : 0,
-          boxShadow:
-            record.rowMeta.id === draggingId
-              ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
-              : 'none',
         }"
         class="absolute group draggable-record cursor-pointer pointer-events-auto"
         @mouseleave="hoverRecord = null"
@@ -773,17 +768,11 @@ const isDateSelected = (date: dayjs.Dayjs) => {
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :hover="hoverRecord === record.rowMeta.id"
+            :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === draggingId"
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-            :selected="
-              dragRecord
-                ? dragRecord.rowMeta.id === record.rowMeta.id
-                : resizeRecord
-                ? resizeRecord.rowMeta.id === record.rowMeta.id
-                : false
-            "
+            :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
             @resize-start="onResizeStart"
             @dblclick.stop="emit('expandRecord', record)"
           >

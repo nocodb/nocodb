@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { type Row, computed, iconMap, isRowEmpty, ref } from '#imports'
 
@@ -348,7 +348,7 @@ onUnmounted(() => {
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
           </template>
         </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-800" data-testid="nc-calendar-sidebar-filter">
+        <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-600" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
             <div class="flex items-center justify-between gap-2">
               <div class="truncate flex-1">
@@ -433,22 +433,7 @@ onUnmounted(() => {
                 @dragover.prevent
               >
                 <template v-if="!isRowEmpty(record, displayField)">
-                  <div :class="{}">
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(displayField)"
-                      v-model="record.row[displayField.title]"
-                      :column="displayField"
-                      :row="record"
-                    />
-
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="record.row[displayField.title]"
-                      :column="displayField"
-                      :edit-enabled="false"
-                      :read-only="true"
-                    />
-                  </div>
+                  <LazySmartsheetCalendarCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>
               </LazySmartsheetCalendarSideRecordCard>
             </LazySmartsheetRow>

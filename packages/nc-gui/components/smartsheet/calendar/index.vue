@@ -321,6 +321,7 @@ const headerText = computed(() => {
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
+      close-after-save
       :meta="meta"
       :row="expandedFormRow"
       :state="expandedFormRowState"
@@ -332,6 +333,7 @@ const headerText = computed(() => {
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
       v-model="expandedFormOnRowIdDlg"
+      close-after-save
       :meta="meta"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :row-id="route.query.rowId"

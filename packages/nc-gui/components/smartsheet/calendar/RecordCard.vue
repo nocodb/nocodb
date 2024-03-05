@@ -77,7 +77,7 @@ const emit = defineEmits(['resize-start'])
         :class="{
           'pr-7': position === 'leftRounded',
         }"
-        class="text-sm pr-3 mr-3 break-word space-x-2 whitespace-nowrap gap-2 overflow-hidden text-ellipsis w-full truncate text-gray-800"
+        class="text-sm pr-3 mr-3 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
       >
         <slot />
       </span>

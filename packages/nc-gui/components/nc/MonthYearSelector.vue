@@ -95,7 +95,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
           <span>{{ $t('labels.previous') }}</span>
         </template>
       </NcTooltip>
-      <span class="font-bold text-gray-700">{{ isYearPicker ? $t('labels.selectYear') : pageDate.year() }}</span>
+      <span class="text-gray-700">{{ isYearPicker ? $t('labels.selectYear') : pageDate.year() }}</span>
       <NcTooltip>
         <NcButton size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />

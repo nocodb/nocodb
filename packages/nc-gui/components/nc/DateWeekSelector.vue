@@ -165,7 +165,7 @@ const paginate = (action: 'next' | 'prev') => {
           'text-xs': size === 'small',
           'text-sm': size === 'medium',
         }"
-        class="font-bold text-gray-700"
+        class="text-gray-700"
         >{{ currentMonthYear }}</span
       >
       <NcTooltip>

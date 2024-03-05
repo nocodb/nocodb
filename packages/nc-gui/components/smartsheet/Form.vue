@@ -1333,7 +1333,7 @@ useEventListener(
                     </NcButton>
                     <div class="flex items-center gap-3">
                       <NcTooltip :disabled="!!view?.uuid">
-                        <template #title>{{$t('tooltip.formIsNotShared')}}</template>
+                        <template #title>{{ $t('tooltip.formIsNotShared') }}</template>
                         <NcButton
                           v-if="isUIAllowed('dataInsert') && visibleColumns.length"
                           type="primary"

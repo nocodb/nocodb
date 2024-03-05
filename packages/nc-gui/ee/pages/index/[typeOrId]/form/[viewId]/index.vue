@@ -151,6 +151,9 @@ p {
           & > div {
             @apply w-full;
           }
+          &.readonly > div {
+            @apply px-3 py-1;
+          }
 
           textarea {
             @apply px-3;

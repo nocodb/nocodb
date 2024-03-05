@@ -217,12 +217,14 @@ async function onSubmit() {
   }
 }
 
+/*
 const addCalendarRange = async () => {
   form.calendar_range.push({
     fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
     fk_to_column_id: null,
   })
 }
+*/
 
 const isMetaLoading = ref(false)
 
@@ -450,7 +452,7 @@ onMounted(async () => {
                 </div>
               </a-select-option>
             </NcSelect>
-            <div
+            <!--            <div
               v-if="range.fk_to_column_id === null && isEeUI"
               class="cursor-pointer flex items-center text-gray-800 gap-1"
               @click="range.fk_to_column_id = undefined"
@@ -508,12 +510,13 @@ onMounted(async () => {
                 <component :is="iconMap.close" />
               </NcButton>
             </template>
-          </div>
+          </div> -->
 
-          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+            <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
             <component :is="iconMap.plus" />
             Add another date field
-          </NcButton>
+          </NcButton> -->
+          </div>
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">

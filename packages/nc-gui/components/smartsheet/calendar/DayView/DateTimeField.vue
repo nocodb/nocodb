@@ -83,7 +83,7 @@ const calculateNewDates = ({
   return { endDate, startDate }
 }
 
-const getGridTime = (date: dayjs.Dayjs, round = false) => {
+/* const getGridTime = (date: dayjs.Dayjs, round = false) => {
   const gridCalc = date.hour() * 60 + date.minute()
   if (round) {
     return Math.ceil(gridCalc)
@@ -97,9 +97,9 @@ const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => {
     from: getGridTime(from, false),
     to: getGridTime(to, true) - 1,
   }
-}
+} */
 
-const hasSlotForRecord = (
+/* const hasSlotForRecord = (
   record: Row,
   columnArray: Row[],
   dates: {
@@ -132,9 +132,9 @@ const hasSlotForRecord = (
     }
   }
   return true
-}
+} */
 
-const getMaxOfGrid = (
+/* const getMaxOfGrid = (
   {
     fromDate,
     toDate,
@@ -153,8 +153,8 @@ const getMaxOfGrid = (
     }
   }
   return max
-}
-const isOverlaps = (row1: Row, row2: Row) => {
+} */
+/* const isOverlaps = (row1: Row, row2: Row) => {
   const fromCol1 = row1.rowMeta.range?.fk_from_col
   const toCol1 = row1.rowMeta.range?.fk_to_col
   const fromCol2 = row2.rowMeta.range?.fk_from_col
@@ -177,9 +177,9 @@ const isOverlaps = (row1: Row, row2: Row) => {
   })
 
   return startDate1.isBetween(startDate2, endDate2, null, '[]') || endDate1.isBetween(startDate2, endDate2, null, '[]')
-}
+} */
 
-const getMaxOverlaps = ({ row, rowArray }: { row: Row; rowArray: Row[] }) => {
+/* const getMaxOverlaps = ({ row, rowArray }: { row: Row; rowArray: Row[] }) => {
   let maxOverlaps = row.rowMeta.numberOfOverlaps
   for (const record of rowArray) {
     if (isOverlaps(row, record)) {
@@ -190,7 +190,7 @@ const getMaxOverlaps = ({ row, rowArray }: { row: Row; rowArray: Row[] }) => {
     }
   }
   return maxOverlaps
-}
+} */
 
 const recordsAcrossAllRange = computed<{
   record: Row[]
@@ -222,10 +222,10 @@ const recordsAcrossAllRange = computed<{
 
   const perRecordHeight = 80
 
-  const columnArray: Array<Array<Row>> = [[]]
-  const gridTimeMap = new Map()
+  /*  const columnArray: Array<Array<Row>> = [[]]
+  const gridTimeMap = new Map() */
 
-  const recordsByRange: Array<Row> = []
+  let recordsByRange: Array<Row> = []
 
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
@@ -254,7 +254,7 @@ const recordsAcrossAllRange = computed<{
       })
 
     for (const record of sortedFormattedData) {
-      const id = generateRandomNumber()
+      const id = record.rowMeta.id ?? generateRandomNumber()
 
       if (fromCol && endCol) {
         const { endDate, startDate } = calculateNewDates({
@@ -399,15 +399,41 @@ const recordsAcrossAllRange = computed<{
       }
     }
   })
-
+  /*
   recordsByRange.sort((a, b) => {
     const fromColA = a.rowMeta.range?.fk_from_col
     const fromColB = b.rowMeta.range?.fk_from_col
     if (!fromColA || !fromColB) return 0
     return dayjs(a.row[fromColA.title!]).isBefore(dayjs(b.row[fromColB.title!])) ? -1 : 1
+  }) */
+
+  // We can't calculate the width & left of the records without knowing the number of records that overlap at a given time
+  // So we loop through the records again and calculate the width & left of the records based on the number of records that overlap at a given time
+  recordsByRange = recordsByRange.map((record) => {
+    // MaxOverlaps is the number of records that overlap at a given time
+    // overlapIndex is the index of the record in the list of records that overlap at a given time
+    let maxOverlaps = 1
+    let overlapIndex = 0
+    for (const minutes in overlaps) {
+      if (overlaps[minutes].id.includes(record.rowMeta.id!)) {
+        maxOverlaps = Math.max(maxOverlaps, overlaps[minutes].id.length - overlaps[minutes].overflowCount)
+        overlapIndex = Math.max(overlaps[minutes].id.indexOf(record.rowMeta.id!), overlapIndex)
+      }
+    }
+    const spacing = 0.25
+    const widthPerRecord = (100 - spacing * (maxOverlaps - 1)) / maxOverlaps
+    const leftPerRecord = (widthPerRecord + spacing) * overlapIndex
+    record.rowMeta.style = {
+      ...record.rowMeta.style,
+      left: `${leftPerRecord - 0.08}%`,
+      width: `calc(${widthPerRecord}%)`,
+    }
+    return record
   })
 
-  for (const record of recordsByRange) {
+  // TODO: Rewrite the calculations for the style of the records
+
+  /* for (const record of recordsByRange) {
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
 
@@ -449,8 +475,7 @@ const recordsAcrossAllRange = computed<{
       columnArray.push([record])
     }
   }
-
-  for (const columnIndex in columnArray) {
+ for (const columnIndex in columnArray) {
     for (const record of columnArray[columnIndex]) {
       const recordRange = record.rowMeta.range
       const fromCol = recordRange?.fk_from_col
@@ -476,7 +501,6 @@ const recordsAcrossAllRange = computed<{
       record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
     }
   }
-
   for (const record of recordsByRange) {
     record.rowMeta.numberOfOverlaps = getMaxOverlaps({
       row: record,
@@ -491,9 +515,7 @@ const recordsAcrossAllRange = computed<{
       width: `${width.toFixed(2)}%`,
       left: `${left}%`,
     }
-  }
-
-  console.log(columnArray)
+  } */
 
   return {
     count: overlaps,

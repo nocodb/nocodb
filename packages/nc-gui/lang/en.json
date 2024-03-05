@@ -965,7 +965,8 @@
     "clearMetadata": "Clear all metadata from meta tables.",
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
-    "clientCA": "Select CA file"
+    "clientCA": "Select CA file",
+    "formIsNotShared": "Form is not shared"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

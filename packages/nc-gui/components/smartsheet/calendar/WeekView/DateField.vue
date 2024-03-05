@@ -111,7 +111,7 @@ const calendarData = computed(() => {
         return !endDate.isBefore(startDate)
       })) {
         // Generate a unique id for the record if it doesn't have one
-        const id = record.row.id ?? generateRandomNumber()
+        const id = record.rowMeta.id ?? generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         const ogStartDate = startDate.clone()
         const endDate = dayjs(record.row[toCol.title!])
@@ -203,7 +203,7 @@ const calendarData = computed(() => {
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
-        const id = record.row.id ?? generateRandomNumber()
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
         const startDaysDiff = Math.max(startDate.diff(selectedDateRange.value.start, 'day'), 0)
@@ -518,6 +518,19 @@ const selectDate = (day: dayjs.Dayjs) => {
   selectedDate.value = day
   dragRecord.value = undefined
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const addRecord = (date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  const fromCol = calendarRange.value[0].fk_from_col
+  if (!fromCol) return
+  const newRecord = {
+    row: {
+      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emits('newRecord', newRecord)
+}
 </script>
 
 <template>
@@ -544,6 +557,7 @@ const selectDate = (day: dayjs.Dayjs) => {
         class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         data-testid="nc-calendar-week-day"
         @click="selectDate(date)"
+        @dblclick="addRecord(date)"
       ></div>
     </div>
     <div
@@ -568,12 +582,14 @@ const selectDate = (day: dayjs.Dayjs) => {
             :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
             :position="record.rowMeta.position"
             :record="record"
-            :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta.id === record.rowMeta.id"
+            :selected="dragRecord?.rowMeta?.id === record.rowMeta.id"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             color="blue"
             @dblclick.stop="emits('expand-record', record)"
             @resize-start="onResizeStart"
           >
+            {{ dragRecord?.rowMeta?.id }}
+            {{ record?.rowMeta?.id }}
             <template v-if="!isRowEmpty(record, displayField)">
               <LazySmartsheetCalendarCell
                 v-model="record.row[displayField!.title!]"

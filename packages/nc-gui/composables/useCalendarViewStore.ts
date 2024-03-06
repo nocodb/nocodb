@@ -1,5 +1,4 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes } from 'nocodb-sdk'
 import type {
   type Api,
   CalendarRangeType,
@@ -9,6 +8,7 @@ import type {
   type TableType,
   type ViewType,
 } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { extractPkFromRow, extractSdkResponseErrorMsg, rowPkData } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState, useUndoRedo } from '#imports'
@@ -787,6 +787,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     return {
+      fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
       loadSidebarData,

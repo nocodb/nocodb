@@ -169,7 +169,7 @@ const headerText = computed(() => {
 <template>
   <div class="flex h-full flex-row" data-testid="nc-calendar-wrapper">
     <div class="flex flex-col w-full">
-      <div class="flex justify-between p-3 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
+      <div class="flex justify-between p-2 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
         <div class="flex justify-start gap-3 items-center">
           <NcTooltip>
             <template #title> {{ $t('labels.previous') }}</template>

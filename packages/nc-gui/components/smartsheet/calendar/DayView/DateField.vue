@@ -35,7 +35,7 @@ const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrima
 // We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
   let dayRecordCount = 0
-  const perRecordHeight = 26
+  const perRecordHeight = 28
 
   if (!calendarRange.value) return []
 

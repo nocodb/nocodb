@@ -70,7 +70,7 @@ const calculateNewDates = ({
 
   // If the start date is before the opened date, we use the schedule start as the start date
   // This is to ensure the generated style of the record is not outside the bounds of the calendar
-  if (startDate.isBefore(scheduleStart)) {
+  if (startDate.isSameOrBefore(scheduleStart)) {
     startDate = scheduleStart
   }
 
@@ -112,8 +112,10 @@ const hasSlotForRecord = (
   if (!fromDate || !toDate) return false
 
   for (const column of columnArray) {
-    const columnFromCol = column.rowMeta.range.fk_from_col
-    const columnToCol = column.rowMeta.range.fk_to_col
+    const columnFromCol = column.rowMeta.range?.fk_from_col
+    const columnToCol = column.rowMeta.range?.fk_to_col
+
+    if (!columnFromCol) return false
 
     const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
       startDate: dayjs(column.row[columnFromCol.title!]),
@@ -181,6 +183,7 @@ const getMaxOverlaps = ({ row, rowArray }: { row: Row; rowArray: Row[] }) => {
   let maxOverlaps = row.rowMeta.numberOfOverlaps
   for (const record of rowArray) {
     if (isOverlaps(row, record)) {
+      if (!record.rowMeta.numberOfOverlaps || !row.rowMeta.numberOfOverlaps) continue
       if (record.rowMeta.numberOfOverlaps > row.rowMeta.numberOfOverlaps) {
         maxOverlaps = record.rowMeta.numberOfOverlaps
       }
@@ -238,7 +241,7 @@ const recordsAcrossAllRange = computed<{
           const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
           const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
 
-          return fromDate && toDate?.isValid() ? fromDate.isBefore(toDate) : true
+          return fromDate && toDate?.isValid() ? fromDate.isSameOrBefore(toDate) : true
         } else if (fromCol && !endCol) {
           return !!fromDate
         }
@@ -450,8 +453,10 @@ const recordsAcrossAllRange = computed<{
   for (const columnIndex in columnArray) {
     for (const record of columnArray[columnIndex]) {
       const recordRange = record.rowMeta.range
-      const fromCol = recordRange.fk_from_col
-      const toCol = recordRange.fk_to_col
+      const fromCol = recordRange?.fk_from_col
+      const toCol = recordRange?.fk_to_col
+
+      if (!fromCol) continue
 
       const { startDate, endDate } = calculateNewDates({
         startDate: dayjs(record.row[fromCol.title!]),

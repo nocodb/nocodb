@@ -315,7 +315,7 @@ watchEffect(() => {})
           <GeneralCopyUrl v-model:url="url" />
         </div>
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
-          <div class="flex flex-row justify-between">
+          <div class="flex flex-row items-center justify-between">
             <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
             <a-switch
               v-e="['c:share:view:password:toggle']"
@@ -323,6 +323,7 @@ watchEffect(() => {})
               :loading="isUpdating.password"
               class="share-password-toggle !mt-0.25"
               data-testid="share-password-toggle"
+              size="small"
               @click="togglePasswordProtected"
             />
           </div>
@@ -345,7 +346,7 @@ watchEffect(() => {})
               activeView &&
               [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
             "
-            class="flex flex-row justify-between"
+            class="flex flex-row items-center justify-between"
           >
             <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
             <a-switch
@@ -354,25 +355,34 @@ watchEffect(() => {})
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
               data-testid="share-download-toggle"
+              size="small"
             />
           </div>
 
           <template v-if="activeView?.type === ViewTypes.FORM">
-            <div class="flex flex-row justify-between">
-              <div class="text-black">{{ $t('activity.surveyMode') }}</div>
+            <div class="flex flex-row items-center justify-between">
+              <div class="text-black">
+                {{ $t('activity.surveyMode') }}
+                <NcTooltip class="inline">
+                  <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
+                  <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+                </NcTooltip>
+              </div>
               <a-switch
                 v-model:checked="surveyMode"
                 v-e="['c:share:view:surver-mode:toggle']"
                 data-testid="nc-modal-share-view__surveyMode"
+                size="small"
               >
               </a-switch>
             </div>
-            <div v-if="!isEeUI" class="flex flex-row justify-between">
+            <div v-if="!isEeUI" class="flex flex-row items-center justify-between">
               <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
               <a-switch
                 v-model:checked="withRTL"
                 v-e="['c:share:view:rtl-orientation:toggle']"
                 data-testid="nc-modal-share-view__RTL"
+                size="small"
               >
               </a-switch>
             </div>
@@ -382,12 +392,24 @@ watchEffect(() => {})
           v-if="activeView?.type === ViewTypes.FORM"
           class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
         >
-          <div class="flex flex-row justify-between">
-            <div class="text-black">{{ $t('activity.preFilledFields.title') }}</div>
+          <div class="flex flex-row items-center justify-between">
+            <div class="text-black flex-1">
+              {{ $t('activity.preFilledFields.title') }}
+
+              <NcTooltip class="inline">
+                <template #title
+                  ><div class="text-center">
+                    {{ $t('tooltip.preFillFormInfo') }}
+                  </div></template
+                >
+                <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+              </NcTooltip>
+            </div>
             <a-switch
               v-e="['c:share:view:surver-mode:toggle']"
               :checked="formPreFill.preFillEnabled"
               data-testid="nc-modal-share-view__preFill"
+              size="small"
               @update:checked="
                 (value) => {
                   formPreFill = {

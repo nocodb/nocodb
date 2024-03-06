@@ -9,6 +9,7 @@ const props = defineProps<{
   size?: 'small' | 'medium' | 'large' | 'xlarge'
   readonly?: boolean
   disableClearing?: boolean
+  iconClass?: string
 }>()
 
 const emit = defineEmits(['colorSelected'])
@@ -96,7 +97,7 @@ watch(
         <slot name="default" />
       </template>
       <template v-else>
-        <svg width="16" height="16" viewBox="0 0 1073 1073" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="16" height="16" viewBox="0 0 1073 1073" fill="none" xmlns="http://www.w3.org/2000/svg" :class="iconClass">
           <mask
             id="mask0_1749_80944"
             style="mask-type: luminance"

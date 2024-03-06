@@ -162,8 +162,6 @@ const setColor = async (hue: number, base: BaseType) => {
       iconHue: hue,
     }
 
-    console.log('color meta', meta)
-
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
     $e('a:base:icon:color:navdraw', { iconHue: hue })
@@ -465,8 +463,7 @@ const duplicateProject = (base: BaseType) => {
 
               <LazyGeneralBaseColorPicker
                 v-else
-                :key="base.meta?.icon"
-                :hue="base.meta?.iconHue"
+                :hue="parseProp(base.meta).iconHue"
                 size="small"
                 :readonly="base.type !== 'database'"
                 @color-selected="setColor($event, base)"

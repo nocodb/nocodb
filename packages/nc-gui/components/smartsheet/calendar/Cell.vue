@@ -356,6 +356,7 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <template>
   <span
+    class="before:content-['•'] !first:before:content-[''] !first:before:px-0 before:px-1"
     :class="{
       'font-bold': bold,
       'italic': italic,

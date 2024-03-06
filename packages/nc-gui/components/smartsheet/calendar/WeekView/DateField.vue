@@ -601,6 +601,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             </template>
             <template v-for="(field, index) in fieldsWithoutDisplay" :key="index">
               <LazySmartsheetCalendarCell
+                v-if="!isRowEmpty(record, field!)"
                 v-model="record.row[field!.title!]"
                 :bold="getFieldStyle(field).bold"
                 :column="field"

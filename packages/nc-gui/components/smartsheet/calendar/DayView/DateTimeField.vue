@@ -529,6 +529,10 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value = null
   }
 
+  if (dragRecord.value) {
+    dragRecord.value = undefined
+  }
+
   if (!newRow) return
   updateRowProperty(newRow, updateProperty, false)
 

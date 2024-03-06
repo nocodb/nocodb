@@ -110,9 +110,9 @@ const recordsToDisplay = computed<{
 
   const perWidth = gridContainerWidth.value / 7
   const perHeight = gridContainerHeight.value / dates.value.length
-  const perRecordHeight = 40
+  const perRecordHeight = 24
 
-  const spaceBetweenRecords = 35
+  const spaceBetweenRecords = 26
 
   // This object is used to keep track of the number of records in a day
   // The key is the date in the format YYYY-MM-DD
@@ -133,13 +133,12 @@ const recordsToDisplay = computed<{
 
     // Filter out records that don't satisfy the range and sort them by start date
     const sortedFormattedData = [...formattedData.value].filter((record) => {
-      const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
-
       if (startCol && endCol) {
-        const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
-        const toDate = record.row[endCol!.title!] ? dayjs(record.row[endCol!.title!]) : null
+        const fromDate = record.row[startCol.title!] ? dayjs(record.row[startCol.title!]) : null
+        const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
         return fromDate && toDate && !toDate.isBefore(fromDate)
       } else if (startCol && !endCol) {
+        const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
         return !!fromDate
       }
       return false
@@ -148,7 +147,7 @@ const recordsToDisplay = computed<{
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
         // If there is no end date, we just display the record on the start date
-        const startDate = dayjs(record.row[startCol!.title!])
+        const startDate = dayjs(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
         if (!recordsInDay[dateKey]) {
@@ -175,10 +174,10 @@ const recordsToDisplay = computed<{
 
         // The top is calculated from the week index and the record index
         // If the record in 1st week and no record in that date them the top will be 0
-        const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * perRecordHeight
+        const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * (perRecordHeight + 4)
 
         // The 25 is obtained from the trial and error
-        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 25
+        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 12
 
         if (heightRequired > perHeight) {
           style.display = 'none'
@@ -200,12 +199,13 @@ const recordsToDisplay = computed<{
         })
       } else if (startCol && endCol) {
         // If the range specifies fromCol and endCol
-        const startDate = dayjs(record.row[startCol!.title!])
-        const endDate = dayjs(record.row[endCol!.title!])
+        const startDate = dayjs(record.row[startCol.title!])
+        const endDate = dayjs(record.row[endCol.title!])
+
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? generateRandomNumber()
-        // Since the records can span multiple weeks, to display, we render multiple records
+        // Since the records can span multiple weeks, to display, we render multiple elements
         // for each week the record spans. The id is used to identify the elements that belong to the same record
 
         while (
@@ -218,6 +218,11 @@ const recordsToDisplay = computed<{
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
+
+          if (recordEnd.isBefore(dates.value[0][0])) {
+            currentWeekStart = currentWeekStart.add(1, 'week')
+            continue
+          }
 
           // Update the recordsInDay object to keep track of the number of records in a day
           let day = recordStart.clone()
@@ -257,8 +262,7 @@ const recordsToDisplay = computed<{
                 overflowCount: 0,
               }
             }
-            const recordIndex = recordsInDay[dateKey].count
-            maxRecordCount = Math.max(maxRecordCount, recordIndex)
+            maxRecordCount = Math.max(maxRecordCount, recordsInDay[dateKey].count)
           }
 
           const startDayIndex = Math.max(
@@ -279,8 +283,8 @@ const recordsToDisplay = computed<{
           // The top is calculated from the week index and the record index
           // If the record in 1st week and no record in that date them the top will be 0
           // If the record in 1st week and 1 record in that date then the top will be perRecordHeight + spaceBetweenRecords
-          const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * perRecordHeight
-          const heightRequired = perRecordHeight * maxRecordCount + spaceBetweenRecords
+          const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * (perRecordHeight + 4)
+          const heightRequired = perRecordHeight * Math.max(maxRecordCount, 0) + spaceBetweenRecords + 12
 
           let position = 'rounded'
           // Here we are checking if the startDay is before all the dates shown in UI rather that the current month
@@ -304,7 +308,7 @@ const recordsToDisplay = computed<{
 
           // If the height required is more than the height of the week, we hide the record
           // and update the recordsInDay object for all the spanned days
-          if (heightRequired + 15 > perHeight) {
+          if (heightRequired > perHeight) {
             style.display = 'none'
             for (let i = startDayIndex; i <= endDayIndex; i++) {
               const week = dates.value[weekIndex]
@@ -386,7 +390,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
     updateProperty.push(toCol!.title!)
   }
 
-  if (!newRow) return
+  if (!newRow) return { newRow: null, updateProperty: [] }
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
@@ -528,6 +532,7 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value = null
   }
 
+  dragRecord.value = undefined
   updateRowProperty(newRow, updateProperty, false)
   focusedDate.value = null
 
@@ -550,12 +555,10 @@ const dragStart = (event: MouseEvent, record: Row) => {
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        // el.style.visibility = 'hidden'
         el.style.opacity = '30%'
       }
     })
 
-    dragRecord.value = record
     // selectedDate.value = null
 
     isDragging.value = true
@@ -621,6 +624,19 @@ const isDateSelected = (date: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
   return dayjs(date).isSame(selectedDate.value, 'day')
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const addRecord = (date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  const fromCol = calendarRange.value[0].fk_from_col
+  if (!fromCol) return
+  const newRecord = {
+    row: {
+      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emit('newRecord', newRecord)
+}
 </script>
 
 <template>
@@ -652,10 +668,12 @@ const isDateSelected = (date: dayjs.Dayjs) => {
             'border-brand-500 border-1 !border-r-1 border-b-1':
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
             '!text-gray-400': !isDayInPagedMonth(day),
+            '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
           }"
           class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
+          @dblclick="addRecord(day)"
         >
           <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
             <span
@@ -672,7 +690,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
                   '!block': isDateSelected(day),
                   '!hidden': !isDateSelected(day),
                 }"
-                class="!group-hover:block"
+                class="!group-hover:block rounded"
                 size="small"
                 type="secondary"
               >
@@ -705,12 +723,13 @@ const isDateSelected = (date: dayjs.Dayjs) => {
               </template>
             </NcDropdown>
             <NcButton
+              v-else
               :class="{
                 '!block': isDateSelected(day),
                 '!hidden': !isDateSelected(day),
               }"
-              class="!group-hover:block"
-              size="small"
+              class="!group-hover:block !w-6 !h-6 !rounded"
+              size="xsmall"
               type="secondary"
               @click="
                 () => {
@@ -723,13 +742,13 @@ const isDateSelected = (date: dayjs.Dayjs) => {
                 }
               "
             >
-              <component :is="iconMap.plus" class="h-4 w-4" />
+              <component :is="iconMap.plus" />
             </NcButton>
             <span
               :class="{
                 'bg-brand-50 text-brand-500': day.isSame(dayjs(), 'date'),
               }"
-              class="px-1.5 rounded-lg py-1 my-1"
+              class="px-1.3 py-1 text-xs rounded-lg"
             >
               {{ day.format('DD') }}
             </span>
@@ -742,12 +761,12 @@ const isDateSelected = (date: dayjs.Dayjs) => {
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
               !draggingId
             "
-            class="!absolute bottom-1 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+            class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
             size="xxsmall"
             type="secondary"
             @click="viewMore(day)"
           >
-            <span class="text-xs"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} more </span>
+            <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
           </NcButton>
         </div>
       </div>
@@ -761,10 +780,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
         :style="{
           ...record.rowMeta.style,
           zIndex: record.rowMeta.id === draggingId ? 100 : 0,
-          boxShadow:
-            record.rowMeta.id === draggingId
-              ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
-              : 'none',
         }"
         class="absolute group draggable-record cursor-pointer pointer-events-auto"
         @mouseleave="hoverRecord = null"
@@ -773,17 +788,11 @@ const isDateSelected = (date: dayjs.Dayjs) => {
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :hover="hoverRecord === record.rowMeta.id"
+            :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === draggingId"
             :position="record.rowMeta.position"
             :record="record"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-            :selected="
-              dragRecord
-                ? dragRecord.rowMeta.id === record.rowMeta.id
-                : resizeRecord
-                ? resizeRecord.rowMeta.id === record.rowMeta.id
-                : false
-            "
+            :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
             @resize-start="onResizeStart"
             @dblclick.stop="emit('expandRecord', record)"
           >
@@ -798,6 +807,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
             </template>
             <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
               <LazySmartsheetCalendarCell
+                v-if="!isRowEmpty(record, field!)"
                 v-model="record.row[field!.title!]"
                 :bold="getFieldStyle(field).bold"
                 :column="field"

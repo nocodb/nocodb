@@ -1,13 +1,14 @@
 import type { ComputedRef, Ref } from 'vue'
-import {
+import type {
   type Api,
+  CalendarRangeType,
   type CalendarType,
   type ColumnType,
   type PaginatedType,
   type TableType,
-  UITypes,
   type ViewType,
 } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { extractPkFromRow, extractSdkResponseErrorMsg, rowPkData } from '~/utils'
 import { IsPublicInj, type Row, ref, storeToRefs, useBase, useInjectionState, useUndoRedo } from '#imports'
@@ -110,14 +111,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const calendarRange = ref<
       Array<{
-        fk_from_col: ColumnType | null
-        fk_to_col: ColumnType | null
+        fk_from_col: ColumnType
+        fk_to_col?: ColumnType | null
+        id: string
       }>
     >([])
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
-      return calendarRange.value[0]!.fk_from_col!.uidt
+      return calendarRange.value[0]?.fk_from_col?.uidt
     })
 
     const sideBarFilter = computed(() => {
@@ -418,8 +420,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
         activeCalendarView.value = calMeta?.active_view
         if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range?.map((range: any) => {
+        calendarRange.value = res?.calendar_range?.map((range: CalendarRangeType) => {
           return {
+            id: range.id,
             fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
             fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
           }
@@ -730,9 +733,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     watch(activeCalendarView, async (value, oldValue) => {
       if (oldValue === 'week') {
         pageDate.value = selectedDate.value
-        selectedDate.value = selectedDateRange.value.start
-        selectedMonth.value = selectedDateRange.value.start
-        selectedTime.value = selectedDateRange.value.start
+        selectedMonth.value = selectedDate.value ?? selectedDateRange.value.start
+        selectedTime.value = selectedDate.value ?? selectedDateRange.value.start
       } else if (oldValue === 'month') {
         selectedDate.value = selectedMonth.value
         pageDate.value = selectedDate.value
@@ -784,6 +786,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     return {
+      fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
       loadSidebarData,

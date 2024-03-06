@@ -110,9 +110,9 @@ const recordsToDisplay = computed<{
 
   const perWidth = gridContainerWidth.value / 7
   const perHeight = gridContainerHeight.value / dates.value.length
-  const perRecordHeight = 40
+  const perRecordHeight = 24
 
-  const spaceBetweenRecords = 30
+  const spaceBetweenRecords = 26
 
   // This object is used to keep track of the number of records in a day
   // The key is the date in the format YYYY-MM-DD
@@ -174,10 +174,10 @@ const recordsToDisplay = computed<{
 
         // The top is calculated from the week index and the record index
         // If the record in 1st week and no record in that date them the top will be 0
-        const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * perRecordHeight
+        const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * (perRecordHeight + 4)
 
         // The 25 is obtained from the trial and error
-        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 25
+        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords
 
         if (heightRequired > perHeight) {
           style.display = 'none'
@@ -283,7 +283,7 @@ const recordsToDisplay = computed<{
           // The top is calculated from the week index and the record index
           // If the record in 1st week and no record in that date them the top will be 0
           // If the record in 1st week and 1 record in that date then the top will be perRecordHeight + spaceBetweenRecords
-          const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * perRecordHeight
+          const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * (perRecordHeight + 4)
           const heightRequired = perRecordHeight * maxRecordCount + spaceBetweenRecords
 
           let position = 'rounded'
@@ -308,7 +308,7 @@ const recordsToDisplay = computed<{
 
           // If the height required is more than the height of the week, we hide the record
           // and update the recordsInDay object for all the spanned days
-          if (heightRequired + 15 > perHeight) {
+          if (heightRequired > perHeight) {
             style.display = 'none'
             for (let i = startDayIndex; i <= endDayIndex; i++) {
               const week = dates.value[weekIndex]
@@ -761,7 +761,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
               !draggingId
             "
-            class="!absolute bottom-1 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+            class="!absolute bottom-1 right-1 text-center w-15 mx-auto z-3 text-gray-500"
             size="xxsmall"
             type="secondary"
             @click="viewMore(day)"

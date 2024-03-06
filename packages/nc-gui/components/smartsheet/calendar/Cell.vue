@@ -356,7 +356,7 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <template>
   <span
-    class="calendar-cell before:px-1"
+    class="calendar-cell text-xs before:px-1"
     :class="{
       'font-bold': bold,
       'italic': italic,

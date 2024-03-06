@@ -196,7 +196,7 @@ const calendarData = computed(() => {
             style: {
               width: widthStyle,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 26}px`,
+              top: `${suitableRow * 28}px`,
             },
           },
         })
@@ -222,7 +222,7 @@ const calendarData = computed(() => {
             style: {
               width: `calc(${perDayWidth}px)`,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 26}px`,
+              top: `${suitableRow * 28}px`,
             },
           },
         })

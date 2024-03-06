@@ -177,7 +177,7 @@ const recordsToDisplay = computed<{
         const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * (perRecordHeight + 4)
 
         // The 25 is obtained from the trial and error
-        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 13
+        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 12
 
         if (heightRequired > perHeight) {
           style.display = 'none'
@@ -284,7 +284,7 @@ const recordsToDisplay = computed<{
           // If the record in 1st week and no record in that date them the top will be 0
           // If the record in 1st week and 1 record in that date then the top will be perRecordHeight + spaceBetweenRecords
           const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * (perRecordHeight + 4)
-          const heightRequired = perRecordHeight * maxRecordCount + spaceBetweenRecords + 13
+          const heightRequired = perRecordHeight * Math.max(maxRecordCount, 0) + spaceBetweenRecords + 12
 
           let position = 'rounded'
           // Here we are checking if the startDay is before all the dates shown in UI rather that the current month
@@ -766,7 +766,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             type="secondary"
             @click="viewMore(day)"
           >
-            <span class="text-xs px-0.5"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
+            <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
           </NcButton>
         </div>
       </div>

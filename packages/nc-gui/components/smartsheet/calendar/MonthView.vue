@@ -202,6 +202,7 @@ const recordsToDisplay = computed<{
         // If the range specifies fromCol and endCol
         const startDate = dayjs(record.row[startCol!.title!])
         const endDate = dayjs(record.row[endCol!.title!])
+
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? generateRandomNumber()
@@ -218,6 +219,11 @@ const recordsToDisplay = computed<{
           const currentWeekEnd = currentWeekStart.endOf('week')
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
+
+          if (recordEnd.isBefore(dates.value[0][0])) {
+            currentWeekStart = currentWeekStart.add(1, 'week')
+            continue
+          }
 
           // Update the recordsInDay object to keep track of the number of records in a day
           let day = recordStart.clone()

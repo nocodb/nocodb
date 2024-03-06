@@ -43,6 +43,8 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
 
     const data = await this.datasService.dataList({
       ...param,
+      view: view,
+      viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,
       ignorePagination: true,
@@ -130,6 +132,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
           },
           {
             fk_column_id: fromColumn,
+            logical_op: 'or',
             comparison_op: 'eq',
             comparison_sub_op: 'exactDate',
             value: prevDate as string,

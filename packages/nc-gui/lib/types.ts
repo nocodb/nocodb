@@ -75,6 +75,10 @@ interface Row {
     id?: string
     position?: string
     dayIndex?: number
+
+    overLapIteration?: number
+    numberOfOverlaps?: number
+    minutes?: number
   }
 }
 

@@ -26,11 +26,11 @@ const emit = defineEmits(['resize-start'])
 <template>
   <div
     :class="{
-      'min-h-9': size === 'small',
+      'h-6': size === 'small',
       'h-full': size === 'auto',
-      'rounded-l-lg': position === 'leftRounded',
-      'rounded-r-lg': position === 'rightRounded',
-      'rounded-lg mx-1': position === 'rounded',
+      'rounded-l-md ml-1': position === 'leftRounded',
+      'rounded-r-md mr-1': position === 'rightRounded',
+      'rounded-md mx-1': position === 'rounded',
       'rounded-none': position === 'none',
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
@@ -39,7 +39,8 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500 border-1)': resize,
-      '!border-brand-500 border-1': selected || hover,
+      '!border-blue-200 border-1': selected,
+      'shadow-md': hover,
     }"
     class="relative transition-all flex items-center px-1 group border-1 border-transparent"
   >
@@ -53,13 +54,13 @@ const emit = defineEmits(['resize-start'])
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
       }"
-      class="w-1 min-h-5 bg-blue-500 rounded-x rounded-y-sm"
+      class="w-1 min-h-4 bg-blue-500 rounded-x rounded-y-sm"
     ></div>
 
     <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.7 h-7.1 absolute -left-4 resize">
       <NcButton
         :class="{
-          '!block z-1 !border-brand-500': selected || hover,
+          '!block z-2 !border-brand-500': selected || hover,
           '!hidden': !selected && !hover,
         }"
         size="xsmall"
@@ -70,23 +71,23 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="overflow-hidden items-center flex w-full ml-2 h-8">
+    <div class="overflow-hidden items-center justify-center flex w-full ml-2">
       <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
       <span
         :class="{
           'pr-7': position === 'leftRounded',
         }"
-        class="text-sm pr-3 mr-3 break-word space-x-2 whitespace-nowrap gap-2 overflow-hidden text-ellipsis w-full truncate text-gray-800"
+        class="text-sm pr-3 mb-0.5 mr-3 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
       >
         <slot />
       </span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
 
-    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.3 z-1 -right-4 resize">
+    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.3 -right-4 resize">
       <NcButton
         :class="{
-          '!block !border-brand-500': selected || hover,
+          '!block !border-brand-500 z-2': selected || hover,
           '!hidden': !selected && !hover,
         }"
         size="xsmall"

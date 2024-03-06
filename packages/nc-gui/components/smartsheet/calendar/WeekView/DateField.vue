@@ -23,7 +23,7 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const getFieldStyle = (field: ColumnType | undefined) => {
-  const fi = _fields.value?.find((f) => f.title === field.title)
+  const fi = _fields.value?.find((f) => f.title === field?.title)
 
   return {
     underline: fi?.underline,
@@ -111,7 +111,7 @@ const calendarData = computed(() => {
         return !endDate.isBefore(startDate)
       })) {
         // Generate a unique id for the record if it doesn't have one
-        const id = record.row.id ?? generateRandomNumber()
+        const id = record.rowMeta.id ?? generateRandomNumber()
         let startDate = dayjs(record.row[fromCol.title!])
         const ogStartDate = startDate.clone()
         const endDate = dayjs(record.row[toCol.title!])
@@ -196,14 +196,14 @@ const calendarData = computed(() => {
             style: {
               width: widthStyle,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 40}px`,
+              top: `${suitableRow * 28}px`,
             },
           },
         })
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
-        const id = record.row.id ?? generateRandomNumber()
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         const startDate = dayjs(record.row[fromCol.title!])
         const startDaysDiff = Math.max(startDate.diff(selectedDateRange.value.start, 'day'), 0)
@@ -222,7 +222,7 @@ const calendarData = computed(() => {
             style: {
               width: `calc(${perDayWidth}px)`,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 40}px`,
+              top: `${suitableRow * 28}px`,
             },
           },
         })
@@ -418,7 +418,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 const onDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
-  calculateNewRow(event)
+  calculateNewRow(event, false)
 }
 
 const stopDrag = (event: MouseEvent) => {
@@ -443,6 +443,7 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value = null
   }
+  dragRecord.value = undefined
 
   updateRowProperty(newRow, updateProperty, false)
 
@@ -469,8 +470,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
         el.style.opacity = '30%'
       }
     })
-
-    dragRecord.value = record
 
     isDragging.value = true
     dragElement.value = target
@@ -512,9 +511,25 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
-
-    dragRecord.value = null
   }
+}
+
+const selectDate = (day: dayjs.Dayjs) => {
+  selectedDate.value = day
+  dragRecord.value = undefined
+}
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const addRecord = (date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  const fromCol = calendarRange.value[0].fk_from_col
+  if (!fromCol) return
+  const newRecord = {
+    row: {
+      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emits('newRecord', newRecord)
 }
 </script>
 
@@ -538,10 +553,12 @@ const dropEvent = (event: DragEvent) => {
         :key="dateIndex"
         :class="{
           '!border-1 !border-t-0 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
+          '!bg-gray-50': date.get('day') === 0 || date.get('day') === 6,
         }"
         class="flex flex-col border-r-1 min-h-[100vh] last:border-r-0 items-center w-1/7"
         data-testid="nc-calendar-week-day"
-        @click="selectedDate = dayjs(date)"
+        @click="selectDate(date)"
+        @dblclick="addRecord(date)"
       ></div>
     </div>
     <div
@@ -555,31 +572,21 @@ const dropEvent = (event: DragEvent) => {
         :data-unique-id="record.rowMeta.id"
         :style="{
           ...record.rowMeta.style,
-          boxShadow:
-            record.rowMeta.id === dragElement?.getAttribute('data-unique-id')
-              ? '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
-              : 'none',
         }"
         class="absolute group draggable-record pointer-events-auto nc-calendar-week-record-card"
-        @mousedown="dragStart($event, record)"
+        @mousedown.stop="dragStart($event, record)"
         @mouseleave="hoverRecord = null"
         @mouseover="hoverRecord = record.rowMeta.id"
       >
         <LazySmartsheetRow :row="record">
           <LazySmartsheetCalendarRecordCard
-            :hover="hoverRecord === record.rowMeta.id"
+            :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
             :position="record.rowMeta.position"
             :record="record"
-            :selected="
-              dragRecord
-                ? dragRecord.rowMeta.id === record.rowMeta.id
-                : resizeRecord
-                ? resizeRecord.rowMeta.id === record.rowMeta.id
-                : false
-            "
+            :selected="dragRecord?.rowMeta?.id === record.rowMeta.id"
             :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
             color="blue"
-            @dblclick="emits('expand-record', record)"
+            @dblclick.stop="emits('expand-record', record)"
             @resize-start="onResizeStart"
           >
             <template v-if="!isRowEmpty(record, displayField)">
@@ -593,6 +600,7 @@ const dropEvent = (event: DragEvent) => {
             </template>
             <template v-for="(field, index) in fieldsWithoutDisplay" :key="index">
               <LazySmartsheetCalendarCell
+                v-if="!isRowEmpty(record, field!)"
                 v-model="record.row[field!.title!]"
                 :bold="getFieldStyle(field).bold"
                 :column="field"

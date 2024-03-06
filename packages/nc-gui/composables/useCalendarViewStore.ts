@@ -119,7 +119,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
-      return calendarRange.value[0]!.fk_from_col!.uidt
+      return calendarRange.value[0]?.fk_from_col?.uidt
     })
 
     const sideBarFilter = computed(() => {

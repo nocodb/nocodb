@@ -130,7 +130,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
       </a-button>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[25rem]" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[23rem]" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"

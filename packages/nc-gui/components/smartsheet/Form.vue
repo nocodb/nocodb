@@ -564,6 +564,8 @@ onMounted(async () => {
   if (imageCropperData.value.src) {
     URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
   }
+  
+  preFillFormSearchParams.value = ''
 
   isLoadingFormView.value = true
   await loadFormView()

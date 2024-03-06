@@ -28,9 +28,9 @@ const emit = defineEmits(['resize-start'])
     :class="{
       'min-h-9': size === 'small',
       'h-full': size === 'auto',
-      'rounded-l-lg': position === 'leftRounded',
-      'rounded-r-lg': position === 'rightRounded',
-      'rounded-lg mx-1': position === 'rounded',
+      'rounded-l-md': position === 'leftRounded',
+      'rounded-r-md': position === 'rightRounded',
+      'rounded-md mx-1': position === 'rounded',
       'rounded-none': position === 'none',
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
@@ -39,7 +39,8 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500 border-1)': resize,
-      '!border-brand-500 border-1': selected || hover,
+      '!border-brand-500 border-1': selected,
+      'shadow-md': hover,
     }"
     class="relative transition-all flex items-center px-1 group border-1 border-transparent"
   >

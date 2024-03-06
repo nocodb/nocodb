@@ -772,6 +772,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           :key="hourIndex"
           :class="{
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
+            'bg-crossed-lines': hour.get('day') === 0 || hour.get('day') === 6,
           }"
           class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
           data-testid="nc-calendar-week-hour"

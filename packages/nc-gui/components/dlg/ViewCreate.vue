@@ -217,15 +217,12 @@ async function onSubmit() {
   }
 }
 
-/*
-TODO: Add support for end date and multiple range in future
 const addCalendarRange = async () => {
   form.calendar_range.push({
     fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
     fk_to_column_id: null,
   })
 }
-*/
 
 const isMetaLoading = ref(false)
 
@@ -453,23 +450,20 @@ onMounted(async () => {
                 </div>
               </a-select-option>
             </NcSelect>
-            <!--
-<div
-  v-if="range.fk_to_column_id === null && isEeUI"
-class="cursor-pointer flex items-center text-gray-800 gap-1"
-@click="range.fk_to_column_id = undefined"
->
-<component :is="iconMap.plus" class="h-4 w-4" />
-{{ $t('activity.addEndDate') }}
-</div>
-<template v-else-if="isEeUI">
-<span>
-  {{ $t('activity.withEndDate') }}
-</span>
+            <div
+              v-if="range.fk_to_column_id === null && isEeUI"
+              class="cursor-pointer flex items-center text-gray-800 gap-1"
+              @click="range.fk_to_column_id = undefined"
+            >
+              <component :is="iconMap.plus" class="h-4 w-4" />
+              {{ $t('activity.addEndDate') }}
+            </div>
+            <template v-else-if="isEeUI">
+              <span>
+                {{ $t('activity.withEndDate') }}
+              </span>
 
-             TODO: Add support for end date and multiple range in future
-
- <div class="flex">
+              <div class="flex">
                 <NcSelect
                   v-model:value="range.fk_to_column_id"
                   :disabled="isMetaLoading"
@@ -499,27 +493,28 @@ class="cursor-pointer flex items-center text-gray-800 gap-1"
                 </NcSelect>
                 <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="range.fk_to_column_id = null">
                   <component :is="iconMap.delete" class="h-4 w-4" />
-                </NcButton> -->
+                </NcButton>
+              </div>
+              <NcButton
+                v-if="index !== 0"
+                size="small"
+                type="secondary"
+                @click="
+                  () => {
+                    form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
+                  }
+                "
+              >
+                <component :is="iconMap.close" />
+              </NcButton>
+            </template>
           </div>
-        </template>
-        <!--            <NcButton
-                          v-if="index !== 0"
-                          size="small"
-                          type="secondary"
-                          @click="
-                            () => {
-                              form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
-                            }
-                          "
-                        >
-                          <component :is="iconMap.close" />
-                        </NcButton>
-          </div>
+
           <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
             <component :is="iconMap.plus" />
             Add another date field
           </NcButton>
-                 -->
+        </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
         <GeneralIcon class="!text-5xl text-orange-500" icon="warning" />

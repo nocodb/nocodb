@@ -733,9 +733,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     watch(activeCalendarView, async (value, oldValue) => {
       if (oldValue === 'week') {
         pageDate.value = selectedDate.value
-        selectedDate.value = selectedDateRange.value.start
-        selectedMonth.value = selectedDateRange.value.start
-        selectedTime.value = selectedDateRange.value.start
+        selectedMonth.value = selectedDate.value ?? selectedDateRange.value.start
+        selectedTime.value = selectedDate.value ?? selectedDateRange.value.start
       } else if (oldValue === 'month') {
         selectedDate.value = selectedMonth.value
         pageDate.value = selectedDate.value

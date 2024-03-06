@@ -1,11 +1,12 @@
 import type { ComputedRef, Ref } from 'vue'
-import {
+import { UITypes } from 'nocodb-sdk'
+import type {
   type Api,
+  CalendarRangeType,
   type CalendarType,
   type ColumnType,
   type PaginatedType,
   type TableType,
-  UITypes,
   type ViewType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
@@ -112,6 +113,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       Array<{
         fk_from_col: ColumnType | null
         fk_to_col: ColumnType | null
+        id: string
       }>
     >([])
 
@@ -418,8 +420,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
         activeCalendarView.value = calMeta?.active_view
         if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range?.map((range: any) => {
+        calendarRange.value = res?.calendar_range?.map((range: CalendarRangeType) => {
           return {
+            id: range.id,
             fk_from_col: meta.value?.columns?.find((col) => col.id === range.fk_from_column_id),
             fk_to_col: range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null,
           }

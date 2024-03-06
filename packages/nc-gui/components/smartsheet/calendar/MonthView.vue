@@ -133,13 +133,12 @@ const recordsToDisplay = computed<{
 
     // Filter out records that don't satisfy the range and sort them by start date
     const sortedFormattedData = [...formattedData.value].filter((record) => {
-      const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
-
       if (startCol && endCol) {
-        const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
-        const toDate = record.row[endCol!.title!] ? dayjs(record.row[endCol!.title!]) : null
+        const fromDate = record.row[startCol.title!] ? dayjs(record.row[startCol.title!]) : null
+        const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
         return fromDate && toDate && !toDate.isBefore(fromDate)
       } else if (startCol && !endCol) {
+        const fromDate = record.row[startCol!.title!] ? dayjs(record.row[startCol!.title!]) : null
         return !!fromDate
       }
       return false
@@ -148,7 +147,7 @@ const recordsToDisplay = computed<{
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
         // If there is no end date, we just display the record on the start date
-        const startDate = dayjs(record.row[startCol!.title!])
+        const startDate = dayjs(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
         if (!recordsInDay[dateKey]) {
@@ -200,13 +199,13 @@ const recordsToDisplay = computed<{
         })
       } else if (startCol && endCol) {
         // If the range specifies fromCol and endCol
-        const startDate = dayjs(record.row[startCol!.title!])
-        const endDate = dayjs(record.row[endCol!.title!])
+        const startDate = dayjs(record.row[startCol.title!])
+        const endDate = dayjs(record.row[endCol.title!])
 
         let currentWeekStart = startDate.startOf('week')
 
         const id = record.rowMeta.id ?? generateRandomNumber()
-        // Since the records can span multiple weeks, to display, we render multiple records
+        // Since the records can span multiple weeks, to display, we render multiple elements
         // for each week the record spans. The id is used to identify the elements that belong to the same record
 
         while (
@@ -263,8 +262,7 @@ const recordsToDisplay = computed<{
                 overflowCount: 0,
               }
             }
-            const recordIndex = recordsInDay[dateKey].count
-            maxRecordCount = Math.max(maxRecordCount, recordIndex)
+            maxRecordCount = Math.max(maxRecordCount, recordsInDay[dateKey].count)
           }
 
           const startDayIndex = Math.max(
@@ -724,6 +722,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               </template>
             </NcDropdown>
             <NcButton
+              v-else
               :class="{
                 '!block': isDateSelected(day),
                 '!hidden': !isDateSelected(day),

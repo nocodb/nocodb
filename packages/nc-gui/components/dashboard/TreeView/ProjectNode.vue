@@ -420,12 +420,12 @@ const projectDelete = () => {
           </NcButton>
 
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
-            <div v-e="['c:base:emojiSelect']" class="flex items-center select-none w-6 h-full">
+            <div v-e="['c:base:iconColorChange']" class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralBaseIconColorPicker
+              <GeneralBaseIconColorPicker
                 v-else
-                :key="parseProp(base.meta).iconHue"
+                :key="`${base.id}_${parseProp(base.meta).iconHue}`"
                 :hue="parseProp(base.meta).iconHue"
                 size="small"
                 :readonly="base?.type && base?.type !== 'database'"
@@ -434,7 +434,7 @@ const projectDelete = () => {
                 <template #default>
                   <GeneralProjectIcon :type="base?.type" />
                 </template>
-              </LazyGeneralBaseIconColorPicker>
+              </GeneralBaseIconColorPicker>
             </div>
           </div>
 

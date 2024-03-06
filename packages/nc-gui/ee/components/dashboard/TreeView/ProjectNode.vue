@@ -313,7 +313,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   if (!isProjectPopulated) base.isLoading = true
 
   // if dashboard or document base, add a document tab and route to the respective page
-  switch (base.type) {
+  switch (base?.type) {
     case 'dashboard':
       $e('c:dashboard:open', base.id)
       await populateLayouts({ baseId: base.id! })
@@ -346,7 +346,9 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       }
 
       if (!isProjectPopulated) {
+        console.log('update project 1')
         await loadProjectTables(base.id!)
+        console.log('update project 2')
       }
       break
     default:
@@ -458,12 +460,12 @@ const duplicateProject = (base: BaseType) => {
             />
           </NcButton>
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
-            <div class="flex items-center select-none w-6 h-full">
+            <div v-e="['c:base:iconColorChange']" class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralBaseIconColorPicker
+              <GeneralBaseIconColorPicker
                 v-else
-                :key="`${parseProp(base.meta).iconHue}`"
+                :key="`${base.id}_${parseProp(base.meta).iconHue}`"
                 :hue="parseProp(base.meta).iconHue"
                 size="small"
                 :readonly="base?.type && base?.type !== 'database'"
@@ -472,7 +474,7 @@ const duplicateProject = (base: BaseType) => {
                 <template #default>
                   <GeneralProjectIcon :type="base?.type" />
                 </template>
-              </LazyGeneralBaseIconColorPicker>
+              </GeneralBaseIconColorPicker>
             </div>
           </div>
 
@@ -535,7 +537,7 @@ const duplicateProject = (base: BaseType) => {
 
                 <NcMenuItem
                   v-if="
-                    base.type === NcProjectType.DB &&
+                    base?.type === NcProjectType.DB &&
                     isUIAllowed('baseDuplicate', { roles: [base.workspace_role, base.project_role].join() })
                   "
                   data-testid="nc-sidebar-base-duplicate"
@@ -622,10 +624,10 @@ const duplicateProject = (base: BaseType) => {
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !isExpanded }"
       >
-        <div v-if="base.type === 'documentation'">
+        <div v-if="base?.type === 'documentation'">
           <LazyDocsSideBar v-if="isExpanded" :base="base" />
         </div>
-        <div v-else-if="base.type === 'dashboard'">
+        <div v-else-if="base?.type === 'dashboard'">
           <LayoutsSideBar v-if="isExpanded" :base="base" />
         </div>
         <template v-else-if="base && base?.sources">
@@ -756,7 +758,7 @@ const duplicateProject = (base: BaseType) => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <NcMenu class="!py-0 rounded text-sm">
-        <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'">
+        <template v-if="contextMenuTarget.type === 'base' && base?.type === 'database'">
           <!--
           <NcMenuItem v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
             <div class="nc-base-option-item">SQL Editor</div>

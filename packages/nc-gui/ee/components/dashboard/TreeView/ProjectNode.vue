@@ -463,6 +463,7 @@ const duplicateProject = (base: BaseType) => {
 
               <LazyGeneralBaseColorPicker
                 v-else
+                :key="parseProp(base.meta).iconHue"
                 :hue="parseProp(base.meta).iconHue"
                 size="small"
                 :readonly="base.type !== 'database'"

@@ -197,7 +197,8 @@
     "banner": "Banner",
     "logo": "Logo",
     "dropdown": "Dropdown",
-    "list": "List"
+    "list": "List",
+    "apply": "Apply"
   },
   "objects": {
     "day": "Day",
@@ -698,7 +699,8 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit ptions",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "customHue": "Custom Hue"
   },
   "activity": {
     "noRange": "Calendar view requires a date range",

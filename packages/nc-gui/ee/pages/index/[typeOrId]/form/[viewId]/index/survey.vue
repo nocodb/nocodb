@@ -287,6 +287,9 @@ onMounted(() => {
                   v-if="isVirtualCol(field)"
                   v-model="formState[field.title]"
                   class="mt-0 nc-input h-auto"
+                  :class="{
+                    readonly: field?.read_only,
+                  }"
                   :row="{ row: {}, oldRow: {}, rowMeta: {} }"
                   :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                   :column="field"
@@ -297,7 +300,7 @@ onMounted(() => {
                   v-else
                   v-model="formState[field.title]"
                   class="nc-input h-auto"
-                  :class="parseProp(field?.meta)?.isList ? 'layout-list' : ''"
+                  :class="{ 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only }"
                   :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                   :column="field"
                   :edit-enabled="!field?.read_only"

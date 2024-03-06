@@ -390,7 +390,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
     updateProperty.push(toCol!.title!)
   }
 
-  if (!newRow) return
+  if (!newRow) return { newRow: null, updateProperty: [] }
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 

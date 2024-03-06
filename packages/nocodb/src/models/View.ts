@@ -878,7 +878,7 @@ export default class View implements ViewType {
     await NocoCache.update(`${cacheScope}:${colId}`, updateObj);
 
     // on view column update, delete corresponding single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
     return res;
   }
@@ -920,7 +920,7 @@ export default class View implements ViewType {
       );
 
       // on view column update, delete any optimised single query cache
-      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+      await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
       return { ...existingCol, ...colData };
     } else {
@@ -1137,7 +1137,7 @@ export default class View implements ViewType {
     }
 
     // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
     return view;
   }
@@ -1188,7 +1188,7 @@ export default class View implements ViewType {
     ]);
 
     // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    await View.clearSingleQueryCache(view.fk_model_id, [view], ncMeta);
 
     await Model.getNonDefaultViewsCountAndReset(
       { modelId: view.fk_model_id },
@@ -1476,6 +1476,8 @@ export default class View implements ViewType {
     views?: { id?: string }[],
     ncMeta = Noco.ncMeta,
   ) {
+    if (!Noco.isEE()) return;
+
     // get all views of the model
     let viewsList =
       views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;

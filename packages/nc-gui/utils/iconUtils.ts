@@ -128,9 +128,7 @@ import NcItalic from '~icons/nc-icons/italic'
 import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
 import NcCrop from '~icons/nc-icons/crop'
-import NcItalic from '~icons/nc-icons/italic'
-import NcBold from '~icons/nc-icons/bold'
-import NcUnderline from '~icons/nc-icons/underline'
+import NcLink from '~icons/nc-icons/link'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -329,6 +327,7 @@ export const iconMap = {
   translate: h('span', { class: 'material-symbols' }, 'translate'),
   preview: h('span', { class: 'material-symbols' }, 'visibility'),
   link: h('span', { class: 'material-symbols' }, 'link'),
+  link2: NcLink,
   returnKey: h('span', { class: 'material-symbols' }, 'keyboard_return'),
   keyboard: h('span', { class: 'material-symbols' }, 'keyboard'),
   accountPlus: h('span', { class: 'material-symbols' }, 'person_add'),

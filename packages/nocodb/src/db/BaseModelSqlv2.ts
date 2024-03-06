@@ -318,12 +318,14 @@ class BaseModelSqlv2 {
       sortArr?: Sort[];
       sort?: string | string[];
       fieldsSet?: Set<string>;
+      calendarLimitOverride?: number;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
       ignorePagination?: boolean;
       validateFormula?: boolean;
       throwErrorIfInvalidParams?: boolean;
+      calendarLimitOverride?: number;
     } = {},
   ): Promise<any> {
     const {
@@ -331,6 +333,7 @@ class BaseModelSqlv2 {
       ignorePagination = false,
       validateFormula = false,
       throwErrorIfInvalidParams = false,
+      calendarLimitOverride,
     } = options;
 
     const { where, fields, ...rest } = this._getListArgs(args as any);
@@ -426,7 +429,24 @@ class BaseModelSqlv2 {
       if (createdCol) qb.orderBy(createdCol.column_name);
     }
 
-    if (!ignorePagination) applyPaginate(qb, rest);
+    if (rest.pks) {
+      const pks = rest.pks.split(',');
+      qb.where((qb) => {
+        pks.forEach((pk) => {
+          qb.orWhere(_wherePk(this.model.primaryKeys, pk));
+        });
+        return qb;
+      });
+    }
+
+    // For calendar View, if calendarLimitOverride is provided, use it as limit for the query
+    if (!ignorePagination) {
+      if (!calendarLimitOverride) {
+        applyPaginate(qb, rest);
+      } else {
+        applyPaginate(qb, { ...rest, limit: calendarLimitOverride });
+      }
+    }
     const proto = await this.getProto();
 
     let data;
@@ -2105,7 +2125,8 @@ class BaseModelSqlv2 {
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(
       Math.min(
-        args.limit || args.l || BaseModelSqlv2.config.limitDefault,
+        Math.max(+(args.limit || args.l), 0) ||
+          BaseModelSqlv2.config.limitDefault,
         BaseModelSqlv2.config.limitMax,
       ),
       BaseModelSqlv2.config.limitMin,
@@ -2113,6 +2134,7 @@ class BaseModelSqlv2 {
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s;
+    obj.pks = args.pks;
     return obj;
   }
 
@@ -6371,7 +6393,8 @@ export function getListArgs(
   obj.conditionGraph = args.conditionGraph || {};
   obj.limit = Math.max(
     Math.min(
-      args?.limit || args?.l || BaseModelSqlv2.config.limitDefault,
+      Math.max(+(args?.limit || args?.l), 0) ||
+        BaseModelSqlv2.config.limitDefault,
       BaseModelSqlv2.config.limitMax,
     ),
     BaseModelSqlv2.config.limitMin,
@@ -6380,6 +6403,7 @@ export function getListArgs(
   obj.fields =
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
+  obj.pks = args?.pks;
   return obj;
 }
 

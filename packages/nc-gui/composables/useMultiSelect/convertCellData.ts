@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
-import { UITypes, populateUniqueFileName } from 'nocodb-sdk'
+import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { isBt, isMm, parseProp } from '#imports'
 
@@ -55,30 +55,24 @@ export default function convertCellData(
         if (strval === 'false' || strval === '0' || strval === '') return false
       }
       return null
-    case UITypes.Date: {
-      const parsedDate = dayjs(value, parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD')
-      if (!parsedDate.isValid()) {
-        if (isMultiple) {
-          return null
-        } else {
-          throw new Error('Not a valid date')
-        }
-      }
-      return parsedDate.format('YYYY-MM-DD')
-    }
+    case UITypes.Date:
     case UITypes.DateTime: {
-      const parsedDateTime = dayjs(
-        value,
-        `${parseProp(column?.meta)?.date_format ?? 'YYYY-MM-DD'} ${parseProp(column?.meta)?.time_format ?? 'HH:mm'}`,
-      )
-      if (!parsedDateTime.isValid()) {
+      let parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value))
+
+      if (!parsedDateOrDateTime.isValid()) {
+        parsedDateOrDateTime = dayjs(value, getDateFormat(value))
+      }
+
+      if (!parsedDateOrDateTime.isValid()) {
         if (isMultiple) {
           return null
         } else {
-          throw new Error('Not a valid datetime value')
+          throw new Error(`Not a valid '${to}' value`)
         }
       }
-      return parsedDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+      return to === UITypes.Date
+        ? parsedDateOrDateTime.format('YYYY-MM-DD')
+        : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)

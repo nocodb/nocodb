@@ -90,6 +90,26 @@ export interface AttachmentReqType {
 }
 
 /**
+ * Model for Attachment Response
+ */
+export type AttachmentResType = {
+  /** The mimetype of the attachment */
+  mimetype?: string;
+  /** The attachment stored path */
+  path?: string;
+  /** The size of the attachment */
+  size?: number;
+  /** The title of the attachment used in UI */
+  title?: string;
+  /** The attachment stored url */
+  url?: string;
+  /** Attachment signedPath will allow to access attachment directly */
+  signedPath?: string;
+  /** Attachment signedUrl will allow to access attachment directly */
+  signedUrl?: string;
+} | null;
+
+/**
  * Model for File Request
  */
 export interface FileReqType {
@@ -826,8 +846,8 @@ export interface FollowerType {
 export interface FormType {
   /** Unique ID */
   id?: IdType;
-  /** Banner Image URL. Not in use currently. */
-  banner_image_url?: TextOrNullType;
+  /** Banner Image URL */
+  banner_image_url?: AttachmentResType;
   /** Form Columns */
   columns?: FormColumnType[];
   /** Email to sned after form is submitted */
@@ -852,8 +872,8 @@ export interface FormType {
    * @example collaborative
    */
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Logo URL. Not in use currently. */
-  logo_url?: TextOrNullType;
+  /** Logo URL */
+  logo_url?: AttachmentResType;
   /** Meta Info for this view */
   meta?: MetaType;
   /** The numbers of seconds to redirect after form submission */
@@ -882,8 +902,8 @@ export interface FormType {
  * Model for Form Update Request
  */
 export interface FormUpdateReqType {
-  /** Banner Image URL. Not in use currently. */
-  banner_image_url?: TextOrNullType;
+  /** Banner Image URL */
+  banner_image_url?: AttachmentReqType | null;
   /** Email to sned after form is submitted */
   email?: StringOrNullType;
   /**
@@ -891,8 +911,8 @@ export interface FormUpdateReqType {
    * @example My Form
    */
   heading?: string;
-  /** Logo URL. Not in use currently. */
-  logo_url?: TextOrNullType;
+  /** Logo URL */
+  logo_url?: AttachmentReqType | null;
   /** Meta Info for this view */
   meta?: MetaType;
   /** The numbers of seconds to redirect after form submission */
@@ -8635,49 +8655,6 @@ export class Api<
       }),
 
     /**
- * @description Get the count of table view rows grouped by the dates
- * 
- * @tags DB View Row
- * @name CalendarCount
- * @summary Count of Records in Dates in Calendar View
- * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/
- * @response `200` `any` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    calendarCount: (
-      orgs: string,
-      baseName: string,
-      tableName: string,
-      viewName: string,
-      query?: {
-        sort?: any[];
-        where?: string;
-        /** @min 1 */
-        limit?: number;
-        /** @min 0 */
-        offset?: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        any,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/countByDate/`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description Get the table view rows grouped by the given query
  * 
  * @tags DB View Row
@@ -8937,7 +8914,192 @@ export class Api<
         ...params,
       }),
   };
+  dbCalendarViewRow = {
+    /**
+     * @description List all rows in Calendar View of a Table
+     *
+     * @tags DB Calendar View Row
+     * @name List
+     * @summary List rows in Calendar View of a Table
+     * @request GET:/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}
+     */
+    list: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      viewName: string,
+      query: {
+        from_date: string;
+        to_date: string;
+        fields?: any[];
+        sort?: any[];
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/calendar-data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
+        method: 'GET',
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * @description List all rows in Calendar View of a Table
+     *
+     * @tags DB Calendar View Row
+     * @name PublicDataCalendarRowList
+     * @summary List rows in Calendar View of a Table
+     * @request GET:/api/v1/db/public/calendar-view/{sharedViewUuid}
+     */
+    publicDataCalendarRowList: (
+      sharedViewUuid: string,
+      query: {
+        from_date: string;
+        to_date: string;
+        fields?: any[];
+        sort?: any[];
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/calendar-view/${sharedViewUuid}`,
+        method: 'GET',
+        query: query,
+        ...params,
+      }),
+  };
+  api = {
+    /**
+     * No description
+     *
+     * @name ResponsesApi
+     * @request RESPONSES:/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}
+     */
+    responsesApi: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      viewName: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/calendar-data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
+        method: 'RESPONSES',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name ResponsesApi2
+     * @request RESPONSES:/api/v1/db/public/calendar-view/{sharedViewUuid}
+     * @originalName responsesApi
+     * @duplicate
+     */
+    responsesApi2: (sharedViewUuid: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/calendar-view/${sharedViewUuid}`,
+        method: 'RESPONSES',
+        ...params,
+      }),
+  };
+  dbCalendarViewRowCount = {
+    /**
+ * @description Get the count of table view rows grouped by the dates
+ * 
+ * @tags DB Calendar View Row Count
+ * @name DbCalendarViewRowCount
+ * @summary Count of Records in Dates in Calendar View
+ * @request GET:/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbCalendarViewRowCount: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      viewName: string,
+      query: {
+        from_date: string;
+        to_date: string;
+        sort?: any[];
+        where?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/calendar-data/${orgs}/${baseName}/${tableName}/views/${viewName}/countByDate/`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
   public = {
+    /**
+ * No description
+ * 
+ * @tags Public
+ * @name DataCalendarRowCount
+ * @summary Count of Records in Dates in Calendar View
+ * @request GET:/api/v1/db/public/calendar-view/{sharedViewUuid}/countByDate
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataCalendarRowCount: (
+      sharedViewUuid: string,
+      query: {
+        from_date: string;
+        to_date: string;
+        sort?: any[];
+        where?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/public/calendar-view/${sharedViewUuid}/countByDate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
     /**
  * @description List Shared View Grouped Data
  * 
@@ -9009,46 +9171,6 @@ export class Api<
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * No description
- * 
- * @tags Public
- * @name CalendarCount
- * @summary Count of Records in Dates in Calendar View
- * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/countByDate
- * @response `200` `any` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    calendarCount: (
-      sharedViewUuid: string,
-      query?: {
-        sort?: any[];
-        where?: string;
-        /** @min 1 */
-        limit?: number;
-        /** @min 0 */
-        offset?: number;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        any,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/countByDate`,
         method: 'GET',
         query: query,
         format: 'json',

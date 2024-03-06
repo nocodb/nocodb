@@ -15,6 +15,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -43,7 +44,7 @@ export class ViewColumnsController {
   async columnAdd(
     @Param('viewId') viewId: string,
     @Body() body: ViewColumnReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const viewColumn = await this.viewColumnsService.columnAdd({
       viewId,
@@ -62,7 +63,7 @@ export class ViewColumnsController {
     @Param('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Body() body: ViewColumnReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const result = await this.viewColumnsService.columnUpdate({
       viewId,

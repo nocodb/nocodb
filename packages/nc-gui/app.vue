@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ErrorBoundary from './components/nc/ErrorBoundary.vue'
 import { applyNonSelectable, computed, isEeUI, isMac, useCommandPalette, useRouter, useTheme } from '#imports'
 import type { CommandPaletteType } from '~/lib'
 
@@ -101,22 +102,29 @@ onMounted(() => {
 <template>
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
-      <NuxtPage :key="key" :transition="false" />
+      <ErrorBoundary>
+        <NuxtPage :key="key" :transition="false" />
+      </ErrorBoundary>
     </NuxtLayout>
   </a-config-provider>
-  <!-- Command Menu -->
-  <CmdK
-    ref="commandPalette"
-    v-model:open="cmdK"
-    :scope="activeScope.scope"
-    :data="cmdData"
-    :placeholder="cmdPlaceholder"
-    :load-temporary-scope="loadTemporaryScope"
-    :set-active-cmd-view="setActiveCmdView"
-    @scope="onScope"
-  />
-  <!-- Recent Views. Cycles through recently visited Views -->
-  <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
-  <!-- Documentation. Integrated NocoDB Docs directlt inside the Product -->
-  <CmdJ />
+
+  <ErrorBoundary>
+    <div>
+      <!-- Command Menu -->
+      <CmdK
+        ref="commandPalette"
+        v-model:open="cmdK"
+        :scope="activeScope.scope"
+        :data="cmdData"
+        :placeholder="cmdPlaceholder"
+        :load-temporary-scope="loadTemporaryScope"
+        :set-active-cmd-view="setActiveCmdView"
+        @scope="onScope"
+      />
+      <!-- Recent Views. Cycles through recently visited Views -->
+      <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
+      <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
+      <CmdJ />
+    </div>
+  </ErrorBoundary>
 </template>

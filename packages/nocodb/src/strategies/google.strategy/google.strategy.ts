@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import type { Request } from 'express';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
+import type { NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, Plugin, User } from '~/models';
@@ -21,7 +22,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: Request,
+    req: NcRequest,
     accessToken: string,
     refreshToken: string,
     profile: any,
@@ -55,7 +56,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           password: '',
           salt,
           req,
-        });
+        } as any);
         return done(null, sanitiseUserObj(user));
       }
     } catch (err) {

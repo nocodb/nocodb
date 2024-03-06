@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
+import { isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import { nocoExecute } from 'nc-help';
-import dayjs from 'dayjs';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/modules/datas/helpers';
 import { getDbRows, getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
-import { Base, CalendarRange, Column, Model, Source, View } from '~/models';
+import { Base, Column, Model, Source, View } from '~/models';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -20,13 +19,23 @@ export class DatasService {
   constructor() {}
 
   async dataList(
-    param: PathParams & {
+    param: (PathParams | { view?: View; model: Model }) & {
       query: any;
       disableOptimization?: boolean;
       ignorePagination?: boolean;
+      calendarLimitOverride?: number;
+      throwErrorIfInvalidParams?: boolean;
     },
   ) {
-    const { model, view } = await getViewAndModelByAliasOrId(param);
+    let { model, view } = param as { view?: View; model?: Model };
+
+    if (!model) {
+      const modelAndView = await getViewAndModelByAliasOrId(
+        param as PathParams,
+      );
+      model = modelAndView.model;
+      view = modelAndView.view;
+    }
 
     return await this.getDataList({
       model,
@@ -34,6 +43,7 @@ export class DatasService {
       query: param.query,
       throwErrorIfInvalidParams: true,
       ignorePagination: param.ignorePagination,
+      calendarLimitOverride: param.calendarLimitOverride,
     });
   }
 
@@ -143,6 +153,7 @@ export class DatasService {
     throwErrorIfInvalidParams?: boolean;
     ignoreViewFilterAndSort?: boolean;
     ignorePagination?: boolean;
+    calendarLimitOverride?: number;
   }) {
     const { model, view, query = {}, ignoreViewFilterAndSort = false } = param;
 
@@ -171,16 +182,6 @@ export class DatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    let options = {};
-
-    if (view && view.type === ViewTypes.CALENDAR && param.ignorePagination) {
-      {
-        options = {
-          ignorePagination: true,
-        };
-      }
-    }
-
     const [count, data] = await Promise.all([
       baseModel.count(listArgs, false, param.throwErrorIfInvalidParams),
       (async () => {
@@ -191,7 +192,8 @@ export class DatasService {
             await baseModel.list(listArgs, {
               ignoreViewFilterAndSort,
               throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
-              ...options,
+              ignorePagination: param.ignorePagination,
+              calendarLimitOverride: param.calendarLimitOverride,
             }),
             {},
             listArgs,
@@ -210,67 +212,6 @@ export class DatasService {
       ...query,
       count,
     });
-  }
-
-  async getCalendarRecordCount(param: { viewId: string; query: any }) {
-    const { viewId, query = {} } = param;
-
-    const view = await View.get(viewId);
-
-    if (!view) NcError.notFound('View not found');
-    if (view.type !== ViewTypes.CALENDAR)
-      NcError.badRequest('View is not a calendar view');
-
-    const calendarRange = await CalendarRange.read(view.id);
-
-    if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
-
-    const model = await Model.getByIdOrName({
-      id: view.fk_model_id,
-    });
-
-    const data = await this.getDataList({
-      model,
-      view,
-      query,
-    });
-
-    if (!data) NcError.notFound('Data not found');
-
-    const dates: Array<string> = [];
-
-    calendarRange.ranges.forEach((range: any) => {
-      data.list.forEach((date) => {
-        const from =
-          date[
-            model.columns.find((c) => c.id === range.fk_from_column_id).title
-          ];
-
-        let to;
-        if (range.fk_to_column_id) {
-          to =
-            date[
-              model.columns.find((c) => c.id === range.fk_to_column_id).title
-            ];
-        }
-
-        if (from && to) {
-          const fromDt = dayjs(from);
-          const toDt = dayjs(to);
-
-          let current = fromDt;
-
-          while (current.isSameOrBefore(toDt)) {
-            dates.push(current.format('YYYY-MM-DD HH:mm:ssZ'));
-            current = current.add(1, 'day');
-          }
-        } else if (from) {
-          dates.push(dayjs(from).format('YYYY-MM-DD HH:mm:ssZ'));
-        }
-      });
-    });
-
-    return dates;
   }
 
   async getFindOne(param: { model: Model; view: View; query: any }) {
@@ -1044,44 +985,5 @@ export class DatasService {
       NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
 
     return column;
-  }
-
-  async getDataAggregateBy(param: {
-    viewId: string;
-    query?: any;
-    aggregateColumnName: string;
-    aggregateFunction: string;
-    groupByColumnName?: string;
-    ignoreFilters?: boolean;
-    sort?: {
-      column_name: string;
-      direction: 'asc' | 'desc';
-    };
-  }) {
-    const { viewId, query = {} } = param;
-
-    const view = await View.get(viewId);
-
-    const source = await Source.get(view.source_id);
-
-    const baseModel = await Model.getBaseModelSQL({
-      id: view.fk_model_id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    const data = await baseModel.groupByAndAggregate(
-      param.aggregateColumnName,
-      param.aggregateFunction,
-      {
-        groupByColumnName: param.groupByColumnName,
-        sortBy: param.sort,
-        ...query,
-      },
-    );
-
-    return new PagedResponseImpl(data, {
-      ...query,
-    });
   }
 }

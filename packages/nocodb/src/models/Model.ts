@@ -230,13 +230,16 @@ export default class Model implements TableType {
         model.meta = parseMetaProp(model);
       }
 
-      await NocoCache.setList(
-        CacheScope.MODEL,
-        [base_id, source_id],
-        modelList,
-      );
-
-      await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
+      // set cache based on source_id presence
+      if (source_id) {
+        await NocoCache.setList(
+          CacheScope.MODEL,
+          [base_id, source_id],
+          modelList,
+        );
+      } else {
+        await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
+      }
     }
     modelList.sort(
       (a, b) =>
@@ -674,7 +677,7 @@ export default class Model implements TableType {
     ]);
 
     // clear all the cached query under this model
-    await View.clearSingleQueryCache(tableId);
+    await View.clearSingleQueryCache(tableId, null, ncMeta);
 
     // clear all the cached query under related models
     for (const col of await this.get(tableId).then((t) => t.getColumns())) {
@@ -684,7 +687,11 @@ export default class Model implements TableType {
 
       if (colOptions.fk_related_model_id === tableId) continue;
 
-      await View.clearSingleQueryCache(colOptions.fk_related_model_id);
+      await View.clearSingleQueryCache(
+        colOptions.fk_related_model_id,
+        null,
+        ncMeta,
+      );
     }
 
     return res;

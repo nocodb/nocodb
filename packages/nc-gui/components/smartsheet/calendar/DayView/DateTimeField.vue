@@ -7,7 +7,7 @@ import { generateRandomNumber, isRowEmpty } from '~/utils'
 const emit = defineEmits(['expandRecord', 'new-record'])
 
 const {
-  activeCalendarView,
+  // activeCalendarView,
   selectedDate,
   selectedTime,
   formattedData,

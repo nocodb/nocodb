@@ -559,6 +559,19 @@ export function useData(args: {
           .map((c) => row.row[c.title!])
           .join('___')
 
+        const fullRecord = await $api.dbTableRow.read(
+          NOCO,
+          // todo: base_id missing on view type
+          base?.value.id as string,
+          meta.value?.id as string,
+          encodeURIComponent(id as string),
+          {
+            getHiddenColumn: true,
+          },
+        )
+
+        row.row = fullRecord
+
         const deleted = await deleteRowById(id as string)
         if (!deleted) {
           return
@@ -584,6 +597,7 @@ export function useData(args: {
                 pg: { page: number; pageSize: number },
               ) {
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+
                 row.row = { ...pkData, ...row.row }
                 await insertRow(row, ltarState, {}, true)
                 recoverLTARRefs(row.row)
@@ -642,7 +656,20 @@ export function useData(args: {
 
     if (!removedRowsData.length) return
 
+    const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+      pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+    })
+
     try {
+      for (const removedRow of removedRowsData) {
+        const rowObj = removedRow.row
+        const rowPk = rowPkData(rowObj.row, meta?.value?.columns as ColumnType[])
+        const fullRecord = list.find((r: Record<string, any>) => {
+          return Object.keys(rowPk).every((key) => rowPk[key] === r[key])
+        })
+        rowObj.row = clone(fullRecord)
+      }
+
       const removedRowIds: Record<string, any>[] = await bulkDeleteRows(
         removedRowsData.map((row) => ({ [compositePrimaryKey]: row[compositePrimaryKey] as string })),
       )
@@ -767,7 +794,20 @@ export function useData(args: {
 
     if (!removedRowsData.length) return
 
+    const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+      pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+    })
+
     try {
+      for (const removedRow of removedRowsData) {
+        const rowObj = removedRow.row
+        const rowPk = rowPkData(rowObj.row, meta?.value?.columns as ColumnType[])
+        const fullRecord = list.find((r: Record<string, any>) => {
+          return Object.keys(rowPk).every((key) => rowPk[key] === r[key])
+        })
+        rowObj.row = clone(fullRecord)
+      }
+
       const removedRowIds: Record<string, any>[] = await bulkDeleteRows(
         removedRowsData.map((row) => ({ [compositePrimaryKey]: row[compositePrimaryKey] as string })),
       )

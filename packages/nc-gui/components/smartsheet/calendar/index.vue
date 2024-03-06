@@ -86,7 +86,6 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
   if (rowId) {
     router.push({
       query: {
@@ -194,7 +193,14 @@ const headerText = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <div v-if="calendarRangeDropdown" class="min-w-[22.1rem]" @click.stop>
+              <div
+                v-if="calendarRangeDropdown"
+                :class="{
+                  'px-4 pt-3 pb-4 ': activeCalendarView === 'week' || activeCalendarView === 'day',
+                }"
+                class="min-w-[22.1rem]"
+                @click.stop
+              >
                 <NcDateWeekSelector
                   v-if="activeCalendarView === ('day' as const)"
                   v-model:active-dates="activeDates"
@@ -235,7 +241,6 @@ const headerText = computed(() => {
             </NcButton>
           </NcTooltip>
           <NcButton
-            v-if="!isMobileMode"
             v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
             data-testid="nc-calendar-today-btn"
             size="small"

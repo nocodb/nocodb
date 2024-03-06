@@ -110,21 +110,16 @@ export function useSharedView() {
     }
   }
 
-  const fetchSharedViewData = async (
-    param: {
-      sortsArr: SortType[]
-      filtersArr: FilterType[]
-      fields?: any[]
-      sort?: any[]
-      where?: string
-      /** Query params for nested data */
-      nested?: any
-      offset?: number
-    },
-    headers?: {
-      ignorePagination?: boolean
-    },
-  ) => {
+  const fetchSharedViewData = async (param: {
+    sortsArr: SortType[]
+    filtersArr: FilterType[]
+    fields?: any[]
+    sort?: any[]
+    where?: string
+    /** Query params for nested data */
+    nested?: any
+    offset?: number
+  }) => {
     if (!sharedView.value)
       return {
         list: [],
@@ -148,13 +143,54 @@ export function useSharedView() {
       {
         headers: {
           'xc-password': password.value,
-          'xc-ignore-pagination': headers?.ignorePagination ? 'true' : 'false',
+        },
+      },
+    )
+  }
+
+  const fetchSharedCalendarViewData = async (param: {
+    from_date: string
+    to_date: string
+    sortsArr: SortType[]
+    filtersArr: FilterType[]
+    fields?: any[]
+    sort?: any[]
+    where?: string
+    /** Query params for nested data */
+    nested?: any
+    offset?: number
+  }) => {
+    if (!sharedView.value)
+      return {
+        list: [],
+        pageInfo: {},
+      }
+
+    if (!param.offset) {
+      const page = paginationData.value.page || 1
+      const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+      param.offset = (page - 1) * pageSize
+    }
+
+    return await $api.dbCalendarViewRow.publicDataCalendarRowList(
+      sharedView.value.uuid!,
+      {
+        limit: sharedView.value?.type === ViewTypes.CALENDAR ? 3000 : undefined,
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
         },
       },
     )
   }
 
   const fetchSharedViewActiveDate = async (param: {
+    from_date: string
+    to_date: string
     sortsArr: SortType[]
     filtersArr: FilterType[]
     sort?: any[]
@@ -166,7 +202,7 @@ export function useSharedView() {
         pageInfo: {},
       }
 
-    return await $api.public.calendarCount(
+    return await $api.public.dataCalendarRowCount(
       sharedView.value.uuid!,
       {
         ...param,
@@ -234,6 +270,7 @@ export function useSharedView() {
     nestedFilters,
     fetchSharedViewData,
     fetchSharedViewActiveDate,
+    fetchSharedCalendarViewData,
     fetchSharedViewGroupedData,
     paginationData,
     sorts,

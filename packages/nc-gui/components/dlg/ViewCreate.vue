@@ -317,7 +317,7 @@ onMounted(async () => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'medium' : 'small'"
+    :size="[ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(form.type) ? 'small' : 'small'"
   >
     <template #header>
       <div class="flex w-full flex-row justify-between items-center">

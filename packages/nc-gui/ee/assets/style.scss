@@ -797,6 +797,6 @@ svg.nc-cell-icon, svg.nc-virtual-cell-icon {
 }
 
 .bg-crossed-lines {
-  background-image: repeating-linear-gradient(-45deg, #e7e7e9 0, #e7e7e9 1px, #ffffff 0, #ffffff 8%),
-  repeating-linear-gradient(45deg, #e7e7e9 0, #e7e7e9 1px, #ffffff 0, #ffffff 8%);
+  background-image: repeating-linear-gradient(-45deg, #e7e7e9 0, #e7e7e9 1px, transparent 0, transparent 12%),
+  repeating-linear-gradient(45deg, #e7e7e9 0, #e7e7e9 1px, transparent 0, transparent 12%);
 }

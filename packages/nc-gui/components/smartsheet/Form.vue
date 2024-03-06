@@ -669,7 +669,7 @@ useEventListener(
   (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-    switch (e.key.toLowerCase()) {
+    switch (e.key?.toLowerCase()) {
       case 's':
         if (
           cmdOrCtrl &&

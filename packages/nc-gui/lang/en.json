@@ -929,6 +929,7 @@
     "selectAllFields": "Select all fields",
     "preFilledFields": {
       "title": "Enable Pre-fill",
+      "default": "Default",
       "locked": "Lock pre-filled fields as read-only",
       "hidden": "Hide pre-filled fields",
       "lockedFieldTooltip": "Pre-filled value"
@@ -964,7 +965,7 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {

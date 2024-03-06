@@ -183,6 +183,17 @@ const dropEvent = (event: DragEvent) => {
     updateRowProperty(newRow, updateProperty, false)
   }
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const newRecord = () => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  const record = {
+    row: {
+      [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emit('newRecord', record)
+}
 </script>
 
 <template>
@@ -191,6 +202,7 @@ const dropEvent = (event: DragEvent) => {
     ref="container"
     class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
+    @dblclick="newRecord"
     @drop="dropEvent"
   >
     <div
@@ -240,6 +252,7 @@ const dropEvent = (event: DragEvent) => {
     ref="container"
     class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
     @drop="dropEvent"
+    @dblclick="newRecord"
   >
     No records in this day
   </div>

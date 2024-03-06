@@ -721,6 +721,19 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
 
   return { isOverflow, overflowCount }
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const addRecord = (date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  const fromCol = calendarRange.value[0].fk_from_col
+  if (!fromCol) return
+  const newRecord = {
+    row: {
+      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emits('newRecord', newRecord)
+}
 </script>
 
 <template>
@@ -761,6 +774,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
           }"
           class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
           data-testid="nc-calendar-week-hour"
+          @dblclick="addRecord(hour)"
           @click="
             () => {
               selectedTime = hour

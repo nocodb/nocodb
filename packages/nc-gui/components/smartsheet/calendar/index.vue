@@ -265,7 +265,7 @@ const headerText = computed(() => {
             type="secondary"
             @click="showSideMenu = !showSideMenu"
           >
-            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-700 transition-all" />
+            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
           </NcButton>
         </NcTooltip>
       </div>

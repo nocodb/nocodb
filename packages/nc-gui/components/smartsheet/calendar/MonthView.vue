@@ -668,7 +668,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             'border-brand-500 border-1 !border-r-1 border-b-1':
               isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
             '!text-gray-400': !isDayInPagedMonth(day),
-            'bg-crossed-lines': day.get('day') === 0 || day.get('day') === 6,
+            '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
           }"
           class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"

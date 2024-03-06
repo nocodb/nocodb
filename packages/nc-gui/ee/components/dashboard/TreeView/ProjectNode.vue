@@ -272,7 +272,7 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 
 const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (!base) {
+  if (!base?.id) {
     return
   }
 
@@ -463,14 +463,14 @@ const duplicateProject = (base: BaseType) => {
 
               <LazyGeneralBaseColorPicker
                 v-else
-                :key="parseProp(base.meta).iconHue"
+                :key="`${base.id}_${parseProp(base.meta).iconHue}`"
                 :hue="parseProp(base.meta).iconHue"
                 size="small"
-                :readonly="base.type && base.type !== 'database'"
+                :readonly="base?.type && base?.type !== 'database'"
                 @color-selected="setColor($event, base)"
               >
                 <template #default>
-                  <GeneralProjectIcon :type="base.type" />
+                  <GeneralProjectIcon :type="base?.type" />
                 </template>
               </LazyGeneralBaseColorPicker>
             </div>

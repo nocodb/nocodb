@@ -266,7 +266,7 @@ export const useBases = defineStore('basesStore', () => {
       ...baseUpdatePayload,
     }
 
-    bases.value.set(baseId, base)
+    bases.value.set(baseId, { ...base, meta: parseProp(base.meta) })
 
     await api.base.update(baseId, baseUpdatePayload)
 

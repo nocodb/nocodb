@@ -49,7 +49,7 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'group-hover:(border-brand-500)': resize,
-      '!border-brand-500 border-1': selected,
+      '!border-blue-200 border-1': selected,
       'shadow-md': hover,
     }"
     class="relative flex items-center h-full ml-0.25 border-1 border-transparent"

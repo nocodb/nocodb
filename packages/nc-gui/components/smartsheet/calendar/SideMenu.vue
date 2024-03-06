@@ -349,7 +349,7 @@ onUnmounted(() => {
           </template>
         </a-input>
         <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-800" data-testid="nc-calendar-sidebar-filter">
-          <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-800">
+          <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
             <div class="flex items-center justify-between gap-2">
               <div class="truncate flex-1">
                 <NcTooltip :title="option.label" placement="top" show-on-truncate-only>

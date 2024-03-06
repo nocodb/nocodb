@@ -23,7 +23,7 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const getFieldStyle = (field: ColumnType | undefined) => {
-  const fi = _fields.value?.find((f) => f.title === field.title)
+  const fi = _fields.value?.find((f) => f.title === field?.title)
 
   return {
     underline: fi?.underline,
@@ -196,7 +196,7 @@ const calendarData = computed(() => {
             style: {
               width: widthStyle,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 40}px`,
+              top: `${suitableRow * 26}px`,
             },
           },
         })
@@ -222,7 +222,7 @@ const calendarData = computed(() => {
             style: {
               width: `calc(${perDayWidth}px)`,
               left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 40}px`,
+              top: `${suitableRow * 26}px`,
             },
           },
         })

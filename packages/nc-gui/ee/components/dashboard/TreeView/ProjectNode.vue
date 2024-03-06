@@ -461,9 +461,9 @@ const duplicateProject = (base: BaseType) => {
             <div class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralBaseColorPicker
+              <LazyGeneralBaseIconColorPicker
                 v-else
-                :key="`${base.id}_${parseProp(base.meta).iconHue}`"
+                :key="`${parseProp(base.meta).iconHue}`"
                 :hue="parseProp(base.meta).iconHue"
                 size="small"
                 :readonly="base?.type && base?.type !== 'database'"
@@ -472,7 +472,7 @@ const duplicateProject = (base: BaseType) => {
                 <template #default>
                   <GeneralProjectIcon :type="base?.type" />
                 </template>
-              </LazyGeneralBaseColorPicker>
+              </LazyGeneralBaseIconColorPicker>
             </div>
           </div>
 

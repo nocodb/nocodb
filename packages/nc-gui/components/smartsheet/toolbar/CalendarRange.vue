@@ -93,7 +93,7 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
   )
 })
 
-const addCalendarRange = async () => {
+/* const addCalendarRange = async () => {
   _calendar_ranges.value.push({
     fk_from_column_id: dateFieldOptions.value![0].value as string,
     fk_to_column_id: null,
@@ -109,7 +109,7 @@ const removeRange = async (id: number) => {
 const saveCalendarRange = async (range: CalendarRangeType, value?) => {
   range.fk_to_column_id = value
   await saveCalendarRanges()
-}
+} */
 </script>
 
 <template>
@@ -130,7 +130,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
       </a-button>
     </div>
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[36rem]" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-full p-6 w-[25rem]" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -165,7 +165,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             </a-select-option>
           </NcSelect>
 
-          <div
+          <!--          <div
             v-if="range.fk_to_column_id === null && isEeUI"
             class="flex cursor-pointer flex text-gray-800 items-center gap-1"
             data-testid="nc-calendar-range-add-end-date"
@@ -209,14 +209,16 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
               </NcButton>
             </div>
           </template>
+
           <NcButton v-if="id !== 0" size="small" type="secondary" @click="removeRange(id)">
             <component :is="iconMap.close" />
           </NcButton>
+            -->
         </div>
-        <NcButton class="mt-2" data-testid="nc-calendar-range-add-btn" size="small" type="secondary" @click="addCalendarRange">
+        <!--        <NcButton class="mt-2" data-testid="nc-calendar-range-add-btn" size="small" type="secondary" @click="addCalendarRange">
           <component :is="iconMap.plus" />
           Add another date field
-        </NcButton>
+        </NcButton> -->
       </div>
     </template>
   </NcDropdown>

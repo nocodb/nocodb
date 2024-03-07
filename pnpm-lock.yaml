@@ -275,8 +275,8 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       '@iconify-json/lucide':
-        specifier: ^1.1.171
-        version: 1.1.171
+        specifier: ^1.1.172
+        version: 1.1.172
       '@iconify-json/material-symbols':
         specifier: ^1.1.74
         version: 1.1.74
@@ -901,7 +901,7 @@ importers:
         version: 6.3.4
       ts-jest:
         specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.3.2)
+        version: 29.1.2(@babel/core@7.23.9)(jest@29.7.0)(typescript@5.3.2)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.1(typescript@5.3.2)(webpack@5.90.3)
@@ -971,7 +971,7 @@ importers:
         version: 5.0.5
       ts-jest:
         specifier: ^29.1.2
-        version: 29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.3.2)
+        version: 29.1.2(@babel/core@7.23.9)(jest@29.7.0)(typescript@5.3.2)
       tsc-alias:
         specifier: ^1.8.8
         version: 1.8.8
@@ -4522,8 +4522,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.171:
-    resolution: {integrity: sha512-qYOXqnmYBHwH6yGVHOyNgLQ2WFz3UrZpBou37jFe1OWtTKbu/8fDixZuv/rBEhyQcX1mw+dFY+dguYNlGjYAmQ==}
+  /@iconify-json/lucide@1.1.172:
+    resolution: {integrity: sha512-D7O4Z/Sx9xYVtkx5EcNpe6B5btZwEH9Fxf2KQh9nwFgOGGXdTuOB2Sh0AHfR6K3eCQ63Uhvz/4MzaIyUoixPQw==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -25009,7 +25009,7 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /ts-jest@29.1.2(@babel/core@7.23.7)(jest@29.7.0)(typescript@5.3.2):
+  /ts-jest@29.1.2(@babel/core@7.23.9)(jest@29.7.0)(typescript@5.3.2):
     resolution: {integrity: sha512-br6GJoH/WUX4pu7FbZXuWGKGNDuU7b8Uj77g/Sp7puZV6EXzuByl6JrECvm0MzVzSTkSHWTihsXt+5XYER5b+g==}
     engines: {node: ^16.10.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -25030,7 +25030,7 @@ packages:
       esbuild:
         optional: true
     dependencies:
-      '@babel/core': 7.23.7
+      '@babel/core': 7.23.9
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
       jest: 29.7.0(@types/node@20.11.25)(ts-node@10.9.2)

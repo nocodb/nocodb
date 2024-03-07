@@ -267,9 +267,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   function handlePreFillForm() {
-    if (Object.keys(route.query).length && sharedViewMeta.value.preFillEnabled) {
-      columns.value = columns.value.map((c) => {
-        const queryParam = route.query?.[c.title as string] || route.query?.[encodeURIComponent(c.title as string)]
+    if (Object.keys(route.query || {}).length && sharedViewMeta.value.preFillEnabled) {
+      columns.value = (columns.value || []).map((c) => {
+        const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
         if (
           !c.title ||
           !queryParam ||

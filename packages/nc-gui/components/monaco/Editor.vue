@@ -12,18 +12,17 @@ interface Props {
   validate?: boolean
   disableDeepCompare?: boolean
   readOnly?: boolean
-  autoFocus: boolean
+  autoFocus?: boolean
 }
 
-const {
-  hideMinimap,
-  lang = 'json',
-  validate = true,
-  disableDeepCompare = false,
-  modelValue,
-  readOnly,
-  autoFocus = true,
-} = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  lang: 'json',
+  validate: true,
+  disableDeepCompare: false,
+  autoFocus: true,
+})
+
+const { hideMinimap, lang, validate, disableDeepCompare, modelValue, readOnly, autoFocus } = props
 
 const emits = defineEmits(['update:modelValue'])
 

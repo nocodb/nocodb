@@ -346,9 +346,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       }
 
       if (!isProjectPopulated) {
-        console.log('update project 1')
         await loadProjectTables(base.id!)
-        console.log('update project 2')
       }
       break
     default:

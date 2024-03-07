@@ -124,11 +124,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {} as Record<string, FormColumnType>,
       )
 
-      columns.value = viewMeta.model?.columns?.map((c) => ({
-        ...c,
-        meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
-        description: fieldById[c.id].description,
-      }))
+      columns.value = viewMeta.model?.columns?.map((c) => {
+        if (!isSystemColumn(c) && !isVirtualCol(c) && c?.title && c?.cdf) {
+          formState.value[c.title] = c.cdf
+        }
+
+        return {
+          ...c,
+          meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
+          description: fieldById[c.id].description,
+        }
+      })
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
@@ -262,7 +268,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   function handlePreFillForm() {
     if (Object.keys(route.query).length && sharedViewMeta.value.preFillEnabled) {
-      columns.value = columns.value?.map((c) => {
+      columns.value = columns.value.map((c) => {
         const queryParam = route.query?.[c.title as string] || route.query?.[encodeURIComponent(c.title as string)]
         if (
           !c.title ||

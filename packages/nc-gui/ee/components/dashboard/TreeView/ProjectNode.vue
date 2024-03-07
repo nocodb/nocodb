@@ -167,6 +167,8 @@ const setColor = async (hue: number, base: BaseType) => {
     $e('a:base:icon:color:navdraw', { iconHue: hue })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 

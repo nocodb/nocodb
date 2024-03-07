@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Slider } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
 
 import { BASE_ICON_COLOR_HUE_DATA as preDefinedHueData } from '#imports'
@@ -122,7 +121,7 @@ watch(
                     ? `hsv(${preDefinedHueData[`_${colorRef.h}`].tint.h},${preDefinedHueData[`_${colorRef.h}`].tint.s}%, ${
                         preDefinedHueData[`_${colorRef.h}`].tint.v
                       }%)`
-                    : `hsv(${colorRef.h ?? defaultHueValue}, 30%, 100%)`,
+                    : `hsv(${colorRef.h ?? defaultHueValue}, 50%, 100%)`,
                 ).toHexString()
               "
             />
@@ -181,20 +180,14 @@ watch(
             <template #overlay>
               <div class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg flex flex-col space-y-4">
                 <div>{{ $t('labels.customHue') }}</div>
-
-                <Slider
+                
+                <LazyGeneralColorHueSliderWrapper
                   :model-value="colorRef"
-                  class="nc-hue-color-picker"
-                  :style="{
-                    ['--nc-hue-slider-pointer-color']: tinycolor(
-                      `hsv(${colorRef.h ?? defaultHueValue}, 100%, 100%)`,
-                    ).toHexString(),
-                  }"
                   @update:model-value="
                     (value) => {
-                      if (!value?.hsv?.h) return
+                      if (value?.h !== 0 && !value?.h) return
 
-                      colorRef.h = value.hsv.h
+                      colorRef.h = value.h
                     }
                   "
                 />

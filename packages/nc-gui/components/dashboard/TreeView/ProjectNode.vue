@@ -423,18 +423,19 @@ const projectDelete = () => {
             <div v-e="['c:base:iconColorChange']" class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <GeneralBaseIconColorPicker
-                v-else
-                :key="`${base.id}_${parseProp(base.meta).iconHue}`"
-                :hue="parseProp(base.meta).iconHue"
-                size="small"
-                :readonly="base?.type && base?.type !== 'database'"
-                @color-selected="setColor($event, base)"
-              >
-                <template #default>
-                  <GeneralProjectIcon :type="base?.type" />
-                </template>
-              </GeneralBaseIconColorPicker>
+              <div v-else>
+                <GeneralBaseIconColorPicker
+                  :key="`${base.id}_${parseProp(base.meta).iconHue}`"
+                  :hue="parseProp(base.meta).iconHue"
+                  size="small"
+                  :readonly="base?.type && base?.type !== 'database'"
+                  @color-selected="setColor($event, base)"
+                >
+                  <template #default>
+                    <GeneralProjectIcon :type="base?.type" />
+                  </template>
+                </GeneralBaseIconColorPicker>
+              </div>
             </div>
           </div>
 

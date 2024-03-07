@@ -45,7 +45,7 @@ provide(SidebarTableInj, table)
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
 
 const { loadViews: _loadViews } = useViewsStore()
-const { activeView, activeViewTitleOrId } = storeToRefs(useViewsStore())
+const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // todo: temp
@@ -139,20 +139,24 @@ const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
 })
 
-const baseTimeout = ref()
+const tableTimeout = ref()
 
 watch(openedTableId, () => {
-  console.log('view ', openedTableId.value)
-  if (baseTimeout.value) {
-    clearTimeout(baseTimeout.value)
+  if (tableTimeout.value) {
+    clearTimeout(tableTimeout.value)
   }
-  if (table.value.id !== openedTableId.value && isExpanded.value) {
-    baseTimeout.value = setTimeout(() => {
+
+  if (base.value.id === activeView.value?.base_id && table.value.id !== openedTableId.value && isExpanded.value) {
+    const views = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+    if (views.length) return
+
+    tableTimeout.value = setTimeout(() => {
       if (isExpanded.value) {
         isExpanded.value = false
       }
-      clearTimeout(baseTimeout.value)
-    }, 5000)
+      clearTimeout(tableTimeout.value)
+    }, 10000)
   }
 })
 </script>

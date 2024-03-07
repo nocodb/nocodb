@@ -405,22 +405,6 @@ const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
-
-const baseTimeout = ref()
-
-watch(activeProjectId, () => {
-  if (activeProjectId.value !== base.value.id && base.value.isExpanded) {
-    if (baseTimeout.value) {
-      clearTimeout(baseTimeout.value)
-    }
-    baseTimeout.value = setTimeout(() => {
-      if (base.value?.id && base.value.isExpanded) {
-        onProjectClick(bases.value.get(base.value.id!), true, true)
-      }
-      clearTimeout(baseTimeout.value)
-    }, 5000)
-  }
-})
 </script>
 
 <template>

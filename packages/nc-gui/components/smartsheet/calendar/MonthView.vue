@@ -772,52 +772,53 @@ const addRecord = (date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <div
-        v-for="(record, recordIndex) in recordsToDisplay.records"
-        :key="recordIndex"
-        :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"
-        :data-unique-id="record.rowMeta.id"
-        :style="{
-          ...record.rowMeta.style,
-          zIndex: record.rowMeta.id === draggingId ? 100 : 0,
-        }"
-        class="absolute group draggable-record cursor-pointer pointer-events-auto"
-        @mouseleave="hoverRecord = null"
-        @mouseover="hoverRecord = record.rowMeta.id"
-        @mousedown.stop="dragStart($event, record)"
-      >
-        <LazySmartsheetRow :row="record">
-          <LazySmartsheetCalendarRecordCard
-            :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === draggingId"
-            :position="record.rowMeta.position"
-            :record="record"
-            :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-            :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
-            @resize-start="onResizeStart"
-            @dblclick.stop="emit('expandRecord', record)"
-          >
-            <template v-if="!isRowEmpty(record, displayField)">
-              <LazySmartsheetCalendarCell
-                v-model="record.row[displayField!.title!]"
-                :bold="getFieldStyle(displayField).bold"
-                :column="displayField"
-                :italic="getFieldStyle(displayField).italic"
-                :underline="getFieldStyle(displayField).underline"
-              />
-            </template>
-            <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
-              <LazySmartsheetCalendarCell
-                v-if="!isRowEmpty(record, field!)"
-                v-model="record.row[field!.title!]"
-                :bold="getFieldStyle(field).bold"
-                :column="field"
-                :italic="getFieldStyle(field).italic"
-                :underline="getFieldStyle(field).underline"
-              />
-            </template>
-          </LazySmartsheetCalendarRecordCard>
-        </LazySmartsheetRow>
-      </div>
+      <template v-for="(record, recordIndex) in recordsToDisplay.records" :key="recordIndex">
+        <div
+          v-if="record.rowMeta.style?.display !== 'none'"
+          :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"
+          :data-unique-id="record.rowMeta.id"
+          :style="{
+            ...record.rowMeta.style,
+            zIndex: record.rowMeta.id === draggingId ? 100 : 0,
+          }"
+          class="absolute group draggable-record cursor-pointer pointer-events-auto"
+          @mouseleave="hoverRecord = null"
+          @mouseover="hoverRecord = record.rowMeta.id"
+          @mousedown.stop="dragStart($event, record)"
+        >
+          <LazySmartsheetRow :row="record">
+            <LazySmartsheetCalendarRecordCard
+              :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === draggingId"
+              :position="record.rowMeta.position"
+              :record="record"
+              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
+              @resize-start="onResizeStart"
+              @dblclick.stop="emit('expandRecord', record)"
+            >
+              <template v-if="!isRowEmpty(record, displayField)">
+                <LazySmartsheetCalendarCell
+                  v-model="record.row[displayField!.title!]"
+                  :bold="getFieldStyle(displayField).bold"
+                  :column="displayField"
+                  :italic="getFieldStyle(displayField).italic"
+                  :underline="getFieldStyle(displayField).underline"
+                />
+              </template>
+              <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+                <LazySmartsheetCalendarCell
+                  v-if="!isRowEmpty(record, field!)"
+                  v-model="record.row[field!.title!]"
+                  :bold="getFieldStyle(field).bold"
+                  :column="field"
+                  :italic="getFieldStyle(field).italic"
+                  :underline="getFieldStyle(field).underline"
+                />
+              </template>
+            </LazySmartsheetCalendarRecordCard>
+          </LazySmartsheetRow>
+        </div>
+      </template>
     </div>
   </div>
 </template>

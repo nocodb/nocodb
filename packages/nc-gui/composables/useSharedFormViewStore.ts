@@ -384,7 +384,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
       case UITypes.Rating: {
         if (!isNaN(Number(value))) {
-          preFillValue = Number(value) > parseProp(c.meta).max ? parseProp(c.meta).max : Number(value)
+          preFillValue = Math.min(Math.max(Number(value), 0), parseProp(c.meta).max ?? 5)
         }
         break
       }

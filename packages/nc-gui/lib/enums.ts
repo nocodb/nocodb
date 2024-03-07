@@ -139,6 +139,6 @@ export enum ImportSource {
 
 export enum PreFilledMode {
   Default = 'default',
-  Locked = 'locked',
   Hidden = 'hidden',
+  Locked = 'locked',
 }

@@ -138,6 +138,22 @@ watch(
 const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
 })
+
+const baseTimeout = ref()
+
+watch(openedTableId, () => {
+  if (table.value.id !== openedTableId.value && isExpanded.value) {
+    if (baseTimeout.value) {
+      clearTimeout(baseTimeout.value)
+    }
+    baseTimeout.value = setTimeout(() => {
+      if (isExpanded.value) {
+        isExpanded.value = false
+      }
+      clearTimeout(baseTimeout.value)
+    }, 5000)
+  }
+})
 </script>
 
 <template>

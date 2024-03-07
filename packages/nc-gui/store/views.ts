@@ -1,6 +1,7 @@
 import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
+import { useMagicKeys, navigateToBlankTargetOpenOption } from '#imports'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -26,6 +27,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const tablesStore = useTablesStore()
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const { meta: metaKey, ctrlKey } = useMagicKeys()
 
   const recentViews = computed<RecentView[]>(() =>
     allRecentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
@@ -216,6 +219,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     hardReload?: boolean
     doNotSwitchTab?: boolean
   }) => {
+    const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+
     const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs'
 
     let baseIdOrBaseId = baseId
@@ -231,29 +236,63 @@ export const useViewsStore = defineStore('viewsStore', () => {
       router.currentRoute.value.query.page &&
       router.currentRoute.value.query.page === 'fields'
     ) {
-      await router.push({
-        name: routeName,
-        params: {
-          viewTitle: view.id || '',
-          viewId: tableId,
-          baseId: baseIdOrBaseId,
-          slugs,
-        },
-        query: router.currentRoute.value.query,
-      })
+      if (cmdOrCtrl) {
+        await navigateTo(
+          router.resolve({
+            name: routeName,
+            params: {
+              viewTitle: view.id || '',
+              viewId: tableId,
+              baseId: baseIdOrBaseId,
+              slugs,
+            },
+            query: router.currentRoute.value.query,
+          }).href,
+          {
+            open: navigateToBlankTargetOpenOption,
+          },
+        )
+      } else {
+        await router.push({
+          name: routeName,
+          params: {
+            viewTitle: view.id || '',
+            viewId: tableId,
+            baseId: baseIdOrBaseId,
+            slugs,
+          },
+          query: router.currentRoute.value.query,
+        })
+      }
     } else {
-      await router.push({
-        name: routeName,
-        params: {
-          viewTitle: view.id || '',
-          viewId: tableId,
-          baseId: baseIdOrBaseId,
-          slugs,
-        },
-      })
+      if (cmdOrCtrl) {
+        const href = router.resolve({
+          name: routeName,
+          params: {
+            viewTitle: view.id || '',
+            viewId: tableId,
+            baseId: baseIdOrBaseId,
+            slugs,
+          },
+        }).href
+
+        await navigateTo(href, {
+          open: navigateToBlankTargetOpenOption,
+        })
+      } else {
+        await router.push({
+          name: routeName,
+          params: {
+            viewTitle: view.id || '',
+            viewId: tableId,
+            baseId: baseIdOrBaseId,
+            slugs,
+          },
+        })
+      }
     }
 
-    if (hardReload) {
+    if (!cmdOrCtrl && hardReload) {
       await router
         .replace({
           name: routeName,

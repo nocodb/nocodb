@@ -19,6 +19,8 @@ import {
   useNuxtApp,
   useTabs,
   watch,
+  useMagicKeys,
+  navigateToBlankTargetOpenOption,
 } from '#imports'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {
@@ -60,7 +62,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => baseTables.value.get(param.baseId) || [])
   const base = computed(() => bases.value.get(param.baseId))
 
-  const openTable = async (table: SidebarTableNode) => {
+  const openTable = async (table: SidebarTableNode, cmdOrCtrl: boolean = false) => {
     if (!table.base_id) return
 
     let base = bases.value.get(table.base_id)
@@ -86,7 +88,14 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
     const navigateToTable = async () => {
       if (openedViewsTab.value === 'view') {
-        await navigateTo(`/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`)
+        await navigateTo(
+          `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
+          cmdOrCtrl
+            ? {
+                open: navigateToBlankTargetOpenOption,
+              }
+            : undefined,
+        )
       }
 
       table.isViewsLoading = true
@@ -99,7 +108,16 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           // find the default view and navigate to it, if not found navigate to the first one
           const defaultView = views.find((v) => v.is_default) || views[0]
 
-          await navigateTo(`/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${openedViewsTab.value}`)
+          await navigateTo(
+            `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${
+              openedViewsTab.value
+            }`,
+            cmdOrCtrl
+              ? {
+                  open: navigateToBlankTargetOpenOption,
+                }
+              : undefined,
+          )
         }
       } catch (e) {
         console.error(e)
@@ -119,8 +137,11 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
         table.isMetaLoading = false
       }
     }
-
-    await Promise.all([navigateToTable(), loadTableMeta()])
+    if (cmdOrCtrl) {
+      await navigateToTable()
+    } else {
+      await Promise.all([navigateToTable(), loadTableMeta()])
+    }
   }
 
   const createTable = async () => {

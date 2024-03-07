@@ -184,7 +184,7 @@
     "@types/jest": "^29.5.12",
     "@types/mocha": "^10.0.6",
     "@types/multer": "^1.4.11",
-    "@types/node": "20.11.24",
+    "@types/node": "20.11.25",
     "@types/passport-google-oauth20": "^2.0.14",
     "@types/passport-jwt": "^3.0.13",
     "@types/supertest": "^2.0.16",

@@ -428,7 +428,7 @@ const projectDelete = () => {
                   :key="`${base.id}_${parseProp(base.meta).iconHue}`"
                   :hue="parseProp(base.meta).iconHue"
                   size="small"
-                  :readonly="base?.type && base?.type !== 'database'"
+                  :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
                   @color-selected="setColor($event, base)"
                 >
                   <template #default>

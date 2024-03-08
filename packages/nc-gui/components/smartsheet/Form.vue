@@ -1466,7 +1466,7 @@ useEventListener(
                             <SmartsheetHeaderCellIcon v-else :column-meta="field" />
                             <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_68px)] mr-4">
                               <div class="w-full flex items-center">
-                                <div class="ml-1 inline-block max-w-1/2">
+                                <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
                                   <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
                                     <template #title>
                                       <div class="text-center">

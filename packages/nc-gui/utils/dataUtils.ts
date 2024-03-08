@@ -102,9 +102,9 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
     if (
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
-      !isLinksOrLTAR({ uidt: col.uidt! }) &&
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(col.uidt) &&
-      col?.cdf
+      col?.cdf &&
+      !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
       const defaultValue = col.cdf
       acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'/, '').replace(/'$/, '') : defaultValue

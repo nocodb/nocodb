@@ -34,14 +34,6 @@ const updateColorHue = (value?: string | number | null) => {
   colorRef.value.h = !isNaN(parseInt(`${value}`)) ? +Math.min(parseInt(`${value}`), 360) : 0
 }
 
-function selectColor(value: number) {
-  colorRef.value.h = value
-
-  emit('colorSelected', value)
-
-  isOpen.value = false
-}
-
 const onClick = (e: Event) => {
   if (readonly) return
 

@@ -155,16 +155,16 @@ defineExpose({
   enableEditMode,
 })
 
-const setColor = async (hue: number, base: BaseType) => {
+const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
       ...parseProp(base.meta),
-      iconHue: hue,
+      iconColor: color,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:color:navdraw', { iconHue: hue })
+    $e('a:base:icon:color:navdraw', { iconColor: color })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -465,15 +465,13 @@ const duplicateProject = (base: BaseType) => {
 
               <div v-else>
                 <GeneralBaseIconColorPicker
-                  :key="`${base.id}_${parseProp(base.meta).iconHue}`"
-                  :hue="parseProp(base.meta).iconHue"
+                  :key="`${base.id}_${parseProp(base.meta).iconColor}`"
+                  :type="base?.type"
+                  :model-value="parseProp(base.meta).iconColor"
                   size="small"
                   :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
-                  @color-selected="setColor($event, base)"
+                  @update:model-value="setColor($event, base)"
                 >
-                  <template #default>
-                    <GeneralProjectIcon :type="base?.type" />
-                  </template>
                 </GeneralBaseIconColorPicker>
               </div>
             </div>

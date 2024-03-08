@@ -58,7 +58,7 @@ export class CommandPaletteService {
             title: base.title,
             parent: `ws-nav-${base.fk_workspace_id}`,
             icon: 'project',
-            iconHue: deserializeJSON(base.meta)?.iconHue,
+            iconColor: deserializeJSON(base.meta)?.iconColor,
             scopePayload: {
               scope: `p-${base.id}`,
               data: {
@@ -134,7 +134,7 @@ export class CommandPaletteService {
             title: b.title,
             parent: `ws-${workspace.id}`,
             icon: 'project',
-            iconHue: deserializeJSON(b.meta)?.iconHue,
+            iconColor: deserializeJSON(b.meta)?.iconColor,
             section: 'Bases',
           });
         }

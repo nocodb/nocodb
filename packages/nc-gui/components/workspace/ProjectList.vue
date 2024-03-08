@@ -182,16 +182,16 @@ function onProjectTitleClick(index: number) {
   }
 }
 
-const setColor = async (hue: number, base: BaseType) => {
+const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
       ...parseProp(base.meta),
-      iconHue: hue,
+      iconColor: color,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:color:navdraw', { iconHue: hue })
+    $e('a:base:icon:color:navdraw', { iconColor: color })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -252,15 +252,12 @@ const setColor = async (hue: number, base: BaseType) => {
           <div class="flex items-center nc-base-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
               <GeneralBaseIconColorPicker
-                :key="parseProp(record.meta).iconHue"
-                :hue="parseProp(record.meta).iconHue"
-                size="small"
-                readonly
-                @color-selected="setColor($event, record)"
+                :key="`${record.id}_${parseProp(record.meta).iconColor}`"
+                :type="record?.type"
+                :model-value="parseProp(record.meta).iconColor"
+                :readonly="(record?.type && record?.type !== 'database') || !isUIAllowed('baseRename')"
+                @update:model-value="setColor($event, record)"
               >
-                <template #default>
-                  <GeneralProjectIcon :type="record.type" />
-                </template>
               </GeneralBaseIconColorPicker>
               <!-- todo: replace with switch -->
             </div>

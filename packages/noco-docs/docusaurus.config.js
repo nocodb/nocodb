@@ -68,7 +68,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           routeBasePath: "/",
           editUrl:
-            "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/docs/",
+            "https://github.com/nocodb/nocodb/tree/develop/packages/noco-docs/",
           lastVersion: "current",
           versions: {
             current: {

@@ -146,7 +146,7 @@ watch(openedTableId, () => {
     clearTimeout(tableTimeout.value)
   }
 
-  if (base.value.id === activeView.value?.base_id && table.value.id !== openedTableId.value && isExpanded.value) {
+  if (table.value.id !== openedTableId.value && isExpanded.value) {
     const views = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
 
     if (views.length) return

@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isColumnRequiredAndNull } from './columnUtils'
 import type { Row } from '~/lib'

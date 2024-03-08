@@ -138,7 +138,7 @@
     "nestjs-kafka": "^1.0.6",
     "nestjs-throttler-storage-redis": "^0.4.2",
     "nocodb-sdk": "workspace:^",
-    "nodemailer": "^6.9.11",
+    "nodemailer": "^6.9.12",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.4",
     "os-locale": "^6.0.2",

@@ -235,7 +235,7 @@ async function addNewProjectChildEntity() {
   isAddNewProjectChildEntityLoading.value = true
 
   const isProjectPopulated = basesStore.isProjectPopulated(base.value.id!)
-  if (!isProjectPopulated && base.value?.type === NcProjectType.DB) {
+  if (!isProjectPopulated && base.value.type === NcProjectType.DB) {
     // We do not wait for tables api, so that add new table is seamless.
     // Only con would be while saving table duplicate table name FE validation might not work
     // If the table list api takes time to load before the table name validation
@@ -245,7 +245,7 @@ async function addNewProjectChildEntity() {
   try {
     openTableCreateDialog()
 
-    if (!base.value.isExpanded && base.value?.type !== NcProjectType.DB) {
+    if (!base.value.isExpanded && base.value.type !== NcProjectType.DB) {
       base.value.isExpanded = true
     }
   } finally {
@@ -736,7 +736,7 @@ const projectDelete = () => {
     </div>
     <template v-if="!isSharedBase" #overlay>
       <NcMenu class="!py-0 rounded text-sm">
-        <template v-if="contextMenuTarget.type === 'base' && base?.type === 'database'"></template>
+        <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'"></template>
 
         <template v-else-if="contextMenuTarget.type === 'source'"></template>
 

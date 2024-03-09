@@ -142,10 +142,11 @@ const isTableOpened = computed(() => {
 const baseTimeout = ref()
 
 watch(openedTableId, () => {
+  console.log('view ', openedTableId.value)
+  if (baseTimeout.value) {
+    clearTimeout(baseTimeout.value)
+  }
   if (table.value.id !== openedTableId.value && isExpanded.value) {
-    if (baseTimeout.value) {
-      clearTimeout(baseTimeout.value)
-    }
     baseTimeout.value = setTimeout(() => {
       if (isExpanded.value) {
         isExpanded.value = false

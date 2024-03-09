@@ -926,7 +926,14 @@
     "startCommenting": "Start commenting!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
-    "selectAllFields": "Select all fields"
+    "selectAllFields": "Select all fields",
+    "preFilledFields": {
+      "title": "Pre-filled Fields",
+      "default": "Allow pre-filling fields",
+      "disabled": "Disable pre-filling fields",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields"
+    }
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { useMetas } from '#imports'
+import { useMetas, PreFilledMode } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -42,6 +42,10 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
 
     _view.value = value
   },
+})
+
+const isPublicShared = computed(() => {
+  return !!activeView.value?.uuid
 })
 
 const url = computed(() => {
@@ -142,6 +146,16 @@ const surveyMode = computed({
 
     activeView.value.meta = { ...activeView.value.meta, surveyMode: survey }
     saveSurveyMode()
+  },
+})
+
+const preFilledMode = computed({
+  get: () => parseProp(activeView.value?.meta)?.preFilledMode || PreFilledMode.Default,
+  set: (preFilled) => {
+    if (!activeView.value?.meta) return
+
+    activeView.value.meta = { ...activeView.value.meta, preFilledMode: preFilled }
+    savePreFilledMode()
   },
 })
 
@@ -254,9 +268,10 @@ async function updateSharedView() {
   return true
 }
 
-const isPublicShared = computed(() => {
-  return !!activeView.value?.uuid
-})
+async function savePreFilledMode() {
+  await updateSharedView()
+  $e(`a:view:share:${preFilledMode.value}-prefilled-mode`)
+}
 </script>
 
 <template>
@@ -307,11 +322,7 @@ const isPublicShared = computed(() => {
           <div
             v-if="
               activeView &&
-              (activeView.type === ViewTypes.GRID ||
-                activeView.type === ViewTypes.KANBAN ||
-                activeView.type === ViewTypes.GALLERY ||
-                activeView.type === ViewTypes.MAP ||
-                activeView.type === ViewTypes.CALENDAR)
+              [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
             "
             class="flex flex-row justify-between"
           >
@@ -325,23 +336,54 @@ const isPublicShared = computed(() => {
             />
           </div>
 
-          <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
-            <div class="text-black">{{ $t('activity.surveyMode') }}</div>
-            <a-switch
-              v-model:checked="surveyMode"
-              v-e="['c:share:view:surver-mode:toggle']"
-              data-testid="nc-modal-share-view__surveyMode"
+          <template v-if="activeView?.type === ViewTypes.FORM">
+            <div class="flex flex-row justify-between">
+              <div class="text-black">{{ $t('activity.surveyMode') }}</div>
+              <a-switch
+                v-model:checked="surveyMode"
+                v-e="['c:share:view:surver-mode:toggle']"
+                data-testid="nc-modal-share-view__surveyMode"
+              >
+              </a-switch>
+            </div>
+            <div v-if="!isEeUI" class="flex flex-row justify-between">
+              <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
+              <a-switch
+                v-model:checked="withRTL"
+                v-e="['c:share:view:rtl-orientation:toggle']"
+                data-testid="nc-modal-share-view__RTL"
+              >
+              </a-switch>
+            </div>
+          </template>
+        </div>
+        <div
+          v-if="activeView?.type === ViewTypes.FORM"
+          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+        >
+          <div>
+            <div class="text-black">{{ $t('activity.preFilledFields.title') }}</div>
+
+            <a-select
+              v-model:value="preFilledMode"
+              class="nc-pre-filled-mode !rounded-md w-full"
+              dropdown-class-name="nc-dropdown-pre-filled-mode border-1 !rounded-md border-gray-200"
             >
-            </a-switch>
-          </div>
-          <div v-if="activeView?.type === ViewTypes.FORM && !isEeUI" class="flex flex-row justify-between">
-            <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
-            <a-switch
-              v-model:checked="withRTL"
-              v-e="['c:share:view:rtl-orientation:toggle']"
-              data-testid="nc-modal-share-view__RTL"
-            >
-            </a-switch>
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </template>
+              <a-select-option v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
+                <div class="flex gap-2 items-center">
+                  <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="preFilledMode === mode"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </a-select>
           </div>
         </div>
       </template>
@@ -365,6 +407,12 @@ const isPublicShared = computed(() => {
     height: 1rem !important;
     min-width: 1rem !important;
     line-height: 1rem !important;
+  }
+}
+
+.nc-pre-filled-mode-wrapper {
+  .nc-pre-filled-mode.ant-select {
+    @apply !p-0 mt-2;
   }
 }
 </style>

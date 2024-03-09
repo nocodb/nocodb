@@ -257,9 +257,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   function handlePreFillForm() {
     if (Object.keys(route.query).length && sharedViewMeta.value.preFillEnabled) {
       columns.value = columns.value?.map((c) => {
+        const queryParam = route.query?.[c.title as string] || route.query?.[encodeURIComponent(c.title as string)]
         if (
           !c.title ||
-          !route.query?.[c.title] ||
+          !queryParam ||
           isSystemColumn(c) ||
           isVirtualCol(c) ||
           // (isVirtualCol(c) && !isLinksOrLTAR(c)) || // Todo: Enable this after linksOrLTAR prefill supported
@@ -267,7 +268,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ) {
           return c
         }
-        const preFillValue = getPreFillValue(c, decodeURIComponent(route.query?.[c.title] as string).trim())
+
+        const preFillValue = getPreFillValue(c, decodeURIComponent(queryParam as string).trim())
         if (preFillValue !== undefined) {
           // Prefill form state
           formState.value[c.title] = preFillValue

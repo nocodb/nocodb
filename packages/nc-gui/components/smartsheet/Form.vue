@@ -1825,10 +1825,10 @@ useEventListener(
 .nc-form-field-ghost {
   @apply bg-gray-50;
 }
-:deep(.nc-form-input-required + button):focus {
+:deep(.nc-form-input-required + button):focus-visible {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
-:deep(.nc-form-switch-focus):focus {
+:deep(.nc-form-switch-focus):focus-visible {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
 .nc-form-field-layout {
@@ -1839,7 +1839,7 @@ useEventListener(
     .ant-radio {
       @apply !top-0;
 
-      &:focus-within .ant-radio-inner {
+      .ant-radio-input:focus-visible + .ant-radio-inner {
         box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
       }
     }
@@ -1847,12 +1847,9 @@ useEventListener(
 }
 
 .nc-form-wrapper {
-  .ant-switch:focus,
-  .ant-switch-checked:focus {
+  .ant-switch:focus-visible,
+  .ant-switch-checked:focus-visible {
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
-    &:hover {
-      box-shadow: none;
-    }
   }
 }
 </style>

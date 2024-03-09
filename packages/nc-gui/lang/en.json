@@ -964,7 +964,8 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "fillTheFormFieldFirst": "Fill the form fields first"
+    "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

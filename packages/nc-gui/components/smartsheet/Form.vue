@@ -31,7 +31,6 @@ import {
   onClickOutside,
   parseProp,
   provide,
-  reactive,
   ref,
   useDebounceFn,
   useEventListener,
@@ -82,7 +81,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const formRef = ref()
 
-let formState = reactive<Record<string, any>>({})
+const formState = ref<Record<string, any>>({})
 
 const secondsRemain = ref(0)
 
@@ -112,7 +111,7 @@ const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 const { state, row } = useProvideSmartsheetRowStore(
   meta,
   ref({
-    row: formState,
+    row: formState.value,
     oldRow: {},
     rowMeta: { new: true },
   }),
@@ -198,7 +197,7 @@ const updateView = useDebounceFn(
 const updatePreFillFormSearchParams = useDebounceFn(() => {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
-  const preFilledData = { ...formState, ...state.value }
+  const preFilledData = { ...formState.value, ...state.value }
 
   const searchParams = new URLSearchParams()
 
@@ -224,7 +223,7 @@ async function submitForm() {
   }
 
   await insertRow({
-    row: { ...formState, ...state.value },
+    row: { ...formState.value, ...state.value },
     oldRow: {},
     rowMeta: { new: true },
   })
@@ -235,7 +234,7 @@ async function submitForm() {
 async function clearForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
-  formState = reactive<Record<string, any>>({})
+  formState.value = {}
   state.value = {}
   await formRef.value?.clearValidate()
   reloadEventHook.trigger()
@@ -564,7 +563,7 @@ onMounted(async () => {
   if (imageCropperData.value.src) {
     URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
   }
-  
+
   preFillFormSearchParams.value = ''
 
   isLoadingFormView.value = true
@@ -592,19 +591,25 @@ watch(view, (nextView) => {
   }
 })
 
-watch([formState, state.value], async () => {
-  for (const virtualField in state.value) {
-    if (!formState[virtualField]) {
-      formState[virtualField] = state.value[virtualField]
+watch(
+  [formState, state],
+  async () => {
+    for (const virtualField in state.value) {
+      formState.value[virtualField] = state.value[virtualField]
     }
-  }
 
-  try {
-    await formRef.value?.validateFields([...Object.keys(formState)])
-  } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
-  }
-})
+    updatePreFillFormSearchParams()
+
+    try {
+      await formRef.value?.validateFields([...Object.keys(formState.value)])
+    } catch (e: any) {
+      e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
+    }
+  },
+  {
+    deep: true,
+  },
+)
 
 watch(activeRow, (newValue) => {
   if (newValue) {
@@ -622,10 +627,6 @@ watch([focusLabel, activeRow], () => {
   if (activeRow && focusLabel.value) {
     focusLabel.value?.focus()
   }
-})
-
-watch([formState, state], () => {
-  updatePreFillFormSearchParams()
 })
 
 useEventListener(

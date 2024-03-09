@@ -7,8 +7,6 @@ const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
 const { getBaseUrl, appInfo } = useGlobal()
 
-const { t } = useI18n()
-
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
@@ -428,14 +426,14 @@ watchEffect(() => {})
 
           <a-radio-group
             v-if="formPreFill.preFillEnabled"
-            :value="formPreFill.preFilledMode || ''"
+            :value="formPreFill.preFilledMode"
             class="nc-field-layout-list"
             data-testid="nc-modal-share-view__preFillMode"
             @update:value="
               (value) => {
                 formPreFill = {
                   ...formPreFill,
-                  preFilledMode: value || '',
+                  preFilledMode: value,
                 }
               }
             "

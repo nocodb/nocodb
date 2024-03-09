@@ -70,9 +70,13 @@ const enum NcForm {
   subheading = 'nc-form-sub-heading',
 }
 
-const { isMobileMode, user } = useGlobal()
+const { isMobileMode, user, getBaseUrl, appInfo } = useGlobal()
 
-const formRef = ref()
+const { dashboardUrl } = useDashboard()
+
+const workspaceStore = useWorkspace()
+
+const { copy } = useCopy()
 
 const { $api, $e } = useNuxtApp()
 
@@ -81,6 +85,8 @@ const { isUIAllowed } = useRoles()
 const { base } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+const formRef = ref()
 
 let formState = reactive<Record<string, any>>({})
 
@@ -215,17 +221,36 @@ async function submitForm() {
 }
 
 async function getPreFilledLink() {
-  if (isLocked.value || !isUIAllowed('dataInsert')) return
+  if (isLocked.value || !isUIAllowed('dataInsert') || !view.value?.uuid) return
 
   const preFilledData = { ...formState, ...state.value }
 
-  console.log('preFilled Data', preFilledData)
+  const searchParams = new URLSearchParams()
 
   for (const c of visibleColumns.value) {
-    if (c.title && preFilledData[c.title] && preFilledData[c.title].trim()) {
-      
+    if (c.title && preFilledData[c.title] && !isVirtualCol(c)) {
+      searchParams.append(c.title, preFilledData[c.title])
     }
   }
+
+  // get base url for workspace
+  const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
+
+  let dashboardUrl1 = dashboardUrl.value
+
+  if (baseUrl) {
+    dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
+  }
+
+  copy(
+    encodeURI(
+      `${dashboardUrl1}#/nc/form/${view.value?.uuid}${parseProp(view.value?.meta).surveyMode ? '/survey' : ''}${
+        searchParams.toString() ? `?${searchParams.toString()}` : ''
+      }`,
+    ),
+  )
+
+  message.info(t('msg.info.copiedToClipboard'))
 }
 
 async function clearForm() {
@@ -1317,7 +1342,7 @@ useEventListener(
                       <NcButton
                         type="primary"
                         size="small"
-                        :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isLocked"
+                        :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isLocked || !view?.uuid"
                         class="nc-form-get-pre-filled-link nc-form-focus-element"
                         data-testid="nc-form-get-pre-filled-link"
                         data-title="nc-form-get-pre-filled-link"

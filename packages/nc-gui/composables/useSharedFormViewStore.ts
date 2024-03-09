@@ -264,15 +264,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   function handlePreFillForm() {
-    // http://localhost:3000/#/nc/form/070dbc84-f3ca-43a3-808a-3547a873933f?Multiselect=a,b
     if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
-      console.log('router', route.query)
       columns.value = columns.value?.map((c) => {
         if (
           !c.title ||
           !route.query?.[c.title] ||
           isSystemColumn(c) ||
-          (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+          isVirtualCol(c) ||
+          // (isVirtualCol(c) && !isLinksOrLTAR(c)) || // Todo: Enable this after linksOrLTAR prefill supported
           isAttachment(c)
         ) {
           return c
@@ -298,8 +297,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
         return c
       })
-      console.log('form state', formState.value)
-      console.log('column', columns.value)
     }
   }
 
@@ -308,7 +305,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   function getPreFillValue(c: ColumnType, value: string) {
-    let preFillValue: any = ''
+    let preFillValue: any
     switch (c.uidt) {
       case UITypes.SingleSelect:
       case UITypes.MultiSelect:
@@ -381,7 +378,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
       case UITypes.Rating: {
         if (!isNaN(Number(value))) {
-          preFillValue = Number(value) > parseProp(c.meta).max ? parseProp(c.meta).max : Number(preFillValue)
+          preFillValue = Number(value) > parseProp(c.meta).max ? parseProp(c.meta).max : Number(value)
         }
         break
       }
@@ -396,7 +393,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         break
       }
       case UITypes.Year: {
-        if (/^\d+$/.test(preFillValue)) {
+        if (/^\d+$/.test(value)) {
           preFillValue = Number(value)
         }
         break
@@ -431,22 +428,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         }
         break
       }
-      case UITypes.LinkToAnotherRecord: {
-        if (isBt(c)) {
-          const queryOptions = value.split(',')
-
-          // console.log('column bt', queryOptions, c)
-        }
-        break
-      }
+      case UITypes.LinkToAnotherRecord:
       case UITypes.Links: {
-        if (isMm(c)) {
-          const queryOptions = value.split(',')
-
-          // console.log('column mm', queryOptions, c)
-        }
+        // Todo: create an api which will fetch query params records and then autofill records
         break
       }
+
       default: {
         if (isNumericFieldType(c, getColAbstractType(c))) {
           if (!isNaN(Number(value))) {

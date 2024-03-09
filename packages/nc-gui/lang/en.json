@@ -932,7 +932,8 @@
       "default": "Allow pre-filling fields",
       "disabled": "Disable pre-filling fields",
       "locked": "Lock pre-filled fields as read-only",
-      "hidden": "Hide pre-filled fields"
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
     }
   },
   "tooltip": {

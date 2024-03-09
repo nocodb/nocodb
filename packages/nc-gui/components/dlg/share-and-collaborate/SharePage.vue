@@ -209,7 +209,7 @@ function sharedViewUrl() {
 
   return encodeURI(
     `${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}${
-      formPreFill.value.preFillEnabled && viewStore.preFillFormSearchParams ? `?${viewStore.preFillFormSearchParams}` : ''
+      viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
     }`,
   )
 }
@@ -291,6 +291,8 @@ async function updateSharedView() {
 async function savePreFilledMode() {
   await updateSharedView()
 }
+
+watchEffect(() => {})
 </script>
 
 <template>

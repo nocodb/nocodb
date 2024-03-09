@@ -284,8 +284,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!view) return
     if (!view.base_id) return
 
-    preFillFormSearchParams.value = ''
-
     const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
 
     const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title

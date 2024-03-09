@@ -54,10 +54,6 @@ const url = computed(() => {
   return sharedViewUrl() ?? ''
 })
 
-const forPreFillUrl = computed(() => {
-  return sharedViewUrl(true) ?? ''
-})
-
 const passwordProtectedLocal = ref(false)
 
 const passwordProtected = computed(() => {
@@ -179,7 +175,7 @@ const formPreFill = computed({
   },
 })
 
-function sharedViewUrl(isPreFillUrl: boolean = false) {
+function sharedViewUrl() {
   if (!activeView.value) return
 
   let viewType
@@ -213,9 +209,7 @@ function sharedViewUrl(isPreFillUrl: boolean = false) {
 
   return encodeURI(
     `${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}${
-      isPreFillUrl && formPreFill.value.preFillEnabled && viewStore.preFillFormSearchParams
-        ? `?${viewStore.preFillFormSearchParams}`
-        : ''
+      formPreFill.value.preFillEnabled && viewStore.preFillFormSearchParams ? `?${viewStore.preFillFormSearchParams}` : ''
     }`,
   )
 }
@@ -403,57 +397,40 @@ async function savePreFilledMode() {
             >
             </a-switch>
           </div>
-          <div v-if="formPreFill.preFillEnabled">
-            <a-select
-              :value="formPreFill.preFilledMode"
-              :allow-clear="formPreFill.preFilledMode !== t('general.default')"
-              class="nc-pre-filled-mode !rounded-md w-full"
-              dropdown-class-name="nc-dropdown-pre-filled-mode border-1 !rounded-md border-gray-200"
-              data-testid="nc-modal-share-view__preFillMode"
-              @update:value="
-                (value) => {
-                  formPreFill = {
-                    ...formPreFill,
-                    preFilledMode: value || '',
-                  }
-                }
-              "
-            >
-              <template #suffixIcon>
-                <GeneralIcon icon="arrowDown" class="text-gray-700" />
-              </template>
-              <template v-for="mode of Object.values(PreFilledMode)" :key="mode">
-                <a-select-option v-if="mode !== PreFilledMode.Default" :value="mode">
-                  <div class="flex gap-2 items-center">
-                    <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
-                    <component
-                      :is="iconMap.check"
-                      v-if="formPreFill.preFilledMode === mode"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </template>
-            </a-select>
 
-            <NcTooltip
-              :disabled="!!viewStore.preFillFormSearchParams"
-              :class="{
-                '!cursor-not-allowed': !viewStore.preFillFormSearchParams,
-              }"
-            >
-              <template #title> {{ $t('tooltip.fillTheFormFieldFirst') }} </template>
-              <div
-                class="mt-0.5 border-t-1 border-gray-100 pt-3"
-                :class="{
-                  'pointer-events-none': !viewStore.preFillFormSearchParams,
-                }"
-              >
-                <GeneralCopyUrl v-model:url="forPreFillUrl" />
-              </div>
-            </NcTooltip>
-          </div>
+          <a-select
+            v-if="formPreFill.preFillEnabled"
+            :value="formPreFill.preFilledMode"
+            :allow-clear="formPreFill.preFilledMode !== t('general.default')"
+            class="nc-pre-filled-mode !rounded-md w-full !mt-0"
+            dropdown-class-name="nc-dropdown-pre-filled-mode border-1 !rounded-md border-gray-200"
+            data-testid="nc-modal-share-view__preFillMode"
+            @update:value="
+              (value) => {
+                formPreFill = {
+                  ...formPreFill,
+                  preFilledMode: value || '',
+                }
+              }
+            "
+          >
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            </template>
+            <template v-for="mode of Object.values(PreFilledMode)" :key="mode">
+              <a-select-option v-if="mode !== PreFilledMode.Default" :value="mode">
+                <div class="flex gap-2 items-center">
+                  <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="formPreFill.preFilledMode === mode"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </template>
+          </a-select>
         </div>
       </template>
     </div>

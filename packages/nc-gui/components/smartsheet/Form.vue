@@ -1332,17 +1332,21 @@ useEventListener(
                       {{ $t('activity.clearForm') }}
                     </NcButton>
                     <div class="flex items-center gap-3">
-                      <NcButton
-                        type="primary"
-                        size="small"
-                        :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isLocked || !view?.uuid"
-                        class="nc-form-get-pre-filled-link nc-form-focus-element"
-                        data-testid="nc-form-get-pre-filled-link"
-                        data-title="nc-form-get-pre-filled-link"
-                        @click="getPreFilledLink"
-                      >
-                        {{ $t('activity.getPreFilledLink') }}
-                      </NcButton>
+                      <NcTooltip :disabled="!!view?.uuid">
+                        <template #title>{{$t('tooltip.formIsNotShared')}}</template>
+                        <NcButton
+                          v-if="isUIAllowed('dataInsert') && visibleColumns.length"
+                          type="primary"
+                          size="small"
+                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isLocked || !view?.uuid"
+                          class="nc-form-get-pre-filled-link nc-form-focus-element"
+                          data-testid="nc-form-get-pre-filled-link"
+                          data-title="nc-form-get-pre-filled-link"
+                          @click="getPreFilledLink"
+                        >
+                          {{ $t('activity.getPreFilledLink') }}
+                        </NcButton>
+                      </NcTooltip>
                       <NcButton
                         html-type="submit"
                         type="primary"

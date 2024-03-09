@@ -414,8 +414,8 @@ async function savePreFilledMode() {
   .nc-pre-filled-mode.ant-select {
     @apply !p-0 mt-2;
 
-    &.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector{
-      @apply !border-brand-500 !shadow-none
+    &.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+      @apply !border-brand-500 !shadow-none;
     }
   }
 }

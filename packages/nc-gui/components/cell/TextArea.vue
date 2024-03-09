@@ -203,7 +203,7 @@ watch(inputWrapperRef, () => {
 <template>
   <div>
     <div
-      class="flex flex-row pt-0.5 w-full long-text-wrapper"
+      class="flex flex-row w-full long-text-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
@@ -213,6 +213,10 @@ watch(inputWrapperRef, () => {
       <div
         v-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
+        :class="{
+          'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
+          'nc-readonly-rich-text-sort-height': rowHeight === 1 && !isExpandedFormOpen && !isForm,
+        }"
         :style="{
           maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
           minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
@@ -256,10 +260,9 @@ watch(inputWrapperRef, () => {
         v-else-if="rowHeight"
         :value="vModel"
         :lines="rowHeight"
-        class="mr-7 nc-text-area-clamped-text"
+        class="nc-text-area-clamped-text my-auto"
         :style="{
           'word-break': 'break-word',
-          'white-space': 'pre-line',
           'max-height': `${25 * (rowHeight || 1)}px`,
         }"
         @click="onTextClick"
@@ -349,6 +352,17 @@ textarea:focus {
 }
 .nc-longtext-scrollbar {
   @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
+}
+
+.nc-readonly-rich-text-wrapper {
+  &.nc-readonly-rich-text-grid {
+    :deep(.ProseMirror) {
+      @apply !pt-0;
+    }
+    &.nc-readonly-rich-text-sort-height {
+      @apply mt-2;
+    }
+  }
 }
 </style>
 

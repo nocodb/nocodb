@@ -7,6 +7,7 @@ import type {
   FormColumnType,
   FormType,
   LinkToAnotherRecordType,
+  SelectOptionsType,
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
@@ -254,9 +255,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
       console.log('router', route.query)
       columns.value = columns.value?.map((c) => {
-        if ((c.label || c.title) && route.query?.[c.label!] === undefined && route.query?.[c.title!] === undefined) {
-          return c
-        }
+        if (!c.title || !route.query?.[c.title]) return c
 
         switch (sharedViewMeta.value.preFilledMode) {
           case PreFilledMode.Hidden: {
@@ -269,22 +268,32 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         switch (c.uidt) {
           case UITypes.SingleSelect:
           case UITypes.MultiSelect: {
-            const allValues = (c.dtxp as string)?.split(',').map((o) => o?.replace(/^['"]|['"]$/g, ''))
-            let options = ((route.query?.[c.label!] || route.query?.[c.title!]) as string)?.split(',').filter((op) => {
-              console.log('options', op, allValues, allValues.includes(op))
-              if (allValues.includes(op)) return true
-            })
+            const limitOptions = Array.isArray(parseProp(c.meta).limitOptions)
+              ? parseProp(c.meta).limitOptions.reduce((ac, op) => {
+                  if (op?.id) {
+                    ac[op.id] = op
+                  }
+                  return ac
+                }, {})
+              : {}
+            const queryOptions = (route.query?.[c.title] as string)?.split(',')
+            let options = ((c.colOptions || []) as SelectOptionsType).options
+              .filter((op) => {
+                if (queryOptions.includes(op?.title!) && (limitOptions[op?.id!] ? limitOptions[op?.id!]?.show : true)) return true
+              })
+              .map((op) => op.title)
             console.log('c', options, c)
             if (options.length) {
-              formState.value[c.title!] = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
+              formState.value[c.title] = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
             }
+            console.log('form state', formState.value[c.title])
             break
           }
           case UITypes.User: {
             break
           }
           default: {
-            formState.value[c.title!] = route.query?.[c.label!] || route.query?.[c.title!]
+            formState.value[c.title] = route.query?.[c.title]
           }
         }
 

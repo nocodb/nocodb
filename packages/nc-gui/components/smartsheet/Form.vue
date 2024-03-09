@@ -1543,7 +1543,7 @@ useEventListener(
                         ]"
                         :color-box-border="true"
                         :is-new-design="true"
-                        class="nc-form-theme-color-picker !pb-0"
+                        class="nc-form-theme-color-picker !pb-0 !pl-0 -ml-1"
                         @input="handleChangeBackground"
                       />
                     </div>

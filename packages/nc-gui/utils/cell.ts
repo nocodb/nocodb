@@ -82,3 +82,14 @@ export const renderValue = (result?: any) => {
     return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm') : d
   })
 }
+
+export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
+  return (
+    isInt(column, abstractType) ||
+    isFloat(column, abstractType) ||
+    isDecimal(column) ||
+    isCurrency(column) ||
+    isPercent(column) ||
+    isDuration(column)
+  )
+}

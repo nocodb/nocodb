@@ -460,7 +460,7 @@ const duplicateProject = (base: BaseType) => {
             />
           </NcButton>
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
-            <div v-e="['c:base:iconColorChange']" class="flex items-center select-none w-6 h-full">
+            <div class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
               <div v-else>

@@ -154,7 +154,7 @@ const surveyMode = computed({
 const formPreFill = computed({
   get: () => ({
     preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
-    preFilledMode: parseProp(activeView.value?.meta)?.preFilledMode || t('general.default'),
+    preFilledMode: parseProp(activeView.value?.meta)?.preFilledMode || PreFilledMode.Default,
   }),
   set: (value) => {
     if (!activeView.value?.meta) return
@@ -164,7 +164,7 @@ const formPreFill = computed({
     }
 
     if (formPreFill.value.preFilledMode !== value.preFilledMode) {
-      $e(`a:view:share:${value.preFillEnabled || 'default'}-prefilled-mode`)
+      $e(`a:view:share:${value.preFilledMode}-prefilled-mode`)
     }
 
     activeView.value.meta = {
@@ -361,9 +361,11 @@ watchEffect(() => {})
 
           <template v-if="activeView?.type === ViewTypes.FORM">
             <div class="flex flex-row items-center justify-between">
-              <div class="text-black">
-                {{ $t('activity.surveyMode') }}
-                <NcTooltip class="inline">
+              <div class="text-black flex items-center space-x-1">
+                <div>
+                  {{ $t('activity.surveyMode') }}
+                </div>
+                <NcTooltip>
                   <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
                   <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
                 </NcTooltip>
@@ -393,15 +395,17 @@ watchEffect(() => {})
           class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="text-black flex-1">
-              {{ $t('activity.preFilledFields.title') }}
+            <div class="text-black flex items-center space-x-1">
+              <div>
+                {{ $t('activity.preFilledFields.title') }}
+              </div>
 
-              <NcTooltip class="inline">
-                <template #title
-                  ><div class="text-center">
+              <NcTooltip>
+                <template #title>
+                  <div class="text-center">
                     {{ $t('tooltip.preFillFormInfo') }}
-                  </div></template
-                >
+                  </div>
+                </template>
                 <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
               </NcTooltip>
             </div>
@@ -422,12 +426,10 @@ watchEffect(() => {})
             </a-switch>
           </div>
 
-          <a-select
+          <a-radio-group
             v-if="formPreFill.preFillEnabled"
-            :value="formPreFill.preFilledMode"
-            :allow-clear="formPreFill.preFilledMode !== t('general.default')"
-            class="nc-pre-filled-mode !rounded-md w-full !mt-0"
-            dropdown-class-name="nc-dropdown-pre-filled-mode border-1 !rounded-md border-gray-200"
+            :value="formPreFill.preFilledMode || ''"
+            class="nc-field-layout-list"
             data-testid="nc-modal-share-view__preFillMode"
             @update:value="
               (value) => {
@@ -438,23 +440,10 @@ watchEffect(() => {})
               }
             "
           >
-            <template #suffixIcon>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
-            </template>
-            <template v-for="mode of Object.values(PreFilledMode)" :key="mode">
-              <a-select-option v-if="mode !== PreFilledMode.Default" :value="mode">
-                <div class="flex gap-2 items-center">
-                  <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="formPreFill.preFilledMode === mode"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </template>
-          </a-select>
+            <a-radio v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
+              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode || Default}`) }}</div>
+            </a-radio>
+          </a-radio-group>
         </div>
       </template>
     </div>
@@ -477,16 +466,6 @@ watchEffect(() => {})
     height: 1rem !important;
     min-width: 1rem !important;
     line-height: 1rem !important;
-  }
-}
-
-.nc-pre-filled-mode-wrapper {
-  .nc-pre-filled-mode.ant-select {
-    @apply !p-0 mt-2;
-
-    &.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
-      @apply !border-brand-500 !shadow-none;
-    }
   }
 }
 </style>

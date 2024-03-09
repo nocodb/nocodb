@@ -13,6 +13,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
 import { Base, Hook, Model, Source } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
 export class ExportService {
@@ -220,10 +221,7 @@ export class ExportService {
                 break;
               case 'meta':
                 if (view.type === ViewTypes.KANBAN) {
-                  const meta = JSON.parse(view.view.meta as string) as Record<
-                    string,
-                    any
-                  >;
+                  const meta = parseMetaProp(view.view) as Record<string, any>;
                   for (const [k, v] of Object.entries(meta)) {
                     const colId = idMap.get(k as string);
                     for (const op of v) {
@@ -613,6 +611,7 @@ export class ExportService {
           query: { limit, offset, fields },
           baseModel,
           ignoreViewFilterAndSort: true,
+          limitOverride: limit,
         })
         .then((result) => {
           try {
@@ -634,7 +633,9 @@ export class ExportService {
                 offset + limit,
                 limit,
                 fields,
-              ).then(resolve);
+              )
+                .then(resolve)
+                .catch(reject);
             }
           } catch (e) {
             reject(e);
@@ -663,6 +664,7 @@ export class ExportService {
           query: { limit, offset, fields },
           baseModel,
           ignoreViewFilterAndSort: true,
+          limitOverride: limit,
         })
         .then((result) => {
           try {
@@ -683,7 +685,9 @@ export class ExportService {
                 offset + limit,
                 limit,
                 fields,
-              ).then(resolve);
+              )
+                .then(resolve)
+                .catch(reject);
             }
           } catch (e) {
             reject(e);

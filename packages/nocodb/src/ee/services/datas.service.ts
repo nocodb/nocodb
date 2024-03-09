@@ -24,7 +24,7 @@ export class DatasService extends DatasServiceCE {
       query: any;
       disableOptimization?: boolean;
       ignorePagination?: boolean;
-      calendarLimitOverride?: number;
+      limitOverride?: number;
     },
   ) {
     let { model, view } = param as { view?: View; model?: Model };
@@ -53,7 +53,7 @@ export class DatasService extends DatasServiceCE {
         source,
         throwErrorIfInvalidParams: true,
         ignorePagination: param.ignorePagination,
-        calendarLimitOverride: param.calendarLimitOverride,
+        limitOverride: param.limitOverride,
       });
     } else {
       responseData = await this.getDataList({
@@ -62,7 +62,7 @@ export class DatasService extends DatasServiceCE {
         query: param.query,
         throwErrorIfInvalidParams: true,
         ignorePagination: param.ignorePagination,
-        calendarLimitOverride: param.calendarLimitOverride,
+        limitOverride: param.limitOverride,
       });
     }
 

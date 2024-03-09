@@ -934,7 +934,7 @@ export async function singleQueryList(ctx: {
   throwErrorIfInvalidParams?: boolean;
   validateFormula?: boolean;
   ignorePagination?: boolean;
-  calendarLimitOverride?: number;
+  limitOverride?: number;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
@@ -976,6 +976,7 @@ export async function singleQueryList(ctx: {
           count: +res[0]?.__nc_count || 0,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
+          limitOverride: +ctx.limitOverride,
         },
         {
           stats: {
@@ -1089,8 +1090,8 @@ export async function singleQueryList(ctx: {
   });
 
   if (!ctx.ignorePagination) {
-    if (ctx.calendarLimitOverride) {
-      rootQb.limit(ctx.calendarLimitOverride);
+    if (ctx.limitOverride) {
+      rootQb.limit(ctx.limitOverride);
       rootQb.offset(+listArgs.offset);
     } else if (skipCache) {
       rootQb.limit(+listArgs.limit);
@@ -1153,6 +1154,7 @@ export async function singleQueryList(ctx: {
       count: +res[0]?.__nc_count || 0,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
+      limitOverride: +ctx.limitOverride,
     },
     {
       stats: {

@@ -255,7 +255,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   function handlePreFillForm() {
-    if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
+    if (Object.keys(route.query).length && sharedViewMeta.value.preFillEnabled) {
       columns.value = columns.value?.map((c) => {
         if (
           !c.title ||

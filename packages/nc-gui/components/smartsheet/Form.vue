@@ -43,6 +43,7 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   watch,
+  useViewsStore,
 } from '#imports'
 import type { ImageCropperConfig } from '~/lib'
 
@@ -103,6 +104,8 @@ const view = inject(ActiveViewInj, ref())
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
+
+const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -199,6 +202,22 @@ const updateView = useDebounceFn(
   { maxWait: 2000 },
 )
 
+const updatePreFillFormSearchParams = useDebounceFn(() => {
+  if (isLocked.value || !isUIAllowed('dataInsert')) return
+
+  const preFilledData = { ...formState, ...state.value }
+
+  const searchParams = new URLSearchParams()
+
+  for (const c of visibleColumns.value) {
+    if (c.title && preFilledData[c.title] && !isVirtualCol(c) && !(UITypes.Attachment === c.uidt)) {
+      searchParams.append(c.title, preFilledData[c.title])
+    }
+  }
+
+  preFillFormSearchParams.value = searchParams.toString()
+}, 250)
+
 async function submitForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
@@ -220,38 +239,6 @@ async function submitForm() {
   submitted.value = true
 }
 
-async function getPreFilledLink() {
-  if (isLocked.value || !isUIAllowed('dataInsert') || !view.value?.uuid) return
-
-  const preFilledData = { ...formState, ...state.value }
-
-  const searchParams = new URLSearchParams()
-
-  for (const c of visibleColumns.value) {
-    if (c.title && preFilledData[c.title] && !isVirtualCol(c)) {
-      searchParams.append(c.title, preFilledData[c.title])
-    }
-  }
-
-  // get base url for workspace
-  const baseUrl = getBaseUrl(workspaceStore.activeWorkspaceId)
-
-  let dashboardUrl1 = dashboardUrl.value
-
-  if (baseUrl) {
-    dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
-  }
-
-  copy(
-    encodeURI(
-      `${dashboardUrl1}#/nc/form/${view.value?.uuid}${parseProp(view.value?.meta).surveyMode ? '/survey' : ''}${
-        searchParams.toString() ? `?${searchParams.toString()}` : ''
-      }`,
-    ),
-  )
-
-  message.info(t('msg.info.copiedToClipboard'))
-}
 
 async function clearForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
@@ -637,6 +624,10 @@ watch([focusLabel, activeRow], () => {
   if (activeRow && focusLabel.value) {
     focusLabel.value?.focus()
   }
+})
+
+watch([formState, state], () => {
+  updatePreFillFormSearchParams()
 })
 
 useEventListener(
@@ -1332,21 +1323,6 @@ useEventListener(
                       {{ $t('activity.clearForm') }}
                     </NcButton>
                     <div class="flex items-center gap-3">
-                      <NcTooltip :disabled="!!view?.uuid">
-                        <template #title>{{ $t('tooltip.formIsNotShared') }}</template>
-                        <NcButton
-                          v-if="isUIAllowed('dataInsert') && visibleColumns.length"
-                          type="primary"
-                          size="small"
-                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isLocked || !view?.uuid"
-                          class="nc-form-get-pre-filled-link nc-form-focus-element"
-                          data-testid="nc-form-get-pre-filled-link"
-                          data-title="nc-form-get-pre-filled-link"
-                          @click="getPreFilledLink"
-                        >
-                          {{ $t('activity.getPreFilledLink') }}
-                        </NcButton>
-                      </NcTooltip>
                       <NcButton
                         html-type="submit"
                         type="primary"

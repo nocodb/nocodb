@@ -7,6 +7,8 @@ const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
 const { getBaseUrl, appInfo } = useGlobal()
 
+const { t } = useI18n()
+
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
@@ -50,6 +52,10 @@ const isPublicShared = computed(() => {
 
 const url = computed(() => {
   return sharedViewUrl() ?? ''
+})
+
+const forPreFillUrl = computed(() => {
+  return sharedViewUrl(true) ?? ''
 })
 
 const passwordProtectedLocal = ref(false)
@@ -149,17 +155,31 @@ const surveyMode = computed({
   },
 })
 
-const preFilledMode = computed({
-  get: () => parseProp(activeView.value?.meta)?.preFilledMode || PreFilledMode.Default,
-  set: (preFilled) => {
+const formPreFill = computed({
+  get: () => ({
+    preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
+    preFilledMode: parseProp(activeView.value?.meta)?.preFilledMode || t('general.default'),
+  }),
+  set: (value) => {
     if (!activeView.value?.meta) return
 
-    activeView.value.meta = { ...activeView.value.meta, preFilledMode: preFilled }
+    if (formPreFill.value.preFillEnabled !== value.preFillEnabled) {
+      $e(`a:view:share:prefilled-mode-${value.preFillEnabled ? 'enabled' : 'disabled'}`)
+    }
+
+    if (formPreFill.value.preFilledMode !== value.preFilledMode) {
+      $e(`a:view:share:${value.preFillEnabled || 'default'}-prefilled-mode`)
+    }
+
+    activeView.value.meta = {
+      ...activeView.value.meta,
+      ...value,
+    }
     savePreFilledMode()
   },
 })
 
-function sharedViewUrl() {
+function sharedViewUrl(isPreFillUrl: boolean = false) {
   if (!activeView.value) return
 
   let viewType
@@ -191,7 +211,13 @@ function sharedViewUrl() {
     dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
   }
 
-  return encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)
+  return encodeURI(
+    `${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}${
+      isPreFillUrl && formPreFill.value.preFillEnabled && viewStore.preFillFormSearchParams
+        ? `?${viewStore.preFillFormSearchParams}`
+        : ''
+    }`,
+  )
 }
 
 const toggleViewShare = async () => {
@@ -270,7 +296,6 @@ async function updateSharedView() {
 
 async function savePreFilledMode() {
   await updateSharedView()
-  $e(`a:view:share:${preFilledMode.value}-prefilled-mode`)
 }
 </script>
 
@@ -361,29 +386,74 @@ async function savePreFilledMode() {
           v-if="activeView?.type === ViewTypes.FORM"
           class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
         >
-          <div>
+          <div class="flex flex-row justify-between">
             <div class="text-black">{{ $t('activity.preFilledFields.title') }}</div>
+            <a-switch
+              :checked="formPreFill.preFillEnabled"
+              v-e="['c:share:view:surver-mode:toggle']"
+              data-testid="nc-modal-share-view__surveyMode"
+              @update:checked="
+                (value) => {
+                  formPreFill = {
+                    ...formPreFill,
+                    preFillEnabled: value,
+                  }
+                }
+              "
+            >
+            </a-switch>
+          </div>
+          <div v-if="formPreFill.preFillEnabled">
+            <!-- <div class="text-black">{{ $t('activity.preFilledFields.title') }}</div> -->
 
             <a-select
-              v-model:value="preFilledMode"
+              :value="formPreFill.preFilledMode"
+              :allow-clear="formPreFill.preFilledMode !== t('general.default')"
               class="nc-pre-filled-mode !rounded-md w-full"
               dropdown-class-name="nc-dropdown-pre-filled-mode border-1 !rounded-md border-gray-200"
+              @update:value="
+                (value) => {
+                  formPreFill = {
+                    ...formPreFill,
+                    preFilledMode: value || '',
+                  }
+                }
+              "
             >
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
-              <a-select-option v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
-                <div class="flex gap-2 items-center">
-                  <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="preFilledMode === mode"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
+              <template v-for="mode of Object.values(PreFilledMode)" :key="mode">
+                <a-select-option v-if="mode !== PreFilledMode.Default" :value="mode">
+                  <div class="flex gap-2 items-center">
+                    <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="formPreFill.preFilledMode === mode"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </template>
             </a-select>
+
+            <NcTooltip
+              :disabled="!!viewStore.preFillFormSearchParams"
+              :class="{
+                '!cursor-not-allowed': !viewStore.preFillFormSearchParams,
+              }"
+            >
+              <template #title> {{ $t('tooltip.fillTheFormFieldFirst') }} </template>
+              <div
+                class="mt-0.5 border-t-1 border-gray-100 pt-3"
+                :class="{
+                  'pointer-events-none': !viewStore.preFillFormSearchParams,
+                }"
+              >
+                <GeneralCopyUrl v-model:url="forPreFillUrl" />
+              </div>
+            </NcTooltip>
           </div>
         </div>
       </template>

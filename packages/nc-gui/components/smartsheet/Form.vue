@@ -1088,7 +1088,7 @@ useEventListener(
                         </div>
 
                         <!-- Field Header  -->
-                        <div v-if="activeRow === element.title" class="w-full flex gap-3 items-center px-3 py-2 bg-gray-50">
+                        <div v-if="activeRow === element.title" class="w-full flex gap-3 items-center px-3 py-2 bg-gray-50 border-b-1 border-gray-200">
                           <component
                             :is="iconMap.drag"
                             class="nc-form-field-drag-handler flex-none cursor-move !h-4 !w-4 text-gray-600"
@@ -1241,7 +1241,7 @@ useEventListener(
                         <!-- Field Settings  -->
                         <div
                           v-if="activeRow === element.title && isSelectTypeCol(element.uidt)"
-                          class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
+                          class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3 bg-gray-50"
                         >
                           <!-- Layout  -->
                           <div v-if="isSelectTypeCol(element.uidt)">
@@ -1263,7 +1263,7 @@ useEventListener(
                           </div>
                           <!-- Todo: Show on conditions,... -->
                           <!-- eslint-disable vue/no-constant-condition -->
-                          <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
                             <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
                             <div>
                               <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
@@ -1272,7 +1272,7 @@ useEventListener(
                           </div>
 
                           <!-- Limit options -->
-                          <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
                             <div class="flex items-center gap-3">
                               <a-switch
                                 v-model:checked="element.meta.isLimitOption"
@@ -1835,7 +1835,7 @@ useEventListener(
   @apply !flex !items-center w-full space-x-3;
 
   :deep(.ant-radio-wrapper) {
-    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center;
+    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center bg-white;
     .ant-radio {
       @apply !top-0;
 

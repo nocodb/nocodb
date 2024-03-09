@@ -976,6 +976,7 @@ export async function singleQueryList(ctx: {
           count: +res[0]?.__nc_count || 0,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
+          limitOverride: +ctx.limitOverride,
         },
         {
           stats: {
@@ -1153,6 +1154,7 @@ export async function singleQueryList(ctx: {
       count: +res[0]?.__nc_count || 0,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
+      limitOverride: +ctx.limitOverride,
     },
     {
       stats: {

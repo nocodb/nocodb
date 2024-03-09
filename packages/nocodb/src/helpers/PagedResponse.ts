@@ -11,6 +11,7 @@ export class PagedResponseImpl<T> {
       count?: number | string;
       l?: number;
       o?: number;
+      limitOverride?: number;
     } = {},
     additionalProps?: Record<string, any>,
   ) {

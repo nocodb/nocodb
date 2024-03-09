@@ -210,6 +210,7 @@ export class DatasService {
     ]);
     return new PagedResponseImpl(data, {
       ...query,
+      ...(param.limitOverride ? { limitOverride: param.limitOverride } : {}),
       count,
     });
   }

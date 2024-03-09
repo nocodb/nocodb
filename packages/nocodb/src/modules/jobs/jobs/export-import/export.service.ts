@@ -633,7 +633,9 @@ export class ExportService {
                 offset + limit,
                 limit,
                 fields,
-              ).then(resolve);
+              )
+                .then(resolve)
+                .catch(reject);
             }
           } catch (e) {
             reject(e);

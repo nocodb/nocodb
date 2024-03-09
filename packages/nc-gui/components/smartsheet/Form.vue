@@ -606,9 +606,13 @@ watch([formState, state.value], async () => {
 
 watch(activeRow, (newValue) => {
   if (newValue) {
-    document
-      .querySelector(`.nc-form-field-item-${newValue?.replaceAll(' ', '')}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const field = document.querySelector(`.nc-form-field-item-${CSS.escape(newValue?.replaceAll(' ', ''))}`)
+
+    if (field) {
+      setTimeout(() => {
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 50)
+    }
   }
 })
 

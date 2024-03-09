@@ -116,7 +116,10 @@ export class FormPage extends BasePage {
       await src.dragTo(dst);
     } else if (mode === 'hideField') {
       // in form-v2, hide field will be using right sidebar
-      await this.formFields.locator(`[data-testid="nc-form-field-item-${field}"]`).locator('.nc-switch').click();
+      await this.formFields
+        .locator(`[data-testid="nc-form-field-item-${CSS.escape(field)}"]`)
+        .locator('.nc-switch')
+        .click();
     }
   }
 
@@ -132,7 +135,10 @@ export class FormPage extends BasePage {
       await src.dragTo(dst, { trial: true });
       await src.dragTo(dst);
     } else if (mode === 'clickField') {
-      await this.formFields.locator(`[data-testid="nc-form-field-item-${field}"]`).locator('.nc-switch').click();
+      await this.formFields
+        .locator(`[data-testid="nc-form-field-item-${CSS.escape(field)}"]`)
+        .locator('.nc-switch')
+        .click();
     }
   }
 

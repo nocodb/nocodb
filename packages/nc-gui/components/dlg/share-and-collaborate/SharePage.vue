@@ -389,8 +389,8 @@ async function savePreFilledMode() {
           <div class="flex flex-row justify-between">
             <div class="text-black">{{ $t('activity.preFilledFields.title') }}</div>
             <a-switch
-              :checked="formPreFill.preFillEnabled"
               v-e="['c:share:view:surver-mode:toggle']"
+              :checked="formPreFill.preFillEnabled"
               data-testid="nc-modal-share-view__surveyMode"
               @update:checked="
                 (value) => {

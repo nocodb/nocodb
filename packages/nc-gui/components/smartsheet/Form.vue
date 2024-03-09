@@ -42,7 +42,6 @@ import {
   useRoles,
   useViewColumnsOrThrow,
   useViewData,
-  watch,
   useViewsStore,
 } from '#imports'
 import type { ImageCropperConfig } from '~/lib'
@@ -71,13 +70,7 @@ const enum NcForm {
   subheading = 'nc-form-sub-heading',
 }
 
-const { isMobileMode, user, getBaseUrl, appInfo } = useGlobal()
-
-const { dashboardUrl } = useDashboard()
-
-const workspaceStore = useWorkspace()
-
-const { copy } = useCopy()
+const { isMobileMode, user } = useGlobal()
 
 const { $api, $e } = useNuxtApp()
 
@@ -238,7 +231,6 @@ async function submitForm() {
 
   submitted.value = true
 }
-
 
 async function clearForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
@@ -1322,20 +1314,19 @@ useEventListener(
                     >
                       {{ $t('activity.clearForm') }}
                     </NcButton>
-                    <div class="flex items-center gap-3">
-                      <NcButton
-                        html-type="submit"
-                        type="primary"
-                        size="small"
-                        :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
-                        class="nc-form-submit nc-form-focus-element"
-                        data-testid="nc-form-submit"
-                        data-title="nc-form-submit"
-                        @click="submitForm"
-                      >
-                        {{ $t('general.submit') }}
-                      </NcButton>
-                    </div>
+
+                    <NcButton
+                      html-type="submit"
+                      type="primary"
+                      size="small"
+                      :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
+                      class="nc-form-submit nc-form-focus-element"
+                      data-testid="nc-form-submit"
+                      data-title="nc-form-submit"
+                      @click="submitForm"
+                    >
+                      {{ $t('general.submit') }}
+                    </NcButton>
                   </div>
                 </a-form>
 

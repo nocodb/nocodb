@@ -86,10 +86,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
     const navigateToTable = async () => {
       if (openedViewsTab.value === 'view') {
-        await navigateTo({
-          path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
-          query: route.value.query,
-        })
+        await navigateTo(`/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`)
       }
 
       table.isViewsLoading = true
@@ -102,10 +99,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           // find the default view and navigate to it, if not found navigate to the first one
           const defaultView = views.find((v) => v.is_default) || views[0]
 
-          await navigateTo({
-            path: `/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${openedViewsTab.value}`,
-            query: route.value.query,
-          })
+          await navigateTo(`/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${openedViewsTab.value}`)
         }
       } catch (e) {
         console.error(e)

@@ -427,7 +427,7 @@ watchEffect(() => {})
           <a-radio-group
             v-if="formPreFill.preFillEnabled"
             :value="formPreFill.preFilledMode"
-            class="nc-field-layout-list"
+            class="nc-modal-share-view-preFillMode"
             data-testid="nc-modal-share-view__preFillMode"
             @update:value="
               (value) => {
@@ -464,6 +464,20 @@ watchEffect(() => {})
     height: 1rem !important;
     min-width: 1rem !important;
     line-height: 1rem !important;
+  }
+}
+
+.nc-modal-share-view-preFillMode {
+  @apply flex flex-col;
+
+  .ant-radio-wrapper {
+    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-gray-100;
+    .ant-radio {
+      @apply !top-0;
+    }
+    .ant-radio + span {
+      @apply !flex !pl-4;
+    }
   }
 }
 </style>

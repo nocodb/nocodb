@@ -9,7 +9,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = defineProps<{
   value?: string | null
@@ -32,6 +32,8 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 const readOnlyCell = inject(ReadonlyInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const isFocused = ref(false)
 
@@ -222,6 +224,7 @@ useEventListener(
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
       'readonly': readOnly,
       'nc-form-rich-text-field !p-0': isFormField,
+      'nc-rich-text-grid': isGrid,
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
   >
@@ -285,11 +288,12 @@ useEventListener(
   .ProseMirror {
     @apply !border-transparent max-h-full;
   }
-  &:not(.nc-form-rich-text-field) {
+  &:not(.nc-form-rich-text-field):not(.nc-rich-text-grid) {
     .ProseMirror {
       min-height: 8rem;
     }
   }
+
   &.nc-form-rich-text-field {
     .ProseMirror {
       padding: 0;
@@ -346,7 +350,7 @@ useEventListener(
     pointer-events: none;
   }
   .ProseMirror {
-    @apply flex-grow pt-1 border-1 border-gray-200 rounded-lg;
+    @apply flex-grow pt-1.5 border-1 border-gray-200 rounded-lg;
 
     > * {
       @apply ml-1;

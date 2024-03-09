@@ -30,6 +30,7 @@ import {
   useProvideSmartsheetRowStore,
   useViewsStore,
   watch,
+  PreFilledMode,
 } from '#imports'
 import type { SharedViewMeta } from '#imports'
 
@@ -65,6 +66,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { t } = useI18n()
 
+  const route = useRoute()
+
   const formState = ref<Record<string, any>>({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
@@ -79,9 +82,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const fieldRequired = (fieldName = 'This field') =>
     helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
-  const formColumns = computed(() =>
-    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
-  )
+  const formColumns = computed(() => {
+    const filterdFormColumns = columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt))
+    // if (Object.keys(route.query).length && sharedViewMeta.value.preFilledMode !== PreFilledMode.Disabled) {
+
+    // }
+
+    return filterdFormColumns
+  })
 
   const loadSharedView = async () => {
     passwordError.value = null

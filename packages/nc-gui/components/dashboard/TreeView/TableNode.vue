@@ -139,11 +139,11 @@ const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
 })
 
-const tableTimeout = ref()
+let tableTimeout: number
 
 watch(openedTableId, () => {
-  if (tableTimeout.value) {
-    clearTimeout(tableTimeout.value)
+  if (tableTimeout) {
+    clearTimeout(tableTimeout)
   }
 
   if (table.value.id !== openedTableId.value && isExpanded.value) {
@@ -151,11 +151,11 @@ watch(openedTableId, () => {
 
     if (views.length) return
 
-    tableTimeout.value = setTimeout(() => {
+    tableTimeout = setTimeout(() => {
       if (isExpanded.value) {
         isExpanded.value = false
       }
-      clearTimeout(tableTimeout.value)
+      clearTimeout(tableTimeout)
     }, 10000)
   }
 })

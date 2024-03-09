@@ -173,6 +173,13 @@ const formPreFill = computed({
   },
 })
 
+const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMode?: PreFilledMode }) => {
+  formPreFill.value = {
+    ...formPreFill.value,
+    ...value,
+  }
+}
+
 function sharedViewUrl() {
   if (!activeView.value) return
 
@@ -412,14 +419,7 @@ watchEffect(() => {})
               :checked="formPreFill.preFillEnabled"
               data-testid="nc-modal-share-view__preFill"
               size="small"
-              @update:checked="
-                (value) => {
-                  formPreFill = {
-                    ...formPreFill,
-                    preFillEnabled: value,
-                  }
-                }
-              "
+              @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
             >
             </a-switch>
           </div>
@@ -429,17 +429,10 @@ watchEffect(() => {})
             :value="formPreFill.preFilledMode"
             class="nc-modal-share-view-preFillMode"
             data-testid="nc-modal-share-view__preFillMode"
-            @update:value="
-              (value) => {
-                formPreFill = {
-                  ...formPreFill,
-                  preFilledMode: value,
-                }
-              }
-            "
+            @update:value="handleChangeFormPreFill({ preFilledMode: $event })"
           >
             <a-radio v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
-              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode || Default}`) }}</div>
+              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
             </a-radio>
           </a-radio-group>
         </div>

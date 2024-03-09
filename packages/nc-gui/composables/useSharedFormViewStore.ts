@@ -97,7 +97,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
-    columns.value?.filter((c) => c.show).filter((col) => !isSystemColumn(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))),
+    columns.value
+      ?.filter((c) => c.show)
+      .filter(
+        (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+      ),
   )
 
   const loadSharedView = async () => {
@@ -125,7 +129,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       )
 
       columns.value = viewMeta.model?.columns?.map((c) => {
-        if (!isSystemColumn(c) && !isVirtualCol(c) && c?.title && c?.cdf) {
+        if (
+          !isSystemColumn(c) &&
+          !isVirtualCol(c) &&
+          !isAttachment(c) &&
+          c.uidt !== UITypes.SpecificDBType &&
+          c?.title &&
+          c?.cdf &&
+          !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
+        ) {
           formState.value[c.title] = c.cdf
         }
 
@@ -275,8 +287,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           !queryParam ||
           isSystemColumn(c) ||
           isVirtualCol(c) ||
-          // (isVirtualCol(c) && !isLinksOrLTAR(c)) || // Todo: Enable this after linksOrLTAR prefill supported
-          isAttachment(c)
+          isAttachment(c) ||
+          c.uidt === UITypes.SpecificDBType
         ) {
           return c
         }

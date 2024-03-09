@@ -182,14 +182,13 @@ const onDecode = async (scannedCodeValue: string) => {
                   <div>
                     <NcTooltip :disabled="!field?.read_only">
                       <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
-
                       <LazySmartsheetDivDataCell class="flex relative">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(field)"
                           :model-value="null"
                           class="mt-0 nc-input nc-cell"
                           :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                          :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
+                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
                           :column="field"
                           :read-only="field?.read_only"
                         />
@@ -201,7 +200,7 @@ const onDecode = async (scannedCodeValue: string) => {
                           :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                           :class="[
                             `nc-form-input-${field.title?.replaceAll(' ', '')}`,
-                            { 'layout-list': parseProp(field?.meta)?.isList },
+                            { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
                           ]"
                           :column="field"
                           :edit-enabled="!field?.read_only"

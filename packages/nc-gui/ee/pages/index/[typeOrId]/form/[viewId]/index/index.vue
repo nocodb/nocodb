@@ -194,39 +194,44 @@ const onDecode = async (scannedCodeValue: string) => {
                   </div>
 
                   <div>
-                    <LazySmartsheetDivDataCell class="flex relative">
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(field)"
-                        :model-value="null"
-                        class="mt-0 nc-input nc-cell"
-                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                        :column="field"
-                      />
+                    <NcTooltip :disabled="!field?.read_only">
+                      <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+                      <LazySmartsheetDivDataCell class="flex relative">
+                        <LazySmartsheetVirtualCell
+                          v-if="isVirtualCol(field)"
+                          :model-value="null"
+                          class="mt-0 nc-input nc-cell"
+                          :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                          :column="field"
+                          :read-only="field?.read_only"
+                        />
 
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="formState[field.title]"
-                        class="nc-input truncate"
-                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                        :class="[
-                          `nc-form-input-${field.title?.replaceAll(' ', '')}`,
-                          { 'layout-list': parseProp(field?.meta)?.isList },
-                        ]"
-                        :column="field"
-                        edit-enabled
-                      />
-                      <a-button
-                        v-if="field.enable_scanner"
-                        class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                        :alt="$t('activity.fillByCodeScan')"
-                        @click="showCodeScannerForFieldTitle(field.title)"
-                      >
-                        <div class="flex items-center gap-1">
-                          <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
-                        </div>
-                      </a-button>
-                    </LazySmartsheetDivDataCell>
+                        <LazySmartsheetCell
+                          v-else
+                          v-model="formState[field.title]"
+                          class="nc-input truncate"
+                          :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                          :class="[
+                            `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                            { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
+                          ]"
+                          :column="field"
+                          :edit-enabled="!field?.read_only"
+                          :read-only="field?.read_only"
+                        />
+                        <a-button
+                          v-if="field.enable_scanner"
+                          class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                          :alt="$t('activity.fillByCodeScan')"
+                          @click="showCodeScannerForFieldTitle(field.title)"
+                        >
+                          <div class="flex items-center gap-1">
+                            <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
+                          </div>
+                        </a-button>
+                      </LazySmartsheetDivDataCell>
+                    </NcTooltip>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-sm mt-2">
                       <template v-if="isVirtualCol(field)">

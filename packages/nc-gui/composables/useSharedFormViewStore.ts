@@ -1,5 +1,6 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
+import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type {
   BoolType,
@@ -7,18 +8,22 @@ import type {
   FormColumnType,
   FormType,
   LinkToAnotherRecordType,
+  SelectOptionsType,
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
+  PreFilledMode,
   SharedViewPasswordInj,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  isNumericFieldType,
   message,
+  parseProp,
   provide,
   ref,
   storeToRefs,
@@ -48,8 +53,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns =
-    ref<(ColumnType & { required?: BoolType; show?: BoolType; label?: StringOrNullType; enable_scanner?: BoolType })[]>()
+  const columns = ref<
+    (ColumnType & {
+      required?: BoolType
+      show?: BoolType
+      label?: StringOrNullType
+      enable_scanner?: BoolType
+      read_only?: boolean
+    })[]
+  >()
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 
@@ -58,14 +70,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const { metas, setMeta } = useMetas()
 
   const baseStore = useBase()
-  const { base } = storeToRefs(baseStore)
+  const { base, sqlUis } = storeToRefs(baseStore)
 
   const basesStore = useBases()
+
   const { basesUser } = storeToRefs(basesStore)
 
   const { t } = useI18n()
 
+  const route = useRoute()
+
   const formState = ref<Record<string, any>>({})
+
+  const preFilledformState = ref<Record<string, any>>({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
     meta as Ref<TableType>,
@@ -80,7 +97,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
 
   const formColumns = computed(() =>
-    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+    columns.value
+      ?.filter((c) => c.show)
+      .filter(
+        (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
+      ),
   )
 
   const loadSharedView = async () => {
@@ -107,11 +128,25 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {} as Record<string, FormColumnType>,
       )
 
-      columns.value = viewMeta.model?.columns?.map((c) => ({
-        ...c,
-        meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
-        description: fieldById[c.id].description,
-      }))
+      columns.value = viewMeta.model?.columns?.map((c) => {
+        if (
+          !isSystemColumn(c) &&
+          !isVirtualCol(c) &&
+          !isAttachment(c) &&
+          c.uidt !== UITypes.SpecificDBType &&
+          c?.title &&
+          c?.cdf &&
+          !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
+        ) {
+          formState.value[c.title] = c.cdf
+        }
+
+        return {
+          ...c,
+          meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
+          description: fieldById[c.id].description,
+        }
+      })
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
@@ -136,6 +171,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if (viewMeta.users) {
         basesUser.value.set(viewMeta.base_id, viewMeta.users)
       }
+
+      handlePreFillForm()
     } catch (e: any) {
       if (e.response && e.response.status === 404) {
         notFound.value = true
@@ -233,8 +270,201 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     formResetHook.trigger()
 
     additionalState.value = {}
-    formState.value = {}
+    formState.value = {
+      ...([PreFilledMode.Locked, PreFilledMode.Hidden].includes(sharedViewMeta.value.preFilledMode)
+        ? preFilledformState.value
+        : {}),
+    }
     v$.value?.$reset()
+  }
+
+  function handlePreFillForm() {
+    if (Object.keys(route.query || {}).length && sharedViewMeta.value.preFillEnabled) {
+      columns.value = (columns.value || []).map((c) => {
+        const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
+        if (
+          !c.title ||
+          !queryParam ||
+          isSystemColumn(c) ||
+          isVirtualCol(c) ||
+          isAttachment(c) ||
+          c.uidt === UITypes.SpecificDBType
+        ) {
+          return c
+        }
+
+        const preFillValue = getPreFillValue(c, decodeURIComponent(queryParam as string).trim())
+        if (preFillValue !== undefined) {
+          // Prefill form state
+          formState.value[c.title] = preFillValue
+          // preFilledformState will be used in clear for to fill the filled data
+          preFilledformState.value[c.title] = preFillValue
+
+          // Update column
+          switch (sharedViewMeta.value.preFilledMode) {
+            case PreFilledMode.Hidden: {
+              c.show = false
+              break
+            }
+            case PreFilledMode.Locked: {
+              c.read_only = true
+              break
+            }
+          }
+        }
+
+        return c
+      })
+    }
+  }
+
+  function getColAbstractType(c: ColumnType) {
+    return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0]).getAbstractType(c)
+  }
+
+  function getPreFillValue(c: ColumnType, value: string) {
+    let preFillValue: any
+    switch (c.uidt) {
+      case UITypes.SingleSelect:
+      case UITypes.MultiSelect:
+      case UITypes.User: {
+        const limitOptions = (parseProp(c.meta).isLimitOption ? parseProp(c.meta).limitOptions || [] : []).reduce((ac, op) => {
+          if (op?.id) {
+            ac[op.id] = op
+          }
+          return ac
+        }, {})
+
+        const queryOptions = value.split(',')
+
+        let options: string[] = []
+
+        if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(c.uidt as UITypes)) {
+          options = ((c.colOptions as SelectOptionsType)?.options || [])
+            .filter((op) => {
+              if (
+                op?.id &&
+                op?.title &&
+                queryOptions.includes(op.title) &&
+                (limitOptions[op.id]
+                  ? limitOptions[op.id]?.show
+                  : parseProp(c.meta).isLimitOption
+                  ? !(parseProp(c.meta).limitOptions || []).length
+                  : true)
+              ) {
+                return true
+              }
+              return false
+            })
+            .map((op) => op.title as string)
+
+          if (options.length) {
+            preFillValue = c.uidt === UITypes.SingleSelect ? options[0] : options.join(',')
+          }
+        } else {
+          options = (meta.value?.base_id ? basesUser.value.get(meta.value.base_id) || [] : [])
+            .filter((user) => {
+              if (
+                user?.id &&
+                user?.email &&
+                (queryOptions.includes(user.email) || queryOptions.includes(user.id)) &&
+                (limitOptions[user.id]
+                  ? limitOptions[user.id]?.show
+                  : parseProp(c.meta).isLimitOption
+                  ? !(parseProp(c.meta).limitOptions || []).length
+                  : true)
+              ) {
+                return true
+              }
+              return false
+            })
+            .map((user) => user.email)
+
+          if (options.length) {
+            preFillValue = !parseProp(c.meta)?.is_multi ? options[0] : options.join(',')
+          }
+        }
+        break
+      }
+      case UITypes.Checkbox: {
+        if (['true', '1'].includes(value.toLowerCase())) {
+          preFillValue = true
+        } else if (['false', '0'].includes(value.toLowerCase())) {
+          preFillValue = false
+        }
+        break
+      }
+      case UITypes.Rating: {
+        if (!isNaN(Number(value))) {
+          preFillValue = Math.min(Math.max(Number(value), 0), parseProp(c.meta).max ?? 5)
+        }
+        break
+      }
+      case UITypes.URL: {
+        if (parseProp(c.meta).validate) {
+          if (isValidURL(value)) {
+            preFillValue = value
+          }
+        } else {
+          preFillValue = value
+        }
+        break
+      }
+      case UITypes.Year: {
+        if (/^\d+$/.test(value)) {
+          preFillValue = Number(value)
+        }
+        break
+      }
+      case UITypes.Date: {
+        const parsedDate = dayjs(value)
+        if ((parsedDate.isValid() && parsedDate.toISOString() === value) || dayjs(value, 'YYYY-MM-DD').isValid()) {
+          preFillValue = dayjs(value).format('YYYY-MM-DD')
+        }
+        break
+      }
+      case UITypes.DateTime: {
+        const parsedDateTime = dayjs(value)
+
+        if (
+          (parsedDateTime.isValid() && parsedDateTime.toISOString() === value) ||
+          dayjs(value, 'YYYY-MM-DD HH:mm:ss').isValid()
+        ) {
+          preFillValue = dayjs(value).utc().format('YYYY-MM-DD HH:mm:ssZ')
+        }
+        break
+      }
+      case UITypes.Time: {
+        let parsedTime = dayjs(value)
+
+        if (!parsedTime.isValid()) {
+          parsedTime = dayjs(value, 'HH:mm:ss')
+        }
+        if (!parsedTime.isValid()) {
+          parsedTime = dayjs(`1999-01-01 ${value}`)
+        }
+        if (parsedTime.isValid()) {
+          preFillValue = parsedTime.format(baseStore.isMysql(c.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ')
+        }
+        break
+      }
+      case UITypes.LinkToAnotherRecord:
+      case UITypes.Links: {
+        // Todo: create an api which will fetch query params records and then autofill records
+        break
+      }
+
+      default: {
+        if (isNumericFieldType(c, getColAbstractType(c))) {
+          if (!isNaN(Number(value))) {
+            preFillValue = Number(value)
+          }
+        } else {
+          preFillValue = value
+        }
+      }
+    }
+    return preFillValue
   }
 
   /** reset form if show_blank_form is true */

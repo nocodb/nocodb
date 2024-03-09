@@ -31,7 +31,6 @@ import {
   onClickOutside,
   parseProp,
   provide,
-  reactive,
   ref,
   useDebounceFn,
   useEventListener,
@@ -42,7 +41,7 @@ import {
   useRoles,
   useViewColumnsOrThrow,
   useViewData,
-  watch,
+  useViewsStore,
 } from '#imports'
 import type { ImageCropperConfig } from '~/lib'
 
@@ -72,8 +71,6 @@ const enum NcForm {
 
 const { isMobileMode, user } = useGlobal()
 
-const formRef = ref()
-
 const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
@@ -82,7 +79,9 @@ const { base } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-let formState = reactive<Record<string, any>>({})
+const formRef = ref()
+
+const formState = ref<Record<string, any>>({})
 
 const secondsRemain = ref(0)
 
@@ -98,6 +97,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
+const { preFillFormSearchParams } = storeToRefs(useViewsStore())
+
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadEventHook.on(async () => {
@@ -110,7 +111,7 @@ const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 const { state, row } = useProvideSmartsheetRowStore(
   meta,
   ref({
-    row: formState,
+    row: formState.value,
     oldRow: {},
     rowMeta: { new: true },
   }),
@@ -193,6 +194,22 @@ const updateView = useDebounceFn(
   { maxWait: 2000 },
 )
 
+const updatePreFillFormSearchParams = useDebounceFn(() => {
+  if (isLocked.value || !isUIAllowed('dataInsert')) return
+
+  const preFilledData = { ...formState.value, ...state.value }
+
+  const searchParams = new URLSearchParams()
+
+  for (const c of visibleColumns.value) {
+    if (c.title && preFilledData[c.title] && !isVirtualCol(c) && !(UITypes.Attachment === c.uidt)) {
+      searchParams.append(c.title, preFilledData[c.title])
+    }
+  }
+
+  preFillFormSearchParams.value = searchParams.toString()
+}, 250)
+
 async function submitForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
@@ -206,7 +223,7 @@ async function submitForm() {
   }
 
   await insertRow({
-    row: { ...formState, ...state.value },
+    row: { ...formState.value, ...state.value },
     oldRow: {},
     rowMeta: { new: true },
   })
@@ -217,9 +234,9 @@ async function submitForm() {
 async function clearForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
-  formState = reactive<Record<string, any>>({})
+  formState.value = {}
   state.value = {}
-  await formRef.value.clearValidate()
+  await formRef.value?.clearValidate()
   reloadEventHook.trigger()
 }
 
@@ -321,13 +338,6 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isSi
     await $api.dbView.formColumnUpdate(column.id, column)
 
     fields.value[fieldIndex] = column as any
-    // await saveOrUpdate(
-    //   {
-    //     ...column,
-    //     show,
-    //   },
-    //   fieldIndex,
-    // )
 
     reloadEventHook.trigger()
 
@@ -554,6 +564,8 @@ onMounted(async () => {
     URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
   }
 
+  preFillFormSearchParams.value = ''
+
   isLoadingFormView.value = true
   await loadFormView()
   setFormData()
@@ -566,6 +578,7 @@ watch(submitted, (v) => {
     const intvl = setInterval(() => {
       if (--secondsRemain.value < 0) {
         submitted.value = false
+        clearForm()
         clearInterval(intvl)
       }
     }, 1000)
@@ -578,25 +591,35 @@ watch(view, (nextView) => {
   }
 })
 
-watch([formState, state.value], async () => {
-  for (const virtualField in state.value) {
-    if (!formState[virtualField]) {
-      formState[virtualField] = state.value[virtualField]
+watch(
+  [formState, state],
+  async () => {
+    for (const virtualField in state.value) {
+      formState.value[virtualField] = state.value[virtualField]
     }
-  }
 
-  try {
-    await formRef.value?.validateFields([...Object.keys(formState)])
-  } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
-  }
-})
+    updatePreFillFormSearchParams()
+
+    try {
+      await formRef.value?.validateFields([...Object.keys(formState.value)])
+    } catch (e: any) {
+      e.errorFields.map((f: Record<string, any>) => console.error(f.errors.join(',')))
+    }
+  },
+  {
+    deep: true,
+  },
+)
 
 watch(activeRow, (newValue) => {
   if (newValue) {
-    document
-      .querySelector(`.nc-form-field-item-${newValue?.replaceAll(' ', '')}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const field = document.querySelector(`.nc-form-field-item-${CSS.escape(newValue?.replaceAll(' ', ''))}`)
+
+    if (field) {
+      setTimeout(() => {
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 50)
+    }
   }
 })
 
@@ -647,7 +670,7 @@ useEventListener(
   (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-    switch (e.key.toLowerCase()) {
+    switch (e.key?.toLowerCase()) {
       case 's':
         if (
           cmdOrCtrl &&
@@ -736,7 +759,16 @@ useEventListener(
                   </div>
 
                   <div v-if="formViewData.submit_another_form || !isPublic" class="text-right mt-4">
-                    <NcButton type="primary" size="medium" @click="submitted = false">
+                    <NcButton
+                      type="primary"
+                      size="medium"
+                      @click="
+                        () => {
+                          submitted = false
+                          clearForm()
+                        }
+                      "
+                    >
                       {{ $t('activity.submitAnotherForm') }}
                     </NcButton>
                   </div>
@@ -1056,7 +1088,7 @@ useEventListener(
                         </div>
 
                         <!-- Field Header  -->
-                        <div v-if="activeRow === element.title" class="w-full flex gap-3 items-center px-3 py-2 bg-gray-50">
+                        <div v-if="activeRow === element.title" class="w-full flex gap-3 items-center px-3 py-2 bg-gray-50 border-b-1 border-gray-200">
                           <component
                             :is="iconMap.drag"
                             class="nc-form-field-drag-handler flex-none cursor-move !h-4 !w-4 text-gray-600"
@@ -1209,7 +1241,7 @@ useEventListener(
                         <!-- Field Settings  -->
                         <div
                           v-if="activeRow === element.title && isSelectTypeCol(element.uidt)"
-                          class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3"
+                          class="nc-form-field-settings border-t border-gray-200 p-4 lg:p-6 flex flex-col gap-3 bg-gray-50"
                         >
                           <!-- Layout  -->
                           <div v-if="isSelectTypeCol(element.uidt)">
@@ -1231,7 +1263,7 @@ useEventListener(
                           </div>
                           <!-- Todo: Show on conditions,... -->
                           <!-- eslint-disable vue/no-constant-condition -->
-                          <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
                             <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
                             <div>
                               <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
@@ -1240,7 +1272,7 @@ useEventListener(
                           </div>
 
                           <!-- Limit options -->
-                          <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg">
+                          <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
                             <div class="flex items-center gap-3">
                               <a-switch
                                 v-model:checked="element.meta.isLimitOption"
@@ -1289,6 +1321,7 @@ useEventListener(
                     >
                       {{ $t('activity.clearForm') }}
                     </NcButton>
+
                     <NcButton
                       html-type="submit"
                       type="primary"
@@ -1433,7 +1466,7 @@ useEventListener(
                             <SmartsheetHeaderCellIcon v-else :column-meta="field" />
                             <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_68px)] mr-4">
                               <div class="w-full flex items-center">
-                                <div class="ml-1 inline-block max-w-1/2">
+                                <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
                                   <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
                                     <template #title>
                                       <div class="text-center">
@@ -1792,21 +1825,21 @@ useEventListener(
 .nc-form-field-ghost {
   @apply bg-gray-50;
 }
-:deep(.nc-form-input-required + button):focus {
+:deep(.nc-form-input-required + button):focus-visible {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
-:deep(.nc-form-switch-focus):focus {
+:deep(.nc-form-switch-focus):focus-visible {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
 .nc-form-field-layout {
   @apply !flex !items-center w-full space-x-3;
 
   :deep(.ant-radio-wrapper) {
-    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center;
+    @apply border-1 border-gray-200 rounded-lg !py-2 !px-3 basis-full !mr-0 !items-center bg-white;
     .ant-radio {
       @apply !top-0;
 
-      &:focus-within .ant-radio-inner {
+      .ant-radio-input:focus-visible + .ant-radio-inner {
         box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
       }
     }
@@ -1814,12 +1847,9 @@ useEventListener(
 }
 
 .nc-form-wrapper {
-  .ant-switch:focus,
-  .ant-switch-checked:focus {
+  .ant-switch:focus-visible,
+  .ant-switch-checked:focus-visible {
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
-    &:hover {
-      box-shadow: none;
-    }
   }
 }
 </style>

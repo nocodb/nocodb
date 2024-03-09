@@ -104,13 +104,9 @@ watch(picked, (n, _o) => {
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: white;
 }
-.color-selector:not(.new-design):hover {
+.color-selector:hover {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
-}
-
-.color-selector.new-design:hover {
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
 }
 
 .color-selector.selected:not(.new-design) {

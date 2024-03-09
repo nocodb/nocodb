@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { useMetas } from '#imports'
+import { PreFilledMode, useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -42,6 +42,10 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
 
     _view.value = value
   },
+})
+
+const isPublicShared = computed(() => {
+  return !!activeView.value?.uuid
 })
 
 const url = computed(() => {
@@ -145,6 +149,37 @@ const surveyMode = computed({
   },
 })
 
+const formPreFill = computed({
+  get: () => ({
+    preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
+    preFilledMode: parseProp(activeView.value?.meta)?.preFilledMode || PreFilledMode.Default,
+  }),
+  set: (value) => {
+    if (!activeView.value?.meta) return
+
+    if (formPreFill.value.preFillEnabled !== value.preFillEnabled) {
+      $e(`a:view:share:prefilled-mode-${value.preFillEnabled ? 'enabled' : 'disabled'}`)
+    }
+
+    if (formPreFill.value.preFilledMode !== value.preFilledMode) {
+      $e(`a:view:share:${value.preFilledMode}-prefilled-mode`)
+    }
+
+    activeView.value.meta = {
+      ...activeView.value.meta,
+      ...value,
+    }
+    savePreFilledMode()
+  },
+})
+
+const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMode?: PreFilledMode }) => {
+  formPreFill.value = {
+    ...formPreFill.value,
+    ...value,
+  }
+}
+
 function sharedViewUrl() {
   if (!activeView.value) return
 
@@ -177,7 +212,11 @@ function sharedViewUrl() {
     dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
   }
 
-  return encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}`)
+  return encodeURI(
+    `${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}${
+      viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
+    }`,
+  )
 }
 
 const toggleViewShare = async () => {
@@ -254,9 +293,11 @@ async function updateSharedView() {
   return true
 }
 
-const isPublicShared = computed(() => {
-  return !!activeView.value?.uuid
-})
+async function savePreFilledMode() {
+  await updateSharedView()
+}
+
+watchEffect(() => {})
 </script>
 
 <template>
@@ -279,7 +320,7 @@ const isPublicShared = computed(() => {
           <GeneralCopyUrl v-model:url="url" />
         </div>
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
-          <div class="flex flex-row justify-between">
+          <div class="flex flex-row items-center justify-between">
             <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
             <a-switch
               v-e="['c:share:view:password:toggle']"
@@ -287,6 +328,7 @@ const isPublicShared = computed(() => {
               :loading="isUpdating.password"
               class="share-password-toggle !mt-0.25"
               data-testid="share-password-toggle"
+              size="small"
               @click="togglePasswordProtected"
             />
           </div>
@@ -307,13 +349,9 @@ const isPublicShared = computed(() => {
           <div
             v-if="
               activeView &&
-              (activeView.type === ViewTypes.GRID ||
-                activeView.type === ViewTypes.KANBAN ||
-                activeView.type === ViewTypes.GALLERY ||
-                activeView.type === ViewTypes.MAP ||
-                activeView.type === ViewTypes.CALENDAR)
+              [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
             "
-            class="flex flex-row justify-between"
+            class="flex flex-row items-center justify-between"
           >
             <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
             <a-switch
@@ -322,27 +360,81 @@ const isPublicShared = computed(() => {
               :loading="isUpdating.download"
               class="public-password-toggle !mt-0.25"
               data-testid="share-download-toggle"
+              size="small"
             />
           </div>
 
-          <div v-if="activeView?.type === ViewTypes.FORM" class="flex flex-row justify-between">
-            <div class="text-black">{{ $t('activity.surveyMode') }}</div>
+          <template v-if="activeView?.type === ViewTypes.FORM">
+            <div class="flex flex-row items-center justify-between">
+              <div class="text-black flex items-center space-x-1">
+                <div>
+                  {{ $t('activity.surveyMode') }}
+                </div>
+                <NcTooltip>
+                  <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
+                  <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+                </NcTooltip>
+              </div>
+              <a-switch
+                v-model:checked="surveyMode"
+                v-e="['c:share:view:surver-mode:toggle']"
+                data-testid="nc-modal-share-view__surveyMode"
+                size="small"
+              >
+              </a-switch>
+            </div>
+            <div v-if="!isEeUI" class="flex flex-row items-center justify-between">
+              <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
+              <a-switch
+                v-model:checked="withRTL"
+                v-e="['c:share:view:rtl-orientation:toggle']"
+                data-testid="nc-modal-share-view__RTL"
+                size="small"
+              >
+              </a-switch>
+            </div>
+          </template>
+        </div>
+        <div
+          v-if="activeView?.type === ViewTypes.FORM"
+          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="text-black flex items-center space-x-1">
+              <div>
+                {{ $t('activity.preFilledFields.title') }}
+              </div>
+
+              <NcTooltip>
+                <template #title>
+                  <div class="text-center">
+                    {{ $t('tooltip.preFillFormInfo') }}
+                  </div>
+                </template>
+                <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+              </NcTooltip>
+            </div>
             <a-switch
-              v-model:checked="surveyMode"
               v-e="['c:share:view:surver-mode:toggle']"
-              data-testid="nc-modal-share-view__surveyMode"
+              :checked="formPreFill.preFillEnabled"
+              data-testid="nc-modal-share-view__preFill"
+              size="small"
+              @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
             >
             </a-switch>
           </div>
-          <div v-if="activeView?.type === ViewTypes.FORM && !isEeUI" class="flex flex-row justify-between">
-            <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
-            <a-switch
-              v-model:checked="withRTL"
-              v-e="['c:share:view:rtl-orientation:toggle']"
-              data-testid="nc-modal-share-view__RTL"
-            >
-            </a-switch>
-          </div>
+
+          <a-radio-group
+            v-if="formPreFill.preFillEnabled"
+            :value="formPreFill.preFilledMode"
+            class="nc-modal-share-view-preFillMode"
+            data-testid="nc-modal-share-view__preFillMode"
+            @update:value="handleChangeFormPreFill({ preFilledMode: $event })"
+          >
+            <a-radio v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
+              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
+            </a-radio>
+          </a-radio-group>
         </div>
       </template>
     </div>
@@ -365,6 +457,20 @@ const isPublicShared = computed(() => {
     height: 1rem !important;
     min-width: 1rem !important;
     line-height: 1rem !important;
+  }
+}
+
+.nc-modal-share-view-preFillMode {
+  @apply flex flex-col;
+
+  .ant-radio-wrapper {
+    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-gray-100;
+    .ant-radio {
+      @apply !top-0;
+    }
+    .ant-radio + span {
+      @apply !flex !pl-4;
+    }
   }
 }
 </style>

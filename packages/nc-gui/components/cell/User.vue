@@ -323,6 +323,7 @@ const filterOption = (input: string, option: any) => {
       <component
         :is="isMultiple ? CheckboxGroup : RadioGroup"
         v-model:value="vModelListLayout"
+        :disabled="readOnly || !editAllowed"
         class="nc-field-layout-list"
         @update:value="
           (value) => {

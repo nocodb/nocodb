@@ -136,3 +136,9 @@ export enum ImportSource {
   URL = 'url',
   STRING = 'string',
 }
+
+export enum PreFilledMode {
+  Default = 'default',
+  Hidden = 'hidden',
+  Locked = 'locked',
+}

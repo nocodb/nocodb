@@ -280,37 +280,45 @@ onMounted(() => {
               <LazyCellRichText :value="field?.description" class="!h-auto -ml-1" is-form-field read-only sync-value-change />
             </div>
 
-            <LazySmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">
-              <LazySmartsheetVirtualCell
-                v-if="isVirtualCol(field)"
-                v-model="formState[field.title]"
-                class="mt-0 nc-input h-auto"
-                :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-                :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
-                :column="field"
-              />
+            <NcTooltip :disabled="!field?.read_only">
+              <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+              <LazySmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(field)"
+                  v-model="formState[field.title]"
+                  class="mt-0 nc-input h-auto"
+                  :class="{
+                    readonly: field?.read_only,
+                  }"
+                  :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+                  :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                  :column="field"
+                  :read-only="field?.read_only"
+                />
 
-              <LazySmartsheetCell
-                v-else
-                v-model="formState[field.title]"
-                class="nc-input h-auto"
-                :class="parseProp(field?.meta)?.isList ? 'layout-list' : ''"
-                :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
-                :column="field"
-                edit-enabled
-              />
+                <LazySmartsheetCell
+                  v-else
+                  v-model="formState[field.title]"
+                  class="nc-input h-auto"
+                  :class="{ 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only }"
+                  :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                  :column="field"
+                  :edit-enabled="!field?.read_only"
+                  :read-only="field?.read_only"
+                />
 
-              <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
-                  {{ error.$message }}
+                <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
+                  <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                    {{ error.$message }}
+                  </div>
+
+                  <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
+                    {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
+                    <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.makeLineBreak') }}
+                  </div>
                 </div>
-
-                <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
-                  {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
-                  <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.makeLineBreak') }}
-                </div>
-              </div>
-            </LazySmartsheetDivDataCell>
+              </LazySmartsheetDivDataCell>
+            </NcTooltip>
           </div>
 
           <div class="ml-1 mt-4 flex w-full text-lg">

@@ -81,6 +81,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const route = useRoute()
 
   const formState = ref<Record<string, any>>({})
+  
+  const preFilledformState = ref<Record<string, any>>({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
     meta as Ref<TableType>,
@@ -250,7 +252,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     formResetHook.trigger()
 
     additionalState.value = {}
-    formState.value = {}
+    formState.value = {
+      ...([PreFilledMode.Locked, PreFilledMode.Hidden].includes(sharedViewMeta.value.preFilledMode)
+        ? preFilledformState.value
+        : {}),
+    }
     v$.value?.$reset()
   }
 
@@ -273,6 +279,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (preFillValue !== undefined) {
           // Prefill form state
           formState.value[c.title] = preFillValue
+          // preFilledformState will be used in clear for to fill the filled data
+          preFilledformState.value[c.title] = preFillValue
 
           // Update column
           switch (sharedViewMeta.value.preFilledMode) {

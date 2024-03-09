@@ -12,9 +12,18 @@ interface Props {
   validate?: boolean
   disableDeepCompare?: boolean
   readOnly?: boolean
+  autoFocus: boolean
 }
 
-const { hideMinimap, lang = 'json', validate = true, disableDeepCompare = false, modelValue, readOnly } = defineProps<Props>()
+const {
+  hideMinimap,
+  lang = 'json',
+  validate = true,
+  disableDeepCompare = false,
+  modelValue,
+  readOnly,
+  autoFocus = true,
+} = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
@@ -120,7 +129,7 @@ onMounted(async () => {
       }
     })
 
-    if (!isDrawerOrModalExist()) {
+    if (!isDrawerOrModalExist() && autoFocus) {
       // auto focus on json cells only
       editor.focus()
     }

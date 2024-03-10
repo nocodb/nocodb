@@ -29,8 +29,8 @@ const props = withDefaults(defineProps<Props>(), {
         }"
         class="block h-10 w-1 rounded"
       ></span>
-      <div class="flex text-ellipsis gap-1 flex-col">
-        <span class="text-sm max-w-40 truncate text-gray-800">
+      <div class="flex gap-1 flex-col">
+        <span class="text-sm max-w-56 truncate text-gray-800">
           <slot />
         </span>
         <span v-if="showDate" class="text-xs text-gray-500">{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span>

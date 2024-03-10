@@ -315,7 +315,7 @@ const onFocus = () => {
     @keydown.enter.stop.prevent="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-radio-group v-model:value="vModel" class="nc-field-layout-list">
+      <a-radio-group v-model:value="vModel" :disabled="readOnly || !editAllowed" class="nc-field-layout-list">
         <a-radio
           v-for="op of options"
           :key="op.title"

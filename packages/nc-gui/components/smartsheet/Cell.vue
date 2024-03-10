@@ -29,6 +29,7 @@ import {
   isJSON,
   isManualSaved,
   isMultiSelect,
+  isNumericFieldType,
   isPercent,
   isPhoneNumber,
   isPrimary,
@@ -142,14 +143,7 @@ const navigate = (dir: NavigateDir, e: KeyboardEvent) => {
 }
 
 const isNumericField = computed(() => {
-  return (
-    isInt(column.value, abstractType.value) ||
-    isFloat(column.value, abstractType.value) ||
-    isDecimal(column.value) ||
-    isCurrency(column.value) ||
-    isPercent(column.value) ||
-    isDuration(column.value)
-  )
+  return isNumericFieldType(column.value, abstractType.value)
 })
 
 // disable contexxtmenu event propagation when cell is in

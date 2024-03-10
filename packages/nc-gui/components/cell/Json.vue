@@ -184,6 +184,7 @@ watch(isExpanded, () => {
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
         :disable-deep-compare="true"
+        :auto-focus="!isForm"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
       />

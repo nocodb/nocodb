@@ -40,60 +40,60 @@ import {
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
-    return iconMap.key
+    return iconMap.cellSystemKey
   } else if (isSpecificDBType(column)) {
-    return iconMap.specificDbType
+    return iconMap.cellDb
   } else if (isJSON(column)) {
-    return iconMap.json
+    return iconMap.cellJson
   } else if (isDate(column, abstractType)) {
-    return iconMap.calendar
+    return iconMap.cellDate
   } else if (isDateTime(column, abstractType)) {
-    return iconMap.datetime
+    return iconMap.cellDatetime
   } else if (isGeoData(column)) {
     return iconMap.geoData
   } else if (isSet(column)) {
-    return iconMap.multiSelect
+    return iconMap.cellMultiSelect
   } else if (isSingleSelect(column)) {
-    return iconMap.singleSelect
+    return iconMap.cellSingleSelect
   } else if (isBoolean(column, abstractType)) {
-    return iconMap.boolean
+    return iconMap.cellCheckbox
   } else if (isTextArea(column)) {
-    return iconMap.longText
+    return iconMap.cellLongText
   } else if (isEmail(column)) {
-    return iconMap.email
+    return iconMap.cellEmail
   } else if (isYear(column, abstractType)) {
-    return iconMap.calendar
+    return iconMap.cellDate
   } else if (isTime(column, abstractType)) {
-    return iconMap.clock
+    return iconMap.cellTime
   } else if (isRating(column)) {
-    return iconMap.rating
+    return iconMap.cellRating
   } else if (isAttachment(column)) {
-    return iconMap.image
+    return iconMap.cellAttachment
   } else if (isDecimal(column)) {
-    return iconMap.decimal
+    return iconMap.cellDecimal
   } else if (isPhoneNumber(column)) {
-    return iconMap.phone
+    return iconMap.cellPhone
   } else if (isURL(column)) {
-    return iconMap.web
+    return iconMap.cellUrl
   } else if (isCurrency(column)) {
-    return iconMap.currency
+    return iconMap.cellCurrency
   } else if (isDuration(column)) {
-    return iconMap.duration
+    return iconMap.cellDuration
   } else if (isPercent(column)) {
-    return iconMap.percent
+    return iconMap.cellPercent
   } else if (isGeometry(column)) {
-    return iconMap.calculator
+    return iconMap.cellGeometry
   } else if (isUser(column)) {
     if ((column.meta as { is_multi?: boolean; notify?: boolean })?.is_multi) {
-      return iconMap.phUsers
+      return iconMap.cellUser
     }
-    return iconMap.phUser
+    return iconMap.cellUser
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
-    return iconMap.number
+    return iconMap.cellNumber
   } else if (isString(column, abstractType)) {
-    return iconMap.text
+    return iconMap.cellText
   } else {
-    return iconMap.generic
+    return iconMap.cellSystemText
   }
 }
 

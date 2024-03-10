@@ -926,7 +926,15 @@
     "startCommenting": "댓글 달기",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
-    "selectAllFields": "Select all fields"
+    "selectAllFields": "Select all fields",
+    "preFilledFields": {
+      "title": "Enable Pre-fill",
+      "default": "Default",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
+    },
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "데이터 소스 제한에 도달했습니다.",
@@ -956,7 +964,9 @@
     "clearMetadata": "메타 테이블에서 모든 메타 데이터를 지우십시오.",
     "clientKey": "키 파일을 선택하십시오",
     "clientCert": ".cert 파일을 선택하십시오",
-    "clientCA": "CA 파일을 선택하십시오"
+    "clientCA": "CA 파일을 선택하십시오",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "슬랙 채널 선택",

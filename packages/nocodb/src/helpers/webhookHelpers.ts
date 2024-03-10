@@ -436,6 +436,7 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           }),
         }
       : {}),
+    timeout: 30 * 1000,
   };
   return req;
 }

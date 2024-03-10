@@ -926,7 +926,15 @@
     "startCommenting": "开始评论",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
-    "selectAllFields": "Select all fields"
+    "selectAllFields": "Select all fields",
+    "preFilledFields": {
+      "title": "Enable Pre-fill",
+      "default": "Default",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
+    },
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "暂时只限于一个数据源",
@@ -956,7 +964,9 @@
     "clearMetadata": "在元数据表格中清楚所有元数据",
     "clientKey": "选择 .key 文件",
     "clientCert": "选择 .cert 文件",
-    "clientCA": "选择 CA 文件"
+    "clientCA": "选择 CA 文件",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "选择 Slack 频道",

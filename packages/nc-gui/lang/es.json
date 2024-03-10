@@ -926,7 +926,15 @@
     "startCommenting": "¡Empieza a comentar!",
     "clearForm": "Limpiar formulario",
     "addFieldFromFormView": "Añadir Campo",
-    "selectAllFields": "Seleccionar todos los campos"
+    "selectAllFields": "Seleccionar todos los campos",
+    "preFilledFields": {
+      "title": "Enable Pre-fill",
+      "default": "Default",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
+    },
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "Limitado a una única fuente de datos por el momento",
@@ -956,7 +964,9 @@
     "clearMetadata": "Limpiar todos los metadata de las tablas meta.",
     "clientKey": "Seleccionar archivo .key",
     "clientCert": "Seleccionar archivo .cert",
-    "clientCA": "Seleccionar archivo CA"
+    "clientCA": "Seleccionar archivo CA",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "Seleccionar canales de Slack",

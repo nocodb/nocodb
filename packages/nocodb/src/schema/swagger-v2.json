@@ -16352,6 +16352,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Base Meta"
           }
         },
         "required": [

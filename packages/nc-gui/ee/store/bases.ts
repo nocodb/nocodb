@@ -277,6 +277,7 @@ export const useBases = defineStore('basesStore', () => {
     workspaceId: string
     type: string
     linkedDbProjectIds?: string[]
+    meta?: Record<string, unknown>
   }) => {
     const result = await api.base.create(
       {
@@ -286,13 +287,9 @@ export const useBases = defineStore('basesStore', () => {
         type: basePayload.type ?? NcProjectType.DB,
         linked_db_project_ids: basePayload.linkedDbProjectIds,
         // color,
-        // meta: JSON.stringify({
-        //   theme: {
-        //     primaryColor: color,
-        //     accentColor: complement.toHex8String(),
-        //   },
-        //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-        // }),
+        meta: JSON.stringify({
+          ...(basePayload.meta || {}),
+        }),
       },
       {
         baseURL: getBaseUrl(basePayload.workspaceId),

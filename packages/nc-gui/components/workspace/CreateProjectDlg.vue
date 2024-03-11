@@ -3,7 +3,16 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useI18n, useVModel } from '#imports'
+import {
+  NcProjectType,
+  baseIconColors,
+  baseTitleValidator,
+  extractSdkResponseErrorMsg,
+  ref,
+  useGlobal,
+  useI18n,
+  useVModel,
+} from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -38,6 +47,9 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
+  meta: {
+    iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
+  },
 })
 
 const creating = ref(false)
@@ -48,6 +60,7 @@ const createProject = async () => {
     const base = await _createProject({
       type: baseType.value,
       title: formState.value.title,
+      meta: formState.value.meta,
     })
 
     navigateToProject({
@@ -77,6 +90,9 @@ watch(dialogShow, async (n, o) => {
 
     formState.value = {
       title: 'Base',
+      meta: {
+        iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
+      },
     }
 
     await nextTick()
@@ -100,7 +116,7 @@ const typeLabel = computed(() => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
         {{
           $t('general.createEntity', {
             entity: typeLabel,

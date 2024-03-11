@@ -242,11 +242,15 @@ export const useBases = defineStore('basesStore', () => {
     workspaceId?: string
     type: string
     linkedDbProjectIds?: string[]
+    meta?: Record<string, unknown>
   }) => {
     const result = await api.base.create(
       {
         title: basePayload.title,
         linked_db_project_ids: basePayload.linkedDbProjectIds,
+        meta: JSON.stringify({
+          ...(basePayload.meta || {}),
+        }),
       },
       {
         baseURL: getBaseUrl('nc'),

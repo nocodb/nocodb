@@ -16,7 +16,6 @@ import {
   useBase,
   useCommandPalette,
   useI18n,
-  useMagicKeys,
   useMetas,
   useNuxtApp,
   useTabs,

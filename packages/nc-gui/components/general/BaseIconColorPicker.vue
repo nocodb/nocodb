@@ -7,6 +7,7 @@ const props = withDefaults(
   defineProps<{
     type?: NcProjectType | string
     modelValue?: string
+    emoji?: string
     size?: 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean
     iconClass?: string
@@ -73,7 +74,11 @@ watch(
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
 
           <div>
-            <GeneralProjectIcon :color="colorRef" :type="type" />
+            <LazyGeneralEmojiPicker :key="emoji" :emoji="emoji" readonly size="small">
+              <template #default>
+                <GeneralProjectIcon :color="colorRef" :type="type" />
+              </template>
+            </LazyGeneralEmojiPicker>
           </div>
         </NcTooltip>
       </div>

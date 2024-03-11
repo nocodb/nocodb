@@ -28,7 +28,7 @@ export class CommandPaletteService {
           cmdData.push({
             id: `p-${base.id}`,
             title: base.title,
-            icon: 'project',
+            icon: deserializeJSON(base.meta)?.icon,
             iconColor: deserializeJSON(base.meta)?.iconColor,
             section: 'Bases',
             scopePayload: {
@@ -71,7 +71,7 @@ export class CommandPaletteService {
           cmdData.push({
             id: `p-${b.id}`,
             title: b.title,
-            icon: 'project',
+            icon: deserializeJSON(b.meta)?.icon,
             iconColor: deserializeJSON(b.meta)?.iconColor,
             section: 'Bases',
           });

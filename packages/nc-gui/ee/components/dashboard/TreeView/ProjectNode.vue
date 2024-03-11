@@ -468,6 +468,7 @@ const duplicateProject = (base: BaseType) => {
                   :key="`${base.id}_${parseProp(base.meta).iconColor}`"
                   :type="base?.type"
                   :model-value="parseProp(base.meta).iconColor"
+                  :emoji="parseProp(base.meta).icon"
                   size="small"
                   :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
                   @update:model-value="setColor($event, base)"

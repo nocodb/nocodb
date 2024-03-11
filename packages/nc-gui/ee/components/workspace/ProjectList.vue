@@ -243,6 +243,7 @@ const setColor = async (color: string, base: BaseType) => {
                 :key="`${record.id}_${parseProp(record.meta).iconColor}`"
                 :type="record?.type"
                 :model-value="parseProp(record.meta).iconColor"
+                :emoji="parseProp(record.meta).icon"
                 size="small"
                 :readonly="(record?.type && record?.type !== 'database') || !isUIAllowed('baseRename')"
                 @update:model-value="setColor($event, record)"

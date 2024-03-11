@@ -8,8 +8,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => '#3069FE',
-  mode: () => 'hsv',
+  modelValue: '#3069FE',
+  mode: 'hsv',
 })
 
 const emit = defineEmits(['update:modelValue', 'input'])
@@ -30,7 +30,7 @@ const picked = computed({
     v-model="picked"
     class="nc-color-slider-wrapper min-w-[200px]"
     :style="{
-      ['--nc-color-slider-pointer']: tinycolor(`hsv(${picked.h ?? 199}, 100%, 100%)`).toHexString(),
+      '--nc-color-slider-pointer': tinycolor(`hsv(${picked.h ?? 199}, 100%, 100%)`).toHexString(),
     }"
   />
 </template>

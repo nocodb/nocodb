@@ -199,8 +199,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     })
   }
 
-  const navigateToWorkspaceSettings = async () => {
-    navigateTo('/account/users')
+  const navigateToWorkspaceSettings = async (_, cmdOrCtrl) => {
+    await navigateTo(
+      `${cmdOrCtrl ? '#' : ''}/account/users`,
+      cmdOrCtrl
+        ? {
+            open: navigateToBlankTargetOpenOption,
+          }
+        : undefined,
+    )
   }
 
   function setLoadingState(isLoading = false) {

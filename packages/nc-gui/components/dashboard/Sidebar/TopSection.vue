@@ -6,6 +6,8 @@ const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
+const { meta: metaKey, ctrlKey } = useMagicKeys()
+
 const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings } = workspaceStore
@@ -15,8 +17,10 @@ const { isSharedBase } = storeToRefs(baseStore)
 const isCreateProjectOpen = ref(false)
 
 const navigateToSettings = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+
   // TODO: Handle cloud case properly
-  navigateToWorkspaceSettings()
+  navigateToWorkspaceSettings('', cmdOrCtrl)
 
   // if (appInfo.value.baseHostName) {
   //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`

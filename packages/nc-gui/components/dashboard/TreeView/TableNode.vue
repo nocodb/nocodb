@@ -4,7 +4,7 @@ import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 
-import { ProjectRoleInj, TreeViewInj, useNuxtApp, useRoles, useTabs, useMagicKeys } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useMagicKeys, useNuxtApp, useRoles, useTabs } from '#imports'
 import type { SidebarTableNode } from '~/lib'
 
 const props = withDefaults(

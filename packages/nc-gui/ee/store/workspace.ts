@@ -404,13 +404,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await ncNavigateTo({ workspaceId })
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string) => {
+  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
 
-    await router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+    await navigateTo(
+      router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } }).href,
+      cmdOrCtrl
+        ? {
+            open: navigateToBlankTargetOpenOption,
+          }
+        : undefined,
+    )
   }
 
   function setLoadingState(isLoading = false) {

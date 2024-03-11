@@ -11,11 +11,11 @@ import {
   ProjectRoleInj,
   ToggleDialogInj,
   extractSdkResponseErrorMsg,
+  navigateToBlankTargetOpenOption,
   openLink,
   storeToRefs,
   useBases,
   useMagicKeys,
-  navigateToBlankTargetOpenOption,
 } from '#imports'
 import { useNuxtApp } from '#app'
 

@@ -266,19 +266,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
     } else {
       if (cmdOrCtrl) {
-        const href = router.resolve({
-          name: routeName,
-          params: {
-            viewTitle: view.id || '',
-            viewId: tableId,
-            baseId: baseIdOrBaseId,
-            slugs,
+        await navigateTo(
+          router.resolve({
+            name: routeName,
+            params: {
+              viewTitle: view.id || '',
+              viewId: tableId,
+              baseId: baseIdOrBaseId,
+              slugs,
+            },
+          }).href,
+          {
+            open: navigateToBlankTargetOpenOption,
           },
-        }).href
-
-        await navigateTo(href, {
-          open: navigateToBlankTargetOpenOption,
-        })
+        )
       } else {
         await router.push({
           name: routeName,

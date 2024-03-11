@@ -6181,7 +6181,14 @@ function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
   }
 
   if (sub_op) {
-    if (![UITypes.Date, UITypes.DateTime].includes(uidt)) {
+    if (
+      ![
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(uidt)
+    ) {
       NcError.badRequest(`'${sub_op}' is not supported for UI Type'${uidt}'.`);
     }
     if (!COMPARISON_SUB_OPS.includes(sub_op)) {
@@ -6237,7 +6244,7 @@ export function extractCondition(
 
     if (aliasColObjMap[alias]) {
       if (
-        [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
+        [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(aliasColObjMap[alias].uidt)
       ) {
         value = value?.split(',');
         // the first element would be sub_op

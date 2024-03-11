@@ -70,7 +70,14 @@ const getAvailableRollupForUiType = (type: string) => {
       'sumDistinct',
       'avgDistinct',
     ];
-  } else if ([UITypes.Date, UITypes.DateTime].includes(type as UITypes)) {
+  } else if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(type as UITypes)
+  ) {
     return ['count', 'min', 'max', 'countDistinct'];
   } else if (
     [

@@ -161,7 +161,9 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
         acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
       } else if (curr.column_uidt === UITypes.Checkbox) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
-      } else if ([UITypes.Date, UITypes.DateTime].includes(curr.column_uidt as UITypes)) {
+      } else if (
+        [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
+      ) {
         acc += `${acc.length ? '~and' : ''}(${curr.title},eq,exactDate,${curr.key})`
       } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
         try {

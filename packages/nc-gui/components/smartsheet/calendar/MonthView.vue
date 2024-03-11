@@ -635,7 +635,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emit('newRecord', newRecord)
+  emit('new-record', newRecord)
 }
 </script>
 

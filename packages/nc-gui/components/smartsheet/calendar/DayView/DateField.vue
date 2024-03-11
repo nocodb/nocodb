@@ -192,7 +192,7 @@ const newRecord = () => {
       [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emit('newRecord', record)
+  emit('new-record', record)
 }
 </script>
 

@@ -286,7 +286,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   }
   const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
 
-  if (cmdOrCtrl && !ignoreNavigation && base.type == 'database') {
+  if (cmdOrCtrl && !ignoreNavigation && base.type === 'database') {
     await navigateTo(
       `${cmdOrCtrl ? '#' : ''}${baseUrl({
         id: base.id!,

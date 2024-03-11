@@ -32,6 +32,8 @@ import {
   useTablesStore,
   useTabs,
   useToggle,
+  useMagicKeys,
+  navigateToBlankTargetOpenOption,
 } from '#imports'
 import type { NcProject } from '#imports'
 
@@ -70,6 +72,8 @@ const { appInfo } = useGlobal()
 const { orgRoles, isUIAllowed } = useRoles()
 
 useTabs()
+
+const { meta: metaKey, ctrlKey } = useMagicKeys()
 
 const editMode = ref(false)
 
@@ -253,11 +257,28 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   if (!base) {
     return
   }
+  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
 
-  if (!toggleIsExpanded) $e('c:base:open')
+  if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
   ignoreNavigation = isMobileMode.value || ignoreNavigation
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
+
+  if (cmdOrCtrl && !ignoreNavigation) {
+    await navigateTo(
+      `${cmdOrCtrl ? '#' : ''}${baseUrl({
+        id: base.id!,
+        type: 'database',
+        isSharedBase: isSharedBase.value,
+      })}`,
+      cmdOrCtrl
+        ? {
+            open: navigateToBlankTargetOpenOption,
+          }
+        : undefined,
+    )
+    return
+  }
 
   if (toggleIsExpanded) {
     base.isExpanded = !base.isExpanded

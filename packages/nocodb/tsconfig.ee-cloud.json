@@ -1,10 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
-  },
   "compilerOptions": {
     "outDir": "./dist",
     "baseUrl": "./",
@@ -13,10 +8,12 @@
         "./src/*"
       ],
       "~/*": [
+        "./src/ee-cloud/*",
         "./src/ee/*",
         "./src/*"
       ],
       "@/*": [
+        "./src/ee-cloud/*",
         "./src/ee/*",
         "./src/*"
       ]
@@ -25,12 +22,5 @@
       "./src/types",
       "./node_modules/@types"
     ]
-  },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./src/ee-on-prem",
-    "./src/ee-cloud"
-  ]
+  }
 }

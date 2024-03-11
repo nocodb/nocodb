@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { metaModuleMetadata } from 'src/modules/metas/metas.module';
 import { PageDao } from '~/daos/page.dao';
 import { PageSnapshotDao } from '~/daos/page-snapshot.dao';

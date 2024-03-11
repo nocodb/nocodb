@@ -1,9 +1,7 @@
 import ModelCE from 'src/models/Model';
 import type { TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
-import View from '~/models/View';
-import Source from '~/models/Source';
-import ModelStat from '~/models/ModelStat';
+import { ModelStat, Source, View } from '~/models';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import Noco from '~/Noco';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';

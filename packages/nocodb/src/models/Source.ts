@@ -3,9 +3,7 @@ import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
-import Model from '~/models/Model';
-import Base from '~/models/Base';
-import SyncSource from '~/models/SyncSource';
+import { Base, Model, SyncSource } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,

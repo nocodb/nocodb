@@ -1088,7 +1088,10 @@ useEventListener(
                         </div>
 
                         <!-- Field Header  -->
-                        <div v-if="activeRow === element.title" class="w-full flex gap-3 items-center px-3 py-2 bg-gray-50 border-b-1 border-gray-200">
+                        <div
+                          v-if="activeRow === element.title"
+                          class="w-full flex gap-3 items-center px-3 py-2 bg-gray-50 border-b-1 border-gray-200"
+                        >
                           <component
                             :is="iconMap.drag"
                             class="nc-form-field-drag-handler flex-none cursor-move !h-4 !w-4 text-gray-600"
@@ -1272,7 +1275,10 @@ useEventListener(
                           </div>
 
                           <!-- Limit options -->
-                          <div v-if="isSelectTypeCol(element.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
+                          <div
+                            v-if="isSelectTypeCol(element.uidt)"
+                            class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white"
+                          >
                             <div class="flex items-center gap-3">
                               <a-switch
                                 v-model:checked="element.meta.isLimitOption"

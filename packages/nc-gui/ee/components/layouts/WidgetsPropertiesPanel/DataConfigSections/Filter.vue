@@ -90,7 +90,10 @@ const selectFilterField = (filter: Filter, index: number) => {
   filter.comparison_op = comparisonOpList(col.uidt as UITypes).find((compOp) => isComparisonOpAllowed(filter, compOp))
     ?.value as FilterType['comparison_op']
 
-  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
+  if (
+    [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt as UITypes) &&
+    !['blank', 'notblank'].includes(filter.comparison_op!)
+  ) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
     } else {
@@ -124,7 +127,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // hence remove the previous value
     filter.value = null
     filter.comparison_sub_op = null
-  } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
+  } else if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
@@ -274,8 +277,9 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 
             <a-select
               v-if="
-                [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
-                !['blank', 'notblank'].includes(filter.comparison_op)
+                [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+                  getColumn(filter)?.uidt,
+                ) && !['blank', 'notblank'].includes(filter.comparison_op)
               "
               v-model:value="filter.comparison_sub_op"
               :dropdown-match-select-width="false"

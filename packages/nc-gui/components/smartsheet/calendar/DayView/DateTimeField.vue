@@ -847,7 +847,7 @@ const newRecord = (hour: dayjs.Dayjs) => {
       [calendarRange.value[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emit('newRecord', record)
+  emit('new-record', record)
 }
 </script>
 

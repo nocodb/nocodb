@@ -16,6 +16,7 @@ import {
   h,
   inject,
   navigateTo,
+  navigateToBlankTargetOpenOption,
   openLink,
   ref,
   resolveComponent,
@@ -26,14 +27,13 @@ import {
   useDialog,
   useGlobal,
   useI18n,
+  useMagicKeys,
   useNuxtApp,
   useRoles,
   useRouter,
   useTablesStore,
   useTabs,
   useToggle,
-  useMagicKeys,
-  navigateToBlankTargetOpenOption,
 } from '#imports'
 import type { NcProject } from '#imports'
 

@@ -1,7 +1,7 @@
 import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
-import { useMagicKeys, navigateToBlankTargetOpenOption } from '#imports'
+import { navigateToBlankTargetOpenOption, useMagicKeys } from '#imports'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()

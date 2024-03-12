@@ -83,58 +83,62 @@ const gridDisplayValueField = computed(() => {
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
-  // todo : sync with server
-  if (!fields.value) return
+  try {
+    // todo : sync with server
+    if (!fields.value) return
 
-  if (!undo) {
-    addUndo({
-      undo: {
-        fn: () => {
-          if (!fields.value) return
-          const temp = fields.value[_event.moved.newIndex]
-          fields.value[_event.moved.newIndex] = fields.value[_event.moved.oldIndex]
-          fields.value[_event.moved.oldIndex] = temp
-          onMove(
-            {
-              moved: {
-                newIndex: _event.moved.oldIndex,
-                oldIndex: _event.moved.newIndex,
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: () => {
+            if (!fields.value) return
+            const temp = fields.value[_event.moved.newIndex]
+            fields.value[_event.moved.newIndex] = fields.value[_event.moved.oldIndex]
+            fields.value[_event.moved.oldIndex] = temp
+            onMove(
+              {
+                moved: {
+                  newIndex: _event.moved.oldIndex,
+                  oldIndex: _event.moved.newIndex,
+                },
               },
-            },
-            true,
-          )
+              true,
+            )
+          },
+          args: [],
         },
-        args: [],
-      },
-      redo: {
-        fn: () => {
-          if (!fields.value) return
-          const temp = fields.value[_event.moved.oldIndex]
-          fields.value[_event.moved.oldIndex] = fields.value[_event.moved.newIndex]
-          fields.value[_event.moved.newIndex] = temp
-          onMove(_event, true)
+        redo: {
+          fn: () => {
+            if (!fields.value) return
+            const temp = fields.value[_event.moved.oldIndex]
+            fields.value[_event.moved.oldIndex] = fields.value[_event.moved.newIndex]
+            fields.value[_event.moved.newIndex] = temp
+            onMove(_event, true)
+          },
+          args: [],
         },
-        args: [],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
+        scope: defineViewScope({ view: activeView.value }),
+      })
+    }
+
+    if (fields.value.length < 2) return
+
+    await Promise.all(
+      fields.value.map(async (field, index) => {
+        if (field.order !== index + 1) {
+          field.order = index + 1
+          await saveOrUpdate(field, index, true)
+        }
+      }),
+    )
+
+    await loadViewColumns()
+    reloadViewDataHook?.trigger()
+
+    $e('a:fields:reorder')
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
-
-  if (fields.value.length < 2) return
-
-  await Promise.all(
-    fields.value.map(async (field, index) => {
-      if (field.order !== index + 1) {
-        field.order = index + 1
-        await saveOrUpdate(field, index, true)
-      }
-    }),
-  )
-
-  await loadViewColumns()
-  reloadViewDataHook?.trigger()
-
-  $e('a:fields:reorder')
 }
 
 const coverOptions = computed<SelectProps['options']>(() => {

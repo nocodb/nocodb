@@ -16,28 +16,29 @@ const emit = defineEmits(['colorSelected'])
 const { hue, size = 'medium', readonly } = props
 
 const defaultHueColor = {
-  h: 0,
-  s: 0,
-  v: 0,
+  h: 199,
+  s: 79,
+  v: 100,
 }
 
 const defaultHueValue = 199
 
 const isOpen = ref(false)
 
-const isOpenHuePicker = ref(false)
-
 const colorRef = ref({
   ...defaultHueColor,
   h: !(hue !== 0 && !hue) ? hue : defaultHueValue,
 })
+
+const updateColorHue = (value?: string | number | null) => {
+  colorRef.value.h = !isNaN(parseInt(`${value}`)) ? +Math.min(parseInt(`${value}`), 360) : 0
+}
 
 function selectColor(value: number) {
   colorRef.value.h = value
 
   emit('colorSelected', value)
 
-  isOpenHuePicker.value = false
   isOpen.value = false
 }
 
@@ -50,14 +51,10 @@ const onClick = (e: Event) => {
 }
 
 watch(
-  isOpenHuePicker,
-  () => {
-    if (!isOpenHuePicker.value && colorRef.value.h !== hue) {
-      if (hue !== 0 && !hue) {
-        colorRef.value.h = defaultHueValue
-      } else {
-        colorRef.value.h = hue
-      }
+  isOpen,
+  (value) => {
+    if (!value && colorRef.value.h !== hue) {
+      emit('colorSelected', colorRef.value.h)
     }
   },
   {
@@ -130,15 +127,12 @@ watch(
       </template>
     </div>
     <template #overlay>
-      <div class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg">
-        <div class="w-[164px] flex flex-wrap">
+      <div class="relative bg-white rounded-lg border-1 border-gray-200 shadow-lg">
+        <div class="flex items-center p-2 space-x-2">
           <div
             v-for="(h, i) of Object.keys(preDefinedHueData)"
             :key="i"
             class="nc-pre-defined-hue-item p-1 rounded cursor-pointer hover:bg-gray-200"
-            :class="{
-              'mt-3': i > 4,
-            }"
           >
             <div
               class="rounded h-6 w-6"
@@ -151,55 +145,35 @@ watch(
               @click="selectColor(preDefinedHueData[h].tint.h)"
             ></div>
           </div>
+        </div>
 
-          <a-dropdown
-            v-model:visible="isOpenHuePicker"
-            :trigger="['click']"
-            :disabled="readonly"
-            placement="bottom"
-            overlay-class-name="!left-9"
-          >
-            <div
-              class="nc-custom-hue-picker-item p-1 rounded cursor-pointer hover:bg-gray-200 mt-3"
-              :class="{
-                'bg-gray-200': isOpenHuePicker,
-              }"
-            >
-              <div
-                class="rounded overflow-hidden h-6 w-6"
-                :class="{
-                  selected: hue !== undefined && hue !== null && !preDefinedHueData[`_${hue}`],
-                }"
-                :style="{
-                  backgroundColor: tinycolor(`hsv(${hue}, 30%, 100%) `).toHexString(),
-                }"
-              >
-                <img src="~/assets/img/hue-colors.png" class="" alt="Hue picker" />
-              </div>
-            </div>
-            <template #overlay>
-              <div class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg flex flex-col space-y-4">
-                <div>{{ $t('labels.customHue') }}</div>
-                
-                <LazyGeneralColorHueSliderWrapper
-                  :model-value="colorRef"
-                  @update:model-value="
-                    (value) => {
-                      if (value?.h !== 0 && !value?.h) return
+        <div class="p-2 border-t-1 border-gray-200 flex flex-col space-y-4">
+          <div class="uppercase text-xs font-medium">{{ $t('labels.customColour') }}</div>
 
-                      colorRef.h = value.h
-                    }
-                  "
-                />
+          <div class="flex flex-row items-center gap-x-3">
+            <input
+              :value="parseInt(`${colorRef.h ?? 0}`)"
+              class="nc-color-hue-input"
+              type="number"
+              @input="
+                (value) => {
+                  updateColorHue(value.target?.value)
+                }
+              "
+              :min="0"
+              :max="360"
+            />
 
-                <div class="flex items-center justify-end">
-                  <NcButton type="secondary" size="small" @click="selectColor(colorRef.h ?? defaultHueValue)">
-                    {{ $t('general.apply') }}
-                  </NcButton>
-                </div>
-              </div>
-            </template>
-          </a-dropdown>
+            <LazyGeneralColorSliderWrapper
+              :model-value="colorRef"
+              class="!min-w-none ml-3"
+              @update:model-value="
+                (value) => {
+                  updateColorHue(value?.h)
+                }
+              "
+            />
+          </div>
         </div>
       </div>
     </template>
@@ -214,25 +188,19 @@ watch(
   }
 }
 
-:deep(.nc-hue-color-picker) {
-  &.vc-slider {
-    width: 297px;
+.nc-color-hue-input {
+  @apply outline-none text-sm rounded-lg border-gray-200 py-1 px-3 w-14 text-center;
+  -moz-appearance: textfield;
+
+  &:focus {
+    @apply ring-transparent border-brand-500;
   }
-  .vc-slider-swatches {
-    @apply hidden;
-  }
-  .vc-hue {
-    @apply rounded-lg;
-  }
-  .vc-slider-hue-warp {
-    height: 6px;
-    .vc-hue-pointer {
-      top: -3px !important;
-    }
-    .vc-hue-picker {
-      background-color: white;
-      box-shadow: 0 0 0 3px var(--nc-hue-slider-pointer-color) !important;
-    }
+
+  /* Chrome, Safari, Edge, Opera */
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 }
 </style>

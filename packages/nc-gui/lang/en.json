@@ -700,7 +700,7 @@
     "limitOptions": "Limit ptions",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection",
-    "customHue": "Custom Hue"
+    "customColour": "Custom colour"
   },
   "activity": {
     "noRange": "Calendar view requires a date range",

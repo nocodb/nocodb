@@ -201,6 +201,7 @@ export const useBases = defineStore('basesStore', () => {
       isExpanded: route.value.params.baseId === baseId || existingProject.isExpanded,
       // isLoading is managed by Sidebar
       isLoading: existingProject.isLoading,
+      meta: { ...parseProp(existingProject.meta), ...parseProp(_project.meta) },
     }
 
     bases.value.set(baseId, base)

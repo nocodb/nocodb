@@ -8,17 +8,19 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => ({ h: 199, s: 0, v: 0 }),
+  modelValue: () => '#3069FE',
   mode: () => 'hsv',
 })
 
 const emit = defineEmits(['update:modelValue', 'input'])
 
 const picked = computed({
-  get: () => props.modelValue || { h: 199, s: 0, v: 0 },
+  get: () => tinycolor(props.modelValue || '#3069FE').toHsv() as any,
   set: (val) => {
-    emit('update:modelValue', val[props.mode] || null)
-    emit('input', val[props.mode] || null)
+    if (val) {
+      emit('update:modelValue', val[props.mode] || null)
+      emit('input', val[props.mode] || null)
+    }
   },
 })
 </script>
@@ -26,15 +28,15 @@ const picked = computed({
 <template>
   <Slider
     v-model="picked"
-    class="nc-hue-slider-wrapper min-w-[200px]"
+    class="nc-color-slider-wrapper min-w-[200px]"
     :style="{
-      ['--nc-hue-slider-pointer-color']: tinycolor(`hsv(${picked.h ?? 199}, 100%, 100%)`).toHexString(),
+      ['--nc-color-slider-pointer']: tinycolor(`hsv(${picked.h ?? 199}, 100%, 100%)`).toHexString(),
     }"
   />
 </template>
 
 <style lang="scss" scoped>
-.nc-hue-slider-wrapper {
+.nc-color-slider-wrapper {
   &.vc-slider {
     @apply !w-full;
   }
@@ -52,7 +54,7 @@ const picked = computed({
     }
     .vc-hue-picker {
       background-color: white;
-      box-shadow: 0 0 0 3px var(--nc-hue-slider-pointer-color) !important;
+      box-shadow: 0 0 0 3px var(--nc-color-slider-pointer) !important;
     }
   }
 }

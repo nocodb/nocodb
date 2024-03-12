@@ -1,26 +1,29 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { NcProjectType } from '#imports'
+import { NcProjectType, baseIconColors } from '#imports'
 
-const { type, hoverable, color } = defineProps<{
-  type?: NcProjectType | string
-  hoverable?: boolean
-  color?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    type?: NcProjectType | string
+    hoverable?: boolean
+    color?: string
+  }>(),
+  {
+    color: baseIconColors[0],
+  },
+)
+
+const { color } = toRefs(props)
 
 const iconColor = computed(() => {
-  return color
+  return color.value && tinycolor(color.value).isValid()
     ? {
-        tint: tinycolor(color || '#36BFFF')
-          .lighten(10)
-          .toHexString(),
-        shade: tinycolor(color || '#36BFFF')
-          .darken(40)
-          .toHexString(),
+        tint: baseIconColors.includes(color.value) ? color.value : tinycolor(color.value).lighten(10).toHexString(),
+        shade: tinycolor(color.value).darken(40).toHexString(),
       }
     : {
-        tint: '#36BFFF',
-        shade: '#142966',
+        tint: baseIconColors[0],
+        shade: tinycolor(baseIconColors[0]).darken(40).toHexString(),
       }
 })
 </script>

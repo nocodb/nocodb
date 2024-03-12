@@ -2,8 +2,10 @@
 import { Slider } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
 
+import { BASE_ICON_COLOR_HUE_DATA as preDefinedHueData } from '#imports'
+
 const props = defineProps<{
-  hue?: number | undefined
+  hue?: number | null
   size?: 'small' | 'medium' | 'large' | 'xlarge'
   readonly?: boolean
   disableClearing?: boolean
@@ -12,8 +14,6 @@ const props = defineProps<{
 const emit = defineEmits(['colorSelected'])
 
 const { hue, size = 'medium', readonly } = props
-
-const hueData = [199, 24, 41, 141, 224, 3, 317, 271, 332]
 
 const defaultHueValue = {
   h: 0,
@@ -92,7 +92,7 @@ watch(
       }"
       @click="onClick"
     >
-      <template v-if="colorRef?.h === undefined">
+      <template v-if="hue === undefined || hue === null">
         <slot name="default" />
       </template>
       <template v-else>
@@ -113,13 +113,29 @@ watch(
               fill-rule="evenodd"
               clip-rule="evenodd"
               d="M638.951 291.265L936.342 462.949C966.129 480.145 980.256 502.958 978.723 525.482V774.266C980.256 796.789 966.129 819.602 936.342 836.798L638.951 1008.48C582.292 1041.19 490.431 1041.19 433.773 1008.48L136.381 836.798C106.595 819.602 92.4675 796.789 93.9999 774.266L93.9999 525.482C92.4675 502.957 106.595 480.145 136.381 462.949L433.773 291.265C490.431 258.556 582.292 258.556 638.951 291.265Z"
-              :fill="tinycolor(`hsv(${colorRef?.h || 'none'}, 100%, 30%)`).toHexString()"
+              :fill="
+                tinycolor(
+                  preDefinedHueData[`_${colorRef?.h}`]
+                    ? `hsv(${preDefinedHueData[`_${colorRef?.h}`].shade.h},${preDefinedHueData[`_${colorRef?.h}`].shade.s}%, ${
+                        preDefinedHueData[`_${colorRef?.h}`].shade.v
+                      }%)`
+                    : `hsv(${colorRef?.h || 'none'}, 100%, 30%)`,
+                ).toHexString()
+              "
             />
             <path
               fill-rule="evenodd"
               clip-rule="evenodd"
               d="M638.951 65.0055L936.342 236.69C966.129 253.886 980.256 276.699 978.723 299.222V548.006C980.256 570.529 966.129 593.343 936.342 610.538L638.951 782.223C582.292 814.931 490.431 814.931 433.773 782.223L136.381 610.538C106.595 593.343 92.4675 570.529 93.9999 548.006L93.9999 299.222C92.4675 276.699 106.595 253.886 136.381 236.69L433.773 65.0055C490.431 32.2968 582.292 32.2968 638.951 65.0055Z"
-              :fill="tinycolor(`hsv(${colorRef?.h || 'none'}, 30%, 100%)`).toHexString()"
+              :fill="
+                tinycolor(
+                  preDefinedHueData[`_${colorRef?.h}`]
+                    ? `hsv(${preDefinedHueData[`_${colorRef?.h}`].tint.h},${preDefinedHueData[`_${colorRef?.h}`].tint.s}%, ${
+                        preDefinedHueData[`_${colorRef?.h}`].tint.v
+                      }%)`
+                    : `hsv(${colorRef?.h || 'none'}, 30%, 100%)`,
+                ).toHexString()
+              "
             />
           </g>
         </svg>
@@ -129,7 +145,7 @@ watch(
       <div class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg">
         <div class="w-[164px] flex flex-wrap">
           <div
-            v-for="(h, i) of hueData"
+            v-for="(h, i) of Object.keys(preDefinedHueData)"
             :key="i"
             class="nc-pre-defined-hue-item p-1 rounded cursor-pointer hover:bg-gray-200"
             :class="{
@@ -139,12 +155,12 @@ watch(
             <div
               class="rounded h-6 w-6"
               :class="{
-                selected: h === hue,
+                selected: preDefinedHueData[h].tint.h === hue || (h === '_199' && (hue === undefined || hue === null)),
               }"
               :style="{
-                backgroundColor: tinycolor(`hsv(${h}, 30%, 100%) `).toHexString(),
+                backgroundColor: preDefinedHueData[h].pickerColor,
               }"
-              @click="selectColor(h)"
+              @click="selectColor(preDefinedHueData[h].tint.h)"
             ></div>
           </div>
 
@@ -153,7 +169,7 @@ watch(
             :trigger="['click']"
             :disabled="readonly"
             placement="bottom"
-            overlayClassName="!left-9"
+            overlay-class-name="!left-9"
           >
             <div
               class="nc-custom-hue-picker-item p-1 rounded cursor-pointer hover:bg-gray-200 mt-3"
@@ -164,7 +180,7 @@ watch(
               <div
                 class="rounded overflow-hidden h-6 w-6"
                 :class="{
-                  selected: hue !== undefined && hue !== null && !hueData.includes(hue),
+                  selected: hue !== undefined && hue !== null && !preDefinedHueData[`_${hue}`],
                 }"
                 :style="{
                   backgroundColor: tinycolor(`hsv(${hue}, 30%, 100%) `).toHexString(),
@@ -203,10 +219,6 @@ watch(
               </div>
             </template>
           </a-dropdown>
-        </div>
-
-        <div class="mt-3 flex items-center justify-end">
-          <NcButton type="secondary" size="small" @click.stop="selectColor(null)"> {{ $t('general.remove') }} </NcButton>
         </div>
       </div>
     </template>

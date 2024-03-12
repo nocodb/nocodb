@@ -172,16 +172,16 @@ defineExpose({
   enableEditMode,
 })
 
-const setIcon = async (icon: string, base: BaseType) => {
+const setColor = async (hue: number, base: BaseType) => {
   try {
     const meta = {
-      ...((base.meta as object) || {}),
-      icon,
+      ...parseProp(base.meta),
+      iconHue: hue,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:navdraw', { icon })
+    $e('a:base:icon:color:navdraw', { iconHue: hue })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -385,6 +385,10 @@ const projectDelete = () => {
   isProjectDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
+
+watchEffect(() => {
+  console.log('base', base.value)
+})
 </script>
 
 <template>
@@ -423,16 +427,18 @@ const projectDelete = () => {
             <div v-e="['c:base:emojiSelect']" class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralEmojiPicker
+              <LazyGeneralBaseColorPicker
                 v-else
-                :key="base.meta?.icon"
-                :emoji="base.meta?.icon"
-                :readonly="true"
+                :key="parseProp(base.meta).iconHue"
+                :hue="parseProp(base.meta).iconHue"
                 size="small"
-                @emoji-selected="setIcon($event, base)"
+                :readonly="base.type && base.type !== 'database'"
+                @color-selected="setColor($event, base)"
               >
-                <GeneralProjectIcon :type="base.type" />
-              </LazyGeneralEmojiPicker>
+                <template #default>
+                  <GeneralProjectIcon :type="base.type" />
+                </template>
+              </LazyGeneralBaseColorPicker>
             </div>
           </div>
 

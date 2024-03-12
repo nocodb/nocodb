@@ -19,11 +19,12 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue'])
 
-const { modelValue, size, readonly } = props
+const { modelValue } = toRefs(props)
+const { size, readonly } = props
 
 const isOpen = ref(false)
 
-const colorRef = ref(tinycolor(modelValue).isValid() ? modelValue : baseIconColors[0])
+const colorRef = ref(tinycolor(modelValue.value).isValid() ? modelValue.value : baseIconColors[0])
 
 const updateIconColor = (color: string) => {
   const tcolor = tinycolor(color)
@@ -43,7 +44,7 @@ const onClick = (e: Event) => {
 watch(
   isOpen,
   (value) => {
-    if (!value && colorRef.value !== modelValue) {
+    if (!value && colorRef.value !== modelValue.value) {
       emit('update:modelValue', colorRef.value)
     }
   },

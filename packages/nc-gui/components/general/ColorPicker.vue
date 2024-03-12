@@ -73,8 +73,8 @@ watch(picked, (n, _o) => {
           class="color-selector"
           :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
           :style="{
-            'background-color': `${color}`,
-            'border': colorBoxBorder ? `1px solid ${tinycolor(color).darken(30).toString()}` : undefined,
+            backgroundColor: `${color}`,
+            border: colorBoxBorder ? `1px solid ${tinycolor(color).darken(30).toString()}` : undefined,
           }"
           @click="selectColor(color, true)"
         >

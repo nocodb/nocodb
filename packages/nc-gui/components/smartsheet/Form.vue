@@ -1541,8 +1541,8 @@ useEventListener(
                           '#E5D4F5',
                           '#FFCFE6',
                         ]"
-                        :color-box-border="true"
-                        :is-new-design="true"
+                        color-box-border
+                        is-new-design
                         class="nc-form-theme-color-picker !pb-0 !pl-0 -ml-1"
                         @input="handleChangeBackground"
                       />

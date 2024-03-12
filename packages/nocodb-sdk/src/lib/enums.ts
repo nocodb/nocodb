@@ -19,6 +19,7 @@ export enum WorkspaceUserRoles {
   VIEWER = 'workspace-level-viewer',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
+  NO_ACCESS = 'workspace-level-no-access',
 }
 
 export enum AppEvents {
@@ -167,6 +168,7 @@ export const RoleLabels = {
   [WorkspaceUserRoles.EDITOR]: 'editor',
   [WorkspaceUserRoles.COMMENTER]: 'commenter',
   [WorkspaceUserRoles.VIEWER]: 'viewer',
+  [WorkspaceUserRoles.NO_ACCESS]: 'noaccess',
   [ProjectRoles.OWNER]: 'owner',
   [ProjectRoles.CREATOR]: 'creator',
   [ProjectRoles.EDITOR]: 'editor',
@@ -184,6 +186,7 @@ export const RoleColors = {
   [WorkspaceUserRoles.EDITOR]: 'green',
   [WorkspaceUserRoles.COMMENTER]: 'orange',
   [WorkspaceUserRoles.VIEWER]: 'yellow',
+  [WorkspaceUserRoles.NO_ACCESS]: 'red',
   [ProjectRoles.OWNER]: 'purple',
   [ProjectRoles.CREATOR]: 'blue',
   [ProjectRoles.EDITOR]: 'green',
@@ -203,6 +206,7 @@ export const RoleDescriptions = {
   [WorkspaceUserRoles.COMMENTER]:
     'Can view and comment data in workspace bases',
   [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace bases',
+  [WorkspaceUserRoles.NO_ACCESS]: 'Cannot access this workspace',
   [ProjectRoles.OWNER]: 'Full access to base',
   [ProjectRoles.CREATOR]:
     'Can create tables, views, setup webhook, invite collaborators and more',
@@ -222,6 +226,7 @@ export const RoleIcons = {
   [WorkspaceUserRoles.EDITOR]: 'role_editor',
   [WorkspaceUserRoles.COMMENTER]: 'role_commenter',
   [WorkspaceUserRoles.VIEWER]: 'role_viewer',
+  [WorkspaceUserRoles.NO_ACCESS]: 'role_no_access',
   [ProjectRoles.OWNER]: 'role_owner',
   [ProjectRoles.CREATOR]: 'role_creator',
   [ProjectRoles.EDITOR]: 'role_editor',
@@ -239,6 +244,7 @@ export const WorkspaceRolesToProjectRoles = {
   [WorkspaceUserRoles.EDITOR]: ProjectRoles.EDITOR,
   [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
   [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
+  [WorkspaceUserRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
 };
 
 export const OrderedWorkspaceRoles = [
@@ -247,6 +253,7 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.NO_ACCESS,
 ];
 
 export const OrderedOrgRoles = [

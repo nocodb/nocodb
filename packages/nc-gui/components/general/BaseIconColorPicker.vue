@@ -76,7 +76,7 @@ watch(
           'h-10 w-10 text-2xl': size === 'large',
           'h-14 w-16 text-5xl': size === 'xlarge',
         }"
-        @click.stop="onClick"
+        @click="onClick"
       >
         <template v-if="hue !== 0 && !hue && colorRef.h === defaultHueValue">
           <slot name="default" />

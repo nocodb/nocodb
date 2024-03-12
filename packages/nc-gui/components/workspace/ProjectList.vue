@@ -17,6 +17,7 @@ import {
   useNuxtApp,
   useRoles,
   useWorkspace,
+  parseProp,
 } from '#imports'
 
 const workspaceStore = useWorkspace()
@@ -181,16 +182,16 @@ function onProjectTitleClick(index: number) {
   }
 }
 
-const setIcon = async (icon: string, base: BaseType) => {
+const setColor = async (hue: number, base: BaseType) => {
   try {
     const meta = {
-      ...((base.meta as object) || {}),
-      icon,
+      ...parseProp(base.meta),
+      iconHue: hue,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:navdraw', { icon })
+    $e('a:base:icon:color:navdraw', { iconHue: hue })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -250,15 +251,17 @@ const setIcon = async (icon: string, base: BaseType) => {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-base-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <LazyGeneralEmojiPicker
-                :key="record.id"
-                :emoji="record.meta?.icon"
+              <LazyGeneralBaseColorPicker
+                :key="parseProp(record.meta).iconHue"
+                :hue="parseProp(record.meta).iconHue"
                 size="small"
                 readonly
-                @emoji-selected="setIcon($event, record)"
+                @color-selected="setColor($event, record)"
               >
-                <GeneralProjectIcon :type="record.type" />
-              </LazyGeneralEmojiPicker>
+                <template #default>
+                  <GeneralProjectIcon :type="record.type" />
+                </template>
+              </LazyGeneralBaseColorPicker>
               <!-- todo: replace with switch -->
             </div>
 

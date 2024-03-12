@@ -4,6 +4,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
+import { deserializeJSON } from '~/utils/serialize';
 
 const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',
@@ -57,6 +58,7 @@ export class CommandPaletteService {
             title: base.title,
             parent: `ws-nav-${base.fk_workspace_id}`,
             icon: 'project',
+            iconColor: deserializeJSON(base.meta)?.iconColor,
             scopePayload: {
               scope: `p-${base.id}`,
               data: {
@@ -132,6 +134,7 @@ export class CommandPaletteService {
             title: b.title,
             parent: `ws-${workspace.id}`,
             icon: 'project',
+            iconColor: deserializeJSON(b.meta)?.iconColor,
             section: 'Bases',
           });
         }

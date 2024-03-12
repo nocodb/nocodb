@@ -2,7 +2,16 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
-import { NcProjectType, baseTitleValidator, extractSdkResponseErrorMsg, ref, useGlobal, useVModel, useWorkspace } from '#imports'
+import {
+  NcProjectType,
+  baseIconColors,
+  baseTitleValidator,
+  extractSdkResponseErrorMsg,
+  ref,
+  useGlobal,
+  useVModel,
+  useWorkspace,
+} from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -37,6 +46,9 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
+  meta: {
+    iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
+  },
 })
 
 const creating = ref(false)
@@ -48,6 +60,7 @@ const createProject = async () => {
       type: baseType.value,
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
+      meta: formState.value.meta,
     })
 
     navigateToProject({
@@ -74,14 +87,21 @@ watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
 
   // Clear errors
-  form.value?.resetFields()
+  setTimeout(async () => {
+    form.value?.resetFields()
 
-  formState.value = {
-    title: 'Untitled Base',
-  }
-  await nextTick()
-  input.value?.$el?.focus()
-  input.value?.$el?.select()
+    formState.value = {
+      title: 'Base',
+      meta: {
+        iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
+      },
+    }
+
+    await nextTick()
+
+    input.value?.$el?.focus()
+    input.value?.$el?.select()
+  }, 5)
 })
 
 const typeLabel = computed(() => {
@@ -94,22 +114,6 @@ const typeLabel = computed(() => {
       return ''
   }
 })
-
-watch(dialogShow, () => {
-  // Clear errors
-  setTimeout(async () => {
-    form.value?.resetFields()
-
-    formState.value = {
-      title: 'Base',
-    }
-
-    await nextTick()
-
-    input.value?.$el?.focus()
-    input.value?.$el?.select()
-  }, 5)
-})
 </script>
 
 <template>
@@ -117,7 +121,7 @@ watch(dialogShow, () => {
     <template #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center">
-        <GeneralProjectIcon :type="baseType" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
     </template>

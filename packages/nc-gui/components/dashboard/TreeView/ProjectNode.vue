@@ -75,6 +75,8 @@ useTabs()
 
 const { meta: metaKey, ctrlKey } = useMagicKeys()
 
+const { refreshCommandPalette } = useCommandPalette()
+
 const editMode = ref(false)
 
 const tempTitle = ref('')
@@ -172,18 +174,20 @@ defineExpose({
   enableEditMode,
 })
 
-const setIcon = async (icon: string, base: BaseType) => {
+const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
-      ...((base.meta as object) || {}),
-      icon,
+      ...parseProp(base.meta),
+      iconColor: color,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:navdraw', { icon })
+    $e('a:base:icon:color:navdraw', { iconColor: color })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 
@@ -420,19 +424,20 @@ const projectDelete = () => {
           </NcButton>
 
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
-            <div v-e="['c:base:emojiSelect']" class="flex items-center select-none w-6 h-full">
+            <div class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralEmojiPicker
-                v-else
-                :key="base.meta?.icon"
-                :emoji="base.meta?.icon"
-                :readonly="true"
-                size="small"
-                @emoji-selected="setIcon($event, base)"
-              >
-                <GeneralProjectIcon :type="base.type" />
-              </LazyGeneralEmojiPicker>
+              <div v-else>
+                <GeneralBaseIconColorPicker
+                  :key="`${base.id}_${parseProp(base.meta).iconColor}`"
+                  :type="base?.type"
+                  :model-value="parseProp(base.meta).iconColor"
+                  size="small"
+                  :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
+                  @update:model-value="setColor($event, base)"
+                >
+                </GeneralBaseIconColorPicker>
+              </div>
             </div>
           </div>
 

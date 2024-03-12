@@ -82,7 +82,7 @@ watch(
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2.5">
-          <GeneralProjectIcon :type="openedProject?.type" />
+          <GeneralProjectIcon :type="openedProject?.type" :color="parseProp(openedProject?.meta).iconColor" />
           <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" show-on-truncate-only>
             <template #title> {{ openedProject?.title }}</template>
             <span class="truncate">

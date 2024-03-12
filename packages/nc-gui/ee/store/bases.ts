@@ -229,8 +229,6 @@ export const useBases = defineStore('basesStore', () => {
       return
     }
 
-    _project.meta = _project?.meta && typeof _project.meta === 'string' ? JSON.parse(_project.meta) : {}
-
     const existingProject = bases.value.get(baseId) ?? ({} as any)
     const base = {
       ...existingProject,
@@ -238,6 +236,7 @@ export const useBases = defineStore('basesStore', () => {
       isExpanded: route.value.params.baseId === baseId || existingProject.isExpanded,
       // isLoading is managed by Sidebar
       isLoading: existingProject.isLoading,
+      meta: { ...parseProp(existingProject.meta), ...parseProp(_project.meta) },
     }
 
     bases.value.set(baseId, base)
@@ -266,7 +265,7 @@ export const useBases = defineStore('basesStore', () => {
       ...baseUpdatePayload,
     }
 
-    bases.value.set(baseId, base)
+    bases.value.set(baseId, { ...base, meta: parseProp(base.meta) })
 
     await api.base.update(baseId, baseUpdatePayload)
 
@@ -278,6 +277,7 @@ export const useBases = defineStore('basesStore', () => {
     workspaceId: string
     type: string
     linkedDbProjectIds?: string[]
+    meta?: Record<string, unknown>
   }) => {
     const result = await api.base.create(
       {
@@ -287,13 +287,9 @@ export const useBases = defineStore('basesStore', () => {
         type: basePayload.type ?? NcProjectType.DB,
         linked_db_project_ids: basePayload.linkedDbProjectIds,
         // color,
-        // meta: JSON.stringify({
-        //   theme: {
-        //     primaryColor: color,
-        //     accentColor: complement.toHex8String(),
-        //   },
-        //   ...(route.value.query.type === NcProjectType.COWRITER && {prompt_statement: ''}),
-        // }),
+        meta: JSON.stringify({
+          ...(basePayload.meta || {}),
+        }),
       },
       {
         baseURL: getBaseUrl(basePayload.workspaceId),

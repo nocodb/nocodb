@@ -123,10 +123,8 @@ watch(
 )
 
 watch(expandedFormDlg, () => {
-  if (!expandedFormDlg.value) {
-    childrenExcludedOffsetCount.value = 0
-    childrenListOffsetCount.value = 0
-  }
+  childrenExcludedOffsetCount.value = 0
+  childrenListOffsetCount.value = 0
 })
 
 /*

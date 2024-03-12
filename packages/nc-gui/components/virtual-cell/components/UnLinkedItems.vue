@@ -166,10 +166,10 @@ watch(expandedFormDlg, () => {
     if (!isForm.value) {
       loadChildrenList()
     }
-    childrenExcludedOffsetCount.value = 0
-    childrenListOffsetCount.value = 0
     loadChildrenExcludedList(rowState.value)
   }
+  childrenExcludedOffsetCount.value = 0
+  childrenListOffsetCount.value = 0
 })
 
 watch(filterQueryRef, () => {

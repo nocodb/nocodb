@@ -294,8 +294,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (offset < 0) {
           offset = 0
           childrenListOffsetCount.value = 0
-        } else if (offset > childrenListCount.value) {
-          offset = parseInt(childrenListCount.value as any) - parseInt(childrenListPagination.size as any)
+        } else if (offset >= childrenListCount.value) {
+          offset = 0
         }
 
         if (isPublic.value) {

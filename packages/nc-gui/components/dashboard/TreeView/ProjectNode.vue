@@ -385,10 +385,6 @@ const projectDelete = () => {
   isProjectDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
-
-watchEffect(() => {
-  console.log('base', base.value)
-})
 </script>
 
 <template>
@@ -427,7 +423,7 @@ watchEffect(() => {
             <div v-e="['c:base:emojiSelect']" class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralBaseColorPicker
+              <LazyGeneralBaseIconColorPicker
                 v-else
                 :key="parseProp(base.meta).iconHue"
                 :hue="parseProp(base.meta).iconHue"
@@ -438,7 +434,7 @@ watchEffect(() => {
                 <template #default>
                   <GeneralProjectIcon :type="base?.type" />
                 </template>
-              </LazyGeneralBaseColorPicker>
+              </LazyGeneralBaseIconColorPicker>
             </div>
           </div>
 

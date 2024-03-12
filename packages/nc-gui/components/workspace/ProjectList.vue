@@ -10,6 +10,7 @@ import {
   isEeUI,
   message,
   navigateTo,
+  parseProp,
   ref,
   storeToRefs,
   useBases,
@@ -17,7 +18,6 @@ import {
   useNuxtApp,
   useRoles,
   useWorkspace,
-  parseProp,
 } from '#imports'
 
 const workspaceStore = useWorkspace()
@@ -251,7 +251,7 @@ const setColor = async (hue: number, base: BaseType) => {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-base-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <LazyGeneralBaseColorPicker
+              <LazyGeneralBaseIconColorPicker
                 :key="parseProp(record.meta).iconHue"
                 :hue="parseProp(record.meta).iconHue"
                 size="small"
@@ -261,7 +261,7 @@ const setColor = async (hue: number, base: BaseType) => {
                 <template #default>
                   <GeneralProjectIcon :type="record.type" />
                 </template>
-              </LazyGeneralBaseColorPicker>
+              </LazyGeneralBaseIconColorPicker>
               <!-- todo: replace with switch -->
             </div>
 

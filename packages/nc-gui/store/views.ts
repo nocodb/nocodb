@@ -1,7 +1,7 @@
 import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
-import { navigateToBlankTargetOpenOption, useMagicKeys } from '#imports'
+import { useMagicKeys, navigateToBlankTargetOpenOption } from '#imports'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -266,20 +266,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
     } else {
       if (cmdOrCtrl) {
-        await navigateTo(
-          router.resolve({
-            name: routeName,
-            params: {
-              viewTitle: view.id || '',
-              viewId: tableId,
-              baseId: baseIdOrBaseId,
-              slugs,
-            },
-          }).href,
-          {
-            open: navigateToBlankTargetOpenOption,
+        const href = router.resolve({
+          name: routeName,
+          params: {
+            viewTitle: view.id || '',
+            viewId: tableId,
+            baseId: baseIdOrBaseId,
+            slugs,
           },
-        )
+        }).href
+
+        await navigateTo(href, {
+          open: navigateToBlankTargetOpenOption,
+        })
       } else {
         await router.push({
           name: routeName,

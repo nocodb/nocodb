@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Slider } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
-import { ProjectInj } from '#imports'
 
 const props = defineProps<{
   hue?: number | undefined
@@ -16,45 +15,34 @@ const { hue, size = 'medium', readonly } = props
 
 const hueData = [199, 24, 41, 141, 224, 3, 317, 271, 332]
 
-const base = inject(ProjectInj)!
-
-const localHue = ref(hue)
-
-const clearable = computed(() => {
-  return !props.disableClearing && !readonly
-})
+const defaultHueValue = {
+  h: 0,
+  s: 0,
+  v: 0,
+}
 
 const isOpen = ref(false)
 
 const isOpenHuePicker = ref(false)
 
-const colorRefs = ref(
-  localHue.value !== undefined
+const colorRef = ref(
+  hue !== undefined && hue !== null
     ? {
-        h: localHue.value,
-        s: 0,
-        v: 0,
+        ...defaultHueValue,
+        h: hue,
       }
     : undefined,
 )
 
-const colorRef = computed({
-  get: () => {
-    return localHue.value !== undefined
-      ? {
-          h: localHue.value,
-          s: 0,
-          v: 0,
-        }
-      : undefined
-  },
-  set: (val) => {
-    localHue.value = val?.hsv?.h
-  },
-})
-
-function selectColor(value: number) {
-  localHue.value = value
+function selectColor(value: number | null) {
+  if (value === null) {
+    colorRef.value = undefined
+  } else {
+    colorRef.value = {
+      ...defaultHueValue,
+      h: value,
+    }
+  }
 
   emit('colorSelected', value)
 
@@ -70,15 +58,24 @@ const onClick = (e: Event) => {
   isOpen.value = !isOpen.value
 }
 
-const showClearButton = computed(() => {
-  return colorRef.value?.h !== undefined && clearable.value
-})
-
-watch(isOpenHuePicker, () => {
-  if (!isOpenHuePicker.value && localHue.value !== parseProp(base.value.meta).iconHue) {
-    localHue.value = parseProp(base.value.meta).iconHue
-  }
-})
+watch(
+  isOpenHuePicker,
+  () => {
+    if (!isOpenHuePicker.value && colorRef.value?.h !== hue) {
+      if (isNaN(parseFloat(`${hue}`))) {
+        colorRef.value = undefined
+      } else {
+        colorRef.value = {
+          ...defaultHueValue,
+          h: hue as number,
+        }
+      }
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -95,7 +92,7 @@ watch(isOpenHuePicker, () => {
       }"
       @click="onClick"
     >
-      <template v-if="hue === undefined">
+      <template v-if="colorRef?.h === undefined">
         <slot name="default" />
       </template>
       <template v-else>
@@ -129,25 +126,25 @@ watch(isOpenHuePicker, () => {
       </template>
     </div>
     <template #overlay>
-      <div
-        class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg"
-        :class="{
-          clearable: showClearButton,
-        }"
-      >
+      <div class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg">
         <div class="w-[164px] flex flex-wrap">
           <div
-            v-for="(hue, i) of hueData"
+            v-for="(h, i) of hueData"
             :key="i"
-            class="p-1 rounded cursor-pointer hover:bg-gray-200"
-            :class="i > 4 ? 'mt-3' : ''"
+            class="nc-pre-defined-hue-item p-1 rounded cursor-pointer hover:bg-gray-200"
+            :class="{
+              'mt-3': i > 4,
+            }"
           >
             <div
               class="rounded h-6 w-6"
-              :style="{
-                backgroundColor: tinycolor(`hsv(${hue}, 30%, 100%) `).toHexString(),
+              :class="{
+                selected: h === hue,
               }"
-              @click="selectColor(hue)"
+              :style="{
+                backgroundColor: tinycolor(`hsv(${h}, 30%, 100%) `).toHexString(),
+              }"
+              @click="selectColor(h)"
             ></div>
           </div>
 
@@ -156,11 +153,19 @@ watch(isOpenHuePicker, () => {
             :trigger="['click']"
             :disabled="readonly"
             placement="bottom"
-            overlayClassName="!left-8.5"
+            overlayClassName="!left-9"
           >
-            <div class="p-1 rounded cursor-pointer hover:bg-gray-200 mt-3">
+            <div
+              class="nc-custom-hue-picker-item p-1 rounded cursor-pointer hover:bg-gray-200 mt-3"
+              :class="{
+                'bg-gray-200': isOpenHuePicker,
+              }"
+            >
               <div
                 class="rounded overflow-hidden h-6 w-6"
+                :class="{
+                  selected: hue !== undefined && hue !== null && !hueData.includes(hue),
+                }"
                 :style="{
                   backgroundColor: tinycolor(`hsv(${hue}, 30%, 100%) `).toHexString(),
                 }"
@@ -169,49 +174,72 @@ watch(isOpenHuePicker, () => {
               </div>
             </div>
             <template #overlay>
-              <div
-                class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg flex flex-col space-y-3"
-                :class="{
-                  clearable: showClearButton,
-                }"
-              >
-                <div class="text-sm font-semibold">Custom Hue</div>
+              <div class="relative bg-white rounded-lg p-3 border-1 border-gray-200 shadow-lg flex flex-col space-y-4">
+                <div class="text-sm font-semibold">{{ $t('labels.customHue') }}</div>
+
                 <Slider
                   :model-value="colorRef"
                   class="nc-hue-color-picker"
+                  :style="{
+                    ['--nc-hue-slider-pointer-color']: tinycolor(`hsv(${colorRef?.h}, 100%, 100%)`).toHexString(),
+                  }"
                   :disable-fields="true"
                   @update:model-value="
                     (value) => {
-                      console.log('update', value)
+                      if (value?.hsv?.h === undefined) return
+                      colorRef = {
+                        ...defaultHueValue,
+                        h: +value.hsv.h,
+                      }
                     }
                   "
                 />
 
                 <div class="flex items-center justify-end">
-                  <NcButton type="secondary" size="small" @click="selectColor(localHue)"> Apply </NcButton>
+                  <NcButton type="secondary" size="small" @click="selectColor(colorRef?.h || 0)">
+                    {{ $t('general.apply') }}
+                  </NcButton>
                 </div>
               </div>
             </template>
           </a-dropdown>
+        </div>
+
+        <div class="mt-3 flex items-center justify-end">
+          <NcButton type="secondary" size="small" @click.stop="selectColor(null)"> {{ $t('general.remove') }} </NcButton>
         </div>
       </div>
     </template>
   </a-dropdown>
 </template>
 
-<style lang="scss">
-.clearable {
-  .emoji-mart-search {
-    @apply pr-22;
+<style lang="scss" scoped>
+.nc-pre-defined-hue-item,
+.nc-custom-hue-picker-item {
+  .selected {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3069fe;
   }
 }
 
-.nc-hue-color-picker {
+:deep(.nc-hue-color-picker) {
+  &.vc-slider {
+    width: 297px;
+  }
   .vc-slider-swatches {
     @apply hidden;
   }
   .vc-hue {
     @apply rounded-lg;
+  }
+  .vc-slider-hue-warp {
+    height: 6px;
+    .vc-hue-pointer {
+      top: -3px !important;
+    }
+    .vc-hue-picker {
+      background-color: white;
+      box-shadow: 0 0 0 3px var(--nc-hue-slider-pointer-color) !important;
+    }
   }
 }
 </style>

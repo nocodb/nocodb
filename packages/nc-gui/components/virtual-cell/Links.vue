@@ -80,22 +80,6 @@ const openChildList = () => {
   childListDlg.value = true
 }
 
-watch(childListDlg, async (value) => {
-  if (!value) {
-    await reloadRowTrigger?.trigger({
-      shouldShowLoading: true,
-    })
-  }
-})
-
-watch(listItemsDlg, async (value) => {
-  if (!value) {
-    await reloadRowTrigger?.trigger({
-      shouldShowLoading: true,
-    })
-  }
-})
-
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':

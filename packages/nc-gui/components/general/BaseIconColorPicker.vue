@@ -7,7 +7,6 @@ const props = withDefaults(
   defineProps<{
     type?: NcProjectType | string
     modelValue?: string
-    emoji?: string
     size?: 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean
     iconClass?: string
@@ -59,7 +58,7 @@ watch(
   <div>
     <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
       <div
-        class="flex flex-row justify-center items-center select-none rounded-md nc-emoji"
+        class="flex flex-row justify-center items-center select-none rounded-md nc-base-icon-picker-trigger"
         :class="{
           'hover:bg-gray-500 hover:bg-opacity-15 cursor-pointer': !readonly,
           'bg-gray-500 bg-opacity-15': isOpen,
@@ -74,11 +73,7 @@ watch(
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
 
           <div>
-            <LazyGeneralEmojiPicker :key="emoji" :emoji="emoji" readonly size="small">
-              <template #default>
-                <GeneralProjectIcon :color="colorRef" :type="type" />
-              </template>
-            </LazyGeneralEmojiPicker>
+            <GeneralProjectIcon :color="colorRef" :type="type" />
           </div>
         </NcTooltip>
       </div>

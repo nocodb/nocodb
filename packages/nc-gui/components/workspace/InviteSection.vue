@@ -6,7 +6,7 @@ import { validateEmail } from '~/utils/validation'
 
 const inviteData = reactive({
   email: '',
-  roles: WorkspaceUserRoles.VIEWER,
+  roles: WorkspaceUserRoles.NO_ACCESS,
 })
 
 const focusRef = ref<HTMLInputElement>()

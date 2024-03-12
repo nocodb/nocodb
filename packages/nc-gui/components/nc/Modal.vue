@@ -6,19 +6,21 @@ const props = withDefaults(
     size?: 'small' | 'medium' | 'large'
     destroyOnClose?: boolean
     maskClosable?: boolean
+    showSeparator?: boolean
     wrapClassName?: string
   }>(),
   {
     size: 'medium',
     destroyOnClose: true,
     maskClosable: true,
+    showSeparator: true,
     wrapClassName: '',
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName } = props
+const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName, showSeparator } = props
 
 const { isMobileMode } = useGlobal()
 
@@ -98,7 +100,13 @@ const slots = useSlots()
         maxHeight: height,
       }"
     >
-      <div v-if="slots.header" class="flex pb-2 mb-2 text-lg font-medium border-b-1 border-gray-100">
+      <div
+        v-if="slots.header"
+        :class="{
+          'border-b-1 border-gray-100': showSeparator,
+        }"
+        class="flex pb-2 mb-2 text-lg font-medium"
+      >
         <slot name="header" />
       </div>
 

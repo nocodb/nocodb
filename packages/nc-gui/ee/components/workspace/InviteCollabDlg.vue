@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { OrgUserReqType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
+import type { User, Users } from '#imports'
 import {
   Form,
   computed,
@@ -13,7 +14,6 @@ import {
   useNuxtApp,
   validateEmail,
 } from '#imports'
-import type { User, Users } from '#imports'
 
 interface Props {
   show: boolean
@@ -101,7 +101,7 @@ const copyUrl = async () => {
 const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
-  usersData.value.role = WorkspaceUserRoles.VIEWER
+  usersData.value.role = WorkspaceUserRoles.NO_ACCESS
   usersData.value.emails = ''
 }
 const emailInput = ref((el) => {
@@ -122,7 +122,7 @@ const emailInput = ref((el) => {
   >
     <!-- TODO: i18n -->
 
-    <div class="flex flex-col">
+    <div class="flex">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }}</a-typography-title>
 
@@ -251,6 +251,15 @@ const emailInput = ref((el) => {
                         <div>{{ $t(`objects.roleType.workspaceLevelViewer`) }}</div>
                         <span class="text-gray-500 text-xs whitespace-normal">
                           {{ $t('msg.info.roles.workspaceLevelViewer') }}
+                        </span> </a-select-option
+                      ><a-select-option
+                        :label="$t(`objects.roleType.workspaceLevelNoAccess`)"
+                        :value="WorkspaceUserRoles.NO_ACCESS"
+                        class="nc-role-option"
+                      >
+                        <div>{{ $t(`objects.roleType.workspaceLevelNoAccess`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal">
+                          {{ $t('msg.info.roles.workspaceLevelNpAccess') }}
                         </span>
                       </a-select-option>
                     </a-select>

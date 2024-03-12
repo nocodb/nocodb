@@ -22601,7 +22601,6 @@
         "type": "object",
         "properties": {
           "email": {
-            "format": "email",
             "type": "string",
             "description": "Base User Email"
           },

@@ -99,6 +99,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
+    const unLinkedRecordsCount = ref(0)
+    const linkedRecordsCount = ref(0)
+
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
@@ -183,6 +186,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
+        const offset =
+          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - unLinkedRecordsCount.value
+
+        console.log('excludedList', offset)
         isChildrenExcludedLoading.value = true
         if (isPublic.value) {
           const router = useRouter()
@@ -199,7 +206,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               },
               query: {
                 limit: childrenExcludedListPagination.size,
-                offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+                offset,
                 where:
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
@@ -216,7 +223,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
-              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              offset,
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
@@ -233,7 +240,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
-              offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
+              offset: String(offset),
               // todo: where clause is missing from type
               where:
                 childrenExcludedListPagination.query &&
@@ -279,6 +286,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenLoading.value = true
         if (colOptions.value.type === 'bt') return
         if (!rowId.value || !column.value) return
+        const offset = childrenListPagination.size * (childrenListPagination.page - 1) - linkedRecordsCount.value
+        console.log('childrenList', offset)
+
         if (isPublic.value) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
@@ -287,7 +297,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             column.value.id,
             {
               limit: String(childrenListPagination.size),
-              offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
+              offset: String(offset),
               where:
                 childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
@@ -307,7 +317,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             column?.value?.id,
             {
               limit: String(childrenListPagination.size),
-              offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
+              offset: String(offset),
               where:
                 childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
@@ -418,6 +428,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (colOptions.value.type !== 'bt') {
           childrenListCount.value = childrenListCount.value - 1
         }
+        unLinkedRecordsCount.value = unLinkedRecordsCount.value + 1
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
@@ -491,6 +502,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
           isChildrenExcludedListLinked.value[index] = true
         }
+        linkedRecordsCount.value = linkedRecordsCount.value + 1
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {

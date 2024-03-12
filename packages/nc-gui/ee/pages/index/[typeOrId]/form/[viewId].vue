@@ -22,6 +22,7 @@ import {
 definePageMeta({
   public: true,
   hasSidebar: false,
+  pageType: 'shared-view',
 })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })

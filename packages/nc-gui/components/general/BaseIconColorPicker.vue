@@ -19,13 +19,11 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue'])
 
-const defaultIconColors = ['#36BFFF', '#FA8231', '#FCBE3A', '#27D665', '#6A7184', '#FF4A3F', '#FC3AC6', '#7D26CD']
-
 const { modelValue, size, readonly } = props
 
 const isOpen = ref(false)
 
-const colorRef = ref(tinycolor(modelValue).isValid() ? modelValue : defaultIconColors[0])
+const colorRef = ref(tinycolor(modelValue).isValid() ? modelValue : baseIconColors[0])
 
 const updateIconColor = (color: string) => {
   const tcolor = tinycolor(color)
@@ -86,7 +84,7 @@ watch(
           <div class="flex justify-start">
             <GeneralColorPicker
               :model-value="colorRef"
-              :colors="defaultIconColors"
+              :colors="baseIconColors"
               :is-new-design="true"
               class="nc-base-icon-color-picker"
               @input="updateIconColor"

@@ -586,7 +586,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               :selected="dragRecord?.rowMeta?.id === record.rowMeta.id"
               color="blue"
-              @dblclick.stop="emits('expand-record', record)"
+              @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
             >
               <template v-if="!isRowEmpty(record, displayField)">

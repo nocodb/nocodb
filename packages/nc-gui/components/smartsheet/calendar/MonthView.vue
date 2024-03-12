@@ -710,7 +710,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                             [range.fk_from_col!.title!]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
                           },
                         }
-                        emit('new-record', record)
+                        emit('newRecord', record)
                       }
                     "
                   >

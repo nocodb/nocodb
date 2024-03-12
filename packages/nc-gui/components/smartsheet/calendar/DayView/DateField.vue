@@ -4,7 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { isRowEmpty } from '~/utils'
 
-const emit = defineEmits(['expand-record', 'newRecord'])
+const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const meta = inject(MetaInj, ref())
 
@@ -221,7 +221,7 @@ const newRecord = () => {
           :resize="false"
           color="blue"
           size="small"
-          @click="emit('expand-record', record)"
+          @click="emit('expandRecord', record)"
         >
           <template v-if="!isRowEmpty(record, displayField)">
             <LazySmartsheetCalendarCell

@@ -66,12 +66,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+    const childrenExcludedOffsetCount = ref(0)
 
     const childrenListPagination = reactive({
       page: 1,
       query: '',
       size: 10,
     })
+
+    const childrenListOffsetCount = ref(0)
 
     const isChildrenLoading = ref(false)
 
@@ -98,9 +101,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
     const { sharedView } = useSharedView()
-
-    const unLinkedRecordsCount = ref(0)
-    const linkedRecordsCount = ref(0)
 
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
@@ -186,8 +186,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
-        const offset =
-          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - unLinkedRecordsCount.value
+        let offset =
+          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
+
+        if (offset < 0) {
+          offset = 0
+          childrenExcludedOffsetCount.value = 0
+        }
 
         console.log('excludedList', offset)
         isChildrenExcludedLoading.value = true
@@ -286,7 +291,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenLoading.value = true
         if (colOptions.value.type === 'bt') return
         if (!rowId.value || !column.value) return
-        const offset = childrenListPagination.size * (childrenListPagination.page - 1) - linkedRecordsCount.value
+        let offset = childrenListPagination.size * (childrenListPagination.page - 1) - childrenListOffsetCount.value
+
+        if (offset < 0) {
+          offset = 0
+          childrenListOffsetCount.value = 0
+        }
         console.log('childrenList', offset)
 
         if (isPublic.value) {
@@ -397,6 +407,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // }
       try {
         // todo: audit
+
+        childrenListOffsetCount.value = childrenListCount.value - 1
+        childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value - 1
+
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
@@ -428,7 +442,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (colOptions.value.type !== 'bt') {
           childrenListCount.value = childrenListCount.value - 1
         }
-        unLinkedRecordsCount.value = unLinkedRecordsCount.value + 1
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
@@ -467,6 +480,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLoading.value[index] = true
         }
 
+        childrenListOffsetCount.value = childrenListCount.value + 1
+        childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
+
         await $api.dbTableRow.nestedAdd(
           NOCO,
           base.value.id as string,
@@ -502,7 +518,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
           isChildrenExcludedListLinked.value[index] = true
         }
-        linkedRecordsCount.value = linkedRecordsCount.value + 1
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {

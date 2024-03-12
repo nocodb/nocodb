@@ -34,8 +34,6 @@ export default class BaseUser {
       extractProps(baseUser, ['fk_user_id', 'base_id', 'roles']),
     );
 
-    console.log('insertObj', insertObj);
-
     const bulkData = await ncMeta.bulkMetaInsert(
       null,
       null,

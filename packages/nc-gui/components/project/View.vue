@@ -82,7 +82,7 @@ watch(
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2.5">
-          <LazyGeneralBaseIconColorPicker
+          <GeneralBaseIconColorPicker
             :key="parseProp(openedProject?.meta).iconHue"
             :hue="parseProp(openedProject?.meta).iconHue"
             size="small"
@@ -92,7 +92,7 @@ watch(
             <template #default>
               <GeneralProjectIcon :type="openedProject?.type" />
             </template>
-          </LazyGeneralBaseIconColorPicker>
+          </GeneralBaseIconColorPicker>
           <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" show-on-truncate-only>
             <template #title> {{ openedProject?.title }}</template>
             <span class="truncate">

@@ -387,11 +387,11 @@ defineExpose({
                 >
                   <div class="cmdk-action-content w-full">
                     <template v-if="title === 'Bases' || act.icon === 'project'">
-                      <LazyGeneralBaseIconColorPicker :key="act.iconHue" :hue="act.iconHue" size="small" readonly>
+                      <GeneralBaseIconColorPicker :key="act.iconHue" :hue="act.iconHue" size="small" readonly>
                         <template #default>
                           <GeneralProjectIcon type="database" />
                         </template>
-                      </LazyGeneralBaseIconColorPicker>
+                      </GeneralBaseIconColorPicker>
                     </template>
                     <template v-else>
                       <component

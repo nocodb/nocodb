@@ -34,8 +34,6 @@ import {
   useTablesStore,
   useTabs,
   useToggle,
-  useMagicKeys,
-  navigateToBlankTargetOpenOption,
 } from '#imports'
 import type { NcProject } from '#imports'
 

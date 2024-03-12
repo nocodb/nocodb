@@ -16,12 +16,11 @@ import {
   useBase,
   useCommandPalette,
   useI18n,
+  useMagicKeys,
   useMetas,
   useNuxtApp,
   useTabs,
   watch,
-  useMagicKeys,
-  navigateToBlankTargetOpenOption,
 } from '#imports'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {

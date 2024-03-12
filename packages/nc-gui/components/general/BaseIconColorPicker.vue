@@ -127,7 +127,7 @@ watch(
       </template>
     </div>
     <template #overlay>
-      <div class="relative bg-white rounded-lg border-1 border-gray-200 shadow-lg">
+      <div class="nc-base-icon-color-picker-dropdown relative bg-white rounded-lg border-1 border-gray-200">
         <div class="flex items-center p-2 space-x-2">
           <div
             v-for="(h, i) of Object.keys(preDefinedHueData)"
@@ -147,7 +147,7 @@ watch(
           </div>
         </div>
 
-        <div class="p-2 border-t-1 border-gray-200 flex flex-col space-y-4">
+        <div class="p-2 border-t-1 border-gray-200 flex flex-col space-y-2.5">
           <div class="uppercase text-xs font-medium">{{ $t('labels.customColour') }}</div>
 
           <div class="flex flex-row items-center gap-x-3">
@@ -155,13 +155,13 @@ watch(
               :value="parseInt(`${colorRef.h ?? 0}`)"
               class="nc-color-hue-input"
               type="number"
+              :min="0"
+              :max="360"
               @input="
                 (value) => {
                   updateColorHue(value.target?.value)
                 }
               "
-              :min="0"
-              :max="360"
             />
 
             <LazyGeneralColorSliderWrapper
@@ -181,6 +181,9 @@ watch(
 </template>
 
 <style lang="scss" scoped>
+.nc-base-icon-color-picker-dropdown {
+  box-shadow: 0px 8px 8px -4px #0000000a, 0px 20px 24px -4px #0000001a;
+}
 .nc-pre-defined-hue-item,
 .nc-custom-hue-picker-item {
   .selected {

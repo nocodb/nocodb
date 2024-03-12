@@ -133,44 +133,48 @@ watch(
             <div
               v-for="(h, i) of Object.keys(preDefinedHueData)"
               :key="i"
-              class="nc-pre-defined-hue-item p-1 rounded cursor-pointer hover:bg-gray-200"
+              class="nc-pre-defined-hue-item-wrapper p-1 rounded cursor-pointer hover:bg-gray-200"
             >
               <div
-                class="rounded h-6 w-6"
+                class="nc-pre-defined-hue-item rounded h-6 w-6"
+                :tabindex="0"
                 :class="{
-                  selected: preDefinedHueData[h].tint.h === hue || (h === '_199' && hue !== 0 && !hue),
+                  selected: `_${colorRef.h}` === h,
                 }"
                 :style="{
                   backgroundColor: preDefinedHueData[h].pickerColor,
                 }"
-                @click="selectColor(preDefinedHueData[h].tint.h)"
+                @click.stop="updateColorHue(preDefinedHueData[h].tint.h)"
+                @keydown.enter.stop="updateColorHue(preDefinedHueData[h].tint.h)"
               ></div>
             </div>
           </div>
 
-          <div class="p-2 border-t-1 border-gray-200 flex flex-col space-y-2.5">
+          <div class="p-3 border-t-1 border-gray-200 flex flex-col space-y-2.5">
             <div class="uppercase text-xs font-medium">{{ $t('labels.customColour') }}</div>
 
             <div class="flex flex-row items-center gap-x-3">
+              <LazyGeneralColorSliderWrapper
+                :model-value="colorRef"
+                class="!min-w-none"
+                @update:model-value="
+                  (value) => {
+                    updateColorHue(value?.h)
+                  }
+                "
+              />
               <input
                 :value="parseInt(`${colorRef.h ?? 0}`)"
                 class="nc-color-hue-input"
+                :class="{
+                  selected: !preDefinedHueData[`_${colorRef.h}`],
+                }"
                 type="number"
                 :min="0"
                 :max="360"
                 @input="
                   (value) => {
                     updateColorHue(value.target?.value)
-                  }
-                "
-              />
-
-              <LazyGeneralColorSliderWrapper
-                :model-value="colorRef"
-                class="!min-w-none ml-3"
-                @update:model-value="
-                  (value) => {
-                    updateColorHue(value?.h)
                   }
                 "
               />
@@ -186,9 +190,10 @@ watch(
 .nc-base-icon-color-picker-dropdown {
   box-shadow: 0px 8px 8px -4px #0000000a, 0px 20px 24px -4px #0000001a;
 }
-.nc-pre-defined-hue-item,
-.nc-custom-hue-picker-item {
-  .selected {
+.nc-pre-defined-hue-item-wrapper {
+  .nc-pre-defined-hue-item:focus,
+  .nc-pre-defined-hue-item.selected {
+    @apply outline-none;
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3069fe;
   }
 }
@@ -197,7 +202,8 @@ watch(
   @apply outline-none text-sm rounded-lg border-gray-200 py-1 px-3 w-14 text-center;
   -moz-appearance: textfield;
 
-  &:focus {
+  &:focus,
+  &.selected {
     @apply ring-transparent border-brand-500;
   }
 

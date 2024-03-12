@@ -444,10 +444,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        if (index) {
-          isChildrenExcludedListLoading.value[index] = false
-          isChildrenListLoading.value[index] = false
-        }
+        isChildrenExcludedListLoading.value[index] = false
+        isChildrenListLoading.value[index] = false
       }
 
       // reloadData?.({ shouldShowLoading: false })
@@ -458,7 +456,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       undo = false,
-      index: number | undefined, // Index is For Loading and Linked State of Row
+      index: number, // Index is For Loading and Linked State of Row
     ) => {
       // todo: handle new record
       //   const pid = this._extractRowId(parent, this.parentMeta);
@@ -474,10 +472,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       //   return;
       // }
       try {
-        if (index) {
-          isChildrenExcludedListLoading.value[index] = true
-          isChildrenListLoading.value[index] = true
-        }
+        isChildrenExcludedListLoading.value[index] = true
+        isChildrenListLoading.value[index] = true
 
         childrenListOffsetCount.value = childrenListOffsetCount.value + 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
@@ -506,10 +502,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             scope: defineViewScope({ view: activeView.value }),
           })
         }
-        if (index) {
-          isChildrenExcludedListLinked.value[index] = true
-          isChildrenListLinked.value[index] = true
-        }
+        isChildrenExcludedListLinked.value[index] = true
+        isChildrenListLinked.value[index] = true
 
         if (colOptions.value.type !== 'bt') {
           childrenListCount.value = childrenListCount.value + 1
@@ -522,10 +516,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         // To Keep the Loading State for Minimum 600ms
 
-        if (index) {
-          isChildrenExcludedListLoading.value[index] = false
-          isChildrenListLoading.value[index] = false
-        }
+        isChildrenExcludedListLoading.value[index] = false
+        isChildrenListLoading.value[index] = false
       }
 
       // reloadData?.({ shouldShowLoading: false })
@@ -556,6 +548,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenExcludedList,
       childrenList,
       childrenListCount,
+      childrenListOffsetCount,
+      childrenExcludedOffsetCount,
       rowId,
       childrenExcludedListPagination,
       childrenListPagination,

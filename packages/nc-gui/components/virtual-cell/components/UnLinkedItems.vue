@@ -35,6 +35,8 @@ const { $e } = useNuxtApp()
 const {
   childrenExcludedList,
   isChildrenExcludedListLinked,
+  childrenExcludedOffsetCount,
+  childrenListOffsetCount,
   isChildrenExcludedListLoading,
   isChildrenExcludedLoading,
   childrenListCount,
@@ -164,6 +166,8 @@ watch(expandedFormDlg, () => {
     if (!isForm.value) {
       loadChildrenList()
     }
+    childrenExcludedOffsetCount.value = 0
+    childrenListOffsetCount.value = 0
     loadChildrenExcludedList(rowState.value)
   }
 })

@@ -967,7 +967,7 @@
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
     "changeIconColour": "Change icon colour",
-    "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {

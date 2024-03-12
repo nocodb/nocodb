@@ -1,37 +1,37 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
 
-import { BASE_ICON_COLOR_HUE_DATA as preDefinedHueData } from '#imports'
+import { NcProjectType } from '#imports'
 
-const props = defineProps<{
-  hue?: number | null
-  size?: 'small' | 'medium' | 'large' | 'xlarge'
-  readonly?: boolean
-  disableClearing?: boolean
-  iconClass?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    type?: NcProjectType | string
+    modelValue?: string
+    size?: 'small' | 'medium' | 'large' | 'xlarge'
+    readonly?: boolean
+    iconClass?: string
+  }>(),
+  {
+    type: NcProjectType.DB,
+    size: 'small',
+  },
+)
 
-const emit = defineEmits(['colorSelected'])
+const emit = defineEmits(['update:modelValue'])
 
-const { hue, size = 'medium', readonly } = props
+const defaultIconColors = ['#36BFFF', '#FA8231', '#FCBE3A', '#27D665', '#6A7184', '#FF4A3F', '#FC3AC6', '#7D26CD']
 
-const defaultHueColor = {
-  h: 199,
-  s: 79,
-  v: 100,
-}
-
-const defaultHueValue = 199
+const { modelValue, size, readonly } = props
 
 const isOpen = ref(false)
 
-const colorRef = ref({
-  ...defaultHueColor,
-  h: !(hue !== 0 && !hue) ? hue : defaultHueValue,
-})
+const colorRef = ref(tinycolor(modelValue).isValid() ? modelValue : defaultIconColors[0])
 
-const updateColorHue = (value?: string | number | null) => {
-  colorRef.value.h = !isNaN(parseInt(`${value}`)) ? +Math.min(parseInt(`${value}`), 360) : 0
+const updateIconColor = (color: string) => {
+  const tcolor = tinycolor(color)
+  if (tcolor.isValid()) {
+    colorRef.value = color
+  }
 }
 
 const onClick = (e: Event) => {
@@ -45,8 +45,8 @@ const onClick = (e: Event) => {
 watch(
   isOpen,
   (value) => {
-    if (!value && colorRef.value.h !== hue) {
-      emit('colorSelected', colorRef.value.h)
+    if (!value && colorRef.value !== modelValue) {
+      emit('update:modelValue', colorRef.value)
     }
   },
   {
@@ -72,108 +72,25 @@ watch(
       >
         <NcTooltip placement="topLeft" :disabled="readonly">
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
-          <template v-if="hue !== 0 && !hue && colorRef.h === defaultHueValue">
-            <slot name="default" />
-          </template>
-          <template v-else>
-            <svg width="16" height="16" viewBox="0 0 1073 1073" fill="none" xmlns="http://www.w3.org/2000/svg" :class="iconClass">
-              <mask
-                id="mask0_1749_80944"
-                style="mask-type: luminance"
-                maskUnits="userSpaceOnUse"
-                x="94"
-                y="40"
-                width="885"
-                height="993"
-              >
-                <path d="M978.723 40H94V1033H978.723V40Z" fill="white" />
-              </mask>
-              <g mask="url(#mask0_1749_80944)">
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M638.951 291.265L936.342 462.949C966.129 480.145 980.256 502.958 978.723 525.482V774.266C980.256 796.789 966.129 819.602 936.342 836.798L638.951 1008.48C582.292 1041.19 490.431 1041.19 433.773 1008.48L136.381 836.798C106.595 819.602 92.4675 796.789 93.9999 774.266L93.9999 525.482C92.4675 502.957 106.595 480.145 136.381 462.949L433.773 291.265C490.431 258.556 582.292 258.556 638.951 291.265Z"
-                  :fill="
-                    tinycolor(
-                      preDefinedHueData && preDefinedHueData[`_${colorRef.h}`]
-                        ? `hsv(${preDefinedHueData[`_${colorRef.h}`].shade.h},${preDefinedHueData[`_${colorRef.h}`].shade.s}%, ${
-                            preDefinedHueData[`_${colorRef.h}`].shade.v
-                          }%)`
-                        : `hsv(${colorRef.h ?? defaultHueValue}, 100%, 30%)`,
-                    ).toHexString()
-                  "
-                />
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M638.951 65.0055L936.342 236.69C966.129 253.886 980.256 276.699 978.723 299.222V548.006C980.256 570.529 966.129 593.343 936.342 610.538L638.951 782.223C582.292 814.931 490.431 814.931 433.773 782.223L136.381 610.538C106.595 593.343 92.4675 570.529 93.9999 548.006L93.9999 299.222C92.4675 276.699 106.595 253.886 136.381 236.69L433.773 65.0055C490.431 32.2968 582.292 32.2968 638.951 65.0055Z"
-                  :fill="
-                    tinycolor(
-                      preDefinedHueData && preDefinedHueData[`_${colorRef.h}`]
-                        ? `hsv(${preDefinedHueData[`_${colorRef.h}`].tint.h},${preDefinedHueData[`_${colorRef.h}`].tint.s}%, ${
-                            preDefinedHueData[`_${colorRef.h}`].tint.v
-                          }%)`
-                        : `hsv(${colorRef.h ?? defaultHueValue}, 50%, 100%)`,
-                    ).toHexString()
-                  "
-                />
-              </g>
-            </svg>
-          </template>
+
+          <div>
+            <GeneralProjectIcon :color="colorRef" :type="type" />
+          </div>
         </NcTooltip>
       </div>
+
       <template #overlay>
-        <div class="nc-base-icon-color-picker-dropdown relative bg-white rounded-lg border-1 border-gray-200">
-          <div class="flex items-center p-2 space-x-2">
-            <div
-              v-for="(h, i) of Object.keys(preDefinedHueData)"
-              :key="i"
-              class="nc-pre-defined-hue-item-wrapper p-1 rounded cursor-pointer hover:bg-gray-200"
-            >
-              <div
-                class="nc-pre-defined-hue-item rounded h-6 w-6"
-                :tabindex="0"
-                :class="{
-                  selected: `_${colorRef.h}` === h,
-                }"
-                :style="{
-                  backgroundColor: preDefinedHueData[h].pickerColor,
-                }"
-                @click.stop="updateColorHue(preDefinedHueData[h].tint.h)"
-                @keydown.enter.stop="updateColorHue(preDefinedHueData[h].tint.h)"
-              ></div>
-            </div>
-          </div>
-
-          <div class="p-3 border-t-1 border-gray-200 flex flex-col space-y-2.5">
-            <div class="uppercase text-xs font-medium">{{ $t('labels.customColour') }}</div>
-
-            <div class="flex flex-row items-center gap-x-3">
-              <LazyGeneralColorSliderWrapper
-                :model-value="colorRef"
-                class="!min-w-none"
-                @update:model-value="
-                  (value) => {
-                    updateColorHue(value?.h)
-                  }
-                "
-              />
-              <input
-                :value="parseInt(`${colorRef.h ?? 0}`)"
-                class="nc-color-hue-input"
-                :class="{
-                  selected: !preDefinedHueData[`_${colorRef.h}`],
-                }"
-                type="number"
-                :min="0"
-                :max="360"
-                @input="
-                  (value) => {
-                    updateColorHue(value.target?.value)
-                  }
-                "
-              />
-            </div>
+        <div
+          class="nc-base-icon-color-picker-dropdown relative bg-white rounded-lg border-1 border-gray-200 overflow-hidden max-w-[342px]"
+        >
+          <div class="flex justify-start">
+            <GeneralColorPicker
+              :model-value="colorRef"
+              :colors="defaultIconColors"
+              :is-new-design="true"
+              class="nc-base-icon-color-picker"
+              @input="updateIconColor"
+            />
           </div>
         </div>
       </template>
@@ -184,29 +101,5 @@ watch(
 <style lang="scss" scoped>
 .nc-base-icon-color-picker-dropdown {
   box-shadow: 0px 8px 8px -4px #0000000a, 0px 20px 24px -4px #0000001a;
-}
-.nc-pre-defined-hue-item-wrapper {
-  .nc-pre-defined-hue-item:focus,
-  .nc-pre-defined-hue-item.selected {
-    @apply outline-none;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3069fe;
-  }
-}
-
-.nc-color-hue-input {
-  @apply outline-none text-sm rounded-lg border-gray-200 py-1 px-3 w-14 text-center;
-  -moz-appearance: textfield;
-
-  &:focus,
-  &.selected {
-    @apply ring-transparent border-brand-500;
-  }
-
-  /* Chrome, Safari, Edge, Opera */
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
 }
 </style>

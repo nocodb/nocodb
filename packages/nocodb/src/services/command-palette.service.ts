@@ -29,7 +29,7 @@ export class CommandPaletteService {
             id: `p-${base.id}`,
             title: base.title,
             icon: 'project',
-            iconHue: deserializeJSON(base.meta)?.iconHue,
+            iconColor: deserializeJSON(base.meta)?.iconColor,
             section: 'Bases',
             scopePayload: {
               scope: `p-${base.id}`,
@@ -72,7 +72,7 @@ export class CommandPaletteService {
             id: `p-${b.id}`,
             title: b.title,
             icon: 'project',
-            iconHue: deserializeJSON(b.meta)?.iconHue,
+            iconColor: deserializeJSON(b.meta)?.iconColor,
             section: 'Bases',
           });
         }

@@ -154,18 +154,7 @@ watch(showShareModal, (val) => {
       </div>
       <div class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
-          <GeneralBaseIconColorPicker
-            :key="parseProp(base.meta).iconHue"
-            :hue="parseProp(base.meta).iconHue"
-            size="small"
-            class="!w-auto !h-auto"
-            icon-class="nc-view-icon group-hover"
-            readonly
-          >
-            <template #default>
-              <GeneralProjectIcon :type="base.type" class="nc-view-icon group-hover" />
-            </template>
-          </GeneralBaseIconColorPicker>
+          <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-view-icon group-hover" />
 
           <div>{{ $t('activity.shareBase.label') }}</div>
           <div

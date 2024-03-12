@@ -17,7 +17,7 @@ interface CmdAction {
   keywords?: string[]
   section?: string
   is_default?: number | null
-  iconHue?: number
+  iconColor?: string
 }
 
 const props = defineProps<{
@@ -387,10 +387,7 @@ defineExpose({
                 >
                   <div class="cmdk-action-content w-full">
                     <template v-if="title === 'Bases' || act.icon === 'project'">
-                      <GeneralBaseIconColorPicker :key="act.iconHue" :hue="act.iconHue" size="small" readonly>
-                        <template #default>
-                          <GeneralProjectIcon type="database" />
-                        </template>
+                      <GeneralBaseIconColorPicker :key="act.iconColor" :color="act.iconColor" type="database" readonly>
                       </GeneralBaseIconColorPicker>
                     </template>
                     <template v-else>

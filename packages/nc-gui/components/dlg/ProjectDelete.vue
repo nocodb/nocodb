@@ -52,18 +52,7 @@ const onDelete = async () => {
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.project')" :on-delete="onDelete">
     <template #entity-preview>
       <div v-if="base" class="flex flex-row items-center py-2 px-2.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
-        <GeneralBaseIconColorPicker
-          :key="parseProp(base.meta).iconHue"
-          :hue="parseProp(base.meta).iconHue"
-          size="small"
-          class="!w-auto !h-auto"
-          icon-class="nc-view-icon w-6 h-6"
-          readonly
-        >
-          <template #default>
-            <GeneralProjectIcon :type="base.type" class="nc-view-icon w-6 h-6" />
-          </template>
-        </GeneralBaseIconColorPicker>
+        <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-view-icon w-6 h-6 mx-1" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

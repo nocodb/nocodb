@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import tinycolor from 'tinycolor2'
 import { computed, enumColor, ref, watch } from '#imports'
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
   rowSize?: number
   advanced?: boolean
   pickButton?: boolean
-  borders?: string[]
+  colorBoxBorder?: boolean
   isNewDesign?: boolean
 }
 
@@ -17,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
   rowSize: 10,
   advanced: true,
   pickButton: false,
+  colorBoxBorder: false,
   isNewDesign: false,
 })
 
@@ -41,7 +43,8 @@ const selectColor = (color: string, closeModal = false) => {
 
 const isPickerOn = ref(false)
 
-const compare = (colorA: string, colorB: string) => colorA.toLowerCase() === colorB.toLowerCase()
+const compare = (colorA: string, colorB: string) =>
+  colorA.toLowerCase() === colorB.toLowerCase() || colorA.toLowerCase() === tinycolor(colorB).toHex8String().toLowerCase()
 
 watch(picked, (n, _o) => {
   vModel.value = n
@@ -50,31 +53,57 @@ watch(picked, (n, _o) => {
 
 <template>
   <div class="color-picker">
-    <div v-for="colId in Math.ceil(props.colors.length / props.rowSize)" :key="colId" class="color-picker-row">
-      <button
+    <div
+      v-for="colId in Math.ceil(props.colors.length / props.rowSize)"
+      :key="colId"
+      class="color-picker-row"
+      :class="{
+        'mt-2': colId > 1,
+      }"
+    >
+      <div
         v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
-        class="color-selector"
-        :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
-        :style="{
-          'background-color': `${color}`,
-          'border': borders?.length && borders[i] ? `1px solid ${borders[i]}` : undefined,
+        class="p-1 rounded-md flex h-8"
+        :class="{
+          'hover:bg-gray-200': isNewDesign,
         }"
-        @click="selectColor(color, true)"
       >
-        {{ compare(picked, color) && !isNewDesign ? '&#10003;' : '' }}
-      </button>
-      <button class="h-6 w-6 mt-2.7 ml-1 border-1 border-[grey] rounded-md" @click="isPickerOn = !isPickerOn">
-        <GeneralTooltip>
-          <template #title>{{ $t('activity.moreColors') }}</template>
-          <div class="flex items-center justify-center">
-            <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4" />
-          </div>
-        </GeneralTooltip>
-      </button>
+        <button
+          class="color-selector"
+          :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
+          :style="{
+            'background-color': `${color}`,
+            'border': colorBoxBorder ? `1px solid ${tinycolor(color).darken(30).toString()}` : undefined,
+          }"
+          @click="selectColor(color, true)"
+        >
+          {{ compare(picked, color) && !isNewDesign ? '&#10003;' : '' }}
+        </button>
+      </div>
+      <div
+        class="p-1 rounded-md h-8"
+        :class="{
+          'hover:bg-gray-200': isNewDesign,
+        }"
+      >
+        <button class="nc-more-colors-trigger h-6 w-6 border-1 border-gray-400 rounded" @click="isPickerOn = !isPickerOn">
+          <GeneralTooltip>
+            <template #title>{{ $t('activity.moreColors') }}</template>
+            <div class="flex items-center justify-center">
+              <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4" />
+            </div>
+          </GeneralTooltip>
+        </button>
+      </div>
     </div>
 
-    <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">
+    <a-card
+      v-if="props.advanced"
+      class="w-full mt-2"
+      :body-style="{ paddingLeft: '4px !important', paddingRight: '4px !important' }"
+      :bordered="false"
+    >
       <div v-if="isPickerOn" class="flex justify-center">
         <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
       </div>
@@ -82,25 +111,15 @@ watch(picked, (n, _o) => {
   </div>
 </template>
 
-<style scoped>
+<style lansg="scss" scoped>
 .color-picker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  background: white;
-  padding: 10px;
+  @apply flex flex-col items-center justify-center bg-white p-2.5;
 }
 .color-picker-row {
-  display: flex;
-  flex-direction: row;
+  @apply flex flex-row space-x-1;
 }
 .color-selector {
-  position: relative;
-  height: 25px;
-  width: 25px;
-  margin: 10px 5px;
-  border-radius: 5px;
+  @apply h-6 w-6 rounded;
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: white;
 }
@@ -108,19 +127,14 @@ watch(picked, (n, _o) => {
   filter: brightness(90%);
   -webkit-filter: brightness(90%);
 }
-
-.color-selector.selected:not(.new-design) {
-  filter: brightness(90%);
-  -webkit-filter: brightness(90%);
-}
-.color-selector:focus.new-design {
+.color-selector:focus,
+.color-selector.selected,
+.nc-more-colors-trigger:focus {
   outline: none;
   box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
 }
-.color-selector.selected.new-design {
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
-}
+
 :deep(.vc-chrome-toggle-icon) {
-  @apply ml-3!important;
+  @apply !ml-3;
 }
 </style>

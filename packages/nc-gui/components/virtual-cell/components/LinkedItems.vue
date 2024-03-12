@@ -124,7 +124,6 @@ watch(
 
 watch(expandedFormDlg, () => {
   if (!expandedFormDlg.value) {
-    loadChildrenList()
     childrenExcludedOffsetCount.value = 0
     childrenListOffsetCount.value = 0
   }

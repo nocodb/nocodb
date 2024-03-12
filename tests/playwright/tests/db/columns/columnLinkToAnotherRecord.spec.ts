@@ -45,7 +45,6 @@ test.describe('LTAR create & update', () => {
       childTable: 'Sheet2',
       relationType: 'Many To many',
     });
-    await dashboard.closeTab({ title: 'Sheet1' });
 
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
     await dashboard.grid.column.create({

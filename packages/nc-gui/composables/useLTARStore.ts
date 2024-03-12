@@ -369,7 +369,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            // reloadData?.({ shouldShowLoading: false })
+            _reloadData?.({ shouldShowLoading: false })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -448,7 +448,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      // reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false })
       $e('a:links:unlink')
     }
 
@@ -520,7 +520,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      // reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false })
       $e('a:links:link')
     }
 

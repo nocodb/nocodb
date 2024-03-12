@@ -4,7 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { isRowEmpty } from '~/utils'
 
-const emit = defineEmits(['expand-record', 'new-record'])
+const emit = defineEmits(['expand-record', 'newRecord'])
 
 const meta = inject(MetaInj, ref())
 
@@ -192,7 +192,7 @@ const newRecord = () => {
       [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emit('new-record', record)
+  emit('newRecord', record)
 }
 </script>
 

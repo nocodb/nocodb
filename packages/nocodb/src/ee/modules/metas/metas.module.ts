@@ -54,7 +54,7 @@ import { UsersModule } from '~/modules/users/users.module';
     // ClickhouseService,
     // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
-  imports: [forwardRef(() => UsersModule)],
+  imports: [...metaModuleMetadata.imports, forwardRef(() => UsersModule)],
   controllers: [
     ...metaModuleMetadata.controllers,
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

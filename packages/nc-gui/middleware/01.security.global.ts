@@ -6,8 +6,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return
     }
 
-    // allow for shared views
+    // allow for shared views based on page layout
     if (to.meta?.layout === 'shared-view') {
+      return
+    }
+
+    // allow for shared views based on pageType meta prop
+    if (to.meta?.pageType === 'shared-view') {
       return
     }
 

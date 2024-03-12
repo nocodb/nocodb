@@ -1,11 +1,7 @@
 <script lang="ts" setup>
-import data from 'emoji-mart-vue-fast/data/apple.json'
-import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Slider } from '@ckpack/vue-color'
-import { Icon } from '@iconify/vue'
 import tinycolor from 'tinycolor2'
-
-import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
+import { ProjectInj } from '#imports'
 
 const props = defineProps<{
   hue?: number | undefined
@@ -16,9 +12,13 @@ const props = defineProps<{
 
 const emit = defineEmits(['colorSelected'])
 
-const { hue: initialHue, size = 'medium', readonly } = props
+const { hue, size = 'medium', readonly } = props
 
 const hueData = [199, 24, 41, 141, 224, 3, 317, 271, 332]
+
+const base = inject(ProjectInj)!
+
+const localHue = ref(hue)
 
 const clearable = computed(() => {
   return !props.disableClearing && !readonly
@@ -28,21 +28,35 @@ const isOpen = ref(false)
 
 const isOpenHuePicker = ref(false)
 
-const colorRef = ref(
-  initialHue !== undefined
+const colorRefs = ref(
+  localHue.value !== undefined
     ? {
-        hsv: {
-          a: 1,
-          h: initialHue,
-          s: 0,
-          v: 0,
-        },
+        h: localHue.value,
+        s: 0,
+        v: 0,
       }
-    : '',
+    : undefined,
 )
 
-function selectColor(hue: number) {
-  emit('colorSelected', hue)
+const colorRef = computed({
+  get: () => {
+    return localHue.value !== undefined
+      ? {
+          h: localHue.value,
+          s: 0,
+          v: 0,
+        }
+      : undefined
+  },
+  set: (val) => {
+    localHue.value = val?.hsv?.h
+  },
+})
+
+function selectColor(value: number) {
+  localHue.value = value
+
+  emit('colorSelected', value)
 
   isOpenHuePicker.value = false
   isOpen.value = false
@@ -56,26 +70,14 @@ const onClick = (e: Event) => {
   isOpen.value = !isOpen.value
 }
 
-// Due to calculation of dropdown position by ant dropdown, we need to delay the isOpen change
-// otherwise dropdown opening will be slow
-const debounceIsOpen = ref(false)
-watch(isOpen, () => {
-  if (!isOpen.value) {
-    debounceIsOpen.value = isOpen.value
-    return
-  }
-
-  setTimeout(() => {
-    debounceIsOpen.value = isOpen.value
-  }, 10)
-})
-
 const showClearButton = computed(() => {
-  return !!colorRef.value && clearable.value
+  return colorRef.value?.h !== undefined && clearable.value
 })
 
-watchEffect(() => {
-  console.log('hue', tinycolor(`hsv(${colorRef.value?.hsv?.h || 'none'}, 100%, 30%)`).toHexString(), colorRef.value)
+watch(isOpenHuePicker, () => {
+  if (!isOpenHuePicker.value && localHue.value !== parseProp(base.value.meta).iconHue) {
+    localHue.value = parseProp(base.value.meta).iconHue
+  }
 })
 </script>
 
@@ -93,7 +95,7 @@ watchEffect(() => {
       }"
       @click="onClick"
     >
-      <template v-if="!colorRef">
+      <template v-if="hue === undefined">
         <slot name="default" />
       </template>
       <template v-else>
@@ -114,13 +116,13 @@ watchEffect(() => {
               fill-rule="evenodd"
               clip-rule="evenodd"
               d="M638.951 291.265L936.342 462.949C966.129 480.145 980.256 502.958 978.723 525.482V774.266C980.256 796.789 966.129 819.602 936.342 836.798L638.951 1008.48C582.292 1041.19 490.431 1041.19 433.773 1008.48L136.381 836.798C106.595 819.602 92.4675 796.789 93.9999 774.266L93.9999 525.482C92.4675 502.957 106.595 480.145 136.381 462.949L433.773 291.265C490.431 258.556 582.292 258.556 638.951 291.265Z"
-              :fill="tinycolor(`hsv(${colorRef?.hsv?.h || 'none'}, 100%, 30%)`).toHexString()"
+              :fill="tinycolor(`hsv(${colorRef?.h || 'none'}, 100%, 30%)`).toHexString()"
             />
             <path
               fill-rule="evenodd"
               clip-rule="evenodd"
               d="M638.951 65.0055L936.342 236.69C966.129 253.886 980.256 276.699 978.723 299.222V548.006C980.256 570.529 966.129 593.343 936.342 610.538L638.951 782.223C582.292 814.931 490.431 814.931 433.773 782.223L136.381 610.538C106.595 593.343 92.4675 570.529 93.9999 548.006L93.9999 299.222C92.4675 276.699 106.595 253.886 136.381 236.69L433.773 65.0055C490.431 32.2968 582.292 32.2968 638.951 65.0055Z"
-              :fill="tinycolor(`hsv(${colorRef?.hsv?.h || 'none'}, 30%, 100%)`).toHexString()"
+              :fill="tinycolor(`hsv(${colorRef?.h || 'none'}, 30%, 100%)`).toHexString()"
             />
           </g>
         </svg>
@@ -145,6 +147,7 @@ watchEffect(() => {
               :style="{
                 backgroundColor: tinycolor(`hsv(${hue}, 30%, 100%) `).toHexString(),
               }"
+              @click="selectColor(hue)"
             ></div>
           </div>
 
@@ -173,10 +176,19 @@ watchEffect(() => {
                 }"
               >
                 <div class="text-sm font-semibold">Custom Hue</div>
-                <Slider v-model="colorRef" class="nc-hue-color-picker" :disable-fields="true" />
+                <Slider
+                  :model-value="colorRef"
+                  class="nc-hue-color-picker"
+                  :disable-fields="true"
+                  @update:model-value="
+                    (value) => {
+                      console.log('update', value)
+                    }
+                  "
+                />
 
                 <div class="flex items-center justify-end">
-                  <NcButton type="secondary" size="small" @click="selectColor(colorRef?.hsv?.h)"> Apply </NcButton>
+                  <NcButton type="secondary" size="small" @click="selectColor(localHue)"> Apply </NcButton>
                 </div>
               </div>
             </template>

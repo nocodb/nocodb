@@ -193,8 +193,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           offset = 0
           childrenExcludedOffsetCount.value = 0
         }
-
-        console.log('excludedList', offset)
         isChildrenExcludedLoading.value = true
         if (isPublic.value) {
           const router = useRouter()
@@ -291,13 +289,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenLoading.value = true
         if (colOptions.value.type === 'bt') return
         if (!rowId.value || !column.value) return
-        let offset = childrenListPagination.size * (childrenListPagination.page - 1) - childrenListOffsetCount.value
+        let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
 
         if (offset < 0) {
           offset = 0
           childrenListOffsetCount.value = 0
+        } else if (offset > childrenListCount.value) {
+          offset = parseInt(childrenListCount.value as any) - parseInt(childrenListPagination.size as any)
         }
-        console.log('childrenList', offset)
 
         if (isPublic.value) {
           childrenList.value = await $api.public.dataNestedList(
@@ -408,7 +407,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         // todo: audit
 
-        childrenListOffsetCount.value = childrenListCount.value - 1
+        childrenListOffsetCount.value = childrenListOffsetCount.value - 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value - 1
 
         isChildrenExcludedListLoading.value[index] = true
@@ -480,7 +479,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLoading.value[index] = true
         }
 
-        childrenListOffsetCount.value = childrenListCount.value + 1
+        childrenListOffsetCount.value = childrenListOffsetCount.value + 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
 
         await $api.dbTableRow.nestedAdd(

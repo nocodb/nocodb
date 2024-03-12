@@ -17,6 +17,7 @@ interface CmdAction {
   keywords?: string[]
   section?: string
   is_default?: number | null
+  iconHue?: number
 }
 
 const props = defineProps<{
@@ -385,20 +386,29 @@ defineExpose({
                   @click="fireAction(act)"
                 >
                   <div class="cmdk-action-content w-full">
-                    <component
-                      :is="(iconMap as any)[act.icon]"
-                      v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
-                      class="cmdk-action-icon"
-                      :class="{
-                        '!text-blue-500': act.icon === 'grid',
-                        '!text-purple-500': act.icon === 'form',
-                        '!text-[#FF9052]': act.icon === 'kanban',
-                        '!text-pink-500': act.icon === 'gallery',
-                      }"
-                    />
-                    <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-                      <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
-                    </div>
+                    <template v-if="title === 'Bases' || act.icon === 'project'">
+                      <LazyGeneralBaseIconColorPicker :key="act.iconHue" :hue="act.iconHue" size="small" readonly>
+                        <template #default>
+                          <GeneralProjectIcon type="database" />
+                        </template>
+                      </LazyGeneralBaseIconColorPicker>
+                    </template>
+                    <template v-else>
+                      <component
+                        :is="(iconMap as any)[act.icon]"
+                        v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
+                        class="cmdk-action-icon"
+                        :class="{
+                          '!text-blue-500': act.icon === 'grid',
+                          '!text-purple-500': act.icon === 'form',
+                          '!text-[#FF9052]': act.icon === 'kanban',
+                          '!text-pink-500': act.icon === 'gallery',
+                        }"
+                      />
+                      <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                        <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
+                      </div>
+                    </template>
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
                       <template #title>
                         {{ act.title }}

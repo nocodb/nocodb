@@ -386,8 +386,14 @@ defineExpose({
                   @click="fireAction(act)"
                 >
                   <div class="cmdk-action-content w-full">
-                    <template v-if="title === 'Bases' || act.icon === 'project'">
-                      <GeneralBaseIconColorPicker :key="act.iconColor" :color="act.iconColor" type="database" readonly>
+                    <template v-if="title === 'Bases'">
+                      <GeneralBaseIconColorPicker
+                        :key="act.iconColor"
+                        :model-value="act.iconColor"
+                        :emoji="typeof act.icon === 'string' ? act.icon : ''"
+                        type="database"
+                        readonly
+                      >
                       </GeneralBaseIconColorPicker>
                     </template>
                     <template v-else>

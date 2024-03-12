@@ -3,7 +3,7 @@ import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
-import { computed, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
+import { computed, navigateToBlankTargetOpenOption, ref, useCommandPalette, useNuxtApp, useRouter, useTheme } from '#imports'
 import type { ThemeConfig } from '#imports'
 
 interface NcWorkspace extends WorkspaceType {
@@ -404,13 +404,19 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await ncNavigateTo({ workspaceId })
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string) => {
+  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
 
-    await router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+    if (cmdOrCtrl) {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+    }
   }
 
   function setLoadingState(isLoading = false) {

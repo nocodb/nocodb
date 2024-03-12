@@ -9,6 +9,7 @@ import {
   message,
   onKeyStroke,
   useDebounceFn,
+  useMagicKeys,
   useNuxtApp,
   useRoles,
   useVModel,
@@ -52,6 +53,8 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const { getMeta } = useMetas()
 
+const { meta: metaKey, ctrlKey } = useMagicKeys()
+
 const table = computed(() => props.table)
 const injectedTable = ref(table.value)
 
@@ -80,10 +83,20 @@ const _title = ref<string | undefined>()
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  if (isEditing.value || isStopped.value) return
-
   emits('changeView', vModel.value)
 }, 250)
+
+const handleOnClick = () => {
+  if (isEditing.value || isStopped.value) return
+
+  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+
+  if (cmdOrCtrl) {
+    emits('changeView', vModel.value)
+  } else {
+    onClick()
+  }
+}
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
@@ -209,7 +222,7 @@ watch(isDropdownOpen, async () => {
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
-    @click="onClick"
+    @click.prevent="handleOnClick"
   >
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
       <div

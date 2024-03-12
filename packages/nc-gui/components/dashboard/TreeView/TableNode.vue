@@ -4,7 +4,7 @@ import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 
-import { ProjectRoleInj, TreeViewInj, useNuxtApp, useRoles, useTabs } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useMagicKeys, useNuxtApp, useRoles, useTabs } from '#imports'
 import type { SidebarTableNode } from '~/lib'
 
 const props = withDefaults(
@@ -38,6 +38,8 @@ const { $e, $api } = useNuxtApp()
 useTableNew({
   baseId: base.value.id!,
 })
+
+const { meta: metaKey, ctrlKey } = useMagicKeys()
 
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
@@ -106,6 +108,11 @@ const onExpand = async () => {
 }
 
 const onOpenTable = async () => {
+  if (isMac() ? metaKey.value : ctrlKey.value) {
+    await _openTable(table.value, true)
+    return
+  }
+
   isLoading.value = true
   try {
     await _openTable(table.value)

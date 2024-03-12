@@ -11,9 +11,11 @@ import {
   ProjectRoleInj,
   ToggleDialogInj,
   extractSdkResponseErrorMsg,
+  navigateToBlankTargetOpenOption,
   openLink,
   storeToRefs,
   useBases,
+  useMagicKeys,
 } from '#imports'
 import { useNuxtApp } from '#app'
 
@@ -62,6 +64,8 @@ const { allRecentViews } = storeToRefs(useViewsStore())
 const { appInfo } = useGlobal()
 
 useTabs()
+
+const { meta: metaKey, ctrlKey } = useMagicKeys()
 
 const editMode = ref(false)
 
@@ -275,6 +279,29 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   ignoreNavigation = isMobileMode.value || ignoreNavigation
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
 
+  let isSharedBase = false
+  // if shared base ignore navigation
+  if (route.value.params.typeOrId === 'base') {
+    isSharedBase = true
+  }
+  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+
+  if (cmdOrCtrl && !ignoreNavigation && base.type === 'database') {
+    await navigateTo(
+      `${cmdOrCtrl ? '#' : ''}${baseUrl({
+        id: base.id!,
+        type: 'database',
+        isSharedBase,
+      })}`,
+      cmdOrCtrl
+        ? {
+            open: navigateToBlankTargetOpenOption,
+          }
+        : undefined,
+    )
+    return
+  }
+
   if (toggleIsExpanded) {
     isExpanded.value = !isExpanded.value
   } else {
@@ -282,12 +309,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   }
 
   const isProjectPopulated = basesStore.isProjectPopulated(base.id!)
-
-  let isSharedBase = false
-  // if shared base ignore navigation
-  if (route.value.params.typeOrId === 'base') {
-    isSharedBase = true
-  }
 
   if (!isProjectPopulated) base.isLoading = true
 

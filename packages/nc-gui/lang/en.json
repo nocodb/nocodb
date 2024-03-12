@@ -699,8 +699,7 @@
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit ptions",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
-    "clearSelection": "Clear selection",
-    "customColour": "Custom colour"
+    "clearSelection": "Clear selection"
   },
   "activity": {
     "noRange": "Calendar view requires a date range",

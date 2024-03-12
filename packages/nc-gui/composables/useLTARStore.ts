@@ -1,4 +1,3 @@
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type {
   type ColumnType,
   type LinkToAnotherRecordType,
@@ -7,7 +6,9 @@ import type {
   type RequestParams,
   type TableType,
 } from 'nocodb-sdk'
+import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { Row } from '#imports'
 import {
   IsPublicInj,
   Modal,
@@ -30,7 +31,6 @@ import {
   useSharedView,
   watch,
 } from '#imports'
-import type { Row } from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -43,7 +43,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     column: Ref<Required<ColumnType>>,
     row: Ref<Row>,
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
-    reloadData = (_params: { shouldShowLoading?: boolean }) => {},
+    _reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
     // state
     const { metas, getMeta } = useMetas()
@@ -114,13 +114,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         .join('___'),
     )
 
-    // actions
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return relatedTableMeta.value?.columns
         ?.filter((c) => c.pk)
         .map((c) => row?.[c.title as string])
         .join('___')
     }
+
+    // actions
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
@@ -349,7 +350,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            reloadData?.({ shouldShowLoading: false })
+            // reloadData?.({ shouldShowLoading: false })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -420,14 +421,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        // To Keep the Loading State for Minimum 600ms
-        setTimeout(() => {
+        if (index) {
           isChildrenExcludedListLoading.value[index] = false
           isChildrenListLoading.value[index] = false
-        }, 600)
+        }
       }
 
-      reloadData?.({ shouldShowLoading: false })
+      // reloadData?.({ shouldShowLoading: false })
       $e('a:links:unlink')
     }
 
@@ -435,7 +435,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       undo = false,
-      index: number,
+      index: number | undefined, // Index is For Loading and Linked State of Row
     ) => {
       // todo: handle new record
       //   const pid = this._extractRowId(parent, this.parentMeta);
@@ -451,8 +451,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       //   return;
       // }
       try {
-        isChildrenExcludedListLoading.value[index] = true
-        isChildrenListLoading.value[index] = true
+        if (index) {
+          isChildrenExcludedListLoading.value[index] = true
+          isChildrenListLoading.value[index] = true
+        }
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
@@ -478,8 +480,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             scope: defineViewScope({ view: activeView.value }),
           })
         }
-        isChildrenExcludedListLinked.value[index] = true
-        isChildrenListLinked.value[index] = true
+        if (index) {
+          isChildrenExcludedListLinked.value[index] = true
+          isChildrenListLinked.value[index] = true
+        }
+
         if (colOptions.value.type !== 'bt') {
           childrenListCount.value = childrenListCount.value + 1
         } else {
@@ -491,13 +496,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         // To Keep the Loading State for Minimum 600ms
 
-        setTimeout(() => {
+        if (index) {
           isChildrenExcludedListLoading.value[index] = false
           isChildrenListLoading.value[index] = false
-        }, 600)
+        }
       }
 
-      reloadData?.({ shouldShowLoading: false })
+      // reloadData?.({ shouldShowLoading: false })
       $e('a:links:link')
     }
 

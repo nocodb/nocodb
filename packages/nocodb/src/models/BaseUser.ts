@@ -26,6 +26,49 @@ export default class BaseUser {
     return baseUser && new BaseUser(baseUser);
   }
 
+  public static async bulkInsert(
+    baseUsers: Partial<BaseUser>[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = baseUsers.map((baseUser) =>
+      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles']),
+    );
+
+    console.log('insertObj', insertObj);
+
+    const bulkData = await ncMeta.bulkMetaInsert(
+      null,
+      null,
+      MetaTable.PROJECT_USERS,
+      insertObj,
+      true,
+    );
+
+    const uniqueFks: string[] = [
+      ...new Set(bulkData.map((d) => d.base_id)),
+    ] as string[];
+
+    for (const fk of uniqueFks) {
+      await NocoCache.deepDel(
+        `${CacheScope.BASE_USER}:${fk}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
+
+    for (const d of bulkData) {
+      await NocoCache.set(
+        `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
+        d,
+      );
+
+      await NocoCache.appendToList(
+        CacheScope.BASE_USER,
+        [d.base_id],
+        `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
+      );
+    }
+  }
+
   public static async insert(
     baseUser: Partial<BaseUser>,
     ncMeta = Noco.ncMeta,

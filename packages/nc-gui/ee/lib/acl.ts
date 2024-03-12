@@ -3,13 +3,21 @@ import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
+    WorkspaceUserRoles.NO_ACCESS,
     WorkspaceUserRoles.VIEWER,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
     WorkspaceUserRoles.CREATOR,
     WorkspaceUserRoles.OWNER,
   ],
-  base: [ProjectRoles.VIEWER, ProjectRoles.COMMENTER, ProjectRoles.EDITOR, ProjectRoles.CREATOR, ProjectRoles.OWNER],
+  base: [
+    ProjectRoles.NO_ACCESS,
+    ProjectRoles.VIEWER,
+    ProjectRoles.COMMENTER,
+    ProjectRoles.EDITOR,
+    ProjectRoles.CREATOR,
+    ProjectRoles.OWNER,
+  ],
 }
 
 interface Perm {
@@ -62,6 +70,9 @@ const rolePermissions = {
   [WorkspaceUserRoles.VIEWER]: {
     include: {},
   },
+  [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {},
+  },
 
   // Base role permissions
   [ProjectRoles.OWNER]: {
@@ -71,7 +82,6 @@ const rolePermissions = {
   },
   [ProjectRoles.CREATOR]: {
     include: {
-      baseCreate: true,
       fieldUpdate: true,
       hookList: true,
       tableCreate: true,

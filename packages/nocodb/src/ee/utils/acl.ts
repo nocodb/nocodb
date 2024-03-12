@@ -3,6 +3,7 @@ import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
   workspace: [
+    WorkspaceUserRoles.NO_ACCESS,
     WorkspaceUserRoles.VIEWER,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
@@ -205,11 +206,15 @@ const rolePermissions:
       genericGPT: true,
     },
   },
+  [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {
+      workspaceGet: true,
+      workspaceBaseList: true,
+    },
+  },
 
   [WorkspaceUserRoles.VIEWER]: {
     include: {
-      workspaceBaseList: true,
-      workspaceGet: true,
       workspaceUserList: true,
     },
   },

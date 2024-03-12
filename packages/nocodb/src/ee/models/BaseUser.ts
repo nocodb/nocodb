@@ -1,7 +1,12 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import type { BaseType } from 'nocodb-sdk';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
@@ -15,6 +20,53 @@ export default class BaseUser extends BaseUserCE {
 
   protected static castType(baseUser: BaseUser): BaseUser {
     return baseUser && new BaseUser(baseUser);
+  }
+
+  public static async bulkInsert(
+    baseUsers: Partial<BaseUser>[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = [];
+    for (const baseUser of baseUsers) {
+      const tempObj = extractProps(baseUser, [
+        'fk_user_id',
+        'base_id',
+        'roles',
+      ]);
+      insertObj.push(tempObj);
+    }
+
+    const bulkData = await ncMeta.bulkMetaInsert(
+      null,
+      null,
+      MetaTable.PROJECT_USERS,
+      insertObj,
+      true,
+    );
+
+    const uniqueFks: string[] = [
+      ...new Set(bulkData.map((d) => d.base_id)),
+    ] as string[];
+
+    for (const fk of uniqueFks) {
+      await NocoCache.deepDel(
+        `${CacheScope.BASE_USER}:${fk}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
+
+    for (const d of bulkData) {
+      await NocoCache.set(
+        `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
+        d,
+      );
+
+      await NocoCache.appendToList(
+        CacheScope.BASE_USER,
+        [d.base_id],
+        `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
+      );
+    }
   }
 
   public static async insert(

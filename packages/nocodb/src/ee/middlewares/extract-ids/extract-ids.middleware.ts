@@ -384,11 +384,13 @@ export class AclMiddleware implements NestInterceptor {
         roles?.editor ||
         roles?.viewer ||
         roles?.commenter ||
+        roles?.['no-access'] ||
         roles?.[WorkspaceUserRoles.OWNER] ||
         roles?.[WorkspaceUserRoles.CREATOR] ||
         roles?.[WorkspaceUserRoles.EDITOR] ||
         roles?.[WorkspaceUserRoles.VIEWER] ||
         roles?.[WorkspaceUserRoles.COMMENTER] ||
+        roles?.[WorkspaceUserRoles.NO_ACCESS] ||
         roles?.[OrgUserRoles.SUPER_ADMIN] ||
         roles?.[OrgUserRoles.CREATOR] ||
         roles?.[OrgUserRoles.VIEWER]

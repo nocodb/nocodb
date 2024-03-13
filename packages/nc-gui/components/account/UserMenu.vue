@@ -4,7 +4,7 @@ import type { UsersSortType } from '~/lib'
 
 const { field, direction, handleUserSort } = defineProps<{
   field: UsersSortType['field']
-  direction: UsersSortType['direction']
+  direction?: UsersSortType['direction']
   handleUserSort: Function
 }>()
 

@@ -16,6 +16,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
   lang: 'json',
   validate: true,
   disableDeepCompare: false,
@@ -24,7 +25,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:modelValue'])
 
-const { hideMinimap, lang, validate, disableDeepCompare, modelValue, readOnly, autoFocus } = props
+const { modelValue } = toRefs(props)
+
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
 
 const vModel = computed<string>({
   get: () => {

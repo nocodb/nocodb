@@ -1056,6 +1056,22 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['URL("https://github.com/nocodb/nocodb")', 'URL({column1})'],
     returnType: FormulaDataTypes.STRING,
   },
+  URLENCODE: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#urlencode',
+
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.STRING,
+      },
+    },
+    description:
+      'Percent-encode the input parameter for use in URLs',
+    syntax: 'URLENCODE(str)',
+    examples: ['URLENCODE("Hello, world") => "Hello%2C%20world"', 'URLENCODE({column1})'],
+    returnType: FormulaDataTypes.STRING,
+  },
   WEEKDAY: {
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/date-functions#weekday',

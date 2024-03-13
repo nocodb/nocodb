@@ -8,7 +8,7 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators } = storeToRefs(workspaceStore)
+const { collaborators, workspaceRole } = storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Workspace')
 

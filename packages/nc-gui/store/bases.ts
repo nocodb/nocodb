@@ -201,6 +201,7 @@ export const useBases = defineStore('basesStore', () => {
       isExpanded: route.value.params.baseId === baseId || existingProject.isExpanded,
       // isLoading is managed by Sidebar
       isLoading: existingProject.isLoading,
+      meta: { ...parseProp(existingProject.meta), ...parseProp(_project.meta) },
     }
 
     bases.value.set(baseId, base)
@@ -229,7 +230,7 @@ export const useBases = defineStore('basesStore', () => {
       ...baseUpdatePayload,
     }
 
-    bases.value.set(baseId, base)
+    bases.value.set(baseId, { ...base, meta: parseProp(base.meta) })
 
     await api.base.update(baseId, baseUpdatePayload)
 
@@ -241,11 +242,15 @@ export const useBases = defineStore('basesStore', () => {
     workspaceId?: string
     type: string
     linkedDbProjectIds?: string[]
+    meta?: Record<string, unknown>
   }) => {
     const result = await api.base.create(
       {
         title: basePayload.title,
         linked_db_project_ids: basePayload.linkedDbProjectIds,
+        meta: JSON.stringify({
+          ...(basePayload.meta || {}),
+        }),
       },
       {
         baseURL: getBaseUrl('nc'),

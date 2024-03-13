@@ -50,7 +50,7 @@ const openedBaseUrl = computed(() => {
           </template>
           <div class="flex flex-row items-center gap-x-1.5">
             <GeneralProjectIcon
-              :meta="{ type: base?.type }"
+              :type="base?.type"
               class="!grayscale min-w-4"
               :style="{
                 filter: 'grayscale(100%) brightness(115%)',

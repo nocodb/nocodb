@@ -111,6 +111,8 @@ export const baseThemeColors = [
   '#333333',
 ]
 
+export const baseIconColors = ['#36BFFF', '#FA8231', '#FCBE3A', '#27D665', '#6A7184', '#FF4A3F', '#FC3AC6', '#7D26CD']
+
 const designSystem = {
   light: [
     // '#EBF0FF',

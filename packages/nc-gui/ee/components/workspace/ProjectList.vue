@@ -38,11 +38,13 @@ const roleAlias = {
   [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
   [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
   [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
+  [WorkspaceUserRoles.NO_ACCESS]: 'No Access',
   [ProjectRoles.CREATOR]: 'Base Creator',
   [ProjectRoles.EDITOR]: 'Base Editor',
   [ProjectRoles.VIEWER]: 'Base Viewer',
   [ProjectRoles.COMMENTER]: 'Base Commenter',
   [ProjectRoles.OWNER]: 'Base Owner',
+  [ProjectRoles.NO_ACCESS]: 'No Access',
 }
 
 const deleteProject = (base: BaseType) => {

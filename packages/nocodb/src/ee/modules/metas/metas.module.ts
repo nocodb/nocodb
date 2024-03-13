@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { metaModuleMetadata } from 'src/modules/metas/metas.module';
 import { PageDao } from '~/daos/page.dao';
 import { PageSnapshotDao } from '~/daos/page-snapshot.dao';
@@ -22,6 +22,8 @@ import { DocsPublicController } from '~/controllers/docs/public/docs-public.cont
 import { PublicDocsService } from '~/services/docs/public/public-docs.service';
 import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
+import { WorkspaceUsersService } from '~/modules/workspace-users/workspace-users.service';
+import { UsersModule } from '~/modules/users/users.module';
 // import { ThrottlerExpiryListenerService } from '~/services/throttler/throttler-expiry-listener.service';
 
 // import { ClickhouseService } from '~/services/clickhouse/clickhouse.service';
@@ -48,9 +50,11 @@ import { SsoClientController } from '~/controllers/sso-client.controller';
     LayoutsService,
     LayoutFilterService,
     SSOClientService,
+    WorkspaceUsersService,
     // ClickhouseService,
     // ...(enableThrottler ? [ThrottlerExpiryListenerService] : []),
   ],
+  imports: [...metaModuleMetadata.imports, forwardRef(() => UsersModule)],
   controllers: [
     ...metaModuleMetadata.controllers,
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

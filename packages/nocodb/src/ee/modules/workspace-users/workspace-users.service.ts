@@ -4,10 +4,10 @@ import bcrypt from 'bcryptjs';
 
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
+import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import { AppEvents, extractRolesObj, WorkspaceUserRoles } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
-import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -89,6 +89,7 @@ export class WorkspaceUsersService {
         WorkspaceUserRoles.VIEWER,
         WorkspaceUserRoles.EDITOR,
         WorkspaceUserRoles.COMMENTER,
+        WorkspaceUserRoles.NO_ACCESS,
       ].includes(param.roles)
     ) {
       NcError.badRequest('Invalid role');
@@ -174,6 +175,7 @@ export class WorkspaceUsersService {
     invitedBy?: UserType;
     siteUrl: string;
     req: NcRequest;
+    skipEmailInvite?: boolean;
   }) {
     validateParams(['email', 'roles'], param.body);
 
@@ -206,6 +208,7 @@ export class WorkspaceUsersService {
         WorkspaceUserRoles.VIEWER,
         WorkspaceUserRoles.EDITOR,
         WorkspaceUserRoles.COMMENTER,
+        WorkspaceUserRoles.NO_ACCESS,
       ].includes(roles)
     ) {
       NcError.badRequest('Invalid role');
@@ -273,26 +276,26 @@ export class WorkspaceUsersService {
         fk_user_id: user.id,
         roles: roles || WorkspaceUserRoles.VIEWER,
       });
-
-      this.sendInviteEmail({
-        workspace,
-        user,
-        roles: roles || WorkspaceUserRoles.VIEWER,
-        siteUrl: getWorkspaceSiteUrl({
-          siteUrl: param.siteUrl,
-          workspaceId: workspace.id,
-          mainSubDomain: this.config.get('mainSubDomain', {
-            infer: true,
+      if (!param.skipEmailInvite) {
+        this.sendInviteEmail({
+          workspace,
+          user,
+          roles: roles || WorkspaceUserRoles.NO_ACCESS,
+          siteUrl: getWorkspaceSiteUrl({
+            siteUrl: param.siteUrl,
+            workspaceId: workspace.id,
+            mainSubDomain: this.config.get('mainSubDomain', {
+              infer: true,
+            }),
           }),
-        }),
-      })
-        .then(() => {
-          /* ignore */
         })
-        .catch((e) => {
-          console.error(e);
-        });
-
+          .then(() => {
+            /* ignore */
+          })
+          .catch((e) => {
+            console.error(e);
+          });
+      }
       this.appHooksService.emit(AppEvents.WORKSPACE_INVITE, {
         workspace,
         user,

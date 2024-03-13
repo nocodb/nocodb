@@ -140,7 +140,7 @@ watch(
           </template>
           <ProjectAccessSettings />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('baseCreate')" key="data-source">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate')" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />

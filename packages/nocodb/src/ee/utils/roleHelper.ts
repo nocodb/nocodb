@@ -64,7 +64,6 @@ export function getWorkspaceRolePower(user: any) {
       power = ind;
     }
   }
-
   const ind = reverseOrderedWorkspaceRoles.indexOf(role);
 
   if (ind === -1) {

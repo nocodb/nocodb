@@ -3,7 +3,7 @@ import { useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
-  isEdit: boolean
+  isEdit?: boolean
 }>()
 
 const emit = defineEmits(['update:value'])

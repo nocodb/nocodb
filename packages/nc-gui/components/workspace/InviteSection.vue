@@ -242,7 +242,7 @@ const onPaste = (e: ClipboardEvent) => {
         class="px-1 min-w-[152px] nc-invite-role-selector"
         :role="inviteData.roles"
         :roles="allowedRoles"
-        :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
+        :on-role-change="(role) => (inviteData.roles = role as WorkspaceUserRoles)"
         :description="true"
       />
 

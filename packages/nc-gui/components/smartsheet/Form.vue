@@ -456,7 +456,7 @@ async function submitCallback() {
 }
 
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
-  if (col.id) {
+  if (col.id && isEditable) {
     try {
       await $api.dbView.formColumnUpdate(col.id, col)
     } catch (e: any) {

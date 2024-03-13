@@ -13,7 +13,8 @@ const onChange = (e: boolean) => {
 </script>
 
 <template>
-  <a-switch v-model:checked="checked" :disabled="disabled" class="nc-switch" :size="size" @change="onChange"> </a-switch>
+  <a-switch v-model:checked="checked" :disabled="disabled" class="nc-switch" v-bind="$attrs" :size="size" @change="onChange">
+  </a-switch>
   <span v-if="$slots.default" class="cursor-pointer pl-2" @click="checked = !checked">
     <slot />
   </span>

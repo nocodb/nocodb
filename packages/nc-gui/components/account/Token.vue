@@ -312,17 +312,17 @@ const handleCancel = () => {
               class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
             >
               <span class="text-black font-bold text-3.5 text-start w-2/9">
-                <GeneralTruncateText placement="top" length="20">
+                <GeneralTruncateText placement="top" :length="20">
                   {{ el.description }}
                 </GeneralTruncateText>
               </span>
               <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
-                <GeneralTruncateText placement="top" length="20">
+                <GeneralTruncateText placement="top" :length="20">
                   {{ el.created_by }}
                 </GeneralTruncateText>
               </span>
               <span class="text-gray-500 font-medium text-3.5 text-start w-3/9">
-                <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" length="29">
+                <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" :length="29">
                   {{ el.token }}
                 </GeneralTruncateText>
                 <span v-else>************************************</span>

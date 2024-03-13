@@ -224,7 +224,7 @@ watch(isInviteModalVisible, () => {
                         : null
                     "
                     :description="false"
-                    :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
+                    :on-role-change="(role) => updateCollaborator(collab, role as ProjectRoles)"
                   />
                 </template>
                 <template v-else>

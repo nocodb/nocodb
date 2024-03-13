@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RoleLabels } from 'nocodb-sdk'
 import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
 const props = defineProps<{
@@ -211,6 +212,8 @@ const inviteProjectCollaborator = async () => {
     singleEmailValue.value = ''
   }
 }
+
+const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role as ProjectRoles)
 </script>
 
 <template>
@@ -269,7 +272,7 @@ const inviteProjectCollaborator = async () => {
             class="nc-invite-role-selector"
             :role="inviteData.roles"
             :roles="allowedRoles"
-            :on-role-change="(role) => (inviteData.roles = role as ProjectRoles)"
+            :on-role-change="onRoleChange"
             :description="false"
           />
         </div>

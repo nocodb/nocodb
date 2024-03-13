@@ -118,7 +118,7 @@ onMounted(async () => {
                     :roles="accessibleRoles"
                     :description="false"
                     class="cursor-pointer"
-                    :on-role-change="(role) => updateCollaborator(collab, role as WorkspaceUserRoles)"
+                    :on-role-change="(role) => updateCollaborator(collab, role)"
                   />
                 </div>
               </template>

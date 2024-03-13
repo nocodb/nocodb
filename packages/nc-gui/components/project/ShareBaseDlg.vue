@@ -269,7 +269,7 @@ const inviteProjectCollaborator = async () => {
             class="nc-invite-role-selector"
             :role="inviteData.roles"
             :roles="allowedRoles"
-            :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
+            :on-role-change="(role) => (inviteData.roles = role as ProjectRoles)"
             :description="false"
           />
         </div>

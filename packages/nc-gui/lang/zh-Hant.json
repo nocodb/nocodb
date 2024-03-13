@@ -197,7 +197,8 @@
     "banner": "Banner",
     "logo": "Logo",
     "dropdown": "Dropdown",
-    "list": "List"
+    "list": "List",
+    "apply": "Apply"
   },
   "objects": {
     "day": "Day",
@@ -965,6 +966,7 @@
     "clientKey": "選擇 .key 檔案",
     "clientCert": "選擇 .cert 檔案",
     "clientCA": "選擇 CA 檔案",
+    "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },

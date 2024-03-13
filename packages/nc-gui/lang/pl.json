@@ -197,7 +197,8 @@
     "banner": "Baner",
     "logo": "Logo",
     "dropdown": "Rozwijane menu",
-    "list": "Lista"
+    "list": "Lista",
+    "apply": "Apply"
   },
   "objects": {
     "day": "Dzień",
@@ -965,6 +966,7 @@
     "clientKey": "Wybierz plik .key.",
     "clientCert": "Wybierz plik .Cert.",
     "clientCA": "Wybierz plik CA.",
+    "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generuj URL formularza udostępniania z wstępnie wypełnionymi danymi pola. Aby uzyskać link z wstępnie wypełnionymi danymi, upewnij się, że wypełniłeś wymagane pola w kreatorze widoku formularza.",
     "surveyFormInfo": "Tryb formularza z jednym polem na stronę"
   },

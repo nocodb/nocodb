@@ -15,19 +15,17 @@ interface Props {
   autoFocus?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
-  lang: 'json',
-  validate: true,
-  disableDeepCompare: false,
-  autoFocus: true,
-})
+const {
+  hideMinimap,
+  lang = 'json',
+  validate = true,
+  disableDeepCompare = false,
+  readOnly,
+  autoFocus = true,
+  modelValue = '',
+} = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
-
-const { modelValue } = toRefs(props)
-
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
 
 const vModel = computed<string>({
   get: () => {

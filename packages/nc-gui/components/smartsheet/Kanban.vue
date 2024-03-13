@@ -513,7 +513,10 @@ const getRowId = (row: RowType) => {
                     </div>
                   </a-layout-header>
 
-                  <a-layout-content class="overflow-y-hidden mt-1" style="max-height: calc(100% - 11rem)">
+                  <a-layout-content
+                    class="overflow-y-hidden mt-1"
+                    :style="{ maxHeight: isUIAllowed('dataInsert') ? 'calc(100% - 11rem)' : 'calc(100% - 8rem)' }"
+                  >
                     <div :ref="kanbanListRef" class="nc-kanban-list h-full nc-scrollbar-dark-md" :data-stack-title="stack.title">
                       <!-- Draggable Record Card -->
                       <Draggable
@@ -665,6 +668,7 @@ const getRowId = (row: RowType) => {
                       </div>
 
                       <div
+                        v-if="isUIAllowed('dataInsert')"
                         class="flex flex-row w-full mt-3 justify-between items-center cursor-pointer bg-white px-4 py-2 rounded-lg border-gray-100 border-1 shadow-sm shadow-gray-100"
                         @click="
                           () => {

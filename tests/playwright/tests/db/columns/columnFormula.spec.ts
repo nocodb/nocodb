@@ -143,6 +143,16 @@ const formulaDataByDbType = (context: NcContext, index: number) => {
         result: ['A Corua (La Corua)', 'Abha', 'Abu Dhabi', 'Acua', 'Ad...'],
         unSupDbType: ['sqlite3'],
       },
+      {
+        formula: 'URLENCODE({City})',
+        result: [
+          'A%20Corua%20(La%20Corua)',
+          'Abha',
+          'Abu%20Dhabi',
+          'Acua',
+          'Adana',
+        ],
+      },
     ];
   else
     return [

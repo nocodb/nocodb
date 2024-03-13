@@ -3,7 +3,7 @@ import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
 const props = defineProps<{
   modelValue: boolean
-  baseId: string
+  baseId?: string
 }>()
 const emit = defineEmits(['update:modelValue'])
 

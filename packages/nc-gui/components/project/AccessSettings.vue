@@ -9,8 +9,8 @@ import {
   timeAgo,
 } from 'nocodb-sdk'
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 import type { User } from '#imports'
+import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
@@ -21,6 +21,8 @@ const { orgRoles, baseRoles } = useRoles()
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const isInviteModalVisible = ref(false)
 
 interface Collaborators {
   id: string
@@ -132,20 +134,34 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+watch(isInviteModalVisible, () => {
+  if (!isInviteModalVisible.value) {
+    loadCollaborators()
+  }
+})
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]">
+    <LazyProjectShareBaseDlg v-model:model-value="isInviteModalVisible" />
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
     <template v-else>
-      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25">
+      <div class="w-full flex flex-row justify-between items-baseline max-w-350 mt-6.5 mb-2 pr-0.25">
         <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" :placeholder="$t('title.searchMembers')">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>
         </a-input>
+
+        <NcButton size="small" @click="isInviteModalVisible = true">
+          <div class="flex gap-1">
+            <component :is="iconMap.plus" class="w-4 h-4" />
+            {{ $t('activity.addMembers') }}
+          </div>
+        </NcButton>
       </div>
 
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">

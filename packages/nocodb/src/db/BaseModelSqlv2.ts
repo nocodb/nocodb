@@ -318,14 +318,14 @@ class BaseModelSqlv2 {
       sortArr?: Sort[];
       sort?: string | string[];
       fieldsSet?: Set<string>;
-      calendarLimitOverride?: number;
+      limitOverride?: number;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
       ignorePagination?: boolean;
       validateFormula?: boolean;
       throwErrorIfInvalidParams?: boolean;
-      calendarLimitOverride?: number;
+      limitOverride?: number;
     } = {},
   ): Promise<any> {
     const {
@@ -333,7 +333,7 @@ class BaseModelSqlv2 {
       ignorePagination = false,
       validateFormula = false,
       throwErrorIfInvalidParams = false,
-      calendarLimitOverride,
+      limitOverride,
     } = options;
 
     const { where, fields, ...rest } = this._getListArgs(args as any);
@@ -439,12 +439,12 @@ class BaseModelSqlv2 {
       });
     }
 
-    // For calendar View, if calendarLimitOverride is provided, use it as limit for the query
+    // if limitOverride is provided, use it as limit for the query (for internal usage eg. calendar, export)
     if (!ignorePagination) {
-      if (!calendarLimitOverride) {
+      if (!limitOverride) {
         applyPaginate(qb, rest);
       } else {
-        applyPaginate(qb, { ...rest, limit: calendarLimitOverride });
+        applyPaginate(qb, { ...rest, limit: limitOverride });
       }
     }
     const proto = await this.getProto();

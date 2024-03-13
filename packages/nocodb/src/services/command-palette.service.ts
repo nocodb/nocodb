@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { type UserType, ViewTypes } from 'nocodb-sdk';
 import { Base } from '~/models';
 import { TablesService } from '~/services/tables.service';
+import { deserializeJSON } from '~/utils/serialize';
 
 const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',
@@ -28,6 +29,7 @@ export class CommandPaletteService {
             id: `p-${base.id}`,
             title: base.title,
             icon: 'project',
+            iconColor: deserializeJSON(base.meta)?.iconColor,
             section: 'Bases',
             scopePayload: {
               scope: `p-${base.id}`,
@@ -70,6 +72,7 @@ export class CommandPaletteService {
             id: `p-${b.id}`,
             title: b.title,
             icon: 'project',
+            iconColor: deserializeJSON(b.meta)?.iconColor,
             section: 'Bases',
           });
         }

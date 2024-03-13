@@ -58,8 +58,8 @@ export class ViewColumnsController {
     '/api/v1/db/meta/views/:viewId/columns/:columnId',
     '/api/v2/meta/views/:viewId/columns/:columnId',
   ])
-  @Acl('columnUpdate')
-  async columnUpdate(
+  @Acl('viewColumnUpdate')
+  async viewColumnUpdate(
     @Param('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Body() body: ViewColumnReqType,

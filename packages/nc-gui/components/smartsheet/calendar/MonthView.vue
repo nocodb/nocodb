@@ -4,7 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
-const emit = defineEmits(['new-record', 'expandRecord'])
+const emit = defineEmits(['newRecord', 'expandRecord'])
 
 const {
   selectedDate,
@@ -635,7 +635,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emit('new-record', newRecord)
+  emit('newRecord', newRecord)
 }
 </script>
 
@@ -710,7 +710,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                             [range.fk_from_col!.title!]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
                           },
                         }
-                        emit('new-record', record)
+                        emit('newRecord', record)
                       }
                     "
                   >
@@ -738,7 +738,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                       [calendarRange[0].fk_from_col!.title!]: (day).format('YYYY-MM-DD HH:mm:ssZ'),
                     },
                   }
-                  emit('new-record', record)
+                  emit('newRecord', record)
                 }
               "
             >

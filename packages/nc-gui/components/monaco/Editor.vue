@@ -23,11 +23,11 @@ const props = withDefaults(defineProps<Props>(), {
   autoFocus: true,
 })
 
+const emits = defineEmits(['update:modelValue'])
+
 const { modelValue } = toRefs(props)
 
 const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
-
-const emits = defineEmits(['update:modelValue'])
 
 const vModel = computed<string>({
   get: () => {

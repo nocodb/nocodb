@@ -20,6 +20,7 @@ import {
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
+  IsSurveyFormInj,
 } from '#imports'
 
 interface Props {
@@ -48,6 +49,8 @@ const isGallery = inject(IsGalleryInj, ref(false))
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -208,7 +211,8 @@ const onImageClick = (item: any) => {
       data-testid="attachment-cell-file-picker-button"
       tabindex="0"
       @click="open"
-      @keydown.enter="open"
+      @keydown.enter="!isSurveyForm ? open($event) : undefined"
+      @keydown.space="isSurveyForm ? open($event) : undefined"
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 

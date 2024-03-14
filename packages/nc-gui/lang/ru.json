@@ -429,7 +429,8 @@
       "setDefault": "Установить по умолчанию"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -681,7 +682,7 @@
     "sourceNameRequired": "Имя источника обязательно",
     "changeWsName": "Изменить название рабочего пространства",
     "pressEnter": "Нажмите Enter",
-    "newFormLoaded": "Новая форма будет загружена после",
+    "newFormLoaded": "Loading new form in",
     "webhook": "Вебхук",
     "multiField": {
       "newField": "Новое поле",

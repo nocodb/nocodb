@@ -6,7 +6,6 @@ import {
   DropZoneRef,
   IsSurveyFormInj,
   computed,
-  iconMap,
   isValidURL,
   onKeyStroke,
   onMounted,
@@ -261,7 +260,7 @@ watch(
         'mb-15rem lg:mb-20rem': isStarted && !submitted,
       }"
     >
-      <div class="my-auto" v-if="sharedFormView">
+      <div v-if="sharedFormView" class="my-auto">
         <template v-if="!isStarted || submitted">
           <GeneralFormBanner
             v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"

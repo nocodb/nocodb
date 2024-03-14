@@ -429,7 +429,8 @@
       "setDefault": "Set Default"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Select Year",

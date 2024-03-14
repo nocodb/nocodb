@@ -501,7 +501,7 @@ watch(
                       :disabled="v$.localState[field.title]?.$error || columnValidationError"
                       @click="goNext()"
                     >
-                      Next
+                      {{ $t('labels.next') }}
                     </NcButton>
                   </div>
                 </div>
@@ -542,17 +542,19 @@ watch(
 
     <NcModal v-model:visible="dialogShow" size="small" class="nc-survery-form__confirmation_modal">
       <div>
-        <div class="text-lg font-bold">Submit Form</div>
-        <div class="mt-1 text-sm">Are you sure you want to submit this form?</div>
+        <div class="text-lg font-bold">{{ $t('general.submit') }} {{ $t('objects.viewType.form') }}</div>
+        <div class="mt-1 text-sm">{{ $t('title.surveyFormSubmitConfirmMsg') }}</div>
         <div class="flex justify-end mt-7 gap-x-2">
-          <NcButton type="secondary" :size="isMobileMode ? 'medium' : 'small'" @click="dialogShow = false">Back</NcButton>
+          <NcButton type="secondary" :size="isMobileMode ? 'medium' : 'small'" @click="dialogShow = false">{{
+            $t('general.back')
+          }}</NcButton>
           <NcButton
             type="primary"
             :size="isMobileMode ? 'medium' : 'small'"
             data-testid="nc-survey-form__btn-submit"
             @click="submit"
           >
-            Submit
+            {{ $t('general.submit') }}
           </NcButton>
         </div>
       </div>

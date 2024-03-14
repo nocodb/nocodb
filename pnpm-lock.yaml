@@ -154,7 +154,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.204.5
+        specifier: workspace:^
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -701,7 +701,7 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2(@nestjs/common@10.3.3)(@nestjs/core@10.3.3)(@nestjs/throttler@5.1.2)(ioredis@5.3.2)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: 0.204.5
+        specifier: workspace:^
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.12

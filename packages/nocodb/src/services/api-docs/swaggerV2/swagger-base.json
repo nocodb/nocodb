@@ -9,8 +9,7 @@
       "url": "http://localhost:8080"
     }
   ],
-  "paths": {
-  },
+  "paths": {},
   "components": {
     "schemas": {
       "Paginated": {
@@ -86,7 +85,7 @@
     },
     "responses": {
       "BadRequest": {
-        "description": "BadReqeust",
+        "description": "BadRequest",
         "content": {
           "application/json": {
             "schema": {

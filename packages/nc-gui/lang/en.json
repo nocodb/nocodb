@@ -695,9 +695,9 @@
     "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
-    "showOnConditions": "Show on conditions",
+    "showOnConditions": "Show on condtions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
-    "limitOptions": "Limit options",
+    "limitOptions": "Limit ptions",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection"
   },
@@ -933,8 +933,8 @@
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",
     "preFilledFields": {
-      "title": "Pre-filled Fields",
-      "default": "Allow pre-filling fields",
+      "title": "Enable Pre-fill",
+      "default": "Default",
       "locked": "Lock pre-filled fields as read-only",
       "hidden": "Hide pre-filled fields",
       "lockedFieldTooltip": "Pre-filled value"

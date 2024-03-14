@@ -2147,6 +2147,8 @@ export interface ProjectReqType {
   type?: 'database' | 'documentation' | 'dashboard';
   /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
   linked_db_project_ids?: string[];
+  /** Base Meta */
+  meta?: MetaType;
 }
 
 /**
@@ -2184,10 +2186,7 @@ export interface ProjectUpdateReqType {
  * Model for Base User Request
  */
 export interface ProjectUserReqType {
-  /**
-   * Base User Email
-   * @format email
-   */
+  /** Base User Email */
   email: string;
   /** Base User Role */
   roles:
@@ -7723,6 +7722,8 @@ export class Api<
         sortArrJson?: string;
         /** Used for multiple filter queries */
         filterArrJson?: string;
+        /** Comma separated list of pks */
+        pks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -9214,6 +9215,8 @@ export class Api<
         sortArrJson?: string;
         /** Used for multiple filter queries */
         filterArrJson?: string;
+        /** Comma separated list of pks */
+        pks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -11028,6 +11031,8 @@ export class Api<
         sortArrJson?: string;
         /** Used for multiple filter queries */
         filterArrJson?: string;
+        /** Comma separated list of pks */
+        pks?: string;
       },
       params: RequestParams = {}
     ) =>

@@ -762,7 +762,7 @@ useEventListener(
                       }}
                     </div>
 
-                    <div v-if="formViewData.submit_another_form" class="text-right">
+                    <div v-if="formViewData.submit_another_form || !isPublic" class="text-right">
                       <NcButton
                         type="primary"
                         size="small"

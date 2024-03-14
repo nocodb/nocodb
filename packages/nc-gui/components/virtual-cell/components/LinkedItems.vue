@@ -47,6 +47,8 @@ const {
   childrenListCount,
   loadChildrenList,
   childrenListPagination,
+  childrenExcludedOffsetCount,
+  childrenListOffsetCount,
   relatedTableDisplayValueProp,
   displayValueTypeAndFormatProp,
   unlink,
@@ -121,9 +123,8 @@ watch(
 )
 
 watch(expandedFormDlg, () => {
-  if (!expandedFormDlg.value) {
-    loadChildrenList()
-  }
+  childrenExcludedOffsetCount.value = 0
+  childrenListOffsetCount.value = 0
 })
 
 /*
@@ -199,6 +200,12 @@ onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
 })
 
+const childrenListRef = ref<HTMLDivElement>()
+
+watch(childrenListPagination, () => {
+  childrenListRef.value?.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
 onUnmounted(() => {
   childrenListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
@@ -208,22 +215,22 @@ onUnmounted(() => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    :class="{ active: vModel }"
-    :footer="null"
-    :closable="false"
-    size="medium"
-    :width="isForm ? 600 : 800"
     :body-style="{ 'max-height': '640px', 'height': '85vh' }"
+    :class="{ active: vModel }"
+    :closable="false"
+    :footer="null"
+    :width="isForm ? 600 : 800"
+    size="medium"
     wrap-class-name="nc-modal-child-list"
   >
     <LazyVirtualCellComponentsHeader
       v-if="!isForm"
-      :relation="relation"
-      :linked-records="childrenListCount"
-      :table-title="meta?.title"
-      :header="$t('activity.linkedRecords')"
-      :related-table-title="relatedTableMeta?.title"
       :display-value="headerDisplayValue"
+      :header="$t('activity.linkedRecords')"
+      :linked-records="childrenListCount"
+      :related-table-title="relatedTableMeta?.title"
+      :relation="relation"
+      :table-title="meta?.title"
     />
     <div v-if="!isForm" class="flex mt-2 mb-2 items-center gap-2">
       <div class="flex items-center border-1 p-1 rounded-md w-full border-gray-200 !focus-within:border-primary">
@@ -231,10 +238,11 @@ onUnmounted(() => {
         <a-input
           ref="filterQueryRef"
           v-model:value="childrenListPagination.query"
+          :bordered="false"
           :placeholder="`Search in ${relatedTableMeta?.title}`"
           class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
-          :bordered="false"
+          @change="childrenListPagination.page = 1"
           @keydown.capture.stop="
             (e) => {
               if (e.key === 'Escape') {
@@ -242,39 +250,38 @@ onUnmounted(() => {
               }
             }
           "
-          @change="childrenListPagination.page = 1"
         >
         </a-input>
       </div>
     </div>
-    <div class="flex flex-col flex-grow nc-scrollbar-md cursor-pointer pr-1">
+    <div ref="childrenListRef" class="flex flex-col flex-grow nc-scrollbar-md cursor-pointer pr-1">
       <div v-if="isDataExist || isChildrenLoading" class="mt-2 mb-2">
         <div class="cursor-pointer pr-1">
           <template v-if="isChildrenLoading">
             <div
-              v-for="(x, i) in Array.from({ length: skeletonCount })"
+              v-for="(_x, i) in Array.from({ length: skeletonCount })"
               :key="i"
               class="!border-2 flex flex-row gap-2 mb-2 transition-all !rounded-xl relative !border-gray-200 hover:bg-gray-50"
             >
               <a-skeleton-image class="h-24 w-24 !rounded-xl" />
               <div class="flex flex-col m-[.5rem] gap-2 flex-grow justify-center">
-                <a-skeleton-input class="!w-48 !rounded-xl" active size="small" />
+                <a-skeleton-input active class="!w-48 !rounded-xl" size="small" />
                 <div class="flex flex-row gap-6 w-10/12">
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                    <a-skeleton-input active class="!h-4 !w-12" size="small" />
+                    <a-skeleton-input active class="!h-4 !w-24" size="small" />
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                    <a-skeleton-input active class="!h-4 !w-12" size="small" />
+                    <a-skeleton-input active class="!h-4 !w-24" size="small" />
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                    <a-skeleton-input active class="!h-4 !w-12" size="small" />
+                    <a-skeleton-input active class="!h-4 !w-24" size="small" />
                   </div>
                   <div class="flex flex-col gap-0.5">
-                    <a-skeleton-input class="!h-4 !w-12" active size="small" />
-                    <a-skeleton-input class="!h-4 !w-24" active size="small" />
+                    <a-skeleton-input active class="!h-4 !w-12" size="small" />
+                    <a-skeleton-input active class="!h-4 !w-24" size="small" />
                   </div>
                 </div>
               </div>
@@ -284,24 +291,28 @@ onUnmounted(() => {
             <LazyVirtualCellComponentsListItem
               v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
               :key="id"
-              :row="refRow"
-              :fields="fields"
-              data-testid="nc-child-list-item"
               :attachment="attachmentCol"
-              :related-table-display-value-prop="relatedTableDisplayValueProp"
               :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
+              :fields="fields"
               :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
               :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+              :related-table-display-value-prop="relatedTableDisplayValueProp"
+              :row="refRow"
+              data-testid="nc-child-list-item"
+              @click="linkOrUnLink(refRow, id)"
               @expand="onClick(refRow)"
               @keydown.space.prevent="linkOrUnLink(refRow, id)"
               @keydown.enter.prevent="() => onClick(refRow, id)"
-              @click="linkOrUnLink(refRow, id)"
             />
           </template>
         </div>
       </div>
       <div v-else class="pt-1 flex flex-col gap-4 my-auto items-center justify-center text-gray-500 text-center">
-        <img src="~assets/img/placeholder/link-records.png" class="!w-[18.5rem] flex-none" />
+        <img
+          :alt="$t('msg.clickLinkRecordsToAddLinkFromTable', { tableName: relatedTableMeta?.title })"
+          class="!w-[18.5rem] flex-none"
+          src="~assets/img/placeholder/link-records.png"
+        />
         <div class="text-2xl text-gray-700 font-bold">{{ $t('msg.noLinkedRecords') }}</div>
         <div class="text-gray-700">
           {{ $t('msg.clickLinkRecordsToAddLinkFromTable', { tableName: relatedTableMeta?.title }) }}
@@ -352,7 +363,7 @@ onUnmounted(() => {
         />
       </div>
       <div class="flex flex-row gap-2">
-        <NcButton v-if="!isForm" type="ghost" class="nc-close-btn" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
+        <NcButton v-if="!isForm" class="nc-close-btn" type="ghost" @click="vModel = false"> {{ $t('general.finish') }} </NcButton>
         <NcButton
           v-if="!readOnly && childrenListCount > 0"
           v-e="['c:links:link']"
@@ -388,7 +399,7 @@ onUnmounted(() => {
   </NcModal>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 :deep(.nc-nested-list-item .ant-card-body) {
   @apply !px-1 !py-0;
 }

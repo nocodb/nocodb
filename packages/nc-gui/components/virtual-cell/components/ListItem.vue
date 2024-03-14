@@ -94,7 +94,6 @@ const displayValue = computed(() => {
     :class="{
       '!bg-white': isLoading,
       '!border-1': isLinked && !isLoading,
-      '!hover:border-gray-400': !isLinked,
       '!cursor-auto !hover:bg-white': readOnly,
     }"
     :body-style="{ padding: 0 }"
@@ -179,7 +178,7 @@ const displayValue = computed(() => {
       v-if="!isForm && !isPublic && !readOnly"
       v-e="['c:row-expand:open']"
       type="text"
-      size="lg"
+      size="medium"
       class="!px-2 nc-expand-item !group-hover:block !hidden !border-1 !shadow-sm !border-gray-200 !bg-white !absolute right-3 bottom-3"
       :class="{
         '!group-hover:right-1.8 !group-hover:bottom-1.7': fields.length === 0,

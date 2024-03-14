@@ -1,4 +1,3 @@
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type {
   type ColumnType,
   type LinkToAnotherRecordType,
@@ -7,7 +6,9 @@ import type {
   type RequestParams,
   type TableType,
 } from 'nocodb-sdk'
+import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { Row } from '#imports'
 import {
   IsPublicInj,
   Modal,
@@ -30,7 +31,6 @@ import {
   useSharedView,
   watch,
 } from '#imports'
-import type { Row } from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -43,7 +43,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     column: Ref<Required<ColumnType>>,
     row: Ref<Row>,
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
-    reloadData = (_params: { shouldShowLoading?: boolean }) => {},
+    _reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
     // state
     const { metas, getMeta } = useMetas()
@@ -66,12 +66,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+    const childrenExcludedOffsetCount = ref(0)
 
     const childrenListPagination = reactive({
       page: 1,
       query: '',
       size: 10,
     })
+
+    const childrenListOffsetCount = ref(0)
 
     const isChildrenLoading = ref(false)
 
@@ -114,13 +117,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         .join('___'),
     )
 
-    // actions
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return relatedTableMeta.value?.columns
         ?.filter((c) => c.pk)
         .map((c) => row?.[c.title as string])
         .join('___')
     }
+
+    // actions
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
@@ -182,6 +186,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
+        let offset =
+          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
+
+        if (offset < 0) {
+          offset = 0
+          childrenExcludedOffsetCount.value = 0
+        }
         isChildrenExcludedLoading.value = true
         if (isPublic.value) {
           const router = useRouter()
@@ -198,7 +209,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               },
               query: {
                 limit: childrenExcludedListPagination.size,
-                offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+                offset,
                 where:
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
@@ -215,7 +226,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
-              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              offset,
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
@@ -232,7 +243,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             column?.value?.id,
             {
               limit: String(childrenExcludedListPagination.size),
-              offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
+              offset: String(offset),
               // todo: where clause is missing from type
               where:
                 childrenExcludedListPagination.query &&
@@ -278,6 +289,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenLoading.value = true
         if (colOptions.value.type === 'bt') return
         if (!rowId.value || !column.value) return
+        let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
+
+        if (offset < 0) {
+          offset = 0
+          childrenListOffsetCount.value = 0
+        } else if (offset >= childrenListCount.value) {
+          offset = 0
+        }
+
         if (isPublic.value) {
           childrenList.value = await $api.public.dataNestedList(
             sharedView.value?.uuid as string,
@@ -286,7 +306,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             column.value.id,
             {
               limit: String(childrenListPagination.size),
-              offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
+              offset: String(offset),
               where:
                 childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
@@ -306,7 +326,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             column?.value?.id,
             {
               limit: String(childrenListPagination.size),
-              offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
+              offset: String(offset),
               where:
                 childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
@@ -349,7 +369,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            reloadData?.({ shouldShowLoading: false })
+            _reloadData?.({ shouldShowLoading: false })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -386,6 +406,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // }
       try {
         // todo: audit
+
+        childrenListOffsetCount.value = childrenListOffsetCount.value - 1
+        childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value - 1
+
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
@@ -420,14 +444,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        // To Keep the Loading State for Minimum 600ms
-        setTimeout(() => {
-          isChildrenExcludedListLoading.value[index] = false
-          isChildrenListLoading.value[index] = false
-        }, 600)
+        isChildrenExcludedListLoading.value[index] = false
+        isChildrenListLoading.value[index] = false
       }
 
-      reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false })
       $e('a:links:unlink')
     }
 
@@ -435,7 +456,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
       undo = false,
-      index: number,
+      index: number, // Index is For Loading and Linked State of Row
     ) => {
       // todo: handle new record
       //   const pid = this._extractRowId(parent, this.parentMeta);
@@ -453,6 +474,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
+
+        childrenListOffsetCount.value = childrenListOffsetCount.value + 1
+        childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
@@ -480,6 +504,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
+
         if (colOptions.value.type !== 'bt') {
           childrenListCount.value = childrenListCount.value + 1
         } else {
@@ -491,13 +516,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         // To Keep the Loading State for Minimum 600ms
 
-        setTimeout(() => {
-          isChildrenExcludedListLoading.value[index] = false
-          isChildrenListLoading.value[index] = false
-        }, 600)
+        isChildrenExcludedListLoading.value[index] = false
+        isChildrenListLoading.value[index] = false
       }
 
-      reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false })
       $e('a:links:link')
     }
 
@@ -525,6 +548,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenExcludedList,
       childrenList,
       childrenListCount,
+      childrenListOffsetCount,
+      childrenExcludedOffsetCount,
       rowId,
       childrenExcludedListPagination,
       childrenListPagination,

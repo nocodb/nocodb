@@ -121,7 +121,7 @@ watch([listItemsDlg], () => {
       />
     </div>
 
-    <LazyVirtualCellComponentsListItems
+    <LazyVirtualCellComponentsUnLinkedItems
       v-if="listItemsDlg"
       v-model="listItemsDlg"
       :column="belongsToColumn"

@@ -523,7 +523,12 @@ const projectDelete = () => {
                   </NcMenuItem>
 
                   <!-- ERD View -->
-                  <NcMenuItem v-if="base?.sources?.[0]?.enabled" key="erd" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
+                  <NcMenuItem
+                    v-if="base?.sources?.[0]?.enabled"
+                    key="erd"
+                    data-testid="nc-sidebar-base-relations"
+                    @click="openErdView(base?.sources?.[0]!)"
+                  >
                     <div v-e="['c:base:erd']" class="flex gap-2 items-center">
                       <GeneralIcon icon="erd" />
                       {{ $t('title.relations') }}
@@ -584,9 +589,9 @@ const projectDelete = () => {
           </NcDropdown>
 
           <NcButton
-            :disabled="!base?.sources?.[0]?.enabled"
             v-if="isUIAllowed('tableCreate', { roles: baseRole })"
             v-e="['c:base:create-table']"
+            :disabled="!base?.sources?.[0]?.enabled"
             class="nc-sidebar-node-btn"
             size="xxsmall"
             type="text"

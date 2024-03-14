@@ -223,8 +223,8 @@ const editBase = async () => {
     const config = { ...formState.value.dataSource, connection }
 
     // todo: refactor and remove this duplicate path in config
-    if(config.client === ClientType.SQLITE && config.connection?.connection?.filename) {
-      config.connection.filename = config.connection.connection.filename;
+    if (config.client === ClientType.SQLITE && config.connection?.connection?.filename) {
+      config.connection.filename = config.connection.connection.filename
     }
 
     await api.source.update(base.value?.id, props.sourceId, {

@@ -702,6 +702,10 @@
     "clearSelection": "Wyczyść wybór"
   },
   "activity": {
+    "addMembers": "Add Members",
+    "enterEmail": "Enter email addresses",
+    "inviteToBase": "Invite to Base",
+    "addMember": "Add Member to Base",
     "noRange": "Widok kalendarza wymaga zakresu dat",
     "goToToday": "Przejdź do dzisiaj",
     "toggleSidebar": "Przełącz pasek boczny",

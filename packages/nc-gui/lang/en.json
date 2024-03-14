@@ -695,9 +695,9 @@
     "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
-    "showOnConditions": "Show on conditions",
+    "showOnConditions": "Show on condtions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
-    "limitOptions": "Limit options",
+    "limitOptions": "Limit ptions",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection"
   },
@@ -933,8 +933,8 @@
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",
     "preFilledFields": {
-      "title": "Pre-filled Fields",
-      "default": "Allow pre-filling fields",
+      "title": "Enable Pre-fill",
+      "default": "Default",
       "locked": "Lock pre-filled fields as read-only",
       "hidden": "Hide pre-filled fields",
       "lockedFieldTooltip": "Pre-filled value"
@@ -970,8 +970,8 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "changeIconColour": "Change icon colour",
-    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "changeIconColour": "Change Icon Colour",
+    "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {

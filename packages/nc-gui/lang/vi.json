@@ -702,6 +702,10 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "addMembers": "Add Members",
+    "enterEmail": "Enter email addresses",
+    "inviteToBase": "Invite to Base",
+    "addMember": "Add Member to Base",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",

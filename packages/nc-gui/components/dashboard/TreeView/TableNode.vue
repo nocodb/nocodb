@@ -146,7 +146,7 @@ const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
 })
 
-let tableTimeout: number
+let tableTimeout: NodeJS.Timeout
 
 watch(openedTableId, () => {
   if (tableTimeout) {

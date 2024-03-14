@@ -467,7 +467,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     return preFillValue
   }
 
-  let intvl: number
+  let intvl: NodeJS.Timeout
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal) => {
     if (nextVal && sharedFormView.value?.show_blank_form) {

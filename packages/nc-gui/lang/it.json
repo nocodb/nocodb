@@ -429,7 +429,8 @@
       "setDefault": "Imposta default"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -681,7 +682,7 @@
     "sourceNameRequired": "Nome sorgente obbligatorio",
     "changeWsName": "Cambia nome area di lavoro",
     "pressEnter": "Premi Invio",
-    "newFormLoaded": "Il nuovo form verrà caricato dopo",
+    "newFormLoaded": "Loading new form in",
     "webhook": "Webhook",
     "multiField": {
       "newField": "Nuovo campo",

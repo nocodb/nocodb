@@ -7,6 +7,7 @@ import {
   ColumnInj,
   EditColumnInj,
   IsFormInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   inject,
   isDrawerOrModalExist,
@@ -37,6 +38,8 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const { t } = useI18n()
 
@@ -291,6 +294,22 @@ const clickHandler = () => {
 const isColDisabled = computed(() => {
   return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
 })
+
+const handleKeydown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case ' ':
+      if (isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+
+    case 'Enter':
+      if (!isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+  }
+}
 </script>
 
 <template>
@@ -309,7 +328,7 @@ const isColDisabled = computed(() => {
     :open="isOpen"
     @click="clickHandler"
     @ok="okHandler"
-    @keydown.enter="open = !open"
+    @keydown="handleKeydown"
   >
     <template #suffixIcon></template>
   </a-date-picker>

@@ -4,6 +4,7 @@ import {
   ActiveCellInj,
   EditColumnInj,
   IsFormInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -33,6 +34,8 @@ const editable = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isYearInvalid = ref(false)
 
@@ -99,6 +102,22 @@ const isOpen = computed(() => {
   return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
 
+const handleKeydown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case ' ':
+      if (isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+
+    case 'Enter':
+      if (!isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+  }
+}
+
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
@@ -128,10 +147,10 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :input-read-only="true"
     :open="isOpen"
     :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
+    @keydown="handleKeydown"
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
     @ok="open = !open"
-    @keydown.enter="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

@@ -115,6 +115,22 @@ const isOpen = computed(() => {
   return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
 
+const handleKeydown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case ' ':
+      if (isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+
+    case 'Enter':
+      if (!isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+  }
+}
+
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
@@ -147,7 +163,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :input-read-only="true"
     :open="isOpen"
     :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
-    @keydown.space="isSurveyForm ? (open = !open) : undefined"
+    @keydown="handleKeydown"
     @click="open = (active || editable) && !open"
     @ok="open = !open"
   >

@@ -562,7 +562,7 @@ export const iconMap = {
   italic: NcItalic,
   phoneCall: NcPhoneCall,
   crop: NcCrop,
-  circleCheck: NcCircleCheck,
+  circleCheck2: NcCircleCheck,
 }
 
 export const getMdiIcon = (type: string): any => {

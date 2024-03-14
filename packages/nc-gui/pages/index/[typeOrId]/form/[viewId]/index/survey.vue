@@ -11,7 +11,6 @@ import {
   onMounted,
   provide,
   ref,
-  useAttachment,
   useBreakpoints,
   useI18n,
   usePointerSwipe,
@@ -39,7 +38,7 @@ const { v$, formState, formColumns, submitForm, submitted, secondsRemain, shared
 
 const { t } = useI18n()
 
-const { getPossibleAttachmentSrc } = useAttachment()
+const { isMobileMode } = storeToRefs(useConfigStore())
 
 const isTransitioning = ref(false)
 
@@ -266,7 +265,7 @@ watch(
 
 <template>
   <div class="h-full">
-    <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-6rem lg:mb-10rem">
+    <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-4rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto">
         <template v-if="!isStarted || submitted">
           <GeneralFormBanner
@@ -275,17 +274,6 @@ watch(
             class="flex-none mb-4"
           />
           <div class="rounded-3xl border-1 border-gray-200 p-6 lg:p-12 bg-white">
-            <!-- Form logo  -->
-            <div
-              v-if="sharedFormView.logo_url"
-              class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
-            >
-              <LazyCellAttachmentImage
-                :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
-                class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
-              />
-            </div>
-
             <h1 class="text-2xl font-bold text-gray-900 mb-4" data-testid="nc-survey-form__heading">
               {{ sharedFormView.heading }}
             </h1>
@@ -322,7 +310,10 @@ watch(
                 </template>
               </a-alert>
 
-              <div class="mt-16 w-full flex justify-between items-center flex-wrap gap-3">
+              <div
+                v-if="sharedFormView.show_blank_form || sharedFormView.submit_another_form"
+                class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
+              >
                 <p v-if="sharedFormView?.show_blank_form" class="text-sm text-gray-500 dark:text-slate-300 m-0">
                   {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds').toLowerCase() }}
                 </p>
@@ -331,7 +322,7 @@ watch(
                   <NcButton
                     v-if="sharedFormView?.submit_another_form"
                     type="secondary"
-                    size="small"
+                    :size="isMobileMode ? 'medium' : 'small'"
                     data-testid="nc-survey-form__btn-submit-another-form"
                     @click="resetForm"
                   >
@@ -360,7 +351,11 @@ watch(
                     </span>
                     <NcBadge class="pl-4 pr-1 h-[21px] text-gray-600"> ↵ </NcBadge>
                   </div>
-                  <NcButton size="small" data-testid="nc-survey-form__fill-form-btn" @click="isStarted = true">
+                  <NcButton
+                    :size="isMobileMode ? 'medium' : 'small'"
+                    data-testid="nc-survey-form__fill-form-btn"
+                    @click="isStarted = true"
+                  >
                     Fill Form
                   </NcButton>
                 </div>
@@ -375,6 +370,10 @@ watch(
               :key="field?.title"
               class="flex flex-col gap-4 w-full m-auto rounded-xl border-1 border-gray-200 bg-white p-6 lg:p-12"
             >
+              <div class="select-none text-gray-500 mb-4 md:mb-2" data-testid="nc-survey-form__footer">
+                {{ index + 1 }} / {{ formColumns?.length }}
+              </div>
+
               <div v-if="field" class="flex flex-col gap-2">
                 <div class="nc-form-column-label text-sm font-semibold text-gray-800" data-testid="nc-form-column-label">
                   <span>
@@ -435,7 +434,7 @@ watch(
                 <div class="flex-1 flex justify-end">
                   <div v-if="isLast && !v$.$invalid">
                     <NcButton
-                      size="small"
+                      :size="isMobileMode ? 'medium' : 'small'"
                       :class="
                         animationTarget === AnimationTarget.SubmitButton && isAnimating
                           ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
@@ -465,7 +464,7 @@ watch(
                       </NcBadge>
                     </div>
                     <NcButton
-                      size="small"
+                      :size="isMobileMode ? 'medium' : 'small'"
                       data-testid="nc-survey-form__btn-next"
                       :class="[
                         animationTarget === AnimationTarget.OkButton && isAnimating
@@ -484,18 +483,15 @@ watch(
           </Transition>
         </template>
       </div>
-      <div class="absolute bottom-0 left-0 right-0 blur-md flex items-center justify-between px-4 lg:px-10 pb-4 lg:pb-10">
-        <div v-if="isStarted && !submitted" class="select-none text-gray-500" data-testid="nc-survey-form__footer">
-          {{ index + 1 }} / {{ formColumns?.length }}
-        </div>
-        <div class="flex-1 flex justify-end items-center gap-4">
-          <div v-if="!parseProp(sharedFormView?.meta).hide_branding" class="flex justify-center">
+      <div class="md:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
+        <div class="flex justify-end items-center gap-4">
+          <div class="flex justify-center">
             <GeneralFormBranding class="inline-flex mx-auto" />
           </div>
           <div v-if="isStarted && !submitted" class="flex items-center gap-3">
             <NcButton
               type="secondary"
-              size="small"
+              :size="isMobileMode ? 'medium' : 'small'"
               data-testid="nc-survey-form__icon-prev"
               :disabled="isFirst || v$.localState[field.title]?.$error"
               @click="goPrevious()"
@@ -504,7 +500,7 @@ watch(
             /></NcButton>
 
             <NcButton
-              size="small"
+              :size="isMobileMode ? 'medium' : 'small'"
               type="secondary"
               data-testid="nc-survey-form__icon-next"
               :disabled="isLast || v$.localState[field.title]?.$error || columnValidationError"
@@ -522,8 +518,15 @@ watch(
         <div class="text-lg font-bold">Submit Form</div>
         <div class="mt-1 text-sm">Are you sure you want to submit this form?</div>
         <div class="flex justify-end mt-7 gap-x-2">
-          <NcButton type="secondary" size="small" @click="dialogShow = false">Back</NcButton>
-          <NcButton type="primary" size="small" data-testid="nc-survey-form__btn-submit" @click="submit"> Submit </NcButton>
+          <NcButton type="secondary" :size="isMobileMode ? 'medium' : 'small'" @click="dialogShow = false">Back</NcButton>
+          <NcButton
+            type="primary"
+            :size="isMobileMode ? 'medium' : 'small'"
+            data-testid="nc-survey-form__btn-submit"
+            @click="submit"
+          >
+            Submit
+          </NcButton>
         </div>
       </div>
     </NcModal>

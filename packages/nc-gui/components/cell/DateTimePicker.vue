@@ -6,6 +6,8 @@ import {
   CellClickHookInj,
   ColumnInj,
   EditColumnInj,
+  IsFormInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   inject,
   isDrawerOrModalExist,
@@ -34,6 +36,10 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const { t } = useI18n()
 
@@ -151,7 +157,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isDateInvalid.value) {
+    return dateTimeFormat.value
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
@@ -286,6 +294,22 @@ const clickHandler = () => {
 const isColDisabled = computed(() => {
   return isSystemColumn(column.value) || readOnly.value || (localState.value && isPk)
 })
+
+const handleKeydown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case ' ':
+      if (isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+
+    case 'Enter':
+      if (!isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+  }
+}
 </script>
 
 <template>
@@ -304,7 +328,7 @@ const isColDisabled = computed(() => {
     :open="isOpen"
     @click="clickHandler"
     @ok="okHandler"
-    @keydown.enter="open = !open"
+    @keydown="handleKeydown"
   >
     <template #suffixIcon></template>
   </a-date-picker>

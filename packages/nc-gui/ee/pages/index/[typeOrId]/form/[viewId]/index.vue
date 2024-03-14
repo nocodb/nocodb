@@ -28,7 +28,10 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-10 nc-form-view relative min-h-[600px]"
+    class="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover-scrollbar-thumb-gray-300 h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-10 nc-form-view min-h-[600px]"
+    :class="{
+      'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
+    }"
     :style="{
       background: parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA',
     }"

@@ -750,27 +750,29 @@ useEventListener(
                     </template>
                   </a-alert>
 
-                  <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
-                    {{
-                      $t('msg.newFormWillBeLoaded', {
-                        seconds: secondsRemain,
-                      })
-                    }}
-                  </div>
+                  <div class="mt-16 w-full flex justify-between items-center gap-3">
+                    <div v-if="formViewData.show_blank_form" class="text-gray-400">
+                      {{
+                        $t('msg.newFormWillBeLoaded', {
+                          seconds: secondsRemain,
+                        })
+                      }}
+                    </div>
 
-                  <div v-if="formViewData.submit_another_form || !isPublic" class="text-right mt-4">
-                    <NcButton
-                      type="primary"
-                      size="medium"
-                      @click="
-                        () => {
-                          submitted = false
-                          clearForm()
-                        }
-                      "
-                    >
-                      {{ $t('activity.submitAnotherForm') }}
-                    </NcButton>
+                    <div v-if="formViewData.submit_another_form || !isPublic" class="flex-1 flex justify-end">
+                      <NcButton
+                        type="primary"
+                        size="small"
+                        @click="
+                          () => {
+                            submitted = false
+                            clearForm()
+                          }
+                        "
+                      >
+                        {{ $t('activity.submitAnotherForm') }}
+                      </NcButton>
+                    </div>
                   </div>
                 </div>
               </div>

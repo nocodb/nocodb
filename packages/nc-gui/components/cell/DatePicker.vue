@@ -7,6 +7,7 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -44,6 +45,10 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isDateInvalid = ref(false)
 
@@ -98,7 +103,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isDateInvalid.value) {
+    return dateFormat.value
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
@@ -232,6 +239,22 @@ const clickHandler = () => {
   }
   cellClickHandler()
 }
+
+const handleKeydown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case ' ':
+      if (isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+
+    case 'Enter':
+      if (!isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+  }
+}
 </script>
 
 <template>
@@ -251,7 +274,7 @@ const clickHandler = () => {
     :open="isOpen"
     @click="clickHandler"
     @update:open="updateOpen"
-    @keydown.enter="open = !open"
+    @keydown="handleKeydown"
   >
     <template #suffixIcon></template>
   </a-date-picker>

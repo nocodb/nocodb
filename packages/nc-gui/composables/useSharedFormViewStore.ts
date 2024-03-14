@@ -467,11 +467,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     return preFillValue
   }
 
+  let intvl: NodeJS.Timeout
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal) => {
     if (nextVal && sharedFormView.value?.show_blank_form) {
       secondsRemain.value = 5
-      const intvl = setInterval(() => {
+      intvl = setInterval(() => {
         secondsRemain.value = secondsRemain.value - 1
 
         if (secondsRemain.value < 0) {
@@ -486,6 +487,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
     /** reset form state and validation */
     if (!nextVal) {
+      if (sharedFormView.value?.show_blank_form) {
+        clearInterval(intvl)
+      }
       additionalState.value = {}
       formState.value = {}
       v$.value?.$reset()

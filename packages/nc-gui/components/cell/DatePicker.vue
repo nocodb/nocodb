@@ -45,6 +45,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const isDateInvalid = ref(false)
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
@@ -98,7 +100,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isDateInvalid.value) {
+    return dateFormat.value
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()

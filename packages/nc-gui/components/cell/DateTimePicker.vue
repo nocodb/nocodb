@@ -14,6 +14,7 @@ import {
   useBase,
   useSelectedCellKeyupListener,
   watch,
+  IsFormInj,
 } from '#imports'
 
 interface Props {
@@ -34,6 +35,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
 
 const { t } = useI18n()
 
@@ -151,7 +154,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isDateInvalid.value) {
+    return dateTimeFormat.value
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()

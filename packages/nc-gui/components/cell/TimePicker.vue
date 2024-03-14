@@ -9,6 +9,8 @@ import {
   useBase,
   useSelectedCellKeyupListener,
   watch,
+  IsFormInj,
+  IsSurveyFormInj,
 } from '#imports'
 
 interface Props {
@@ -31,6 +33,10 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -90,7 +96,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isTimeInvalid.value) {
+    return 'HH:mm'
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
@@ -126,6 +134,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 <template>
   <a-time-picker
     v-model:value="localState"
+    :tabindex="0"
     :disabled="readOnly"
     :show-time="true"
     :bordered="false"
@@ -138,6 +147,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :input-read-only="true"
     :open="isOpen"
     :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
+    @keydown.space="isSurveyForm ? (open = !open) : undefined"
     @click="open = (active || editable) && !open"
     @ok="open = !open"
   >

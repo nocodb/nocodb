@@ -10,6 +10,7 @@ import {
   ref,
   useSelectedCellKeyupListener,
   watch,
+  IsFormInj,
 } from '#imports'
 
 interface Props {
@@ -30,6 +31,8 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
 
 const isYearInvalid = ref(false)
 
@@ -77,7 +80,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isYearInvalid.value) {
+    return 'YYYY'
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()

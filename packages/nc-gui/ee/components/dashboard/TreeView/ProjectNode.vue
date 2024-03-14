@@ -549,7 +549,7 @@ const duplicateProject = (base: BaseType) => {
                 <NcDivider />
 
                 <!-- ERD View -->
-                <NcMenuItem key="erd" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
+                <NcMenuItem key="erd" v-if="base?.sources?.[0]?.enabled" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
                   <GeneralIcon icon="erd" />
                   Relations
                 </NcMenuItem>
@@ -568,7 +568,7 @@ const duplicateProject = (base: BaseType) => {
                 </NcMenuItem>
 
                 <DashboardTreeViewBaseOptions
-                  v-if="base.sources && base.sources[0] && showBaseOption"
+                  v-if="base?.sources?.[0]?.enabled && showBaseOption"
                   v-model:base="base"
                   :source="base.sources[0]"
                 />
@@ -603,6 +603,7 @@ const duplicateProject = (base: BaseType) => {
           </NcDropdown>
 
           <NcButton
+            :disabled="!base?.sources?.[0]?.enabled"
             v-if="isUIAllowed('tableCreate', { roles: baseRole })"
             class="nc-sidebar-node-btn"
             type="text"
@@ -629,7 +630,7 @@ const duplicateProject = (base: BaseType) => {
         <div v-else-if="base.type === 'dashboard'">
           <LayoutsSideBar v-if="isExpanded" :base="base" />
         </div>
-        <template v-else-if="base && base?.sources">
+        <template v-else-if="base?.sources">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">

@@ -11,6 +11,7 @@ import {
   onMounted,
   provide,
   ref,
+  useAttachment,
   useBreakpoints,
   useI18n,
   usePointerSwipe,
@@ -38,6 +39,8 @@ const { v$, formState, formColumns, submitForm, submitted, secondsRemain, shared
 
 const { t } = useI18n()
 
+const { getPossibleAttachmentSrc } = useAttachment()
+
 const isTransitioning = ref(false)
 
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
@@ -56,7 +59,7 @@ provide(DropZoneRef, el)
 
 provide(IsSurveyFormInj, ref(true))
 
-const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 50)
+const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 100)
 
 const steps = computed(() => {
   if (!formColumns.value) return []
@@ -263,7 +266,7 @@ watch(
 
 <template>
   <div class="h-full">
-    <div ref="el" class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-5rem lg:mb-10rem">
+    <div class="survey md:p-0 w-full h-full flex flex-col max-w-[max(33%,688px)] mx-auto mb-6rem lg:mb-10rem">
       <div v-if="sharedFormView" class="my-auto">
         <template v-if="!isStarted || submitted">
           <GeneralFormBanner
@@ -272,6 +275,17 @@ watch(
             class="flex-none mb-4"
           />
           <div class="rounded-3xl border-1 border-gray-200 p-6 lg:p-12 bg-white">
+            <!-- Form logo  -->
+            <div
+              v-if="sharedFormView.logo_url"
+              class="mb-4 nc-shared-form-logo-wrapper inline-block h-56px max-w-189px overflow-hidden flex items-center"
+            >
+              <LazyCellAttachmentImage
+                :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
+                class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
+              />
+            </div>
+
             <h1 class="text-2xl font-bold text-gray-900 mb-4" data-testid="nc-survey-form__heading">
               {{ sharedFormView.heading }}
             </h1>
@@ -344,7 +358,7 @@ watch(
                     <span>
                       {{ $t('labels.pressEnter') }}
                     </span>
-                    <NcBadge class="pl-4 py-1 pr-1 text-gray-600"> ↵ </NcBadge>
+                    <NcBadge class="pl-4 pr-1 h-[21px] text-gray-600"> ↵ </NcBadge>
                   </div>
                   <NcButton size="small" data-testid="nc-survey-form__fill-form-btn" @click="isStarted = true">
                     Fill Form
@@ -355,7 +369,7 @@ watch(
           </div>
         </template>
         <template v-if="isStarted && !submitted">
-          <div>
+          <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
             <div
               ref="el"
               :key="field?.title"
@@ -444,7 +458,7 @@ watch(
                         {{ $t('labels.pressEnter') }}
                       </span>
                       <NcBadge
-                        class="pl-4 py-1 pr-1"
+                        class="pl-4 pr-1 h-[21px]"
                         :class="v$.localState[field.title]?.$error || columnValidationError ? 'text-gray-200' : 'text-gray-600'"
                       >
                         ↵
@@ -467,14 +481,14 @@ watch(
                 </div>
               </div>
             </div>
-          </div>
+          </Transition>
         </template>
       </div>
-      <div class="absolute bottom-0 left-0 right-0">
-        <!-- <div class="select-none text-center text-gray-500 dark:text-slate-200" data-testid="nc-survey-form__footer">
-                {{ index + 1 }} / {{ formColumns?.length }}
-              </div> -->
-        <div class="flex justify-end items-center gap-4 mb-4 lg:mb-10 mr-4 lg:mr-10">
+      <div class="absolute bottom-0 left-0 right-0 blur-md flex items-center justify-between px-4 lg:px-10 pb-4 lg:pb-10">
+        <div v-if="isStarted && !submitted" class="select-none text-gray-500" data-testid="nc-survey-form__footer">
+          {{ index + 1 }} / {{ formColumns?.length }}
+        </div>
+        <div class="flex-1 flex justify-end items-center gap-4">
           <div v-if="!parseProp(sharedFormView?.meta).hide_branding" class="flex justify-center">
             <GeneralFormBranding class="inline-flex mx-auto" />
           </div>

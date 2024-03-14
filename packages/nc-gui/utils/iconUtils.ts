@@ -120,6 +120,8 @@ import NcCopy from '~icons/nc-icons/copy'
 import NcPaste from '~icons/nc-icons/paste'
 import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
+import NcArrowLeft from '~icons/nc-icons/arrow-left'
+import NcArrowRight from '~icons/nc-icons/arrow-right'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
@@ -557,6 +559,8 @@ export const iconMap = {
   ncEdit: NcEdit,
   ncArrowUp: NcArrowUp,
   ncArrowDown: NcArrowDown,
+  ncArrowLeft: NcArrowLeft,
+  ncArrowRight: NcArrowRight,
   underline: NcUnderline,
   bold: NcBold,
   italic: NcItalic,

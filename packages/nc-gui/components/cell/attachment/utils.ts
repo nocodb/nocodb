@@ -63,7 +63,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { api, isLoading } = useApi()
 
-    const { files, open } = useFileDialog()
+    const { files, open } = useFileDialog({
+      reset: true,
+    })
 
     const { appInfo } = useGlobal()
 

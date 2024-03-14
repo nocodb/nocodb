@@ -8,7 +8,7 @@ const props = withDefaults(
     clickable?: boolean
     inherit?: boolean
     border?: boolean
-    size?: 'sm' | 'md'
+    size?: 'sm' | 'md' | 'lg'
   }>(),
   {
     clickable: false,

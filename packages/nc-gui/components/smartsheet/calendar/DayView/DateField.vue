@@ -4,7 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { isRowEmpty } from '~/utils'
 
-const emit = defineEmits(['expand-record', 'new-record'])
+const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const meta = inject(MetaInj, ref())
 
@@ -20,22 +20,22 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const getFieldStyle = (field: ColumnType) => {
-  const fi = _fields.value.find((f) => f.title === field.title)
+  const fi = _fields.value?.find((f) => f.title === field.title)
 
   return {
-    underline: fi.underline,
-    bold: fi.bold,
-    italic: fi.italic,
+    underline: fi?.underline,
+    bold: fi?.bold,
+    italic: fi?.italic,
   }
 }
 
-const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
+const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 // We loop through all the records and calculate the position of each record based on the range
 // We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
   let dayRecordCount = 0
-  const perRecordHeight = 40
+  const perRecordHeight = 28
 
   if (!calendarRange.value) return []
 
@@ -183,6 +183,17 @@ const dropEvent = (event: DragEvent) => {
     updateRowProperty(newRow, updateProperty, false)
   }
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const newRecord = () => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  const record = {
+    row: {
+      [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emit('newRecord', record)
+}
 </script>
 
 <template>
@@ -191,6 +202,7 @@ const dropEvent = (event: DragEvent) => {
     ref="container"
     class="w-full relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
+    @dblclick="newRecord"
     @drop="dropEvent"
   >
     <div
@@ -209,7 +221,7 @@ const dropEvent = (event: DragEvent) => {
           :resize="false"
           color="blue"
           size="small"
-          @click="emit('expand-record', record)"
+          @click="emit('expandRecord', record)"
         >
           <template v-if="!isRowEmpty(record, displayField)">
             <LazySmartsheetCalendarCell
@@ -223,6 +235,7 @@ const dropEvent = (event: DragEvent) => {
           </template>
           <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
             <LazySmartsheetCalendarCell
+              v-if="!isRowEmpty(record, field!)"
               v-model="record.row[field!.title!]"
               :bold="getFieldStyle(field).bold"
               :column="field"
@@ -240,6 +253,7 @@ const dropEvent = (event: DragEvent) => {
     ref="container"
     class="w-full h-full flex text-md font-bold text-gray-500 items-center justify-center"
     @drop="dropEvent"
+    @dblclick="newRecord"
   >
     No records in this day
   </div>

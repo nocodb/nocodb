@@ -30,6 +30,7 @@ export function parseBody(template: string, data: any): string {
 
   return Handlebars.compile(template, { noEscape: true })({
     data,
+    event: data,
   });
 }
 
@@ -435,6 +436,7 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           }),
         }
       : {}),
+    timeout: 30 * 1000,
   };
   return req;
 }

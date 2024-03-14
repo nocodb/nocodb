@@ -94,7 +94,7 @@ const onValidate = async (_: any, valid: boolean) => {
             <a-input
               v-model:value="email"
               class="w-full !rounded-md !py-1.5"
-              :placeholder="$t('general.email')"
+              :placeholder="$t('labels.email')"
               disabled
               data-testid="nc-account-settings-email-input"
             />

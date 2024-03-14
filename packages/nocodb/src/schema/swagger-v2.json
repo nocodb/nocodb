@@ -7688,6 +7688,14 @@
             "in": "query",
             "name": "filterArrJson",
             "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
           }
         ],
         "description": "List all shared view rows"
@@ -16344,6 +16352,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Base Meta"
           }
         },
         "required": [

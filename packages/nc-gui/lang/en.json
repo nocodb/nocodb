@@ -197,7 +197,8 @@
     "banner": "Banner",
     "logo": "Logo",
     "dropdown": "Dropdown",
-    "list": "List"
+    "list": "List",
+    "apply": "Apply"
   },
   "objects": {
     "day": "Day",
@@ -428,7 +429,8 @@
       "setDefault": "Set Default"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -680,7 +682,7 @@
     "sourceNameRequired": "Source name is required",
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",
-    "newFormLoaded": "New form will be loaded after",
+    "newFormLoaded": "Loading new form in",
     "webhook": "Webhook",
     "multiField": {
       "newField": "New field",
@@ -694,13 +696,17 @@
     "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
-    "showOnConditions": "Show on conditions",
+    "showOnConditions": "Show on condtions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
-    "limitOptions": "Limit options",
+    "limitOptions": "Limit ptions",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "addMembers": "Add Members",
+    "enterEmail": "Enter email addresses",
+    "inviteToBase": "Invite to Base",
+    "addMember": "Add Member to Base",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
@@ -926,7 +932,15 @@
     "startCommenting": "Start commenting!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
-    "selectAllFields": "Select all fields"
+    "selectAllFields": "Select all fields",
+    "preFilledFields": {
+      "title": "Enable Pre-fill",
+      "default": "Default",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
+    },
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -956,7 +970,10 @@
     "clearMetadata": "Clear all metadata from meta tables.",
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
-    "clientCA": "Select CA file"
+    "clientCA": "Select CA file",
+    "changeIconColour": "Change Icon Colour",
+    "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

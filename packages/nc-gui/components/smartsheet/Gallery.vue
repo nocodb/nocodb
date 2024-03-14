@@ -285,7 +285,7 @@ watch(
                     <LazyCellAttachmentImage
                       v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                       :key="`carousel-${record.row.id}-${index}`"
-                      class="h-52 object-cover"
+                      class="h-52 !object-contain"
                       :srcs="getPossibleAttachmentSrc(attachment)"
                       @click="expandFormClick($event, record)"
                     />
@@ -372,7 +372,7 @@ watch(
 
   <Suspense>
     <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

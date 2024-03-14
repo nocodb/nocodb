@@ -1,125 +1,123 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { iconMap } from '#imports'
-import LinkVariant from '~icons/mdi/link-variant'
-import ID from '~icons/mdi/identifier'
 
 const uiTypes = [
   {
     name: UITypes.Links,
-    icon: iconMap.link,
+    icon: iconMap.cellLinks,
     virtual: 1,
   },
   {
     name: UITypes.LinkToAnotherRecord,
-    icon: iconMap.link,
+    icon: iconMap.cellLinks,
     virtual: 1,
     deprecated: 1,
   },
   {
     name: UITypes.Lookup,
-    icon: iconMap.lookup,
+    icon: iconMap.cellLookup,
     virtual: 1,
   },
   {
     name: UITypes.SingleLineText,
-    icon: iconMap.text,
+    icon: iconMap.cellText,
   },
   {
     name: UITypes.LongText,
-    icon: iconMap.longText,
+    icon: iconMap.cellLongText,
   },
   {
     name: UITypes.Number,
-    icon: iconMap.number,
+    icon: iconMap.cellNumber,
   },
   {
     name: UITypes.Decimal,
-    icon: iconMap.decimal,
+    icon: iconMap.cellDecimal,
   },
   {
     name: UITypes.Attachment,
-    icon: iconMap.image,
+    icon: iconMap.cellAttachment,
   },
   {
     name: UITypes.Checkbox,
-    icon: iconMap.boolean,
+    icon: iconMap.cellCheckbox,
   },
   {
     name: UITypes.MultiSelect,
-    icon: iconMap.multiSelect,
+    icon: iconMap.cellMultiSelect,
   },
   {
     name: UITypes.SingleSelect,
-    icon: iconMap.singleSelect,
+    icon: iconMap.cellSingleSelect,
   },
   {
     name: UITypes.Date,
-    icon: iconMap.calendar,
+    icon: iconMap.cellDate,
   },
   {
     name: UITypes.Year,
-    icon: iconMap.calendar,
+    icon: iconMap.cellDate,
   },
   {
     name: UITypes.Time,
-    icon: iconMap.clock,
+    icon: iconMap.cellTime,
   },
   {
     name: UITypes.PhoneNumber,
-    icon: iconMap.phone,
+    icon: iconMap.cellPhone,
   },
   {
     name: UITypes.Email,
-    icon: iconMap.email,
+    icon: iconMap.cellEmail,
   },
   {
     name: UITypes.URL,
-    icon: iconMap.web,
+    icon: iconMap.cellUrl,
   },
   {
     name: UITypes.Currency,
-    icon: iconMap.currency,
+    icon: iconMap.cellCurrency,
   },
   {
     name: UITypes.Percent,
-    icon: iconMap.percent,
+    icon: iconMap.cellPercent,
   },
   {
     name: UITypes.Duration,
-    icon: iconMap.duration,
+    icon: iconMap.cellDuration,
   },
   {
     name: UITypes.Rating,
-    icon: iconMap.rating,
+    icon: iconMap.cellRating,
   },
   {
     name: UITypes.Formula,
-    icon: iconMap.formula,
+    icon: iconMap.cellFormula,
     virtual: 1,
   },
   {
     name: UITypes.Rollup,
-    icon: iconMap.rollup,
+    icon: iconMap.cellRollup,
     virtual: 1,
   },
   {
     name: UITypes.DateTime,
-    icon: iconMap.datetime,
+    icon: iconMap.cellDatetime,
   },
   {
     name: UITypes.QrCode,
-    icon: iconMap.qrCode,
+    icon: iconMap.cellQrCode,
     virtual: 1,
   },
   {
     name: UITypes.Barcode,
-    icon: iconMap.barCode,
+    icon: iconMap.cellBarcode,
     virtual: 1,
   },
   {
     name: UITypes.Geometry,
-    icon: iconMap.calculator,
+    icon: iconMap.cellGeometry,
   },
 
   {
@@ -128,31 +126,31 @@ const uiTypes = [
   },
   {
     name: UITypes.JSON,
-    icon: iconMap.json,
+    icon: iconMap.cellJson,
   },
   {
     name: UITypes.SpecificDBType,
-    icon: iconMap.specificDbType,
+    icon: iconMap.cellDb,
   },
   {
     name: UITypes.User,
-    icon: iconMap.phUser,
+    icon: iconMap.cellUser,
   },
   {
     name: UITypes.CreatedTime,
-    icon: iconMap.datetime,
+    icon: iconMap.cellSystemDate,
   },
   {
     name: UITypes.LastModifiedTime,
-    icon: iconMap.datetime,
+    icon: iconMap.cellSystemDate,
   },
   {
     name: UITypes.CreatedBy,
-    icon: iconMap.phUser,
+    icon: iconMap.cellSystemUser,
   },
   {
     name: UITypes.LastModifiedBy,
-    icon: iconMap.phUser,
+    icon: iconMap.cellSystemUser,
   },
 ]
 
@@ -162,15 +160,15 @@ const getUIDTIcon = (uidt: UITypes | string) => {
       ...uiTypes,
       {
         name: UITypes.CreatedTime,
-        icon: iconMap.calendar,
+        icon: iconMap.cellSystemDate,
       },
       {
         name: UITypes.ID,
-        icon: ID,
+        icon: iconMap.cellSystemKey,
       },
       {
         name: UITypes.ForeignKey,
-        icon: LinkVariant,
+        icon: iconMap.cellLinks,
       },
     ].find((t) => t.name === uidt) || {}
   ).icon

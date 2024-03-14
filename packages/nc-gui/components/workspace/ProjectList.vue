@@ -10,6 +10,7 @@ import {
   isEeUI,
   message,
   navigateTo,
+  parseProp,
   ref,
   storeToRefs,
   useBases,
@@ -181,16 +182,16 @@ function onProjectTitleClick(index: number) {
   }
 }
 
-const setIcon = async (icon: string, base: BaseType) => {
+const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
-      ...((base.meta as object) || {}),
-      icon,
+      ...parseProp(base.meta),
+      iconColor: color,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:navdraw', { icon })
+    $e('a:base:icon:color:navdraw', { iconColor: color })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -250,15 +251,14 @@ const setIcon = async (icon: string, base: BaseType) => {
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-base-title gap-2.5 max-w-full -ml-1.5">
             <div class="flex items-center gap-2 text-center">
-              <LazyGeneralEmojiPicker
-                :key="record.id"
-                :emoji="record.meta?.icon"
-                size="small"
-                readonly
-                @emoji-selected="setIcon($event, record)"
+              <GeneralBaseIconColorPicker
+                :key="`${record.id}_${parseProp(record.meta).iconColor}`"
+                :type="record?.type"
+                :model-value="parseProp(record.meta).iconColor"
+                :readonly="(record?.type && record?.type !== 'database') || !isUIAllowed('baseRename')"
+                @update:model-value="setColor($event, record)"
               >
-                <GeneralProjectIcon :type="record.type" />
-              </LazyGeneralEmojiPicker>
+              </GeneralBaseIconColorPicker>
               <!-- todo: replace with switch -->
             </div>
 

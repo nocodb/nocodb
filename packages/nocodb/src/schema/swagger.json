@@ -9052,6 +9052,14 @@
             "description": "Used for multiple filter queries"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -12772,6 +12780,14 @@
             "in": "query",
             "name": "filterArrJson",
             "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
           }
         ],
         "description": "List all shared view rows"
@@ -16337,6 +16353,14 @@
             "in": "query",
             "name": "filterArrJson",
             "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "pks",
+            "description": "Comma separated list of pks"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -22498,6 +22522,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Base Meta"
           }
         },
         "required": [
@@ -22577,7 +22605,6 @@
         "type": "object",
         "properties": {
           "email": {
-            "format": "email",
             "type": "string",
             "description": "Base User Email"
           },

@@ -28,6 +28,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+    validate-swagger-json:
+      runs-on: ubuntu-20.04
+      timeout-minutes: 10
+      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 1
+
+# enable after fixing all validation errors
+#        - name: Validate OpenAPI definition
+#          uses: char0n/swagger-editor-validate@v1
+#          with:
+#            swagger-editor-url: http://localhost/
+#            definition-file: packages/nocodb/src/schema/swagger.json
+
+        - name: Validate Swagger JSON
+          run: |
+            if ! jq empty packages/nocodb/src/schema/swagger.json; then
+              echo "swagger.json file is not valid JSON"
+              exit 1
+            fi
+            if ! jq empty packages/nocodb/src/schema/swagger-v2.json; then
+              echo "swaggerv2.json file is not valid JSON"
+              exit 1
+            fi
     unit-tests:
       runs-on: ubuntu-20.04
       timeout-minutes: 40
@@ -45,7 +72,7 @@ jobs:
           uses: actions/checkout@v3
           with:
             fetch-depth: 0
-        - name: remove use-node-version from .npmrc 
+        - name: remove use-node-version from .npmrc
           run:  sed -i '/^use-node-version/d' .npmrc
         - name: Get pnpm store directory
           shell: bash
@@ -80,8 +107,8 @@ jobs:
           uses: actions/checkout@v3
           with:
             fetch-depth: 0
-        - name: remove use-node-version from .npmrc 
-          run:  sed -i '/^use-node-version/d' .npmrc           
+        - name: remove use-node-version from .npmrc
+          run:  sed -i '/^use-node-version/d' .npmrc
         - name: Get pnpm store directory
           shell: bash
           run: |
@@ -134,7 +161,7 @@ jobs:
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: mysql
-        shard: 4       
+        shard: 4
     playwright-sqlite-1:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -162,7 +189,7 @@ jobs:
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: sqlite
-        shard: 4           
+        shard: 4
     playwright-pg-shard-1:
       needs: pre-build-for-playwright
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -190,4 +217,4 @@ jobs:
       uses: ./.github/workflows/playwright-test-workflow.yml
       with:
         db: pg
-        shard: 4       
+        shard: 4

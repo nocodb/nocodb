@@ -169,7 +169,7 @@ const headerText = computed(() => {
 <template>
   <div class="flex h-full flex-row" data-testid="nc-calendar-wrapper">
     <div class="flex flex-col w-full">
-      <div class="flex justify-between p-3 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
+      <div class="flex justify-between p-2 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
         <div class="flex justify-start gap-3 items-center">
           <NcTooltip>
             <template #title> {{ $t('labels.previous') }}</template>
@@ -193,7 +193,14 @@ const headerText = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <div v-if="calendarRangeDropdown" class="min-w-[22.1rem]" @click.stop>
+              <div
+                v-if="calendarRangeDropdown"
+                :class="{
+                  'px-4 pt-3 pb-4 ': activeCalendarView === 'week' || activeCalendarView === 'day',
+                }"
+                class="min-w-[22.1rem]"
+                @click.stop
+              >
                 <NcDateWeekSelector
                   v-if="activeCalendarView === ('day' as const)"
                   v-model:active-dates="activeDates"
@@ -234,14 +241,13 @@ const headerText = computed(() => {
             </NcButton>
           </NcTooltip>
           <NcButton
-            v-if="!isMobileMode"
             v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
             data-testid="nc-calendar-today-btn"
             size="small"
             type="secondary"
             @click="goToToday"
           >
-            <span class="text-gray-700">
+            <span class="text-gray-600 !text-sm">
               {{ $t('activity.goToToday') }}
             </span>
           </NcButton>
@@ -259,7 +265,7 @@ const headerText = computed(() => {
             type="secondary"
             @click="showSideMenu = !showSideMenu"
           >
-            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-700 transition-all" />
+            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
           </NcButton>
         </NcTooltip>
       </div>
@@ -315,6 +321,7 @@ const headerText = computed(() => {
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
+      close-after-save
       :meta="meta"
       :row="expandedFormRow"
       :state="expandedFormRowState"
@@ -324,8 +331,9 @@ const headerText = computed(() => {
 
   <Suspense>
     <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
+      close-after-save
       :meta="meta"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :row-id="route.query.rowId"

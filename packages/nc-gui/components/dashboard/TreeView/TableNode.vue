@@ -4,7 +4,7 @@ import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 
-import { ProjectRoleInj, TreeViewInj, useNuxtApp, useRoles, useTabs } from '#imports'
+import { ProjectRoleInj, TreeViewInj, useMagicKeys, useNuxtApp, useRoles, useTabs } from '#imports'
 import type { SidebarTableNode } from '~/lib'
 
 const props = withDefaults(
@@ -39,13 +39,15 @@ useTableNew({
   baseId: base.value.id!,
 })
 
+const { meta: metaKey, ctrlKey } = useMagicKeys()
+
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
 const { setMenuContext, openRenameTableDialog, duplicateTable } = inject(TreeViewInj)!
 
 const { loadViews: _loadViews } = useViewsStore()
-const { activeView, activeViewTitleOrId } = storeToRefs(useViewsStore())
+const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // todo: temp
@@ -106,6 +108,11 @@ const onExpand = async () => {
 }
 
 const onOpenTable = async () => {
+  if (isMac() ? metaKey.value : ctrlKey.value) {
+    await _openTable(table.value, true)
+    return
+  }
+
   isLoading.value = true
   try {
     await _openTable(table.value)
@@ -137,6 +144,27 @@ watch(
 
 const isTableOpened = computed(() => {
   return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
+})
+
+let tableTimeout: NodeJS.Timeout
+
+watch(openedTableId, () => {
+  if (tableTimeout) {
+    clearTimeout(tableTimeout)
+  }
+
+  if (table.value.id !== openedTableId.value && isExpanded.value) {
+    const views = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+    if (views.length) return
+
+    tableTimeout = setTimeout(() => {
+      if (isExpanded.value) {
+        isExpanded.value = false
+      }
+      clearTimeout(tableTimeout)
+    }, 10000)
+  }
 })
 </script>
 

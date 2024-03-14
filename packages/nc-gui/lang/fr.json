@@ -193,17 +193,18 @@
     "seconds": "Secondes",
     "paste": "Coller",
     "restore": "Restaurer",
-    "replace": "Replace",
+    "replace": "Remplacer",
     "banner": "Banner",
     "logo": "Logo",
     "dropdown": "Dropdown",
-    "list": "List"
+    "list": "Liste",
+    "apply": "Apply"
   },
   "objects": {
-    "day": "Day",
-    "week": "Week",
-    "month": "Month",
-    "year": "Year",
+    "day": "Jour",
+    "week": "Semaine",
+    "month": "Mois",
+    "year": "Année",
     "workspace": "Espace de travail",
     "workspaces": "Espaces de travail",
     "project": "Projet",
@@ -314,7 +315,7 @@
     "docs": "Docs",
     "forum": "Forum",
     "parameter": "Parameter",
-    "headers": "Headers",
+    "headers": "En-têtes",
     "parameterName": "Parameter Name",
     "currencyLocale": "Currency Locale",
     "currencyCode": "Currency Code",
@@ -701,6 +702,10 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "addMembers": "Add Members",
+    "enterEmail": "Enter email addresses",
+    "inviteToBase": "Invite to Base",
+    "addMember": "Add Member to Base",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
@@ -926,7 +931,15 @@
     "startCommenting": "Commencez à commenter !",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
-    "selectAllFields": "Select all fields"
+    "selectAllFields": "Select all fields",
+    "preFilledFields": {
+      "title": "Enable Pre-fill",
+      "default": "Default",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
+    },
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "Limité à une seule source de données pour le moment",
@@ -956,7 +969,10 @@
     "clearMetadata": "Effacer toutes les métadonnées des méta-tables.",
     "clientKey": "Selectionner un fichier .key",
     "clientCert": "Selectionner un fichier .cert",
-    "clientCA": "Selectionner un fichier d'authentification"
+    "clientCA": "Selectionner un fichier d'authentification",
+    "changeIconColour": "Change icon colour",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "Sélectionnez les canaux Slack",

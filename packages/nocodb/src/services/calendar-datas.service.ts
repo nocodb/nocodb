@@ -53,9 +53,10 @@ export class CalendarDatasService {
     return await this.datasService.dataList({
       ...param,
       ...query,
+      viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,
-      calendarLimitOverride: 3000, // TODO: make this configurable in env
+      limitOverride: 3000, // TODO: make this configurable in env
     });
   }
 

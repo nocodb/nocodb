@@ -8,7 +8,7 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators } = storeToRefs(workspaceStore)
+const { collaborators, workspaceRole } = storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Workspace')
 
@@ -118,7 +118,7 @@ onMounted(async () => {
                     :roles="accessibleRoles"
                     :description="false"
                     class="cursor-pointer"
-                    :on-role-change="(role: WorkspaceUserRoles) => updateCollaborator(collab, role)"
+                    :on-role-change="(role) => updateCollaborator(collab, role)"
                   />
                 </div>
               </template>

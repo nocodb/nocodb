@@ -197,7 +197,8 @@
     "banner": "Banner",
     "logo": "Logo",
     "dropdown": "Dropdown",
-    "list": "List"
+    "list": "List",
+    "apply": "Apply"
   },
   "objects": {
     "day": "Day",
@@ -701,6 +702,10 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "addMembers": "Add Members",
+    "enterEmail": "Enter email addresses",
+    "inviteToBase": "Invite to Base",
+    "addMember": "Add Member to Base",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
@@ -926,7 +931,15 @@
     "startCommenting": "Start commenting!",
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
-    "selectAllFields": "Select all fields"
+    "selectAllFields": "Select all fields",
+    "preFilledFields": {
+      "title": "Enable Pre-fill",
+      "default": "Default",
+      "locked": "Lock pre-filled fields as read-only",
+      "hidden": "Hide pre-filled fields",
+      "lockedFieldTooltip": "Pre-filled value"
+    },
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",
@@ -956,7 +969,10 @@
     "clearMetadata": "נקה את כל המטא נתונים מ מטא שולחנות.",
     "clientKey": "בחר קובץ .key.",
     "clientCert": "בחר קובץ .cert.",
-    "clientCA": "בחר קובץ CA."
+    "clientCA": "בחר קובץ CA.",
+    "changeIconColour": "Change icon colour",
+    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "surveyFormInfo": "Form mode with one field per page"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

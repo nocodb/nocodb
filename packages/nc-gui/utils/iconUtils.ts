@@ -120,6 +120,8 @@ import NcCopy from '~icons/nc-icons/copy'
 import NcPaste from '~icons/nc-icons/paste'
 import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
+import NcArrowLeft from '~icons/nc-icons/arrow-left'
+import NcArrowRight from '~icons/nc-icons/arrow-right'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
@@ -129,6 +131,41 @@ import NcBold from '~icons/nc-icons/bold'
 import NcUnderline from '~icons/nc-icons/underline'
 import NcCrop from '~icons/nc-icons/crop'
 import NcLink from '~icons/nc-icons/link'
+
+import NcCellBarcode from '~icons/nc-icons/cell-barcode'
+import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
+import NcCellDate from '~icons/nc-icons/cell-date'
+import NcCellEmail from '~icons/nc-icons/cell-email'
+import NcCellFormula from '~icons/nc-icons/cell-formula'
+import NcCellCurrency from '~icons/nc-icons/cell-currency'
+import NcCellDatetime from '~icons/nc-icons/cell-datetime'
+import NcCellDb from '~icons/nc-icons/cell-db'
+import NcCellDecimal from '~icons/nc-icons/cell-decimal'
+import NcCellDuration from '~icons/nc-icons/cell-duration'
+import NcCellGeometry from '~icons/nc-icons/cell-geometry'
+import NcCellJson from '~icons/nc-icons/cell-json'
+import NcCellLinks from '~icons/nc-icons/cell-link'
+import NcCellLongText from '~icons/nc-icons/cell-longtext'
+import NcCellLookup from '~icons/nc-icons/cell-lookup'
+import NcCellMultiSelect from '~icons/nc-icons/cell-multiselect'
+import NcCellNumber from '~icons/nc-icons/cell-number'
+import NcCellPercent from '~icons/nc-icons/cell-percentage'
+import NcCellPhone from '~icons/nc-icons/cell-phone'
+import NcCellQrCode from '~icons/nc-icons/cell-qrcode'
+import NcCellRating from '~icons/nc-icons/cell-rating'
+import NcCellRollup from '~icons/nc-icons/cell-rollup'
+import NcCellSingleSelect from '~icons/nc-icons/cell-select'
+import NcCellText from '~icons/nc-icons/cell-text'
+import NcCellTime from '~icons/nc-icons/cell-time'
+import NcCellUrl from '~icons/nc-icons/cell-url'
+import NcCellUser from '~icons/nc-icons/cell-user'
+import NcCellSystemDate from '~icons/nc-icons/system-date'
+import NcCellSystemKey from '~icons/nc-icons/system-key'
+import NcCellSystemUser from '~icons/nc-icons/system-user'
+import NcCellSystemText from '~icons/nc-icons/system-text'
+import NcCellAttachment from '~icons/nc-icons/cell-attachment'
+
+import NcCircleCheck from '~icons/nc-icons/circle-check'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -278,6 +315,39 @@ import NcLink from '~icons/nc-icons/link'
 } as const */
 
 export const iconMap = {
+  cellBarcode: NcCellBarcode,
+  cellCheckbox: NcCellCheckbox,
+  cellDate: NcCellDate,
+  cellEmail: NcCellEmail,
+  cellFormula: NcCellFormula,
+  cellCurrency: NcCellCurrency,
+  cellDatetime: NcCellDatetime,
+  cellDb: NcCellDb,
+  cellDecimal: NcCellDecimal,
+  cellDuration: NcCellDuration,
+  cellGeometry: NcCellGeometry,
+  cellJson: NcCellJson,
+  cellLinks: NcCellLinks,
+  cellLongText: NcCellLongText,
+  cellLookup: NcCellLookup,
+  cellMultiSelect: NcCellMultiSelect,
+  cellNumber: NcCellNumber,
+  cellPercent: NcCellPercent,
+  cellPhone: NcCellPhone,
+  cellQrCode: NcCellQrCode,
+  cellRating: NcCellRating,
+  cellRollup: NcCellRollup,
+  cellSingleSelect: NcCellSingleSelect,
+  cellText: NcCellText,
+  cellTime: NcCellTime,
+  cellUrl: NcCellUrl,
+  cellUser: NcCellUser,
+  cellSystemDate: NcCellSystemDate,
+  cellSystemKey: NcCellSystemKey,
+  cellSystemUser: NcCellSystemUser,
+  cellSystemText: NcCellSystemText,
+  cellAttachment: NcCellAttachment,
+
   sort: Sort,
   group: Group,
   filter: Filter,
@@ -489,11 +559,14 @@ export const iconMap = {
   ncEdit: NcEdit,
   ncArrowUp: NcArrowUp,
   ncArrowDown: NcArrowDown,
+  ncArrowLeft: NcArrowLeft,
+  ncArrowRight: NcArrowRight,
   underline: NcUnderline,
   bold: NcBold,
   italic: NcItalic,
   phoneCall: NcPhoneCall,
   crop: NcCrop,
+  circleCheck2: NcCircleCheck,
 }
 
 export const getMdiIcon = (type: string): any => {

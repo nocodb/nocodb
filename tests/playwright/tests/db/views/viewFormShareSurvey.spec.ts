@@ -46,9 +46,15 @@ test.describe('Share form', () => {
     await dashboard.rootPage.waitForTimeout(2000);
 
     surveyForm = new SurveyFormPage(dashboard.rootPage);
-    await surveyForm.validate({
+
+    await surveyForm.validateHeaders({
       heading: 'Country Title',
       subHeading: 'Country Form Subtitle',
+    });
+
+    await surveyForm.clickFillForm();
+
+    await surveyForm.validate({
       fieldLabel: 'Country *',
       footer: '1 / 3',
     });
@@ -59,8 +65,6 @@ test.describe('Share form', () => {
     });
 
     await surveyForm.validate({
-      heading: 'Country Title',
-      subHeading: 'Country Form Subtitle',
       fieldLabel: 'LastUpdate',
       footer: '2 / 3',
     });
@@ -70,12 +74,10 @@ test.describe('Share form', () => {
     });
 
     await surveyForm.validate({
-      heading: 'Country Title',
-      subHeading: 'Country Form Subtitle',
       fieldLabel: 'Cities',
       footer: '3 / 3',
     });
-    await surveyForm.submitButton.click();
+    await surveyForm.confirmAndSubmit();
 
     // validate post submit data
     await surveyForm.validateSuccessMessage({

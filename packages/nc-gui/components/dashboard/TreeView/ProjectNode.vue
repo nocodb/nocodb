@@ -16,6 +16,7 @@ import {
   h,
   inject,
   navigateTo,
+  navigateToBlankTargetOpenOption,
   openLink,
   ref,
   resolveComponent,
@@ -26,6 +27,7 @@ import {
   useDialog,
   useGlobal,
   useI18n,
+  useMagicKeys,
   useNuxtApp,
   useRoles,
   useRouter,
@@ -70,6 +72,10 @@ const { appInfo } = useGlobal()
 const { orgRoles, isUIAllowed } = useRoles()
 
 useTabs()
+
+const { meta: metaKey, ctrlKey } = useMagicKeys()
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const editMode = ref(false)
 
@@ -168,18 +174,20 @@ defineExpose({
   enableEditMode,
 })
 
-const setIcon = async (icon: string, base: BaseType) => {
+const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
-      ...((base.meta as object) || {}),
-      icon,
+      ...parseProp(base.meta),
+      iconColor: color,
     }
 
     basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
 
-    $e('a:base:icon:navdraw', { icon })
+    $e('a:base:icon:color:navdraw', { iconColor: color })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
 
@@ -253,11 +261,28 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   if (!base) {
     return
   }
+  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
 
-  if (!toggleIsExpanded) $e('c:base:open')
+  if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
   ignoreNavigation = isMobileMode.value || ignoreNavigation
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
+
+  if (cmdOrCtrl && !ignoreNavigation) {
+    await navigateTo(
+      `${cmdOrCtrl ? '#' : ''}${baseUrl({
+        id: base.id!,
+        type: 'database',
+        isSharedBase: isSharedBase.value,
+      })}`,
+      cmdOrCtrl
+        ? {
+            open: navigateToBlankTargetOpenOption,
+          }
+        : undefined,
+    )
+    return
+  }
 
   if (toggleIsExpanded) {
     base.isExpanded = !base.isExpanded
@@ -399,19 +424,20 @@ const projectDelete = () => {
           </NcButton>
 
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
-            <div v-e="['c:base:emojiSelect']" class="flex items-center select-none w-6 h-full">
+            <div class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
-              <LazyGeneralEmojiPicker
-                v-else
-                :key="base.meta?.icon"
-                :emoji="base.meta?.icon"
-                :readonly="true"
-                size="small"
-                @emoji-selected="setIcon($event, base)"
-              >
-                <GeneralProjectIcon :type="base.type" />
-              </LazyGeneralEmojiPicker>
+              <div v-else>
+                <GeneralBaseIconColorPicker
+                  :key="`${base.id}_${parseProp(base.meta).iconColor}`"
+                  :type="base?.type"
+                  :model-value="parseProp(base.meta).iconColor"
+                  size="small"
+                  :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
+                  @update:model-value="setColor($event, base)"
+                >
+                </GeneralBaseIconColorPicker>
+              </div>
             </div>
           </div>
 
@@ -497,7 +523,12 @@ const projectDelete = () => {
                   </NcMenuItem>
 
                   <!-- ERD View -->
-                  <NcMenuItem key="erd" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
+                  <NcMenuItem
+                    v-if="base?.sources?.[0]?.enabled"
+                    key="erd"
+                    data-testid="nc-sidebar-base-relations"
+                    @click="openErdView(base?.sources?.[0]!)"
+                  >
                     <div v-e="['c:base:erd']" class="flex gap-2 items-center">
                       <GeneralIcon icon="erd" />
                       {{ $t('title.relations') }}
@@ -523,7 +554,7 @@ const projectDelete = () => {
                   </NcMenuItem>
                 </template>
 
-                <template v-if="base.sources && base.sources[0] && showBaseOption">
+                <template v-if="base?.sources?.[0]?.enabled && showBaseOption">
                   <NcDivider />
                   <DashboardTreeViewBaseOptions v-model:base="base" :source="base.sources[0]" />
                 </template>
@@ -560,6 +591,7 @@ const projectDelete = () => {
           <NcButton
             v-if="isUIAllowed('tableCreate', { roles: baseRole })"
             v-e="['c:base:create-table']"
+            :disabled="!base?.sources?.[0]?.enabled"
             class="nc-sidebar-node-btn"
             size="xxsmall"
             type="text"

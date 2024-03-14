@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const props = withDefaults(
   defineProps<{
-    color: string
+    color?: string
     border?: boolean
     size?: 'sm' | 'md' | 'lg'
   }>(),

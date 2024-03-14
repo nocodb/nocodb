@@ -394,7 +394,7 @@ const onFocus = () => {
     @click="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-checkbox-group v-model:value="vModel" class="nc-field-layout-list">
+      <a-checkbox-group v-model:value="vModel" :disabled="readOnly || !editAllowed" class="nc-field-layout-list">
         <a-checkbox
           v-for="op of options"
           :key="op.title"

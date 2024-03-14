@@ -62,6 +62,7 @@ const _duplicate = async () => {
             primaryColor: color,
             accentColor: complement.toHex8String(),
           },
+          iconColor: parseProp(props.base.meta).iconColor,
         }),
       },
     })

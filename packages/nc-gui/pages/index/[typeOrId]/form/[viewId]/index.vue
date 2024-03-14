@@ -28,7 +28,10 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-10 nc-form-view relative min-h-[600px]"
+    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden color-transition p-4 lg:p-10 nc-form-view relative min-h-[600px]"
+    :class="{
+      'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
+    }"
     :style="{
       background: parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA',
     }"
@@ -87,6 +90,15 @@ p {
         &:not(.layout-list) {
           @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500 overflow-hidden;
 
+          &.readonly {
+            @apply bg-gray-50 cursor-not-allowed;
+
+            input,
+            textarea {
+              @apply !bg-transparent;
+            }
+          }
+
           & > div {
             @apply !bg-transparent;
           }
@@ -107,11 +119,17 @@ p {
           }
         }
 
+        &:not(.readonly) {
+          input,
+          textarea,
+          &.nc-virtual-cell {
+            @apply bg-white !disabled:bg-transparent;
+          }
+        }
+
         input,
         textarea,
         &.nc-virtual-cell {
-          @apply bg-white dark:(bg-slate-500 text-white);
-
           .ant-btn {
             @apply dark:(bg-slate-300);
           }
@@ -120,9 +138,7 @@ p {
             @apply dark:(bg-slate-700 text-white);
           }
         }
-        &:not(.layout-list) > div {
-          @apply bg-white dark:(bg-slate-500 text-white);
-        }
+
         &.layout-list > div {
           .ant-btn {
             @apply dark:(bg-slate-300);
@@ -137,6 +153,9 @@ p {
           @apply p-0 h-auto;
           & > div {
             @apply w-full;
+          }
+          &.readonly > div {
+            @apply px-3 py-1;
           }
 
           textarea {

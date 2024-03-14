@@ -49,7 +49,7 @@ vModel.value.meta = {
 </script>
 
 <template>
-  <a-row class="my-2" gutter="8">
+  <a-row class="my-2" :gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.singular']" :label="$t('labels.singularLabel')">
         <a-input

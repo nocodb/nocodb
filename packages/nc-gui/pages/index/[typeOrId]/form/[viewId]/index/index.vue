@@ -19,6 +19,8 @@ const {
   progress,
 } = useSharedFormStoreOrThrow()
 
+const { isMobileMode } = storeToRefs(useConfigStore())
+
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
   if (
@@ -125,14 +127,25 @@ const onDecode = async (scannedCodeValue: string) => {
                 </template>
               </a-alert>
 
-              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 my-4">
-                {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
-              </p>
+              <div
+                v-if="sharedFormView.show_blank_form || sharedFormView.submit_another_form"
+                class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
+              >
+                <p v-if="sharedFormView?.show_blank_form" class="text-sm text-gray-500 dark:text-slate-300 m-0">
+                  {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds').toLowerCase() }}
+                </p>
 
-              <div v-if="sharedFormView.submit_another_form" class="text-right">
-                <NcButton type="primary" size="medium" @click="submitted = false">
-                  {{ $t('activity.submitAnotherForm') }}
-                </NcButton>
+                <div class="flex-1 self-end flex justify-end">
+                  <NcButton
+                    v-if="sharedFormView?.submit_another_form"
+                    type="secondary"
+                    :size="isMobileMode ? 'medium' : 'small'"
+                    data-testid="nc-survey-form__btn-submit-another-form"
+                    @click="submitted = false"
+                  >
+                    {{ $t('activity.submitAnotherForm') }}
+                  </NcButton>
+                </div>
               </div>
             </div>
           </div>
@@ -180,39 +193,44 @@ const onDecode = async (scannedCodeValue: string) => {
                   </div>
 
                   <div>
-                    <LazySmartsheetDivDataCell class="flex relative">
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(field)"
-                        :model-value="null"
-                        class="mt-0 nc-input nc-cell"
-                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                        :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
-                        :column="field"
-                      />
+                    <NcTooltip :disabled="!field?.read_only">
+                      <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+                      <LazySmartsheetDivDataCell class="flex relative">
+                        <LazySmartsheetVirtualCell
+                          v-if="isVirtualCol(field)"
+                          :model-value="null"
+                          class="mt-0 nc-input nc-cell"
+                          :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                          :column="field"
+                          :read-only="field?.read_only"
+                        />
 
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="formState[field.title]"
-                        class="nc-input truncate"
-                        :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                        :class="[
-                          `nc-form-input-${field.title?.replaceAll(' ', '')}`,
-                          { 'layout-list': parseProp(field?.meta)?.isList },
-                        ]"
-                        :column="field"
-                        edit-enabled
-                      />
-                      <a-button
-                        v-if="field.enable_scanner"
-                        class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                        :alt="$t('activity.fillByCodeScan')"
-                        @click="showCodeScannerForFieldTitle(field.title)"
-                      >
-                        <div class="flex items-center gap-1">
-                          <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
-                        </div>
-                      </a-button>
-                    </LazySmartsheetDivDataCell>
+                        <LazySmartsheetCell
+                          v-else
+                          v-model="formState[field.title]"
+                          class="nc-input truncate"
+                          :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                          :class="[
+                            `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                            { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
+                          ]"
+                          :column="field"
+                          :edit-enabled="!field?.read_only"
+                          :read-only="field?.read_only"
+                        />
+                        <a-button
+                          v-if="field.enable_scanner"
+                          class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                          :alt="$t('activity.fillByCodeScan')"
+                          @click="showCodeScannerForFieldTitle(field.title)"
+                        >
+                          <div class="flex items-center gap-1">
+                            <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
+                          </div>
+                        </a-button>
+                      </LazySmartsheetDivDataCell>
+                    </NcTooltip>
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-sm mt-2">
                       <template v-if="isVirtualCol(field)">
@@ -234,7 +252,7 @@ const onDecode = async (scannedCodeValue: string) => {
                 <NcButton
                   html-type="reset"
                   type="secondary"
-                  size="small"
+                  :size="isMobileMode ? 'medium' : 'small'"
                   :disabled="isLoading"
                   class="nc-shared-form-button shared-form-clear-button"
                   data-testid="shared-form-clear-button"
@@ -247,7 +265,7 @@ const onDecode = async (scannedCodeValue: string) => {
                   html-type="submit"
                   :disabled="progress"
                   type="primary"
-                  size="small"
+                  :size="isMobileMode ? 'medium' : 'small'"
                   class="nc-shared-form-button shared-form-submit-button"
                   data-testid="shared-form-submit-button"
                   @click="submitForm"

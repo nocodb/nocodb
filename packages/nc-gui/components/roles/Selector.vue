@@ -11,7 +11,7 @@ const props = withDefaults(
     description?: boolean
     inherit?: string
     onRoleChange: (role: keyof typeof RoleLabels) => void
-    size: 'sm' | 'md'
+    size?: 'sm' | 'md' | 'lg'
   }>(),
   {
     description: true,
@@ -38,7 +38,7 @@ function onChangeRole(val: SelectValue) {
   <div ref="dropdownRef" size="lg" class="nc-roles-selector relative" @click="isDropdownOpen = !isDropdownOpen">
     <RolesBadge data-testid="roles" :role="roleRef" :inherit="inheritRef === role" :size="sizeRef" clickable />
     <a-select
-      v-model:value="roleRef"
+      :value="roleRef"
       :open="isDropdownOpen"
       :dropdown-match-select-width="false"
       dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-role-selector-dropdown"

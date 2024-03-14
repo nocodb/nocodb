@@ -5,7 +5,7 @@ import type { Row } from '~/lib'
 import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
-const emits = defineEmits(['expandRecord'])
+const emits = defineEmits(['expandRecord', 'newRecord'])
 
 const {
   selectedDateRange,
@@ -394,8 +394,6 @@ const recordsAcrossAllRange = computed<{
   }
 })
 
-const dragElement = ref<HTMLElement | null>(null)
-
 const resizeInProgress = ref(false)
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
@@ -444,12 +442,13 @@ const onResize = (event: MouseEvent) => {
 
   const day = Math.floor(percentX * 7)
   const hour = Math.floor(percentY * 23)
+  const minutes = Math.round((percentY * 24 * 60) % 60)
 
   let updateProperty: string[] = []
   let newRow: Row = resizeRecord.value
 
   if (resizeDirection.value === 'right') {
-    let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
+    let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
     updateProperty = [toCol.title!]
 
     // If the new end date is before the start date, we set the new end date to the start date
@@ -467,7 +466,7 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else if (resizeDirection.value === 'left') {
-    let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour')
+    let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
     updateProperty = [fromCol.title!]
 
     // If the new start date is after the end date, we set the new start date to the end date
@@ -520,7 +519,6 @@ const calculateNewRow = (
   newRow: Row | null
   updatedProperty: string[]
 } => {
-  if (!isUIAllowed('dataEdit') || !container.value || !dragRecord.value) return { newRow: null, updatedProperty: [] }
   const { width, left, top } = container.value.getBoundingClientRect()
 
   const { scrollHeight } = container.value
@@ -620,11 +618,6 @@ const stopDrag = (event: MouseEvent) => {
     el.style.opacity = '100%'
   })
 
-  if (dragElement.value) {
-    dragElement.value.style.boxShadow = 'none'
-    dragElement.value = null
-  }
-
   if (newRow) {
     updateRowProperty(newRow, updatedProperty, false)
   }
@@ -654,10 +647,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
       }
     })
 
-    dragRecord.value = record
-
     isDragging.value = true
-    dragElement.value = target
     dragRecord.value = record
 
     document.addEventListener('mousemove', onDrag)
@@ -732,6 +722,19 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
 
   return { isOverflow, overflowCount }
 }
+
+// TODO: Add Support for multiple ranges when multiple ranges are supported
+const addRecord = (date: dayjs.Dayjs) => {
+  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  const fromCol = calendarRange.value[0].fk_from_col
+  if (!fromCol) return
+  const newRecord = {
+    row: {
+      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+    },
+  }
+  emits('newRecord', newRecord)
+}
 </script>
 
 <template>
@@ -769,13 +772,16 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
           :key="hourIndex"
           :class="{
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
+            '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
           class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
           data-testid="nc-calendar-week-hour"
+          @dblclick="addRecord(hour)"
           @click="
             () => {
               selectedTime = hour
               selectedDate = hour
+              dragRecord = undefined
             }
           "
         >
@@ -799,49 +805,52 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
         class="absolute pointer-events-none inset-0 overflow-hidden !mt-[29px]"
         data-testid="nc-calendar-week-record-container"
       >
-        <div
-          v-for="(record, rowIndex) in recordsAcrossAllRange.records"
-          :key="rowIndex"
-          :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
-          :data-unique-id="record.rowMeta!.id"
-          :style="record.rowMeta!.style "
-          class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
-          @mousedown="dragStart($event, record)"
-          @mouseleave="hoverRecord = null"
-          @mouseover="hoverRecord = record.rowMeta.id"
-          @dragover.prevent
-        >
-          <LazySmartsheetRow :row="record">
-            <LazySmartsheetCalendarVRecordCard
-              :hover="hoverRecord === record.rowMeta.id"
-              :position="record.rowMeta!.position"
-              :record="record"
-              :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-              color="blue"
-              @resize-start="onResizeStart"
-            >
-              <template v-if="!isRowEmpty(record, displayField)">
-                <LazySmartsheetCalendarCell
-                  v-if="!isRowEmpty(record, displayField!)"
-                  v-model="record.row[displayField!.title!]"
-                  :bold="getFieldStyle(displayField).bold"
-                  :column="displayField"
-                  :italic="getFieldStyle(displayField).italic"
-                  :underline="getFieldStyle(displayField).underline"
-                />
-              </template>
-              <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
-                <LazySmartsheetCalendarCell
-                  v-model="record.row[field!.title!]"
-                  :bold="getFieldStyle(field).bold"
-                  :column="field"
-                  :italic="getFieldStyle(field).italic"
-                  :underline="getFieldStyle(field).underline"
-                />
-              </template>
-            </LazySmartsheetCalendarVRecordCard>
-          </LazySmartsheetRow>
-        </div>
+        <template v-for="(record, rowIndex) in recordsAcrossAllRange.records" :key="rowIndex">
+          <div
+            v-if="record.rowMeta.style?.display !== 'none'"
+            :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
+            :data-unique-id="record.rowMeta!.id"
+            :style="record.rowMeta!.style "
+            class="absolute draggable-record w-1/7 group cursor-pointer pointer-events-auto"
+            @mousedown.stop="dragStart($event, record)"
+            @mouseleave="hoverRecord = null"
+            @mouseover="hoverRecord = record.rowMeta.id"
+            @dragover.prevent
+          >
+            <LazySmartsheetRow :row="record">
+              <LazySmartsheetCalendarVRecordCard
+                :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
+                :position="record.rowMeta!.position"
+                :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+                :record="record"
+                color="blue"
+                :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
+                @resize-start="onResizeStart"
+              >
+                <template v-if="!isRowEmpty(record, displayField)">
+                  <LazySmartsheetCalendarCell
+                    v-if="!isRowEmpty(record, displayField!)"
+                    v-model="record.row[displayField!.title!]"
+                    :bold="getFieldStyle(displayField).bold"
+                    :column="displayField"
+                    :italic="getFieldStyle(displayField).italic"
+                    :underline="getFieldStyle(displayField).underline"
+                  />
+                </template>
+                <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+                  <LazySmartsheetCalendarCell
+                    v-if="!isRowEmpty(record, field!)"
+                    v-model="record.row[field!.title!]"
+                    :bold="getFieldStyle(field).bold"
+                    :column="field"
+                    :italic="getFieldStyle(field).italic"
+                    :underline="getFieldStyle(field).underline"
+                  />
+                </template>
+              </LazySmartsheetCalendarVRecordCard>
+            </LazySmartsheetRow>
+          </div>
+        </template>
       </div>
     </div>
   </div>

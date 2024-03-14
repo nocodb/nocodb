@@ -82,7 +82,7 @@ watch(searchValue, (value) => {
 </script>
 
 <template>
-  <a-row class="my-2" gutter="8">
+  <a-row class="my-2" :gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.maxNumberOfAttachments']" label="Max Number of Attachments">
         <a-input-number v-model:value="vModel.meta.maxNumberOfAttachments" :min="1" class="!w-full nc-attachment-max-count" />

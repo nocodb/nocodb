@@ -902,7 +902,8 @@ const parseConditionV2 = async (
               // If the column is a datetime and the client is pg and the value has a timezone offset at the end
               // then we need to convert the value to timestamptz before comparing
               if (
-                column.uidt === UITypes.DateTime &&
+                (column.uidt === UITypes.DateTime ||
+                  column.uidt === UITypes.Date) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -944,7 +945,8 @@ const parseConditionV2 = async (
               // If the column is a datetime and the client is pg and the value has a timezone offset at the end
               // then we need to convert the value to timestamptz before comparing
               if (
-                column.uidt === UITypes.DateTime &&
+                (column.uidt === UITypes.DateTime ||
+                  column.uidt === UITypes.Date) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -985,7 +987,8 @@ const parseConditionV2 = async (
               // If the column is a datetime and the client is pg and the value has a timezone offset at the end
               // then we need to convert the value to timestamptz before comparing
               if (
-                column.uidt === UITypes.DateTime &&
+                (column.uidt === UITypes.DateTime ||
+                  column.uidt === UITypes.Date) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
@@ -1028,7 +1031,8 @@ const parseConditionV2 = async (
               // If the column is a datetime and the client is pg and the value has a timezone offset at the end
               // then we need to convert the value to timestamptz before comparing
               if (
-                column.uidt === UITypes.DateTime &&
+                (column.uidt === UITypes.DateTime ||
+                  column.uidt === UITypes.Date) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {

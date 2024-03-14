@@ -1,8 +1,8 @@
 import { isString } from '@vue/shared'
 import type { Roles, RolesObj, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
-import { computed, createSharedComposable, rolePermissions, useApi, useGlobal } from '#imports'
 import type { Permission } from '#imports'
+import { computed, createSharedComposable, rolePermissions, useApi, useGlobal } from '#imports'
 
 const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]

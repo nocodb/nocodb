@@ -9,8 +9,8 @@ import {
   timeAgo,
 } from 'nocodb-sdk'
 import type { Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 import type { User } from '#imports'
+import { isEeUI, storeToRefs, useUserSorts } from '#imports'
 
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
@@ -21,6 +21,8 @@ const { orgRoles, baseRoles } = useRoles()
 const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const isInviteModalVisible = ref(false)
 
 interface Collaborators {
   id: string
@@ -132,20 +134,34 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+watch(isInviteModalVisible, () => {
+  if (!isInviteModalVisible.value) {
+    loadCollaborators()
+  }
+})
 </script>
 
 <template>
   <div class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]">
+    <LazyProjectShareBaseDlg v-model:model-value="isInviteModalVisible" />
     <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
     <template v-else>
-      <div class="w-full flex flex-row justify-between items-baseline mt-6.5 mb-2 pr-0.25">
+      <div class="w-full flex flex-row justify-between items-baseline max-w-350 mt-6.5 mb-2 pr-0.25">
         <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md" :placeholder="$t('title.searchMembers')">
           <template #prefix>
             <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
           </template>
         </a-input>
+
+        <NcButton size="small" @click="isInviteModalVisible = true">
+          <div class="flex gap-1">
+            <component :is="iconMap.plus" class="w-4 h-4" />
+            {{ $t('activity.addMembers') }}
+          </div>
+        </NcButton>
       </div>
 
       <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
@@ -156,7 +172,7 @@ onMounted(async () => {
         v-else-if="!filteredCollaborators?.length"
         class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center mt-36"
       >
-        <Empty description="$t('title.noMembersFound')" />
+        <a-empty description="$t('title.noMembersFound')" />
       </div>
       <div v-else class="nc-collaborators-list mt-6 h-full">
         <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
@@ -208,7 +224,7 @@ onMounted(async () => {
                         : null
                     "
                     :description="false"
-                    :on-role-change="(role: ProjectRoles) => updateCollaborator(collab, role)"
+                    :on-role-change="(role) => updateCollaborator(collab, role as ProjectRoles)"
                   />
                 </template>
                 <template v-else>

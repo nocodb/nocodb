@@ -154,6 +154,7 @@ export class WorkspacesController {
     return await this.workspacesService.getProjectList({
       workspaceId,
       user: req.user,
+      req,
     });
   }
 

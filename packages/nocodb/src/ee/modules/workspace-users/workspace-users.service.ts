@@ -4,10 +4,10 @@ import bcrypt from 'bcryptjs';
 
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import { AppEvents, extractRolesObj, WorkspaceUserRoles } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
+import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';

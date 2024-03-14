@@ -1,5 +1,6 @@
 packages/nocodb/src/ee
 packages/nocodb/src/ee-on-prem
+packages/nocodb/src/ee-cloud
 packages/nocodb-sdk/src/ee
 packages/nc-gui/ee
 scripts/sync
@@ -21,6 +22,7 @@ packages/nocodb/nc
 packages/nocodb/nocodb.db
 packages/nocodb/webpack.cloud.config.js
 packages/nocodb/webpack.ee-on-prem.config.js
+packages/nocodb/webpack.ee-cloud.config.js
 .idea
 .github/workflows/*-cloud-*.yml
 */.nuxt
@@ -37,6 +39,7 @@ package-lock.json
 .run
 packages/nocodb/tsconfig.ee.json
 packages/nocodb/tsconfig.ee-on-prem.json
+packages/nocodb/tsconfig.ee-cloud.json
 packages/nocodb/docker
 components.d.ts
 pnpm-lock.yaml

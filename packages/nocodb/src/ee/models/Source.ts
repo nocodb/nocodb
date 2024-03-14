@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import SourceCE from 'src/models/Source';
+import { Source as SourceCE } from 'src/models';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable } from '~/utils/globals';
@@ -12,6 +12,9 @@ import { stringifyMetaProp } from '~/utils/modelUtils';
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
   meta?: any;
+  constructor(source: Partial<Source>) {
+    super(source);
+  }
 
   protected static castType(source: Source): Source {
     return source && new Source(source);

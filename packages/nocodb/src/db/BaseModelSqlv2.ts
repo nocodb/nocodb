@@ -6244,7 +6244,12 @@ export function extractCondition(
 
     if (aliasColObjMap[alias]) {
       if (
-        [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(aliasColObjMap[alias].uidt)
+        [
+          UITypes.Date,
+          UITypes.DateTime,
+          UITypes.LastModifiedTime,
+          UITypes.CreatedTime,
+        ].includes(aliasColObjMap[alias].uidt)
       ) {
         value = value?.split(',');
         // the first element would be sub_op

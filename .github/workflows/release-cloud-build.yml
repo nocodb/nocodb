@@ -50,10 +50,25 @@ jobs:
         timeout-minutes: 1
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Checkout2
+        uses: actions/checkout@v3
+        with:
+          repository: nocodb/ee-private
+          token: ${{ secrets.GH_TOKEN_PRIVATE_REPO }}
+          fetch-depth: 0
+          path: ./ee-private
+
+      - name: Copy files
+        run: |
+          rm -rf ./ee-private/.git
+          rsync -rvzhP ./ee-private/packages/nocodb/ ./packages/nocodb/
+
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:
@@ -118,7 +133,7 @@ jobs:
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
-          EE=true pnpm exec webpack --config webpack.cloud.config.js &&
+          EE=true pnpm exec webpack --config webpack.ee-cloud.config.js &&
           # remove nocodb-sdk since it's packed with the build
           pnpm uninstall --save-prod nocodb-sdk
 
@@ -148,7 +163,7 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f src/ee/Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
+          docker build -f src/ee-cloud/Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

@@ -28,7 +28,7 @@ export class OpenidStrategy extends PassportStrategy(
     private usersService: UsersService,
   ) {
     super(clientConfig, (_issuer, _subject, profile, done) =>
-        this.validate(_issuer, _subject, profile, done),
+      this.validate(_issuer, _subject, profile, done),
     );
   }
 

@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist",
+    "baseUrl": "../../",
+    "paths": {
+      "src/*": [
+        "./src/*"
+      ],
+      "~/*": [
+        "./src/ee-cloud/*",
+        "./src/ee/*",
+        "./src/*"
+      ],
+      "@/*": [
+        "./src/ee-cloud/*",
+        "./src/ee/*",
+        "./src/*"
+      ]
+    }
+  }
+}

@@ -9,6 +9,7 @@ import {
   IsExpandedFormOpenInj,
   IsGalleryInj,
   IsKanbanInj,
+  IsSurveyFormInj,
   RowHeightInj,
   iconMap,
   inject,
@@ -20,7 +21,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
-  IsSurveyFormInj,
 } from '#imports'
 
 interface Props {

@@ -56,9 +56,7 @@ const usePaginationShortcuts = ({
     if (!e.altKey) return
     e.preventDefault()
 
-    const page = 1
-
-    await changePageWithLoading(page)
+    await changePageWithLoading(getTotalPages())
   }
 
   const onUp = async (e: KeyboardEvent) => {
@@ -67,7 +65,7 @@ const usePaginationShortcuts = ({
     if (!e.altKey) return
     e.preventDefault()
 
-    await changePageWithLoading(getTotalPages())
+    await changePageWithLoading(1)
   }
 
   return {

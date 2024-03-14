@@ -372,7 +372,7 @@ watch(
 
   <Suspense>
     <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
+import type { RoleLabels } from 'nocodb-sdk'
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 import { validateEmail } from '~/utils/validation'
@@ -192,6 +193,8 @@ const onPaste = (e: ClipboardEvent) => {
   })
   inviteData.email = ''
 }
+
+const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role as WorkspaceUserRoles)
 </script>
 
 <template>
@@ -242,7 +245,7 @@ const onPaste = (e: ClipboardEvent) => {
         class="px-1 min-w-[152px] nc-invite-role-selector"
         :role="inviteData.roles"
         :roles="allowedRoles"
-        :on-role-change="(role: WorkspaceUserRoles) => (inviteData.roles = role)"
+        :on-role-change="onRoleChange"
         :description="true"
       />
 

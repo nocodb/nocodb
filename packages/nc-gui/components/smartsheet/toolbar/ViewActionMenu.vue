@@ -3,11 +3,16 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { LockType } from '~/lib'
 
-const props = defineProps<{
-  view: ViewType
-  table: TableType
-  inSidebar: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    view: ViewType
+    table: TableType
+    inSidebar?: boolean
+  }>(),
+  {
+    inSidebar: false,
+  },
+)
 
 const emits = defineEmits(['rename', 'closeModal', 'delete'])
 

@@ -331,7 +331,7 @@ const headerText = computed(() => {
 
   <Suspense>
     <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       close-after-save
       :meta="meta"

@@ -750,10 +750,7 @@ useEventListener(
                     </template>
                   </a-alert>
 
-                  <div
-                    v-if="formViewData.show_blank_form || formViewData.submit_another_form"
-                    class="mt-16 w-full flex justify-between items-center gap-3"
-                  >
+                  <div class="mt-16 w-full flex justify-between items-center gap-3">
                     <div v-if="formViewData.show_blank_form" class="text-gray-400">
                       {{
                         $t('msg.newFormWillBeLoaded', {
@@ -762,7 +759,7 @@ useEventListener(
                       }}
                     </div>
 
-                    <div v-if="formViewData.submit_another_form || !isPublic" class="text-right">
+                    <div v-if="formViewData.submit_another_form || !isPublic" class="flex-1 flex justify-end">
                       <NcButton
                         type="primary"
                         size="small"

@@ -16,26 +16,29 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
   lang: 'json',
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
 })
 
-const emits = defineEmits(['update:modelValue'])
+const { modelValue } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, modelValue, readOnly, autoFocus } = props
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
+
+const emits = defineEmits(['update:modelValue'])
 
 const vModel = computed<string>({
   get: () => {
-    if (typeof modelValue === 'object') {
-      return JSON.stringify(modelValue, null, 2)
+    if (typeof modelValue.value === 'object') {
+      return JSON.stringify(modelValue.value, null, 2)
     } else {
-      return modelValue
+      return modelValue.value ?? ''
     }
   },
   set: (newVal: string | Record<string, any>) => {
-    if (typeof modelValue === 'object') {
+    if (typeof modelValue.value === 'object') {
       try {
         emits('update:modelValue', typeof newVal === 'object' ? newVal : JSON.parse(newVal))
       } catch (e) {

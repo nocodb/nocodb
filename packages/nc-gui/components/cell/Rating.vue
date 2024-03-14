@@ -37,7 +37,7 @@ const ratingMeta = computed(() => {
 })
 
 const vModel = computed({
-  get: () => modelValue ?? NaN,
+  get: () => Number(modelValue),
   set: (val) => emits('update:modelValue', val),
 })
 

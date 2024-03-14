@@ -239,11 +239,11 @@ const openDeleteModal = (user: UserType) => {
                 <template #title>
                   {{ el.email }}
                 </template>
-                <GeneralTruncateText length="29">
+                <GeneralTruncateText :length="29">
                   {{ el.display_name }}
                 </GeneralTruncateText>
               </NcTooltip>
-              <GeneralTruncateText v-else length="29">
+              <GeneralTruncateText v-else :length="29">
                 {{ el.email }}
               </GeneralTruncateText>
             </div>

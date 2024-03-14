@@ -2,11 +2,16 @@
 import type { BaseType } from 'nocodb-sdk'
 import { ProjectInj, ProjectRoleInj, ProjectStarredModeInj } from '#imports'
 
-const props = defineProps<{
-  baseRole: string | string[]
-  base: BaseType
-  starredMode?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    baseRole: string | string[]
+    base: BaseType
+    starredMode?: boolean
+  }>(),
+  {
+    baseRole: '',
+  },
+)
 
 const baseRole = toRef(props, 'baseRole')
 const base = toRef(props, 'base')

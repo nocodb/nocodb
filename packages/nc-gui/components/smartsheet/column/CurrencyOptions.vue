@@ -77,7 +77,7 @@ currencyLocales().then((locales) => {
 </script>
 
 <template>
-  <a-row gutter="8">
+  <a-row :gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.currency_locale']" :label="$t('title.currencyLocale')">
         <a-select

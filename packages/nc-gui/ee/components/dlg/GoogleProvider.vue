@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { message } from 'ant-design-vue'
 import type { GoogleClientConfigType, SSOClientType } from 'nocodb-sdk'
 import { computed, reactive, ref, useAuthentication, useCopy } from '#imports'
 
@@ -52,10 +53,22 @@ watch(isCopied.value, (v) => {
 })
 
 const saveGoogleProvider = async () => {
-  const isValid = await formValidator.value.validate()
-  if (!isValid) return
-  if (props.isEdit) {
-    await updateProvider(props.google.id, {
+  try {
+    const isValid = await formValidator.value.validate()
+    if (!isValid || !props.google?.id) return
+
+    if (props.isEdit) {
+      await updateProvider(props.google.id, {
+        title: 'google',
+        config: {
+          clientId: form.clientId,
+          clientSecret: form.clientSecret,
+        },
+      })
+      dialogShow.value = false
+      return
+    }
+    await addProvider({
       title: 'google',
       config: {
         clientId: form.clientId,
@@ -63,16 +76,9 @@ const saveGoogleProvider = async () => {
       },
     })
     dialogShow.value = false
-    return
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
-  await addProvider({
-    title: 'google',
-    config: {
-      clientId: form.clientId,
-      clientSecret: form.clientSecret,
-    },
-  })
-  dialogShow.value = false
 }
 </script>
 
@@ -117,7 +123,13 @@ const saveGoogleProvider = async () => {
           </a-form-item>
 
           <div class="flex justify-end gap-2 mt-8">
-            <NcButton data-test-id="nc-google-save-btn" size="medium" type="primary" @click="saveGoogleProvider">
+            <NcButton
+              data-test-id="nc-google-save-btn"
+              size="medium"
+              type="primary"
+              html-type="submit"
+              @click.prevent="saveGoogleProvider"
+            >
               {{ $t('labels.save') }}
             </NcButton>
           </div>

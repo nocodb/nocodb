@@ -58,6 +58,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return { id: 'default', title: 'default', meta: {}, roles: '' } as any
   })
 
+  const workspaceRole = computed(() => activeWorkspace.value?.roles)
+
   const activeWorkspaceMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {}
     if (!activeWorkspace.value) return defaultMeta
@@ -262,6 +264,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
     getPlanLimit,
+    workspaceRole,
   }
 })
 

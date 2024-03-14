@@ -99,7 +99,7 @@ useMenuCloseOnEsc(open)
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
           <div class="text-xs text-gray-500 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
-          <div v-for="(item, i) of rowHeightOptions" class="nc-row-height-option" @click="updateRowHeight(i)">
+          <div v-for="(item, i) of rowHeightOptions" :key="i" class="nc-row-height-option" @click="updateRowHeight(i)">
             <div class="flex items-center gap-2">
               <GeneralIcon :icon="item.icon" class="nc-row-height-icon" />
               {{ $t(`objects.heightClass.${item.heightClass}`) }}

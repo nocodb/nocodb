@@ -4,11 +4,16 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import isURL from 'validator/lib/isURL'
 import { computed, reactive, ref, useAuthentication, useCopy } from '#imports'
 
-const props = defineProps<{
-  modelValue: boolean
-  isEdit: boolean
-  saml: SSOClientType
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    isEdit: boolean
+    saml: SSOClientType
+  }>(),
+  {
+    saml: () => ({}),
+  },
+)
 
 const emit = defineEmits(['update:modelValue'])
 

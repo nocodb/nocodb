@@ -753,7 +753,7 @@ const getRowId = (row: RowType) => {
 
   <Suspense>
     <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"

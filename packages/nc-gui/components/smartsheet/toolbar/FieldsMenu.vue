@@ -470,7 +470,7 @@ useMenuCloseOnEsc(open)
           <NcButton
             v-if="!filterQuery"
             class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
-            size="sm"
+            size="small"
             type="ghost"
             @click="showAllColumns = !showAllColumns"
           >
@@ -479,7 +479,7 @@ useMenuCloseOnEsc(open)
           <NcButton
             v-if="!isPublic && !filterQuery"
             class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
-            size="sm"
+            size="small"
             type="ghost"
             @click="showSystemField = !showSystemField"
           >

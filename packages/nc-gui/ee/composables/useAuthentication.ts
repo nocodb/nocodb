@@ -51,7 +51,6 @@ export const useAuthentication = () => {
   const getPrePopulatedProvider = async (type: SSOClientType['type']) => {
     // check pre-populated provider exist
     let prePopulated = providers.value.find((p) => p.type === type && p.deleted)
-
     if (prePopulated) {
       return prePopulated
     }
@@ -61,8 +60,9 @@ export const useAuthentication = () => {
       type,
       deleted: true,
     })
-
-    providers.value.push(prePopulated)
+    if (prePopulated) {
+      providers.value.push(prePopulated)
+    }
 
     return prePopulated
   }

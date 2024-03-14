@@ -8,7 +8,7 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const emit = defineEmits(['expandRecord', 'newRecord'])
+const emit = defineEmits(['expand-record', 'newRecord'])
 
 const INFINITY_SCROLL_THRESHOLD = 100
 
@@ -428,7 +428,7 @@ onUnmounted(() => {
               "
                 color="blue"
                 data-testid="nc-sidebar-record-card"
-                @click="emit('expandRecord', record)"
+                @click="emit('expand-record', record)"
                 @dragstart="dragStart($event, record)"
                 @dragover.prevent
               >

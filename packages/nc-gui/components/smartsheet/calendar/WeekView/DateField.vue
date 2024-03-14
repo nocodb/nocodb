@@ -5,7 +5,7 @@ import type { Row } from '~/lib'
 import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
-const emits = defineEmits(['expandRecord', 'newRecord'])
+const emits = defineEmits(['expandRecord'])
 
 const { selectedDateRange, formattedData, formattedSideBarData, calendarRange, selectedDate, displayField, updateRowProperty } =
   useCalendarViewStoreOrThrow()
@@ -529,7 +529,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emits('newRecord', newRecord)
+  emits('new-record', newRecord)
 }
 </script>
 
@@ -586,7 +586,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               :selected="dragRecord?.rowMeta?.id === record.rowMeta.id"
               color="blue"
-              @dblclick.stop="emits('expandRecord', record)"
+              @dblclick.stop="emits('expand-record', record)"
               @resize-start="onResizeStart"
             >
               <template v-if="!isRowEmpty(record, displayField)">

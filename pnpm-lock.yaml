@@ -27502,7 +27502,7 @@ packages:
     dev: true
 
   '@cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz':
-    resolution: {tarball: https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz}
+    resolution: {integrity: sha512-8IfgFctB7fkvqkTGF2MnrDrC6vzE28Wcc1aSbdDQ+4/WFtzfS73YuapbuaPZwGqpR2e0EeDMIrFOJubQVLWFNA==, tarball: https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz}
     name: xlsx
     version: 0.19.3
     engines: {node: '>=0.8'}

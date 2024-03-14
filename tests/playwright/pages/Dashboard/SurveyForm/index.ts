@@ -5,6 +5,8 @@ import { getTextExcludeIconText } from '../../../tests/utils/general';
 export class SurveyFormPage extends BasePage {
   readonly formHeading: Locator;
   readonly formSubHeading: Locator;
+  readonly fillFormButton: Locator;
+  readonly submitConfirmationButton: Locator;
   readonly submitButton: Locator;
   readonly nextButton: Locator;
   readonly nextSlideButton: Locator;
@@ -16,7 +18,11 @@ export class SurveyFormPage extends BasePage {
     super(rootPage);
     this.formHeading = this.get().locator('[data-testid="nc-survey-form__heading"]');
     this.formSubHeading = this.get().locator('[data-testid="nc-survey-form__sub-heading"]');
-    this.submitButton = this.get().locator('[data-testid="nc-survey-form__btn-submit"]');
+    this.fillFormButton = this.get().locator('[data-testid="nc-survey-form__fill-form-btn"]');
+    this.submitConfirmationButton = this.get().locator('[data-testid="nc-survey-form__btn-submit-confirm"]');
+    this.submitButton = this.rootPage.locator(
+      '.nc-survery-form__confirmation_modal [data-testid="nc-survey-form__btn-submit"]'
+    );
     this.nextButton = this.get().locator('[data-testid="nc-survey-form__btn-next"]');
     this.nextSlideButton = this.get().locator('[data-testid="nc-survey-form__icon-next"]');
     this.prevSlideButton = this.get().locator('[data-testid="nc-survey-form__icon-prev"]');
@@ -28,20 +34,15 @@ export class SurveyFormPage extends BasePage {
     return this.rootPage.locator('html >> .nc-form-view');
   }
 
-  async validate({
-    heading,
-    subHeading,
-    fieldLabel,
-    footer,
-  }: {
-    heading: string;
-    subHeading: string;
-    fieldLabel: string;
-    footer: string;
-  }) {
+  async validateHeaders({ heading, subHeading }: { heading: string; subHeading: string }) {
     await expect(this.get()).toBeVisible();
     await expect(this.formHeading).toHaveText(heading);
     await expect(this.formSubHeading).toHaveText(subHeading);
+  }
+
+  async validate({ fieldLabel, footer }: { fieldLabel: string; footer: string }) {
+    await expect(this.get()).toBeVisible();
+
     await expect(this.formFooter).toHaveText(footer);
 
     const locator = this.get().locator(`[data-testid="nc-form-column-label"]`);
@@ -62,7 +63,7 @@ export class SurveyFormPage extends BasePage {
       isLastSlide = true;
     }
     if (isLastSlide) {
-      await expect(this.submitButton).toBeVisible();
+      await expect(this.submitConfirmationButton).toBeVisible();
     } else {
       await expect(this.nextButton).toBeVisible();
     }
@@ -88,6 +89,8 @@ export class SurveyFormPage extends BasePage {
   }
 
   async validateSuccessMessage(param: { message: string; showAnotherForm?: boolean }) {
+    await this.get().locator('[data-testid="nc-survey-form__success-msg"]').waitFor({ state: 'visible' });
+
     await expect(
       this.get().locator(`[data-testid="nc-survey-form__success-msg"]:has-text("${param.message}")`)
     ).toBeVisible();
@@ -95,5 +98,18 @@ export class SurveyFormPage extends BasePage {
     if (param.showAnotherForm) {
       await expect(this.get().locator(`button:has-text("Submit Another Form")`)).toBeVisible();
     }
+  }
+
+  async clickFillForm() {
+    await this.fillFormButton.click();
+  }
+
+  async confirmAndSubmit() {
+    await this.submitConfirmationButton.click();
+    await this.submitButton.waitFor({ state: 'visible' });
+
+    await this.submitButton.click();
+
+    await this.submitButton.waitFor({ state: 'hidden' });
   }
 }

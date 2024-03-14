@@ -429,7 +429,8 @@
       "setDefault": "기본값 설정"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -681,7 +682,7 @@
     "sourceNameRequired": "소스 이름이 필요합니다",
     "changeWsName": "작업 공간 이름 변경",
     "pressEnter": "Enter를 누르세요",
-    "newFormLoaded": "새로운 폼이 로드되었습니다.",
+    "newFormLoaded": "Loading new form in",
     "webhook": "Webhook",
     "multiField": {
       "newField": "New field",

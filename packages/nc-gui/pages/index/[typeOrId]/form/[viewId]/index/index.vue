@@ -19,6 +19,8 @@ const {
   progress,
 } = useSharedFormStoreOrThrow()
 
+const { isMobileMode } = storeToRefs(useConfigStore())
+
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
   if (
@@ -125,14 +127,25 @@ const onDecode = async (scannedCodeValue: string) => {
                 </template>
               </a-alert>
 
-              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 my-4">
-                {{ $t('msg.newFormWillBeLoaded', { seconds: secondsRemain }) }}
-              </p>
+              <div
+                v-if="sharedFormView.show_blank_form || sharedFormView.submit_another_form"
+                class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
+              >
+                <p v-if="sharedFormView?.show_blank_form" class="text-sm text-gray-500 dark:text-slate-300 m-0">
+                  {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds').toLowerCase() }}
+                </p>
 
-              <div v-if="sharedFormView.submit_another_form" class="text-right">
-                <NcButton type="primary" size="medium" @click="submitted = false">
-                  {{ $t('activity.submitAnotherForm') }}
-                </NcButton>
+                <div class="flex-1 self-end flex justify-end">
+                  <NcButton
+                    v-if="sharedFormView?.submit_another_form"
+                    type="secondary"
+                    :size="isMobileMode ? 'medium' : 'small'"
+                    data-testid="nc-survey-form__btn-submit-another-form"
+                    @click="submitted = false"
+                  >
+                    {{ $t('activity.submitAnotherForm') }}
+                  </NcButton>
+                </div>
               </div>
             </div>
           </div>
@@ -239,7 +252,7 @@ const onDecode = async (scannedCodeValue: string) => {
                 <NcButton
                   html-type="reset"
                   type="secondary"
-                  size="small"
+                  :size="isMobileMode ? 'medium' : 'small'"
                   :disabled="isLoading"
                   class="nc-shared-form-button shared-form-clear-button"
                   data-testid="shared-form-clear-button"
@@ -252,7 +265,7 @@ const onDecode = async (scannedCodeValue: string) => {
                   html-type="submit"
                   :disabled="progress"
                   type="primary"
-                  size="small"
+                  :size="isMobileMode ? 'medium' : 'small'"
                   class="nc-shared-form-button shared-form-submit-button"
                   data-testid="shared-form-submit-button"
                   @click="submitForm"

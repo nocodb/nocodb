@@ -4,6 +4,7 @@ import {
   ColumnInj,
   EditColumnInj,
   IsFormInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   getMdiIcon,
   inject,
@@ -43,6 +44,8 @@ const readOnly = inject(ReadonlyInj)
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref())
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const checkboxMeta = computed(() => {
   return {
@@ -98,7 +101,8 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"
-    @keydown.enter.stop="onClick(true, $event)"
+    @keydown.enter.stop="!isSurveyForm ? onClick(true, $event) : undefined"
+    @keydown.space.stop="isSurveyForm ? onClick(true, $event) : undefined"
   >
     <div
       class="flex items-center"

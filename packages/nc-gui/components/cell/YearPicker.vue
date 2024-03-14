@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 import {
   ActiveCellInj,
   EditColumnInj,
+  IsFormInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -30,6 +32,10 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isYearInvalid = ref(false)
 
@@ -77,7 +83,9 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
+  if (isForm.value && !isYearInvalid.value) {
+    return 'YYYY'
+  } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
   } else if (modelValue === null && showNull.value) {
     return t('general.null').toUpperCase()
@@ -93,6 +101,22 @@ const isOpen = computed(() => {
 
   return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
+
+const handleKeydown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case ' ':
+      if (isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+
+    case 'Enter':
+      if (!isSurveyForm.value) {
+        open.value = !open.value
+      }
+      break
+  }
+}
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -123,10 +147,10 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :input-read-only="true"
     :open="isOpen"
     :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
+    @keydown="handleKeydown"
     @click="open = (active || editable) && !open"
     @change="open = (active || editable) && !open"
     @ok="open = !open"
-    @keydown.enter="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

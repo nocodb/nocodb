@@ -120,6 +120,8 @@ import NcCopy from '~icons/nc-icons/copy'
 import NcPaste from '~icons/nc-icons/paste'
 import NcArrowUp from '~icons/nc-icons/arrow-up'
 import NcArrowDown from '~icons/nc-icons/arrow-down'
+import NcArrowLeft from '~icons/nc-icons/arrow-left'
+import NcArrowRight from '~icons/nc-icons/arrow-right'
 import NcUpload from '~icons/nc-icons/upload'
 import NcDownload from '~icons/nc-icons/download'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
@@ -162,6 +164,8 @@ import NcCellSystemKey from '~icons/nc-icons/system-key'
 import NcCellSystemUser from '~icons/nc-icons/system-user'
 import NcCellSystemText from '~icons/nc-icons/system-text'
 import NcCellAttachment from '~icons/nc-icons/cell-attachment'
+
+import NcCircleCheck from '~icons/nc-icons/circle-check'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -555,11 +559,14 @@ export const iconMap = {
   ncEdit: NcEdit,
   ncArrowUp: NcArrowUp,
   ncArrowDown: NcArrowDown,
+  ncArrowLeft: NcArrowLeft,
+  ncArrowRight: NcArrowRight,
   underline: NcUnderline,
   bold: NcBold,
   italic: NcItalic,
   phoneCall: NcPhoneCall,
   crop: NcCrop,
+  circleCheck2: NcCircleCheck,
 }
 
 export const getMdiIcon = (type: string): any => {

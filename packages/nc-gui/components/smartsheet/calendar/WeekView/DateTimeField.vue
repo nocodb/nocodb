@@ -5,7 +5,7 @@ import type { Row } from '~/lib'
 import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
-const emits = defineEmits(['expandRecord', 'newRecord'])
+const emits = defineEmits(['expandRecord'])
 
 const {
   selectedDateRange,
@@ -733,7 +733,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
     },
   }
-  emits('newRecord', newRecord)
+  emits('new-record', newRecord)
 }
 </script>
 

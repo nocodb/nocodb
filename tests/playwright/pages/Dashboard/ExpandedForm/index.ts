@@ -68,7 +68,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
-    const field = this.get().locator(`[data-testid="nc-expand-col-${columnTitle}"]`);
+    const field = this.get().getByTestId(`nc-expand-col-${columnTitle}`);
     switch (type) {
       case 'text':
         await field.locator('input').fill(value);

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
-import { ref } from 'vue'
 import type { Ref } from 'vue'
+import { ref } from 'vue'
 import { ActiveCellInj, CellValueInj, ColumnInj, IsUnderLookupInj, inject, useSelectedCellKeyupListener } from '#imports'
 
 const value = inject(CellValueInj, ref(0))
@@ -151,13 +151,13 @@ watch([listItemsDlg], () => {
         @click.stop="openListDlg"
       />
     </div>
-    <LazyVirtualCellComponentsListItems
+    <LazyVirtualCellComponentsUnLinkedItems
       v-if="listItemsDlg || childListDlg"
       v-model="listItemsDlg"
       :column="relatedTableDisplayColumn"
     />
 
-    <LazyVirtualCellComponentsListChildItems
+    <LazyVirtualCellComponentsLinkedItems
       v-if="listItemsDlg || childListDlg"
       v-model="childListDlg"
       :items="toatlRecordsLinked"

@@ -54,6 +54,8 @@ const dialogShow = ref(false)
 
 const el = ref<HTMLDivElement>()
 
+const activeCell = ref<HTMLElement>()
+
 provide(DropZoneRef, el)
 
 provide(IsSurveyFormInj, ref(true))
@@ -185,11 +187,13 @@ function focusInput() {
   if (document && typeof document !== 'undefined') {
     const inputEl =
       (document.querySelector('.nc-cell input') as HTMLInputElement) ||
-      (document.querySelector('.nc-cell textarea') as HTMLTextAreaElement)
+      (document.querySelector('.nc-cell textarea') as HTMLTextAreaElement) ||
+      (document.querySelector('.nc-cell [tabindex="0"]') as HTMLInputElement)
 
     if (inputEl) {
-      inputEl.select()
-      inputEl.focus()
+      activeCell.value = inputEl
+      inputEl?.select?.()
+      inputEl?.focus?.()
     }
   }
 }
@@ -210,6 +214,20 @@ async function submit() {
 
 onReset(resetForm)
 
+const onStart = () => {
+  isStarted.value = true
+
+  setTimeout(() => {
+    focusInput()
+  }, 100)
+}
+
+const handleFocus = () => {
+  if (document?.activeElement !== activeCell.value) {
+    focusInput()
+  }
+}
+
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
   goPrevious(AnimationTarget.ArrowLeft)
 })
@@ -220,7 +238,7 @@ onKeyStroke(['Enter', 'Space'], () => {
   if (submitted.value) return
 
   if (!isStarted.value && !submitted.value) {
-    isStarted.value = true
+    onStart()
   } else if (isStarted.value) {
     if (isLast.value) {
       if (dialogShow.value) {
@@ -229,14 +247,22 @@ onKeyStroke(['Enter', 'Space'], () => {
         dialogShow.value = true
       }
     } else {
+      const activeElement = document.activeElement as HTMLElement
+
+      if (activeElement?.classList && activeElement.classList.contains('nc-survey-form__btn-next')) return
+
       goNext(AnimationTarget.OkButton, true)
     }
   }
 })
 
-onMounted(() => {
-  focusInput()
+onKeyStroke('Escape', () => {
+  if (document) {
+    ;(document.activeElement as HTMLElement)?.blur?.()
+  }
+})
 
+onMounted(() => {
   if (!md.value) {
     const { direction } = usePointerSwipe(el, {
       onSwipe: () => {
@@ -354,7 +380,7 @@ watch(
                   <NcButton
                     :size="isMobileMode ? 'medium' : 'small'"
                     data-testid="nc-survey-form__fill-form-btn"
-                    @click="isStarted = true"
+                    @click="onStart()"
                   >
                     Fill Form
                   </NcButton>
@@ -391,7 +417,7 @@ watch(
 
                 <NcTooltip :disabled="!field?.read_only">
                   <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
-                  <SmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell">
+                  <SmartsheetDivDataCell v-if="field.title" class="relative nc-form-data-cell" @click.stop="handleFocus">
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(field)"
                       v-model="formState[field.title]"
@@ -423,7 +449,7 @@ watch(
 
                       <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
                         {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
-                        <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.makeLineBreak') }}
+                        <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.info.makeLineBreak') }}
                       </div>
                     </div>
                   </SmartsheetDivDataCell>
@@ -466,6 +492,7 @@ watch(
                     <NcButton
                       :size="isMobileMode ? 'medium' : 'small'"
                       data-testid="nc-survey-form__btn-next"
+                      class="nc-survey-form__btn-next"
                       :class="[
                         animationTarget === AnimationTarget.OkButton && isAnimating
                           ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'

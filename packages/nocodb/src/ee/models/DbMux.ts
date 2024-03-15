@@ -343,11 +343,12 @@ export default class DbMux {
       !snsConfig.credentials.secretAccessKey ||
       !snsConfig.credentials.accessKeyId
     ) {
-      console.error('SNS is not configured');
-      NcError.notImplemented('Not available');
+      NcError.internalServerError('SNS is not configured to activate DB Mux');
     }
 
-    if (!dbMux) NcError.notFound('DbMux not found');
+    if (!dbMux) {
+      NcError.internalServerError('DB Mux is not found to activate');
+    }
 
     const serviceName = dbMux.domain.replace(/https?:\/\//, '');
 

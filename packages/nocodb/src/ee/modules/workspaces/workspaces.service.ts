@@ -565,8 +565,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       !snsConfig.credentials.secretAccessKey ||
       !snsConfig.credentials.accessKeyId
     ) {
-      this.logger.error('SNS is not configured');
-      NcError.notImplemented('Not available');
+      NcError.internalServerError('SNS is not configured for workspace upgrade');
     }
 
     // Create publish parameters

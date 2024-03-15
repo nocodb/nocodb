@@ -4442,7 +4442,7 @@ class BaseModelSqlv2 {
 
       if (!column) NcError.notFound('Column not found');
       if (isVirtualCol(column))
-        NcError.notImplemented('Grouping for virtual columns not implemented');
+        NcError.notImplemented('Grouping for virtual columns');
 
       // extract distinct group column values
       let groupingValues: Set<any>;
@@ -4604,7 +4604,7 @@ class BaseModelSqlv2 {
 
     if (!column) NcError.notFound('Column not found');
     if (isVirtualCol(column))
-      NcError.notImplemented('Grouping for virtual columns not implemented');
+      NcError.notImplemented('Grouping for virtual columns');
 
     const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })

@@ -278,7 +278,7 @@ watch(vModel, (next) => {
   const cdfs = (next.cdf ?? '').toString().split(',')
 
   const valuesMap = (next.colOptions.options ?? []).reduce((acc, c) => {
-    acc[c.title.replace(/^'/, '').replace(/'$/, '')] = c
+    acc[c.title.replace(/^'|'$/g, '')] = c
     return acc
   }, {})
 

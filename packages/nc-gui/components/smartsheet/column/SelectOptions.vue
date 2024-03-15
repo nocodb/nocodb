@@ -43,7 +43,6 @@ const isReverseLazyLoad = ref(false)
 
 const renderedOptions = ref<Option[]>([])
 const savedDefaultOption = ref<Option[]>([])
-const savedCdf = ref<string | null>(null)
 
 const colorMenus = ref<any>({})
 
@@ -291,6 +290,7 @@ watch(vModel, (next) => {
         defaultOption.value.push(valuesMap[c])
         return true
       }
+      return false
     })
     .join(',')
 

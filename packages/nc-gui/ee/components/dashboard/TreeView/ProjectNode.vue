@@ -549,7 +549,12 @@ const duplicateProject = (base: BaseType) => {
                 <NcDivider />
 
                 <!-- ERD View -->
-                <NcMenuItem key="erd" v-if="base?.sources?.[0]?.enabled" data-testid="nc-sidebar-base-relations" @click="openErdView(base?.sources?.[0]!)">
+                <NcMenuItem
+                  v-if="base?.sources?.[0]?.enabled"
+                  key="erd"
+                  data-testid="nc-sidebar-base-relations"
+                  @click="openErdView(base?.sources?.[0])"
+                >
                   <GeneralIcon icon="erd" />
                   Relations
                 </NcMenuItem>
@@ -603,8 +608,8 @@ const duplicateProject = (base: BaseType) => {
           </NcDropdown>
 
           <NcButton
-            :disabled="!base?.sources?.[0]?.enabled"
             v-if="isUIAllowed('tableCreate', { roles: baseRole })"
+            :disabled="!base?.sources?.[0]?.enabled"
             class="nc-sidebar-node-btn"
             type="text"
             data-testid="nc-sidebar-add-base-entity"

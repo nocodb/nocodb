@@ -527,7 +527,7 @@ const projectDelete = () => {
                     v-if="base?.sources?.[0]?.enabled"
                     key="erd"
                     data-testid="nc-sidebar-base-relations"
-                    @click="openErdView(base?.sources?.[0]!)"
+                    @click="openErdView(base?.sources?.[0])"
                   >
                     <div v-e="['c:base:erd']" class="flex gap-2 items-center">
                       <GeneralIcon icon="erd" />

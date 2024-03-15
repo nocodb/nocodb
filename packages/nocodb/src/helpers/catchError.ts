@@ -467,12 +467,12 @@ export class AjvError extends NcBaseError {
 
 const errorHelpers: {
   [key in NcErrorType]: {
-    message: string;
+    message: string | ((...params: string[]) => string);
     code: number;
   };
 } = {
   [NcErrorType.INTERNAL_SERVER_ERROR]: {
-    message: '??',
+    message: (message: string) => message || `Internal server error`,
     code: 500,
   },
   [NcErrorType.AUTHENTICATION_REQUIRED]: {
@@ -484,39 +484,39 @@ const errorHelpers: {
     code: 401,
   },
   [NcErrorType.WORKSPACE_NOT_FOUND]: {
-    message: 'Workspace with id ?? not found',
+    message: (id: string) => `Workspace ${id} not found`,
     code: 404,
   },
   [NcErrorType.BASE_NOT_FOUND]: {
-    message: 'Base with id ?? not found',
+    message: (id: string) => `Base ${id} not found`,
     code: 404,
   },
   [NcErrorType.SOURCE_NOT_FOUND]: {
-    message: 'Source with id ?? not found',
+    message: (id: string) => `Source ${id} not found`,
     code: 404,
   },
   [NcErrorType.TABLE_NOT_FOUND]: {
-    message: 'Table with id ?? not found',
+    message: (id: string) => `Table ${id} not found`,
     code: 404,
   },
   [NcErrorType.VIEW_NOT_FOUND]: {
-    message: 'View with id ?? not found',
+    message: (id: string) => `View ${id} not found`,
     code: 404,
   },
   [NcErrorType.FIELD_NOT_FOUND]: {
-    message: 'Field ?? not found',
+    message: (id: string) => `Field ${id} not found`,
     code: 422,
   },
   [NcErrorType.RECORD_NOT_FOUND]: {
-    message: 'Record with id ?? not found',
+    message: (id: string) => `Record ${id} not found`,
     code: 404,
   },
   [NcErrorType.USER_NOT_FOUND]: {
-    message: 'User with id ?? not found',
+    message: (id: string) => `User ${id} not found`,
     code: 404,
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
-    message: 'Offset ?? is invalid',
+    message: (offset: string) => `Offset value ${offset} is invalid`,
     code: 422,
   },
   [NcErrorType.INVALID_LIMIT_VALUE]: {
@@ -524,7 +524,7 @@ const errorHelpers: {
     code: 422,
   },
   [NcErrorType.INVALID_FILTER]: {
-    message: 'Filter ?? is invalid',
+    message: (filter: string) => `Filter ${filter} is invalid`,
     code: 422,
   },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
@@ -532,7 +532,7 @@ const errorHelpers: {
     code: 403,
   },
   [NcErrorType.NOT_IMPLEMENTED]: {
-    message: '?? is not implemented yet',
+    message: (feature: string) => `${feature} is not implemented`,
     code: 501,
   },
 };
@@ -556,16 +556,13 @@ function generateError(
     };
   }
 
-  let message = customMessage || errorHelper.message;
+  let message: string;
+  const messageHelper = customMessage || errorHelper.message;
 
-  if (params) {
-    if (Array.isArray(params)) {
-      params.forEach((param) => {
-        message = message.replace('??', param);
-      });
-    } else {
-      message = message.replace('??', params);
-    }
+  if (typeof messageHelper === 'function') {
+    message = messageHelper(...(Array.isArray(params) ? params : [params]));
+  } else {
+    message = messageHelper;
   }
 
   return {
@@ -577,7 +574,7 @@ function generateError(
 
 type NcErrorArgs = {
   params?: string | string[];
-  customMessage?: string;
+  customMessage?: string | ((...args: string[]) => string);
   details?: any;
 };
 

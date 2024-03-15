@@ -410,7 +410,15 @@ export default function (
       const dbError = extractDBError(e);
 
       if (dbError) {
-        return res.status(400).json(dbError);
+        const error = new NcBaseErrorv2(NcErrorType.DATABASE_ERROR, {
+          params: dbError.message,
+          details: dbError,
+        });
+        return res.status(error.code).json({
+          error: error.error,
+          message: error.message,
+          details: error.details,
+        });
       }
 
       if (e instanceof BadRequest) {
@@ -473,6 +481,11 @@ const errorHelpers: {
 } = {
   [NcErrorType.INTERNAL_SERVER_ERROR]: {
     message: (message: string) => message || `Internal server error`,
+    code: 500,
+  },
+  [NcErrorType.DATABASE_ERROR]: {
+    message: (message: string) =>
+      message || `There was an error while running the query`,
     code: 500,
   },
   [NcErrorType.AUTHENTICATION_REQUIRED]: {

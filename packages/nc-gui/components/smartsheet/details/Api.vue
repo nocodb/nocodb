@@ -91,12 +91,15 @@ const snippet = computed(
       method: 'GET',
       headers: [{ name: 'xc-auth', value: token.value, comment: 'JWT Auth token' }],
       url: apiUrl.value,
-      queryString: Object.entries(queryParams.value || {}).map(([name, value]) => {
-        return {
-          name,
-          value: String(value),
-        }
-      }),
+      queryString: [
+        ...Object.entries(queryParams.value || {}).map(([name, value]) => {
+          return {
+            name,
+            value: String(value),
+          }
+        }),
+        { name: 'viewId', value: view.value?.id },
+      ],
     }),
 )
 

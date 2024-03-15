@@ -1202,9 +1202,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
+            NcError.recordNotFound(JSON.stringify(pkValues));
           }
           continue;
         }
@@ -1215,9 +1213,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           if (!oldRecord) {
             // throw or skip if no record found
             if (throwExceptionIfNotExist) {
-              NcError.unprocessableEntity(
-                `Record with pk ${JSON.stringify(pkValues)} not found`,
-              );
+              NcError.recordNotFound(JSON.stringify(pkValues));
             }
             continue;
           }
@@ -1303,9 +1299,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
+            NcError.recordNotFound(JSON.stringify(pkValues));
           }
           continue;
         }
@@ -1314,9 +1308,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!deletedRecord) {
           // throw or skip if no record found
           if (throwExceptionIfNotExist) {
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
+            NcError.recordNotFound(JSON.stringify(pkValues));
           }
           continue;
         }

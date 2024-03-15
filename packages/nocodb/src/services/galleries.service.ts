@@ -76,7 +76,7 @@ export class GalleriesService {
     const view = await View.get(param.galleryViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.galleryViewId);
     }
 
     const res = await GalleryView.update(param.galleryViewId, param.gallery);

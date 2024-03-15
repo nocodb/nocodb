@@ -26,7 +26,7 @@ export default class View extends ViewCE implements ViewType {
     const model = await Model.get(view.fk_model_id);
 
     if (!model) {
-      NcError.notFound('Table not found');
+      NcError.tableNotFound(view.fk_model_id);
     }
 
     const workspaceId = await getWorkspaceForBase(model.base_id);

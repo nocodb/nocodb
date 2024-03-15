@@ -107,7 +107,7 @@ export class DatasService extends DatasServiceCE {
     }
 
     if (!row) {
-      NcError.notFound('Record not found');
+      NcError.recordNotFound(param.rowId);
     }
 
     return row;

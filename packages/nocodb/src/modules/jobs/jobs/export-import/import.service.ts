@@ -88,13 +88,11 @@ export class ImportService {
 
     const base = await Base.get(param.baseId);
 
-    if (!base)
-      return NcError.badRequest(`Base not found for id '${param.baseId}'`);
+    if (!base) return NcError.baseNotFound(param.baseId);
 
     const source = await Source.get(param.sourceId);
 
-    if (!source)
-      return NcError.badRequest(`Source not found for id '${param.sourceId}'`);
+    if (!source) return NcError.sourceNotFound(param.sourceId);
 
     const tableReferences = new Map<string, Model>();
     const linkMap = new Map<string, string>();
@@ -1342,9 +1340,8 @@ export class ImportService {
     const destProject = await Base.get(baseId);
     const destBase = await Source.get(sourceId);
 
-    if (!destProject || !destBase) {
-      throw NcError.badRequest('Base or Source not found');
-    }
+    if (!destProject) return NcError.baseNotFound(baseId);
+    if (!destBase) return NcError.sourceNotFound(sourceId);
 
     switch (src.type) {
       case 'local': {

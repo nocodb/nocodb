@@ -295,7 +295,7 @@ export class DatasService {
     });
 
     if (!row) {
-      NcError.notFound('Row not found');
+      NcError.recordNotFound(param.rowId);
     }
 
     return row;
@@ -390,7 +390,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     return await this.getDataList({ model, view, query: param.query });
   }
@@ -407,7 +407,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -468,7 +468,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -529,7 +529,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -590,7 +590,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) return NcError.notFound('Table not found');
+    if (!model) return NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -651,7 +651,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -703,7 +703,7 @@ export class DatasService {
       const model = await Model.getByIdOrName({
         id: param.viewId,
       });
-      if (!model) NcError.notFound('Table not found');
+      if (!model) NcError.tableNotFound(param.viewId);
 
       const source = await Source.get(model.source_id);
 
@@ -733,7 +733,7 @@ export class DatasService {
     const model = await Model.getByIdOrName({
       id: param.viewId,
     });
-    if (!model) return NcError.notFound('Table not found');
+    if (!model) return NcError.tableNotFound(param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -754,7 +754,7 @@ export class DatasService {
     const model = await Model.getByIdOrName({
       id: param.viewId,
     });
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -779,7 +779,7 @@ export class DatasService {
     const model = await Model.getByIdOrName({
       id: param.viewId,
     });
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -804,7 +804,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -837,7 +837,7 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(model.source_id);
 
@@ -875,7 +875,7 @@ export class DatasService {
         titleOrId: req.params.viewName,
         fk_model_id: model.id,
       }));
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(req.params.tableName);
     return { model, view };
   }
 
@@ -982,8 +982,7 @@ export class DatasService {
         c.column_name === columnNameOrId,
     );
 
-    if (!column)
-      NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
+    if (!column) NcError.fieldNotFound(columnNameOrId);
 
     return column;
   }

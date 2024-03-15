@@ -765,7 +765,7 @@ export default class Model implements TableType {
     const model = await this.getWithInfo({ id: tableId });
     const newPvCol = model.columns.find((c) => c.id === columnId);
 
-    if (!newPvCol) NcError.badRequest('Column not found');
+    if (!newPvCol) NcError.fieldNotFound(columnId);
 
     // drop existing primary column/s
     for (const col of model.columns?.filter((c) => c.pv) || []) {

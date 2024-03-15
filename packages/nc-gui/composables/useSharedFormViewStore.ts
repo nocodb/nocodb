@@ -12,7 +12,7 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
@@ -176,7 +176,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     } catch (e: any) {
       if (e.response && e.response.status === 404) {
         notFound.value = true
-      } else if ((await extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
+        // TODO - handle invalidSharedViewPassword
+      } else if (await extractSdkResponseErrorMsg(e)) {
         passwordDlg.value = true
 
         if (password.value && password.value !== '') passwordError.value = 'Something went wrong. Please check your credentials.'

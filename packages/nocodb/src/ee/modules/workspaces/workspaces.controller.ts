@@ -174,7 +174,7 @@ export class WorkspacesController {
       workspaceId,
     );
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(workspaceId);
 
     const updateWorkspacePayload = {
       status: body.status,
@@ -210,7 +210,8 @@ export class WorkspacesController {
     try {
       await this.workspacesService.deleteDeprecatedWorkspaces();
     } catch (e) {
-      NcError.internalServerError(e);
+      console.error(e);
+      NcError.internalServerError('Failed to delete deprecated workspaces, check logs for more details.');
     }
     return true;
   }

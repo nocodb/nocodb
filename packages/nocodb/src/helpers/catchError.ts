@@ -428,7 +428,9 @@ export default function (
       } else if (e instanceof NotAllowed) {
         return res.status(405).json({ msg: e.message });
       } else if (e instanceof NcBaseErrorv2) {
-        return res.status(e.code).json({ error: e.error, message: e.message });
+        return res
+          .status(e.code)
+          .json({ error: e.error, message: e.message, details: e.details });
       }
       // if some other error occurs then send 500 and a generic message
       res.status(500).json({ msg: 'Internal server error' });
@@ -469,10 +471,6 @@ const errorHelpers: {
     code: number;
   };
 } = {
-  [NcErrorType.GENERIC]: {
-    message: 'Internal server error',
-    code: 500,
-  },
   [NcErrorType.INTERNAL_SERVER_ERROR]: {
     message: '??',
     code: 500,
@@ -485,8 +483,36 @@ const errorHelpers: {
     message: 'This request is not allowed with API token',
     code: 401,
   },
+  [NcErrorType.WORKSPACE_NOT_FOUND]: {
+    message: 'Workspace with id ?? not found',
+    code: 404,
+  },
+  [NcErrorType.BASE_NOT_FOUND]: {
+    message: 'Base with id ?? not found',
+    code: 404,
+  },
+  [NcErrorType.SOURCE_NOT_FOUND]: {
+    message: 'Source with id ?? not found',
+    code: 404,
+  },
   [NcErrorType.TABLE_NOT_FOUND]: {
     message: 'Table with id ?? not found',
+    code: 404,
+  },
+  [NcErrorType.VIEW_NOT_FOUND]: {
+    message: 'View with id ?? not found',
+    code: 404,
+  },
+  [NcErrorType.FIELD_NOT_FOUND]: {
+    message: 'Field ?? not found',
+    code: 422,
+  },
+  [NcErrorType.RECORD_NOT_FOUND]: {
+    message: 'Record with id ?? not found',
+    code: 404,
+  },
+  [NcErrorType.USER_NOT_FOUND]: {
+    message: 'User with id ?? not found',
     code: 404,
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
@@ -497,21 +523,9 @@ const errorHelpers: {
     message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
     code: 422,
   },
-  [NcErrorType.FIELD_NOT_FOUND]: {
-    message: 'Field ?? not found',
-    code: 422,
-  },
   [NcErrorType.INVALID_FILTER]: {
     message: 'Filter ?? is invalid',
     code: 422,
-  },
-  [NcErrorType.VIEW_NOT_FOUND]: {
-    message: 'View with id ?? not found',
-    code: 422,
-  },
-  [NcErrorType.RECORD_NOT_FOUND]: {
-    message: 'Record with id ?? not found',
-    code: 404,
   },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
     message: 'Invalid shared view password',
@@ -589,8 +603,36 @@ export class NcError {
     throw new NcBaseErrorv2(NcErrorType.API_TOKEN_NOT_ALLOWED, args);
   }
 
+  static workspaceNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.WORKSPACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static baseNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static sourceNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.SOURCE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   static tableNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static userNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.USER_NOT_FOUND, {
       params: id,
       ...args,
     });

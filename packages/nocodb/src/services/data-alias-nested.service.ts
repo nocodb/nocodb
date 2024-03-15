@@ -22,7 +22,7 @@ export class DataAliasNestedService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -69,7 +69,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -111,7 +111,7 @@ export class DataAliasNestedService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -153,7 +153,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -197,7 +197,7 @@ export class DataAliasNestedService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -243,7 +243,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -275,7 +275,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 

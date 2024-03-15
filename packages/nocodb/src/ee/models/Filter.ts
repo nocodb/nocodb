@@ -59,7 +59,7 @@ export default class Filter extends FilterCE implements FilterType {
       } else if (filter.fk_column_id) {
         model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
       } else {
-        NcError.badRequest('Invalid filter');
+        NcError.invalidFilter(JSON.stringify(filter));
       }
       // TODO: consider to imporve this logic
       // currently this null check is done because filters for Dashboard Widgets do not have a base_id and source_id atm

@@ -243,11 +243,11 @@ export class WorkspacesService implements OnApplicationBootstrap {
   }) {
     const user = await User.get(param.user.id);
 
-    if (!user) NcError.notFound('User not found');
+    if (!user) NcError.userNotFound(param.user.id);
 
     const workspace = await Workspace.get(param.workspace.id);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(param.workspace.id);
 
     const oldWorkspaceOwnerId = workspace.fk_user_id;
 
@@ -376,7 +376,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   }) {
     const workspace = await Workspace.get(param.workspaceId);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
     const limits = getLimitsForPlan(workspace.plan);
 
@@ -402,10 +402,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
   }) {
     const workspace = await Workspace.get(param.workspaceId);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
     if (workspace.plan === WorkspacePlan.BUSINESS) {
-      NcError.notFound('Workspace is already upgraded');
+      NcError.internalServerError('Workspace is already upgraded');
     }
 
     if (process.env.NC_DISABLE_MUX === 'true') {
@@ -437,7 +437,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     const existingWorkspace = await Workspace.get(param.workspaceId);
 
-    if (!existingWorkspace) NcError.badRequest('Workspace not found');
+    if (!existingWorkspace) NcError.workspaceNotFound(param.workspaceId);
 
     if ('order' in workspace) {
       existingWorkspace.order = workspace.order;
@@ -473,7 +473,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
   async delete(param: { user: UserType; workspaceId: string; req: NcRequest }) {
     const workspace = await Workspace.get(param.workspaceId);
 
-    if (!workspace) NcError.badRequest('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
     // todo: avoid removing owner
 
@@ -597,7 +597,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       this.logger.log('MessageID is ' + data.MessageId);
     } catch (err) {
       this.logger.error(err.message, err.stack);
-      NcError.internalServerError('Error while upgrading workspace');
+      NcError.internalServerError('There was an error while sending the workspace upgrade request');
     }
   }
 

@@ -24,7 +24,7 @@ export class ModelVisibilitiesService {
     const base = await Base.getWithInfo(param.baseId);
 
     if (!base) {
-      NcError.badRequest('Base not found');
+      NcError.baseNotFound(param.baseId);
     }
 
     for (const d of param.visibilityRule) {

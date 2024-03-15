@@ -96,7 +96,7 @@ export class CommandPaletteService {
         }
 
         if (!workspace) {
-          NcError.notFound('Workspace not found!');
+          NcError.workspaceNotFound(data.workspace_id);
         }
         const allBases = [];
 

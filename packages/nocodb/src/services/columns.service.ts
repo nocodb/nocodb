@@ -2867,7 +2867,7 @@ export class ColumnsService {
     });
 
     if (!table) {
-      NcError.badRequest('Table not found');
+      NcError.tableNotFound(tableId);
     }
 
     const columns = await table.getColumns();
@@ -2895,7 +2895,7 @@ export class ColumnsService {
     });
 
     if (!table) {
-      NcError.badRequest('Table not found');
+      NcError.tableNotFound(tableId);
     }
 
     const columns = await table.getColumns();
@@ -2909,13 +2909,13 @@ export class ColumnsService {
     const source = await Source.get(table.source_id);
 
     if (!source) {
-      NcError.badRequest('Source not found');
+      NcError.sourceNotFound(table.source_id);
     }
 
     const base = await source.getProject();
 
     if (!base) {
-      NcError.badRequest('Base not found');
+      NcError.baseNotFound(source.base_id);
     }
 
     const dbDriver = await NcConnectionMgrv2.get(source);

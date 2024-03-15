@@ -78,7 +78,7 @@ export class KanbansService {
     const view = await View.get(param.kanbanViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.kanbanViewId);
     }
 
     const res = await KanbanView.update(param.kanbanViewId, param.kanban);

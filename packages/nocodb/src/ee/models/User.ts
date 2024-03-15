@@ -371,7 +371,7 @@ export default class User extends UserCE implements UserType {
   ) {
     const user = args.user ?? (await this.get(userId, ncMeta));
 
-    if (!user) NcError.badRequest('User not found');
+    if (!user) NcError.userNotFound(userId);
 
     const [workspaceRoles, baseRoles] = await Promise.all([
       // extract workspace evel roles
@@ -425,7 +425,7 @@ export default class User extends UserCE implements UserType {
 
   protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
     const user = await this.get(userId, ncMeta);
-    if (!user) NcError.badRequest('User not found');
+    if (!user) NcError.userNotFound(userId);
 
     const bases = await BaseUser.getProjectsList(userId, {}, ncMeta);
 

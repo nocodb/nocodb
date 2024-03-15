@@ -246,7 +246,7 @@ export default class User implements UserType {
 
     const user = await this.get(userId, ncMeta);
 
-    if (!user) NcError.badRequest('User not found');
+    if (!user) NcError.userNotFound(userId);
 
     // clear all user related cache
     await this.clearCache(userId, ncMeta);
@@ -264,7 +264,7 @@ export default class User implements UserType {
   ) {
     const user = args.user ?? (await this.get(userId, ncMeta));
 
-    if (!user) NcError.badRequest('User not found');
+    if (!user) NcError.userNotFound(userId);
 
     const baseRoles = await new Promise((resolve) => {
       if (args.baseId) {
@@ -292,7 +292,7 @@ export default class User implements UserType {
 
   protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
     const user = await this.get(userId, ncMeta);
-    if (!user) NcError.badRequest('User not found');
+    if (!user) NcError.userNotFound(userId);
 
     const bases = await BaseUser.getProjectsList(userId, {}, ncMeta);
 

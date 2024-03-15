@@ -9,7 +9,7 @@ export class ApiDocsService {
   async swaggerJson(param: { baseId: string; siteUrl: string }) {
     const base = await Base.get(param.baseId);
 
-    if (!base) NcError.notFound();
+    if (!base) NcError.baseNotFound(param.baseId);
 
     const models = await Model.list({
       base_id: param.baseId,
@@ -38,7 +38,7 @@ export class ApiDocsService {
   async swaggerJsonV2(param: { baseId: string; siteUrl: string }) {
     const base = await Base.get(param.baseId);
 
-    if (!base) NcError.notFound();
+    if (!base) NcError.baseNotFound(param.baseId);
 
     const models = await Model.list({
       base_id: param.baseId,

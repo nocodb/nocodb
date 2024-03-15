@@ -23,7 +23,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
 
     const view = await View.get(viewId);
 
-    if (!view) NcError.notFound('View not found');
+    if (!view) NcError.viewNotFound(viewId);
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 

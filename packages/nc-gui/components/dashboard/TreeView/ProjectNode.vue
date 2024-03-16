@@ -766,7 +766,7 @@ const projectDelete = () => {
             </div>
           </NcMenuItem>
           <NcDivider />
-          <NcMenuItem v-if="isUIAllowed('table-delete')" class="!hover:bg-red-50" @click="tableDelete">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" class="!hover:bg-red-50" @click="tableDelete">
             <div class="nc-base-option-item flex gap-2 items-center text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

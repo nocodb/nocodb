@@ -23,7 +23,7 @@ const activeTab = ref<'base' | 'view'>('base')
 const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
 
-const highlightStyle = ref({ top: '4px' })
+const highlightStyle = ref({ top: isViewToolbar ? '160px' : '4px' })
 
 watch(showShareModal, (val) => {
   if (!val) {
@@ -74,7 +74,7 @@ watch(activeTab, () => {
           <div
             data-testid="nc-share-base-tab"
             :class="{ 'nc-share-active': activeTab === 'base' }"
-            class="flex flex-col z-1 text-gray-600 font-semibold items-center rounded-lg w-full justify-center h-1/2"
+            class="flex flex-col z-1 text-gray-600 items-center rounded-lg w-full justify-center h-1/2"
             @click="activeTab = 'base'"
           >
             <GeneralProjectIcon
@@ -86,15 +86,21 @@ watch(activeTab, () => {
               :style="{
                 filter: activeTab !== 'base' ? 'grayscale(100%) brightness(115%)' : '',
               }"
-              class="nc-view-icon transition-all w-6 h-6 group-hover"
+              class="nc-view-icon transition-all w-8 h-8 group-hover"
             />
-
-            Base
+            <span
+              :class="{
+                'font-semibold': activeTab === 'base',
+              }"
+              class="text-base"
+            >
+              Base
+            </span>
           </div>
           <div
             :class="{ 'nc-share-active': activeTab === 'view' }"
             data-testid="nc-share-view-tab"
-            class="flex flex-col items-center text-gray-600 font-semibold z-1 w-full cursor-pointer rounded-lg justify-center h-1/2"
+            class="flex flex-col items-center text-gray-600 z-1 w-full cursor-pointer rounded-lg justify-center h-1/2"
             @click="activeTab = 'view'"
           >
             <component
@@ -103,9 +109,16 @@ watch(activeTab, () => {
                 'text-gray-500': activeTab !== 'view',
               }"
               :style="{ color: activeTab === 'view' ? viewIcons[view?.type]?.color : '' }"
-              class="nc-view-icon transition-all !text-2xl group-hover"
+              class="nc-view-icon transition-all !text-[32px] group-hover"
             />
-            View
+            <span
+              :class="{
+                'font-semibold': activeTab === 'view',
+              }"
+              class="text-base"
+            >
+              View
+            </span>
           </div>
         </div>
         <div class="flex flex-1 h-full flex-col">

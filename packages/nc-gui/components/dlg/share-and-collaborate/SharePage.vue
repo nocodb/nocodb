@@ -352,8 +352,7 @@ const openManageAccess = async () => {
           <NcSelect v-model:value="selectedViewId" class="w-48" size="medium">
             <a-select-option v-for="view in viewsInTable" :key="view.id" :value="view.id">
               <div class="flex items-center w-full justify-between w-full gap-2">
-                <GeneralViewIcon :meta="view" class="!text-md" />
-
+                <GeneralViewIcon :meta="view" class="!text-md mt-0.5" />
                 <span class="truncate !w-36 flex-1 capitalize">{{ view.title }}</span>
                 <component
                   :is="iconMap.check"
@@ -378,8 +377,8 @@ const openManageAccess = async () => {
       </div>
 
       <div v-if="isPublicShared" class="space-y-3">
-        <GeneralCopyUrl v-model:url="url" class="w-136" />
-        <div class="flex items-center justify-between">
+        <GeneralCopyUrl v-model:url="url" class="w-138" />
+        <div class="flex items-center h-8 justify-between">
           <div class="flex flex-row gap-3 items-center">
             <a-switch
               v-e="['c:share:view:password:toggle']"
@@ -435,7 +434,7 @@ const openManageAccess = async () => {
             </div>
             <NcTooltip>
               <template #title>{{ $t('tooltip.surveyFormInfo') }} </template>
-              <component :is="iconMap.info" />
+              <component :is="iconMap.info" class="text-gray-700" />
             </NcTooltip>
           </div>
 
@@ -449,7 +448,7 @@ const openManageAccess = async () => {
             </a-switch>
             <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
           </div>
-          <div class="flex items-center justify-between">
+          <div class="flex items-center h-8 justify-between">
             <div class="flex items-center gap-3">
               <a-switch
                 v-e="['c:share:view:surver-mode:toggle']"
@@ -476,7 +475,6 @@ const openManageAccess = async () => {
                 >
                   <div class="flex items-center w-full justify-between w-full gap-2">
                     <div class="truncate flex-1 capitalize">{{ op.label }}</div>
-
                     <component
                       :is="iconMap.check"
                       v-if="formPreFill.preFilledMode === op.value"
@@ -489,7 +487,7 @@ const openManageAccess = async () => {
             </div>
             <NcTooltip>
               <template #title>{{ $t('tooltip.preFillFormInfo') }} </template>
-              <component :is="iconMap.info" />
+              <component :is="iconMap.info" class="text-gray-700" />
             </NcTooltip>
           </div>
         </template>

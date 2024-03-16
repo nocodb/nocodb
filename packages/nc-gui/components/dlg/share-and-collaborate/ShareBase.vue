@@ -418,7 +418,7 @@ onMounted(() => {
             </div>
             <NcTooltip>
               <template #title>{{ $t('labels.enterMultipleEmails') }} </template>
-              <component :is="iconMap.info" />
+              <component :is="iconMap.info" class="text-gray-700" />
             </NcTooltip>
           </div>
           <div class="flex flex-col">
@@ -472,8 +472,11 @@ onMounted(() => {
         </template>
         <div class="border-1 my-4 p-3 border-1 space-y-3 border-gray-200 rounded-lg">
           <div class="flex flex-row items-center w-full">
-            <div class="flex text-gray-700 !w-full font-medium items-center gap-2 px-2">
-              {{ $t('activity.enablePublicAccess') }}
+            <div class="flex text-gray-700 !w-full items-center gap-2 px-2">
+              <span class="font-medium">
+                {{ $t('activity.enablePublicAccess') }}
+              </span>
+
               <span class="flex items-center py-1 px-2 h-[1.75rem] gap-2 border-1 rounded-lg border-gray-200 text-md">
                 <GeneralProjectIcon
                   :color="parseProp(base.meta).iconColor"

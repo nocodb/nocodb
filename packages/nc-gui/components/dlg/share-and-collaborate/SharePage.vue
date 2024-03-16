@@ -424,13 +424,14 @@ const openManageAccess = async () => {
             >
               <a-select-option
                 v-for="op of Object.values(PreFilledMode).map((v) => {
-                  return { label: v, value: v }
+                  return { label: $t(`activity.preFilledFields.${v}`), value: v }
                 })"
                 :key="op.value"
                 :value="op.value"
               >
                 <div class="flex items-center w-full justify-between w-full gap-2">
-                  <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                  <div class="truncate flex-1 capitalize">{{ op.label }}</div>
+
                   <component
                     :is="iconMap.check"
                     v-if="formPreFill.preFilledMode === op.value"

@@ -39,7 +39,7 @@ const copyUrl = async () => {
     <div class="flex flex-row block flex-1 overflow-hidden pl-3 cursor-pointer" @click="copyUrl">
       <div class="overflow-hidden whitespace-nowrap truncate text-gray-500">{{ url }}</div>
     </div>
-    <div class="flex flex-row gap-x-1">
+    <div class="flex !text-gray-700 flex-row gap-x-1">
       <NcTooltip>
         <template #title>
           {{ $t('activity.openInANewTab') }}

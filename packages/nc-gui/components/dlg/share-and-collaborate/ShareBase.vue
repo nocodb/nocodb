@@ -154,6 +154,15 @@ const focusOnDiv = () => {
   isDivFocused.value = true
 }
 
+const isInviteButtonDisabled = computed(() => {
+  if (!emailBadges.value.length && !singleEmailValue.value.length) {
+    return true
+  }
+  if (emailBadges.value.length && inviteData.email) {
+    return true
+  }
+})
+
 // remove one email per backspace
 onKeyStroke('Backspace', () => {
   if (isDivFocused.value && inviteData.email.length < 1) {
@@ -376,19 +385,37 @@ onMounted(() => {
 
         <div class="my-4 space-y-3">
           <div class="flex justify-between items-center">
-            <div class="gap-3 flex items-center">
-              <span class="text-gray-500"> Invite with access level: </span>
+            <div class="gap-2 flex items-center text-gray-500">
+              <span> {{ $t('activity.invite') }} </span>
               <RolesSelector
                 :description="false"
                 :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
                 :role="inviteData.roles"
                 :roles="allowedRoles"
-                class="px-1 max-w-18 nc-invite-role-selector"
+                class="px-1 !min-w-[152px] nc-invite-role-selector"
                 size="md"
               />
+              <span>
+                {{ $t('activity.toBase') }}
+              </span>
+              <span class="flex text-gray-600 items-center py-1 px-2 gap-2 border-1 rounded-lg border-gray-200 text-md">
+                <GeneralProjectIcon
+                  :color="parseProp(base.meta).iconColor"
+                  :type="base.type"
+                  class="nc-view-icon w-4 h-4 group-hover"
+                />
+                <span class="max-w-72 truncate">
+                  <NcTooltip show-on-truncate-only>
+                    <template #title> {{ base.title }} </template>
+                    <span class="ellipsis max-w-64">
+                      {{ base.title }}
+                    </span>
+                  </NcTooltip>
+                </span>
+              </span>
             </div>
             <NcTooltip>
-              <template #title> Enter multiple emails by using commas to separated them... </template>
+              <template #title>{{ $t('labels.enterMultipleEmails') }} </template>
               <component :is="iconMap.info" />
             </NcTooltip>
           </div>
@@ -498,8 +525,8 @@ onMounted(() => {
       <NcButton type="secondary" @click="openManageAccess">
         {{ $t('activity.manageAccess') }}
       </NcButton>
-      <NcButton v-if="openedBaseShareTab === 'members'" @click="inviteProjectCollaborator">
-        {{ $t('activity.inviteUsers') }}
+      <NcButton v-if="openedBaseShareTab === 'members'" :disabled="isInviteButtonDisabled" @click="inviteProjectCollaborator">
+        {{ $t('activity.inviteMembers') }}
       </NcButton>
       <NcButton v-else-if="openedBaseShareTab === 'public'" type="secondary" @click="showShareModal = false">
         {{ $t('general.finish') }}
@@ -509,10 +536,13 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+:deep(.nc-invite-role-selector .nc-role-badge) {
+  @apply w-full;
+}
 .tab {
   @apply flex flex-row items-center gap-x-2;
 }
-.ant-tabs-nav {
+.nc-tabs .ant-tabs-nav {
   @apply !pl-0;
 }
 
@@ -526,9 +556,5 @@ onMounted(() => {
 
 .ant-tabs-content-top {
   @apply !h-full;
-}
-
-.ant-tabs-tab {
-  @apply py-1;
 }
 </style>

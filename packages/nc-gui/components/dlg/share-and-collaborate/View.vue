@@ -48,20 +48,16 @@ watch(activeTab, () => {
 </script>
 
 <template>
-  <a-modal
+  <NcModal
     v-model:visible="showShareModal"
     class="!top-[1%]"
+    :centered="false"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
-    :closable="false"
     :mask-closable="formStatus !== 'base-collaborateSaving'"
-    :ok-button-props="{ hidden: true } as any"
-    :cancel-button-props="{ hidden: true } as any"
-    :footer="null"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '48rem'"
-    height="28rem"
   >
-    <div class="flex flex-col gap-6 p-6">
+    <div class="flex flex-col gap-6">
       <div class="flex text-2xl font-bold">{{ $t('activity.share') }}</div>
       <div class="flex flex-1 gap-3">
         <div v-if="isViewToolbar" class="flex relative flex-col flex-grow-1 cursor-pointer p-1 w-32 rounded-lg h-80 bg-gray-200">
@@ -110,7 +106,7 @@ watch(activeTab, () => {
         </div>
       </div>
     </div>
-  </a-modal>
+  </NcModal>
 </template>
 
 <style lang="scss" scoped>
@@ -136,6 +132,10 @@ watch(activeTab, () => {
 .nc-modal-share-collaborate {
   .ant-modal {
     top: 10vh !important;
+  }
+
+  .ant-modal-content {
+    @apply !rounded-2xl;
   }
 
   .share-view,

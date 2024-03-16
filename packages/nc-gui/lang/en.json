@@ -433,6 +433,7 @@
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
+    "enterMultipleEmails": "Enter multiple E-mails by using commas to separate them",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -703,6 +704,7 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "toBase": "to base",
     "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
@@ -802,6 +804,7 @@
     "invite": "Invite",
     "inviteMore": "Invite more",
     "inviteTeam": "Invite Team",
+    "inviteMembers": "Invite Member(s)",
     "inviteUsers": "Invite User(s)",
     "inviteUser": "Invite User",
     "inviteToken": "Invite Token",

@@ -334,6 +334,7 @@ const openManageAccess = async () => {
         </div>
         <a-switch
           v-e="['c:share:view:enable:toggle']"
+          size="small"
           :checked="isPublicShared"
           :disabled="isLocked"
           :loading="isUpdating.public"
@@ -358,10 +359,10 @@ const openManageAccess = async () => {
           <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
         </div>
         <div v-if="passwordProtected" class="flex gap-2 mt-2">
-          <a-input
+          <a-input-password
             v-model:value="password"
             :placeholder="$t('placeholder.password.enter')"
-            class="!rounded-lg !focus:border-brand-500 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
+            class="!rounded-lg !focus:border-brand-500 ml-10 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
             data-testid="nc-modal-share-view__password"
             size="small"
             type="password"
@@ -386,20 +387,21 @@ const openManageAccess = async () => {
         </div>
 
         <template v-if="activeView?.type === ViewTypes.FORM">
-          <div class="flex flex-row items-center gap-3">
-            <a-switch
-              v-model:checked="surveyMode"
-              v-e="['c:share:view:surver-mode:toggle']"
-              data-testid="nc-modal-share-view__surveyMode"
-              size="small"
-            >
-            </a-switch>
-            <div class="text-black flex items-center space-x-1">
-              <NcTooltip>
-                <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
-                {{ $t('activity.surveyMode') }}
-              </NcTooltip>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <a-switch
+                v-model:checked="surveyMode"
+                v-e="['c:share:view:surver-mode:toggle']"
+                data-testid="nc-modal-share-view__surveyMode"
+                size="small"
+              >
+              </a-switch>
+              {{ $t('activity.surveyMode') }}
             </div>
+            <NcTooltip>
+              <template #title>{{ $t('tooltip.surveyFormInfo') }} </template>
+              <component :is="iconMap.info" />
+            </NcTooltip>
           </div>
 
           <div v-if="!isEeUI" class="flex flex-row items-center gap-3">
@@ -412,42 +414,48 @@ const openManageAccess = async () => {
             </a-switch>
             <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
           </div>
-          <div class="flex flex-row items-center gap-3">
-            <a-switch
-              v-e="['c:share:view:surver-mode:toggle']"
-              :checked="formPreFill.preFillEnabled"
-              data-testid="nc-modal-share-view__preFill"
-              size="small"
-              @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
-            >
-            </a-switch>
-            {{ $t('activity.preFilledFields.title') }}
-
-            <NcSelect
-              v-if="formPreFill.preFillEnabled"
-              v-model:value="formPreFill.preFilledMode"
-              class="w-48"
-              @change="handleChangeFormPreFill"
-            >
-              <a-select-option
-                v-for="op of Object.values(PreFilledMode).map((v) => {
-                  return { label: $t(`activity.preFilledFields.${v}`), value: v }
-                })"
-                :key="op.value"
-                :value="op.value"
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <a-switch
+                v-e="['c:share:view:surver-mode:toggle']"
+                :checked="formPreFill.preFillEnabled"
+                data-testid="nc-modal-share-view__preFill"
+                size="small"
+                @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
               >
-                <div class="flex items-center w-full justify-between w-full gap-2">
-                  <div class="truncate flex-1 capitalize">{{ op.label }}</div>
+              </a-switch>
+              {{ $t('activity.preFilledFields.title') }}
 
-                  <component
-                    :is="iconMap.check"
-                    v-if="formPreFill.preFilledMode === op.value"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
+              <NcSelect
+                v-if="formPreFill.preFillEnabled"
+                v-model:value="formPreFill.preFilledMode"
+                class="w-48"
+                @change="handleChangeFormPreFill"
+              >
+                <a-select-option
+                  v-for="op of Object.values(PreFilledMode).map((v) => {
+                    return { label: $t(`activity.preFilledFields.${v}`), value: v }
+                  })"
+                  :key="op.value"
+                  :value="op.value"
+                >
+                  <div class="flex items-center w-full justify-between w-full gap-2">
+                    <div class="truncate flex-1 capitalize">{{ op.label }}</div>
+
+                    <component
+                      :is="iconMap.check"
+                      v-if="formPreFill.preFilledMode === op.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </div>
+            <NcTooltip>
+              <template #title>{{ $t('tooltip.preFillFormInfo') }} </template>
+              <component :is="iconMap.info" />
+            </NcTooltip>
           </div>
         </template>
       </div>

@@ -433,6 +433,7 @@
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
+    "enterMultipleEmails": "Enter multiple E-mails by using commas to separate them",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -703,6 +704,9 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "inviteAs": "Invite as",
+    "toBase": "to base",
+    "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -737,7 +741,7 @@
     "outOfSync": "동기화되지 않음",
     "newSource": "새로운 데이터 소스",
     "newWebhook": "새 웹훅",
-    "enablePublicAccess": "전체 공개",
+    "enablePublicAccess": "Enable Public Viewing",
     "doYouWantToSaveTheChanges": "바뀐 내용을 저장할까요?",
     "editingAccess": "수정 권한",
     "enabledPublicViewing": "Enable Public Viewing",
@@ -801,6 +805,8 @@
     "invite": "초대",
     "inviteMore": "더 많은 사람 초대",
     "inviteTeam": "팀 초대",
+    "inviteMembers": "Invite Member(s)",
+    "inviteUsers": "Invite User(s)",
     "inviteUser": "사용자 초대",
     "inviteToken": "초대 토큰",
     "linkedRecords": "연결된 레코드",

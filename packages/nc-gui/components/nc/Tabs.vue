@@ -43,7 +43,7 @@ const props = defineProps<{
   }
 
   .ant-tabs-nav {
-    @apply pl-2.5 mb-0;
+    @apply mb-0;
   }
 
   .ant-tabs-ink-bar {

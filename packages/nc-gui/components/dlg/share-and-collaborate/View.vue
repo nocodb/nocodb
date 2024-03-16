@@ -68,6 +68,7 @@ watch(activeTab, () => {
           <div :style="highlightStyle" class="highlight"></div>
 
           <div
+            data-testid="nc-share-base-tab"
             :class="{ 'nc-share-active': activeTab === 'base' }"
             class="flex flex-col z-1 text-gray-600 font-semibold items-center rounded-lg w-full justify-center h-1/2"
             @click="activeTab = 'base'"
@@ -81,6 +82,7 @@ watch(activeTab, () => {
           </div>
           <div
             :class="{ 'nc-share-active': activeTab === 'view' }"
+            data-testid="nc-share-view-tab"
             class="flex flex-col items-center text-gray-600 font-semibold z-1 w-full cursor-pointer rounded-lg justify-center h-1/2"
             @click="activeTab = 'view'"
           >

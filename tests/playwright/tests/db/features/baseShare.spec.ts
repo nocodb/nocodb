@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../../../pages/LoginPage';
-import { getDefaultPwd } from '../../../tests/utils/general';
+import { getDefaultPwd } from '../../utils/general';
 import { isEE } from '../../../setup/db';
 
 // To be enabled after shared base is implemented
@@ -62,9 +62,6 @@ test.describe('Shared base', () => {
   });
 
   test('#1', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     let url = '';
     // share button visible only if a table is opened
     await dashboard.treeView.openTable({ title: 'Country' });

@@ -325,7 +325,7 @@ const openManageAccess = async () => {
             {{ activeView.title }}
           </div>
         </div>
-        <NcSwitch
+        <a-switch
           v-e="['c:share:view:enable:toggle']"
           :checked="isPublicShared"
           :disabled="isLocked"
@@ -339,7 +339,7 @@ const openManageAccess = async () => {
       <div v-if="isPublicShared" class="space-y-3">
         <GeneralCopyUrl v-model:url="url" class="w-136" />
         <div class="flex flex-row gap-3 items-center">
-          <NcSwitch
+          <a-switch
             v-e="['c:share:view:password:toggle']"
             :checked="passwordProtected"
             :loading="isUpdating.password"
@@ -367,7 +367,7 @@ const openManageAccess = async () => {
           "
           class="flex flex-row items-center gap-3"
         >
-          <NcSwitch
+          <a-switch
             v-model:checked="allowCSVDownload"
             v-e="['c:share:view:allow-csv-download:toggle']"
             :loading="isUpdating.download"
@@ -380,13 +380,13 @@ const openManageAccess = async () => {
 
         <template v-if="activeView?.type === ViewTypes.FORM">
           <div class="flex flex-row items-center gap-3">
-            <NcSwitch
+            <a-switch
               v-model:checked="surveyMode"
               v-e="['c:share:view:surver-mode:toggle']"
               data-testid="nc-modal-share-view__surveyMode"
               size="small"
             >
-            </NcSwitch>
+            </a-switch>
             <div class="text-black flex items-center space-x-1">
               <NcTooltip>
                 <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
@@ -396,24 +396,24 @@ const openManageAccess = async () => {
           </div>
 
           <div v-if="!isEeUI" class="flex flex-row items-center gap-3">
-            <NcSwitch
+            <a-switch
               v-model:checked="withRTL"
               v-e="['c:share:view:rtl-orientation:toggle']"
               data-testid="nc-modal-share-view__RTL"
               size="small"
             >
-            </NcSwitch>
+            </a-switch>
             <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
           </div>
           <div class="flex flex-row items-center gap-3">
-            <NcSwitch
+            <a-switch
               v-e="['c:share:view:surver-mode:toggle']"
               :checked="formPreFill.preFillEnabled"
               data-testid="nc-modal-share-view__preFill"
               size="small"
               @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
             >
-            </NcSwitch>
+            </a-switch>
             {{ $t('activity.preFilledFields.title') }}
 
             <NcSelect

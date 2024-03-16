@@ -248,8 +248,6 @@ const onPaste = (e: ClipboardEvent) => {
     inputArray[0] = inviteData.email += inputArray[0]
   }
 
-  console.log(inputArray)
-
   inputArray?.forEach((el) => {
     const isEmailIsValid = emailInputValidation(el)
 
@@ -325,7 +323,7 @@ const openManageAccess = async () => {
     <NcTabs v-model:activeKey="openedBaseShareTab" class="nc-base-share-tab h-full" size="small">
       <a-tab-pane key="members">
         <template #tab>
-          <div class="tab">
+          <div class="tab" data-testid="nc-base-share-member">
             <GeneralIcon :class="{}" class="tab-icon" icon="user" />
             <div class="text-xs">Add Members</div>
           </div>
@@ -393,7 +391,7 @@ const openManageAccess = async () => {
 
       <a-tab-pane key="public">
         <template #tab>
-          <div class="tab">
+          <div class="tab" data-testid="nc-base-share-public">
             <MaterialSymbolsPublic />
             <div class="text-xs">Share Publicly</div>
           </div>

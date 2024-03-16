@@ -98,7 +98,7 @@ watch(activeTab, () => {
           </div>
         </div>
         <div class="flex flex-1 h-full flex-col">
-          <LazyDlgShareAndCollaborateShareBase v-if="activeTab === 'base'" />
+          <LazyDlgShareAndCollaborateShareBase v-if="activeTab === 'base'" :is-view="isViewToolbar" />
           <LazyDlgShareAndCollaborateSharePage v-else-if="activeTab === 'view'" />
         </div>
       </div>

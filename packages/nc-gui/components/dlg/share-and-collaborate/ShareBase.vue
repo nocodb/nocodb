@@ -21,6 +21,13 @@ interface ShareBase {
   role?: string
 }
 
+const props = defineProps({
+  isView: {
+    type: Boolean,
+    default: false,
+  },
+})
+
 enum ShareBaseRole {
   Editor = 'editor',
   Viewer = 'viewer',
@@ -102,6 +109,7 @@ const disableSharedBase = async () => {
 
 const isSharedBaseEnabled = computed(() => !!sharedBase.value?.uuid)
 const isToggleBaseLoading = ref(false)
+const isRoleToggleLoading = ref(false)
 
 const toggleSharedBase = async () => {
   if (isToggleBaseLoading.value) return
@@ -199,6 +207,37 @@ const handleEnter = () => {
   inviteData.email += ' '
   emailValidation.isError = false
   emailValidation.message = ''
+}
+
+const loadBase = async () => {
+  try {
+    if (!base.value.id) return
+    const res = await $api.base.sharedBaseGet(base.value.id)
+    sharedBase.value = {
+      uuid: res.uuid,
+      url: res.url,
+      role: res.roles,
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const onRoleToggle = async () => {
+  if (!sharedBase.value) return
+  if (isRoleToggleLoading.value) return
+  isRoleToggleLoading.value = true
+  try {
+    if (sharedBase.value.role === ShareBaseRole.Viewer) {
+      await createShareBase(ShareBaseRole.Editor)
+    } else {
+      await createShareBase(ShareBaseRole.Viewer)
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isRoleToggleLoading.value = false
+  }
 }
 
 const inviteProjectCollaborator = async () => {
@@ -316,6 +355,12 @@ const openManageAccess = async () => {
     message.error('Failed to open manage access')
   }
 }
+
+onMounted(() => {
+  if (!sharedBase.value) {
+    loadBase()
+  }
+})
 </script>
 
 <template>
@@ -416,7 +461,26 @@ const openManageAccess = async () => {
               @change="toggleSharedBase"
             />
           </div>
-          <GeneralCopyUrl v-if="isSharedBaseEnabled" v-model:url="url" class="w-135" />
+          <div v-if="isSharedBaseEnabled" class="space-y-3">
+            <GeneralCopyUrl
+              v-model:url="url"
+              :class="{
+                'w-135': props.isView,
+              }"
+            />
+            <div v-if="!appInfo.ee" class="flex flex-row gap-3 items-center">
+              <a-switch
+                v-e="['c:share:base:role:toggle']"
+                :checked="sharedBase?.role === ShareBaseRole.Editor"
+                :loading="isRoleToggleLoading"
+                class="share-editor-toggle !mt-0.25"
+                data-testid="share-password-toggle"
+                size="small"
+                @click="onRoleToggle"
+              />
+              <div class="flex text-black">{{ $t('activity.editingAccess') }}</div>
+            </div>
+          </div>
         </div>
       </a-tab-pane>
     </NcTabs>

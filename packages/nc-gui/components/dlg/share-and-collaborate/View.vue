@@ -64,7 +64,7 @@ watch(activeTab, () => {
     <div class="flex flex-col gap-6 p-6">
       <div class="flex text-2xl font-bold">{{ $t('activity.share') }}</div>
       <div class="flex flex-1 gap-3">
-        <div class="flex relative flex-col flex-grow-1 cursor-pointer p-1 w-32 rounded-lg h-80 bg-gray-200">
+        <div v-if="isViewToolbar" class="flex relative flex-col flex-grow-1 cursor-pointer p-1 w-32 rounded-lg h-80 bg-gray-200">
           <div :style="highlightStyle" class="highlight"></div>
 
           <div

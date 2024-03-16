@@ -33,6 +33,12 @@ watch(showShareModal, (val) => {
   }
 })
 
+watch(showShareModal, () => {
+  if (isViewToolbar && view.value) {
+    activeTab.value = 'view'
+  }
+})
+
 const updateHighlightPosition = () => {
   nextTick(() => {
     const activeTab = document.querySelector('.nc-share-active') as HTMLElement
@@ -50,7 +56,6 @@ watch(activeTab, () => {
 <template>
   <NcModal
     v-model:visible="showShareModal"
-    class="!top-[1%]"
     :centered="false"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
@@ -60,7 +65,10 @@ watch(activeTab, () => {
     <div class="flex flex-col gap-6">
       <div class="flex text-2xl font-bold">{{ $t('activity.share') }}</div>
       <div class="flex flex-1 gap-3">
-        <div v-if="isViewToolbar" class="flex relative flex-col flex-grow-1 cursor-pointer p-1 w-32 rounded-lg h-80 bg-gray-200">
+        <div
+          v-if="isViewToolbar"
+          class="flex relative flex-col flex-grow-1 cursor-pointer p-1 w-32 rounded-[10px] h-80 bg-gray-200"
+        >
           <div :style="highlightStyle" class="highlight"></div>
 
           <div
@@ -126,16 +134,14 @@ watch(activeTab, () => {
 .ant-collapse {
   @apply !bg-white !border-0;
 }
-</style>
 
-<style lang="scss">
 .nc-modal-share-collaborate {
-  .ant-modal {
-    top: 10vh !important;
-  }
-
   .ant-modal-content {
     @apply !rounded-2xl;
+  }
+
+  .ant-modal {
+    top: 10vh !important;
   }
 
   .share-view,
@@ -153,10 +159,6 @@ watch(activeTab, () => {
 
   .ant-collapse-content-box {
     @apply !p-0;
-  }
-
-  .ant-modal-content {
-    @apply !rounded-lg !px-1 !py-2;
   }
 
   .ant-select-selector {

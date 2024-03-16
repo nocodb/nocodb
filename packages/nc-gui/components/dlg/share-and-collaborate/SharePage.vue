@@ -346,28 +346,30 @@ const openManageAccess = async () => {
 
       <div v-if="isPublicShared" class="space-y-3">
         <GeneralCopyUrl v-model:url="url" class="w-136" />
-        <div class="flex flex-row gap-3 items-center">
-          <a-switch
-            v-e="['c:share:view:password:toggle']"
-            :checked="passwordProtected"
-            :loading="isUpdating.password"
-            class="share-password-toggle !mt-0.25"
-            data-testid="share-password-toggle"
-            size="small"
-            @change="togglePasswordProtected"
-          />
-          <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
-        </div>
-        <div v-if="passwordProtected" class="flex gap-2 mt-2">
+        <div class="flex items-center justify-between">
+          <div class="flex flex-row gap-3 items-center">
+            <a-switch
+              v-e="['c:share:view:password:toggle']"
+              :checked="passwordProtected"
+              :loading="isUpdating.password"
+              class="share-password-toggle !mt-0.25"
+              data-testid="share-password-toggle"
+              size="small"
+              @change="togglePasswordProtected"
+            />
+            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
+          </div>
           <a-input-password
+            v-if="passwordProtected"
             v-model:value="password"
             :placeholder="$t('placeholder.password.enter')"
-            class="!rounded-lg !focus:border-brand-500 ml-10 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
+            class="!rounded-lg !focus:border-brand-500 !w-72 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
             data-testid="nc-modal-share-view__password"
             size="small"
             type="password"
           />
         </div>
+
         <div
           v-if="
             activeView &&
@@ -462,9 +464,6 @@ const openManageAccess = async () => {
     </div>
 
     <div class="flex gap-2 items-end justify-end">
-      <NcButton type="secondary" @click="showShareModal = false">
-        {{ $t('general.cancel') }}
-      </NcButton>
       <NcButton type="secondary" @click="openManageAccess">
         {{ $t('activity.manageAccess') }}
       </NcButton>

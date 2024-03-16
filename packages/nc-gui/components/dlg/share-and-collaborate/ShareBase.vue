@@ -398,7 +398,9 @@ onMounted(() => {
               <span>
                 {{ $t('activity.toBase') }}
               </span>
-              <span class="flex text-gray-600 items-center py-1 px-2 gap-2 border-1 rounded-lg border-gray-200 text-md">
+              <span
+                class="flex text-gray-600 items-center py-1 px-2 h-[1.75rem] gap-2 border-1 rounded-lg border-gray-200 text-md"
+              >
                 <GeneralProjectIcon
                   :color="parseProp(base.meta).iconColor"
                   :type="base.type"
@@ -472,7 +474,7 @@ onMounted(() => {
           <div class="flex flex-row items-center w-full">
             <div class="flex text-gray-700 !w-full font-medium items-center gap-2 px-2">
               {{ $t('activity.enablePublicAccess') }}
-              <span class="flex items-center p-2 gap-2 border-1 rounded-lg border-gray-200 text-xs">
+              <span class="flex items-center py-1 px-2 h-[1.75rem] gap-2 border-1 rounded-lg border-gray-200 text-md">
                 <GeneralProjectIcon
                   :color="parseProp(base.meta).iconColor"
                   :type="base.type"
@@ -519,7 +521,7 @@ onMounted(() => {
       </a-tab-pane>
     </NcTabs>
     <div class="flex gap-2 items-end justify-end">
-      <NcButton type="secondary" @click="showShareModal = false">
+      <NcButton v-if="openedBaseShareTab === 'members'" type="secondary" @click="showShareModal = false">
         {{ $t('general.cancel') }}
       </NcButton>
       <NcButton type="secondary" @click="openManageAccess">

@@ -2,6 +2,7 @@
 import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import { onKeyStroke } from '@vueuse/core'
 import {
+  type User,
   extractSdkResponseErrorMsg,
   message,
   onMounted,
@@ -29,17 +30,25 @@ const { dashboardUrl } = useDashboard()
 
 const { $api, $e } = useNuxtApp()
 
-const sharedBase = ref<null | ShareBase>(null)
-
-const { base } = storeToRefs(useBase())
-
 const { getBaseUrl, appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
 const baseStore = useBase()
 
+const basesStore = useBases()
+
+const { activeProjectId } = storeToRefs(basesStore)
+
+const { base } = storeToRefs(useBase())
+
 const { navigateToProjectPage } = baseStore
+
+const { createProjectUser } = basesStore
+
+const { baseRoles } = useRoles()
+
+const sharedBase = ref<null | ShareBase>(null)
 
 const { showShareModal } = storeToRefs(useShare())
 
@@ -56,22 +65,6 @@ const url = computed(() => {
   }
   return encodeURI(`${dashboardUrl1}#/base/${sharedBase.value.uuid}`)
 })
-
-const loadBase = async () => {
-  try {
-    if (!base.value.id) return
-
-    const res = await $api.base.sharedBaseGet(base.value.id)
-
-    sharedBase.value = {
-      uuid: res.uuid,
-      url: res.url,
-      role: res.roles,
-    }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
 
 const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
@@ -106,12 +99,6 @@ const disableSharedBase = async () => {
 
   $e('a:shared-base:disable')
 }
-
-onMounted(() => {
-  if (!sharedBase.value) {
-    loadBase()
-  }
-})
 
 const isSharedBaseEnabled = computed(() => !!sharedBase.value?.uuid)
 const isToggleBaseLoading = ref(false)
@@ -166,8 +153,6 @@ onKeyStroke('Backspace', () => {
   }
 })
 
-const { baseRoles } = useRoles()
-
 onMounted(async () => {
   try {
     const currentRoleIndex = OrderedProjectRoles.findIndex(
@@ -214,6 +199,32 @@ const handleEnter = () => {
   inviteData.email += ' '
   emailValidation.isError = false
   emailValidation.message = ''
+}
+
+const inviteProjectCollaborator = async () => {
+  try {
+    const payloadData = singleEmailValue.value || emailBadges.value.join(',')
+    if (!payloadData.includes(',')) {
+      const validationStatus = validateEmail(payloadData)
+      if (!validationStatus) {
+        emailValidation.isError = true
+        emailValidation.message = 'invalid email'
+      }
+    }
+    await createProjectUser(activeProjectId.value!, {
+      email: payloadData,
+      roles: inviteData.roles,
+    } as unknown as User)
+
+    message.success('Invitation sent successfully')
+    inviteData.email = ''
+    emailBadges.value = []
+    showShareModal.value = false
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    singleEmailValue.value = ''
+  }
 }
 
 const onPaste = (e: ClipboardEvent) => {
@@ -418,7 +429,7 @@ const openManageAccess = async () => {
       <NcButton type="secondary" @click="openManageAccess">
         {{ $t('activity.manageAccess') }}
       </NcButton>
-      <NcButton v-if="openedBaseShareTab === 'members'">
+      <NcButton v-if="openedBaseShareTab === 'members'" @click="inviteProjectCollaborator">
         {{ $t('activity.inviteUsers') }}
       </NcButton>
       <NcButton v-else-if="openedBaseShareTab === 'public'" type="secondary" @click="showShareModal = false">

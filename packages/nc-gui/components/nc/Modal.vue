@@ -8,6 +8,7 @@ const props = withDefaults(
     maskClosable?: boolean
     showSeparator?: boolean
     wrapClassName?: string
+    centered?: boolean
   }>(),
   {
     size: 'medium',
@@ -15,6 +16,7 @@ const props = withDefaults(
     maskClosable: true,
     showSeparator: true,
     wrapClassName: '',
+    centered: true,
   },
 )
 
@@ -86,7 +88,7 @@ const slots = useSlots()
     v-model:visible="visible"
     :class="{ active: visible }"
     :width="width"
-    :centered="true"
+    :centered="centered"
     :closable="false"
     :wrap-class-name="newWrapClassName"
     :footer="null"

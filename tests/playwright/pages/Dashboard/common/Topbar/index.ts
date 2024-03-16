@@ -36,7 +36,7 @@ export class TopbarPage extends BasePage {
 
   async getSharedViewUrl(surveyMode = false, password = '', download = false) {
     await this.clickShare();
-    // await this.share.clickShareView();
+    await this.share.clickShareView();
     await this.share.clickShareViewPublicAccess();
     await this.share.clickCopyLink();
     if (surveyMode) {
@@ -57,6 +57,9 @@ export class TopbarPage extends BasePage {
 
   async getSharedBaseUrl({ role, enableSharedBase }: { role: string; enableSharedBase: boolean }) {
     await this.clickShare();
+    await this.share.clickShareBase();
+    await this.share.switchBaseShareTab({ tab: 'public' });
+
     if (enableSharedBase) await this.share.clickShareBasePublicAccess();
 
     if (role === 'editor' && enableSharedBase) {

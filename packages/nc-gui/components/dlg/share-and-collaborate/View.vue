@@ -63,7 +63,7 @@ watch(activeTab, () => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '48rem'"
   >
     <div class="flex flex-col gap-6">
-      <div class="flex text-2xl font-bold">{{ $t('activity.share') }}</div>
+      <div class="flex text-xl font-bold">{{ $t('activity.share') }}</div>
       <div class="flex flex-1 gap-3">
         <div
           v-if="isViewToolbar"

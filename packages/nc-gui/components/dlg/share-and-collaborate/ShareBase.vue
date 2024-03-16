@@ -398,9 +398,7 @@ onMounted(() => {
               <span>
                 {{ $t('activity.toBase') }}
               </span>
-              <span
-                class="flex text-gray-600 items-center py-1 px-2 h-[1.75rem] gap-2 border-1 rounded-lg border-gray-200 text-md"
-              >
+              <span class="flex text-gray-600 items-center py-1 px-2 h-[1.75rem] gap-2 bg-gray-100 rounded-lg text-md">
                 <GeneralProjectIcon
                   :color="parseProp(base.meta).iconColor"
                   :type="base.type"
@@ -418,7 +416,7 @@ onMounted(() => {
             </div>
             <NcTooltip>
               <template #title>{{ $t('labels.enterMultipleEmails') }} </template>
-              <component :is="iconMap.info" class="text-gray-700" />
+              <component :is="iconMap.info" class="text-gray-500" />
             </NcTooltip>
           </div>
           <div class="flex flex-col">
@@ -427,7 +425,7 @@ onMounted(() => {
               :class="{
                 'border-gray-200': isDivFocused,
               }"
-              class="flex py-2 px-4 border-1 gap-1 items-center max-h-46 flex-wrap rounded-lg nc-scrollbar-md"
+              class="flex py-2 px-2 border-1 gap-1 items-center max-h-46 flex-wrap rounded-lg nc-scrollbar-md"
               tabindex="0"
               @blur="isDivFocused = false"
               @click="focusOnDiv"
@@ -477,7 +475,7 @@ onMounted(() => {
                 {{ $t('activity.enablePublicAccess') }}
               </span>
 
-              <span class="flex items-center py-1 px-2 h-[1.75rem] gap-2 border-1 rounded-lg border-gray-200 text-md">
+              <span class="flex items-center py-1 px-2 h-[1.75rem] gap-2 rounded-lg bg-gray-100 text-md">
                 <GeneralProjectIcon
                   :color="parseProp(base.meta).iconColor"
                   :type="base.type"
@@ -504,7 +502,7 @@ onMounted(() => {
             <GeneralCopyUrl
               v-model:url="url"
               :class="{
-                'w-135': props.isView,
+                'w-[34.625rem]': props.isView,
               }"
             />
             <div v-if="!appInfo.ee" class="flex flex-row gap-3 items-center">

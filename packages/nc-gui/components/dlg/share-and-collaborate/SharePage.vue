@@ -377,8 +377,8 @@ const openManageAccess = async () => {
       </div>
 
       <div v-if="isPublicShared" class="space-y-3">
-        <GeneralCopyUrl v-model:url="url" class="w-138" />
-        <div class="flex items-center h-8 justify-between">
+        <GeneralCopyUrl v-model:url="url" class="w-[34.625rem]" />
+        <div class="flex items-center gap-3 h-8 justify-between">
           <div class="flex flex-row gap-3 items-center">
             <a-switch
               v-e="['c:share:view:password:toggle']"
@@ -395,7 +395,7 @@ const openManageAccess = async () => {
             v-if="passwordProtected"
             v-model:value="password"
             :placeholder="$t('placeholder.password.enter')"
-            class="!rounded-lg !focus:border-brand-500 !w-72 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
+            class="!rounded-lg flex-1 !focus:border-brand-500 !w-72 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
             data-testid="nc-modal-share-view__password"
             size="small"
             type="password"
@@ -434,7 +434,7 @@ const openManageAccess = async () => {
             </div>
             <NcTooltip>
               <template #title>{{ $t('tooltip.surveyFormInfo') }} </template>
-              <component :is="iconMap.info" class="text-gray-700" />
+              <component :is="iconMap.info" class="text-gray-500" />
             </NcTooltip>
           </div>
 
@@ -487,7 +487,7 @@ const openManageAccess = async () => {
             </div>
             <NcTooltip>
               <template #title>{{ $t('tooltip.preFillFormInfo') }} </template>
-              <component :is="iconMap.info" class="text-gray-700" />
+              <component :is="iconMap.info" class="text-gray-500" />
             </NcTooltip>
           </div>
         </template>

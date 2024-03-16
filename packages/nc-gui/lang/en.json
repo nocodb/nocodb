@@ -704,6 +704,7 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "inviteAs": "Invite as",
     "toBase": "to base",
     "manageAccess": "Manage Access",
     "addMembers": "Add Members",
@@ -740,7 +741,7 @@
     "outOfSync": "Out of sync",
     "newSource": "New Data Source",
     "newWebhook": "New Webhook",
-    "enablePublicAccess": "Enable Public viewing",
+    "enablePublicAccess": "Enable Public Viewing",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable Public Viewing",

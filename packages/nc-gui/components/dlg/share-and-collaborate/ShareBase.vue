@@ -451,7 +451,9 @@ onMounted(() => {
                   :type="base.type"
                   class="nc-view-icon w-4 h-4 group-hover"
                 />
-                {{ base.title }}
+                <span class="max-w-72 truncate">
+                  {{ base.title }}
+                </span>
               </span>
             </div>
             <NcSwitch

@@ -322,7 +322,9 @@ const openManageAccess = async () => {
           <span class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</span>
           <div class="px-2 gap-2 flex border-1 border-gray-200 rounded-lg items-center py-1">
             <GeneralViewIcon :meta="activeView" class="!text-xl" />
-            {{ activeView.title }}
+            <span class="max-w-64 truncate">
+              {{ activeView.title }}
+            </span>
           </div>
         </div>
         <a-switch

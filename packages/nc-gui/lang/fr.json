@@ -433,6 +433,7 @@
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
+    "enterMultipleEmails": "Enter multiple E-mails by using commas to separate them",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -703,6 +704,9 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "inviteAs": "Invite as",
+    "toBase": "to base",
+    "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -737,7 +741,7 @@
     "outOfSync": "Out of sync",
     "newSource": "Nouvelle source de données",
     "newWebhook": "New Webhook",
-    "enablePublicAccess": "Activer l'accès public",
+    "enablePublicAccess": "Enable Public Viewing",
     "doYouWantToSaveTheChanges": "Voulez-vous enregistrer les modifications ?",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable Public Viewing",
@@ -801,6 +805,8 @@
     "invite": "Inviter",
     "inviteMore": "Inviter plus",
     "inviteTeam": "Inviter une équipe",
+    "inviteMembers": "Invite Member(s)",
+    "inviteUsers": "Invite User(s)",
     "inviteUser": "Inviter un utilisateur",
     "inviteToken": "Inviter via un jeton",
     "linkedRecords": "Enregistrements liés",

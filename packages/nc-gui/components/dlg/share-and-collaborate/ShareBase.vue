@@ -452,7 +452,12 @@ onMounted(() => {
                   class="nc-view-icon w-4 h-4 group-hover"
                 />
                 <span class="max-w-72 truncate">
-                  {{ base.title }}
+                  <NcTooltip show-on-truncate-only>
+                    <template #title> {{ base.title }} </template>
+                    <span class="ellipsis max-w-64">
+                      {{ base.title }}
+                    </span>
+                  </NcTooltip>
                 </span>
               </span>
             </div>

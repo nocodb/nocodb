@@ -323,7 +323,12 @@ const openManageAccess = async () => {
           <div class="px-2 gap-2 flex border-1 border-gray-200 rounded-lg items-center py-1">
             <GeneralViewIcon :meta="activeView" class="!text-xl" />
             <span class="max-w-64 truncate">
-              {{ activeView.title }}
+              <NcTooltip show-on-truncate-only>
+                <template #title> {{ activeView.title }} </template>
+                <span class="ellipsis max-w-64">
+                  {{ activeView.title }}
+                </span>
+              </NcTooltip>
             </span>
           </div>
         </div>

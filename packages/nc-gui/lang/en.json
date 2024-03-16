@@ -703,6 +703,7 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -737,7 +738,7 @@
     "outOfSync": "Out of sync",
     "newSource": "New Data Source",
     "newWebhook": "New Webhook",
-    "enablePublicAccess": "Enable Public Access",
+    "enablePublicAccess": "Enable Public viewing",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable Public Viewing",
@@ -801,6 +802,7 @@
     "invite": "Invite",
     "inviteMore": "Invite more",
     "inviteTeam": "Invite Team",
+    "inviteUsers": "Invite User(s)",
     "inviteUser": "Invite User",
     "inviteToken": "Invite Token",
     "linkedRecords": "Linked Records",

@@ -268,10 +268,6 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
   @apply rounded;
 }
 
-.badge-text {
-  @apply text-[14px] pt-1 text-center;
-}
-
 :deep(.ant-select-selection-item) {
   @apply mt-0.75;
 }

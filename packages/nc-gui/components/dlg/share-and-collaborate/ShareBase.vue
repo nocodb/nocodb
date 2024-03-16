@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
+import { onKeyStroke } from '@vueuse/core'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -9,6 +11,7 @@ import {
   useGlobal,
   useNuxtApp,
   useWorkspace,
+  validateEmail,
 } from '#imports'
 
 interface ShareBase {
@@ -33,6 +36,12 @@ const { base } = storeToRefs(useBase())
 const { getBaseUrl, appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
+
+const baseStore = useBase()
+
+const { navigateToProjectPage } = baseStore
+
+const { showShareModal } = storeToRefs(useShare())
 
 const url = computed(() => {
   if (!sharedBase.value || !sharedBase.value.uuid) return ''
@@ -106,7 +115,6 @@ onMounted(() => {
 
 const isSharedBaseEnabled = computed(() => !!sharedBase.value?.uuid)
 const isToggleBaseLoading = ref(false)
-const isRoleToggleLoading = ref(false)
 
 const toggleSharedBase = async () => {
   if (isToggleBaseLoading.value) return
@@ -125,51 +133,322 @@ const toggleSharedBase = async () => {
   }
 }
 
-const onRoleToggle = async () => {
-  if (!sharedBase.value) return
-  if (isRoleToggleLoading.value) return
+const openedBaseShareTab = ref<'members' | 'public'>('members')
 
-  isRoleToggleLoading.value = true
+const allowedRoles = ref<ProjectRoles[]>([])
+
+const inviteData = reactive({
+  email: '',
+  roles: ProjectRoles.VIEWER,
+})
+
+const focusRef = ref<HTMLInputElement>()
+const isDivFocused = ref(false)
+const divRef = ref<HTMLDivElement>()
+
+const emailBadges = ref<Array<string>>([])
+
+const emailValidation = reactive({
+  isError: true,
+  message: '',
+})
+const singleEmailValue = ref('')
+
+const focusOnDiv = () => {
+  focusRef.value?.focus()
+  isDivFocused.value = true
+}
+
+// remove one email per backspace
+onKeyStroke('Backspace', () => {
+  if (isDivFocused.value && inviteData.email.length < 1) {
+    emailBadges.value.pop()
+  }
+})
+
+const { baseRoles } = useRoles()
+
+onMounted(async () => {
   try {
-    if (sharedBase.value.role === ShareBaseRole.Viewer) {
-      await createShareBase(ShareBaseRole.Editor)
-    } else {
-      await createShareBase(ShareBaseRole.Viewer)
+    const currentRoleIndex = OrderedProjectRoles.findIndex(
+      (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
+    )
+    if (currentRoleIndex !== -1) {
+      allowedRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1).filter((r) => r)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isRoleToggleLoading.value = false
+  }
+})
+
+const insertOrUpdateString = (str: string) => {
+  // Check if the string already exists in the array
+  const index = emailBadges.value.indexOf(str)
+
+  if (index !== -1) {
+    // If the string exists, remove it
+    emailBadges.value.splice(index, 1)
+  }
+
+  // Add the new string to the array
+  emailBadges.value.push(str)
+}
+
+const emailInputValidation = (input: string): boolean => {
+  if (!input.length) {
+    emailValidation.isError = true
+    emailValidation.message = 'Email should not be empty'
+    return false
+  }
+  if (!validateEmail(input.trim())) {
+    emailValidation.isError = true
+    emailValidation.message = 'Invalid Email'
+    return false
+  }
+  return true
+}
+const handleEnter = () => {
+  const isEmailIsValid = emailInputValidation(inviteData.email)
+  if (!isEmailIsValid) return
+
+  inviteData.email += ' '
+  emailValidation.isError = false
+  emailValidation.message = ''
+}
+
+const onPaste = (e: ClipboardEvent) => {
+  const pastedText = e.clipboardData?.getData('text')
+
+  if (!pastedText) return
+
+  let inputArray
+
+  if (pastedText?.includes(',')) {
+    inputArray = pastedText?.split(',')
+  } else if (pastedText?.includes(' ')) {
+    inputArray = pastedText?.split(' ')
+  } else {
+    inputArray = pastedText?.split('\n')
+  }
+
+  // if data is pasted to a already existing text in input
+  // we add existingInput + pasted data
+  if (inputArray?.length === 1 && inviteData.email.length) {
+    inputArray[0] = inviteData.email += inputArray[0]
+  }
+
+  console.log(inputArray)
+
+  inputArray?.forEach((el) => {
+    const isEmailIsValid = emailInputValidation(el)
+
+    if (!isEmailIsValid) return
+
+    /**
+     if email is already enterd we delete the already
+     existing email and add new one
+     **/
+    if (emailBadges.value.includes(el)) {
+      insertOrUpdateString(el)
+      return
+    }
+    emailBadges.value.push(el)
+
+    inviteData.email = ''
+  })
+  inviteData.email = ''
+}
+
+watch(inviteData, (newVal) => {
+  // when user only want to enter a single email
+  // we dont convert that as badge
+
+  const isSingleEmailValid = validateEmail(newVal.email)
+  if (isSingleEmailValid && !emailBadges.value.length) {
+    singleEmailValue.value = newVal.email
+    emailValidation.isError = false
+    return
+  }
+  singleEmailValue.value = ''
+
+  // when user enters multiple emails comma sepearted or space sepearted
+  const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
+  if (isNewEmail && newVal.email.trim().length) {
+    const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
+    if (!validateEmail(emailToAdd)) {
+      emailValidation.isError = true
+      emailValidation.message = 'Invalid Email'
+      return
+    }
+    /**
+     if email is already enterd we delete the already
+     existing email and add new one
+     **/
+    if (emailBadges.value.includes(emailToAdd)) {
+      insertOrUpdateString(emailToAdd)
+      inviteData.email = ''
+      return
+    }
+    emailBadges.value.push(emailToAdd)
+    inviteData.email = ''
+    singleEmailValue.value = ''
+  }
+  if (!newVal.email.length && emailValidation.isError) {
+    emailValidation.isError = false
+  }
+})
+
+const openManageAccess = async () => {
+  try {
+    await navigateToProjectPage({ page: 'collaborator' })
+    showShareModal.value = false
+  } catch (e) {
+    console.error(e)
+    message.error('Failed to open manage access')
   }
 }
 </script>
 
 <template>
-  <div class="flex flex-col py-2 px-3 gap-2 w-full" data-testid="nc-share-base-sub-modal">
-    <div class="flex flex-col w-full p-3 border-1 border-gray-100 rounded-md">
-      <div class="flex flex-row w-full justify-between">
-        <div class="text-gray-900 font-medium">{{ $t('activity.enablePublicAccess') }}</div>
-        <a-switch
-          v-e="['c:share:base:enable:toggle']"
-          :checked="isSharedBaseEnabled"
-          :loading="isToggleBaseLoading"
-          class="ml-2"
-          @click="toggleSharedBase"
-        />
-      </div>
-      <div v-if="isSharedBaseEnabled" class="flex flex-col w-full mt-3 border-t-1 pt-3 border-gray-100">
-        <GeneralCopyUrl v-model:url="url" />
-        <div v-if="!appInfo.ee" class="flex flex-row justify-between mt-3 bg-gray-50 px-3 py-2 rounded-md">
-          <div class="text-black">{{ $t('activity.editingAccess') }}</div>
-          <a-switch
-            v-e="['c:share:base:role:toggle']"
-            :loading="isRoleToggleLoading"
-            :checked="sharedBase?.role === ShareBaseRole.Editor"
-            class="ml-2"
-            @click="onRoleToggle"
-          />
+  <div class="flex flex-col !h-80 gap-2" data-testid="nc-share-base-sub-modal">
+    <NcTabs v-model:activeKey="openedBaseShareTab" class="nc-base-share-tab h-full" size="small">
+      <a-tab-pane key="members">
+        <template #tab>
+          <div class="tab">
+            <GeneralIcon :class="{}" class="tab-icon" icon="user" />
+            <div class="text-xs">Add Members</div>
+          </div>
+        </template>
+
+        <div class="my-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <div class="gap-3 flex items-center">
+              <span class="text-gray-500"> Invite with access level: </span>
+              <RolesSelector
+                :description="false"
+                :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
+                :role="inviteData.roles"
+                :roles="allowedRoles"
+                class="px-1 max-w-18 nc-invite-role-selector"
+                size="md"
+              />
+            </div>
+            <NcTooltip>
+              <template #title> Enter multiple emails by using commas to separated them... </template>
+              <component :is="iconMap.info" />
+            </NcTooltip>
+          </div>
+          <div class="flex flex-col">
+            <div
+              ref="divRef"
+              :class="{
+                'border-gray-200': isDivFocused,
+              }"
+              class="flex py-2 px-4 border-1 gap-1 items-center max-h-46 flex-wrap rounded-lg nc-scrollbar-md"
+              tabindex="0"
+              @blur="isDivFocused = false"
+              @click="focusOnDiv"
+            >
+              <span
+                v-for="(email, index) in emailBadges"
+                :key="email"
+                class="leading-4 border-1 text-gray-800 bg-gray-100 rounded-md ml-1 px-2 py-1"
+              >
+                {{ email }}
+                <component
+                  :is="iconMap.close"
+                  class="ml-0.5 hover:cursor-pointer w-3.5 h-3.5"
+                  @click="emailBadges.splice(index, 1)"
+                />
+              </span>
+              <input
+                id="email"
+                ref="focusRef"
+                v-model="inviteData.email"
+                :placeholder="emailBadges.length < 1 ? 'Enter emails to send invitation' : ''"
+                class="min-w-60 outline-0 ml-2 mr-3 flex-grow-1"
+                data-testid="email-input"
+                @blur="isDivFocused = false"
+                @keyup.enter="handleEnter"
+                @paste.prevent="onPaste"
+              />
+            </div>
+            <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 text-[10px] mt-1.5">{{
+              emailValidation.message
+            }}</span>
+          </div>
         </div>
-      </div>
+      </a-tab-pane>
+
+      <a-tab-pane key="public">
+        <template #tab>
+          <div class="tab">
+            <MaterialSymbolsPublic />
+            <div class="text-xs">Share Publicly</div>
+          </div>
+        </template>
+        <div class="border-1 my-4 p-3 border-1 space-y-3 border-gray-200 rounded-lg">
+          <div class="flex flex-row items-center w-full">
+            <div class="flex text-gray-700 !w-full font-medium items-center gap-2 px-2">
+              {{ $t('activity.enablePublicAccess') }}
+              <span class="flex items-center p-2 gap-2 border-1 rounded-lg border-gray-200 text-xs">
+                <GeneralProjectIcon
+                  :color="parseProp(base.meta).iconColor"
+                  :type="base.type"
+                  class="nc-view-icon w-4 h-4 group-hover"
+                />
+                {{ base.title }}
+              </span>
+            </div>
+            <NcSwitch
+              v-e="['c:share:base:enable:toggle']"
+              :checked="isSharedBaseEnabled"
+              class="ml-2"
+              @change="toggleSharedBase"
+            />
+          </div>
+          <GeneralCopyUrl v-if="isSharedBaseEnabled" v-model:url="url" class="w-135" />
+        </div>
+      </a-tab-pane>
+    </NcTabs>
+    <div class="flex gap-2 items-end justify-end">
+      <NcButton type="secondary" @click="showShareModal = false">
+        {{ $t('general.cancel') }}
+      </NcButton>
+      <NcButton type="secondary" @click="openManageAccess">
+        {{ $t('activity.manageAccess') }}
+      </NcButton>
+      <NcButton v-if="openedBaseShareTab === 'members'">
+        {{ $t('activity.inviteUsers') }}
+      </NcButton>
+      <NcButton v-else-if="openedBaseShareTab === 'public'" type="secondary" @click="showShareModal = false">
+        {{ $t('general.finish') }}
+      </NcButton>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.tab {
+  @apply flex flex-row items-center gap-x-2;
+}
+.ant-tabs-nav {
+  @apply !pl-0;
+}
+
+.ant-tabs-nav .ant-tabs-nav-wrap {
+  @apply !justify-start;
+}
+
+.ant-tabs-content {
+  @apply !h-full;
+}
+
+.ant-tabs-content-top {
+  @apply !h-full;
+}
+
+.ant-tabs-tab {
+  @apply py-1;
+}
+</style>

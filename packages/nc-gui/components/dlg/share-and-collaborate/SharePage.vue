@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { PreFilledMode, useMetas } from '#imports'
+import { PreFilledMode, iconMap, message, storeToRefs, useBase, useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -10,6 +10,12 @@ const { getBaseUrl, appInfo } = useGlobal()
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
+
+const { showShareModal } = storeToRefs(useShare())
+
+const baseStore = useBase()
+
+const { navigateToProjectPage } = baseStore
 
 const { metas } = useMetas()
 
@@ -297,146 +303,158 @@ async function savePreFilledMode() {
   await updateSharedView()
 }
 
-watchEffect(() => {})
+const openManageAccess = async () => {
+  try {
+    await navigateToProjectPage({ page: 'collaborator' })
+    showShareModal.value = false
+  } catch (e) {
+    console.error(e)
+    message.error('Failed to open manage access')
+  }
+}
 </script>
 
 <template>
-  <div class="flex flex-col py-2 px-3 mb-1">
-    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
-      <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</div>
-        <a-switch
+  <div class="flex flex-col !h-80 justify-between">
+    <div class="flex flex-col p-3 border-gray-200 border-1 rounded-lg gap-y-2">
+      <div class="flex flex-row items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</span>
+          <div class="px-2 gap-2 flex border-1 border-gray-200 rounded-lg items-center py-1">
+            <GeneralViewIcon :meta="activeView" class="!text-xl" />
+            {{ activeView.title }}
+          </div>
+        </div>
+        <NcSwitch
           v-e="['c:share:view:enable:toggle']"
           :checked="isPublicShared"
           :disabled="isLocked"
           :loading="isUpdating.public"
           class="share-view-toggle !mt-0.25"
           data-testid="share-view-toggle"
-          @click="toggleShare"
+          @change="toggleShare"
         />
       </div>
-      <template v-if="isPublicShared">
-        <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
-          <GeneralCopyUrl v-model:url="url" />
-        </div>
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
-          <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
-            <a-switch
-              v-e="['c:share:view:password:toggle']"
-              :checked="passwordProtected"
-              :loading="isUpdating.password"
-              class="share-password-toggle !mt-0.25"
-              data-testid="share-password-toggle"
-              size="small"
-              @click="togglePasswordProtected"
-            />
-          </div>
-          <Transition mode="out-in" name="layout">
-            <div v-if="passwordProtected" class="flex gap-2 mt-2 w-2/3">
-              <a-input-password
-                v-model:value="password"
-                :placeholder="$t('placeholder.password.enter')"
-                class="!rounded-lg !py-1 !bg-white"
-                data-testid="nc-modal-share-view__password"
-                size="small"
-                type="password"
-              />
-            </div>
-          </Transition>
-        </div>
-        <div class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md">
-          <div
-            v-if="
-              activeView &&
-              [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
-            "
-            class="flex flex-row items-center justify-between"
-          >
-            <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
-            <a-switch
-              v-model:checked="allowCSVDownload"
-              v-e="['c:share:view:allow-csv-download:toggle']"
-              :loading="isUpdating.download"
-              class="public-password-toggle !mt-0.25"
-              data-testid="share-download-toggle"
-              size="small"
-            />
-          </div>
 
-          <template v-if="activeView?.type === ViewTypes.FORM">
-            <div class="flex flex-row items-center justify-between">
-              <div class="text-black flex items-center space-x-1">
-                <div>
-                  {{ $t('activity.surveyMode') }}
-                </div>
-                <NcTooltip>
-                  <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
-                  <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
-                </NcTooltip>
-              </div>
-              <a-switch
-                v-model:checked="surveyMode"
-                v-e="['c:share:view:surver-mode:toggle']"
-                data-testid="nc-modal-share-view__surveyMode"
-                size="small"
-              >
-              </a-switch>
-            </div>
-            <div v-if="!isEeUI" class="flex flex-row items-center justify-between">
-              <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
-              <a-switch
-                v-model:checked="withRTL"
-                v-e="['c:share:view:rtl-orientation:toggle']"
-                data-testid="nc-modal-share-view__RTL"
-                size="small"
-              >
-              </a-switch>
-            </div>
-          </template>
+      <div v-if="isPublicShared" class="space-y-3">
+        <GeneralCopyUrl v-model:url="url" class="w-136" />
+        <div class="flex flex-row gap-3 items-center">
+          <NcSwitch
+            v-e="['c:share:view:password:toggle']"
+            :checked="passwordProtected"
+            :loading="isUpdating.password"
+            class="share-password-toggle !mt-0.25"
+            data-testid="share-password-toggle"
+            size="small"
+            @change="togglePasswordProtected"
+          />
+          <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
+        </div>
+        <div v-if="passwordProtected" class="flex gap-2 mt-2">
+          <a-input
+            v-model:value="password"
+            :placeholder="$t('placeholder.password.enter')"
+            class="!rounded-lg !focus:border-brand-500 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
+            data-testid="nc-modal-share-view__password"
+            size="small"
+            type="password"
+          />
         </div>
         <div
-          v-if="activeView?.type === ViewTypes.FORM"
-          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          v-if="
+            activeView &&
+            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
+          "
+          class="flex flex-row items-center gap-3"
         >
-          <div class="flex flex-row items-center justify-between">
-            <div class="text-black flex items-center space-x-1">
-              <div>
-                {{ $t('activity.preFilledFields.title') }}
-              </div>
+          <NcSwitch
+            v-model:checked="allowCSVDownload"
+            v-e="['c:share:view:allow-csv-download:toggle']"
+            :loading="isUpdating.download"
+            class="public-password-toggle !mt-0.25"
+            data-testid="share-download-toggle"
+            size="small"
+          />
+          <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
+        </div>
 
+        <template v-if="activeView?.type === ViewTypes.FORM">
+          <div class="flex flex-row items-center gap-3">
+            <NcSwitch
+              v-model:checked="surveyMode"
+              v-e="['c:share:view:surver-mode:toggle']"
+              data-testid="nc-modal-share-view__surveyMode"
+              size="small"
+            >
+            </NcSwitch>
+            <div class="text-black flex items-center space-x-1">
               <NcTooltip>
-                <template #title>
-                  <div class="text-center">
-                    {{ $t('tooltip.preFillFormInfo') }}
-                  </div>
-                </template>
-                <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+                <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
+                {{ $t('activity.surveyMode') }}
               </NcTooltip>
             </div>
-            <a-switch
+          </div>
+
+          <div v-if="!isEeUI" class="flex flex-row items-center gap-3">
+            <NcSwitch
+              v-model:checked="withRTL"
+              v-e="['c:share:view:rtl-orientation:toggle']"
+              data-testid="nc-modal-share-view__RTL"
+              size="small"
+            >
+            </NcSwitch>
+            <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
+          </div>
+          <div class="flex flex-row items-center gap-3">
+            <NcSwitch
               v-e="['c:share:view:surver-mode:toggle']"
               :checked="formPreFill.preFillEnabled"
               data-testid="nc-modal-share-view__preFill"
               size="small"
               @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
             >
-            </a-switch>
-          </div>
+            </NcSwitch>
+            {{ $t('activity.preFilledFields.title') }}
 
-          <a-radio-group
-            v-if="formPreFill.preFillEnabled"
-            :value="formPreFill.preFilledMode"
-            class="nc-modal-share-view-preFillMode"
-            data-testid="nc-modal-share-view__preFillMode"
-            @update:value="handleChangeFormPreFill({ preFilledMode: $event })"
-          >
-            <a-radio v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
-              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
-            </a-radio>
-          </a-radio-group>
-        </div>
-      </template>
+            <NcSelect
+              v-if="formPreFill.preFillEnabled"
+              v-model:value="formPreFill.preFilledMode"
+              class="w-48"
+              @change="handleChangeFormPreFill"
+            >
+              <a-select-option
+                v-for="op of Object.values(PreFilledMode).map((v) => {
+                  return { label: v, value: v }
+                })"
+                :key="op.value"
+                :value="op.value"
+              >
+                <div class="flex items-center w-full justify-between w-full gap-2">
+                  <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="formPreFill.preFilledMode === op.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="flex gap-2 items-end justify-end">
+      <NcButton type="secondary" @click="showShareModal = false">
+        {{ $t('general.cancel') }}
+      </NcButton>
+      <NcButton type="secondary" @click="openManageAccess">
+        {{ $t('activity.manageAccess') }}
+      </NcButton>
+      <NcButton type="secondary" @click="showShareModal = false">
+        {{ $t('general.finish') }}
+      </NcButton>
     </div>
   </div>
 </template>
@@ -457,20 +475,6 @@ watchEffect(() => {})
     height: 1rem !important;
     min-width: 1rem !important;
     line-height: 1rem !important;
-  }
-}
-
-.nc-modal-share-view-preFillMode {
-  @apply flex flex-col;
-
-  .ant-radio-wrapper {
-    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-gray-100;
-    .ant-radio {
-      @apply !top-0;
-    }
-    .ant-radio + span {
-      @apply !flex !pl-4;
-    }
   }
 }
 </style>

@@ -11,6 +11,8 @@ const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
 
+const { viewsByTable } = storeToRefs(viewStore)
+
 const { showShareModal } = storeToRefs(useShare())
 
 const baseStore = useBase()
@@ -50,8 +52,34 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
   },
 })
 
+const viewsInTable = computed({
+  get: () => {
+    if (!activeView.value) return []
+    return viewsByTable.value.get(activeView.value?.fk_model_id) || []
+  },
+  set: (val) => {
+    viewsByTable.value.set(activeView.value?.fk_model_id, val)
+  },
+})
+
+const selectedViewId = ref<string | undefined>(activeView.value?.id)
+
+watch(activeView, (val) => {
+  selectedViewId.value = val?.id
+})
+
+const selectedView = computed<(ViewType & { meta: object & Record<string, any> }) | undefined>({
+  get: () => {
+    if (!selectedViewId.value) return
+    return viewsInTable.value.find((v) => v.id === selectedViewId.value)
+  },
+  set: (val) => {
+    viewsInTable.value = viewsInTable.value.map((v) => (v.id === selectedViewId.value ? val : v))
+  },
+})
+
 const isPublicShared = computed(() => {
-  return !!activeView.value?.uuid
+  return !!selectedView.value?.uuid
 })
 
 const url = computed(() => {
@@ -61,27 +89,27 @@ const url = computed(() => {
 const passwordProtectedLocal = ref(false)
 
 const passwordProtected = computed(() => {
-  return !!activeView.value?.password || passwordProtectedLocal.value
+  return !!selectedView.value?.password || passwordProtectedLocal.value
 })
 
 const password = computed({
-  get: () => (passwordProtected.value ? activeView.value?.password ?? '' : ''),
+  get: () => (passwordProtected.value ? selectedView.value?.password ?? '' : ''),
   set: async (value) => {
-    if (!activeView.value) return
+    if (!selectedView.value) return
 
-    activeView.value = { ...(activeView.value as any), password: passwordProtected.value ? value : null }
+    selectedView.value = { ...(selectedView.value as any), password: passwordProtected.value ? value : null }
 
     updateSharedView()
   },
 })
 
 const viewTheme = computed({
-  get: () => !!activeView.value?.meta.withTheme,
+  get: () => !!selectedView.value?.meta.withTheme,
   set: (withTheme) => {
-    if (!activeView.value?.meta) return
+    if (!selectedView.value?.meta) return
 
-    activeView.value.meta = {
-      ...activeView.value.meta,
+    selectedView.value.meta = {
+      ...selectedView.value.meta,
       withTheme,
     }
     saveTheme()
@@ -90,15 +118,15 @@ const viewTheme = computed({
 
 const togglePasswordProtected = async () => {
   passwordProtectedLocal.value = !passwordProtected.value
-  if (!activeView.value) return
+  if (!selectedView.value) return
   if (isUpdating.value.password) return
 
   isUpdating.value.password = true
   try {
     if (passwordProtected.value) {
-      activeView.value = { ...(activeView.value as any), password: null }
+      selectedView.value = { ...(selectedView.value as any), password: null }
     } else {
-      activeView.value = { ...(activeView.value as any), password: '' }
+      selectedView.value = { ...(selectedView.value as any), password: '' }
     }
 
     await updateSharedView()
@@ -109,35 +137,35 @@ const togglePasswordProtected = async () => {
 
 const withRTL = computed({
   get: () => {
-    if (!activeView.value?.meta) return false
+    if (!selectedView.value?.meta) return false
 
-    if (typeof activeView.value?.meta === 'string') {
-      activeView.value.meta = JSON.parse(activeView.value.meta)
+    if (typeof selectedView.value?.meta === 'string') {
+      selectedView.value.meta = JSON.parse(selectedView.value.meta)
     }
 
-    return !!(activeView.value?.meta as any)?.rtl
+    return !!(selectedView.value?.meta as any)?.rtl
   },
   set: (rtl) => {
-    if (!activeView.value?.meta) return
+    if (!selectedView.value?.meta) return
 
-    if (typeof activeView.value?.meta === 'string') {
-      activeView.value.meta = JSON.parse(activeView.value.meta)
+    if (typeof selectedView.value?.meta === 'string') {
+      selectedView.value.meta = JSON.parse(selectedView.value.meta)
     }
 
-    activeView.value.meta = { ...(activeView.value.meta as any), rtl }
+    selectedView.value.meta = { ...(selectedView.value.meta as any), rtl }
     updateSharedView()
   },
 })
 
 const allowCSVDownload = computed({
-  get: () => !!(activeView.value?.meta as any)?.allowCSVDownload,
+  get: () => !!(selectedView.value?.meta as any)?.allowCSVDownload,
   set: async (allow) => {
-    if (!activeView.value?.meta) return
+    if (!selectedView.value?.meta) return
 
     isUpdating.value.download = true
 
     try {
-      activeView.value.meta = { ...activeView.value.meta, allowCSVDownload: allow }
+      selectedView.value.meta = { ...selectedView.value.meta, allowCSVDownload: allow }
       await saveAllowCSVDownload()
     } finally {
       isUpdating.value.download = false
@@ -146,22 +174,22 @@ const allowCSVDownload = computed({
 })
 
 const surveyMode = computed({
-  get: () => !!activeView.value?.meta.surveyMode,
+  get: () => !!selectedView.value?.meta.surveyMode,
   set: (survey) => {
-    if (!activeView.value?.meta) return
+    if (!selectedView.value?.meta) return
 
-    activeView.value.meta = { ...activeView.value.meta, surveyMode: survey }
+    selectedView.value.meta = { ...selectedView.value.meta, surveyMode: survey }
     saveSurveyMode()
   },
 })
 
 const formPreFill = computed({
   get: () => ({
-    preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
-    preFilledMode: parseProp(activeView.value?.meta)?.preFilledMode || PreFilledMode.Default,
+    preFillEnabled: parseProp(selectedView.value?.meta)?.preFillEnabled ?? false,
+    preFilledMode: parseProp(selectedView.value?.meta)?.preFilledMode || PreFilledMode.Default,
   }),
   set: (value) => {
-    if (!activeView.value?.meta) return
+    if (!selectedView.value?.meta) return
 
     if (formPreFill.value.preFillEnabled !== value.preFillEnabled) {
       $e(`a:view:share:prefilled-mode-${value.preFillEnabled ? 'enabled' : 'disabled'}`)
@@ -171,8 +199,8 @@ const formPreFill = computed({
       $e(`a:view:share:${value.preFilledMode}-prefilled-mode`)
     }
 
-    activeView.value.meta = {
-      ...activeView.value.meta,
+    selectedView.value.meta = {
+      ...selectedView.value.meta,
       ...value,
     }
     savePreFilledMode()
@@ -187,10 +215,10 @@ const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMod
 }
 
 function sharedViewUrl() {
-  if (!activeView.value) return
+  if (!selectedView.value) return
 
   let viewType
-  switch (activeView.value.type) {
+  switch (selectedView.value.type) {
     case ViewTypes.FORM:
       viewType = 'form'
       break
@@ -219,30 +247,30 @@ function sharedViewUrl() {
   }
 
   return encodeURI(
-    `${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}${
+    `${dashboardUrl1}#/nc/${viewType}/${selectedView.value.uuid}${surveyMode.value ? '/survey' : ''}${
       viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
     }`,
   )
 }
 
 const toggleViewShare = async () => {
-  if (!activeView.value?.id) return
+  if (!selectedView.value?.id) return
 
-  if (activeView.value?.uuid) {
-    await $api.dbViewShare.delete(activeView.value.id)
+  if (selectedView.value?.uuid) {
+    await $api.dbViewShare.delete(selectedView.value.id)
 
-    activeView.value = { ...activeView.value, uuid: undefined, password: undefined }
+    selectedView.value = { ...selectedView.value, uuid: undefined, password: undefined }
   } else {
-    const response = await $api.dbViewShare.create(activeView.value.id)
-    activeView.value = { ...activeView.value, ...(response as any) }
+    const response = await $api.dbViewShare.create(selectedView.value.id)
+    selectedView.value = { ...selectedView.value, ...(response as any) }
 
-    if (activeView.value!.type === ViewTypes.KANBAN) {
+    if (selectedView.value!.type === ViewTypes.KANBAN) {
       // extract grouping column meta
-      const groupingFieldColumn = metas.value[viewStore.activeView!.fk_model_id].columns!.find(
-        (col: ColumnType) => col.id === ((viewStore.activeView!.view! as KanbanType).fk_grp_col_id! as string),
+      const groupingFieldColumn = metas.value[selectedView.value!.fk_model_id].columns!.find(
+        (col: ColumnType) => col.id === ((selectedView.value.view! as KanbanType).fk_grp_col_id! as string),
       )
 
-      activeView.value!.meta = { ...activeView.value!.meta, groupingFieldColumn }
+      selectedView.value!.meta = { ...selectedView.value!.meta, groupingFieldColumn }
 
       await updateSharedView()
     }
@@ -285,12 +313,12 @@ async function saveTheme() {
 
 async function updateSharedView() {
   try {
-    if (!activeView.value?.meta) return
-    const meta = activeView.value.meta
+    if (!selectedView.value?.meta) return
+    const meta = selectedView.value.meta
 
-    await $api.dbViewShare.update(activeView.value.id!, {
+    await $api.dbViewShare.update(selectedView.value.id!, {
       meta,
-      password: activeView.value.password,
+      password: selectedView.value.password,
     })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -320,17 +348,22 @@ const openManageAccess = async () => {
       <div class="flex flex-row items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</span>
-          <div class="px-2 gap-2 flex border-1 border-gray-200 rounded-lg items-center py-1">
-            <GeneralViewIcon :meta="activeView" class="!text-xl" />
-            <span class="max-w-64 truncate">
-              <NcTooltip show-on-truncate-only>
-                <template #title> {{ activeView.title }} </template>
-                <span class="ellipsis max-w-64">
-                  {{ activeView.title }}
-                </span>
-              </NcTooltip>
-            </span>
-          </div>
+
+          <NcSelect v-model:value="selectedViewId" class="w-48" size="medium">
+            <a-select-option v-for="view in viewsInTable" :key="view.id" :value="view.id">
+              <div class="flex items-center w-full justify-between w-full gap-2">
+                <GeneralViewIcon :meta="view" class="!text-md" />
+
+                <span class="truncate !w-36 flex-1 capitalize">{{ view.title }}</span>
+                <component
+                  :is="iconMap.check"
+                  v-if="view.id === selectedViewId"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
         </div>
         <a-switch
           v-e="['c:share:view:enable:toggle']"
@@ -372,8 +405,8 @@ const openManageAccess = async () => {
 
         <div
           v-if="
-            activeView &&
-            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
+            selectedView &&
+            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(selectedView.type)
           "
           class="flex flex-row items-center gap-3"
         >
@@ -388,7 +421,7 @@ const openManageAccess = async () => {
           <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
         </div>
 
-        <template v-if="activeView?.type === ViewTypes.FORM">
+        <template v-if="selectedView?.type === ViewTypes.FORM">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <a-switch

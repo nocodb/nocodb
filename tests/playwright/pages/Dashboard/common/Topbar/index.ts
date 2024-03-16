@@ -58,6 +58,7 @@ export class TopbarPage extends BasePage {
   async getSharedBaseUrl({ role, enableSharedBase }: { role: string; enableSharedBase: boolean }) {
     await this.clickShare();
     await this.share.clickShareBase();
+    await this.share.switchBaseShareTab({ tab: 'public' });
 
     if (enableSharedBase) await this.share.clickShareBasePublicAccess();
 
@@ -66,7 +67,6 @@ export class TopbarPage extends BasePage {
     } else if (role === 'viewer' && !enableSharedBase) {
       await this.share.clickShareBaseEditorAccess();
     }
-    await this.share.switchBaseShareTab({ tab: 'public' });
     await this.share.clickCopyLink();
     await this.share.closeModal();
     return await this.getClipboardText();

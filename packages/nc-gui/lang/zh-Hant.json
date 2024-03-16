@@ -433,6 +433,7 @@
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
+    "enterMultipleEmails": "Enter multiple E-mails by using commas to separate them",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -703,6 +704,9 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
+    "inviteAs": "Invite as",
+    "toBase": "to base",
+    "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -737,7 +741,7 @@
     "outOfSync": "Out of sync",
     "newSource": "New Data Source",
     "newWebhook": "New Webhook",
-    "enablePublicAccess": "Enable Public Access",
+    "enablePublicAccess": "Enable Public Viewing",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable Public Viewing",
@@ -801,6 +805,8 @@
     "invite": "邀請",
     "inviteMore": "邀請更多",
     "inviteTeam": "邀請團隊",
+    "inviteMembers": "Invite Member(s)",
+    "inviteUsers": "Invite User(s)",
     "inviteUser": "邀請使用者",
     "inviteToken": "邀請權杖",
     "linkedRecords": "Linked Records",

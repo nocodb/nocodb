@@ -374,19 +374,19 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col !h-80 gap-2" data-testid="nc-share-base-sub-modal">
-    <NcTabs v-model:activeKey="openedBaseShareTab" class="nc-base-share-tab h-full" size="small">
+    <NcTabs v-model:activeKey="openedBaseShareTab" class="nc-base-share-tab h-full" size="medium">
       <a-tab-pane key="members">
         <template #tab>
           <div class="tab" data-testid="nc-base-share-member">
             <GeneralIcon :class="{}" class="tab-icon" icon="user" />
-            <div class="text-xs">Add Members</div>
+            <div>Add Members</div>
           </div>
         </template>
 
         <div class="my-4 space-y-3">
           <div class="flex justify-between items-center">
             <div class="gap-2 flex items-center text-gray-500">
-              <span> {{ $t('activity.invite') }} </span>
+              <span> {{ $t('activity.inviteAs') }} </span>
               <RolesSelector
                 :description="false"
                 :on-role-change="(role: ProjectRoles) => (inviteData.roles = role)"
@@ -467,7 +467,7 @@ onMounted(() => {
         <template #tab>
           <div class="tab" data-testid="nc-base-share-public">
             <MaterialSymbolsPublic />
-            <div class="text-xs">Share Publicly</div>
+            <div>Share Publicly</div>
           </div>
         </template>
         <div class="border-1 my-4 p-3 border-1 space-y-3 border-gray-200 rounded-lg">
@@ -544,12 +544,13 @@ onMounted(() => {
 .tab {
   @apply flex flex-row items-center gap-x-2;
 }
-.nc-tabs .ant-tabs-nav {
-  @apply !pl-0;
+
+:deep(.ant-tabs-nav-list) {
+  @apply !gap-5;
 }
 
-.ant-tabs-nav .ant-tabs-nav-wrap {
-  @apply !justify-start;
+:deep(.ant-tabs-tab) {
+  @apply !pt-0 !pb-2.5 !ml-0;
 }
 
 .ant-tabs-content {

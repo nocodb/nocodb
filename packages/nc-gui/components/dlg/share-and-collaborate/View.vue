@@ -76,8 +76,15 @@ watch(activeTab, () => {
             <GeneralProjectIcon
               :color="parseProp(base.meta).iconColor"
               :type="base.type"
-              class="nc-view-icon w-6 h-6 group-hover"
+              :class="{
+                '!grayscale ': activeTab !== 'base',
+              }"
+              :style="{
+                filter: activeTab !== 'base' ? 'grayscale(100%) brightness(115%)' : '',
+              }"
+              class="nc-view-icon transition-all w-6 h-6 group-hover"
             />
+
             Base
           </div>
           <div
@@ -92,7 +99,7 @@ watch(activeTab, () => {
                 'text-gray-500': activeTab !== 'view',
               }"
               :style="{ color: activeTab === 'view' ? viewIcons[view?.type]?.color : '' }"
-              class="nc-view-icon !text-2xl group-hover"
+              class="nc-view-icon transition-all !text-2xl group-hover"
             />
             View
           </div>

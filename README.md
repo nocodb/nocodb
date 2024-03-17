@@ -283,6 +283,14 @@ Please refer to the [Environment variables](https://docs.nocodb.com/getting-star
 
 Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
 
+# Self Hosting
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploy.png)](https://repocloud.io/details/?app_id=100)
+
+[![Deploy on Elastio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/nocodb)
+
+
+
 # Contributing
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).

@@ -412,11 +412,7 @@ onMounted(() => {
         </a-button>
       </div>
     </div>
-    <div
-      v-if="historyDrawer"
-      class="overflow-y-auto scrollbar-thin-dull"
-      :class="[historyDrawer ? 'col-span-3' : 'col-span-0']"
-    >
+    <div v-if="historyDrawer" class="overflow-y-auto scrollbar-thin-dull" :class="[historyDrawer ? 'col-span-3' : 'col-span-0']">
       <div class="flex p-4">
         <a-steps progress-dot :current="-1" direction="vertical" size="small">
           <a-step

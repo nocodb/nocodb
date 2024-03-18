@@ -271,29 +271,24 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
 
-  const diffs = diff(col, state) as Partial<TableExplorerColumn>
-
-  // hack to prevent update status `Updated Field` when clicking on field first time
-  let isUpdated = true
-
-  if (
-    [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt) &&
-    Object.keys(diffs).length === 1 &&
-    diffs?.colOptions?.options &&
-    (diffs?.colOptions?.options?.length === 0 ||
-      (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
-  ) {
-    isUpdated = false
-  }
-
-  if (!isUpdated) {
-    let field = fields.value.find((field) => compareCols(field, state))
-    if (field) {
-      field = state
+  if (state.colOptions && [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt)) {
+    state = {
+      ...state,
+      colOptions: {
+        ...(state.colOptions || {}),
+        options: ((state.colOptions as SelectOptionsType)?.options || []).map((option) => {
+          if (option?.index !== undefined) {
+            delete option.index
+          }
+          return option
+        }),
+      },
     }
   }
 
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || !isUpdated) {
+  const diffs = diff(col, state) as Partial<TableExplorerColumn>
+
+  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))

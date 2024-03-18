@@ -433,7 +433,6 @@
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
-    "enterMultipleEmails": "Enter multiple E-mails by using commas to separate them",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -704,9 +703,6 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
-    "inviteAs": "Invite as",
-    "toBase": "to base",
-    "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -741,7 +737,7 @@
     "outOfSync": "Out of sync",
     "newSource": "New Data Source",
     "newWebhook": "New Webhook",
-    "enablePublicAccess": "Enable Public Viewing",
+    "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Do you want to save the changes ?",
     "editingAccess": "Editing access",
     "enabledPublicViewing": "Enable Public Viewing",
@@ -805,8 +801,6 @@
     "invite": "आमंत्रित करना",
     "inviteMore": "अधिक आमंत्रित करें",
     "inviteTeam": "टीम को आमंत्रित करें",
-    "inviteMembers": "Invite Member(s)",
-    "inviteUsers": "Invite User(s)",
     "inviteUser": "Invite User",
     "inviteToken": "टोकन को आमंत्रित करें",
     "linkedRecords": "Linked Records",

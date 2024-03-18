@@ -433,7 +433,6 @@
     "surveyFormSubmitConfirmMsg": "Czy na pewno chcesz przesłać ten formularz?"
   },
   "labels": {
-    "enterMultipleEmails": "Wprowadź wiele e-maili, używając przecinków do ich rozdzielenia",
     "selectYear": "Wybierz rok",
     "save": "Zapisz",
     "cancel": "Anuluj",
@@ -704,9 +703,6 @@
     "clearSelection": "Wyczyść wybór"
   },
   "activity": {
-    "inviteAs": "Zaproś jako",
-    "toBase": "do bazy",
-    "manageAccess": "Zarządzaj dostępem",
     "addMembers": "Dodaj Członków",
     "enterEmail": "Wpisz adresy e-mail",
     "inviteToBase": "Zaproś do bazy",
@@ -741,7 +737,7 @@
     "outOfSync": "Nieaktualne",
     "newSource": "Nowe źródło danych",
     "newWebhook": "Nowy webhook",
-    "enablePublicAccess": "Włącz widok publiczny",
+    "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Czy chcesz zapisać zmiany?",
     "editingAccess": "Edycja dostępu",
     "enabledPublicViewing": "Włącz widok publiczny",
@@ -805,8 +801,6 @@
     "invite": "Zaproś",
     "inviteMore": "Zaproś więcej",
     "inviteTeam": "Zaproś zespół",
-    "inviteMembers": "Zaproś użytkowników",
-    "inviteUsers": "Zaproś użytkowników",
     "inviteUser": "Zaproś użytkownika",
     "inviteToken": "Zaproś token",
     "linkedRecords": "Połączone rekordy",

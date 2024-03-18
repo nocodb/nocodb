@@ -2,7 +2,6 @@
 import type { RoleLabels } from 'nocodb-sdk'
 import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
-
 const props = defineProps<{
   modelValue: boolean
   baseId?: string
@@ -270,7 +269,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
           </div>
           <RolesSelector
             size="lg"
-            class="!min-w-[152px] nc-invite-role-selector"
+            class="nc-invite-role-selector"
             :role="inviteData.roles"
             :roles="allowedRoles"
             :on-role-change="onRoleChange"
@@ -298,9 +297,3 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
     </div>
   </NcModal>
 </template>
-
-<style lang="scss" scoped>
-:deep(.nc-invite-role-selector .nc-role-badge) {
-  @apply w-full;
-}
-</style>

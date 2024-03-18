@@ -13,7 +13,7 @@ const props = withDefaults(
   {
     clickable: false,
     inherit: false,
-    border: false,
+    border: true,
     size: 'sm',
   },
 )

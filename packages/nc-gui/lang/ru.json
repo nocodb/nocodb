@@ -433,7 +433,6 @@
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
-    "enterMultipleEmails": "Enter multiple E-mails by using commas to separate them",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",
@@ -704,9 +703,6 @@
     "clearSelection": "Clear selection"
   },
   "activity": {
-    "inviteAs": "Invite as",
-    "toBase": "to base",
-    "manageAccess": "Manage Access",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
     "inviteToBase": "Invite to Base",
@@ -741,7 +737,7 @@
     "outOfSync": "Не синхронизировано",
     "newSource": "Новый источник данных",
     "newWebhook": "Новый вебхук",
-    "enablePublicAccess": "Enable Public Viewing",
+    "enablePublicAccess": "Enable Public Access",
     "doYouWantToSaveTheChanges": "Вы хотите сохранить изменения?",
     "editingAccess": "Редактирование доступа",
     "enabledPublicViewing": "Enable Public Viewing",
@@ -805,8 +801,6 @@
     "invite": "Пригласить",
     "inviteMore": "Пригласить еще",
     "inviteTeam": "Пригласить команду",
-    "inviteMembers": "Invite Member(s)",
-    "inviteUsers": "Invite User(s)",
     "inviteUser": "Пригласить пользователя",
     "inviteToken": "Токен приглашения",
     "linkedRecords": "Linked Records",

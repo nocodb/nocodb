@@ -113,7 +113,7 @@ main {
 }
 
 .nc-scrollbar-x-md {
-  overflow-x: scroll;
+  overflow-x: auto !important;
   scrollbar-width: thin !important;
 
 
@@ -174,7 +174,7 @@ main {
 }
 
 .nc-scrollbar-x-md-dark {
-  overflow-x: scroll;
+  overflow-x: auto !important;
   scrollbar-width: thin !important;
 
   
@@ -204,7 +204,7 @@ main {
 }
 
 .nc-scrollbar-x-lg {
-  overflow-x: scroll;
+  overflow-x: auto !important;
 
   &::-webkit-scrollbar {
     width: 8px;

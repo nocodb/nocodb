@@ -33,6 +33,9 @@ export default class User implements UserType {
   display_name?: string;
   avatar?: string;
 
+  blocked?: boolean;
+  blocked_reason?: string;
+
   constructor(data: User) {
     Object.assign(this, data);
   }

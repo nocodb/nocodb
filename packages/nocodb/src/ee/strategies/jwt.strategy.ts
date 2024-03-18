@@ -19,6 +19,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const user = await User.getByEmail(jwtPayload?.email);
 
+    if(user?.blocked){
+      NcError.unauthorized(user.blocked_reason || 'User is blocked. Please contact administrator.');
+    }
+
     if (
       !user.token_version ||
       !jwtPayload.token_version ||

@@ -171,7 +171,7 @@ watch(cowriterFormView, async () => {
 
 <template>
   <a-skeleton v-if="isLoadingForm" class="p-4" />
-  <div v-else class="bg-[#FAFAFA] px-[30px] py-[15px] max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
+  <div v-else class="bg-[#FAFAFA] px-[30px] py-[15px] max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-auto">
     <div class="flex items-center flex-wrap justify-end gap-2">
       <a-dropdown v-model:visble="showAddFieldDropdown">
         <template #overlay>

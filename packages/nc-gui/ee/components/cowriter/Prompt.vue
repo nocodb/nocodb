@@ -128,7 +128,7 @@ watch(suggestionsList, (v) => {
 <template>
   <div class="w-full nc-cowriter-prompt">
     <a-row>
-      <a-col :span="16" class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-hidden overflow-y-scroll scrollbar-thin-dull">
+      <a-col :span="16" class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-hidden overflow-y-auto scrollbar-thin-dull">
         <a-textarea
           ref="promptRef"
           v-model:value="vModel"
@@ -139,7 +139,7 @@ watch(suggestionsList, (v) => {
       </a-col>
       <a-col
         :span="8"
-        class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-hidden overflow-y-scroll scrollbar-thin-dull p-4 border-l-1"
+        class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-hidden overflow-y-auto scrollbar-thin-dull p-4 border-l-1"
       >
         <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested column was found' }">
           <template #renderItem="{ item, index }">

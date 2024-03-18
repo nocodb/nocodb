@@ -414,7 +414,7 @@ onMounted(() => {
     </div>
     <div
       v-if="historyDrawer"
-      class="overflow-y-scroll scrollbar-thin-dull"
+      class="overflow-y-auto scrollbar-thin-dull"
       :class="[historyDrawer ? 'col-span-3' : 'col-span-0']"
     >
       <div class="flex p-4">

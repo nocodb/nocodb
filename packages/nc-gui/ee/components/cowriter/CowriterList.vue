@@ -51,7 +51,7 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
       <a-spin size="large" tip="Generating ..." />
     </div>
   </general-overlay>
-  <div class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
+  <div class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-auto">
     <div v-if="cowriterRecords.length" class="bg-[#EEF2FF]">
       <div v-for="(record, idx) of cowriterRecords" :key="record.id" class="border-b-1 border-gray-200">
         <div class="p-[24px] pb-0">

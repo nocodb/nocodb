@@ -109,7 +109,7 @@ const onChange = (value: string) => {
   @apply !rounded-xl py-1.5;
 
   .rc-virtual-list-holder {
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
     font-weight: 500;
 

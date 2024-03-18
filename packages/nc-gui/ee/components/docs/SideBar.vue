@@ -155,7 +155,7 @@ function onExpandClick(id: string, expanded: boolean) {
         :tree-data="nestedPages"
         :draggable="isEditAllowed"
         :on-drop="onDrop"
-        class="!w-full h-full overflow-y-scroll !overflow-x-hidden !bg-inherit"
+        class="!w-full h-full overflow-y-auto !overflow-x-hidden !bg-inherit"
         @dragenter="onDragEnter"
       >
         <template #switcherIcon="{ expanded, children, key }">

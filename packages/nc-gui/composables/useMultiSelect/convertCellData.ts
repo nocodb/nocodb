@@ -146,7 +146,7 @@ export default function convertCellData(
           // Maximum Number of Attachments per cell
           maxNumberOfAttachments: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50,
           // Maximum File Size per file
-          maxAttachmentSize: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 20) || 20,
+          maxAttachmentSize: Math.max(1, +args.appInfo.ncAttachmentFieldSize || 20) || 20,
           supportedAttachmentMimeTypes: ['*'],
         }),
       }

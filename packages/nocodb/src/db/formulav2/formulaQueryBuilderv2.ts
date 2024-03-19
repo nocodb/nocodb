@@ -160,7 +160,6 @@ async function _formulaQueryBuilder(
 
             let relationType = relation.type;
 
-
             if (relationType === RelationTypes.ONE_TO_ONE) {
               relationType = relationCol.meta?.bt
                 ? RelationTypes.BELONGS_TO

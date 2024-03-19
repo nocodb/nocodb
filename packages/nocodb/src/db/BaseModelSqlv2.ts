@@ -4728,28 +4728,29 @@ class BaseModelSqlv2 {
           });
         }
         break;
-      case RelationTypes.BELONGS_TO: {
-        await this.execAndParse(
-          this.dbDriver(childTn)
-            // .where({
-            //   [childColumn.cn]: this.dbDriver(parentTable.tn)
-            //     .select(parentColumn.cn)
-            //     .where(parentTable.primaryKey.cn, childId)
-            //     .first()
-            // })
-            .where(_wherePk(childTable.primaryKeys, rowId))
-            .update({ [childColumn.column_name]: null }),
-          null,
-          { raw: true },
-        );
+      case RelationTypes.BELONGS_TO:
+        {
+          await this.execAndParse(
+            this.dbDriver(childTn)
+              // .where({
+              //   [childColumn.cn]: this.dbDriver(parentTable.tn)
+              //     .select(parentColumn.cn)
+              //     .where(parentTable.primaryKey.cn, childId)
+              //     .first()
+              // })
+              .where(_wherePk(childTable.primaryKeys, rowId))
+              .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
+          );
 
-        await this.updateLastModified({
-          model: parentTable,
-          rowIds: [childId],
-          cookie,
-        });
-      }
-      break;
+          await this.updateLastModified({
+            model: parentTable,
+            rowIds: [childId],
+            cookie,
+          });
+        }
+        break;
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;

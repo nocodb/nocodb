@@ -1,5 +1,5 @@
 import { Readable } from 'stream';
-import {isLinksOrLTAR, RelationTypes, UITypes, ViewTypes} from 'nocodb-sdk';
+import { isLinksOrLTAR, RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
@@ -387,7 +387,8 @@ export class ExportService {
     for (const column of model.columns.filter(
       (col) =>
         col.uidt === UITypes.LinkToAnotherRecord &&
-        (col.colOptions?.type === RelationTypes.BELONGS_TO || (col.colOptions?.type === RelationTypes.ONE_TO_ONE && col.meta?.bt)),
+        (col.colOptions?.type === RelationTypes.BELONGS_TO ||
+          (col.colOptions?.type === RelationTypes.ONE_TO_ONE && col.meta?.bt)),
     )) {
       await column.getColOptions();
       const fkCol = model.columns.find(

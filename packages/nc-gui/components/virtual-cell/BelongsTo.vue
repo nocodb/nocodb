@@ -42,7 +42,7 @@ const listItemsDlg = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedTableDisplayValuePropId, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -96,10 +96,10 @@ watch([listItemsDlg], () => {
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <div class="nc-cell-field chips flex items-center flex-1">
-      <template v-if="value && relatedTableDisplayValueProp">
+      <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
         <VirtualCellComponentsItemChip
           :item="value"
-          :value="!Array.isArray(value) && typeof value === 'object' ? value[relatedTableDisplayValueProp] : value"
+          :value="!Array.isArray(value) && typeof value === 'object' ? (value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]) : value"
           :column="belongsToColumn"
           :show-unlink-button="true"
           @unlink="unlinkRef(value)"

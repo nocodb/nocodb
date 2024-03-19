@@ -14,6 +14,7 @@ import {
   inject,
   isBarcode,
   isBt,
+  isOo,
   isCount,
   isFormula,
   isHm,
@@ -110,7 +111,7 @@ onUnmounted(() => {
       <LazyVirtualCellLinks v-if="isLink(column)" />
       <LazyVirtualCellHasMany v-else-if="isHm(column)" />
       <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
-      <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
+      <LazyVirtualCellBelongsTo v-else-if="isBt(column) || isOo(column)" />
       <LazyVirtualCellRollup v-else-if="isRollup(column)" />
       <LazyVirtualCellFormula v-else-if="isFormula(column)" />
       <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />

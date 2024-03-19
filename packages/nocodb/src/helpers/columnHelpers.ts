@@ -128,6 +128,7 @@ export async function createOOColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       ...(type === 'bt' ? colExtra : {}),
+      meta: { ...(colExtra?.meta || {}), bt: true },
     });
   }
   // save hm column
@@ -144,7 +145,7 @@ export async function createOOColumn(
     await Column.insert({
       title,
       fk_model_id: parent.id,
-      uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+      uidt: UITypes.LinkToAnotherRecord,
       type: 'oo',
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
@@ -243,12 +244,10 @@ export async function validateLookupPayload(
       );
     }
   }
-
-  const relation = await (
-    await Column.get({
-      colId: (payload as LookupColumnReqType).fk_relation_column_id,
-    })
-  ).getColOptions<LinkToAnotherRecordType>();
+  const column = await Column.get({
+    colId: (payload as LookupColumnReqType).fk_relation_column_id,
+  });
+  const relation = await column.getColOptions<LinkToAnotherRecordType>();
 
   if (!relation) {
     throw new Error('Relation column not found');
@@ -265,6 +264,13 @@ export async function validateLookupPayload(
     case 'bt':
       relatedColumn = await Column.get({
         colId: relation.fk_parent_column_id,
+      });
+      break;
+    case 'oo':
+      relatedColumn = await Column.get({
+        colId: column.meta?.bt
+          ? relation.fk_parent_column_id
+          : relation.fk_child_column_id,
       });
       break;
   }

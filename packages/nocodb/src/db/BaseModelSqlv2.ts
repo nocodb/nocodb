@@ -2106,6 +2106,94 @@ class BaseModelSqlv2 {
                   return await readLoader.load(this?.[cCol?.title]);
                 };
                 // todo : handle mm
+              } else if (colOptions.type === 'oo') {
+                // @ts-ignore
+                const colOptions =
+                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
+                const pCol = await Column.get({
+                  colId: colOptions.fk_parent_column_id,
+                });
+                const cCol = await Column.get({
+                  colId: colOptions.fk_child_column_id,
+                });
+
+                // use dataloader to get batches of parent data together rather than getting them individually
+                // it takes individual keys and callback is invoked with an array of values and we can get the
+                // result for all those together and return the value in the same order as in the array
+                // this way all parents data extracted together
+                const readLoader = new DataLoader(
+                  async (_ids: string[]) => {
+                    // handle binary(16) foreign keys
+                    const ids = _ids.map((id) => {
+                      if (pCol.ct !== 'binary(16)') return id;
+
+                      // Cast the id to string.
+                      const idAsString = id + '';
+                      // Check if the id is a UUID and the column is binary(16)
+                      const isUUIDBinary16 =
+                        idAsString.length === 36 || idAsString.length === 32;
+                      // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                      const idAsUUID = isUUIDBinary16
+                        ? idAsString.length === 32
+                          ? idAsString.replace(
+                              /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                              '$1-$2-$3-$4-$5',
+                            )
+                          : idAsString
+                        : null;
+
+                      return idAsUUID
+                        ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                        : id;
+                    });
+
+                    const data = await (
+                      await Model.getBaseModelSQL({
+                        id: pCol.fk_model_id,
+                        dbDriver: this.dbDriver,
+                      })
+                    ).list(
+                      {
+                        fieldsSet: (readLoader as any).args?.fieldsSet,
+                        filterArr: [
+                          new Filter({
+                            id: null,
+                            fk_column_id: pCol.id,
+                            fk_model_id: pCol.fk_model_id,
+                            value: ids as any[],
+                            comparison_op: 'in',
+                          }),
+                        ],
+                      },
+                      {
+                        ignoreViewFilterAndSort: true,
+                        ignorePagination: true,
+                      },
+                    );
+
+                    const groupedList = groupBy(data, pCol.title);
+                    return _ids.map(
+                      async (id: string) => groupedList?.[id]?.[0],
+                    );
+                  },
+                  {
+                    cache: false,
+                  },
+                );
+
+                // defining BelongsTo read resolver method
+                proto[column.title] = async function (args?: any) {
+                  if (
+                    this?.[cCol?.title] === null ||
+                    this?.[cCol?.title] === undefined
+                  )
+                    return null;
+
+                  (readLoader as any).args = args;
+
+                  return await readLoader.load(this?.[cCol?.title]);
+                };
+                // todo : handle mm
               }
             }
             break;
@@ -4243,6 +4331,75 @@ class BaseModelSqlv2 {
             rowIds: [childId],
             cookie,
           });
+        }
+        break;
+      case RelationTypes.ONE_TO_ONE:
+        {
+          // todo: unlink if it's already mapped
+          // unlink already mapped record if any
+          await this.execAndParse(
+            this.dbDriver(childTn)
+              .where({
+                [childColumn.column_name]: this.dbDriver.from(
+                  this.dbDriver(parentTn)
+                    .select(parentColumn.column_name)
+                    .where(_wherePk(parentTable.primaryKeys, column.meta?.bt ? childId: childId))
+                    .first()
+                    .as('___cn_alias'),
+                ),
+              })
+              .update({
+                [childColumn.column_name]: null,
+              }),
+            null,
+            { raw: true },
+          );
+
+          if (column.meta?.bt) {
+            await this.execAndParse(
+              this.dbDriver(childTn)
+                .update({
+                  [childColumn.column_name]: this.dbDriver.from(
+                    this.dbDriver(parentTn)
+                      .select(parentColumn.column_name)
+                      .where(_wherePk(parentTable.primaryKeys, rowId))
+                      .first()
+                      .as('___cn_alias'),
+                  ),
+                })
+                .where(_wherePk(childTable.primaryKeys, childId)),
+              null,
+              { raw: true },
+            );
+
+            await this.updateLastModified({
+              model: parentTable,
+              rowIds: [childId],
+              cookie,
+            });
+          } else {
+            await this.execAndParse(
+              this.dbDriver(childTn)
+                .update({
+                  [childColumn.column_name]: this.dbDriver.from(
+                    this.dbDriver(parentTn)
+                      .select(parentColumn.column_name)
+                      .where(_wherePk(parentTable.primaryKeys, childId))
+                      .first()
+                      .as('___cn_alias'),
+                  ),
+                })
+                .where(_wherePk(childTable.primaryKeys, rowId)),
+              null,
+              { raw: true },
+            );
+
+            await this.updateLastModified({
+              model: parentTable,
+              rowIds: [rowId],
+              cookie,
+            });
+          }
         }
         break;
     }

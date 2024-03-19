@@ -134,6 +134,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
     })
 
+    // todo: temp fix, handle in backend
+    const relatedTableDisplayValuePropId = computed(() => {
+      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.id || ''
+    })
+
     const relatedTablePrimaryKeyProps = computed(() => {
       return relatedTableMeta.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
     })
@@ -569,6 +574,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       deleteRelatedRow,
       getRelatedTableRowId,
       headerDisplayValue,
+      relatedTableDisplayValuePropId
     }
   },
   'ltar-store',

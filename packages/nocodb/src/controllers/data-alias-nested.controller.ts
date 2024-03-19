@@ -80,6 +80,7 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/bt/:columnName/exclude',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName/exclude',
   ])
   @Acl('btExcludedList')
   async btExcludedList(

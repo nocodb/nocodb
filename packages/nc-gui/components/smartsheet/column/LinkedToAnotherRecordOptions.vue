@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModelTypes, MssqlUi, SqliteUi, UITypes } from 'nocodb-sdk'
+import { ModelTypes, MssqlUi, SqliteUi, UITypes, RelationTypes } from 'nocodb-sdk'
 import { MetaInj, inject, ref, storeToRefs, useBase, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -52,14 +52,14 @@ const refTables = computed(() => {
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
-const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
+const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 </script>
 
 <template>
   <div class="w-full flex flex-col mb-2 mt-4">
     <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
+        <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type" class="!flex flex-col">
           <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
           <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
           <a-radio value="oo">{{ $t('title.oneToOne') }}</a-radio>
@@ -103,7 +103,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
       </div>
 
       <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
-        <LazySmartsheetColumnLinkOptions v-model:value="vModel" class="-my-2" />
+        <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" class="-my-2" />
         <template v-if="!isXcdbBase">
           <div class="flex flex-row space-x-2">
             <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">

@@ -1836,13 +1836,12 @@ class BaseModelSqlv2 {
     const qb = this.dbDriver(isBt ? rtn : tn)
       .where((qb) => {
         qb.whereNotIn(
-          rcn,
+          isBt ? rcn : cn,
           this.dbDriver(isBt ? tn : rtn)
             .select(isBt ? cn : rcn)
-            // .where(childTable.primaryKey.cn, cid)
             .where(_wherePk((isBt ? childTable : parentTable).primaryKeys, cid))
             .whereNotNull(isBt ? cn : rcn),
-        );
+        ).orWhereNull(isBt ? rcn : cn);
       })
       .count(`*`, { as: 'count' });
 
@@ -1953,20 +1952,17 @@ class BaseModelSqlv2 {
       model: childTable,
     });
 
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
-
-    const rtn = parentTn;
-    const tn = childTn;
+    const rtn = this.getTnPath(parentTable);
+    const tn = this.getTnPath(childTable);
     await childTable.getColumns();
 
     const isBt = relColumn.meta?.bt;
 
     const qb = this.dbDriver(isBt ? rtn : tn).where((qb) => {
       qb.whereNotIn(
-        rcn,
+        isBt ? rcn : cn,
         this.dbDriver(isBt ? tn : rtn)
-          .select(cn)
+          .select(isBt ? cn : rcn)
           .where(_wherePk((isBt ? childTable : parentTable).primaryKeys, cid))
           .whereNotNull(isBt ? cn : rcn),
       ).orWhereNull(isBt ? rcn : cn);

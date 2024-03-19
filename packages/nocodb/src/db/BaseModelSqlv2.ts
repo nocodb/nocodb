@@ -4496,7 +4496,7 @@ class BaseModelSqlv2 {
                     .where(
                       _wherePk(
                         parentTable.primaryKeys,
-                        isBt ? rowId : childId,
+                        isBt? childId : rowId,
                       ),
                     )
                     .first()

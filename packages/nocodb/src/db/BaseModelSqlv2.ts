@@ -4558,9 +4558,7 @@ class BaseModelSqlv2 {
           const isBt = column.meta?.bt;
           // todo: unlink if it's already mapped
           // unlink already mapped record if any
-
-          console.log(
-            'reset',
+          await this.execAndParse(
             this.dbDriver(childTn)
               .where({
                 [childColumn.column_name]: this.dbDriver.from(
@@ -4573,54 +4571,11 @@ class BaseModelSqlv2 {
                     .as('___cn_alias'),
                 ),
               })
-              .update({
-                [childColumn.column_name]: null,
-              })
-              .toQuery(),
+              .update({ [childColumn.column_name]: null }),
+            null,
+            { raw: true },
           );
 
-          console.log(
-            await this.execAndParse(
-              this.dbDriver(childTn)
-                .where({
-                  [childColumn.column_name]: this.dbDriver.from(
-                    this.dbDriver(parentTn)
-                      .select(parentColumn.column_name)
-                      .where(
-                        _wherePk(
-                          parentTable.primaryKeys,
-                          isBt ? childId : rowId,
-                        ),
-                      )
-                      .first()
-                      .as('___cn_alias'),
-                  ),
-                })
-                .update({
-                  [childColumn.column_name]: null,
-                }),
-              null,
-              { raw: true },
-            ),
-          );
-
-          console.log(
-            'set',
-            this.dbDriver(childTn)
-              .update({
-                [childColumn.column_name]: this.dbDriver.from(
-                  this.dbDriver(parentTn)
-                    .select(parentColumn.column_name)
-                    .where(
-                      _wherePk(parentTable.primaryKeys, isBt ? childId : rowId),
-                    )
-                    .first()
-                    .as('___cn_alias'),
-                ),
-              })
-              .where(_wherePk(childTable.primaryKeys, isBt ? rowId : childId))
-              .toQuery(),
-          );
           await this.execAndParse(
             this.dbDriver(childTn)
               .update({
@@ -5670,6 +5625,28 @@ class BaseModelSqlv2 {
         ? RelationTypes.BELONGS_TO
         : RelationTypes.HAS_MANY;
       childIds = childIds.slice(0, 1);
+
+      // unlink
+      await this.execAndParse(
+        this.dbDriver(childTn)
+          .where({
+            [childColumn.column_name]: this.dbDriver.from(
+              this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(
+                  _wherePk(
+                    parentTable.primaryKeys,
+                    column.meta?.bt ? childIds[0] : rowId,
+                  ),
+                )
+                .first()
+                .as('___cn_alias'),
+            ),
+          })
+          .update({ [childColumn.column_name]: null }),
+        null,
+        { raw: true },
+      );
     }
 
     switch (relationType) {

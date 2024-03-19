@@ -102,7 +102,7 @@ test.describe('Fill Handle', () => {
       { title: 'Number', value: 33, type: 'text' },
       { title: 'Decimal', value: 33.3, type: 'text' },
       { title: 'Currency', value: 33.3, type: 'text' },
-      { title: 'Percent', value: 33, type: 'text' },
+      { title: 'Percent', value: '33.00%', type: 'text' },
       { title: 'Duration', value: '00:01', type: 'text' },
       { title: 'Rating', value: 3, type: 'rating' },
       { title: 'Year', value: '2023', type: 'year' },
@@ -138,7 +138,8 @@ test.describe('Fill Handle', () => {
 
     // verify api response
     // duration in seconds
-    const APIResponse = [33, 33.3, 33.3, 33, 60, 3, 2023, '02:02:00'];
+    // percent field value is stored in db is cellValue/100 e.g: cellValue = 25% and db stored value is 0.25
+    const APIResponse = [33, 33.3, 33.3, 0.33, 60, 3, 2023, '02:02:00'];
     const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 4 })).list;
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {

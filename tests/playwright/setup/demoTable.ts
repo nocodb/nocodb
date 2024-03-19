@@ -228,6 +228,11 @@ async function createDemoTable({
           Year: rowMixedValue(columns.numberBased[7], i),
           Time: rowMixedValue(columns.numberBased[8], i, context.dbType),
         };
+
+        // For percent field user will type `cellValue=33` but while storing it in backend we convert it to `cellValue/100`
+        if (row.Percent !== null) {
+          row.Percent = (row.Percent as number) / 100;
+        }
         rowAttributes.push(row);
       }
       break;

@@ -13,7 +13,7 @@ const recordCells = {
   URL: 'www.a.com',
   Number: '1',
   Value: '$1.00',
-  Percent: '0.01',
+  Percent: '1.00%',
 };
 
 // links/ computed fields

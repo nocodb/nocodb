@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, inject, useVModel } from '#imports'
+import {
+  EditColumnInj,
+  EditModeInj,
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  ReadonlyInj,
+  inject,
+  useVModel,
+  getPercentStep,
+  isValidPercent,
+  renderPercent,
+  IsGroupByLabelInj,
+} from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -20,17 +32,37 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
 
+const percentMeta = computed(() => {
+  return {
+    is_progress: false,
+    precision: 2,
+    ...parseProp(column.value?.meta),
+  }
+})
+
+const percentStep = computed(() => getPercentStep(percentMeta.value.precision))
+
+const displayValue = computed(() => {
+  if (_vModel.value === null || _vModel.value === undefined) return null
+
+  return renderPercent(_vModel.value, percentMeta.value.precision)
+})
+
 const vModel = computed({
-  get: () => _vModel.value,
+  get: () => {
+    return renderPercent(_vModel.value, percentMeta.value.precision, false, true)
+  },
   set: (value) => {
     if (value === '') {
       _vModel.value = null
-    } else {
-      _vModel.value = value
+    } else if (isValidPercent(value, percentMeta.value?.negative)) {
+      _vModel.value = +value / 100
     }
   },
 })
@@ -46,17 +78,11 @@ const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
 
-const percentMeta = computed(() => {
-  return {
-    is_progress: false,
-    ...parseProp(column.value?.meta),
-  }
-})
-
 const onBlur = () => {
   if (editEnabled) {
     editEnabled.value = false
   }
+
   cellFocused.value = false
   expandedEditEnabled.value = false
 }
@@ -115,6 +141,34 @@ const onTabPress = (e: KeyboardEvent) => {
     }
   }
 }
+
+function onKeyDown(evt: KeyboardEvent) {
+  const keysToPrevent = ['e', 'E', '+']
+  if (!percentMeta.value?.negative) keysToPrevent.push('-')
+  return keysToPrevent.includes(evt.key) && evt.preventDefault()
+}
+
+/*
+ * The vModel value is formatted using toFixed to a specific precision.
+ * When the cursor is at the second position after the decimal and the backspace key is pressed,
+ * it removes the last decimal and the decimal point.
+ * To prevent the cursor from moving to the first position,
+ * we remove the value in the backspace event and update the vModel value.
+ */
+function onBackspace(evt: KeyboardEvent) {
+  const input = evt.target as HTMLInputElement
+
+  // Check if the cursor is after a decimal point
+  if (evt.key === 'Backspace' && input.value[input.value.length - 2] === '.') {
+    evt.preventDefault()
+
+    // Remove the decimal point and the value after it
+    const newValue = input.value.slice(0, -2)
+
+    // update vModel value
+    vModel.value = +newValue
+  }
+}
 </script>
 
 <template>
@@ -131,9 +185,11 @@ const onTabPress = (e: KeyboardEvent) => {
       v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
+      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 py-1 px-0 invalid:text-red-500"
+      style="letter-spacing: 0.06rem"
       type="number"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
+      :step="percentStep"
       @blur="onBlur"
       @focus="onFocus"
       @keydown.down.stop
@@ -142,11 +198,13 @@ const onTabPress = (e: KeyboardEvent) => {
       @keydown.up.stop
       @keydown.delete.stop
       @keydown.tab="onTabPress"
+      @keydown="onKeyDown"
+      @keydown.backspace="onBackspace"
       @selectstart.capture.stop
       @mousedown.stop
     />
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">
+    <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined && !isGroupByLabel" class="px-2">
       <a-progress
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
         size="small"
@@ -157,7 +215,7 @@ const onTabPress = (e: KeyboardEvent) => {
       />
     </div>
     <!-- nbsp to keep height even if vModel is zero length -->
-    <span v-else class="nc-cell-field">{{ vModel }}&nbsp;</span>
+    <span v-else class="nc-cell-field text-sm">{{ displayValue }}&nbsp;</span>
   </div>
 </template>
 

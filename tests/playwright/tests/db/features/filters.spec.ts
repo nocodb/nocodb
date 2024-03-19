@@ -136,6 +136,12 @@ test.describe('Filter Tests: Numerical', () => {
       });
     }
 
+    // percent field value is stored in db is cellValue/100 e.g: cellValue = 25% and db stored value is 0.25
+    if (dataType === 'Percent') {
+      eqStringDerived = parseInt(eqString) / 100;
+      isLikeStringDerived = parseInt(isLikeString) / 100;
+    }
+
     const filterList = [
       {
         op: '=',

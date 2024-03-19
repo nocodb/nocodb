@@ -196,6 +196,7 @@ const shouldRenderCell = (column) =>
     UITypes.LastModifiedTime,
     UITypes.CreatedBy,
     UITypes.LastModifiedBy,
+    UITypes.Percent
   ].includes(column?.uidt)
 </script>
 

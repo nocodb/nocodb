@@ -2146,6 +2146,20 @@ export class ColumnsService {
                 });
               }
               break;
+            case 'oo':
+              {
+                await this.deleteOoRelation({
+                  relationColOpt,
+                  source,
+                  childColumn,
+                  childTable,
+                  parentColumn,
+                  parentTable,
+                  sqlMgr,
+                  ncMeta,
+                });
+              }
+              break;
             case 'mm':
               {
                 const mmTable = await relationColOpt.getMMModel(ncMeta);
@@ -2346,6 +2360,150 @@ export class ColumnsService {
   }
 
   deleteHmOrBtRelation = async (
+    {
+      relationColOpt,
+      source,
+      childColumn,
+      childTable,
+      parentColumn,
+      parentTable,
+      sqlMgr,
+      ncMeta = Noco.ncMeta,
+      virtual,
+    }: {
+      relationColOpt: LinkToAnotherRecordColumn;
+      source: Source;
+      childColumn: Column;
+      childTable: Model;
+      parentColumn: Column;
+      parentTable: Model;
+      sqlMgr: SqlMgrv2;
+      ncMeta?: MetaService;
+      virtual?: boolean;
+    },
+    ignoreFkDelete = false,
+  ) => {
+    if (childTable) {
+      let foreignKeyName;
+
+      // if relationColOpt is not provided, extract it from child table
+      // and get the foreign key name for dropping the foreign key
+      if (!relationColOpt) {
+        foreignKeyName = (
+          (
+            await childTable.getColumns(ncMeta).then(async (cols) => {
+              for (const col of cols) {
+                if (col.uidt === UITypes.LinkToAnotherRecord) {
+                  const colOptions =
+                    await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                  if (colOptions.fk_related_model_id === parentTable.id) {
+                    return { colOptions };
+                  }
+                }
+              }
+            })
+          )?.colOptions as LinkToAnotherRecordType
+        ).fk_index_name;
+      } else {
+        foreignKeyName = relationColOpt.fk_index_name;
+      }
+
+      if (!relationColOpt?.virtual && !virtual) {
+        // todo: handle relation delete exception
+        try {
+          await sqlMgr.sqlOpPlus(source, 'relationDelete', {
+            childColumn: childColumn.column_name,
+            childTable: childTable.table_name,
+            parentTable: parentTable.table_name,
+            parentColumn: parentColumn.column_name,
+            foreignKeyName,
+          });
+        } catch (e) {
+          console.log(e.message);
+        }
+      }
+    }
+
+    if (!relationColOpt) return;
+    const columnsInRelatedTable: Column[] = await relationColOpt
+      .getRelatedTable(ncMeta)
+      .then((m) => m.getColumns(ncMeta));
+    const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
+    for (const c of columnsInRelatedTable) {
+      if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+      if (
+        colOpt.fk_parent_column_id === parentColumn.id &&
+        colOpt.fk_child_column_id === childColumn.id &&
+        colOpt.type === relType
+      ) {
+        await Column.delete(c.id, ncMeta);
+        break;
+      }
+    }
+
+    // delete virtual columns
+    await Column.delete(relationColOpt.fk_column_id, ncMeta);
+
+    if (!ignoreFkDelete) {
+      const cTable = await Model.getWithInfo(
+        {
+          id: childTable.id,
+        },
+        ncMeta,
+      );
+
+      // if virtual column delete all index before deleting the column
+      if (relationColOpt?.virtual) {
+        const indexes =
+          (
+            await sqlMgr.sqlOp(source, 'indexList', {
+              tn: cTable.table_name,
+            })
+          )?.data?.list ?? [];
+
+        for (const index of indexes) {
+          if (index.cn !== childColumn.column_name) continue;
+
+          await sqlMgr.sqlOpPlus(source, 'indexDelete', {
+            ...index,
+            tn: cTable.table_name,
+            columns: [childColumn.column_name],
+            indexName: index.key_name,
+          });
+        }
+      }
+
+      const tableUpdateBody = {
+        ...cTable,
+        tn: cTable.table_name,
+        originalColumns: cTable.columns.map((c) => ({
+          ...c,
+          cn: c.column_name,
+          cno: c.column_name,
+        })),
+        columns: cTable.columns.map((c) => {
+          if (c.id === childColumn.id) {
+            return {
+              ...c,
+              cn: c.column_name,
+              cno: c.column_name,
+              altered: Altered.DELETE_COLUMN,
+            };
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return c;
+        }),
+      };
+
+      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+    }
+    // delete foreign key column
+    await Column.delete(childColumn.id, ncMeta);
+  };
+
+  deleteOoRelation = async (
     {
       relationColOpt,
       source,

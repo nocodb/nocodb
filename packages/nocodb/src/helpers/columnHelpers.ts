@@ -127,7 +127,7 @@ export async function createOOColumn(
       system: isSystemCol || parent.id === child.id,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
-      ...(type === 'bt' ? colExtra : {}),
+      // ...(colExtra || {}),
       meta: { ...(colExtra?.meta || {}), bt: true },
     });
   }
@@ -155,7 +155,7 @@ export async function createOOColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       meta,
-      ...(type === 'hm' ? colExtra : {}),
+      ...(colExtra || {}),
     });
   }
 }

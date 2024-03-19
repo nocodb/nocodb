@@ -70,8 +70,16 @@ export default async function generateLookupSelectQuery({
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
+      let relationType = relation.type;
+
+      if (relationType === RelationTypes.ONE_TO_ONE) {
+        relationType = relationCol.meta?.bt
+          ? RelationTypes.BELONGS_TO
+          : RelationTypes.HAS_MANY;
+      }
+
       // if not belongs to then throw error as we don't support
-      if (relation.type === RelationTypes.BELONGS_TO) {
+      if (relationType === RelationTypes.BELONGS_TO) {
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -95,7 +103,7 @@ export default async function generateLookupSelectQuery({
       }
 
       // if not belongs to then throw error as we don't support
-      else if (relation.type === RelationTypes.HAS_MANY) {
+      else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
@@ -120,7 +128,7 @@ export default async function generateLookupSelectQuery({
       }
 
       // if not belongs to then throw error as we don't support
-      else if (relation.type === RelationTypes.MANY_TO_MANY) {
+      else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
@@ -181,6 +189,7 @@ export default async function generateLookupSelectQuery({
       let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
       let nestedLookupColOpt: LookupColumn;
 
+
       if (lookupColumn.uidt === UITypes.Lookup) {
         nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>();
         relationCol = await nestedLookupColOpt.getRelationColumn();
@@ -191,9 +200,19 @@ export default async function generateLookupSelectQuery({
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
+
+      let relationType = relation.type;
+
+
+      if (relationType === RelationTypes.ONE_TO_ONE) {
+        relationType = relationCol.meta?.bt
+          ? RelationTypes.BELONGS_TO
+          : RelationTypes.HAS_MANY;
+      }
+
       // if any of the relation in nested lookupColOpt is
       // not belongs to then throw error as we don't support
-      if (relation.type === RelationTypes.BELONGS_TO) {
+      if (relationType === RelationTypes.BELONGS_TO) {
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
         const childModel = await childColumn.getModel();
@@ -209,7 +228,7 @@ export default async function generateLookupSelectQuery({
           `${nestedAlias}.${parentColumn.column_name}`,
           `${prevAlias}.${childColumn.column_name}`,
         );
-      } else if (relation.type === RelationTypes.HAS_MANY) {
+      } else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
@@ -226,7 +245,7 @@ export default async function generateLookupSelectQuery({
           `${nestedAlias}.${childColumn.column_name}`,
           `${prevAlias}.${parentColumn.column_name}`,
         );
-      } else if (relation.type === RelationTypes.MANY_TO_MANY) {
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();

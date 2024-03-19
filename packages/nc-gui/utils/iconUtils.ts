@@ -166,6 +166,7 @@ import NcCellSystemText from '~icons/nc-icons/system-text'
 import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
+import OnetoOneIcon from '~icons/nc-icons/onetoone'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -358,6 +359,7 @@ export const iconMap = {
   mm_solid: ManytoManySolidIcon,
   hm_solid: HasManySolidIcon,
   bt_solid: BelongsToSolidIcon,
+  oo_solid: OnetoOneIcon,
   workspaceDefault: MsGroup,
   project: Project,
   search: NcSearch,

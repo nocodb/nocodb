@@ -77,9 +77,9 @@ watch([lookupColumn, rowHeight], () => {
 const arrValue = computed(() => {
   if (!cellValue.value) return []
 
-  // if lookup column is Attachment and relation type is Belongs to wrap the value in an array
+  // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array
   // since the attachment component expects an array or JSON string array
-  if (lookupColumn.value?.uidt === UITypes.Attachment && relationColumn.value?.colOptions?.type === RelationTypes.BELONGS_TO)
+  if (lookupColumn.value?.uidt === UITypes.Attachment && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type))
     return [cellValue.value]
 
   // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
@@ -114,11 +114,11 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
         <div v-if="isVirtualCol(lookupColumn)" class="flex h-full">
-          <!-- If non-belongs-to LTAR column then pass the array value, else iterate and render -->
+          <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
           <template
             v-if="
               lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-              (lookupColumn.uidt === UITypes.LinkToAnotherRecord && lookupColumn.colOptions.type === RelationTypes.BELONGS_TO)
+              (lookupColumn.uidt === UITypes.LinkToAnotherRecord && [RelationTypes.BELONGS_TO,RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
             "
           >
             <LazySmartsheetVirtualCell

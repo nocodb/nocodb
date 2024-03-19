@@ -11,6 +11,7 @@ import {
   inject,
   isBt,
   isHm,
+  isOo,
   isLookup,
   isMm,
   isRollup,
@@ -30,6 +31,8 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
           return { icon: iconMap.hm_solid }
         case RelationTypes.BELONGS_TO:
           return { icon: iconMap.bt_solid }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.oo_solid, color: 'text-blue-500' }
       }
       break
     case UITypes.SpecificDBType:

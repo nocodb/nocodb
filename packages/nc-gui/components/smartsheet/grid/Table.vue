@@ -35,6 +35,7 @@ import {
   isEeUI,
   isMac,
   isMm,
+  isOo,
   message,
   onClickOutside,
   onMounted,
@@ -294,7 +295,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               columnObj.id === col.id
             ) {
               if (rowRefs.value) {
-                if (isBt(columnObj)) {
+                if (isBt(columnObj) || isOo(columnObj)) {
                   rowObj.row[columnObj.title] = row.row[columnObj.title]
 
                   await rowRefs.value[ctx.row]!.addLTARRef(rowObj.row[columnObj.title], columnObj)
@@ -335,7 +336,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             const columnObj = fields.value[ctx.col]
             if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
               if (rowRefs.value) {
-                if (isBt(columnObj)) {
+                if (isBt(columnObj) || isOo(columnObj)) {
                   await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
                 } else if (isMm(columnObj)) {
                   await rowRefs.value[ctx.row]!.cleaMMCell(columnObj)
@@ -928,7 +929,7 @@ async function clearSelectedRangeOfCells() {
 
       // TODO handle LinkToAnotherRecord
       if (isVirtualCol(col)) {
-        if ((isBt(col) || isMm(col)) && !isInfoShown) {
+        if ((isBt(col) || isOo(col) || isMm(col)) && !isInfoShown) {
           message.info(t('msg.info.groupClearIsNotSupportedOnLinksColumn'))
           isInfoShown = true
         }

@@ -1,12 +1,15 @@
 import { customAlphabet } from 'nanoid';
-import { getAvailableRollupForUiType, UITypes } from 'nocodb-sdk';
+import {
+  getAvailableRollupForUiType,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import type {
   BoolType,
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
-  RelationTypes,
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';

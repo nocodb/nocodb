@@ -99,8 +99,7 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
-      }
-      else if (relationType === RelationTypes.HAS_MANY) {
+      } else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
@@ -122,8 +121,7 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
-      }
-      else if (relationType === RelationTypes.MANY_TO_MANY) {
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();

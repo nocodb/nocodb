@@ -91,6 +91,20 @@ export async function createHmAndBtColumn(
     });
   }
 }
+
+/**
+ * Creates a column with a one-to-one (1:1) relationship.
+ * @param {Model} child - The child model.
+ * @param {Model} parent - The parent model.
+ * @param {Column} childColumn - The child column.
+ * @param {RelationTypes} [type] - The type of relationship.
+ * @param {string} [alias] - The alias for the column.
+ * @param {string} [fkColName] - The foreign key column name.
+ * @param {BoolType} [virtual=false] - Whether the column is virtual.
+ * @param {boolean} [isSystemCol=false] - Whether the column is a system column.
+ * @param {any} [columnMeta=null] - Metadata for the column.
+ * @param {any} [colExtra] - Additional column parameters.
+ */
 export async function createOOColumn(
   child: Model,
   parent: Model,
@@ -111,12 +125,10 @@ export async function createOOColumn(
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
-
       fk_model_id: child.id,
       // ref_db_alias
       uidt: UITypes.LinkToAnotherRecord,
-      type: 'oo',
-      // db_type:
+      type: RelationTypes.ONE_TO_ONE,
 
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parent.primaryKey.id,
@@ -127,7 +139,12 @@ export async function createOOColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       // ...(colExtra || {}),
-      meta: { ...(colExtra?.meta || {}), bt: true },
+      meta: {
+        ...(colExtra?.meta || {}),
+        // one-to-one relation is combination of both hm and bt to identify table which have
+        // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
+        bt: true,
+      },
     });
   }
   // save hm column

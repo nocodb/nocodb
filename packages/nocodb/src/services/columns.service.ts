@@ -2410,8 +2410,9 @@ export class ColumnsService {
       }
 
       if (!relationColOpt?.virtual && !virtual) {
-        // todo: handle relation delete exception
+        // Ensure relation deletion is not attempted for virtual relations
         try {
+          // Attempt to delete the foreign key constraint from the database
           await sqlMgr.sqlOpPlus(source, 'relationDelete', {
             childColumn: childColumn.column_name,
             childTable: childTable.table_name,
@@ -2554,8 +2555,9 @@ export class ColumnsService {
       }
 
       if (!relationColOpt?.virtual && !virtual) {
-        // todo: handle relation delete exception
+        // Ensure relation deletion is not attempted for virtual relations
         try {
+          // Attempt to delete the foreign key constraint from the database
           await sqlMgr.sqlOpPlus(source, 'relationDelete', {
             childColumn: childColumn.column_name,
             childTable: childTable.table_name,
@@ -2791,12 +2793,11 @@ export class ColumnsService {
 
       let foreignKeyName;
       {
-        // create foreign key
+        // Create foreign key column for one-to-one relationship
         const newColumn = {
-          cn: fkColName,
-
-          title: fkColName,
-          column_name: fkColName,
+          cn: fkColName, // Column name in the database
+          title: fkColName, // Human-readable title for the column
+          column_name: fkColName, // Column name in the database ( used in sql client )
           rqd: false,
           pk: false,
           ai: false,
@@ -2806,7 +2807,7 @@ export class ColumnsService {
           dtxs: parent.primaryKey.dtxs,
           un: parent.primaryKey.un,
           altered: Altered.NEW_COLUMN,
-          unique: 1,
+          unique: 1, // Ensure the foreign key column is unique for one-to-one relationships
         };
 
         const tableUpdateBody = {

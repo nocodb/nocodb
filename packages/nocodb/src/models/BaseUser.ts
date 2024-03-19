@@ -163,6 +163,15 @@ export default class BaseUser {
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
+
+    const fullVersionCols = [
+      'invite_token',
+      'main_roles',
+      'created_at',
+      'base_id',
+      'roles',
+    ];
+
     if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
@@ -170,15 +179,11 @@ export default class BaseUser {
           `${MetaTable.USERS}.id`,
           `${MetaTable.USERS}.email`,
           `${MetaTable.USERS}.display_name`,
-          ...(mode === 'full'
-            ? [
-                `${MetaTable.USERS}.invite_token`,
-                `${MetaTable.USERS}.roles as main_roles`,
-                `${MetaTable.USERS}.created_at as created_at`,
-                `${MetaTable.PROJECT_USERS}.base_id`,
-                `${MetaTable.PROJECT_USERS}.roles as roles`,
-              ]
-            : []),
+          `${MetaTable.USERS}.invite_token`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
 
       queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
@@ -204,6 +209,17 @@ export default class BaseUser {
         'base_id',
         'id',
       ]);
+    }
+
+    if (mode === 'full') {
+      return baseUsers;
+    }
+
+    // remove full version props if viewer
+    for (const user of baseUsers) {
+      for (const prop of fullVersionCols) {
+        delete user[prop];
+      }
     }
 
     return baseUsers;

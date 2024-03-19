@@ -30,7 +30,8 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
-  createHmAndBtColumn, createOOColumn,
+  createHmAndBtColumn,
+  createOOColumn,
   generateFkName,
   randomID,
   sanitizeColumnName,
@@ -38,7 +39,7 @@ import {
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '~/helpers'
+} from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
@@ -2781,10 +2782,7 @@ export class ColumnsService {
         isLinks,
         param.colExtra,
       );
-    }
-    else if (
-      (param.column as LinkToAnotherColumnReqType).type === 'oo'
-    ) {
+    } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
       // populate fk column name
       const fkColName = getUniqueColumnName(
         await child.getColumns(),
@@ -2879,7 +2877,6 @@ export class ColumnsService {
         (param.column as LinkToAnotherColumnReqType).virtual,
         null,
         param.column['meta'],
-        isLinks,
         param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {

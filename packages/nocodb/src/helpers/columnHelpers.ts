@@ -101,14 +101,13 @@ export async function createOOColumn(
   virtual: BoolType = false,
   isSystemCol = false,
   columnMeta = null,
-  isLinks = false,
   colExtra?: any,
 ) {
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      (type === 'bt' && alias) || `${parent.title}`,
+      `${parent.title}`,
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -135,7 +134,7 @@ export async function createOOColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      (type === 'hm' && alias) || pluralize(child.title),
+      alias || child.title,
     );
     const meta = {
       plural: columnMeta?.plural || pluralize(child.title),

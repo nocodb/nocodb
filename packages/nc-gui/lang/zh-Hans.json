@@ -429,7 +429,8 @@
       "setDefault": "设为默认"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -681,7 +682,7 @@
     "sourceNameRequired": "必须填写源名称",
     "changeWsName": "更改工作区名称",
     "pressEnter": "按回车键",
-    "newFormLoaded": "新表格将在",
+    "newFormLoaded": "Loading new form in",
     "webhook": "网络钩子",
     "multiField": {
       "newField": "新建字段",

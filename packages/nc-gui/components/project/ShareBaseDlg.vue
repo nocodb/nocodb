@@ -234,7 +234,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
         <div class="flex justify-between gap-3 w-full">
           <div
             ref="divRef"
-            class="flex items-center border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md items-center h-10 rounded-lg !min-w-96"
+            class="flex items-center border-1 gap-1 w-full overflow-x-auto nc-scrollbar-x-md items-center h-10 rounded-lg !min-w-96"
             tabindex="0"
             :class="{
               'border-primary/100': isDivFocused,

@@ -527,7 +527,7 @@ const projectDelete = () => {
                     v-if="base?.sources?.[0]?.enabled"
                     key="erd"
                     data-testid="nc-sidebar-base-relations"
-                    @click="openErdView(base?.sources?.[0]!)"
+                    @click="openErdView(base?.sources?.[0])"
                   >
                     <div v-e="['c:base:erd']" class="flex gap-2 items-center">
                       <GeneralIcon icon="erd" />
@@ -766,7 +766,7 @@ const projectDelete = () => {
             </div>
           </NcMenuItem>
           <NcDivider />
-          <NcMenuItem v-if="isUIAllowed('table-delete')" class="!hover:bg-red-50" @click="tableDelete">
+          <NcMenuItem v-if="isUIAllowed('tableDelete')" class="!hover:bg-red-50" @click="tableDelete">
             <div class="nc-base-option-item flex gap-2 items-center text-red-600">
               <GeneralIcon icon="delete" />
               {{ $t('general.delete') }}

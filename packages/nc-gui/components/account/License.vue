@@ -36,7 +36,7 @@ loadLicense()
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull">
+  <div class="h-full overflow-y-auto scrollbar-thin-dull">
     <!--    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">License</div>-->
     <!--    <div class="mx-auto w-150">-->
     <!--      <div>-->

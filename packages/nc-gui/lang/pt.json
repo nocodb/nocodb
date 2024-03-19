@@ -429,7 +429,8 @@
       "setDefault": "Definir como padrão"
     },
     "selectFieldsFromRightPannelToAddHere": "Seleccione campos do painel direito para adicionar aqui",
-    "noOptionsFound": "No options found"
+    "noOptionsFound": "No options found",
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
   },
   "labels": {
     "selectYear": "Selecionar ano",
@@ -681,7 +682,7 @@
     "sourceNameRequired": "Source name is required",
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",
-    "newFormLoaded": "New form will be loaded after",
+    "newFormLoaded": "Loading new form in",
     "webhook": "Webhook",
     "multiField": {
       "newField": "New field",

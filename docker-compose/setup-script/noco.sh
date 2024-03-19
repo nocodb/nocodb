@@ -1,7 +1,6 @@
 #!/bin/bash
 # set -x
 
-# ******************************************************************************
 # *****************    HELPER FUNCTIONS START  *********************************
 
 # Function to URL encode special characters in a string
@@ -63,11 +62,80 @@ check_for_docker_compose_sudo() {
 }
 
 # *****************    HELPER FUNCTIONS END  ***********************************
-# ******************************************************************************
+
+
+# ******************** INPUTS FROM USER START  ********************************
+
+# Extract public IP address
+PUBLIC_IP=$(dig +short myip.opendns.com @resolver1.opendns.com)
+
+# Check if the public IP address is not empty, if empty then use the localhost
+if [ -z "$PUBLIC_IP" ]; then
+    PUBLIC_IP="localhost"
+fi
+
+# Ask for the domain first
+echo "Enter Your Website Name (subdomain is supported) or the IP Address for hosting NocoDB instance (default: $PUBLIC_IP): "
+read DOMAIN_NAME
+if [ -z "$DOMAIN_NAME" ]; then
+    DOMAIN_NAME="$PUBLIC_IP"
+fi
+
+# Ask if they want to do advanced installation
+echo "Do you want to proceed with advanced installation? [Y/N] (default: N): "
+read ADVANCED_INSTALLATION
+
+if [[ "$ADVANCED_INSTALLATION" =~ ^[Yy]$ ]]; then
+    # Proceed with asking further questions only if advanced installation is chosen
+
+    echo "Choose Community Edition or Enterprise Edition [CE/EE] (default: CE): "
+    read EDITION
+
+    echo "Do you want to configure SSL [Y/N] (default: Y): "
+    read SSL_ENABLED
+
+    if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y" ]; }; then
+        SSL_ENABLED='y'
+        if [ -z "$DOMAIN_NAME" ]; then
+            echo "Domain name is required for SSL configuration"
+            exit 1
+        fi
+    fi
+
+    if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
+        echo "Enter the NocoDB license key: "
+        read LICENSE_KEY
+        if [ -z "$LICENSE_KEY" ]; then
+            echo "License key is required for Enterprise Edition installation"
+            exit 1
+        fi
+    fi
+
+    echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
+    read REDIS_ENABLED
+
+    if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+        message_arr+=("Redis: Enabled")
+    else
+        message_arr+=("Redis: Disabled")
+    fi
+
+
+    echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
+    read WATCHTOWER_ENABLED
+
+else
+    # If not proceeding with advanced installation, set defaults
+    EDITION="CE"
+    SSL_ENABLED="Y"
+    WATCHTOWER_ENABLED="Y"
+fi
+
+# (The rest of the setup script remains mostly the same, but use $DOMAIN_NAME where appropriate and include conditional blocks based on the answers from the advanced setup.)
+# *********************** INPUTS FROM USER END  ********************************
 
 
 
-# ******************************************************************************
 # ******************** SYSTEM REQUIREMENTS CHECK START  *************************
 
 # Check if the following requirements are met:
@@ -152,74 +220,74 @@ mkdir -p "$FOLDER_NAME"
 cd "$FOLDER_NAME" || exit
 
 # ******************** SYSTEM REQUIREMENTS CHECK END  **************************
-# ******************************************************************************
+
 
 
 
 # ******************** INPUTS FROM USER START  ********************************
-# ******************************************************************************
-
-echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
-read EDITION
-
-echo "Do you want to configure SSL [Y/N] (default: N): "
-read SSL_ENABLED
 
 
-if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y" ]; }; then
-    SSL_ENABLED='y'
-    echo "Enter the domain name for the SSL certificate: "
-    read DOMAIN_NAME
-    if [ -z "$DOMAIN_NAME" ]; then
-        echo "Domain name is required for SSL configuration"
-        exit 1
-    fi
-    message_arr+=("Domain: $DOMAIN_NAME")
-else
-    #  prompt for ip address and if left empty use extracted public ip
-    echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
-    read DOMAIN_NAME
-    if [ -z "$DOMAIN_NAME" ]; then
-        DOMAIN_NAME="$PUBLIC_IP"
-    fi
-fi
+#echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
+#read EDITION
+#
+#echo "Do you want to configure SSL [Y/N] (default: N): "
+#read SSL_ENABLED
+#
+#
+#if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y" ]; }; then
+#    SSL_ENABLED='y'
+#    echo "Enter the domain name for the SSL certificate: "
+#    read DOMAIN_NAME
+#    if [ -z "$DOMAIN_NAME" ]; then
+#        echo "Domain name is required for SSL configuration"
+#        exit 1
+#    fi
+#    message_arr+=("Domain: $DOMAIN_NAME")
+#else
+#    #  prompt for ip address and if left empty use extracted public ip
+#    echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
+#    read DOMAIN_NAME
+#    if [ -z "$DOMAIN_NAME" ]; then
+#        DOMAIN_NAME="$PUBLIC_IP"
+#    fi
+#fi
+#
+#if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
+#    echo "Enter the NocoDB license key: "
+#    read LICENSE_KEY
+#    if [ -z "$LICENSE_KEY" ]; then
+#        echo "License key is required for Enterprise Edition installation"
+#        exit 1
+#    fi
+#fi
+#
+#
+#echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
+#read REDIS_ENABLED
+#
+#if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
+#    message_arr+=("Redis: Enabled")
+#else
+#    message_arr+=("Redis: Disabled")
+#fi
+#
+#
+#echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
+#read WATCHTOWER_ENABLED
+#
+#if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then
+#    message_arr+=("Watchtower: Enabled")
+#else
+#    message_arr+=("Watchtower: Disabled")
+#fi
+#
 
-if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
-    echo "Enter the NocoDB license key: "
-    read LICENSE_KEY
-    if [ -z "$LICENSE_KEY" ]; then
-        echo "License key is required for Enterprise Edition installation"
-        exit 1
-    fi
-fi
 
 
-echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
-read REDIS_ENABLED
-
-if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
-    message_arr+=("Redis: Enabled")
-else
-    message_arr+=("Redis: Disabled")
-fi
-
-
-echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
-read WATCHTOWER_ENABLED
-
-if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then
-    message_arr+=("Watchtower: Enabled")
-else
-    message_arr+=("Watchtower: Disabled")
-fi
-
-
-
-# ******************************************************************************
 # *********************** INPUTS FROM USER END  ********************************
 
 
-# ******************************************************************************
+
 # *************************** SETUP START  *************************************
 
 # Generate a strong random password for PostgreSQL
@@ -548,4 +616,3 @@ fi
 print_box_message "${mecdessage_arr[@]}"
 
 # *************************** SETUP END  *************************************
-# ******************************************************************************

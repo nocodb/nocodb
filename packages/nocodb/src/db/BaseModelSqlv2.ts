@@ -1806,7 +1806,7 @@ class BaseModelSqlv2 {
   }
 
   // todo: naming & optimizing
-  public async getOoChildrenExcludedListCount(
+  public async countExcludedOneToOneChildren(
     { colId, cid = null },
     args,
   ): Promise<any> {
@@ -1831,6 +1831,8 @@ class BaseModelSqlv2 {
     const tn = childTn;
     await childTable.getColumns();
 
+    // one-to-one relation is combination of both hm and bt to identify table which have
+    // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
     const isBt = relColumn.meta?.bt;
 
     const qb = this.dbDriver(isBt ? rtn : tn)
@@ -1926,7 +1928,7 @@ class BaseModelSqlv2 {
   }
 
   // todo: naming & optimizing
-  public async getOoChildrenExcludedList(
+  public async getExcludedOneToOneChildrenList(
     { colId, cid = null },
     args,
   ): Promise<any> {
@@ -1956,6 +1958,8 @@ class BaseModelSqlv2 {
     const tn = this.getTnPath(childTable);
     await childTable.getColumns();
 
+    // one-to-one relation is combination of both hm and bt to identify table which have
+    // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
     const isBt = relColumn.meta?.bt;
 
     const qb = this.dbDriver(isBt ? rtn : tn).where((qb) => {

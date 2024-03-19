@@ -78,7 +78,6 @@ export default async function generateLookupSelectQuery({
           : RelationTypes.HAS_MANY;
       }
 
-      // if not belongs to then throw error as we don't support
       if (relationType === RelationTypes.BELONGS_TO) {
         const childColumn = await relation.getChildColumn();
         const parentColumn = await relation.getParentColumn();
@@ -101,8 +100,6 @@ export default async function generateLookupSelectQuery({
           ]),
         );
       }
-
-      // if not belongs to then throw error as we don't support
       else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();
@@ -126,8 +123,6 @@ export default async function generateLookupSelectQuery({
           ]),
         );
       }
-
-      // if not belongs to then throw error as we don't support
       else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn();

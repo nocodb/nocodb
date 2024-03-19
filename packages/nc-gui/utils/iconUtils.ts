@@ -359,7 +359,7 @@ export const iconMap = {
   mm_solid: ManytoManySolidIcon,
   hm_solid: HasManySolidIcon,
   bt_solid: BelongsToSolidIcon,
-  oo_solid: OnetoOneIcon,
+  oneToOneSolid: OnetoOneIcon,
   workspaceDefault: MsGroup,
   project: Project,
   search: NcSearch,

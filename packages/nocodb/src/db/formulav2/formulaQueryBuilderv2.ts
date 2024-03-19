@@ -142,7 +142,7 @@ async function _formulaQueryBuilder(
         aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
-          let isMany = false;
+          let isArray = false;
           const alias = `__nc_formula${aliasCount++}`;
           const lookup = await col.getColOptions<LookupColumn>();
           {
@@ -184,7 +184,7 @@ async function _formulaQueryBuilder(
                 );
                 break;
               case RelationTypes.HAS_MANY:
-                isMany = relation.type !== RelationTypes.ONE_TO_ONE;
+                isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                 selectQb = knex(
                   knex.raw(`?? as ??`, [
                     baseModelSqlv2.getTnPath(childModel.table_name),
@@ -202,7 +202,7 @@ async function _formulaQueryBuilder(
                 break;
               case RelationTypes.MANY_TO_MANY:
                 {
-                  isMany = true;
+                  isArray = true;
                   const mmModel = await relation.getMMModel();
                   const mmParentColumn = await relation.getMMParentColumn();
                   const mmChildColumn = await relation.getMMChildColumn();
@@ -278,7 +278,7 @@ async function _formulaQueryBuilder(
                   break;
                 case RelationTypes.HAS_MANY:
                   {
-                    isMany = relation.type !== RelationTypes.ONE_TO_ONE;
+                    isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                     selectQb.join(
                       knex.raw(`?? as ??`, [
                         baseModelSqlv2.getTnPath(childModel.table_name),
@@ -290,7 +290,7 @@ async function _formulaQueryBuilder(
                   }
                   break;
                 case RelationTypes.MANY_TO_MANY: {
-                  isMany = true;
+                  isArray = true;
                   const mmModel = await relation.getMMModel();
                   const mmParentColumn = await relation.getMMParentColumn();
                   const mmChildColumn = await relation.getMMChildColumn();
@@ -342,7 +342,7 @@ async function _formulaQueryBuilder(
                   ).builder;
                   // selectQb.select(builder);
 
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -403,7 +403,7 @@ async function _formulaQueryBuilder(
                       break;
                     case RelationTypes.HAS_MANY:
                       {
-                        isMany = relation.type !== RelationTypes.ONE_TO_ONE;
+                        isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                         selectQb.join(
                           knex.raw(`?? as ??`, [
                             baseModelSqlv2.getTnPath(childModel.table_name),
@@ -420,7 +420,7 @@ async function _formulaQueryBuilder(
                       break;
                     case RelationTypes.MANY_TO_MANY:
                       {
-                        isMany = true;
+                        isArray = true;
                         const mmModel = await relation.getMMModel();
                         const mmParentColumn =
                           await relation.getMMParentColumn();
@@ -461,7 +461,7 @@ async function _formulaQueryBuilder(
                     `${prevAlias}.${childColumn.column_name}`,
                   );
 
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -491,7 +491,7 @@ async function _formulaQueryBuilder(
                     aliasToColumn,
                     formulaOption.getParsedTree(),
                   );
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -510,7 +510,7 @@ async function _formulaQueryBuilder(
                 break;
               default:
                 {
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex

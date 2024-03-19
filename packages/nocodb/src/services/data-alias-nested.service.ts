@@ -206,7 +206,7 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(param.columnName, model);
 
-    const data = await baseModel.getOoChildrenExcludedList(
+    const data = await baseModel.getExcludedOneToOneChildrenList(
       {
         colId: column.id,
         cid: param.rowId,
@@ -214,7 +214,7 @@ export class DataAliasNestedService {
       param.query,
     );
 
-    const count = await baseModel.getOoChildrenExcludedListCount(
+    const count = await baseModel.countExcludedOneToOneChildren(
       {
         colId: column.id,
         cid: param.rowId,

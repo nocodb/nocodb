@@ -287,7 +287,17 @@ const extractRelationDependencies = async (
       dependencyFields.fieldsSet.add(
         await relationColumnOpts.getChildColumn().then((col) => col.title),
       );
-
+      break;
+    case RelationTypes.ONE_TO_ONE:
+      if (relationColumn.meta?.bt) {
+        dependencyFields.fieldsSet.add(
+          await relationColumnOpts.getChildColumn().then((col) => col.title),
+        );
+      } else {
+        dependencyFields.fieldsSet.add(
+          await relationColumnOpts.getParentColumn().then((col) => col.title),
+        );
+      }
       break;
   }
 };

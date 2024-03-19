@@ -2162,7 +2162,8 @@ class SqliteClient extends KnexClient {
       query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       query += n.cdf ? ` DEFAULT ${this.genValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
-      query += n.unique ? ` UNIQUE` : '';
+      // todo: unique constraint should be added using index
+      // query += n.unique ? ` UNIQUE` : '';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(
@@ -2177,7 +2178,8 @@ class SqliteClient extends KnexClient {
         ? ' '
         : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
-      query += n.unique ? ` UNIQUE` : '';
+      // todo: unique constraint should be added using index
+      // query += n.unique ? ` UNIQUE` : '';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {
       // if(n.cn!==o.cno) {

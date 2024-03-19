@@ -2236,93 +2236,138 @@ class BaseModelSqlv2 {
                 };
                 // todo : handle mm
               } else if (colOptions.type === 'oo') {
-                // @ts-ignore
-                const colOptions =
-                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
-                const pCol = await Column.get({
-                  colId: colOptions.fk_parent_column_id,
-                });
-                const cCol = await Column.get({
-                  colId: colOptions.fk_child_column_id,
-                });
+                const isBt = column.meta?.bt;
 
-                // use dataloader to get batches of parent data together rather than getting them individually
-                // it takes individual keys and callback is invoked with an array of values and we can get the
-                // result for all those together and return the value in the same order as in the array
-                // this way all parents data extracted together
-                const readLoader = new DataLoader(
-                  async (_ids: string[]) => {
-                    // handle binary(16) foreign keys
-                    const ids = _ids.map((id) => {
-                      if (pCol.ct !== 'binary(16)') return id;
+                if (isBt) {
+                  // @ts-ignore
+                  const colOptions =
+                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
+                  const pCol = await Column.get({
+                    colId: colOptions.fk_parent_column_id,
+                  });
+                  const cCol = await Column.get({
+                    colId: colOptions.fk_child_column_id,
+                  });
 
-                      // Cast the id to string.
-                      const idAsString = id + '';
-                      // Check if the id is a UUID and the column is binary(16)
-                      const isUUIDBinary16 =
-                        idAsString.length === 36 || idAsString.length === 32;
-                      // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                      const idAsUUID = isUUIDBinary16
-                        ? idAsString.length === 32
-                          ? idAsString.replace(
-                              /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                              '$1-$2-$3-$4-$5',
-                            )
-                          : idAsString
-                        : null;
+                  // use dataloader to get batches of parent data together rather than getting them individually
+                  // it takes individual keys and callback is invoked with an array of values and we can get the
+                  // result for all those together and return the value in the same order as in the array
+                  // this way all parents data extracted together
+                  const readLoader = new DataLoader(
+                    async (_ids: string[]) => {
+                      // handle binary(16) foreign keys
+                      const ids = _ids.map((id) => {
+                        if (pCol.ct !== 'binary(16)') return id;
 
-                      return idAsUUID
-                        ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                        : id;
-                    });
+                        // Cast the id to string.
+                        const idAsString = id + '';
+                        // Check if the id is a UUID and the column is binary(16)
+                        const isUUIDBinary16 =
+                          idAsString.length === 36 || idAsString.length === 32;
+                        // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                        const idAsUUID = isUUIDBinary16
+                          ? idAsString.length === 32
+                            ? idAsString.replace(
+                                /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                                '$1-$2-$3-$4-$5',
+                              )
+                            : idAsString
+                          : null;
 
-                    const data = await (
-                      await Model.getBaseModelSQL({
-                        id: pCol.fk_model_id,
-                        dbDriver: this.dbDriver,
-                      })
-                    ).list(
-                      {
-                        fieldsSet: (readLoader as any).args?.fieldsSet,
-                        filterArr: [
-                          new Filter({
-                            id: null,
-                            fk_column_id: pCol.id,
-                            fk_model_id: pCol.fk_model_id,
-                            value: ids as any[],
-                            comparison_op: 'in',
-                          }),
-                        ],
-                      },
-                      {
-                        ignoreViewFilterAndSort: true,
-                        ignorePagination: true,
-                      },
+                        return idAsUUID
+                          ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                          : id;
+                      });
+
+                      const data = await (
+                        await Model.getBaseModelSQL({
+                          id: pCol.fk_model_id,
+                          dbDriver: this.dbDriver,
+                        })
+                      ).list(
+                        {
+                          fieldsSet: (readLoader as any).args?.fieldsSet,
+                          filterArr: [
+                            new Filter({
+                              id: null,
+                              fk_column_id: pCol.id,
+                              fk_model_id: pCol.fk_model_id,
+                              value: ids as any[],
+                              comparison_op: 'in',
+                            }),
+                          ],
+                        },
+                        {
+                          ignoreViewFilterAndSort: true,
+                          ignorePagination: true,
+                        },
+                      );
+
+                      const groupedList = groupBy(data, pCol.title);
+                      return _ids.map(
+                        async (id: string) => groupedList?.[id]?.[0],
+                      );
+                    },
+                    {
+                      cache: false,
+                    },
+                  );
+
+                  // defining BelongsTo read resolver method
+                  proto[column.title] = async function (args?: any) {
+                    if (
+                      this?.[cCol?.title] === null ||
+                      this?.[cCol?.title] === undefined
+                    )
+                      return null;
+
+                    (readLoader as any).args = args;
+
+                    return await readLoader.load(this?.[cCol?.title]);
+                  };
+                } else {
+                  const listLoader = new DataLoader(
+                    async (ids: string[]) => {
+                      if (ids.length > 1) {
+                        const data = await this.multipleHmList(
+                          {
+                            colId: column.id,
+                            ids,
+                          },
+                          (listLoader as any).args,
+                        );
+                        return ids.map((id: string) =>
+                          data[id] ? data[id]?.[0] : null,
+                        );
+                      } else {
+                        return [
+                          await this.hmList(
+                            {
+                              colId: column.id,
+                              id: ids[0],
+                            },
+                            (listLoader as any).args,
+                          ),
+                        ];
+                      }
+                    },
+                    {
+                      cache: false,
+                    },
+                  );
+                  const self: BaseModelSqlv2 = this;
+
+                  proto[
+                    column.uidt === UITypes.Links
+                      ? `_nc_lk_${column.title}`
+                      : column.title
+                  ] = async function (args): Promise<any> {
+                    (listLoader as any).args = args;
+                    return listLoader.load(
+                      getCompositePk(self.model.primaryKeys, this),
                     );
-
-                    const groupedList = groupBy(data, pCol.title);
-                    return _ids.map(
-                      async (id: string) => groupedList?.[id]?.[0],
-                    );
-                  },
-                  {
-                    cache: false,
-                  },
-                );
-
-                // defining BelongsTo read resolver method
-                proto[column.title] = async function (args?: any) {
-                  if (
-                    this?.[cCol?.title] === null ||
-                    this?.[cCol?.title] === undefined
-                  )
-                    return null;
-
-                  (readLoader as any).args = args;
-
-                  return await readLoader.load(this?.[cCol?.title]);
-                };
-                // todo : handle mm
+                  };
+                }
               }
             }
             break;
@@ -4468,36 +4513,15 @@ class BaseModelSqlv2 {
           // todo: unlink if it's already mapped
           // unlink already mapped record if any
 
-          console.log('reset',this.dbDriver(childTn)
-            .where({
-              [childColumn.column_name]: this.dbDriver.from(
-                this.dbDriver(parentTn)
-                  .select(parentColumn.column_name)
-                  .where(
-                    _wherePk(
-                      parentTable.primaryKeys,
-                      isBt? childId : rowId,
-                    ),
-                  )
-                  .first()
-                  .as('___cn_alias'),
-              ),
-            })
-            .update({
-              [childColumn.column_name]: null,
-            }).toQuery())
-
-          console.log(await this.execAndParse(
+          console.log(
+            'reset',
             this.dbDriver(childTn)
               .where({
                 [childColumn.column_name]: this.dbDriver.from(
                   this.dbDriver(parentTn)
                     .select(parentColumn.column_name)
                     .where(
-                      _wherePk(
-                        parentTable.primaryKeys,
-                        isBt? childId : rowId,
-                      ),
+                      _wherePk(parentTable.primaryKeys, isBt ? childId : rowId),
                     )
                     .first()
                     .as('___cn_alias'),
@@ -4505,24 +4529,52 @@ class BaseModelSqlv2 {
               })
               .update({
                 [childColumn.column_name]: null,
-              }),
-            null,
-            { raw: true },
-          ));
+              })
+              .toQuery(),
+          );
 
-          console.log('set',this.dbDriver(childTn)
-            .update({
-              [childColumn.column_name]: this.dbDriver.from(
-                this.dbDriver(parentTn)
-                  .select(parentColumn.column_name)
-                  .where(
-                    _wherePk(parentTable.primaryKeys, isBt ? childId : rowId),
-                  )
-                  .first()
-                  .as('___cn_alias'),
-              ),
-            })
-            .where(_wherePk(childTable.primaryKeys, isBt ? rowId : childId)).toQuery())
+          console.log(
+            await this.execAndParse(
+              this.dbDriver(childTn)
+                .where({
+                  [childColumn.column_name]: this.dbDriver.from(
+                    this.dbDriver(parentTn)
+                      .select(parentColumn.column_name)
+                      .where(
+                        _wherePk(
+                          parentTable.primaryKeys,
+                          isBt ? childId : rowId,
+                        ),
+                      )
+                      .first()
+                      .as('___cn_alias'),
+                  ),
+                })
+                .update({
+                  [childColumn.column_name]: null,
+                }),
+              null,
+              { raw: true },
+            ),
+          );
+
+          console.log(
+            'set',
+            this.dbDriver(childTn)
+              .update({
+                [childColumn.column_name]: this.dbDriver.from(
+                  this.dbDriver(parentTn)
+                    .select(parentColumn.column_name)
+                    .where(
+                      _wherePk(parentTable.primaryKeys, isBt ? childId : rowId),
+                    )
+                    .first()
+                    .as('___cn_alias'),
+                ),
+              })
+              .where(_wherePk(childTable.primaryKeys, isBt ? rowId : childId))
+              .toQuery(),
+          );
           await this.execAndParse(
             this.dbDriver(childTn)
               .update({

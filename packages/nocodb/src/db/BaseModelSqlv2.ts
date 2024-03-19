@@ -3258,7 +3258,7 @@ class BaseModelSqlv2 {
                       [childCol.column_name]: null,
                     })
                     .where(
-                      childModel.primaryKey.column_name,
+                      childCol.column_name,
                       nestedData[childModel.primaryKey.title],
                     );
                 });

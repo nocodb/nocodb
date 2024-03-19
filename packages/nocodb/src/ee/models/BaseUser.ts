@@ -195,24 +195,32 @@ export default class BaseUser extends BaseUserCE {
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
+
+    const fullVersionCols = [
+      'invite_token',
+      'main_roles',
+      'created_at',
+      'base_id',
+      'roles',
+      'workspace_roles',
+      'workspace_id',
+      'deleted',
+    ];
+
     if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
         `${MetaTable.USERS}.display_name`,
 
-        ...(mode === 'full'
-          ? [
-              `${MetaTable.USERS}.invite_token`,
-              `${MetaTable.USERS}.roles as main_roles`,
-              `${MetaTable.USERS}.created_at as created_at`,
-              `${MetaTable.PROJECT_USERS}.base_id`,
-              `${MetaTable.PROJECT_USERS}.roles as roles`,
-              `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-              `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-              `${MetaTable.WORKSPACE_USER}.deleted as deleted`,
-            ]
-          : []),
+        `${MetaTable.USERS}.invite_token`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.created_at as created_at`,
+        `${MetaTable.PROJECT_USERS}.base_id`,
+        `${MetaTable.PROJECT_USERS}.roles as roles`,
+        `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+        `${MetaTable.WORKSPACE_USER}.deleted as deleted`,
       );
 
       queryBuilder
@@ -254,6 +262,17 @@ export default class BaseUser extends BaseUserCE {
 
     if (!include_ws_deleted) {
       baseUsers = baseUsers.filter((u) => !u.deleted);
+    }
+
+    if (mode === 'full') {
+      return baseUsers;
+    }
+
+    // remove full version props if viewer
+    for (const user of baseUsers) {
+      for (const prop of fullVersionCols) {
+        delete user[prop];
+      }
     }
 
     return baseUsers;

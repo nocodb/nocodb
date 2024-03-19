@@ -157,7 +157,17 @@ async function _formulaQueryBuilder(
             await childModel.getColumns();
             const parentModel = await parentColumn.getModel();
             await parentModel.getColumns();
-            switch (relation.type) {
+
+            let relationType = relation.type;
+
+
+            if (relationType === RelationTypes.ONE_TO_ONE) {
+              relationType = relationCol.meta?.bt
+                ? RelationTypes.BELONGS_TO
+                : RelationTypes.HAS_MANY;
+            }
+
+            switch (relationType) {
               case RelationTypes.BELONGS_TO:
                 selectQb = knex(
                   knex.raw(`?? as ??`, [
@@ -175,7 +185,7 @@ async function _formulaQueryBuilder(
                 );
                 break;
               case RelationTypes.HAS_MANY:
-                isMany = true;
+                isMany = relation.type !== RelationTypes.ONE_TO_ONE;
                 selectQb = knex(
                   knex.raw(`?? as ??`, [
                     baseModelSqlv2.getTnPath(childModel.table_name),
@@ -581,7 +591,7 @@ async function _formulaQueryBuilder(
                   }.${childColumn.column_name}`,
                 ]),
               );
-          } else if (relation.type == RelationTypes.HAS_MANY) {
+          } else if (relationType == RelationTypes.HAS_MANY) {
             const qb = knex(baseModelSqlv2.getTnPath(childModel.table_name))
               // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))
               .where(
@@ -608,7 +618,7 @@ async function _formulaQueryBuilder(
                 .wrap('(', ')');
 
             // getAggregateFn();
-          } else if (relation.type == RelationTypes.MANY_TO_MANY) {
+          } else if (relationType == RelationTypes.MANY_TO_MANY) {
             // todo:
             // const qb = knex(childModel.title)
             //   // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))

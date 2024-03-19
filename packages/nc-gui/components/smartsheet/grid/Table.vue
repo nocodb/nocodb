@@ -357,7 +357,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       },
       scope: defineViewScope({ view: view.value }),
     })
-    if (isBt(columnObj) && rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
+    if ((isBt(columnObj) || isOo(columnObj)) && rowRefs.value) await rowRefs.value[ctx.row]!.clearLTARCell(columnObj)
 
     return
   }

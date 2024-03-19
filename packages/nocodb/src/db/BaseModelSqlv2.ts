@@ -5186,7 +5186,11 @@ class BaseModelSqlv2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if (col.colOptions?.type === 'bt') {
+      if (
+        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+          col.colOptions?.type,
+        )
+      ) {
         btMap[col.id] = true;
         const btData = Object.values(data).find(
           (d) => d[col.id] && Object.keys(d[col.id]),
@@ -5619,7 +5623,7 @@ class BaseModelSqlv2 {
 
   async addLinks({
     cookie,
-    childIds,
+    childIds: _childIds,
     colId,
     rowId,
   }: {
@@ -5646,7 +5650,7 @@ class BaseModelSqlv2 {
       NcError.notFound(`Record with id '${rowId}' not found`);
     }
 
-    if (!childIds.length) return;
+    if (!_childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
@@ -5660,7 +5664,17 @@ class BaseModelSqlv2 {
     const childTn = this.getTnPath(childTable);
     const parentTn = this.getTnPath(parentTable);
 
-    switch (colOptions.type) {
+    let relationType = colOptions.type;
+    let childIds = _childIds;
+
+    if (relationType === RelationTypes.ONE_TO_ONE) {
+      relationType = column.meta?.bt
+        ? RelationTypes.BELONGS_TO
+        : RelationTypes.HAS_MANY;
+      childIds = childIds.slice(0, 1);
+    }
+
+    switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
           const vChildCol = await colOptions.getMMChildColumn();

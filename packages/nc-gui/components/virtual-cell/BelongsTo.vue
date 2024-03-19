@@ -116,7 +116,7 @@ watch([listItemsDlg], () => {
     >
       <GeneralIcon
         :icon="addIcon"
-        class="text-sm nc-action-icon group-focus:visible invisible text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
+        class="nc-action-icon group-focus:visible invisible text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
         @click.stop="listItemsDlg = true"
       />
     </div>

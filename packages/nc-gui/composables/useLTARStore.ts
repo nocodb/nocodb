@@ -190,7 +190,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
-        // todo: confirm the usecase of `childrenExcludedOffsetCount.value`
+        // todo: confirm the use case of `childrenExcludedOffsetCount.value`
         let offset = childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)
 
         if (offset < 0) {
@@ -282,6 +282,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           })
         }
       } catch (e: any) {
+        // temporary fix to handle when offset is beyond limit
+        if(await extractSdkResponseErrorMsg(e) === 'Offset is beyond the total number of records'){
+          childrenExcludedListPagination.page = 0;
+          return loadChildrenExcludedList(activeState)
+        }
+
         message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
         isChildrenExcludedLoading.value = false

@@ -3220,6 +3220,7 @@ class BaseModelSqlv2 {
     insertObj: Record<string, any>;
   }) {
     const postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+    const preInsert: (trx?: any) => Promise<void>)[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
@@ -3241,6 +3242,37 @@ class BaseModelSqlv2 {
               const childCol = await colOptions.getChildColumn();
               const parentCol = await colOptions.getParentColumn();
               insertObj[childCol.column_name] = nestedData?.[parentCol.title];
+            }
+            break;
+          case RelationTypes.ONE_TO_ONE:
+            {
+              const isBt = col.meta?.bt;
+
+
+              if(isBt){
+                // todo: unlink the ref record
+
+                if (typeof nestedData !== 'object') continue;
+                const childCol = await colOptions.getChildColumn();
+                const parentCol = await colOptions.getParentColumn();
+                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
+              }else{
+                postInsertOps.push(
+                  async (
+                    rowId,
+                    trx: any = this.dbDriver,
+                  ) => {
+                    await trx(this.getTnPath(childModel.table_name))
+                      .update({
+                        [childCol.column_name]: rowId,
+                      })
+                      .whereIn(
+                        childModel.primaryKey.column_name,
+                        nestedData?.map((r) => r[childModel.primaryKey.title]),
+                      );
+                  },
+                );
+              }
             }
             break;
           case RelationTypes.HAS_MANY:

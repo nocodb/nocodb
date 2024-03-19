@@ -294,6 +294,7 @@ export default class User implements UserType {
     const user = await this.get(userId, ncMeta);
     if (!user) NcError.badRequest('User not found');
 
+    // todo: skip base user cache delete based on flag
     const bases = await BaseUser.getProjectsList(userId, {}, ncMeta);
 
     for (const base of bases) {

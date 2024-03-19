@@ -3068,7 +3068,7 @@ class BaseModelSqlv2 {
       const nestedCols = (await this.model.getColumns()).filter((c) =>
         isLinksOrLTAR(c),
       );
-      const postInsertOps = await this.prepareNestedLinkQb({
+      const { postInsertOps, preInsertOps } = await this.prepareNestedLinkQb({
         nestedCols,
         data,
         insertObj,
@@ -3079,6 +3079,8 @@ class BaseModelSqlv2 {
       await this.beforeInsert(insertObj, this.dbDriver, cookie);
 
       await this.prepareNocoData(insertObj, true, cookie);
+
+      await Promise.all(preInsertOps.map((f) => f(this.dbDriver)));
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
@@ -3220,7 +3222,7 @@ class BaseModelSqlv2 {
     insertObj: Record<string, any>;
   }) {
     const postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
-    const preInsert: (trx?: any) => Promise<void>)[] = [];
+    const preInsertOps: ((trx?: any) => Promise<void>)[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
@@ -3248,30 +3250,38 @@ class BaseModelSqlv2 {
             {
               const isBt = col.meta?.bt;
 
+              const childCol = await colOptions.getChildColumn();
+              const childModel = await childCol.getModel();
+              await childModel.getColumns();
 
-              if(isBt){
+              if (isBt) {
                 // todo: unlink the ref record
+                preInsertOps.push(async (trx: any = this.dbDriver) => {
+                  await trx(this.getTnPath(childModel.table_name))
+                    .update({
+                      [childCol.column_name]: null,
+                    })
+                    .where(
+                      childModel.primaryKey.column_name,
+                      nestedData[childModel.primaryKey.title],
+                    );
+                });
 
                 if (typeof nestedData !== 'object') continue;
                 const childCol = await colOptions.getChildColumn();
                 const parentCol = await colOptions.getParentColumn();
                 insertObj[childCol.column_name] = nestedData?.[parentCol.title];
-              }else{
-                postInsertOps.push(
-                  async (
-                    rowId,
-                    trx: any = this.dbDriver,
-                  ) => {
-                    await trx(this.getTnPath(childModel.table_name))
-                      .update({
-                        [childCol.column_name]: rowId,
-                      })
-                      .whereIn(
-                        childModel.primaryKey.column_name,
-                        nestedData?.map((r) => r[childModel.primaryKey.title]),
-                      );
-                  },
-                );
+              } else {
+                postInsertOps.push(async (rowId, trx: any = this.dbDriver) => {
+                  await trx(this.getTnPath(childModel.table_name))
+                    .update({
+                      [childCol.column_name]: rowId,
+                    })
+                    .where(
+                      childModel.primaryKey.column_name,
+                      nestedData[childModel.primaryKey.title],
+                    );
+                });
               }
             }
             break;
@@ -3327,7 +3337,7 @@ class BaseModelSqlv2 {
         }
       }
     }
-    return postInsertOps;
+    return { postInsertOps, preInsertOps };
   }
 
   async bulkInsert(
@@ -3355,6 +3365,7 @@ class BaseModelSqlv2 {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
       let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+      let preInsertOps: ((trx?: any) => Promise<void>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -3503,11 +3514,14 @@ class BaseModelSqlv2 {
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
-            postInsertOps = await this.prepareNestedLinkQb({
+            const operations = await this.prepareNestedLinkQb({
               nestedCols,
               data: d,
               insertObj,
             });
+
+            postInsertOps = operations.postInsertOps;
+            preInsertOps = operations.preInsertOps;
           }
 
           insertDatas.push(insertObj);
@@ -3537,6 +3551,8 @@ class BaseModelSqlv2 {
           await trx.raw('SET foreign_key_checks = 0;');
         }
       }
+
+      await Promise.all(preInsertOps.map((f) => f(trx)));
 
       let responses;
 

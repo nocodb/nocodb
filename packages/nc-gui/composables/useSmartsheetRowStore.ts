@@ -11,6 +11,7 @@ import {
   isBt,
   isHm,
   isMm,
+  isOo,
   message,
   ref,
   storeToRefs,
@@ -56,7 +57,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         } else {
           state.value[column.title!]!.push(value)
         }
-      } else if (isBt(column)) {
+      } else if (isBt(column) || isOo(column)) {
         state.value[column.title!] = value
       }
     }
@@ -65,7 +66,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const removeLTARRef = async (value: Record<string, any>, column: ColumnType) => {
       if (isHm(column) || isMm(column)) {
         state.value[column.title!]?.splice(state.value[column.title!]?.indexOf(value), 1)
-      } else if (isBt(column)) {
+      } else if (isBt(column) || isOo(column)) {
         state.value[column.title!] = null
       }
     }
@@ -114,7 +115,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
               { metaValue },
             )
           }
-        } else if (isBt(column) && state.value?.[column.title!]) {
+        } else if ((isBt(column) || isOo(column)) && state.value?.[column.title!]) {
           await linkRecord(
             id,
             extractPkFromRow(state.value?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),

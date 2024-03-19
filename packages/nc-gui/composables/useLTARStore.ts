@@ -443,7 +443,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
-        if (colOptions.value.type !== 'bt') {
+        if (colOptions.value.type !== RelationTypes.BELONGS_TO && colOptions.value.type !== RelationTypes.ONE_TO_ONE) {
           childrenListCount.value = childrenListCount.value - 1
         }
       } catch (e: any) {
@@ -510,7 +510,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
 
-        if (colOptions.value.type !== 'bt') {
+        if (colOptions.value.type !== RelationTypes.BELONGS_TO && colOptions.value.type !== RelationTypes.ONE_TO_ONE) {
           childrenListCount.value = childrenListCount.value + 1
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)

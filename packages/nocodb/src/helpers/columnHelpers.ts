@@ -91,6 +91,73 @@ export async function createHmAndBtColumn(
     });
   }
 }
+export async function createOOColumn(
+  child: Model,
+  parent: Model,
+  childColumn: Column,
+  type?: RelationTypes,
+  alias?: string,
+  fkColName?: string,
+  virtual: BoolType = false,
+  isSystemCol = false,
+  columnMeta = null,
+  isLinks = false,
+  colExtra?: any,
+) {
+  // save bt column
+  {
+    const title = getUniqueColumnAliasName(
+      await child.getColumns(),
+      (type === 'bt' && alias) || `${parent.title}`,
+    );
+    await Column.insert<LinkToAnotherRecordColumn>({
+      title,
+
+      fk_model_id: child.id,
+      // ref_db_alias
+      uidt: UITypes.LinkToAnotherRecord,
+      type: 'oo',
+      // db_type:
+
+      fk_child_column_id: childColumn.id,
+      fk_parent_column_id: parent.primaryKey.id,
+      fk_related_model_id: parent.id,
+      virtual,
+      // if self referencing treat it as system field to hide from ui
+      system: isSystemCol || parent.id === child.id,
+      fk_col_name: fkColName,
+      fk_index_name: fkColName,
+      ...(type === 'bt' ? colExtra : {}),
+    });
+  }
+  // save hm column
+  {
+    const title = getUniqueColumnAliasName(
+      await parent.getColumns(),
+      (type === 'hm' && alias) || pluralize(child.title),
+    );
+    const meta = {
+      plural: columnMeta?.plural || pluralize(child.title),
+      singular: columnMeta?.singular || singularize(child.title),
+    };
+
+    await Column.insert({
+      title,
+      fk_model_id: parent.id,
+      uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+      type: 'oo',
+      fk_child_column_id: childColumn.id,
+      fk_parent_column_id: parent.primaryKey.id,
+      fk_related_model_id: child.id,
+      virtual,
+      system: isSystemCol,
+      fk_col_name: fkColName,
+      fk_index_name: fkColName,
+      meta,
+      ...(type === 'hm' ? colExtra : {}),
+    });
+  }
+}
 
 export async function validateRollupPayload(payload: ColumnReqType | Column) {
   validateParams(

@@ -62,6 +62,7 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links)
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
           <a-radio value="hm">{{ $t('title.hasMany') }}</a-radio>
           <a-radio value="mm">{{ $t('title.manyToMany') }}</a-radio>
+          <a-radio value="oo">{{ $t('title.oneToOne') }}</a-radio>
         </a-radio-group>
       </a-form-item>
 

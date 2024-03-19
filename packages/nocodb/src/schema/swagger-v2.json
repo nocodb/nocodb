@@ -7901,7 +7901,8 @@
             "enum": [
               "mm",
               "hm",
-              "bt"
+              "bt",
+              "oo"
             ]
           },
           "name": "relationType",
@@ -15137,7 +15138,8 @@
             "enum": [
               "bt",
               "hm",
-              "mm"
+              "mm",
+              "oo"
             ],
             "type": "string",
             "description": "The type of the relationship"

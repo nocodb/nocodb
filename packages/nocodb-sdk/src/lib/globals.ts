@@ -20,6 +20,7 @@ export enum RelationTypes {
   HAS_MANY = 'hm',
   BELONGS_TO = 'bt',
   MANY_TO_MANY = 'mm',
+  ONE_TO_ONE = 'oo',
 }
 
 export enum ExportTypes {

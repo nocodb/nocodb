@@ -30,7 +30,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
-  createHmAndBtColumn,
+  createHmAndBtColumn, createOOColumn,
   generateFkName,
   randomID,
   sanitizeColumnName,
@@ -38,7 +38,7 @@ import {
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
-} from '~/helpers';
+} from '~/helpers'
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
@@ -1643,7 +1643,7 @@ export class ColumnsService {
           colExtra,
         });
 
-        this.appHooksService.emit(AppEvents.RELATION_DELETE, {
+        this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
             ...colBody,
             fk_model_id: param.tableId,
@@ -2611,6 +2611,107 @@ export class ColumnsService {
         }
       }
       await createHmAndBtColumn(
+        child,
+        parent,
+        childColumn,
+        (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+        (param.column as LinkToAnotherColumnReqType).title,
+        foreignKeyName,
+        (param.column as LinkToAnotherColumnReqType).virtual,
+        null,
+        param.column['meta'],
+        isLinks,
+        param.colExtra,
+      );
+    }
+    else if (
+      (param.column as LinkToAnotherColumnReqType).type === 'oo'
+    ) {
+      // populate fk column name
+      const fkColName = getUniqueColumnName(
+        await child.getColumns(),
+        `${parent.table_name}_id`,
+      );
+
+      let foreignKeyName;
+      {
+        // create foreign key
+        const newColumn = {
+          cn: fkColName,
+
+          title: fkColName,
+          column_name: fkColName,
+          rqd: false,
+          pk: false,
+          ai: false,
+          cdf: null,
+          dt: parent.primaryKey.dt,
+          dtxp: parent.primaryKey.dtxp,
+          dtxs: parent.primaryKey.dtxs,
+          un: parent.primaryKey.un,
+          altered: Altered.NEW_COLUMN,
+          unique: 1,
+        };
+
+        const tableUpdateBody = {
+          ...child,
+          tn: child.table_name,
+          originalColumns: child.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+          })),
+          columns: [
+            ...child.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+            })),
+            newColumn,
+          ],
+        };
+
+        await sqlMgr.sqlOpPlus(param.source, 'tableUpdate', tableUpdateBody);
+
+        const { id } = await Column.insert({
+          ...newColumn,
+          uidt: UITypes.ForeignKey,
+          fk_model_id: child.id,
+        });
+
+        childColumn = await Column.get({ colId: id });
+
+        // ignore relation creation if virtual
+        if (!(param.column as LinkToAnotherColumnReqType).virtual) {
+          foreignKeyName = generateFkName(parent, child);
+          // create relation
+          await sqlMgr.sqlOpPlus(param.source, 'relationCreate', {
+            childColumn: fkColName,
+            childTable: child.table_name,
+            parentTable: parent.table_name,
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+            type: 'real',
+            parentColumn: parent.primaryKey.column_name,
+            foreignKeyName,
+          });
+        }
+
+        // todo: create index for virtual relations as well
+        //       create index for foreign key in pg
+        if (
+          param.source.type === 'pg' ||
+          (param.column as LinkToAnotherColumnReqType).virtual
+        ) {
+          await this.createColumnIndex({
+            column: new Column({
+              ...newColumn,
+              fk_model_id: child.id,
+            }),
+            source: param.source,
+            sqlMgr,
+          });
+        }
+      }
+      await createOOColumn(
         child,
         parent,
         childColumn,

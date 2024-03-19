@@ -80,7 +80,6 @@ export class DataAliasNestedController {
 
   @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/bt/:columnName/exclude',
-    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName/exclude',
   ])
   @Acl('btExcludedList')
   async btExcludedList(
@@ -91,6 +90,26 @@ export class DataAliasNestedController {
     @Param('tableName') tableName: string,
   ) {
     return await this.dataAliasNestedService.btExcludedList({
+      query: req.query,
+      columnName: columnName,
+      rowId: rowId,
+      baseName: baseName,
+      tableName: tableName,
+    });
+  }
+
+  @Get([
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName/exclude',
+  ])
+  @Acl('btExcludedList')
+  async ooExcludedList(
+    @Req() req: Request,
+    @Param('columnName') columnName: string,
+    @Param('rowId') rowId: string,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+  ) {
+    return await this.dataAliasNestedService.ooExcludedList({
       query: req.query,
       columnName: columnName,
       rowId: rowId,

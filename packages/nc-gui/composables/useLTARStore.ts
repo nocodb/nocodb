@@ -6,21 +6,21 @@ import type {
   type RequestParams,
   type TableType,
 } from 'nocodb-sdk'
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
-import type { ComputedRef, Ref } from 'vue'
-import type { Row } from '#imports'
+import {dateFormats, parseStringDateTime, RelationTypes, timeFormats, UITypes} from 'nocodb-sdk'
+import type {ComputedRef, Ref} from 'vue'
+import type {Row} from '#imports'
 import {
-  IsPublicInj,
-  Modal,
-  NOCO,
-  SharedViewPasswordInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
+  IsPublicInj,
   message,
+  Modal,
+  NOCO,
   parseProp,
   reactive,
   ref,
+  SharedViewPasswordInj,
   storeToRefs,
   useBase,
   useI18n,
@@ -120,7 +120,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return relatedTableMeta.value?.columns
         ?.filter((c) => c.pk)
-        .map((c) => row?.[c.title as string])
+        .map((c) => row?.[c.title as string]??row?.[c.id as string])
         .join('___')
     }
 
@@ -292,7 +292,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenList = async () => {
       try {
         isChildrenLoading.value = true
-        if (colOptions.value.type === 'bt') return
+        if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
         if (!rowId.value || !column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
 

@@ -2337,13 +2337,15 @@ class BaseModelSqlv2 {
                         );
                       } else {
                         return [
-                          await this.hmList(
-                            {
-                              colId: column.id,
-                              id: ids[0],
-                            },
-                            (listLoader as any).args,
-                          ),
+                          (
+                            await this.hmList(
+                              {
+                                colId: column.id,
+                                id: ids[0],
+                              },
+                              (listLoader as any).args,
+                            )
+                          )?.[0] ?? null,
                         ];
                       }
                     },

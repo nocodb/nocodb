@@ -5294,11 +5294,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
 
             insertData = childRows
@@ -5371,11 +5367,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
           }
           const updateQb = this.dbDriver(childTn).update({
@@ -5429,12 +5421,7 @@ class BaseModelSqlv2 {
             });
 
             if (!childRow) {
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  childIds,
-                  true,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(childIds, true));
             }
           }
 
@@ -5575,11 +5562,7 @@ class BaseModelSqlv2 {
                   ),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
           }
 
@@ -5662,11 +5645,7 @@ class BaseModelSqlv2 {
                   ),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
           }
 
@@ -5724,12 +5703,7 @@ class BaseModelSqlv2 {
             });
 
             if (!childRow) {
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  childIds,
-                  true,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(childIds, true));
             }
           }
 
@@ -6253,7 +6227,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.fieldNotFound(alias);
+      NcError.invalidFilter(str);
     }
 
     return new Filter({
@@ -6409,13 +6383,13 @@ export function getListArgs(
   return obj;
 }
 
-function extractIdsString(
+function extractIds(
   childIds: (string | number | Record<string, any>)[],
   isBt = false,
 ) {
-  return (isBt ? childIds.slice(0, 1) : childIds)
-    .map((r) => (typeof r === 'object' ? JSON.stringify(r) : r))
-    .join(', ');
+  return (isBt ? childIds.slice(0, 1) : childIds).map((r) =>
+    typeof r === 'object' ? JSON.stringify(r) : `${r}`,
+  );
 }
 
 export { BaseModelSqlv2 };

@@ -640,10 +640,7 @@ export class DataTableService {
         }
       }
 
-      if (set.size > 0)
-        NcError.unprocessableEntity(
-          'Child record with id [' + [...set].join(', ') + '] are duplicated',
-        );
+      if (set.size > 0) NcError.duplicateRecord([...set]);
     } else if (rowIds === undefined || rowIds === null) {
       NcError.recordNotFound(rowIds);
     }

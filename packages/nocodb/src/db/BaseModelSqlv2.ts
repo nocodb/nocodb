@@ -4749,6 +4749,7 @@ class BaseModelSqlv2 {
           cookie,
         });
       }
+      break;
       case RelationTypes.ONE_TO_ONE:
         {
           const isBt = column.meta?.bt;

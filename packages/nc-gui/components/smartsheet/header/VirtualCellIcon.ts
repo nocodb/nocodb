@@ -11,7 +11,6 @@ import {
   inject,
   isBt,
   isHm,
-  isOo,
   isLookup,
   isMm,
   isRollup,

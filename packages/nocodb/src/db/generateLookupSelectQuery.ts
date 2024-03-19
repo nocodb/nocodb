@@ -189,7 +189,6 @@ export default async function generateLookupSelectQuery({
       let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
       let nestedLookupColOpt: LookupColumn;
 
-
       if (lookupColumn.uidt === UITypes.Lookup) {
         nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>();
         relationCol = await nestedLookupColOpt.getRelationColumn();
@@ -200,9 +199,7 @@ export default async function generateLookupSelectQuery({
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
-
       let relationType = relation.type;
-
 
       if (relationType === RelationTypes.ONE_TO_ONE) {
         relationType = relationCol.meta?.bt

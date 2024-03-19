@@ -79,7 +79,10 @@ const arrValue = computed(() => {
 
   // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array
   // since the attachment component expects an array or JSON string array
-  if (lookupColumn.value?.uidt === UITypes.Attachment && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type))
+  if (
+    lookupColumn.value?.uidt === UITypes.Attachment &&
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
+  )
     return [cellValue.value]
 
   // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
@@ -118,7 +121,8 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
           <template
             v-if="
               lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-              (lookupColumn.uidt === UITypes.LinkToAnotherRecord && [RelationTypes.BELONGS_TO,RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
+              (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+                [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
             "
           >
             <LazySmartsheetVirtualCell

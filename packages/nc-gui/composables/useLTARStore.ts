@@ -2,25 +2,24 @@ import type {
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
-  RelationTypes,
   type RequestParams,
   type TableType,
 } from 'nocodb-sdk'
-import {dateFormats, parseStringDateTime, RelationTypes, timeFormats, UITypes} from 'nocodb-sdk'
-import type {ComputedRef, Ref} from 'vue'
-import type {Row} from '#imports'
+import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
+import type { Row } from '#imports'
 import {
+  IsPublicInj,
+  Modal,
+  NOCO,
+  SharedViewPasswordInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
-  IsPublicInj,
   message,
-  Modal,
-  NOCO,
   parseProp,
   reactive,
   ref,
-  SharedViewPasswordInj,
   storeToRefs,
   useBase,
   useI18n,
@@ -120,7 +119,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return relatedTableMeta.value?.columns
         ?.filter((c) => c.pk)
-        .map((c) => row?.[c.title as string]??row?.[c.id as string])
+        .map((c) => row?.[c.title as string] ?? row?.[c.id as string])
         .join('___')
     }
 
@@ -574,7 +573,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       deleteRelatedRow,
       getRelatedTableRowId,
       headerDisplayValue,
-      relatedTableDisplayValuePropId
+      relatedTableDisplayValuePropId,
     }
   },
   'ltar-store',

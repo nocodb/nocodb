@@ -51,7 +51,7 @@ export default async function ({
             knex.ref(`${refTableAlias}.${childCol.column_name}`),
           ),
       };
-      case RelationTypes.ONE_TO_ONE:
+    case RelationTypes.ONE_TO_ONE:
       return {
         builder: knex(
           knex.raw(`?? as ??`, [

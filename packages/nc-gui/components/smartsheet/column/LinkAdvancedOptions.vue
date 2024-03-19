@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useColumnCreateStoreOrThrow, useVModel } from '#imports'
+import {ModelTypes} from "nocodb-sdk";
 
 const props = defineProps<{
   value: any
@@ -12,6 +13,9 @@ const { t } = useI18n()
 const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, setAdditionalValidations, onDataTypeChange } = useColumnCreateStoreOrThrow()
+
+const baseStore = useBase()
+const { tables } = storeToRefs(baseStore)
 
 setAdditionalValidations({
   'custom.colId': [
@@ -93,14 +97,47 @@ vModel.value.custom = {
 
 }
 
+const refTables = computed(() =>{
+
+  if (!tables.value || !tables.value.length) {
+    return []
+  }
+
+  return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+})
+
+
+const columns = $computed(() => {
+  if (!tables || !tables.length) {
+    return []
+  }
+
+  return meta.value?.columns;
+})
+
+const refTableColumns = $computed(() => {
+  if (!vModel.value.custom?.refTableId) {
+    return []
+  }
+
+  return tables.find(table => table.id === vModel.value.custom?.refTableId)?.columns;
+})
+
+const juncTableColumns = $computed(() => {
+  if (!vModel.value.custom?.juncTableId) {
+    return []
+  }
+
+  return tables.find(table => table.id === vModel.value.custom?.juncTableId)?.columns;
+})
+
+
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 </script>
 
 <template>
   <div>
-
-
     <div class="flex flex-row space-x-2">
       <a-form-item
         class="flex w-full pb-2 mt-4 nc-ltar-child-table"
@@ -128,28 +165,5 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
         </a-select>
       </a-form-item>
     </div>
-
-      <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
-        <a-select
-          v-model:value="vModel.onDelete"
-          :disabled="vModel.virtual"
-          name="onDelete"
-          dropdown-class-name="nc-dropdown-on-delete"
-          @change="onDataTypeChange"
-        >
-          <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
-            <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
-            <template v-else-if="option === 'CASCADE'">{{ $t('title.links.cascade') }}</template>
-            <template v-else-if="option === 'RESTRICT'">{{ $t('title.links.restrict') }}</template>
-            <template v-else-if="option === 'SET NULL'">{{ $t('title.links.setNull') }}</template>
-            <template v-else-if="option === 'SET DEFAULT'">{{ $t('title.links.setDefault') }}</template>
-            <template v-else>
-              {{ option }}
-            </template>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
-  </a-row>
   </div>
 </template>

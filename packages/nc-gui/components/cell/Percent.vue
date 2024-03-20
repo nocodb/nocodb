@@ -37,7 +37,9 @@ const expandedEditEnabled = ref(false)
 
 const vModel = computed({
   get: () => {
-    return _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value)) ? `${_vModel.value}%` : _vModel.value
+    return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
+      ? `${_vModel.value}%`
+      : _vModel.value
   },
   set: (value) => {
     if (value === '') {
@@ -110,7 +112,10 @@ const onTabPress = (e: KeyboardEvent) => {
       )
 
       for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
-        const lastFormItem = nodes[i].querySelector('[tabindex="0"]') as HTMLElement
+        const lastFormItem = (nodes[i].querySelector('[tabindex="0"]') ||
+          nodes[i].querySelector('input') ||
+          nodes[i].querySelector('textarea') ||
+          nodes[i].querySelector('button')) as HTMLElement
         if (lastFormItem) {
           lastFormItem.focus()
           break

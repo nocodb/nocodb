@@ -374,6 +374,12 @@ export function extractDBError(error): {
     case 'EHOSTDOWN':
       message = 'The host is down.';
       break;
+    default:
+      // if error message contains -- then extract message after --
+      if (error.message && error.message.includes('--')) {
+        message = error.message.split('--')[1];
+      }
+      break;
   }
 
   if (message) {
@@ -518,7 +524,7 @@ const errorHelpers: {
   },
   [NcErrorType.FIELD_NOT_FOUND]: {
     message: (id: string) => `Field ${id} not found`,
-    code: 422,
+    code: 404,
   },
   [NcErrorType.RECORD_NOT_FOUND]: {
     message: (id: string) => `Record ${id} not found`,

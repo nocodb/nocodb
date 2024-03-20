@@ -3100,7 +3100,7 @@ export class ColumnsService {
       non_unique: nonUnique,
       indexName,
     };
-    sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
+    await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
 
   async updateRollupOrLookup(colBody: any, column: Column<any>) {

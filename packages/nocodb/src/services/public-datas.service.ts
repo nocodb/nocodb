@@ -326,7 +326,6 @@ export class PublicDatasService {
         originalName = populateUniqueFileName(
           originalName,
           attachments[fieldName].map((att) => att?.title),
-          file.mimetype,
         );
 
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;

@@ -16514,7 +16514,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "summary": "Update Table Rows",
         "operationId": "db-data-table-row-update",
         "responses": {

@@ -150,7 +150,7 @@ function focusInput() {
     const inputEl =
       (document.querySelector('.nc-cell input') as HTMLInputElement) ||
       (document.querySelector('.nc-cell textarea') as HTMLTextAreaElement) ||
-      (document.querySelector('.nc-cell [tabindex="0"]') as HTMLInputElement)
+      (document.querySelector('.nc-cell [tabindex="0"]') as HTMLElement)
 
     if (inputEl) {
       activeCell.value = inputEl
@@ -198,6 +198,12 @@ const showSubmitConfirmModal = async () => {
   }
 
   dialogShow.value = true
+
+  setTimeout(() => {
+    // NcButton will only focus if document has already focued element
+    document.querySelector('.nc-survery-form__confirmation_modal div[tabindex="0"]')?.focus()
+    document.querySelector('.nc-survey-form-btn-submit.nc-button')?.focus()
+  }, 50)
 }
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
@@ -206,7 +212,7 @@ onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
 onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
   goNext(AnimationTarget.ArrowRight)
 })
-onKeyStroke(['Enter'], async () => {
+onKeyStroke(['Enter'], async (e) => {
   if (submitted.value) return
 
   if (!isStarted.value && !submitted.value) {
@@ -216,6 +222,7 @@ onKeyStroke(['Enter'], async () => {
       if (dialogShow.value) {
         submit()
       } else {
+        e.preventDefault()
         showSubmitConfirmModal()
       }
     } else {
@@ -533,6 +540,7 @@ onMounted(() => {
             :size="isMobileMode ? 'medium' : 'small'"
             data-testid="nc-survey-form__btn-submit"
             @click="submit"
+            class="nc-survey-form-btn-submit"
           >
             {{ $t('general.submit') }}
           </NcButton>

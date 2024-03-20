@@ -75,6 +75,13 @@ function onClick(force?: boolean, event?: MouseEvent) {
   }
 }
 
+const keydownEnter = (e: KeyboardEvent) => {
+  if (!isSurveyForm.value) {
+    onClick(true, $event)
+    e.stopPropagation()
+  }
+}
+
 useSelectedCellKeyupListener(active, (e) => {
   switch (e.key) {
     case 'Enter':
@@ -101,7 +108,7 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"
-    @keydown.enter.stop="!isSurveyForm ? onClick(true, $event) : undefined"
+    @keydown.enter="keydownEnter"
     @keydown.space.stop="isSurveyForm ? onClick(true, $event) : undefined"
   >
     <div

@@ -3092,10 +3092,11 @@ export class ColumnsService {
       non_unique: nonUnique,
       indexName,
     };
-    sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
+    await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
 
   async updateRollupOrLookup(colBody: any, column: Column<any>) {
+    // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
       validateRequiredField(colBody, [
@@ -3103,6 +3104,7 @@ export class ColumnsService {
         'fk_relation_column_id',
       ])
     ) {
+      // Perform additional validation for lookup payload
       await validateLookupPayload(colBody, column.id);
       await Column.update(column.id, colBody);
     } else if (
@@ -3113,6 +3115,7 @@ export class ColumnsService {
         'rollup_function',
       ])
     ) {
+      // Perform additional validation for rollup payload
       await validateRollupPayload(colBody);
       await Column.update(column.id, colBody);
     }
@@ -3220,7 +3223,7 @@ export class ColumnsService {
     }
 
     const failedOps = [];
-
+    // Perform operations in a loop, capturing any errors for individual operations
     for (const op of ops) {
       const column = op.column;
 

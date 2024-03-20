@@ -246,7 +246,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(column.uidt as UITypes)) {
         obj.localState[column.title!] = {
           ...(obj.localState[column.title!] || {}),
-          validateFormEmail: helpers.withMessage(t('msg.plsEnterANumber'), (value) => {
+          validateFormNumber: helpers.withMessage(t('msg.plsEnterANumber'), (value) => {
             return value ? (column.uidt === UITypes.Number ? /^[0-9]+$/.test(value) : /^\d*\.?\d+$/.test(value)) : true
           }),
         }

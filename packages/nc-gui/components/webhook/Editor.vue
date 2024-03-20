@@ -79,7 +79,7 @@ let hookRef = reactive<
 const isBodyShownEasterEgg = ref(false)
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
 
-const urlTabKey = ref(isBodyShownEasterEgg.value && isBodyShown.value ? 'body' : 'params')
+const urlTabKey = ref<'params' | 'headers' | 'body'>('params')
 
 const apps: Record<string, any> = ref()
 
@@ -321,9 +321,6 @@ function setHook(newHook: HookType) {
       payload: notification.payload,
     },
   })
-  if (hookRef.version === 'v1' || isEeUI) {
-    urlTabKey.value = 'body'
-  }
 }
 
 function onEventChange() {
@@ -479,6 +476,13 @@ async function testWebhook() {
 
 const getDefaultHookName = (hooks: HookType[]) => {
   return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
+}
+
+const handleToggleEasterEgg = () => {
+  isBodyShownEasterEgg.value = !isBodyShownEasterEgg.value
+  if (!(isBodyShown.value && isBodyShownEasterEgg.value) && urlTabKey.value === 'body') {
+    urlTabKey.value = 'params'
+  }
 }
 
 watch(
@@ -658,7 +662,7 @@ onMounted(async () => {
                 size="large"
                 class="nc-select-hook-url-method"
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
-                @dblclick="isBodyShownEasterEgg = !isBodyShownEasterEgg"
+                @dblclick="handleToggleEasterEgg"
               >
                 <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
                   <div class="flex items-center gap-2 justify-between">
@@ -688,6 +692,14 @@ onMounted(async () => {
 
             <a-col :span="24">
               <NcTabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="border-1 !pb-2 !rounded-lg">
+                <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
+                  <LazyApiClientParams v-model="hookRef.notification.payload.parameters" class="p-4" />
+                </a-tab-pane>
+
+                <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
+                  <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" class="!p-4" />
+                </a-tab-pane>
+
                 <a-tab-pane v-if="isBodyShown && isBodyShownEasterEgg" key="body" tab="Body">
                   <LazyMonacoEditor
                     v-model="hookRef.notification.payload.body"
@@ -695,14 +707,6 @@ onMounted(async () => {
                     :validate="false"
                     class="min-h-60 max-h-80"
                   />
-                </a-tab-pane>
-
-                <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
-                  <LazyApiClientParams v-model="hookRef.notification.payload.parameters" class="p-4" />
-                </a-tab-pane>
-
-                <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
-                  <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" class="!p-4" />
                 </a-tab-pane>
 
                 <!-- No in use at this moment -->

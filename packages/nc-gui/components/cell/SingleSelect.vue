@@ -265,6 +265,18 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
+const handleKeyDownList = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'ArrowUp':
+    case 'ArrowDown':
+    case 'ArrowRight':
+    case 'ArrowLeft':
+      // skip
+      e.stopPropagation()
+      break
+  }
+}
+
 const onSelect = () => {
   isOpen.value = false
   isEditable.value = false
@@ -317,7 +329,13 @@ const onFocus = () => {
     @keydown.enter.stop.prevent="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-radio-group v-model:value="vModel" :disabled="readOnly || !editAllowed" class="nc-field-layout-list">
+      <a-radio-group
+        v-model:value="vModel"
+        :disabled="readOnly || !editAllowed"
+        class="nc-field-layout-list"
+        @keydown="handleKeyDownList"
+        @click.stop
+      >
         <a-radio
           v-for="op of options"
           :key="op.title"

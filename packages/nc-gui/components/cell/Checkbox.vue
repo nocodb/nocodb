@@ -77,7 +77,7 @@ function onClick(force?: boolean, event?: MouseEvent) {
 
 const keydownEnter = (e: KeyboardEvent) => {
   if (!isSurveyForm.value) {
-    onClick(true, $event)
+    onClick(true, e)
     e.stopPropagation()
   }
 }

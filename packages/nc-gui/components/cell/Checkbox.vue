@@ -63,7 +63,7 @@ const vModel = computed<boolean | number>({
   set: (val: any) => emits('update:modelValue', isMssql(column?.value?.source_id) ? +val : val),
 })
 
-function onClick(force?: boolean, event?: MouseEvent) {
+function onClick(force?: boolean, event?: MouseEvent | KeyboardEvent) {
   if (
     (event?.target as HTMLElement)?.classList?.contains('nc-checkbox') ||
     (event?.target as HTMLElement)?.closest('.nc-checkbox')
@@ -77,6 +77,12 @@ function onClick(force?: boolean, event?: MouseEvent) {
 
 const keydownEnter = (e: KeyboardEvent) => {
   if (!isSurveyForm.value) {
+    onClick(true, e)
+    e.stopPropagation()
+  }
+}
+const keydownSpace = (e: KeyboardEvent) => {
+  if (isSurveyForm.value) {
     onClick(true, e)
     e.stopPropagation()
   }
@@ -109,7 +115,7 @@ useSelectedCellKeyupListener(active, (e) => {
     :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"
     @keydown.enter="keydownEnter"
-    @keydown.space.stop="isSurveyForm ? onClick(true, $event) : undefined"
+    @keydown.space="keydownSpace($event)"
   >
     <div
       class="flex items-center"

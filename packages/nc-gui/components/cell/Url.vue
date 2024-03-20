@@ -43,6 +43,10 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const isForm = inject(IsFormInj)!
+
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
@@ -68,10 +72,6 @@ const url = computed(() => {
 })
 
 const { cellUrlOptions } = useCellUrlConfig(url)
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()

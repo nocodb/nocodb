@@ -11,7 +11,6 @@ import {
   provide,
   ref,
   useBreakpoints,
-  useI18n,
   usePointerSwipe,
   useSharedFormStoreOrThrow,
   useStepper,
@@ -33,8 +32,6 @@ const { md } = useBreakpoints(breakpointsTailwind)
 
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView, sharedViewMeta, onReset } =
   useSharedFormStoreOrThrow()
-
-const { t } = useI18n()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 

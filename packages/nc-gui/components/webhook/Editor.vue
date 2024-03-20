@@ -592,7 +592,7 @@ onMounted(async () => {
                     :key="i"
                     class="capitalize"
                     :value="event.value.join(' ')"
-                    :disabled="hook && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
+                    :disabled="hook && isBodyShown && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
                   >
                     <div class="flex items-center gap-2 justify-between">
                       <div>{{ event.text.join(' ') }}</div>

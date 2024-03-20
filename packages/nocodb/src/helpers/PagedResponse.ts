@@ -42,7 +42,7 @@ export class PagedResponseImpl<T> {
     if (additionalProps) Object.assign(this, additionalProps);
 
     if (offset && offset >= +count) {
-      NcError.invalidOffsetValue(`${offset}`);
+      NcError.invalidOffsetValue(offset);
     }
   }
 

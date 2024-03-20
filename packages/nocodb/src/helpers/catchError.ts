@@ -699,9 +699,9 @@ export class NcError {
     });
   }
 
-  static invalidOffsetValue(offset: string, args?: NcErrorArgs) {
+  static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
-      params: offset,
+      params: `${offset}`,
       ...args,
     });
   }

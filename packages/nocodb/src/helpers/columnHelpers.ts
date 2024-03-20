@@ -1,12 +1,15 @@
 import { customAlphabet } from 'nanoid';
-import { getAvailableRollupForUiType, UITypes } from 'nocodb-sdk';
+import {
+  getAvailableRollupForUiType,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import type {
   BoolType,
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
-  RelationTypes,
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
@@ -88,6 +91,90 @@ export async function createHmAndBtColumn(
       fk_index_name: fkColName,
       meta,
       ...(type === 'hm' ? colExtra : {}),
+    });
+  }
+}
+
+/**
+ * Creates a column with a one-to-one (1:1) relationship.
+ * @param {Model} child - The child model.
+ * @param {Model} parent - The parent model.
+ * @param {Column} childColumn - The child column.
+ * @param {RelationTypes} [type] - The type of relationship.
+ * @param {string} [alias] - The alias for the column.
+ * @param {string} [fkColName] - The foreign key column name.
+ * @param {BoolType} [virtual=false] - Whether the column is virtual.
+ * @param {boolean} [isSystemCol=false] - Whether the column is a system column.
+ * @param {any} [columnMeta=null] - Metadata for the column.
+ * @param {any} [colExtra] - Additional column parameters.
+ */
+export async function createOOColumn(
+  child: Model,
+  parent: Model,
+  childColumn: Column,
+  type?: RelationTypes,
+  alias?: string,
+  fkColName?: string,
+  virtual: BoolType = false,
+  isSystemCol = false,
+  columnMeta = null,
+  colExtra?: any,
+) {
+  // save bt column
+  {
+    const title = getUniqueColumnAliasName(
+      await child.getColumns(),
+      `${parent.title}`,
+    );
+    await Column.insert<LinkToAnotherRecordColumn>({
+      title,
+      fk_model_id: child.id,
+      // ref_db_alias
+      uidt: UITypes.LinkToAnotherRecord,
+      type: RelationTypes.ONE_TO_ONE,
+
+      fk_child_column_id: childColumn.id,
+      fk_parent_column_id: parent.primaryKey.id,
+      fk_related_model_id: parent.id,
+      virtual,
+      // if self referencing treat it as system field to hide from ui
+      system: isSystemCol || parent.id === child.id,
+      fk_col_name: fkColName,
+      fk_index_name: fkColName,
+      // ...(colExtra || {}),
+      meta: {
+        ...(colExtra?.meta || {}),
+        // one-to-one relation is combination of both hm and bt to identify table which have
+        // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
+        bt: true,
+      },
+    });
+  }
+  // save hm column
+  {
+    const title = getUniqueColumnAliasName(
+      await parent.getColumns(),
+      alias || child.title,
+    );
+    const meta = {
+      plural: columnMeta?.plural || pluralize(child.title),
+      singular: columnMeta?.singular || singularize(child.title),
+    };
+
+    await Column.insert({
+      title,
+      fk_model_id: parent.id,
+      uidt: UITypes.LinkToAnotherRecord,
+      type: 'oo',
+      fk_child_column_id: childColumn.id,
+      fk_parent_column_id: parent.primaryKey.id,
+      fk_related_model_id: child.id,
+      virtual,
+      system: isSystemCol,
+      fk_col_name: fkColName,
+      fk_index_name: fkColName,
+      meta,
+      ...(colExtra || {}),
     });
   }
 }
@@ -176,12 +263,10 @@ export async function validateLookupPayload(
       );
     }
   }
-
-  const relation = await (
-    await Column.get({
-      colId: (payload as LookupColumnReqType).fk_relation_column_id,
-    })
-  ).getColOptions<LinkToAnotherRecordType>();
+  const column = await Column.get({
+    colId: (payload as LookupColumnReqType).fk_relation_column_id,
+  });
+  const relation = await column.getColOptions<LinkToAnotherRecordType>();
 
   if (!relation) {
     throw new Error('Relation column not found');
@@ -198,6 +283,13 @@ export async function validateLookupPayload(
     case 'bt':
       relatedColumn = await Column.get({
         colId: relation.fk_parent_column_id,
+      });
+      break;
+    case 'oo':
+      relatedColumn = await Column.get({
+        colId: column.meta?.bt
+          ? relation.fk_parent_column_id
+          : relation.fk_child_column_id,
       });
       break;
   }

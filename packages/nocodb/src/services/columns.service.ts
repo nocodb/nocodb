@@ -31,6 +31,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
+  createOOColumn,
   generateFkName,
   randomID,
   sanitizeColumnName,
@@ -1643,7 +1644,7 @@ export class ColumnsService {
           colExtra,
         });
 
-        this.appHooksService.emit(AppEvents.RELATION_DELETE, {
+        this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
             ...colBody,
             fk_model_id: param.tableId,
@@ -2146,6 +2147,20 @@ export class ColumnsService {
                 });
               }
               break;
+            case 'oo':
+              {
+                await this.deleteOoRelation({
+                  relationColOpt,
+                  source,
+                  childColumn,
+                  childTable,
+                  parentColumn,
+                  parentTable,
+                  sqlMgr,
+                  ncMeta,
+                });
+              }
+              break;
             case 'mm':
               {
                 const mmTable = await relationColOpt.getMMModel(ncMeta);
@@ -2395,8 +2410,154 @@ export class ColumnsService {
       }
 
       if (!relationColOpt?.virtual && !virtual) {
-        // todo: handle relation delete exception
+        // Ensure relation deletion is not attempted for virtual relations
         try {
+          // Attempt to delete the foreign key constraint from the database
+          await sqlMgr.sqlOpPlus(source, 'relationDelete', {
+            childColumn: childColumn.column_name,
+            childTable: childTable.table_name,
+            parentTable: parentTable.table_name,
+            parentColumn: parentColumn.column_name,
+            foreignKeyName,
+          });
+        } catch (e) {
+          console.log(e.message);
+        }
+      }
+    }
+
+    if (!relationColOpt) return;
+    const columnsInRelatedTable: Column[] = await relationColOpt
+      .getRelatedTable(ncMeta)
+      .then((m) => m.getColumns(ncMeta));
+    const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
+    for (const c of columnsInRelatedTable) {
+      if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+      const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+      if (
+        colOpt.fk_parent_column_id === parentColumn.id &&
+        colOpt.fk_child_column_id === childColumn.id &&
+        colOpt.type === relType
+      ) {
+        await Column.delete(c.id, ncMeta);
+        break;
+      }
+    }
+
+    // delete virtual columns
+    await Column.delete(relationColOpt.fk_column_id, ncMeta);
+
+    if (!ignoreFkDelete) {
+      const cTable = await Model.getWithInfo(
+        {
+          id: childTable.id,
+        },
+        ncMeta,
+      );
+
+      // if virtual column delete all index before deleting the column
+      if (relationColOpt?.virtual) {
+        const indexes =
+          (
+            await sqlMgr.sqlOp(source, 'indexList', {
+              tn: cTable.table_name,
+            })
+          )?.data?.list ?? [];
+
+        for (const index of indexes) {
+          if (index.cn !== childColumn.column_name) continue;
+
+          await sqlMgr.sqlOpPlus(source, 'indexDelete', {
+            ...index,
+            tn: cTable.table_name,
+            columns: [childColumn.column_name],
+            indexName: index.key_name,
+          });
+        }
+      }
+
+      const tableUpdateBody = {
+        ...cTable,
+        tn: cTable.table_name,
+        originalColumns: cTable.columns.map((c) => ({
+          ...c,
+          cn: c.column_name,
+          cno: c.column_name,
+        })),
+        columns: cTable.columns.map((c) => {
+          if (c.id === childColumn.id) {
+            return {
+              ...c,
+              cn: c.column_name,
+              cno: c.column_name,
+              altered: Altered.DELETE_COLUMN,
+            };
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return c;
+        }),
+      };
+
+      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+    }
+    // delete foreign key column
+    await Column.delete(childColumn.id, ncMeta);
+  };
+
+  deleteOoRelation = async (
+    {
+      relationColOpt,
+      source,
+      childColumn,
+      childTable,
+      parentColumn,
+      parentTable,
+      sqlMgr,
+      ncMeta = Noco.ncMeta,
+      virtual,
+    }: {
+      relationColOpt: LinkToAnotherRecordColumn;
+      source: Source;
+      childColumn: Column;
+      childTable: Model;
+      parentColumn: Column;
+      parentTable: Model;
+      sqlMgr: SqlMgrv2;
+      ncMeta?: MetaService;
+      virtual?: boolean;
+    },
+    ignoreFkDelete = false,
+  ) => {
+    if (childTable) {
+      let foreignKeyName;
+
+      // if relationColOpt is not provided, extract it from child table
+      // and get the foreign key name for dropping the foreign key
+      if (!relationColOpt) {
+        foreignKeyName = (
+          (
+            await childTable.getColumns(ncMeta).then(async (cols) => {
+              for (const col of cols) {
+                if (col.uidt === UITypes.LinkToAnotherRecord) {
+                  const colOptions =
+                    await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+                  if (colOptions.fk_related_model_id === parentTable.id) {
+                    return { colOptions };
+                  }
+                }
+              }
+            })
+          )?.colOptions as LinkToAnotherRecordType
+        ).fk_index_name;
+      } else {
+        foreignKeyName = relationColOpt.fk_index_name;
+      }
+
+      if (!relationColOpt?.virtual && !virtual) {
+        // Ensure relation deletion is not attempted for virtual relations
+        try {
+          // Attempt to delete the foreign key constraint from the database
           await sqlMgr.sqlOpPlus(source, 'relationDelete', {
             childColumn: childColumn.column_name,
             childTable: childTable.table_name,
@@ -2623,6 +2784,102 @@ export class ColumnsService {
         isLinks,
         param.colExtra,
       );
+    } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
+      // populate fk column name
+      const fkColName = getUniqueColumnName(
+        await child.getColumns(),
+        `${parent.table_name}_id`,
+      );
+
+      let foreignKeyName;
+      {
+        // Create foreign key column for one-to-one relationship
+        const newColumn = {
+          cn: fkColName, // Column name in the database
+          title: fkColName, // Human-readable title for the column
+          column_name: fkColName, // Column name in the database ( used in sql client )
+          rqd: false,
+          pk: false,
+          ai: false,
+          cdf: null,
+          dt: parent.primaryKey.dt,
+          dtxp: parent.primaryKey.dtxp,
+          dtxs: parent.primaryKey.dtxs,
+          un: parent.primaryKey.un,
+          altered: Altered.NEW_COLUMN,
+          unique: 1, // Ensure the foreign key column is unique for one-to-one relationships
+        };
+
+        const tableUpdateBody = {
+          ...child,
+          tn: child.table_name,
+          originalColumns: child.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+          })),
+          columns: [
+            ...child.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+            })),
+            newColumn,
+          ],
+        };
+
+        await sqlMgr.sqlOpPlus(param.source, 'tableUpdate', tableUpdateBody);
+
+        const { id } = await Column.insert({
+          ...newColumn,
+          uidt: UITypes.ForeignKey,
+          fk_model_id: child.id,
+        });
+
+        childColumn = await Column.get({ colId: id });
+
+        // ignore relation creation if virtual
+        if (!(param.column as LinkToAnotherColumnReqType).virtual) {
+          foreignKeyName = generateFkName(parent, child);
+          // create relation
+          await sqlMgr.sqlOpPlus(param.source, 'relationCreate', {
+            childColumn: fkColName,
+            childTable: child.table_name,
+            parentTable: parent.table_name,
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+            type: 'real',
+            parentColumn: parent.primaryKey.column_name,
+            foreignKeyName,
+          });
+        }
+
+        // todo: create index for virtual relations as well
+        //       create index for foreign key in pg
+        if (
+          param.source.type === 'pg' ||
+          (param.column as LinkToAnotherColumnReqType).virtual
+        ) {
+          await this.createColumnIndex({
+            column: new Column({
+              ...newColumn,
+              fk_model_id: child.id,
+            }),
+            source: param.source,
+            sqlMgr,
+          });
+        }
+      }
+      await createOOColumn(
+        child,
+        parent,
+        childColumn,
+        (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+        (param.column as LinkToAnotherColumnReqType).title,
+        foreignKeyName,
+        (param.column as LinkToAnotherColumnReqType).virtual,
+        null,
+        param.column['meta'],
+        param.colExtra,
+      );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
       const aTnAlias = aTn;
@@ -2843,10 +3100,11 @@ export class ColumnsService {
       non_unique: nonUnique,
       indexName,
     };
-    sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
+    await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
   }
 
   async updateRollupOrLookup(colBody: any, column: Column<any>) {
+    // Validate rollup or lookup payload before proceeding with the update
     if (
       UITypes.Lookup === column.uidt &&
       validateRequiredField(colBody, [
@@ -2854,6 +3112,7 @@ export class ColumnsService {
         'fk_relation_column_id',
       ])
     ) {
+      // Perform additional validation for lookup payload
       await validateLookupPayload(colBody, column.id);
       await Column.update(column.id, colBody);
     } else if (
@@ -2864,6 +3123,7 @@ export class ColumnsService {
         'rollup_function',
       ])
     ) {
+      // Perform additional validation for rollup payload
       await validateRollupPayload(colBody);
       await Column.update(column.id, colBody);
     }
@@ -2971,7 +3231,7 @@ export class ColumnsService {
     }
 
     const failedOps = [];
-
+    // Perform operations in a loop, capturing any errors for individual operations
     for (const op of ops) {
       const column = op.column;
 

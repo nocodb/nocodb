@@ -50,7 +50,12 @@ const options = computed<ColumnType[]>(
           return false
         } else {
           /** ignore hasmany and manytomany relations if it's using within group menu */
-          return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
+          return !(
+            isLinksOrLTAR(c) &&
+            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+              (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+            )
+          )
         }
       })
       .filter((c: ColumnType) => !groupBy.value.find((g) => g.column?.id === c.id))

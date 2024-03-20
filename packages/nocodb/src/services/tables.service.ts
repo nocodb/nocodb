@@ -296,7 +296,7 @@ export class TablesService {
     });
 
     if (!table) {
-      NcError.notFound('Table not found');
+      NcError.tableNotFound(param.tableId);
     }
 
     // todo: optimise

@@ -11,6 +11,7 @@ import {
   isBt,
   isHm,
   isMm,
+  isOo,
   message,
   ref,
   storeToRefs,
@@ -56,7 +57,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         } else {
           state.value[column.title!]!.push(value)
         }
-      } else if (isBt(column)) {
+      } else if (isBt(column) || isOo(column)) {
         state.value[column.title!] = value
       }
     }
@@ -65,7 +66,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const removeLTARRef = async (value: Record<string, any>, column: ColumnType) => {
       if (isHm(column) || isMm(column)) {
         state.value[column.title!]?.splice(state.value[column.title!]?.indexOf(value), 1)
-      } else if (isBt(column)) {
+      } else if (isBt(column) || isOo(column)) {
         state.value[column.title!] = null
       }
     }
@@ -114,7 +115,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
               { metaValue },
             )
           }
-        } else if (isBt(column) && state.value?.[column.title!]) {
+        } else if ((isBt(column) || isOo(column)) && state.value?.[column.title!]) {
           await linkRecord(
             id,
             extractPkFromRow(state.value?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),
@@ -139,14 +140,14 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         if (isNew.value) {
           state.value[column.title!] = null
         } else if (currentRow.value) {
-          if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.BELONGS_TO) {
+          if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((<LinkToAnotherRecordType>column.colOptions)?.type)) {
             if (!currentRow.value.row[column.title!]) return
             await $api.dbTableRow.nestedRemove(
               NOCO,
               base.value.id as string,
               meta.value?.id as string,
               extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
-              'bt' as any,
+              (<LinkToAnotherRecordType>column.colOptions)?.type as any,
               column.id as string,
               extractPkFromRow(currentRow.value.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
             )

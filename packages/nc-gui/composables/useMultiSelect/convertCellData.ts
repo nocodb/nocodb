@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
-import { isBt, isMm, parseProp } from '#imports'
+import { isBt, isMm, isOo, parseProp } from '#imports'
 
 export default function convertCellData(
   args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
@@ -250,7 +250,7 @@ export default function convertCellData(
         return undefined
       }
 
-      if (isBt(column)) {
+      if (isBt(column) || isOo(column)) {
         const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
 
         if (

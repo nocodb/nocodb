@@ -22,7 +22,7 @@ export class DataAliasNestedService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -69,7 +69,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -111,7 +111,7 @@ export class DataAliasNestedService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -153,7 +153,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -186,6 +186,47 @@ export class DataAliasNestedService {
       ...param.query,
     });
   }
+  async ooExcludedList(
+    param: PathParams & {
+      query: any;
+      columnName: string;
+      rowId: string;
+    },
+  ) {
+    const { model, view } = await getViewAndModelByAliasOrId(param);
+    if (!model) NcError.notFound('Table not found');
+
+    const source = await Source.get(model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await getColumnByIdOrName(param.columnName, model);
+
+    const data = await baseModel.getExcludedOneToOneChildrenList(
+      {
+        colId: column.id,
+        cid: param.rowId,
+      },
+      param.query,
+    );
+
+    const count = await baseModel.countExcludedOneToOneChildren(
+      {
+        colId: column.id,
+        cid: param.rowId,
+      },
+      param.query,
+    );
+
+    return new PagedResponseImpl(data, {
+      count,
+      ...param.query,
+    });
+  }
 
   // todo: handle case where the given column is not ltar
   async hmList(
@@ -197,7 +238,7 @@ export class DataAliasNestedService {
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
 
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -243,7 +284,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 
@@ -275,7 +316,7 @@ export class DataAliasNestedService {
     },
   ) {
     const { model, view } = await getViewAndModelByAliasOrId(param);
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(param.tableName);
 
     const source = await Source.get(model.source_id);
 

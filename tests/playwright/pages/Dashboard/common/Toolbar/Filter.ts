@@ -338,7 +338,10 @@ export class ToolbarFilterPage extends BasePage {
           break;
 
         default:
-          fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+          fillFilter = async () => {
+            await this.rootPage.locator('.nc-filter-value-select > input').last().clear({ force: true });
+            return this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+          };
           await this.waitForResponse({
             uiAction: fillFilter,
             httpMethodsToMatch: ['GET'],

@@ -371,6 +371,9 @@ const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Tab') {
     isOpen.value = false
     return
+  } else if (e.key === 'Escape' && isForm.value) {
+    isOpen.value = false
+    return
   }
 
   e.stopPropagation()
@@ -394,7 +397,7 @@ const onFocus = () => {
     @click="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-checkbox-group v-model:value="vModel" :disabled="readOnly || !editAllowed" class="nc-field-layout-list">
+      <a-checkbox-group v-model:value="vModel" :disabled="readOnly || !editAllowed" class="nc-field-layout-list" @click.stop>
         <a-checkbox
           v-for="op of options"
           :key="op.title"

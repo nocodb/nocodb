@@ -42,7 +42,7 @@ export class SharedBasesService {
     }
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
 
     const data: any = {
@@ -86,7 +86,7 @@ export class SharedBasesService {
     }
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
 
     if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
@@ -137,7 +137,7 @@ export class SharedBasesService {
     const base = await Base.get(param.baseId);
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
     const data: any = {
       uuid: null,
@@ -159,7 +159,7 @@ export class SharedBasesService {
     const base = await Base.get(param.baseId);
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
     const data: any = {
       uuid: base.uuid,

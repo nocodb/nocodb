@@ -16,7 +16,6 @@ import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type FormulaColumn from '~/models/FormulaColumn';
 import { getColumnName } from '~/db/BaseModelSqlv2';
-import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -25,6 +24,7 @@ import Filter from '~/models/Filter';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
 import { getRefColumnIfAlias } from '~/helpers';
+import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -167,7 +167,7 @@ const parseConditionV2 = async (
     const column = await getRefColumnIfAlias(await filter.getColumn());
     if (!column) {
       if (throwErrorIfInvalid) {
-        NcError.unprocessableEntity(`Invalid field: ${filter.fk_column_id}`);
+        NcError.fieldNotFound(filter.fk_column_id);
       }
       return;
     }
@@ -180,7 +180,16 @@ const parseConditionV2 = async (
       await childModel.getColumns();
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
-      if (colOptions.type === RelationTypes.HAS_MANY) {
+
+      let relationType = colOptions.type;
+
+      if (relationType === RelationTypes.ONE_TO_ONE) {
+        relationType = column.meta?.bt
+          ? RelationTypes.BELONGS_TO
+          : RelationTypes.HAS_MANY;
+      }
+
+      if (relationType === RelationTypes.HAS_MANY) {
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -245,7 +254,7 @@ const parseConditionV2 = async (
             qbP.whereNotIn(parentColumn.column_name, selectQb);
           else qbP.whereIn(parentColumn.column_name, selectQb);
         };
-      } else if (colOptions.type === RelationTypes.BELONGS_TO) {
+      } else if (relationType === RelationTypes.BELONGS_TO) {
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -315,7 +324,7 @@ const parseConditionV2 = async (
             );
           } else qbP.whereIn(childColumn.column_name, selectQb);
         };
-      } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
         const mmModel = await colOptions.getMMModel();
         const mmParentColumn = await colOptions.getMMParentColumn();
         const mmChildColumn = await colOptions.getMMChildColumn();
@@ -1247,7 +1256,15 @@ async function generateLookupCondition(
     const parentModel = await parentColumn.getModel();
     await parentModel.getColumns();
 
-    if (relationColumnOptions.type === RelationTypes.HAS_MANY) {
+    let relationType = relationColumnOptions.type;
+
+    if (relationType === RelationTypes.ONE_TO_ONE) {
+      relationType = relationColumn.meta?.bt
+        ? RelationTypes.BELONGS_TO
+        : RelationTypes.HAS_MANY;
+    }
+
+    if (relationType === RelationTypes.HAS_MANY) {
       qb = knex(
         knex.raw(`?? as ??`, [
           baseModelSqlv2.getTnPath(childModel.table_name),
@@ -1278,7 +1295,7 @@ async function generateLookupCondition(
           qbP.whereNotIn(parentColumn.column_name, qb);
         else qbP.whereIn(parentColumn.column_name, qb);
       };
-    } else if (relationColumnOptions.type === RelationTypes.BELONGS_TO) {
+    } else if (relationType === RelationTypes.BELONGS_TO) {
       qb = knex(
         knex.raw(`?? as ??`, [
           baseModelSqlv2.getTnPath(parentModel.table_name),
@@ -1312,7 +1329,7 @@ async function generateLookupCondition(
           );
         else qbP.whereIn(childColumn.column_name, qb);
       };
-    } else if (relationColumnOptions.type === RelationTypes.MANY_TO_MANY) {
+    } else if (relationType === RelationTypes.MANY_TO_MANY) {
       const mmModel = await relationColumnOptions.getMMModel();
       const mmParentColumn = await relationColumnOptions.getMMParentColumn();
       const mmChildColumn = await relationColumnOptions.getMMChildColumn();

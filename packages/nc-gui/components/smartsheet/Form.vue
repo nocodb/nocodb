@@ -3,6 +3,8 @@ import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import type { FormItemProps } from 'ant-design-vue'
+
 import {
   type AttachmentResType,
   ProjectRoles,
@@ -185,6 +187,8 @@ const { open, onChange: onChangeFile } = useFileDialog({
 })
 
 const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
+
+const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value.logo_url)))
 
 const updateView = useDebounceFn(
   () => {
@@ -546,6 +550,50 @@ const handleOnUploadImage = (data: AttachmentResType = null) => {
   updateView()
 }
 
+const validateFormEmail = async (_rule, value) => {
+  if (!value) {
+    return Promise.resolve()
+  } else if (!validateEmail(value)) {
+    return Promise.reject(t('msg.error.invalidEmail'))
+  }
+}
+
+const validateFormURL = async (_rule, value) => {
+  if (!value) {
+    return Promise.resolve()
+  } else if (!isValidURL(value)) {
+    return Promise.reject(t('msg.error.invalidURL'))
+  }
+}
+
+const formElementValidationRules = (element) => {
+  const rules: FormItemProps['rules'][] = [
+    {
+      required: isRequired(element, element.required),
+      message: t('msg.error.fieldRequired', { value: 'This field' }),
+    },
+  ]
+
+  if (parseProp(element.meta).validate && element.uidt === UITypes.URL) {
+    rules.push({
+      validator: validateFormURL,
+    })
+  } else if (parseProp(element.meta).validate && element.uidt === UITypes.Email) {
+    rules.push({
+      validator: validateFormEmail,
+    })
+  }
+
+  if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
+    rules.push({
+      type: 'number',
+      message: t('msg.plsEnterANumber'),
+    })
+  }
+
+  return rules
+}
+
 onClickOutside(draggableRef, (e) => {
   if (
     (e.target as HTMLElement)?.closest(
@@ -736,7 +784,7 @@ useEventListener(
 
               <div class="flex justify-center">
                 <div class="w-full">
-                  <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
+                  <a-alert class="nc-form-success-msg !my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                     <template #message>
                       <LazyCellRichText
                         v-if="formViewData?.success_msg?.trim()"
@@ -806,7 +854,7 @@ useEventListener(
               ></GeneralImageCropper>
               <!-- cover image -->
               <div v-if="!parseProp(formViewData?.meta).hide_banner" class="group relative max-w-[max(33%,688px)] mx-auto">
-                <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
+                <GeneralFormBanner :key="formViewData.banner_image_url?.path" :banner-image-url="formViewData.banner_image_url" />
                 <div class="absolute bottom-0 right-0 hidden group-hover:block">
                   <div class="flex items-center space-x-1 m-2">
                     <NcTooltip :disabled="isEeUI">
@@ -880,7 +928,8 @@ useEventListener(
                       >
                         <LazyCellAttachmentImage
                           v-if="formViewData.logo_url"
-                          :srcs="getPossibleAttachmentSrc(parseProp(formViewData.logo_url))"
+                          :key="formViewData.logo_url?.path"
+                          :srcs="getFormLogoSrc"
                           class="flex-none nc-form-logo !object-contain object-left max-h-full max-w-full !m-0"
                         />
                         <div
@@ -973,8 +1022,7 @@ useEventListener(
                           :bordered="false"
                           :data-testid="NcForm.heading"
                           :data-title="NcForm.heading"
-                          @blur="updateView"
-                          @keydown.enter="updateView"
+                          @update:value="updateView"
                         />
                       </a-form-item>
 
@@ -1199,12 +1247,7 @@ useEventListener(
                             <a-form-item
                               :name="element.title"
                               class="!my-0 nc-input-required-error nc-form-input-item"
-                              :rules="[
-                                {
-                                  required: isRequired(element, element.required),
-                                  message: `${$t('msg.error.fieldRequired', { value: 'This field' })}`,
-                                },
-                              ]"
+                              :rules="formElementValidationRules(element)"
                             >
                               <LazySmartsheetDivDataCell
                                 class="relative"
@@ -1725,6 +1768,9 @@ useEventListener(
   &.nc-cell-geodata {
     @apply !py-1;
   }
+  &.nc-cell-currency {
+    @apply !py-0 !pl-0 flex items-stretch;
+  }
 
   :deep(input) {
     @apply !px-1;
@@ -1732,8 +1778,11 @@ useEventListener(
   &.nc-cell-longtext {
     @apply p-0 h-auto;
   }
-  &:not(.nc-cell-longtext) {
-    @apply px-2 py-2;
+  &.nc-cell:not(.nc-cell-longtext) {
+    @apply p-2;
+  }
+  &.nc-virtual-cell {
+    @apply px-2 py-1;
   }
 
   &.nc-cell-json {

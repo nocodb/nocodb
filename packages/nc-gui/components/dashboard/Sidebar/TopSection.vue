@@ -6,7 +6,7 @@ const { isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
-const { meta: metaKey, ctrlKey } = useMagicKeys()
+const { meta: metaKey, control } = useMagicKeys()
 
 const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
 
@@ -17,7 +17,7 @@ const { isSharedBase } = storeToRefs(baseStore)
 const isCreateProjectOpen = ref(false)
 
 const navigateToSettings = () => {
-  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   // TODO: Handle cloud case properly
   navigateToWorkspaceSettings('', cmdOrCtrl)

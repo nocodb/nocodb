@@ -2,6 +2,7 @@ import jsep from 'jsep';
 import {
   FormulaDataTypes,
   jsepCurlyHook,
+  RelationTypes,
   UITypes,
   validateDateWithUnknownFormat,
   validateFormulaAndExtractTreeWithType,
@@ -141,14 +142,14 @@ async function _formulaQueryBuilder(
         aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
-          let isMany = false;
+          let isArray = false;
           const alias = `__nc_formula${aliasCount++}`;
           const lookup = await col.getColOptions<LookupColumn>();
           {
             const relationCol = await lookup.getRelationColumn();
             const relation =
               await relationCol.getColOptions<LinkToAnotherRecordColumn>();
-            // if (relation.type !== 'bt') continue;
+            // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
             const childColumn = await relation.getChildColumn();
             const parentColumn = await relation.getParentColumn();
@@ -156,8 +157,17 @@ async function _formulaQueryBuilder(
             await childModel.getColumns();
             const parentModel = await parentColumn.getModel();
             await parentModel.getColumns();
-            switch (relation.type) {
-              case 'bt':
+
+            let relationType = relation.type;
+
+            if (relationType === RelationTypes.ONE_TO_ONE) {
+              relationType = relationCol.meta?.bt
+                ? RelationTypes.BELONGS_TO
+                : RelationTypes.HAS_MANY;
+            }
+
+            switch (relationType) {
+              case RelationTypes.BELONGS_TO:
                 selectQb = knex(
                   knex.raw(`?? as ??`, [
                     baseModelSqlv2.getTnPath(parentModel.table_name),
@@ -173,8 +183,8 @@ async function _formulaQueryBuilder(
                   ]),
                 );
                 break;
-              case 'hm':
-                isMany = true;
+              case RelationTypes.HAS_MANY:
+                isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                 selectQb = knex(
                   knex.raw(`?? as ??`, [
                     baseModelSqlv2.getTnPath(childModel.table_name),
@@ -190,9 +200,9 @@ async function _formulaQueryBuilder(
                   ]),
                 );
                 break;
-              case 'mm':
+              case RelationTypes.MANY_TO_MANY:
                 {
-                  isMany = true;
+                  isArray = true;
                   const mmModel = await relation.getMMModel();
                   const mmParentColumn = await relation.getMMParentColumn();
                   const mmChildColumn = await relation.getMMChildColumn();
@@ -236,7 +246,7 @@ async function _formulaQueryBuilder(
                 await relationCol.getColOptions<LinkToAnotherRecordColumn>();
               // if any of the relation in nested lookup is
               // not belongs to then ignore the sort option
-              // if (relation.type !== 'bt') continue;
+              // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
               const childColumn = await relation.getChildColumn();
               const parentColumn = await relation.getParentColumn();
@@ -245,8 +255,16 @@ async function _formulaQueryBuilder(
               const parentModel = await parentColumn.getModel();
               await parentModel.getColumns();
 
-              switch (relation.type) {
-                case 'bt':
+              let relationType = relation.type;
+
+              if (relationType === RelationTypes.ONE_TO_ONE) {
+                relationType = relationCol.meta?.bt
+                  ? RelationTypes.BELONGS_TO
+                  : RelationTypes.HAS_MANY;
+              }
+
+              switch (relationType) {
+                case RelationTypes.BELONGS_TO:
                   {
                     selectQb.join(
                       knex.raw(`?? as ??`, [
@@ -258,9 +276,9 @@ async function _formulaQueryBuilder(
                     );
                   }
                   break;
-                case 'hm':
+                case RelationTypes.HAS_MANY:
                   {
-                    isMany = true;
+                    isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                     selectQb.join(
                       knex.raw(`?? as ??`, [
                         baseModelSqlv2.getTnPath(childModel.table_name),
@@ -271,8 +289,8 @@ async function _formulaQueryBuilder(
                     );
                   }
                   break;
-                case 'mm': {
-                  isMany = true;
+                case RelationTypes.MANY_TO_MANY: {
+                  isArray = true;
                   const mmModel = await relation.getMMModel();
                   const mmParentColumn = await relation.getMMParentColumn();
                   const mmChildColumn = await relation.getMMChildColumn();
@@ -324,7 +342,7 @@ async function _formulaQueryBuilder(
                   ).builder;
                   // selectQb.select(builder);
 
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -346,7 +364,7 @@ async function _formulaQueryBuilder(
                   const nestedAlias = `__nc_formula${aliasCount++}`;
                   const relation =
                     await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
-                  // if (relation.type !== 'bt') continue;
+                  // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
                   const colOptions =
                     (await lookupColumn.getColOptions()) as LinkToAnotherRecordColumn;
@@ -357,8 +375,17 @@ async function _formulaQueryBuilder(
                   const parentModel = await parentColumn.getModel();
                   await parentModel.getColumns();
                   let cn;
-                  switch (relation.type) {
-                    case 'bt':
+
+                  let relationType = relation.type;
+
+                  if (relationType === RelationTypes.ONE_TO_ONE) {
+                    relationType = relationCol.meta?.bt
+                      ? RelationTypes.BELONGS_TO
+                      : RelationTypes.HAS_MANY;
+                  }
+
+                  switch (relationType) {
+                    case RelationTypes.BELONGS_TO:
                       {
                         selectQb.join(
                           knex.raw(`?? as ??`, [
@@ -374,9 +401,9 @@ async function _formulaQueryBuilder(
                         ]);
                       }
                       break;
-                    case 'hm':
+                    case RelationTypes.HAS_MANY:
                       {
-                        isMany = true;
+                        isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                         selectQb.join(
                           knex.raw(`?? as ??`, [
                             baseModelSqlv2.getTnPath(childModel.table_name),
@@ -391,9 +418,9 @@ async function _formulaQueryBuilder(
                         ]);
                       }
                       break;
-                    case 'mm':
+                    case RelationTypes.MANY_TO_MANY:
                       {
-                        isMany = true;
+                        isArray = true;
                         const mmModel = await relation.getMMModel();
                         const mmParentColumn =
                           await relation.getMMParentColumn();
@@ -434,7 +461,7 @@ async function _formulaQueryBuilder(
                     `${prevAlias}.${childColumn.column_name}`,
                   );
 
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -464,7 +491,7 @@ async function _formulaQueryBuilder(
                     aliasToColumn,
                     formulaOption.getParsedTree(),
                   );
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -483,7 +510,7 @@ async function _formulaQueryBuilder(
                 break;
               default:
                 {
-                  if (isMany) {
+                  if (isArray) {
                     const qb = selectQb;
                     selectQb = (fn) =>
                       knex
@@ -529,7 +556,7 @@ async function _formulaQueryBuilder(
         aliasToColumn[col.id] = async (): Promise<any> => {
           const alias = `__nc_formula_ll`;
           const relation = await col.getColOptions<LinkToAnotherRecordColumn>();
-          // if (relation.type !== 'bt') continue;
+          // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
           const colOptions =
             (await col.getColOptions()) as LinkToAnotherRecordColumn;
@@ -540,8 +567,16 @@ async function _formulaQueryBuilder(
           const parentModel = await parentColumn.getModel();
           await parentModel.getColumns();
 
+          let relationType = relation.type;
+
+          if (relationType === RelationTypes.ONE_TO_ONE) {
+            relationType = col.meta?.bt
+              ? RelationTypes.BELONGS_TO
+              : RelationTypes.HAS_MANY;
+          }
+
           let selectQb;
-          if (relation.type === 'bt') {
+          if (relationType === RelationTypes.BELONGS_TO) {
             selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
               .select(parentModel?.displayValue?.column_name)
               .where(
@@ -555,7 +590,7 @@ async function _formulaQueryBuilder(
                   }.${childColumn.column_name}`,
                 ]),
               );
-          } else if (relation.type == 'hm') {
+          } else if (relationType == RelationTypes.HAS_MANY) {
             const qb = knex(baseModelSqlv2.getTnPath(childModel.table_name))
               // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))
               .where(
@@ -582,7 +617,7 @@ async function _formulaQueryBuilder(
                 .wrap('(', ')');
 
             // getAggregateFn();
-          } else if (relation.type == 'mm') {
+          } else if (relationType == RelationTypes.MANY_TO_MANY) {
             // todo:
             // const qb = knex(childModel.title)
             //   // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))

@@ -20,7 +20,7 @@ export default class LinkToAnotherRecordColumn {
   ur?: string;
   fk_index_name?: string;
 
-  type: 'hm' | 'bt' | 'mm';
+  type: 'hm' | 'bt' | 'mm' | 'oo';
   virtual: BoolType = false;
 
   mmModel?: Model;

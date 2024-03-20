@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, type UITypes } from 'nocodb-sdk'
 import { getAvailableRollupForUiType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from '#imports'
 import {
@@ -58,7 +58,7 @@ const refTables = computed(() => {
     .filter(
       (c) =>
         isLinksOrLTAR(c) &&
-        (c.colOptions as LinkToAnotherRecordType).type !== 'bt' &&
+        ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((c.colOptions as LinkToAnotherRecordType).type) &&
         !c.system &&
         c.source_id === meta.value?.source_id,
     )

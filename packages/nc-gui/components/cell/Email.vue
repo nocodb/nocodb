@@ -5,7 +5,6 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -31,11 +30,13 @@ const editEnabled = inject(EditModeInj)!
 
 const column = inject(ColumnInj)!
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const isForm = inject(IsFormInj)!
 
 // Used in the logic of when to display error since we are not storing the email if it's not valid
 const localState = ref(value)
@@ -44,7 +45,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isSurveyForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -52,17 +53,19 @@ const vModel = computed({
 
 const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
-
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
   () => {
-    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !validateEmail(localState.value)) {
+    if (
+      !isForm.value &&
+      parseProp(column.value.meta)?.validate &&
+      !editEnabled.value &&
+      localState.value &&
+      !validateEmail(localState.value)
+    ) {
       message.error(t('msg.error.invalidEmail'))
       localState.value = undefined
       return

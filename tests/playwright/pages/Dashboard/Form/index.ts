@@ -250,6 +250,8 @@ export class FormPage extends BasePage {
   }
 
   async verifyStatePostSubmit(param: { message?: string; submitAnotherForm?: boolean; showBlankForm?: boolean }) {
+    await this.rootPage.locator('.nc-form-success-msg').waitFor({ state: 'visible' });
+
     if (undefined !== param.message) {
       await expect(this.getFormAfterSubmit()).toContainText(param.message);
     }

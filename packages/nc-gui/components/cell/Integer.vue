@@ -25,6 +25,10 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const isForm = inject(IsFormInj)!
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const displayValue = computed(() => {
@@ -42,15 +46,15 @@ const vModel = computed({
       // if we clear / empty a cell in sqlite,
       // the value is considered as ''
       _vModel.value = null
+    } else if (isForm.value && !isEditColumn.value) {
+      _vModel.value = isNaN(Number(value)) ? value : Number(value)
     } else {
       _vModel.value = value
     }
   },
 })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
+const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
@@ -91,7 +95,7 @@ function onKeyDown(e: any) {
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field outline-none py-1 border-none w-full h-full text-sm"
-    type="number"
+    :type="inputType"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
@@ -109,7 +113,8 @@ function onKeyDown(e: any) {
 </template>
 
 <style scoped lang="scss">
-input[type='number']:focus {
+input[type='number']:focus,
+input[type='text']:focus {
   @apply ring-transparent;
 }
 

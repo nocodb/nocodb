@@ -546,6 +546,22 @@ const handleOnUploadImage = (data: AttachmentResType = null) => {
   updateView()
 }
 
+const validateFormEmail = async (_rule, value) => {
+  if (!value) {
+    return Promise.resolve()
+  } else if (!validateEmail(value)) {
+    return Promise.reject(t('msg.error.invalidEmail'))
+  }
+}
+
+const validateFormURL = async (_rule, value) => {
+  if (!value) {
+    return Promise.resolve()
+  } else if (!isValidURL(value)) {
+    return Promise.reject(t('msg.error.invalidURL'))
+  }
+}
+
 onClickOutside(draggableRef, (e) => {
   if (
     (e.target as HTMLElement)?.closest(
@@ -1204,6 +1220,15 @@ useEventListener(
                                   required: isRequired(element, element.required),
                                   message: `${$t('msg.error.fieldRequired', { value: 'This field' })}`,
                                 },
+                                parseProp(element.meta).validate && element.uidt === UITypes.URL
+                                  ? {
+                                      validator: validateFormURL,
+                                    }
+                                  : parseProp(element.meta).validate && element.uidt === UITypes.Email
+                                  ? {
+                                      validator: validateFormEmail,
+                                    }
+                                  : {},
                               ]"
                             >
                               <LazySmartsheetDivDataCell

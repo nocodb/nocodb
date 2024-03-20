@@ -191,11 +191,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       localState: {},
       virtual: {},
     }
-    console.log('validate', formColumns.value)
+
     if (!formColumns.value) return obj
 
     for (const column of formColumns.value) {
-      console.log('validate column', column)
       if (
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
@@ -230,12 +229,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (column.uidt === UITypes.URL) {
           obj.localState[column.title!] = {
             ...(obj.localState[column.title!] || {}),
-            validateFormURL: helpers.withMessage(t('msg.error.invalidURL'), (value) => (value ? isValidURL(value) : true)),
+            validateFormURL: helpers.withMessage(t('msg.error.invalidURL'), (value) => {
+              return value ? isValidURL(value) : true
+            }),
           }
         } else if (column.uidt === UITypes.Email) {
           obj.localState[column.title!] = {
             ...(obj.localState[column.title!] || {}),
-            validateFormEmail: helpers.withMessage(t('msg.error.invalidEmail'), (value) => (value ? validateEmail(value) : true)),
+            validateFormEmail: helpers.withMessage(t('msg.error.invalidEmail'), (value) => {
+              return value ? validateEmail(value) : true
+            }),
           }
         }
       }

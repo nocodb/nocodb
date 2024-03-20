@@ -5,7 +5,6 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -31,8 +30,6 @@ const editEnabled = inject(EditModeInj)!
 
 const column = inject(ColumnInj)!
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -44,7 +41,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isSurveyForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -62,7 +59,13 @@ const focus: VNodeRef = (el) =>
 watch(
   () => editEnabled.value,
   () => {
-    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !validateEmail(localState.value)) {
+    if (
+      !isForm.value &&
+      parseProp(column.value.meta)?.validate &&
+      !editEnabled.value &&
+      localState.value &&
+      !validateEmail(localState.value)
+    ) {
       message.error(t('msg.error.invalidEmail'))
       localState.value = undefined
       return

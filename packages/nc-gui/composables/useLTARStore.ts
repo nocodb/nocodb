@@ -283,8 +283,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
       } catch (e: any) {
         // temporary fix to handle when offset is beyond limit
-        if(await extractSdkResponseErrorMsg(e) === 'Offset is beyond the total number of records'){
-          childrenExcludedListPagination.page = 0;
+        if ((await extractSdkResponseErrorMsg(e)) === 'Offset is beyond the total number of records') {
+          childrenExcludedListPagination.page = 0
           return loadChildrenExcludedList(activeState)
         }
 

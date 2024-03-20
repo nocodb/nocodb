@@ -6,7 +6,6 @@ import {
   DropZoneRef,
   IsSurveyFormInj,
   computed,
-  isValidURL,
   onKeyStroke,
   onMounted,
   provide,
@@ -16,7 +15,6 @@ import {
   usePointerSwipe,
   useSharedFormStoreOrThrow,
   useStepper,
-  validateEmail,
 } from '#imports'
 
 enum TransitionDirection {
@@ -80,8 +78,6 @@ const { index, goToPrevious, goToNext, isFirst, isLast, goTo } = useStepper(step
 
 const field = computed(() => formColumns.value?.[index.value])
 
-const columnValidationError = ref(false)
-
 function isRequired(column: ColumnType, required = false) {
   let columnObj = column
   if (
@@ -123,41 +119,14 @@ function animate(target: AnimationTarget) {
   }, transitionDuration.value / 2)
 }
 
-async function validateColumn() {
-  const f = field.value!
-  if (parseProp(f.meta)?.validate && formState.value[f.title!]) {
-    if (f.uidt === UITypes.Email) {
-      if (!validateEmail(formState.value[f.title!])) {
-        columnValidationError.value = true
-        message.error(t('msg.error.invalidEmail'))
-        return false
-      }
-    } else if (f.uidt === UITypes.URL) {
-      if (!isValidURL(formState.value[f.title!])) {
-        columnValidationError.value = true
-        message.error(t('msg.error.invalidURL'))
-        return false
-      }
-    }
-  }
-  return true
-}
-
 async function goNext(animationTarget?: AnimationTarget) {
-  columnValidationError.value = false
-
   if (isLast.value || !isStarted.value || submitted.value) return
 
   if (!field.value || !field.value.title) return
 
   const validationField = v$.value.localState[field.value.title]
 
-  if (validationField) {
-    const isValid = await validationField.$validate()
-    if (!isValid) return
-  }
-
-  if (!(await validateColumn())) return
+  if (validationField && !(await validationField.$validate())) return
 
   animate(animationTarget || AnimationTarget.ArrowRight)
 
@@ -173,8 +142,6 @@ async function goNext(animationTarget?: AnimationTarget) {
 
 async function goPrevious(animationTarget?: AnimationTarget) {
   if (isFirst.value || !isStarted.value || submitted.value) return
-
-  columnValidationError.value = false
 
   animate(animationTarget || AnimationTarget.ArrowLeft)
 
@@ -207,7 +174,7 @@ function resetForm() {
 }
 
 async function submit() {
-  if (submitted.value || !(await validateColumn())) return
+  if (submitted.value) return
   dialogShow.value = false
   submitForm()
 }
@@ -228,13 +195,21 @@ const handleFocus = () => {
   }
 }
 
+const showSubmitConfirmModal = async () => {
+  const validationField = v$.value.localState[field.value.title]
+
+  if (validationField && !(await validationField.$validate())) return
+
+  dialogShow.value = true
+}
+
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
   goPrevious(AnimationTarget.ArrowLeft)
 })
 onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
   goNext(AnimationTarget.ArrowRight)
 })
-onKeyStroke(['Enter', 'Space'], () => {
+onKeyStroke(['Enter'], async () => {
   if (submitted.value) return
 
   if (!isStarted.value && !submitted.value) {
@@ -244,7 +219,7 @@ onKeyStroke(['Enter', 'Space'], () => {
       if (dialogShow.value) {
         submit()
       } else {
-        dialogShow.value = true
+        showSubmitConfirmModal()
       }
     } else {
       const activeElement = document.activeElement as HTMLElement
@@ -277,16 +252,6 @@ onMounted(() => {
     })
   }
 })
-
-watch(
-  formState,
-  () => {
-    columnValidationError.value = false
-  },
-  {
-    deep: true,
-  },
-)
 </script>
 
 <template>
@@ -458,7 +423,7 @@ watch(
 
               <div class="ml-1 mt-4 flex w-full text-lg">
                 <div class="flex-1 flex justify-end">
-                  <div v-if="isLast && !v$.$invalid">
+                  <div v-if="isLast">
                     <NcButton
                       :size="isMobileMode ? 'medium' : 'small'"
                       :class="
@@ -466,9 +431,9 @@ watch(
                           ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
                           : ''
                       "
-                      :disabled="v$.localState[field.title]?.$error || columnValidationError"
+                      :disabled="v$.localState[field.title]?.$error"
                       data-testid="nc-survey-form__btn-submit-confirm"
-                      @click="dialogShow = true"
+                      @click="showSubmitConfirmModal"
                     >
                       {{ $t('general.submit') }} form
                     </NcButton>
@@ -477,14 +442,14 @@ watch(
                   <div v-else class="flex items-center gap-3">
                     <div
                       class="hidden md:flex text-sm items-center gap-1"
-                      :class="v$.localState[field.title]?.$error || columnValidationError ? 'text-gray-200' : 'text-gray-800'"
+                      :class="v$.localState[field.title]?.$error ? 'text-gray-200' : 'text-gray-800'"
                     >
                       <span>
                         {{ $t('labels.pressEnter') }}
                       </span>
                       <NcBadge
                         class="pl-4 pr-1 h-[21px]"
-                        :class="v$.localState[field.title]?.$error || columnValidationError ? 'text-gray-200' : 'text-gray-600'"
+                        :class="v$.localState[field.title]?.$error ? 'text-gray-200' : 'text-gray-600'"
                       >
                         ↵
                       </NcBadge>
@@ -498,7 +463,7 @@ watch(
                           ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'
                           : '',
                       ]"
-                      :disabled="v$.localState[field.title]?.$error || columnValidationError"
+                      :disabled="v$.localState[field.title]?.$error"
                       @click="goNext()"
                     >
                       {{ $t('labels.next') }}
@@ -530,7 +495,7 @@ watch(
               :size="isMobileMode ? 'medium' : 'small'"
               type="secondary"
               data-testid="nc-survey-form__icon-next"
-              :disabled="isLast || v$.localState[field.title]?.$error || columnValidationError"
+              :disabled="isLast || v$.localState[field.title]?.$error"
               @click="goNext()"
             >
               <GeneralIcon icon="ncArrowRight" />

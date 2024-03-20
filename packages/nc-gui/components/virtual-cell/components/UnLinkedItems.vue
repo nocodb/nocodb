@@ -51,6 +51,7 @@ const {
   unlink,
   row,
   headerDisplayValue,
+  resetChildrenExcludedOffsetCount
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -100,6 +101,9 @@ watch(
         loadChildrenList()
       }
       loadChildrenExcludedList(rowState.value)
+    }
+    if(!nextVal){
+      resetChildrenExcludedOffsetCount()
     }
   },
   {
@@ -255,6 +259,11 @@ onUnmounted(() => {
   childrenExcludedListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
 })
+
+const onFilterChange = () => {
+  childrenExcludedListPagination.page = 1;
+  resetChildrenExcludedOffsetCount()
+}
 </script>
 
 <template>
@@ -285,7 +294,7 @@ onUnmounted(() => {
           :placeholder="`${$t('general.searchIn')} ${relatedTableMeta?.title}`"
           class="w-full !rounded-md nc-excluded-search xs:min-h-8"
           size="small"
-          @change="childrenExcludedListPagination.page = 1"
+          @change="onFilterChange"
           @keydown.capture.stop="
             (e) => {
               if (e.key === 'Escape') {

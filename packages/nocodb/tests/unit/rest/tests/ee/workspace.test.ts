@@ -123,14 +123,14 @@ function workspaceTests() {
       .patch(`/api/v1/workspaces/xxxxxxxxx`)
       .set('xc-auth', context.token)
       .send({ title: 'Sakila02' })
-      .expect(400);
+      .expect(404);
   });
 
   it('Delete Workspace Error Test', async () => {
     await request(context.app)
       .delete(`/api/v1/workspaces/xxxxxxxxx`)
       .set('xc-auth', context.token)
-      .expect(400);
+      .expect(404);
   });
 
   it('Create Workspace Error Test', async () => {

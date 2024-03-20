@@ -110,7 +110,7 @@ export default class Source implements SourceType {
   ) {
     const oldBase = await Source.get(sourceId, false, ncMeta);
 
-    if (!oldBase) NcError.badRequest('Wrong source id!');
+    if (!oldBase) NcError.sourceNotFound(sourceId);
 
     const updateObj = extractProps(source, [
       'alias',

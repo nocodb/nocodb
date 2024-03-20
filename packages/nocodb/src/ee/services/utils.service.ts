@@ -431,7 +431,7 @@ export class UtilsService extends UtilsServiceCE {
           // req.body.data.prompt req.body.data.max req.body.data.base (type, tables (title, columns))
           return await this.generateQueryPrompt(param.body.data);
         default:
-          return NcError.internalServerError('Unknown operation');
+          return NcError.internalServerError('Unknown AI Operation');
       }
     } catch (e) {
       console.log(e);

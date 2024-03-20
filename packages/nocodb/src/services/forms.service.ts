@@ -77,7 +77,7 @@ export class FormsService {
     const view = await View.get(param.formViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.formViewId);
     }
 
     const res = await FormView.update(param.formViewId, param.form);

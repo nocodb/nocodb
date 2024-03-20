@@ -222,9 +222,9 @@ async function ncAxiosLinkGet({
 
   // print error codes
   if (debugMode && status !== 200) {
-    console.log('#### ', response.body.msg);
+    console.log('#### ', response.body.message || response.body.msg);
   }
-  if (!debugMode && msg) expect(response.body.msg).to.equal(msg);
+  if (!debugMode && msg) expect(response.body.message || response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -248,10 +248,10 @@ async function ncAxiosLinkAdd({
 
   // print error codes
   if (debugMode && status !== 201) {
-    console.log('#### ', response.body.msg);
+    console.log('#### ', response.body.message || response.body.msg);
   }
 
-  if (!debugMode && msg) expect(response.body.msg).to.equal(msg);
+  if (!debugMode && msg) expect(response.body.message || response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -274,9 +274,9 @@ async function ncAxiosLinkRemove({
 
   // print error codes
   if (debugMode && status !== 200) {
-    console.log('#### ', response.body.msg);
+    console.log('#### ', response.body.message || response.body.msg);
   }
-  if (!debugMode && msg) expect(response.body.msg).to.equal(msg);
+  if (!debugMode && msg) expect(response.body.message || response.body.msg).to.equal(msg);
 
   return response;
 }
@@ -831,7 +831,7 @@ function textBased() {
       query: {
         viewId: '123456789',
       },
-      status: 422,
+      status: 404,
     });
   });
 
@@ -883,10 +883,10 @@ function textBased() {
       query: {
         offset: 10000,
       },
-      status: 400,
+      status: 422,
     });
-    expect(rsp.body.msg).to.equal(
-      'Offset is beyond the total number of records',
+    expect(rsp.body.message).to.equal(
+      "Offset value '10000' is invalid",
     );
   });
 
@@ -897,7 +897,7 @@ function textBased() {
       query: {
         sort: 'abc',
       },
-      status: 422,
+      status: 404,
     });
     await ncAxiosGet({
       query: {
@@ -909,7 +909,7 @@ function textBased() {
       query: {
         fields: 'abc',
       },
-      status: 422,
+      status: 404,
     });
   });
 
@@ -1079,7 +1079,7 @@ function textBased() {
     // Invalid row ID
     await ncAxiosPatch({
       body: { Id: 123456789, SingleLineText: 'some text' },
-      status: 422,
+      status: 404,
     });
   });
 
@@ -1126,7 +1126,7 @@ function textBased() {
       status: unauthorizedResponse,
     });
     // Invalid row ID
-    await ncAxiosDelete({ body: { Id: '123456789' }, status: 422 });
+    await ncAxiosDelete({ body: { Id: '123456789' }, status: 404 });
   });
 }
 
@@ -2380,7 +2380,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
-      msg: "Column with id '9999' not found",
+      msg: "Field '9999' not found",
     });
 
     // Link Add: Invalid Source row ID
@@ -2389,7 +2389,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Record with id '9999' not found",
+      msg: "Record '9999' not found",
     });
 
     // Body parameter error
@@ -2411,8 +2411,8 @@ function linkBased() {
       await ncAxiosLinkAdd({
         ...validParams,
         body: [999, 998],
-        status: 422,
-        msg: 'Child record with id [999] not found',
+        status: 404,
+        msg: 'Record \'999\' not found',
       });
     } else {
       // Link Add: Invalid body parameter - row id invalid
@@ -2421,8 +2421,8 @@ function linkBased() {
       await ncAxiosLinkAdd({
         ...validParams,
         body: [999, 998, 997],
-        status: 422,
-        msg: 'Child record with id [999, 998, 997] not found',
+        status: 404,
+        msg: 'Records \'999, 998, 997\' not found',
       });
 
       // Link Add: Invalid body parameter - repeated row id
@@ -2432,7 +2432,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id [1, 2] are duplicated',
+        msg: "Records '1, 2' already exists",
       });
     }
   }
@@ -2452,7 +2452,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
-      msg: "Column with id '9999' not found",
+      msg: "Field '9999' not found",
     });
 
     // Link Remove: Invalid Source row ID
@@ -2461,7 +2461,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Record with id '9999' not found",
+      msg: "Record '9999' not found",
     });
 
     // Body parameter error
@@ -2493,8 +2493,8 @@ function linkBased() {
       await ncAxiosLinkRemove({
         ...validParams,
         body: [999, 998],
-        status: 422,
-        msg: 'Child record with id [999, 998] not found',
+        status: 404,
+        msg: 'Records \'999, 998\' not found',
       });
 
       // Link Remove: Invalid body parameter - repeated row id
@@ -2504,7 +2504,7 @@ function linkBased() {
         ...validParams,
         body: [1, 2, 1, 2],
         status: 422,
-        msg: 'Child record with id [1, 2] are duplicated',
+        msg: "Records '1, 2' already exists",
       });
     }
   }
@@ -2524,7 +2524,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, linkId: 9999 },
       status: 404,
-      msg: "Column with id '9999' not found",
+      msg: "Field '9999' not found",
     });
 
     // Link List: Invalid Source row ID
@@ -2533,7 +2533,7 @@ function linkBased() {
       ...validParams,
       urlParams: { ...validParams.urlParams, rowId: 9999 },
       status: 404,
-      msg: "Record with id '9999' not found",
+      msg: "Record '9999' not found",
     });
 
     // Query parameter error
@@ -2566,7 +2566,7 @@ function linkBased() {
       ...validParams,
       query: { ...validParams.query, offset: 9999 },
       // for BT relation we use btRead so we don't apply offset & limit, also we don't return page info where this check is done
-      status: relationType === 'bt' ? 200 : 400,
+      status: relationType === 'bt' ? 200 : 422,
     });
 
     // Link List: Invalid query parameter - negative limit

@@ -132,9 +132,9 @@ export default class Workspace implements WorkspaceType {
   ) {
     if (!id) NcError.badRequest('Workspace id is required');
 
-    const workspace = await this.get(id);
+    const workspace = await this.get(id, ncMeta);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(id);
 
     // extract props which is allowed to be inserted
     const updateObject = extractProps(workspaceAttr, [
@@ -202,7 +202,7 @@ export default class Workspace implements WorkspaceType {
 
     const workspace = await this.get(id, ncMeta);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(id);
 
     await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_workspace_id: id,
@@ -242,9 +242,9 @@ export default class Workspace implements WorkspaceType {
   public static async softDelete(id: string, ncMeta = Noco.ncMeta) {
     if (!id) NcError.badRequest('Workspace id is required');
 
-    const workspace = await this.get(id);
+    const workspace = await this.get(id, ncMeta);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(id);
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 

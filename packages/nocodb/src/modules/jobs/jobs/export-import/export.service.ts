@@ -47,8 +47,7 @@ export class ExportService {
 
       let pgSerialLastVal;
 
-      if (!model)
-        return NcError.badRequest(`Model not found for id '${modelId}'`);
+      if (!model) return NcError.tableNotFound(modelId);
 
       const fndProject = bases.find((p) => p.id === model.base_id);
       const base = fndProject || (await Base.get(model.base_id));
@@ -703,8 +702,7 @@ export class ExportService {
 
     const source = await Source.get(param.sourceId);
 
-    if (!source)
-      throw NcError.badRequest(`Source not found for id '${param.sourceId}'`);
+    if (!source) NcError.sourceNotFound(param.sourceId);
 
     const base = await Base.get(source.base_id);
 

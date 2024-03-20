@@ -216,7 +216,7 @@ export default class DbMux {
 
     const source = await Source.get(sourceId, false, ncMeta);
 
-    if (!source) NcError.notFound('Source not found');
+    if (!source) NcError.sourceNotFound(sourceId);
 
     await Source.updateBase(
       sourceId,
@@ -242,7 +242,7 @@ export default class DbMux {
   ) {
     const source = await Source.get(sourceId, false, ncMeta);
 
-    if (!source) NcError.notFound('Source not found');
+    if (!source) NcError.sourceNotFound(sourceId);
 
     let dbMuxs = await this.list(ncMeta);
 
@@ -255,7 +255,7 @@ export default class DbMux {
           status: DbMuxStatus.ACTIVE,
         });
       } else {
-        NcError.badRequest('There is no DB Mux available');
+        NcError.internalServerError('There is no DB Mux available');
       }
     } else {
       if (process.env.TEST === 'true') {
@@ -279,7 +279,7 @@ export default class DbMux {
     }
 
     if (!suitableDbMux) {
-      NcError.badRequest('There is no DB Mux available');
+      NcError.internalServerError('There is no suitable DB Mux available');
     }
 
     await suitableDbMux.bindSource(source.id, ncMeta);
@@ -343,11 +343,12 @@ export default class DbMux {
       !snsConfig.credentials.secretAccessKey ||
       !snsConfig.credentials.accessKeyId
     ) {
-      console.error('SNS is not configured');
-      NcError.notImplemented('Not available');
+      NcError.internalServerError('SNS is not configured to activate DB Mux');
     }
 
-    if (!dbMux) NcError.notFound('DbMux not found');
+    if (!dbMux) {
+      NcError.internalServerError('DB Mux is not found to activate');
+    }
 
     const serviceName = dbMux.domain.replace(/https?:\/\//, '');
 

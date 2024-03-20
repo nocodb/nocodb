@@ -98,7 +98,7 @@ export class ViewsService {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.viewId);
     }
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
@@ -124,7 +124,7 @@ export class ViewsService {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.viewId);
     }
 
     const result = await View.update(param.viewId, param.view);
@@ -145,7 +145,7 @@ export class ViewsService {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.viewId);
     }
 
     await View.delete(param.viewId);
@@ -173,7 +173,7 @@ export class ViewsService {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.viewId);
     }
 
     const result = await View.update(param.viewId, param.sharedView);
@@ -195,7 +195,7 @@ export class ViewsService {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.viewId);
     }
     await View.sharedViewDelete(param.viewId);
 

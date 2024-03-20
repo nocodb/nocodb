@@ -39,7 +39,7 @@ const validateUserHasReadPermissionsForLinkedDbProjects = async (
     dbProjectIds?.map(async (dbProjectId: string) => {
       const dbProject = await Base.get(dbProjectId);
       if (!dbProject) {
-        NcError.badRequest(`Linked db base with id ${dbProjectId} not found`);
+        NcError.baseNotFound(dbProjectId);
       }
 
       // Find the workspace-user association for the current user and the workspace of the linked db base
@@ -104,7 +104,7 @@ export class BasesService extends BasesServiceCE {
       const workspace = await Workspace.get(fk_workspace_id);
 
       if (!workspace) {
-        NcError.badRequest('Workspace not found');
+        NcError.workspaceNotFound(fk_workspace_id);
       }
 
       const basesInWorkspace = await Base.countByWorkspace(fk_workspace_id);

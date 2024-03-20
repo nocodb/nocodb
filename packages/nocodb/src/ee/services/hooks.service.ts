@@ -27,7 +27,7 @@ export class HooksService extends HooksServiceCE {
     const model = await Model.get(param.tableId);
 
     if (!model) {
-      NcError.notFound('Table not found');
+      NcError.tableNotFound(param.tableId);
     }
 
     const workspaceId = await getWorkspaceForBase(model.base_id);

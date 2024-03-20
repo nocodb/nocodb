@@ -92,7 +92,7 @@ export class BaseUsersService {
       const base = await Base.get(param.baseId);
 
       if (!base) {
-        return NcError.badRequest('Invalid base id');
+        return NcError.baseNotFound(param.baseId);
       }
 
       if (user) {
@@ -102,7 +102,7 @@ export class BaseUsersService {
         const base = await Base.get(param.baseId);
 
         if (!base) {
-          return NcError.badRequest('Invalid base id');
+          return NcError.baseNotFound(param.baseId);
         }
 
         if (baseUser && baseUser.roles) {
@@ -200,7 +200,7 @@ export class BaseUsersService {
     const base = await Base.get(param.baseId);
 
     if (!base) {
-      return NcError.badRequest('Invalid base id');
+      return NcError.baseNotFound(param.baseId);
     }
 
     if (param.baseUser.roles.includes(ProjectRoles.OWNER)) {
@@ -306,7 +306,7 @@ export class BaseUsersService {
     const base = await Base.get(param.baseId);
 
     if (!base) {
-      return NcError.badRequest('Invalid base id');
+      return NcError.baseNotFound(param.baseId);
     }
 
     const invite_token = uuidv4();

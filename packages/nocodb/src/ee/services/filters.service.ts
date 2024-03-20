@@ -28,7 +28,7 @@ export class FiltersService extends FiltersServiceCE {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.notFound('View not found');
+      NcError.viewNotFound(param.viewId);
     }
 
     const workspaceId = await getWorkspaceForBase(view.base_id);

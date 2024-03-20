@@ -77,7 +77,7 @@ export class CalendarsService {
     const view = await View.get(param.calendarViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.calendarViewId);
     }
 
     const res = await CalendarView.update(param.calendarViewId, param.calendar);

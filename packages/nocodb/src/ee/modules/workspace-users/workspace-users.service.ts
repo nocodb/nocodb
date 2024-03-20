@@ -52,7 +52,7 @@ export class WorkspaceUsersService {
   async get({ workspaceId, userId }) {
     const user = await WorkspaceUser.get(workspaceId, userId);
 
-    if (!user) NcError.notFound('User not found');
+    if (!user) NcError.userNotFound(userId);
 
     return user;
   }
@@ -74,11 +74,11 @@ export class WorkspaceUsersService {
 
     const user = await User.get(param.userId);
 
-    if (!user) NcError.notFound('User not found');
+    if (!user) NcError.userNotFound(param.userId);
 
     const workspace = await Workspace.get(param.workspaceId);
 
-    if (!workspace) NcError.notFound('Workspace not found');
+    if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER)
       NcError.badRequest('Owner cannot be updated');
@@ -101,9 +101,7 @@ export class WorkspaceUsersService {
     });
 
     if (!targetUser) {
-      NcError.badRequest(
-        `User with id '${param.userId}' doesn't exist in this base`,
-      );
+      NcError.userNotFound(param.userId);
     }
 
     if (
@@ -142,7 +140,7 @@ export class WorkspaceUsersService {
     try {
       const user = await WorkspaceUser.get(workspaceId, userId, ncMeta);
 
-      if (!user) NcError.notFound('User not found');
+      if (!user) NcError.userNotFound(userId);
 
       if (user.roles === WorkspaceUserRoles.OWNER)
         NcError.badRequest('Owner cannot be deleted');
@@ -195,7 +193,7 @@ export class WorkspaceUsersService {
     const workspace = await Workspace.get(workspaceId);
 
     if (!workspace) {
-      NcError.notFound('Workspace not found');
+      NcError.workspaceNotFound(workspaceId);
     }
 
     if (roles?.split(',').length > 1) {

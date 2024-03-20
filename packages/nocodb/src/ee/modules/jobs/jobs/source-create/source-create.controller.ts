@@ -52,7 +52,7 @@ export class SourceCreateController {
     const base = await Base.get(baseId);
 
     if (!base) {
-      NcError.notFound('Base not found');
+      NcError.baseNotFound(baseId);
     }
 
     const sourcesInBase = await Noco.ncMeta.metaCount(

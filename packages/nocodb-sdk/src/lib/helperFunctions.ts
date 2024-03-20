@@ -108,7 +108,7 @@ const getFileName = ({
   name,
   count,
   ext
-}) => `${name}${count ? `(${count})` : ''}${ext? `.${ext}` : ''}`
+}) => `${name}${count ? `(${count})` : ''}${ext? `${ext}` : ''}`
 
 // add count before extension if duplicate name found
 function populateUniqueFileName(

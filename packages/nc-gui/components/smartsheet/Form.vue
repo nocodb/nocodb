@@ -584,10 +584,10 @@ const formElementValidationRules = (element) => {
     })
   }
 
-  if ([UITypes.Number, UITypes.Currency].includes(element.uidt)) {
+  if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(element.uidt)) {
     rules.push({
       type: 'number',
-      message: 'Please enter a number',
+      message: t('msg.plsEnterANumber'),
     })
   }
 

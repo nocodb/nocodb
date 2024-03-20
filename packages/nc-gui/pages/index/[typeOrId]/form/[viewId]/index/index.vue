@@ -140,7 +140,6 @@ const onDecode = async (scannedCodeValue: string) => {
                     v-if="sharedFormView?.submit_another_form"
                     type="secondary"
                     :size="isMobileMode ? 'medium' : 'small'"
-                    data-testid="nc-survey-form__btn-submit-another-form"
                     @click="submitted = false"
                   >
                     {{ $t('activity.submitAnotherForm') }}
@@ -218,6 +217,11 @@ const onDecode = async (scannedCodeValue: string) => {
                           :column="field"
                           :edit-enabled="!field?.read_only"
                           :read-only="field?.read_only"
+                          @update:model-value="
+                            () => {
+                              v$.localState[field.title]?.$validate()
+                            }
+                          "
                         />
                         <a-button
                           v-if="field.enable_scanner"
@@ -232,7 +236,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       </LazySmartsheetDivDataCell>
                     </NcTooltip>
 
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-sm mt-2">
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs mt-2">
                       <template v-if="isVirtualCol(field)">
                         <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
                           {{ error.$message }}

@@ -24,17 +24,6 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
 
-const vModel = computed({
-  get: () => _vModel.value,
-  set: (value) => {
-    if (value === '') {
-      _vModel.value = null
-    } else {
-      _vModel.value = value
-    }
-  },
-})
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
@@ -45,6 +34,21 @@ const focus: VNodeRef = (el) =>
 const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
+
+const vModel = computed({
+  get: () => {
+    return _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value)) ? `${_vModel.value}%` : _vModel.value
+  },
+  set: (value) => {
+    if (value === '') {
+      _vModel.value = null
+    } else if (isForm.value && !isEditColumn.value) {
+      _vModel.value = isNaN(Number(value)) ? value : Number(value)
+    } else {
+      _vModel.value = value
+    }
+  },
+})
 
 const percentMeta = computed(() => {
   return {
@@ -132,7 +136,7 @@ const onTabPress = (e: KeyboardEvent) => {
       :ref="focus"
       v-model="vModel"
       class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
-      type="number"
+      :type="isForm && !isEditColumn ? 'text' : 'number'"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
       @focus="onFocus"

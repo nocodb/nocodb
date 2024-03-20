@@ -191,11 +191,11 @@ const handleFocus = () => {
 }
 
 const showSubmitConfirmModal = async () => {
-  const validationField = v$.value.localState[field.value.title]
+  const validationField = v$.value.localState[field.value?.title]
 
-  if (validationField && !(await validationField.$validate())) return
-
-  dialogShow.value = true
+  if (validationField && (await validationField.$validate())) {
+    dialogShow.value = true
+  }
 }
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
@@ -389,6 +389,12 @@ onMounted(() => {
                       :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                       :column="field"
                       :read-only="field?.read_only"
+                      @update:model-value="
+                        () => {
+                          console.log('update')
+                          v$.virtual[field.title]?.$validate()
+                        }
+                      "
                     />
 
                     <LazySmartsheetCell
@@ -400,12 +406,24 @@ onMounted(() => {
                       :column="field"
                       :edit-enabled="!field?.read_only"
                       :read-only="field?.read_only"
+                      @update:model-value="
+                        () => {
+                          v$.localState[field.title]?.$validate()
+                        }
+                      "
                     />
 
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                      <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
-                        {{ error.$message }}
-                      </div>
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs my-2 px-1">
+                      <template v-if="isVirtualCol(field)">
+                        <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
+                          {{ error.$message }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                          {{ error.$message }}
+                        </div>
+                      </template>
 
                       <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
                         {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}

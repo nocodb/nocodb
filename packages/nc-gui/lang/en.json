@@ -339,6 +339,7 @@
     "removeFile": "Remove File",
     "hasMany": "Has Many",
     "manyToMany": "Many to Many",
+    "oneToOne": "One to One",
     "virtualRelation": "Virtual Relation",
     "linkMore": "Link More",
     "linkMoreRecords": "Link more records",
@@ -698,7 +699,7 @@
     "hideNocodbBranding": "Hide NocoDB Branding",
     "showOnConditions": "Show on condtions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
-    "limitOptions": "Limit ptions",
+    "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
     "clearSelection": "Clear selection"
   },

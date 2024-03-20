@@ -339,6 +339,7 @@
     "removeFile": "파일삭제",
     "hasMany": "많이",
     "manyToMany": "다대다",
+    "oneToOne": "One to One",
     "virtualRelation": "가상 관계",
     "linkMore": "링크 더 보기",
     "linkMoreRecords": "더 많은 레코드 연결",

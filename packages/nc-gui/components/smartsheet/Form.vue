@@ -3,6 +3,8 @@ import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import type { FormItemProps } from 'ant-design-vue'
+
 import {
   type AttachmentResType,
   ProjectRoles,
@@ -562,6 +564,34 @@ const validateFormURL = async (_rule, value) => {
   } else if (!isValidURL(value)) {
     return Promise.reject(t('msg.error.invalidURL'))
   }
+}
+
+const formElementValidationRules = (element) => {
+  const rules: FormItemProps['rules'][] = [
+    {
+      required: isRequired(element, element.required),
+      message: `${t('msg.error.fieldRequired', { value: 'This field' })}`,
+    },
+  ]
+
+  if (parseProp(element.meta).validate && element.uidt === UITypes.URL) {
+    rules.push({
+      validator: validateFormURL,
+    })
+  } else if (parseProp(element.meta).validate && element.uidt === UITypes.Email) {
+    rules.push({
+      validator: validateFormEmail,
+    })
+  }
+
+  if ([UITypes.Number, UITypes.Currency].includes(element.uidt)) {
+    rules.push({
+      type: 'number',
+      message: 'Please enter a number',
+    })
+  }
+
+  return rules
 }
 
 onClickOutside(draggableRef, (e) => {
@@ -1216,21 +1246,7 @@ useEventListener(
                             <a-form-item
                               :name="element.title"
                               class="!my-0 nc-input-required-error nc-form-input-item"
-                              :rules="[
-                                {
-                                  required: isRequired(element, element.required),
-                                  message: `${$t('msg.error.fieldRequired', { value: 'This field' })}`,
-                                },
-                                parseProp(element.meta).validate && element.uidt === UITypes.URL
-                                  ? {
-                                      validator: validateFormURL,
-                                    }
-                                  : parseProp(element.meta).validate && element.uidt === UITypes.Email
-                                  ? {
-                                      validator: validateFormEmail,
-                                    }
-                                  : {},
-                              ]"
+                              :rules="formElementValidationRules(element)"
                             >
                               <LazySmartsheetDivDataCell
                                 class="relative"
@@ -1750,6 +1766,9 @@ useEventListener(
   &.nc-cell-rating,
   &.nc-cell-geodata {
     @apply !py-1;
+  }
+  &.nc-cell-currency {
+    @apply !py-0 !pl-0 flex items-stretch;
   }
 
   :deep(input) {

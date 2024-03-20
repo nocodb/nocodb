@@ -42,6 +42,8 @@ const vModel = computed({
       // if we clear / empty a cell in sqlite,
       // the value is considered as ''
       _vModel.value = null
+    } else if (isForm.value && !isEditColumn.value) {
+      _vModel.value = isNaN(Number(value)) ? value : Number(value)
     } else {
       _vModel.value = value
     }
@@ -91,7 +93,7 @@ function onKeyDown(e: any) {
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field outline-none py-1 border-none w-full h-full text-sm"
-    type="number"
+    :type="isForm && !isEditColumn ? 'text' : 'number'"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
@@ -109,7 +111,8 @@ function onKeyDown(e: any) {
 </template>
 
 <style scoped lang="scss">
-input[type='number']:focus {
+input[type='number']:focus,
+input[type='text']:focus {
   @apply ring-transparent;
 }
 

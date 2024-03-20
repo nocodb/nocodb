@@ -186,6 +186,8 @@ const { open, onChange: onChangeFile } = useFileDialog({
 
 const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
 
+const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value.logo_url)))
+
 const updateView = useDebounceFn(
   () => {
     updateFormView(formViewData.value)
@@ -896,7 +898,7 @@ useEventListener(
                       >
                         <LazyCellAttachmentImage
                           v-if="formViewData.logo_url"
-                          :srcs="getPossibleAttachmentSrc(parseProp(formViewData.logo_url))"
+                          :srcs="getFormLogoSrc"
                           class="flex-none nc-form-logo !object-contain object-left max-h-full max-w-full !m-0"
                         />
                         <div

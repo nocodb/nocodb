@@ -107,7 +107,7 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
       const defaultValue = col.cdf
-      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'/, '').replace(/'$/, '') : defaultValue
+      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'|'$/g, '') : defaultValue
     }
     return acc
   }, {} as Record<string, any>)

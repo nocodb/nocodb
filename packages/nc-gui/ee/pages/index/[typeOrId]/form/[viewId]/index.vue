@@ -62,7 +62,8 @@ p {
     }
   }
 
-  .nc-cell {
+  .nc-cell,
+  .nc-virtual-cell {
     @apply bg-white dark:bg-slate-500 appearance-none;
 
     &.nc-cell-checkbox {
@@ -85,7 +86,7 @@ p {
       @apply bg-white dark:bg-slate-500;
 
       &.nc-input {
-        @apply w-full;
+        @apply w-full h-10;
 
         &:not(.layout-list) {
           @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500 overflow-hidden;
@@ -162,8 +163,11 @@ p {
             @apply px-3;
           }
         }
-        &:not(.nc-cell-longtext) {
+        &.nc-cell:not(.nc-cell-longtext) {
           @apply p-2;
+        }
+        &.nc-virtual-cell {
+          @apply px-2 py-1;
         }
 
         &.nc-cell-json {
@@ -176,6 +180,16 @@ p {
         .ant-picker,
         input.nc-cell-field {
           @apply !py-0 !px-1;
+        }
+        &.nc-cell-currency {
+          @apply !py-0 !pl-0 flex items-stretch;
+
+          .nc-currency-code {
+            @apply !bg-gray-100;
+          }
+        }
+        &.nc-cell-attachment {
+          @apply h-auto;
         }
       }
     }

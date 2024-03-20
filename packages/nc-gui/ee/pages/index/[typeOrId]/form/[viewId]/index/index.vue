@@ -127,7 +127,7 @@ const onDecode = async (scannedCodeValue: string) => {
         <template v-else-if="submitted">
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full">
-              <a-alert class="!mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
+              <a-alert class="nc-shared-form-success-msg !mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
                   <LazyCellRichText
                     v-if="sharedFormView?.success_msg?.trim()"
@@ -231,6 +231,11 @@ const onDecode = async (scannedCodeValue: string) => {
                           :column="field"
                           :edit-enabled="!field?.read_only"
                           :read-only="field?.read_only"
+                          @update:model-value="
+                            () => {
+                              v$.localState[field.title]?.$validate()
+                            }
+                          "
                         />
                         <a-button
                           v-if="field.enable_scanner"
@@ -245,7 +250,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       </LazySmartsheetDivDataCell>
                     </NcTooltip>
 
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-sm mt-2">
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs mt-2">
                       <template v-if="isVirtualCol(field)">
                         <div v-for="error of v$.virtual[field.title]?.$errors" :key="`${error}virtual`" class="text-red-500">
                           {{ error.$message }}

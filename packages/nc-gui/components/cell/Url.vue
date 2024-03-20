@@ -7,7 +7,6 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -42,9 +41,11 @@ const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const isForm = inject(IsFormInj)!
 
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
@@ -53,7 +54,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isSurveyForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
@@ -72,17 +73,19 @@ const url = computed(() => {
 
 const { cellUrlOptions } = useCellUrlConfig(url)
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
-
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
 watch(
   () => editEnabled.value,
   () => {
-    if (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
+    if (
+      !isForm.value &&
+      parseProp(column.value.meta)?.validate &&
+      !editEnabled.value &&
+      localState.value &&
+      !isValidURL(localState.value)
+    ) {
       message.error(t('msg.error.invalidURL'))
       localState.value = undefined
       return

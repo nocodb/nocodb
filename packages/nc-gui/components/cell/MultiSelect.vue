@@ -371,6 +371,9 @@ const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Tab') {
     isOpen.value = false
     return
+  } else if (e.key === 'Escape' && isForm.value) {
+    isOpen.value = false
+    return
   }
 
   e.stopPropagation()

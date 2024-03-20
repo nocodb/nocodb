@@ -24,17 +24,6 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
 
-const vModel = computed({
-  get: () => _vModel.value,
-  set: (value) => {
-    if (value === '') {
-      _vModel.value = null
-    } else {
-      _vModel.value = value
-    }
-  },
-})
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
@@ -46,12 +35,31 @@ const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
 
+const vModel = computed({
+  get: () => {
+    return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
+      ? `${_vModel.value}%`
+      : _vModel.value
+  },
+  set: (value) => {
+    if (value === '') {
+      _vModel.value = null
+    } else if (isForm.value && !isEditColumn.value) {
+      _vModel.value = isNaN(Number(value)) ? value : Number(value)
+    } else {
+      _vModel.value = value
+    }
+  },
+})
+
 const percentMeta = computed(() => {
   return {
     is_progress: false,
     ...parseProp(column.value?.meta),
   }
 })
+
+const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
 
 const onBlur = () => {
   if (editEnabled) {
@@ -106,7 +114,11 @@ const onTabPress = (e: KeyboardEvent) => {
       )
 
       for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
-        const lastFormItem = nodes[i].querySelector('[tabindex="0"]') as HTMLElement
+        const node = nodes[i]
+        const lastFormItem = (node.querySelector('[tabindex="0"]') ??
+          node.querySelector('input') ??
+          node.querySelector('textarea') ??
+          node.querySelector('button')) as HTMLElement
         if (lastFormItem) {
           lastFormItem.focus()
           break
@@ -132,7 +144,7 @@ const onTabPress = (e: KeyboardEvent) => {
       :ref="focus"
       v-model="vModel"
       class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
-      type="number"
+      :type="inputType"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
       @focus="onFocus"

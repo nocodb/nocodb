@@ -178,6 +178,19 @@ const onImageClick = (item: any) => {
 
   selectedImage.value = item
 }
+
+const keydownEnter = (e: KeyboardEvent) => {
+  if (!isSurveyForm.value) {
+    open(e)
+    e.stopPropagation()
+  }
+}
+const keydownSpace = (e: KeyboardEvent) => {
+  if (isSurveyForm.value) {
+    open(e)
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
@@ -211,8 +224,8 @@ const onImageClick = (item: any) => {
       data-testid="attachment-cell-file-picker-button"
       tabindex="0"
       @click="open"
-      @keydown.enter="!isSurveyForm ? open($event) : undefined"
-      @keydown.space="isSurveyForm ? open($event) : undefined"
+      @keydown.enter="keydownEnter"
+      @keydown.space="keydownSpace"
     >
       <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 

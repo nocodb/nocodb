@@ -53,7 +53,7 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const { getMeta } = useMetas()
 
-const { meta: metaKey, ctrlKey } = useMagicKeys()
+const { meta: metaKey, control } = useMagicKeys()
 
 const table = computed(() => props.table)
 const injectedTable = ref(table.value)
@@ -89,7 +89,7 @@ const onClick = useDebounceFn(() => {
 const handleOnClick = () => {
   if (isEditing.value || isStopped.value) return
 
-  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (cmdOrCtrl) {
     emits('changeView', vModel.value)

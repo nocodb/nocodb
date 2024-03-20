@@ -39,7 +39,7 @@ useTableNew({
   baseId: base.value.id!,
 })
 
-const { meta: metaKey, ctrlKey } = useMagicKeys()
+const { meta: metaKey, control } = useMagicKeys()
 
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
@@ -108,7 +108,7 @@ const onExpand = async () => {
 }
 
 const onOpenTable = async () => {
-  if (isMac() ? metaKey.value : ctrlKey.value) {
+  if (isMac() ? metaKey.value : control.value) {
     await _openTable(table.value, true)
     return
   }

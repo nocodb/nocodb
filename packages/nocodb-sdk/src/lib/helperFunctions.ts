@@ -112,13 +112,20 @@ function populateUniqueFileName(
   if (!mimeType) return fileName;
 
   // If the file extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
-  if (!fileName?.endsWith(`.${mimeType.split('/')[1]}`)) {
-    fileName = `${fileName}.${mimeType.split('/')[1]}`;
+  let ext = mimeType.split('/')[1];
+
+  // avoid appending `jpeg` if extension is jpg
+  if(ext === 'jpeg' && fileName?.endsWith('.jpg')) {
+    ext = 'jpg'
+  }
+
+  if (!fileName?.endsWith(`.${ext}`)) {
+    fileName = `${fileName}.${ext}`;
   } else if (
-    fileName?.endsWith(`.${mimeType.split('/')[1]}`) &&
-    fileName.length === `.${mimeType.split('/')[1]}`.length
+    fileName?.endsWith(`.${ext}`) &&
+    fileName.length === `.${ext}`.length
   ) {
-    fileName = `image.${mimeType.split('/')[1]}`;
+    fileName = `image.${ext}`;
   }
 
   const match = fileName.match(/^(.+?)(\((\d+)\))?(\.[^.]+)$/);

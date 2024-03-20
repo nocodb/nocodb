@@ -552,8 +552,8 @@ onMounted(() => {
             type="primary"
             :size="isMobileMode ? 'medium' : 'small'"
             data-testid="nc-survey-form__btn-submit"
-            @click="submit"
             class="nc-survey-form-btn-submit"
+            @click="submit"
           >
             {{ $t('general.submit') }}
           </NcButton>

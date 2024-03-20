@@ -104,41 +104,31 @@ const getAvailableRollupForUiType = (type: string) => {
   }
 };
 
+const getFileName = ({
+  name,
+  count,
+  ext
+}) => `${name}${count ? `(${count})` : ''}${ext? `.${ext}` : ''}`
+
+// add count before extension if duplicate name found
 function populateUniqueFileName(
   fileName: string,
-  attachments: string[],
-  mimeType: string
+  attachments: string[]
 ) {
-  if (!mimeType) return fileName;
+  return fileName.replace(/^(.+?)(?:\((\d+)\))?(\.(?:tar|min)\.(?:\w{2,4})|\.\w+)$/, (fileName,name, count, ext) =>{
+    let genFileName = fileName;
+    let c = count || 1;
 
-  // If the file extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
-  let ext = mimeType.split('/')[1];
-
-  // avoid appending `jpeg` if extension is jpg
-  if(ext === 'jpeg' && fileName?.endsWith('.jpg')) {
-    ext = 'jpg'
-  }
-
-  if (!fileName?.endsWith(`.${ext}`)) {
-    fileName = `${fileName}.${ext}`;
-  } else if (
-    fileName?.endsWith(`.${ext}`) &&
-    fileName.length === `.${ext}`.length
-  ) {
-    fileName = `image.${ext}`;
-  }
-
-  const match = fileName.match(/^(.+?)(\((\d+)\))?(\.[^.]+)$/);
-
-  if (!match) return fileName;
-
-  let c = !isNaN(parseInt(match[3])) ? parseInt(match[3]) : 1;
-
-  while (attachments.some((fn) => fn === fileName)) {
-    fileName = `${match[1]}(${c++})${match[4]}`;
-  }
-
-  return fileName;
+    // iterate until a unique name
+    while (attachments.some((fn) => fn === genFileName)) {
+      genFileName = getFileName({
+        name,
+        ext,
+        count: c++
+      });
+    }
+    return genFileName;
+  });
 }
 
 export {

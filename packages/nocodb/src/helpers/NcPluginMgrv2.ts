@@ -249,7 +249,7 @@ class NcPluginMgrv2 {
           await tempPlugin.init(args?.input);
 
           if (!tempPlugin?.getAdapter()?.test)
-            NcError.notImplemented('Plugin test is not implemented');
+            NcError.notImplemented('Plugin Test');
 
           return tempPlugin?.getAdapter()?.test?.();
         }
@@ -263,7 +263,7 @@ class NcPluginMgrv2 {
           await tempPlugin.init(args?.input);
 
           if (!tempPlugin?.getAdapter()?.test)
-            NcError.notImplemented('Plugin test is not implemented');
+            NcError.notImplemented('Plugin Test');
 
           return tempPlugin?.getAdapter()?.test?.();
         }
@@ -276,7 +276,7 @@ class NcPluginMgrv2 {
         await tempPlugin.init(args?.input);
 
         if (!tempPlugin?.getAdapter()?.test)
-          NcError.notImplemented('Plugin test is not implemented');
+          NcError.notImplemented('Plugin Test');
 
         return tempPlugin?.getAdapter()?.test?.();
       }

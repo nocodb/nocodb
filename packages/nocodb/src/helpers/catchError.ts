@@ -1,5 +1,7 @@
+import { NcErrorType } from 'nocodb-sdk';
 import type { NextFunction, Request, Response } from 'express';
 import type { ErrorObject } from 'ajv';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
 export enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',
@@ -372,6 +374,12 @@ export function extractDBError(error): {
     case 'EHOSTDOWN':
       message = 'The host is down.';
       break;
+    default:
+      // if error message contains -- then extract message after --
+      if (error.message && error.message.includes('--')) {
+        message = error.message.split('--')[1];
+      }
+      break;
   }
 
   if (message) {
@@ -400,7 +408,6 @@ export default function (
           e instanceof Unauthorized ||
           e instanceof Forbidden ||
           e instanceof NotFound ||
-          e instanceof NotImplemented ||
           e instanceof UnprocessableEntity
         )
       )
@@ -409,7 +416,15 @@ export default function (
       const dbError = extractDBError(e);
 
       if (dbError) {
-        return res.status(400).json(dbError);
+        const error = new NcBaseErrorv2(NcErrorType.DATABASE_ERROR, {
+          params: dbError.message,
+          details: dbError,
+        });
+        return res.status(error.code).json({
+          error: error.error,
+          message: error.message,
+          details: error.details,
+        });
       }
 
       if (e instanceof BadRequest) {
@@ -420,16 +435,16 @@ export default function (
         return res.status(403).json({ msg: e.message });
       } else if (e instanceof NotFound) {
         return res.status(404).json({ msg: e.message });
-      } else if (e instanceof InternalServerError) {
-        return res.status(500).json({ msg: e.message });
-      } else if (e instanceof NotImplemented) {
-        return res.status(501).json({ msg: e.message });
       } else if (e instanceof AjvError) {
         return res.status(400).json({ msg: e.message, errors: e.errors });
       } else if (e instanceof UnprocessableEntity) {
         return res.status(422).json({ msg: e.message });
       } else if (e instanceof NotAllowed) {
         return res.status(405).json({ msg: e.message });
+      } else if (e instanceof NcBaseErrorv2) {
+        return res
+          .status(e.code)
+          .json({ error: e.error, message: e.message, details: e.details });
       }
       // if some other error occurs then send 500 and a generic message
       res.status(500).json({ msg: 'Internal server error' });
@@ -453,10 +468,6 @@ export class Forbidden extends NcBaseError {}
 
 export class NotFound extends NcBaseError {}
 
-export class InternalServerError extends NcBaseError {}
-
-export class NotImplemented extends NcBaseError {}
-
 export class UnprocessableEntity extends NcBaseError {}
 
 export class AjvError extends NcBaseError {
@@ -468,7 +479,266 @@ export class AjvError extends NcBaseError {
   errors: ErrorObject[];
 }
 
+const errorHelpers: {
+  [key in NcErrorType]: {
+    message: string | ((...params: string[]) => string);
+    code: number;
+  };
+} = {
+  [NcErrorType.INTERNAL_SERVER_ERROR]: {
+    message: (message: string) => message || `Internal server error`,
+    code: 500,
+  },
+  [NcErrorType.DATABASE_ERROR]: {
+    message: (message: string) =>
+      message || `There was an error while running the query`,
+    code: 500,
+  },
+  [NcErrorType.AUTHENTICATION_REQUIRED]: {
+    message: 'Authentication required to access this resource',
+    code: 401,
+  },
+  [NcErrorType.API_TOKEN_NOT_ALLOWED]: {
+    message: 'This request is not allowed with API token',
+    code: 401,
+  },
+  [NcErrorType.WORKSPACE_NOT_FOUND]: {
+    message: (id: string) => `Workspace '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.BASE_NOT_FOUND]: {
+    message: (id: string) => `Base '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.SOURCE_NOT_FOUND]: {
+    message: (id: string) => `Source '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.TABLE_NOT_FOUND]: {
+    message: (id: string) => `Table '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.VIEW_NOT_FOUND]: {
+    message: (id: string) => `View '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.FIELD_NOT_FOUND]: {
+    message: (id: string) => `Field '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.RECORD_NOT_FOUND]: {
+    message: (...ids: string[]) => {
+      const isMultiple = Array.isArray(ids) && ids.length > 1;
+      return `Record${isMultiple ? 's' : ''} '${ids.join(', ')}' not found`;
+    },
+    code: 404,
+  },
+  [NcErrorType.ERROR_DUPLICATE_RECORD]: {
+    message: (...ids: string[]) => {
+      const isMultiple = Array.isArray(ids) && ids.length > 1;
+      return `Record${isMultiple ? 's' : ''} '${ids.join(
+        ', ',
+      )}' already exists`;
+    },
+    code: 422,
+  },
+  [NcErrorType.USER_NOT_FOUND]: {
+    message: (idOrEmail: string) => {
+      const isEmail = idOrEmail.includes('@');
+      return `User ${
+        isEmail ? 'with email' : 'with id'
+      } '${idOrEmail}' not found`;
+    },
+    code: 404,
+  },
+  [NcErrorType.INVALID_OFFSET_VALUE]: {
+    message: (offset: string) => `Offset value '${offset}' is invalid`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_LIMIT_VALUE]: {
+    message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_FILTER]: {
+    message: (filter: string) => `Filter '${filter}' is invalid`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
+    message: 'Invalid shared view password',
+    code: 403,
+  },
+  [NcErrorType.NOT_IMPLEMENTED]: {
+    message: (feature: string) => `${feature} is not implemented`,
+    code: 501,
+  },
+};
+
+function generateError(
+  type: NcErrorType,
+  args?: NcErrorArgs,
+): {
+  message: string;
+  code: number;
+  details?: any;
+} {
+  const errorHelper = errorHelpers[type];
+  const { params, customMessage, details } = args || {};
+
+  if (!errorHelper) {
+    return {
+      message: 'An error occurred',
+      code: 500,
+      details: details,
+    };
+  }
+
+  let message: string;
+  const messageHelper = customMessage || errorHelper.message;
+
+  if (typeof messageHelper === 'function') {
+    message = messageHelper(...(Array.isArray(params) ? params : [params]));
+  } else {
+    message = messageHelper;
+  }
+
+  return {
+    message,
+    code: errorHelper.code,
+    details: details,
+  };
+}
+
+type NcErrorArgs = {
+  params?: string | string[];
+  customMessage?: string | ((...args: string[]) => string);
+  details?: any;
+};
+
+export class NcBaseErrorv2 extends NcBaseError {
+  error: NcErrorType;
+  code: number;
+  details?: any;
+  constructor(error: NcErrorType, args?: NcErrorArgs) {
+    const errorHelper = generateError(error, args);
+    super(errorHelper.message);
+    this.error = error;
+    this.code = errorHelper.code;
+    this.details = args?.details;
+  }
+}
+
 export class NcError {
+  static authenticationRequired(args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
+  }
+
+  static apiTokenNotAllowed(args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.API_TOKEN_NOT_ALLOWED, args);
+  }
+
+  static workspaceNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.WORKSPACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static baseNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static sourceNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.SOURCE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static tableNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static userNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.USER_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static viewNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static recordNotFound(id: string | string[], args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static duplicateRecord(id: string | string[], args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.ERROR_DUPLICATE_RECORD, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static fieldNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
+      params: `${offset}`,
+      ...args,
+    });
+  }
+
+  static invalidLimitValue(args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_LIMIT_VALUE, {
+      ...args,
+    });
+  }
+
+  static invalidFilter(filter: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_FILTER, {
+      params: filter,
+      ...args,
+    });
+  }
+
+  static invalidSharedViewPassword(args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_SHARED_VIEW_PASSWORD, {
+      ...args,
+    });
+  }
+
+  static notImplemented(feature: string = 'Feature', args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.NOT_IMPLEMENTED, {
+      params: feature,
+      ...args,
+    });
+  }
+
+  static internalServerError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INTERNAL_SERVER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
   static notFound(message = 'Not found') {
     throw new NotFound(message);
   }
@@ -483,14 +753,6 @@ export class NcError {
 
   static forbidden(message) {
     throw new Forbidden(message);
-  }
-
-  static internalServerError(message = 'Internal server error') {
-    throw new InternalServerError(message);
-  }
-
-  static notImplemented(message = 'Not implemented') {
-    throw new NotImplemented(message);
   }
 
   static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {

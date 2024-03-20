@@ -8,9 +8,8 @@ import {
   BadRequest,
   extractDBError,
   Forbidden,
-  InternalServerError,
+  NcBaseErrorv2,
   NotFound,
-  NotImplemented,
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
@@ -37,7 +36,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof Unauthorized ||
         exception instanceof Forbidden ||
         exception instanceof NotFound ||
-        exception instanceof NotImplemented ||
         exception instanceof UnprocessableEntity ||
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException
@@ -83,22 +81,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception.getStatus?.() === 404
     ) {
       return response.status(404).json({ msg: exception.message });
-    } else if (
-      exception instanceof InternalServerError ||
-      exception.getStatus?.() === 500
-    ) {
-      return response.status(500).json({ msg: exception.message });
-    } else if (
-      exception instanceof NotImplemented ||
-      exception.getStatus?.() === 501
-    ) {
-      return response.status(501).json({ msg: exception.message });
     } else if (exception instanceof AjvError) {
       return response
         .status(400)
         .json({ msg: exception.message, errors: exception.errors });
     } else if (exception instanceof UnprocessableEntity) {
       return response.status(422).json({ msg: exception.message });
+    } else if (exception instanceof NcBaseErrorv2) {
+      return response.status(exception.code).json({
+        error: exception.error,
+        message: exception.message,
+        details: exception.details,
+      });
     }
 
     // handle different types of exceptions

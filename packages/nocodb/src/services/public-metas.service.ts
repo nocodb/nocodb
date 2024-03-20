@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  ErrorMessages,
   isCreatedOrLastModifiedByCol,
   RelationTypes,
   UITypes,
@@ -19,10 +18,10 @@ export class PublicMetasService {
       client?: string;
     } = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
     if (view.password && view.password !== param.password) {
-      NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      NcError.invalidSharedViewPassword();
     }
 
     await view.getFilters();
@@ -171,7 +170,7 @@ export class PublicMetasService {
     const base = await Base.getByUuid(param.sharedBaseUuid);
 
     if (!base) {
-      NcError.notFound();
+      NcError.baseNotFound(param.sharedBaseUuid);
     }
 
     return { base_id: base.id };

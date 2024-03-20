@@ -33,7 +33,7 @@ export default async function sortV2(
     const column = await getRefColumnIfAlias(await sort.getColumn());
     if (!column) {
       if (throwErrorIfInvalid) {
-        NcError.unprocessableEntity(`Invalid field: ${sort.fk_column_id}`);
+        NcError.fieldNotFound(sort.fk_column_id);
       }
       continue;
     }

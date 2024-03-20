@@ -253,7 +253,7 @@ export class AclMiddleware implements NestInterceptor {
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
-      NcError.forbidden('Not allowed with API token');
+      NcError.apiTokenNotAllowed();
     }
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&

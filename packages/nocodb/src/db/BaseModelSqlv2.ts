@@ -632,7 +632,7 @@ class BaseModelSqlv2 {
       args.column_name.split(',').map(async (col) => {
         let column = cols.find((c) => c.column_name === col || c.title === col);
         if (!column) {
-          throw NcError.notFound('Column not found');
+          throw NcError.fieldNotFound(col);
         }
 
         // if qrCode or Barcode replace it with value column nd keep the alias
@@ -851,7 +851,7 @@ class BaseModelSqlv2 {
             (c) => c.column_name === col || c.title === col,
           );
           if (!column) {
-            throw NcError.notFound('Column not found');
+            throw NcError.fieldNotFound(col);
           }
 
           // if qrCode or Barcode replace it with value column nd keep the alias
@@ -3683,9 +3683,7 @@ class BaseModelSqlv2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
+            NcError.recordNotFound(JSON.stringify(pkValues));
           }
           continue;
         }
@@ -3696,9 +3694,7 @@ class BaseModelSqlv2 {
           if (!oldRecord) {
             // throw or skip if no record found
             if (throwExceptionIfNotExist) {
-              NcError.unprocessableEntity(
-                `Record with pk ${JSON.stringify(pkValues)} not found`,
-              );
+              NcError.recordNotFound(JSON.stringify(pkValues));
             }
             continue;
           }
@@ -3853,9 +3849,7 @@ class BaseModelSqlv2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
+            NcError.recordNotFound(JSON.stringify(pkValues));
           }
           continue;
         }
@@ -3864,9 +3858,7 @@ class BaseModelSqlv2 {
         if (!deletedRecord) {
           // throw or skip if no record found
           if (throwExceptionIfNotExist) {
-            NcError.unprocessableEntity(
-              `Record with pk ${JSON.stringify(pkValues)} not found`,
-            );
+            NcError.recordNotFound(JSON.stringify(pkValues));
           }
           continue;
         }
@@ -4430,7 +4422,7 @@ class BaseModelSqlv2 {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.notFound('Column not found');
+      NcError.fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
@@ -4650,7 +4642,7 @@ class BaseModelSqlv2 {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.notFound('Column not found');
+      NcError.fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
 
@@ -4818,9 +4810,9 @@ class BaseModelSqlv2 {
         .getColumns()
         .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
 
-      if (!column) NcError.notFound('Column not found');
+      if (!column) NcError.fieldNotFound(args.groupColumnId);
       if (isVirtualCol(column))
-        NcError.notImplemented('Grouping for virtual columns not implemented');
+        NcError.notImplemented('Grouping for virtual columns');
 
       // extract distinct group column values
       let groupingValues: Set<any>;
@@ -4980,9 +4972,9 @@ class BaseModelSqlv2 {
       .getColumns()
       .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
 
-    if (!column) NcError.notFound('Column not found');
+    if (!column) NcError.fieldNotFound(args.groupColumnId);
     if (isVirtualCol(column))
-      NcError.notImplemented('Grouping for virtual columns not implemented');
+      NcError.notImplemented('Grouping for virtual columns');
 
     const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })
@@ -5594,8 +5586,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || !isLinksOrLTAR(column))
-      NcError.notFound(`Link column ${colId} not found`);
+    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
     const row = await this.readByPk(
       rowId,
@@ -5606,7 +5597,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Record with id '${rowId}' not found`);
+      NcError.recordNotFound(rowId);
     }
 
     if (!_childIds.length) return;
@@ -5717,11 +5708,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
 
             insertData = childRows
@@ -5794,11 +5781,7 @@ class BaseModelSqlv2 {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
           }
           const updateQb = this.dbDriver(childTn).update({
@@ -5852,12 +5835,7 @@ class BaseModelSqlv2 {
             });
 
             if (!childRow) {
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  childIds,
-                  true,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(childIds, true));
             }
           }
 
@@ -5913,8 +5891,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
-    if (!column || !isLinksOrLTAR(column))
-      NcError.notFound(`Link column ${colId} not found`);
+    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
     const row = await this.readByPk(
       rowId,
@@ -5925,7 +5902,7 @@ class BaseModelSqlv2 {
 
     // validate rowId
     if (!row) {
-      NcError.notFound(`Record with id '${rowId}' not found`);
+      NcError.recordNotFound(rowId);
     }
 
     if (!childIds.length) return;
@@ -5999,11 +5976,7 @@ class BaseModelSqlv2 {
                   ),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
           }
 
@@ -6086,11 +6059,7 @@ class BaseModelSqlv2 {
                   ),
               );
 
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  missingIds,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(missingIds));
             }
           }
 
@@ -6148,12 +6117,7 @@ class BaseModelSqlv2 {
             });
 
             if (!childRow) {
-              NcError.unprocessableEntity(
-                `Child record with id [${extractIdsString(
-                  childIds,
-                  true,
-                )}] not found`,
-              );
+              NcError.recordNotFound(extractIds(childIds, true));
             }
           }
 
@@ -6213,7 +6177,7 @@ class BaseModelSqlv2 {
 
       // validate rowId
       if (!row) {
-        NcError.notFound(`Record with id ${id} not found`);
+        NcError.recordNotFound(id);
       }
 
       const parentCol = await (
@@ -6501,7 +6465,7 @@ export function extractSortsObject(
     else sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.unprocessableEntity(`Invalid field: ${s.replace(/^[+-]/, '')}`);
+      NcError.fieldNotFound(s.replace(/^[+-]/, ''));
 
     return new Sort(sort);
   });
@@ -6672,7 +6636,7 @@ export function extractCondition(
 
       validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
     } else if (throwErrorIfInvalid) {
-      NcError.unprocessableEntity(`Invalid field: ${alias}`);
+      NcError.invalidFilter(str);
     }
 
     return new Filter({
@@ -6828,13 +6792,13 @@ export function getListArgs(
   return obj;
 }
 
-function extractIdsString(
+function extractIds(
   childIds: (string | number | Record<string, any>)[],
   isBt = false,
 ) {
-  return (isBt ? childIds.slice(0, 1) : childIds)
-    .map((r) => (typeof r === 'object' ? JSON.stringify(r) : r))
-    .join(', ');
+  return (isBt ? childIds.slice(0, 1) : childIds).map((r) =>
+    typeof r === 'object' ? JSON.stringify(r) : `${r}`,
+  );
 }
 
 export { BaseModelSqlv2 };

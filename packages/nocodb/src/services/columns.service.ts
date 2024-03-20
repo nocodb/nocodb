@@ -305,9 +305,7 @@ export class ColumnsService {
 
         await this.updateRollupOrLookup(colBody, column);
       } else {
-        NcError.notImplemented(
-          `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
-        );
+        NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
       }
     } else if (
       [
@@ -320,9 +318,7 @@ export class ColumnsService {
         UITypes.ForeignKey,
       ].includes(colBody.uidt)
     ) {
-      NcError.notImplemented(
-        `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`,
-      );
+      NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
     } else if (
       [
         UITypes.CreatedTime,
@@ -1316,9 +1312,7 @@ export class ColumnsService {
           ...colBody,
         });
       } else {
-        NcError.notImplemented(
-          `Updating ${column.uidt} => ${colBody.uidt} is not supported at the moment`,
-        );
+        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
     } else if (column.uidt === UITypes.User) {
       if ([UITypes.SingleLineText, UITypes.Email].includes(colBody.uidt)) {
@@ -1411,9 +1405,7 @@ export class ColumnsService {
           ...colBody,
         });
       } else {
-        NcError.notImplemented(
-          `Updating ${column.uidt} => ${colBody.uidt} is not supported at the moment`,
-        );
+        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
     } else {
       colBody = await getColumnPropsFromUIDT(colBody, source);
@@ -2271,7 +2263,7 @@ export class ColumnsService {
         });
         break;
       case UITypes.ForeignKey: {
-        NcError.notImplemented();
+        NcError.notImplemented(`Support for ${column.uidt}`);
         break;
       }
       case UITypes.SingleSelect: {

@@ -425,8 +425,6 @@ export default async function generateLookupSelectQuery({
       };
     }
 
-    NcError.notImplemented(
-      'Database not supported this operation on Lookup/LTAR',
-    );
+    NcError.notImplemented('This operation on Lookup/LTAR for this database');
   }
 }

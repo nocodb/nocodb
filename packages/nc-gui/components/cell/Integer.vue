@@ -54,6 +54,8 @@ const vModel = computed({
   },
 })
 
+const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
+
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
@@ -93,7 +95,7 @@ function onKeyDown(e: any) {
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field outline-none py-1 border-none w-full h-full text-sm"
-    :type="isForm && !isEditColumn ? 'text' : 'number'"
+    :type="inputType"
     style="letter-spacing: 0.06rem"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"

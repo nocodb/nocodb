@@ -76,6 +76,18 @@ const { index, goToPrevious, goToNext, isFirst, isLast, goTo } = useStepper(step
 
 const field = computed(() => formColumns.value?.[index.value])
 
+const fieldHasError = computed(() => {
+  if (field.value?.title) {
+    if (isVirtualCol(field.value)) {
+      return v$.value.virtual[field.value.title]?.$error
+    } else {
+      return v$.value.localState[field.value.title]?.$error
+    }
+  }
+
+  return false
+})
+
 function isRequired(column: ColumnType, required = false) {
   let columnObj = column
   if (
@@ -117,12 +129,20 @@ function animate(target: AnimationTarget) {
   }, transitionDuration.value / 2)
 }
 
+const validateField = async (title: string, type: 'cell' | 'virtual') => {
+  const validationField = type === 'cell' ? v$.value.localState[title] : v$.value.virtual[title]
+
+  if (validationField) {
+    return await validationField.$validate()
+  } else {
+    return true
+  }
+}
+
 async function goNext(animationTarget?: AnimationTarget) {
   if (isLast.value || !isStarted.value || submitted.value || dialogShow.value || !field.value || !field.value.title) return
 
-  const validationField = v$.value.localState[field.value.title]
-
-  if (validationField && !(await validationField.$validate())) return
+  if (field.value?.title && !(await validateField(field.value.title, isVirtualCol(field.value) ? 'virtual' : 'cell'))) return
 
   animate(animationTarget || AnimationTarget.ArrowRight)
 
@@ -192,16 +212,14 @@ const handleFocus = () => {
 }
 
 const showSubmitConfirmModal = async () => {
-  const validationField = v$.value.localState[field.value?.title]
-
-  if (validationField && !(await validationField.$validate())) {
+  if (field.value?.title && !(await validateField(field.value.title, isVirtualCol(field.value) ? 'virtual' : 'cell'))) {
     return
   }
 
   dialogShow.value = true
 
   setTimeout(() => {
-    // NcButton will only focus if document has already focued element
+    // NcButton will only focus if document has already focused element
     document.querySelector('.nc-survery-form__confirmation_modal div[tabindex="0"]')?.focus()
     document.querySelector('.nc-survey-form-btn-submit.nc-button')?.focus()
   }, 50)
@@ -342,10 +360,7 @@ onMounted(() => {
               <div class="flex justify-end mt-12">
                 <div class="flex items-center gap-3">
                   <div class="hidden md:flex text-sm items-center gap-1 text-gray-800">
-                    <span>
-                      {{ $t('labels.pressEnter') }}
-                    </span>
-                    <NcBadge class="pl-4 pr-1 h-[21px] text-gray-600"> ↵ </NcBadge>
+                    <span> {{ $t('labels.pressEnter') }} ↵ </span>
                   </div>
                   <NcButton
                     :size="isMobileMode ? 'medium' : 'small'"
@@ -399,12 +414,7 @@ onMounted(() => {
                       :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                       :column="field"
                       :read-only="field?.read_only"
-                      @update:model-value="
-                        () => {
-                          console.log('update')
-                          v$.virtual[field.title]?.$validate()
-                        }
-                      "
+                      @update:model-value="validateField(field.title, 'virtual')"
                     />
 
                     <LazySmartsheetCell
@@ -416,11 +426,7 @@ onMounted(() => {
                       :column="field"
                       :edit-enabled="!field?.read_only"
                       :read-only="field?.read_only"
-                      @update:model-value="
-                        () => {
-                          v$.localState[field.title]?.$validate()
-                        }
-                      "
+                      @update:model-value="validateField(field.title, 'cell')"
                     />
 
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs my-2 px-1">
@@ -454,7 +460,7 @@ onMounted(() => {
                           ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
                           : ''
                       "
-                      :disabled="v$.localState[field.title]?.$error"
+                      :disabled="fieldHasError"
                       data-testid="nc-survey-form__btn-submit-confirm"
                       @click="showSubmitConfirmModal"
                     >
@@ -465,17 +471,9 @@ onMounted(() => {
                   <div v-else class="flex items-center gap-3">
                     <div
                       class="hidden md:flex text-sm items-center gap-1"
-                      :class="v$.localState[field.title]?.$error ? 'text-gray-200' : 'text-gray-800'"
+                      :class="fieldHasError ? 'text-gray-200' : 'text-gray-800'"
                     >
-                      <span>
-                        {{ $t('labels.pressEnter') }}
-                      </span>
-                      <NcBadge
-                        class="pl-4 pr-1 h-[21px]"
-                        :class="v$.localState[field.title]?.$error ? 'text-gray-200' : 'text-gray-600'"
-                      >
-                        ↵
-                      </NcBadge>
+                      <span> {{ $t('labels.pressEnter') }} ↵ </span>
                     </div>
                     <NcButton
                       :size="isMobileMode ? 'medium' : 'small'"
@@ -486,7 +484,7 @@ onMounted(() => {
                           ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'
                           : '',
                       ]"
-                      :disabled="v$.localState[field.title]?.$error"
+                      :disabled="fieldHasError"
                       @click="goNext()"
                     >
                       {{ $t('labels.next') }}
@@ -520,7 +518,7 @@ onMounted(() => {
               type="secondary"
               :size="isMobileMode ? 'medium' : 'small'"
               data-testid="nc-survey-form__icon-prev"
-              :disabled="isFirst || v$.localState[field.title]?.$error"
+              :disabled="isFirst"
               @click="goPrevious()"
             >
               <GeneralIcon icon="ncArrowLeft"
@@ -530,7 +528,7 @@ onMounted(() => {
               :size="isMobileMode ? 'medium' : 'small'"
               type="secondary"
               data-testid="nc-survey-form__icon-next"
-              :disabled="isLast || v$.localState[field.title]?.$error"
+              :disabled="isLast || fieldHasError"
               @click="goNext()"
             >
               <GeneralIcon icon="ncArrowRight" />

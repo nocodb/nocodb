@@ -570,7 +570,7 @@ const formElementValidationRules = (element) => {
   const rules: FormItemProps['rules'][] = [
     {
       required: isRequired(element, element.required),
-      message: `${t('msg.error.fieldRequired', { value: 'This field' })}`,
+      message: t('msg.error.fieldRequired', { value: 'This field' }),
     },
   ]
 

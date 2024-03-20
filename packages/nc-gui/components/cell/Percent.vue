@@ -59,6 +59,8 @@ const percentMeta = computed(() => {
   }
 })
 
+const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
+
 const onBlur = () => {
   if (editEnabled) {
     editEnabled.value = false
@@ -112,10 +114,11 @@ const onTabPress = (e: KeyboardEvent) => {
       )
 
       for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
-        const lastFormItem = (nodes[i].querySelector('[tabindex="0"]') ||
-          nodes[i].querySelector('input') ||
-          nodes[i].querySelector('textarea') ||
-          nodes[i].querySelector('button')) as HTMLElement
+        const node = nodes[i]
+        const lastFormItem = (node.querySelector('[tabindex="0"]') ??
+          node.querySelector('input') ??
+          node.querySelector('textarea') ??
+          node.querySelector('button')) as HTMLElement
         if (lastFormItem) {
           lastFormItem.focus()
           break
@@ -141,7 +144,7 @@ const onTabPress = (e: KeyboardEvent) => {
       :ref="focus"
       v-model="vModel"
       class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
-      :type="isForm && !isEditColumn ? 'text' : 'number'"
+      :type="inputType"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"
       @focus="onFocus"

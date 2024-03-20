@@ -247,7 +247,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         obj.localState[column.title!] = {
           ...(obj.localState[column.title!] || {}),
           validateFormNumber: helpers.withMessage(t('msg.plsEnterANumber'), (value) => {
-            return value ? (column.uidt === UITypes.Number ? /^[0-9]+$/.test(value) : /^\d*\.?\d+$/.test(value)) : true
+            return value ? (column.uidt === UITypes.Number ? /^\d+$/.test(value) : /^\d*\.?\d+$/.test(value)) : true
           }),
         }
       }

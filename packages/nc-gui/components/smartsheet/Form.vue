@@ -989,8 +989,7 @@ useEventListener(
                           :bordered="false"
                           :data-testid="NcForm.heading"
                           :data-title="NcForm.heading"
-                          @blur="updateView"
-                          @keydown.enter="updateView"
+                          @update:value="updateView"
                         />
                       </a-form-item>
 

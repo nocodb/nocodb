@@ -28,7 +28,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { meta: metaKey, ctrlKey } = useMagicKeys()
+  const { meta: metaKey, control } = useMagicKeys()
 
   const recentViews = computed<RecentView[]>(() =>
     allRecentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
@@ -219,7 +219,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     hardReload?: boolean
     doNotSwitchTab?: boolean
   }) => {
-    const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+    const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
     const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs'
 

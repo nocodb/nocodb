@@ -73,7 +73,7 @@ const { orgRoles, isUIAllowed } = useRoles()
 
 useTabs()
 
-const { meta: metaKey, ctrlKey } = useMagicKeys()
+const { meta: metaKey, control } = useMagicKeys()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -261,7 +261,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   if (!base) {
     return
   }
-  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 

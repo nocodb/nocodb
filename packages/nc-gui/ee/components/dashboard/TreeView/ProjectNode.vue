@@ -65,7 +65,7 @@ const { appInfo } = useGlobal()
 
 useTabs()
 
-const { meta: metaKey, ctrlKey } = useMagicKeys()
+const { meta: metaKey, control } = useMagicKeys()
 
 const editMode = ref(false)
 
@@ -286,7 +286,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   if (route.value.params.typeOrId === 'base') {
     isSharedBase = true
   }
-  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (cmdOrCtrl && !ignoreNavigation && base.type === 'database') {
     await navigateTo(

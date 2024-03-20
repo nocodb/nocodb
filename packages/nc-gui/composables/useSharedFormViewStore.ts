@@ -140,7 +140,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           c?.cdf &&
           !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
         ) {
-          formState.value[c.title] = c.cdf
+          formState.value[c.title] = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
         }
 
         return {

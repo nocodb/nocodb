@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Patch,
   Post,
@@ -25,6 +26,8 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
 @Controller()
 export class WorkspacesController {
+  protected logger = new Logger(WorkspacesController.name);
+
   constructor(
     private readonly workspacesService: WorkspacesService,
     private readonly workspaceUserService: WorkspaceUsersService,
@@ -210,8 +213,10 @@ export class WorkspacesController {
     try {
       await this.workspacesService.deleteDeprecatedWorkspaces();
     } catch (e) {
-      console.error(e);
-      NcError.internalServerError('Failed to delete deprecated workspaces, check logs for more details.');
+      this.logger.error(e);
+      NcError.internalServerError(
+        'Failed to delete deprecated workspaces, check logs for more details.',
+      );
     }
     return true;
   }

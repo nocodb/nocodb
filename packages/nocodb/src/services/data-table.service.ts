@@ -52,7 +52,7 @@ export class DataTableService {
     });
 
     if (!row) {
-      NcError.notFound('Row not found');
+      NcError.recordNotFound(param.rowId);
     }
 
     return row;
@@ -184,7 +184,7 @@ export class DataTableService {
     const model = await Model.get(param.modelId);
 
     if (!model) {
-      NcError.notFound(`Table with id '${param.modelId}' not found`);
+      NcError.tableNotFound(param.modelId);
     }
 
     if (param.baseId && model.base_id !== param.baseId) {
@@ -196,7 +196,7 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.unprocessableEntity(`View with id '${param.viewId}' not found`);
+        NcError.viewNotFound(param.viewId);
       }
     }
 
@@ -278,7 +278,7 @@ export class DataTableService {
     });
 
     if (!(await baseModel.exist(param.rowId))) {
-      NcError.notFound(`Record with id '${param.rowId}' not found`);
+      NcError.recordNotFound(`${param.rowId}`);
     }
 
     const column = await this.getColumn(param);
@@ -356,8 +356,7 @@ export class DataTableService {
   private async getColumn(param: { modelId: string; columnId: string }) {
     const column = await Column.get({ colId: param.columnId });
 
-    if (!column)
-      NcError.notFound(`Column with id '${param.columnId}' not found`);
+    if (!column) NcError.fieldNotFound(param.columnId);
 
     if (column.fk_model_id !== param.modelId)
       NcError.badRequest('Column not belong to model');
@@ -419,8 +418,7 @@ export class DataTableService {
     this.validateIds(param.refRowIds);
 
     const { model, view } = await this.getModelAndView(param);
-    if (!model)
-      NcError.notFound('Table with id ' + param.modelId + ' not found');
+    if (!model) NcError.tableNotFound(param.modelId);
 
     const source = await Source.get(model.source_id);
 
@@ -503,9 +501,7 @@ export class DataTableService {
       operationMap.deleteAll &&
       !(await baseModel.exist(operationMap.deleteAll.rowId))
     ) {
-      NcError.notFound(
-        `Record with id '${operationMap.deleteAll.rowId}' not found`,
-      );
+      NcError.recordNotFound(operationMap.deleteAll.rowId);
     } else if (operationMap.copy && operationMap.paste) {
       const [existsCopyRow, existsPasteRow] = await Promise.all([
         baseModel.exist(operationMap.copy.rowId),
@@ -513,17 +509,13 @@ export class DataTableService {
       ]);
 
       if (!existsCopyRow && !existsPasteRow) {
-        NcError.notFound(
-          `Record with id '${operationMap.copy.rowId}' and '${operationMap.paste.rowId}' not found`,
+        NcError.recordNotFound(
+          `'${operationMap.copy.rowId}' and '${operationMap.paste.rowId}'`,
         );
       } else if (!existsCopyRow) {
-        NcError.notFound(
-          `Record with id '${operationMap.copy.rowId}' not found`,
-        );
+        NcError.recordNotFound(operationMap.copy.rowId);
       } else if (!existsPasteRow) {
-        NcError.notFound(
-          `Record with id '${operationMap.paste.rowId}' not found`,
-        );
+        NcError.recordNotFound(operationMap.paste.rowId);
       }
     }
 
@@ -640,7 +632,7 @@ export class DataTableService {
       const set = new Set<string>();
       for (const rowId of rowIds) {
         if (rowId === undefined || rowId === null)
-          NcError.unprocessableEntity('Invalid row id ' + rowId);
+          NcError.recordNotFound(rowId);
         if (map.has(rowId)) {
           set.add(rowId);
         } else {
@@ -653,7 +645,7 @@ export class DataTableService {
           'Child record with id [' + [...set].join(', ') + '] are duplicated',
         );
     } else if (rowIds === undefined || rowIds === null) {
-      NcError.unprocessableEntity('Invalid row id ' + rowIds);
+      NcError.recordNotFound(rowIds);
     }
   }
 

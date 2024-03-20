@@ -88,9 +88,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof UnprocessableEntity) {
       return response.status(422).json({ msg: exception.message });
     } else if (exception instanceof NcBaseErrorv2) {
-      return response
-        .status(exception.code)
-        .json({ error: exception.error, message: exception.message });
+      return response.status(exception.code).json({
+        error: exception.error,
+        message: exception.message,
+        details: exception.details,
+      });
     }
 
     // handle different types of exceptions

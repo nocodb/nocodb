@@ -37,7 +37,7 @@ export async function getViewAndModelByAliasOrId(param: {
     aliasOrId: param.tableName,
   });
 
-  if (!model) NcError.notFound('Table not found');
+  if (!model) NcError.tableNotFound(param.tableName);
 
   const view =
     param.viewName &&
@@ -45,7 +45,7 @@ export async function getViewAndModelByAliasOrId(param: {
       titleOrId: param.viewName,
       fk_model_id: model.id,
     }));
-  if (param.viewName && !view) NcError.notFound('View not found');
+  if (param.viewName && !view) NcError.viewNotFound(param.viewName);
   return { model, view };
 }
 
@@ -234,8 +234,7 @@ export async function getColumnByIdOrName(
       c.column_name === columnNameOrId,
   );
 
-  if (!column)
-    NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
+  if (!column) NcError.fieldNotFound(columnNameOrId);
 
   return column;
 }

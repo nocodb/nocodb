@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ErrorMessages, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { CalendarRangeType, FilterType } from 'nocodb-sdk';
 import { CalendarRange, Model, View } from '~/models';
@@ -29,7 +29,7 @@ export class CalendarDatasService {
 
     const view = await View.get(viewId);
 
-    if (!view) NcError.notFound('View not found');
+    if (!view) NcError.viewNotFound(viewId);
 
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
@@ -70,13 +70,13 @@ export class CalendarDatasService {
     const { sharedViewUuid, password, query = {} } = param;
     const view = await View.getByUUID(sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(sharedViewUuid);
     if (view.type !== ViewTypes.CALENDAR) {
-      NcError.notFound('Not found');
+      NcError.notFound('View is not a calendar view');
     }
 
     if (view.password && view.password !== password) {
-      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      return NcError.invalidSharedViewPassword();
     }
 
     return this.getCalendarRecordCount({
@@ -97,13 +97,13 @@ export class CalendarDatasService {
     const { sharedViewUuid, password, query = {} } = param;
     const view = await View.getByUUID(sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(sharedViewUuid);
     if (view.type !== ViewTypes.CALENDAR) {
-      NcError.notFound('Not found');
+      NcError.notFound('View is not a calendar view');
     }
 
     if (view.password && view.password !== password) {
-      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      return NcError.invalidSharedViewPassword();
     }
 
     return this.getCalendarDataList({
@@ -131,7 +131,7 @@ export class CalendarDatasService {
 
     const view = await View.get(viewId);
 
-    if (!view) NcError.notFound('View not found');
+    if (!view) NcError.viewNotFound(viewId);
 
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');

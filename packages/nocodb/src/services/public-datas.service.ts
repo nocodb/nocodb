@@ -1,12 +1,7 @@
 import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import {
-  ErrorMessages,
-  populateUniqueFileName,
-  UITypes,
-  ViewTypes,
-} from 'nocodb-sdk';
+import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
@@ -36,7 +31,7 @@ export class PublicDatasService {
     const { sharedViewUuid, password, query = {} } = param;
     const view = await View.getByUUID(sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(sharedViewUuid);
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
@@ -48,7 +43,7 @@ export class PublicDatasService {
     }
 
     if (view.password && view.password !== password) {
-      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      return NcError.invalidSharedViewPassword();
     }
 
     const model = await Model.getByIdOrName({
@@ -104,7 +99,7 @@ export class PublicDatasService {
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
     if (
       view.type !== ViewTypes.GRID &&
@@ -115,7 +110,7 @@ export class PublicDatasService {
     }
 
     if (view.password && view.password !== param.password) {
-      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      return NcError.invalidSharedViewPassword();
     }
 
     const model = await Model.getByIdOrName({
@@ -201,14 +196,14 @@ export class PublicDatasService {
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
     if (view.type !== ViewTypes.GRID) {
       NcError.notFound('Not found');
     }
 
     if (view.password && view.password !== param.password) {
-      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      return NcError.invalidSharedViewPassword();
     }
 
     const model = await Model.getByIdOrName({
@@ -261,11 +256,11 @@ export class PublicDatasService {
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound();
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
     if (view.type !== ViewTypes.FORM) NcError.notFound();
 
     if (view.password && view.password !== param.password) {
-      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      return NcError.invalidSharedViewPassword();
     }
 
     const model = await Model.getByIdOrName({
@@ -434,14 +429,14 @@ export class PublicDatasService {
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
     if (view.type !== ViewTypes.FORM && view.type !== ViewTypes.GALLERY) {
       NcError.notFound('Not found');
     }
 
     if (view.password && view.password !== param.password) {
-      NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      NcError.invalidSharedViewPassword();
     }
 
     const column = await Column.get({ colId: param.columnId });
@@ -492,7 +487,7 @@ export class PublicDatasService {
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
@@ -503,7 +498,7 @@ export class PublicDatasService {
     }
 
     if (view.password && view.password !== param.password) {
-      NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      NcError.invalidSharedViewPassword();
     }
 
     const column = await getColumnByIdOrName(
@@ -567,7 +562,7 @@ export class PublicDatasService {
   }) {
     const view = await View.getByUUID(param.sharedViewUuid);
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
@@ -578,7 +573,7 @@ export class PublicDatasService {
     }
 
     if (view.password && view.password !== param.password) {
-      NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      NcError.invalidSharedViewPassword();
     }
 
     const column = await getColumnByIdOrName(

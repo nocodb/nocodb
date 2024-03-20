@@ -42,7 +42,7 @@ export class PagedResponseImpl<T> {
     if (additionalProps) Object.assign(this, additionalProps);
 
     if (offset && offset >= +count) {
-      NcError.badRequest('Offset is beyond the total number of records');
+      NcError.invalidOffsetValue(`${offset}`);
     }
   }
 

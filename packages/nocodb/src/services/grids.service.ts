@@ -67,7 +67,7 @@ export class GridsService {
     const view = await View.get(param.viewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.viewId);
     }
 
     const res = await GridView.update(param.viewId, param.grid);

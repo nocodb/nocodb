@@ -854,7 +854,7 @@ useEventListener(
               ></GeneralImageCropper>
               <!-- cover image -->
               <div v-if="!parseProp(formViewData?.meta).hide_banner" class="group relative max-w-[max(33%,688px)] mx-auto">
-                <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" />
+                <GeneralFormBanner :banner-image-url="formViewData.banner_image_url" :key="formViewData.banner_image_url?.path" />
                 <div class="absolute bottom-0 right-0 hidden group-hover:block">
                   <div class="flex items-center space-x-1 m-2">
                     <NcTooltip :disabled="isEeUI">
@@ -929,6 +929,7 @@ useEventListener(
                         <LazyCellAttachmentImage
                           v-if="formViewData.logo_url"
                           :srcs="getFormLogoSrc"
+                          :key="formViewData.logo_url?.path"
                           class="flex-none nc-form-logo !object-contain object-left max-h-full max-w-full !m-0"
                         />
                         <div

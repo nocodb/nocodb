@@ -323,11 +323,6 @@ function setHook(newHook: HookType) {
   })
   if (hookRef.version === 'v1' || isEeUI) {
     urlTabKey.value = 'body'
-    eventList.value = [
-      { text: ['After', 'Insert'], value: ['after', 'insert'] },
-      { text: ['After', 'Update'], value: ['after', 'update'] },
-      { text: ['After', 'Delete'], value: ['after', 'delete'] },
-    ]
   }
 }
 
@@ -592,7 +587,13 @@ onMounted(async () => {
                   class="nc-text-field-hook-event capitalize"
                   dropdown-class-name="nc-dropdown-webhook-event"
                 >
-                  <a-select-option v-for="(event, i) in eventList" :key="i" class="capitalize" :value="event.value.join(' ')">
+                  <a-select-option
+                    v-for="(event, i) in eventList"
+                    :key="i"
+                    class="capitalize"
+                    :value="event.value.join(' ')"
+                    :disabled="hook && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
+                  >
                     <div class="flex items-center gap-2 justify-between">
                       <div>{{ event.text.join(' ') }}</div>
                       <component

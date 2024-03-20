@@ -550,6 +550,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     })
 
+    const resetChildrenExcludedOffsetCount = () => {
+      childrenExcludedOffsetCount.value = 0
+    }
+
     return {
       relatedTableMeta,
       loadRelatedTableMeta,

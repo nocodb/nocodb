@@ -2,6 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { breakpointsTailwind } from '@vueuse/core'
+import tinycolor from 'tinycolor2'
 import {
   DropZoneRef,
   IsSurveyFormInj,
@@ -500,7 +501,19 @@ onMounted(() => {
       <div class="md:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
         <div class="flex justify-end items-center gap-4">
           <div class="flex justify-center">
-            <GeneralFormBranding class="inline-flex mx-auto" />
+            <GeneralFormBranding
+              class="inline-flex mx-auto"
+              :style="{
+                color: tinycolor.isReadable(parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA', '#D5D5D9', {
+                  level: 'AA',
+                  size: 'large',
+                })
+                  ? '#fff'
+                  : tinycolor
+                      .mostReadable(parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA', ['#374151', '#D5D5D9'])
+                      .toHex8String(),
+              }"
+            />
           </div>
           <div v-if="isStarted && !submitted" class="flex items-center gap-3">
             <NcButton

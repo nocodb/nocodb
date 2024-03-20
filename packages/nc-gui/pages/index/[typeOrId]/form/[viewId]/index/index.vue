@@ -113,7 +113,7 @@ const onDecode = async (scannedCodeValue: string) => {
         <template v-else-if="submitted">
           <div class="flex justify-center">
             <div v-if="sharedFormView" class="w-full">
-              <a-alert class="!mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
+              <a-alert class="nc-shared-form-success-msg !mt-2 !mb-4 !py-4 text-left !rounded-lg" type="success" outlined>
                 <template #message>
                   <LazyCellRichText
                     v-if="sharedFormView?.success_msg?.trim()"

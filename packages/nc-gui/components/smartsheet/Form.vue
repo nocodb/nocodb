@@ -784,7 +784,7 @@ useEventListener(
 
               <div class="flex justify-center">
                 <div class="w-full">
-                  <a-alert class="!my-4 !py-4 text-left !rounded-lg" type="success" outlined>
+                  <a-alert class="nc-form-success-msg !my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                     <template #message>
                       <LazyCellRichText
                         v-if="formViewData?.success_msg?.trim()"

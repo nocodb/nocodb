@@ -193,9 +193,11 @@ const handleFocus = () => {
 const showSubmitConfirmModal = async () => {
   const validationField = v$.value.localState[field.value?.title]
 
-  if (validationField && (await validationField.$validate())) {
-    dialogShow.value = true
+  if (validationField && !(await validationField.$validate())) {
+    return
   }
+
+  dialogShow.value = true
 }
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {

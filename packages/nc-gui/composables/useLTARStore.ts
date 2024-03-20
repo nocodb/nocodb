@@ -66,6 +66,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+
     const childrenExcludedOffsetCount = ref(0)
 
     const childrenListPagination = reactive({

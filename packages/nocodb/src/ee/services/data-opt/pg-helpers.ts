@@ -39,22 +39,20 @@ export function generateNestedRowSelectQuery({
   knex,
   alias,
   columns,
-  isBt = false,
+  isBtOrOo = false,
   title,
 }: {
   knex: XKnex;
   alias: string;
   title: string;
   columns: Column[];
-  isBt?: boolean;
+  isBtOrOo?: boolean;
 }) {
-  if (isBt) {
-  }
   const paramsString = columns.map(() => `?,??.??`).join(',');
   const pramsValueArr = [...columns.flatMap((c) => [c.id, alias, c.id]), title];
 
   return knex.raw(
-    isBt
+    isBtOrOo
       ? `json_build_object(${paramsString}) as ??`
       : `coalesce(json_agg(jsonb_build_object(${paramsString})),'[]'::json) as ??`,
     pramsValueArr,
@@ -338,7 +336,7 @@ export async function extractColumn({
                       alias: alias2,
                       columns: fields,
                       title: column.id,
-                      isBt: true,
+                      isBtOrOo: true,
                     }),
                   )
                   .toQuery()}) as ?? ON true`,
@@ -346,6 +344,113 @@ export async function extractColumn({
               );
 
               qb.select(knex.raw('??.??', [alias1, column.id]));
+            }
+            break;
+          case RelationTypes.ONE_TO_ONE:
+            {
+              const isBt = column.meta?.bt;
+
+              const alias1 = getAlias();
+              const alias2 = getAlias();
+              const alias3 = getAlias();
+
+              const parentModel = await column.colOptions.getRelatedTable();
+              const childColumn = await column.colOptions.getChildColumn();
+              const parentColumn = await column.colOptions.getParentColumn();
+
+              if (isBt) {
+                const btQb = knex(baseModel.getTnPath(parentModel))
+                  .select('*')
+                  .where(
+                    parentColumn.column_name,
+                    knex.raw('??.??', [
+                      rootAlias,
+                      sanitize(childColumn.column_name),
+                    ]),
+                  );
+
+                // apply filters on nested query
+                await conditionV2(baseModel, queryFilterObj, btQb);
+
+                const btAggQb = knex(btQb.as(alias3));
+                await extractColumns({
+                  columns: fields,
+                  knex,
+                  qb: btAggQb,
+                  params,
+                  getAlias,
+                  alias: alias3,
+                  baseModel,
+                  // dependencyFields,
+                  ast,
+                  throwErrorIfInvalidParams,
+                  validateFormula,
+                });
+
+                qb.joinRaw(
+                  `LEFT OUTER JOIN LATERAL (${knex
+                    .from(btAggQb.as(alias2))
+                    .select(
+                      generateNestedRowSelectQuery({
+                        knex,
+                        alias: alias2,
+                        columns: fields,
+                        title: column.id,
+                        isBtOrOo: true,
+                      }),
+                    )
+                    .toQuery()}) as ?? ON true`,
+                  [alias1],
+                );
+
+                qb.select(knex.raw('??.??', [alias1, column.id]));
+              } else {
+                const hmQb = knex(baseModel.getTnPath(parentModel))
+                  .select('*')
+                  .where(
+                    childColumn.column_name,
+                    knex.raw('??.??', [rootAlias, parentColumn.column_name]),
+                  )
+                  .first();
+
+                // apply filters on nested query
+                await conditionV2(baseModel, queryFilterObj, hmQb);
+
+                // apply sorts on nested query
+                if (sorts) await sortV2(baseModel, sorts, hmQb);
+
+                const hmAggQb = knex(hmQb.as(alias3));
+                await extractColumns({
+                  columns: fields,
+                  knex,
+                  qb: hmAggQb,
+                  params,
+                  getAlias,
+                  alias: alias3,
+                  baseModel,
+                  // dependencyFields,
+                  ast,
+                  throwErrorIfInvalidParams,
+                  validateFormula,
+                });
+
+                qb.joinRaw(
+                  `LEFT OUTER JOIN LATERAL (${knex
+                    .from(hmAggQb.as(alias2))
+                    .select(
+                      generateNestedRowSelectQuery({
+                        knex,
+                        alias: alias2,
+                        columns: fields,
+                        title: column.id,
+                        isBtOrOo: true,
+                      }),
+                    )
+                    .toQuery()}) as ?? ON true`,
+                  [alias1],
+                );
+                qb.select(knex.raw('??.??', [alias1, column.id]));
+              }
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -490,6 +595,44 @@ export async function extractColumn({
                   sanitize(childColumn.column_name),
                 ]),
               );
+            }
+            break;
+          case RelationTypes.ONE_TO_ONE:
+            {
+              const isBt = relationColumn.meta?.bt;
+              if (isBt) {
+                const parentModel = await relationColOpts.getRelatedTable();
+                const childColumn = await relationColOpts.getChildColumn();
+                const parentColumn = await relationColOpts.getParentColumn();
+                relQb = knex(
+                  knex.raw('?? as ??', [
+                    baseModel.getTnPath(parentModel),
+                    relTableAlias,
+                  ]),
+                ).where(
+                  parentColumn.column_name,
+                  knex.raw('??.??', [
+                    rootAlias,
+                    sanitize(childColumn.column_name),
+                  ]),
+                );
+              } else {
+                const childModel = await relationColOpts.getRelatedTable();
+                const childColumn = await relationColOpts.getChildColumn();
+                const parentColumn = await relationColOpts.getParentColumn();
+                relQb = knex(
+                  knex.raw('?? as ??', [
+                    baseModel.getTnPath(childModel),
+                    relTableAlias,
+                  ]),
+                ).where(
+                  childColumn.column_name,
+                  knex.raw('??.??', [
+                    rootAlias,
+                    sanitize(parentColumn.column_name),
+                  ]),
+                );
+              }
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -1139,6 +1282,7 @@ export async function singleQueryList(ctx: {
     await NocoCache.set(cacheKey, query);
 
     const startTime = process.hrtime();
+
     // run the query with actual limit and offset
     res = await baseModel.execAndParse(
       knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),

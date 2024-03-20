@@ -1,4 +1,10 @@
-import { isLinksOrLTAR, isVirtualCol, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isVirtualCol,
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import papaparse from 'papaparse';
 import debug from 'debug';
@@ -317,7 +323,10 @@ export class ImportService {
                   }
                 }
               }
-            } else if (colOptions.type === 'hm') {
+            } else if (
+              colOptions.type === RelationTypes.HAS_MANY ||
+              (colOptions.type === RelationTypes.ONE_TO_ONE && !col.meta?.bt)
+            ) {
               // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
               delete col.column_name;
 
@@ -517,7 +526,10 @@ export class ImportService {
                   }
                 }
               }
-            } else if (colOptions.type === 'hm') {
+            } else if (
+              colOptions.type === RelationTypes.HAS_MANY ||
+              (colOptions.type === RelationTypes.ONE_TO_ONE && !col.meta?.bt)
+            ) {
               if (
                 !linkMap.has(
                   `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
@@ -639,7 +651,10 @@ export class ImportService {
                   }
                 }
               }
-            } else if (colOptions.type === 'bt') {
+            } else if (
+              colOptions.type === RelationTypes.BELONGS_TO ||
+              (colOptions.type === RelationTypes.ONE_TO_ONE && col.meta?.bt)
+            ) {
               if (
                 !linkMap.has(
                   `${colOptions.fk_parent_column_id}::${colOptions.fk_child_column_id}`,
@@ -1466,7 +1481,11 @@ export class ImportService {
                   colId: id,
                 });
                 if (col) {
-                  if (col.colOptions?.type === 'bt') {
+                  if (
+                    col.colOptions?.type === RelationTypes.BELONGS_TO ||
+                    (col.colOptions?.type === RelationTypes.ONE_TO_ONE &&
+                      col.meta?.bt)
+                  ) {
                     const childCol = await Column.get({
                       source_id: destBase.id,
                       colId: col.colOptions.fk_child_column_id,

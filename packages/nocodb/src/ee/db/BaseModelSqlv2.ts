@@ -5,6 +5,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import {
@@ -202,7 +203,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const col of nestedColumns) {
         const nestedColumn = await this.getNestedColumn(col);
-        if (nestedColumn && nestedColumn.colOptions?.type === 'bt') {
+        if (
+          nestedColumn &&
+          [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            nestedColumn.colOptions?.type,
+          )
+        ) {
           aliasColumns[col.id] = nestedColumn;
         }
       }
@@ -827,6 +833,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
       let postInsertOps: ((rowId: any, trx?: any) => Promise<void>)[] = [];
+      let preInsertOps: ((trx?: any) => Promise<void>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -978,11 +985,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           // prepare nested link data for insert only if it is single record insertion
           if (isSingleRecordInsertion) {
-            postInsertOps = await this.prepareNestedLinkQb({
+            const operations = await this.prepareNestedLinkQb({
               nestedCols,
               data: d,
               insertObj,
             });
+
+            postInsertOps = operations.postInsertOps;
+            preInsertOps = operations.preInsertOps;
           }
 
           insertDatas.push(insertObj);
@@ -996,6 +1006,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if ('beforeBulkInsert' in this) {
         await this.beforeBulkInsert(insertDatas, null, cookie);
       }
+
+      await Promise.all(preInsertOps.map((f) => f(null)));
 
       // await this.beforeInsertb(insertDatas, null);
 

@@ -128,6 +128,7 @@ const permissionScopes = {
     'mmExcludedList',
     'hmExcludedList',
     'btExcludedList',
+    'ooExcludedList',
     'gridColumnUpdate',
     'bulkDataInsert',
     'bulkDataUpdate',
@@ -330,6 +331,7 @@ const rolePermissions:
       mmExcludedList: true,
       hmExcludedList: true,
       btExcludedList: true,
+      ooExcludedList: true,
       gridColumnUpdate: true,
 
       bulkDataInsert: true,

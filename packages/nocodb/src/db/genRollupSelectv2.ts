@@ -51,6 +51,27 @@ export default async function ({
             knex.ref(`${refTableAlias}.${childCol.column_name}`),
           ),
       };
+    case RelationTypes.ONE_TO_ONE:
+      return {
+        builder: knex(
+          knex.raw(`?? as ??`, [
+            baseModelSqlv2.getTnPath(childModel?.table_name),
+            refTableAlias,
+          ]),
+        )
+          [columnOptions.rollup_function as string]?.(
+            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+          )
+          .where(
+            knex.ref(
+              `${alias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
+                parentCol.column_name
+              }`,
+            ),
+            '=',
+            knex.ref(`${refTableAlias}.${childCol.column_name}`),
+          ),
+      };
     case RelationTypes.MANY_TO_MANY: {
       const mmModel = await relationColumnOption.getMMModel();
       const mmChildCol = await relationColumnOption.getMMChildColumn();

@@ -503,39 +503,56 @@ const errorHelpers: {
     code: 401,
   },
   [NcErrorType.WORKSPACE_NOT_FOUND]: {
-    message: (id: string) => `Workspace ${id} not found`,
+    message: (id: string) => `Workspace '${id}' not found`,
     code: 404,
   },
   [NcErrorType.BASE_NOT_FOUND]: {
-    message: (id: string) => `Base ${id} not found`,
+    message: (id: string) => `Base '${id}' not found`,
     code: 404,
   },
   [NcErrorType.SOURCE_NOT_FOUND]: {
-    message: (id: string) => `Source ${id} not found`,
+    message: (id: string) => `Source '${id}' not found`,
     code: 404,
   },
   [NcErrorType.TABLE_NOT_FOUND]: {
-    message: (id: string) => `Table ${id} not found`,
+    message: (id: string) => `Table '${id}' not found`,
     code: 404,
   },
   [NcErrorType.VIEW_NOT_FOUND]: {
-    message: (id: string) => `View ${id} not found`,
+    message: (id: string) => `View '${id}' not found`,
     code: 404,
   },
   [NcErrorType.FIELD_NOT_FOUND]: {
-    message: (id: string) => `Field ${id} not found`,
+    message: (id: string) => `Field '${id}' not found`,
     code: 404,
   },
   [NcErrorType.RECORD_NOT_FOUND]: {
-    message: (id: string) => `Record ${id} not found`,
+    message: (...ids: string[]) => {
+      const isMultiple = Array.isArray(ids) && ids.length > 1;
+      return `Record${isMultiple ? 's' : ''} '${ids.join(', ')}' not found`;
+    },
     code: 404,
   },
+  [NcErrorType.ERROR_DUPLICATE_RECORD]: {
+    message: (...ids: string[]) => {
+      const isMultiple = Array.isArray(ids) && ids.length > 1;
+      return `Record${isMultiple ? 's' : ''} '${ids.join(
+        ', ',
+      )}' already exists`;
+    },
+    code: 422,
+  },
   [NcErrorType.USER_NOT_FOUND]: {
-    message: (id: string) => `User ${id} not found`,
+    message: (idOrEmail: string) => {
+      const isEmail = idOrEmail.includes('@');
+      return `User ${
+        isEmail ? 'with email' : 'with id'
+      } '${idOrEmail}' not found`;
+    },
     code: 404,
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
-    message: (offset: string) => `Offset value ${offset} is invalid`,
+    message: (offset: string) => `Offset value '${offset}' is invalid`,
     code: 422,
   },
   [NcErrorType.INVALID_LIMIT_VALUE]: {
@@ -543,7 +560,7 @@ const errorHelpers: {
     code: 422,
   },
   [NcErrorType.INVALID_FILTER]: {
-    message: (filter: string) => `Filter ${filter} is invalid`,
+    message: (filter: string) => `Filter '${filter}' is invalid`,
     code: 422,
   },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
@@ -661,8 +678,15 @@ export class NcError {
     });
   }
 
-  static recordNotFound(id: string, args?: NcErrorArgs) {
+  static recordNotFound(id: string | string[], args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static duplicateRecord(id: string | string[], args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.ERROR_DUPLICATE_RECORD, {
       params: id,
       ...args,
     });

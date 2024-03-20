@@ -117,9 +117,7 @@ function animate(target: AnimationTarget) {
 }
 
 async function goNext(animationTarget?: AnimationTarget) {
-  if (isLast.value || !isStarted.value || submitted.value) return
-
-  if (!field.value || !field.value.title) return
+  if (isLast.value || !isStarted.value || submitted.value || dialogShow.value || !field.value || !field.value.title) return
 
   const validationField = v$.value.localState[field.value.title]
 
@@ -138,7 +136,7 @@ async function goNext(animationTarget?: AnimationTarget) {
 }
 
 async function goPrevious(animationTarget?: AnimationTarget) {
-  if (isFirst.value || !isStarted.value || submitted.value) return
+  if (isFirst.value || !isStarted.value || submitted.value || dialogShow.value) return
 
   animate(animationTarget || AnimationTarget.ArrowLeft)
 

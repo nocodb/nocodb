@@ -1778,8 +1778,11 @@ useEventListener(
   &.nc-cell-longtext {
     @apply p-0 h-auto;
   }
-  &:not(.nc-cell-longtext) {
-    @apply px-2 py-2;
+  &.nc-cell:not(.nc-cell-longtext) {
+    @apply p-2;
+  }
+  &.nc-virtual-cell {
+    @apply px-2 py-1;
   }
 
   &.nc-cell-json {

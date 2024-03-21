@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow, useVModel } from '#imports'
-import {ModelTypes} from "nocodb-sdk";
+import { useColumnCreateStoreOrThrow, useVModel, computed, inject, MetaInj, ref, useI18n,useBase, storeToRefs, useMetas } from '#imports'
+import {isVirtualCol, ModelTypes, RelationTypes, UITypes} from "nocodb-sdk";
+import type {ColumnType} from "nocodb-sdk";
 
 const props = defineProps<{
   value: any
@@ -10,6 +11,8 @@ const emit = defineEmits(['update:value'])
 
 const { t } = useI18n()
 
+const meta = inject(MetaInj, ref())
+
 const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, setAdditionalValidations, onDataTypeChange } = useColumnCreateStoreOrThrow()
@@ -17,80 +20,11 @@ const { validateInfos, setAdditionalValidations, onDataTypeChange } = useColumnC
 const baseStore = useBase()
 const { tables } = storeToRefs(baseStore)
 
-setAdditionalValidations({
-  'custom.colId': [
-    {
-      validator: (_, value: string) => {
-        return new Promise((resolve, reject) => {
-          if (value?.length > 59) {
-            return reject(t('msg.length59Required'))
-          }
-          resolve(true)
-        })
-      },
-    },
-  ],
-  'custom.refTableId': [
-    {
-      validator: (_, value: string) => {
-        return new Promise((resolve, reject) => {
-          if (value?.length > 59) {
-            return reject(t('msg.length59Required'))
-          }
-          resolve(true)
-        })
-      },
-    },
-  ],
-  'custom.refColId': [
-    {
-      validator: (_, value: string) => {
-        return new Promise((resolve, reject) => {
-          if (value?.length > 59) {
-            return reject(t('msg.length59Required'))
-          }
-          resolve(true)
-        })
-      },
-    },
-  ],
-  'custom.juncTableId': [
-    {
-      validator: (_, value: string) => {
-        return new Promise((resolve, reject) => {
-          if (value?.length > 59) {
-            return reject(t('msg.length59Required'))
-          }
-          resolve(true)
-        })
-      },
-    },
-  ],
-  'custom.juncColId': [
-    {
-      validator: (_, value: string) => {
-        return new Promise((resolve, reject) => {
-          if (value?.length > 59) {
-            return reject(t('msg.length59Required'))
-          }
-          resolve(true)
-        })
-      },
-    },
-  ],
-  'custom.juncRefColId': [
-    {
-      validator: (_, value: string) => {
-        return new Promise((resolve, reject) => {
-          if (value?.length > 59) {
-            return reject(t('msg.length59Required'))
-          }
-          resolve(true)
-        })
-      },
-    },
-  ],
-})
+const { metas, getMeta } = useMetas()
+
+
+const isMm = computed(() => vModel.value.type === RelationTypes.MANY_TO_MANY)
+
 
 // set default value
 vModel.value.custom = {
@@ -107,51 +41,146 @@ const refTables = computed(() =>{
 })
 
 
-const columns = $computed(() => {
-  if (!tables || !tables.length) {
+const columns = computed(() => {
+  if (!meta.value?.columns) {
     return []
   }
 
-  return meta.value?.columns;
+  return meta.value.columns;
 })
 
-const refTableColumns = $computed(() => {
-  if (!vModel.value.custom?.refTableId) {
+const refTableColumns = computed(() => {
+  if (!vModel.value.custom?.ref_model_id || !metas.value[vModel.value.custom?.ref_model_id]) {
     return []
   }
 
-  return tables.find(table => table.id === vModel.value.custom?.refTableId)?.columns;
+
+  return metas.value[vModel.value.custom?.ref_model_id]?.columns.filter(
+      (c: ColumnType) => !isVirtualCol(c.uidt as UITypes),
+  )
 })
 
-const juncTableColumns = $computed(() => {
-  if (!vModel.value.custom?.juncTableId) {
+const juncTableColumns = computed(() => {
+  if (!vModel.value.custom?.junc_model_id || !metas.value[vModel.value.custom?.junc_model_id]) {
     return []
   }
 
-  return tables.find(table => table.id === vModel.value.custom?.juncTableId)?.columns;
+
+  return metas.value[vModel.value.custom?.junc_model_id]?.columns.filter(
+      (c: ColumnType) => !isVirtualCol(c.uidt as UITypes),
+  )
 })
 
 
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
+
+
+const onModelIdChange =async  (modelId:string) =>{
+  await getMeta(modelId)
+  await onDataTypeChange()
+}
 </script>
 
 <template>
-  <div>
+  <div v-if="validateInfos">
     <div class="flex flex-row space-x-2">
       <a-form-item
         class="flex w-full pb-2 mt-4 nc-ltar-child-table"
-        :label="$t('labels.childTable')"
-        v-bind="validateInfos.childId"
+        label="Column"
+        v-bind="validateInfos['custom.column_id']"
       >
         <a-select
-          v-model:value="vModel.custom.refTableId"
+          v-model:value="vModel.custom.column_id"
           show-search
           :filter-option="filterOption"
           dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+          <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="column" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ column.title }}</template>
+                <span>{{ column.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </div>
+    <div class="flex flex-row space-x-2">
+      <a-form-item
+        class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+        label="Ref table"
+        v-bind="validateInfos['custom.ref_model_id']"
+      >
+        <a-select
+          v-model:value="vModel.custom.ref_model_id"
+          show-search
+          :filter-option="filterOption"
+          dropdown-class-name="nc-dropdown-ltar-child-table"
+          @change="onModelIdChange(vModel.custom.ref_model_id)"
+        >
+          <a-select-option v-for="table of tables" :key="table.title" :value="table.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="table" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ table.title }}</template>
+                <span>{{ table.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+
+      <a-form-item
+          class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+          label="Ref column"
+          v-bind="validateInfos['custom.ref_column_id']"
+      >
+        <a-select
+            v-model:value="vModel.custom.ref_column_id"
+            show-search
+            :filter-option="filterOption"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onDataTypeChange"
+        >
+          <a-select-option v-for="column of refTableColumns" :key="column.title" :value="column.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="column" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ column.title }}</template>
+                <span>{{ column.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </div>
+
+    <template v-if="isMm">
+
+    <div class="flex flex-row space-x-2">
+      <a-form-item
+          class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+          label="Junction table"
+          v-bind="validateInfos['custom.junc_model_id']"
+      >
+        <a-select
+            v-model:value="vModel.custom.junc_model_id"
+            show-search
+            :filter-option="filterOption"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onModelIdChange(vModel.custom.ref_model_id)"
+        >
+          <a-select-option v-for="table of tables" :key="table.title" :value="table.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon :meta="table" class="text-gray-500" />
@@ -165,5 +194,66 @@ const filterOption = (value: string, option: { key: string }) => option.key.toLo
         </a-select>
       </a-form-item>
     </div>
+
+
+
+
+
+
+
+    <div class="flex flex-row space-x-2">
+      <a-form-item
+          class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+          label="Column in jn table"
+          v-bind="validateInfos['custom.junc_column_id']"
+      >
+        <a-select
+            v-model:value="vModel.custom.junc_column_id"
+            show-search
+            :filter-option="filterOption"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onDataTypeChange"
+        >
+          <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="column" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ column.title }}</template>
+                <span>{{ column.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+
+      <a-form-item
+          class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+          label="Ref column in jn table"
+          v-bind="validateInfos['custom.junc_ref_column_id']"
+      >
+        <a-select
+            v-model:value="vModel.custom.junc_ref_column_id"
+            show-search
+            :filter-option="filterOption"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onDataTypeChange"
+        >
+          <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="column" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ column.title }}</template>
+                <span>{{ column.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </div>
+    </template>
   </div>
 </template>

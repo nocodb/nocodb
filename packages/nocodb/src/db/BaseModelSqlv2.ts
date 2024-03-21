@@ -2635,9 +2635,16 @@ class BaseModelSqlv2 {
     ).getModel(this.context);
 
     const childView = await relColOptions.getChildView(this.context);
-
-    const childTn = this.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
+    const parentBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: parentTable,
+    });
+    const childBaseModel = await Model.getBaseModelSQL({
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
+    const childTn = childBaseModel.getTnPath(childTable);
+    const parentTn = parentBaseModel.getTnPath(parentTable);
 
     const rtn = parentTn;
     const tn = childTn;

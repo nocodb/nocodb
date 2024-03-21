@@ -339,6 +339,7 @@
     "removeFile": "Datei löschen",
     "hasMany": "Has Many",
     "manyToMany": "Many to Many",
+    "oneToOne": "One to One",
     "virtualRelation": "Virtuelle Relation",
     "linkMore": "Mehr verknüpfen",
     "linkMoreRecords": "Weitere Datensätze verknüpfen",

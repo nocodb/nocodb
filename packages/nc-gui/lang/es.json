@@ -339,6 +339,7 @@
     "removeFile": "Eliminar archivo",
     "hasMany": "Tiene muchos",
     "manyToMany": "Muchos a Muchos",
+    "oneToOne": "One to One",
     "virtualRelation": "Relación virtual",
     "linkMore": "Enlace más",
     "linkMoreRecords": "Vincular más registros",

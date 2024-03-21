@@ -339,6 +339,7 @@
     "removeFile": "Remove File",
     "hasMany": "Hainbat ditu",
     "manyToMany": "Many to Many",
+    "oneToOne": "One to One",
     "virtualRelation": "Virtual Relation",
     "linkMore": "Link More",
     "linkMoreRecords": "Link more records",

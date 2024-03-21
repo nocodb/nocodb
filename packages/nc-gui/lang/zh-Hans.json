@@ -339,6 +339,7 @@
     "removeFile": "删除文件",
     "hasMany": "单对多",
     "manyToMany": "多对多",
+    "oneToOne": "One to One",
     "virtualRelation": "虚拟关系",
     "linkMore": "链接更多",
     "linkMoreRecords": "链接更多记录",

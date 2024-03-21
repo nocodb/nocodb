@@ -2770,7 +2770,7 @@ export class ColumnsService {
       reuse?: ReusableParams;
       colExtra?: any;
   }) {
-    if ((param.column as any).is_custom_ltar) {
+    if ((param.column as any).is_custom_link) {
       validateParams(['custom'], param.column as any);
       validateParams(
         ['column_id', 'ref_model_id', 'ref_column_id'],

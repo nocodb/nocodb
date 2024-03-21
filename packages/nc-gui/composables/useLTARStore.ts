@@ -192,7 +192,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       if (activeState) newRowState.state = activeState
       try {
         // todo: confirm the use case of `childrenExcludedOffsetCount.value`
-        let offset = childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)
+        let offset = childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
         if (offset < 0) {
           offset = 0
@@ -551,8 +551,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     })
 
-    const resetChildrenExcludedOffsetCount = () => {
-      childrenExcludedOffsetCount.value = 0
+    const resetChildrenExcludedOffsetCount = () =>{
+      childrenExcludedOffsetCount.value = 0;
     }
 
     return {
@@ -585,6 +585,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       getRelatedTableRowId,
       headerDisplayValue,
       relatedTableDisplayValuePropId,
+      resetChildrenExcludedOffsetCount
     }
   },
   'ltar-store',

@@ -53,6 +53,7 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
       if (uploadResult?.[0]) {
         emit('submit', {
           ...uploadResult[0],
+          data: fileToUpload[0].data,
         })
       } else {
         emit('submit', fileToUpload[0])
@@ -78,6 +79,7 @@ const handleSaveImage = async () => {
           mimetype: imageConfig.type,
           size: blob.size,
           url: previewImage.value.src,
+          data: previewImage.value.src,
         },
       ])
     }, imageConfig.type)

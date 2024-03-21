@@ -565,7 +565,9 @@ export class WorkspacesService implements OnApplicationBootstrap {
       !snsConfig.credentials.secretAccessKey ||
       !snsConfig.credentials.accessKeyId
     ) {
-      NcError.internalServerError('SNS is not configured for workspace upgrade');
+      NcError.internalServerError(
+        'SNS is not configured for workspace upgrade',
+      );
     }
 
     // Create publish parameters
@@ -597,7 +599,9 @@ export class WorkspacesService implements OnApplicationBootstrap {
       this.logger.log('MessageID is ' + data.MessageId);
     } catch (err) {
       this.logger.error(err.message, err.stack);
-      NcError.internalServerError('There was an error while sending the workspace upgrade request');
+      NcError.internalServerError(
+        'There was an error while sending the workspace upgrade request',
+      );
     }
   }
 

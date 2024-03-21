@@ -40,6 +40,7 @@ package-lock.json
 packages/nocodb/tsconfig.ee.json
 packages/nocodb/tsconfig.ee-on-prem.json
 packages/nocodb/tsconfig.ee-cloud.json
+packages/nocodb/tsconfig.eslint.json
 packages/nocodb/docker
 components.d.ts
 pnpm-lock.yaml

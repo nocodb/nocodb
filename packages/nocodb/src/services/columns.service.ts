@@ -102,6 +102,37 @@ export class ColumnsService {
     protected readonly appHooksService: AppHooksService,
   ) {}
 
+  async updateFormulas(args: { oldColumn: any; colBody: any }) {
+    const { oldColumn, colBody } = args;
+
+    // update formula if column name or title is changed
+    if (
+      oldColumn.column_name !== colBody.column_name ||
+      oldColumn.title !== colBody.title
+    ) {
+      const formulas = await Noco.ncMeta
+        .knex(MetaTable.COL_FORMULA)
+        .where('formula', 'like', `%${oldColumn.id}%`);
+      if (formulas) {
+        oldColumn.column_name = colBody.column_name;
+        oldColumn.title = colBody.title;
+        for (const f of formulas) {
+          // replace column IDs with alias to get the new formula_raw
+          const new_formula_raw = substituteColumnIdWithAliasInFormula(
+            f.formula,
+            [oldColumn],
+          );
+
+          // update the formula_raw and set parsed_tree to null to reparse the formula
+          await FormulaColumn.update(oldColumn.id, {
+            formula_raw: new_formula_raw,
+            parsed_tree: null,
+          });
+        }
+      }
+    }
+  }
+
   async columnUpdate(param: {
     req?: any;
     columnId: string;
@@ -975,39 +1006,10 @@ export class ColumnsService {
               };
 
               // update formula with new column name
-              if (c.column_name != colBody.column_name) {
-                const formulas = await Noco.ncMeta
-                  .knex(MetaTable.COL_FORMULA)
-                  .where('formula', 'like', `%${c.id}%`);
-                if (formulas) {
-                  const new_column = c;
-                  new_column.column_name = colBody.column_name;
-                  new_column.title = colBody.title;
-                  for (const f of formulas) {
-                    // the formula with column IDs only
-                    const formula = f.formula;
-                    // replace column IDs with alias to get the new formula_raw
-                    const new_formula_raw =
-                      substituteColumnIdWithAliasInFormula(formula, [
-                        new_column,
-                      ]);
-                    await FormulaColumn.update(c.id, {
-                      formula_raw: new_formula_raw,
-                      parsed_tree: await validateFormulaAndExtractTreeWithType({
-                        formula: new_formula_raw,
-                        columns: table.columns,
-                        column,
-                        clientOrSqlUi: source.type,
-                        getMeta: async (modelId) => {
-                          const model = await Model.get(modelId);
-                          await model.getColumns();
-                          return model;
-                        },
-                      }),
-                    });
-                  }
-                }
-              }
+              await this.updateFormulas({
+                oldColumn: column,
+                colBody,
+              });
               return Promise.resolve(res);
             } else {
               (c as any).cn = c.column_name;
@@ -1139,28 +1141,10 @@ export class ColumnsService {
                 };
 
                 // update formula with new column name
-                if (c.column_name != colBody.column_name) {
-                  const formulas = await Noco.ncMeta
-                    .knex(MetaTable.COL_FORMULA)
-                    .where('formula', 'like', `%${c.id}%`);
-                  if (formulas) {
-                    const new_column = c;
-                    new_column.column_name = colBody.column_name;
-                    new_column.title = colBody.title;
-                    for (const f of formulas) {
-                      // the formula with column IDs only
-                      const formula = f.formula;
-                      // replace column IDs with alias to get the new formula_raw
-                      const new_formula_raw =
-                        substituteColumnIdWithAliasInFormula(formula, [
-                          new_column,
-                        ]);
-                      await FormulaColumn.update(c.id, {
-                        formula_raw: new_formula_raw,
-                      });
-                    }
-                  }
-                }
+                await this.updateFormulas({
+                  oldColumn: column,
+                  colBody,
+                });
                 return Promise.resolve(res);
               } else {
                 (c as any).cn = c.column_name;
@@ -1273,28 +1257,10 @@ export class ColumnsService {
                 };
 
                 // update formula with new column name
-                if (c.column_name != colBody.column_name) {
-                  const formulas = await Noco.ncMeta
-                    .knex(MetaTable.COL_FORMULA)
-                    .where('formula', 'like', `%${c.id}%`);
-                  if (formulas) {
-                    const new_column = c;
-                    new_column.column_name = colBody.column_name;
-                    new_column.title = colBody.title;
-                    for (const f of formulas) {
-                      // the formula with column IDs only
-                      const formula = f.formula;
-                      // replace column IDs with alias to get the new formula_raw
-                      const new_formula_raw =
-                        substituteColumnIdWithAliasInFormula(formula, [
-                          new_column,
-                        ]);
-                      await FormulaColumn.update(c.id, {
-                        formula_raw: new_formula_raw,
-                      });
-                    }
-                  }
-                }
+                await this.updateFormulas({
+                  oldColumn: column,
+                  colBody,
+                });
                 return Promise.resolve(res);
               } else {
                 (c as any).cn = c.column_name;
@@ -1366,28 +1332,10 @@ export class ColumnsService {
                 };
 
                 // update formula with new column name
-                if (c.column_name != colBody.column_name) {
-                  const formulas = await Noco.ncMeta
-                    .knex(MetaTable.COL_FORMULA)
-                    .where('formula', 'like', `%${c.id}%`);
-                  if (formulas) {
-                    const new_column = c;
-                    new_column.column_name = colBody.column_name;
-                    new_column.title = colBody.title;
-                    for (const f of formulas) {
-                      // the formula with column IDs only
-                      const formula = f.formula;
-                      // replace column IDs with alias to get the new formula_raw
-                      const new_formula_raw =
-                        substituteColumnIdWithAliasInFormula(formula, [
-                          new_column,
-                        ]);
-                      await FormulaColumn.update(c.id, {
-                        formula_raw: new_formula_raw,
-                      });
-                    }
-                  }
-                }
+                await this.updateFormulas({
+                  oldColumn: column,
+                  colBody,
+                });
                 return Promise.resolve(res);
               } else {
                 (c as any).cn = c.column_name;
@@ -1430,39 +1378,10 @@ export class ColumnsService {
               };
 
               // update formula with new column name
-              if (c.column_name != colBody.column_name) {
-                const formulas = await Noco.ncMeta
-                  .knex(MetaTable.COL_FORMULA)
-                  .where('formula', 'like', `%${c.id}%`);
-                if (formulas) {
-                  const new_column = c;
-                  new_column.column_name = colBody.column_name;
-                  new_column.title = colBody.title;
-                  for (const f of formulas) {
-                    // the formula with column IDs only
-                    const formula = f.formula;
-                    // replace column IDs with alias to get the new formula_raw
-                    const new_formula_raw =
-                      substituteColumnIdWithAliasInFormula(formula, [
-                        new_column,
-                      ]);
-                    await FormulaColumn.update(c.id, {
-                      formula_raw: new_formula_raw,
-                      parsed_tree: await validateFormulaAndExtractTreeWithType({
-                        formula: new_formula_raw,
-                        columns: table.columns,
-                        column,
-                        clientOrSqlUi: source.type,
-                        getMeta: async (modelId) => {
-                          const model = await Model.get(modelId);
-                          await model.getColumns();
-                          return model;
-                        },
-                      }),
-                    });
-                  }
-                }
-              }
+              await this.updateFormulas({
+                oldColumn: column,
+                colBody,
+              });
               return Promise.resolve(res);
             } else {
               (c as any).cn = c.column_name;

@@ -1637,7 +1637,7 @@ export interface LinkToAnotherColumnReqType {
   /** The title of the virtual column */
   title: string;
   /** The type of the relationship */
-  type: 'bt' | 'hm' | 'mm';
+  type: 'bt' | 'hm' | 'mm' | 'oo';
   /** Abstract type of the relationship */
   uidt: 'LinkToAnotherRecord' | 'Links';
   /** Is this relationship virtual? */
@@ -8298,7 +8298,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo',
       columnName: string,
       query?: {
         /** @min 1 */
@@ -8346,7 +8346,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo',
       columnName: string,
       refRowId: string,
       query?: {
@@ -8413,7 +8413,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo',
       columnName: string,
       refRowId: string,
       params: RequestParams = {}
@@ -8453,7 +8453,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo',
       columnName: string,
       query?: {
         /** @min 1 */
@@ -9347,7 +9347,7 @@ export class Api<
     dataNestedList: (
       sharedViewUuid: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo',
       columnName: string,
       query?: {
         /** Which fields to be shown */

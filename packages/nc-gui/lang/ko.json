@@ -738,7 +738,7 @@
     "outOfSync": "동기화되지 않음",
     "newSource": "새로운 데이터 소스",
     "newWebhook": "새 웹훅",
-    "enablePublicAccess": "Enable Public Access",
+    "enablePublicAccess": "전체 공개",
     "doYouWantToSaveTheChanges": "바뀐 내용을 저장할까요?",
     "editingAccess": "수정 권한",
     "enabledPublicViewing": "Enable Public Viewing",

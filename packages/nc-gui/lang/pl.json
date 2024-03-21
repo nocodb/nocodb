@@ -699,7 +699,7 @@
     "hideNocodbBranding": "Ukryj branding NocoDB",
     "showOnConditions": "Pokaż na warunkach",
     "showFieldOnConditionsMet": "Pokazuje pole tylko, gdy spełnione są warunki",
-    "limitOptions": "Limit options",
+    "limitOptions": "Ogranicz opcje",
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
     "clearSelection": "Wyczyść wybór"
   },
@@ -738,7 +738,7 @@
     "outOfSync": "Nieaktualne",
     "newSource": "Nowe źródło danych",
     "newWebhook": "Nowy webhook",
-    "enablePublicAccess": "Enable Public Access",
+    "enablePublicAccess": "Włącz dostęp publiczny",
     "doYouWantToSaveTheChanges": "Czy chcesz zapisać zmiany?",
     "editingAccess": "Edycja dostępu",
     "enabledPublicViewing": "Włącz widok publiczny",

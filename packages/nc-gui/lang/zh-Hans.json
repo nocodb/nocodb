@@ -738,7 +738,7 @@
     "outOfSync": "不同步",
     "newSource": "新建数据源",
     "newWebhook": "新建 Webhook",
-    "enablePublicAccess": "Enable Public Access",
+    "enablePublicAccess": "启用公共访问",
     "doYouWantToSaveTheChanges": "您要保存这些更改吗？",
     "editingAccess": "编辑访问权限",
     "enabledPublicViewing": "启用公开查看",

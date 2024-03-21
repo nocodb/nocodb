@@ -7,6 +7,7 @@ import type { XKnex } from '~/db/CustomKnex';
 import type {
   BarcodeColumn,
   FormulaColumn,
+  LinksColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,
@@ -237,6 +238,16 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
+              const assocBaseModel = await Model.getBaseModelSQL({
+                id: assocModel.id,
+                dbDriver: knex,
+              });
+
+              const parentBaseModel = await Model.getBaseModelSQL({
+                id: parentColumn.fk_model_id,
+                dbDriver: knex,
+              });
+
               // if mm table is not present then return
               if (!assocModel) {
                 return qb.select(
@@ -248,7 +259,10 @@ export async function extractColumn({
               }
 
               const assocQb = knex(
-                knex.raw('?? as ??', [baseModel.getTnPath(assocModel), alias1]),
+                knex.raw('?? as ??', [
+                  assocBaseModel.getTnPath(assocModel),
+                  alias1,
+                ]),
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
                 sanitize(mmChildColumn.column_name),
@@ -259,7 +273,7 @@ export async function extractColumn({
               const mmQb = knex(assocQb.as(alias4))
                 .leftJoin(
                   knex.raw(`?? as ?? on ??.?? = ??.??`, [
-                    baseModel.getTnPath(parentModel),
+                    parentBaseModel.getTnPath(parentModel),
                     alias2,
                     alias2,
                     sanitize(parentColumn.column_name),
@@ -326,7 +340,13 @@ export async function extractColumn({
               const parentColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
-              const btQb = knex(baseModel.getTnPath(parentModel))
+
+              const parentBaseModel = await Model.getBaseModelSQL({
+                model: parentModel,
+                dbDriver: knex,
+              });
+
+              const btQb = knex(parentBaseModel.getTnPath(parentModel))
                 .select('*')
                 .where(
                   parentColumn.column_name,
@@ -392,7 +412,12 @@ export async function extractColumn({
               ).getParentColumn(context);
 
               if (isBt) {
-                const btQb = knex(baseModel.getTnPath(parentModel))
+                const parentBaseModel = await Model.getBaseModelSQL({
+                  model: parentModel,
+                  dbDriver: knex,
+                });
+
+                const btQb = knex(parentBaseModel.getTnPath(parentModel))
                   .select('*')
                   .where(
                     parentColumn.column_name,
@@ -438,7 +463,11 @@ export async function extractColumn({
 
                 qb.select(knex.raw('??.??', [alias1, column.id]));
               } else {
-                const hmQb = knex(baseModel.getTnPath(parentModel))
+                const parentBaseModel = await Model.getBaseModelSQL({
+                  model: parentModel,
+                  dbDriver: knex,
+                });
+                const hmQb = knex(parentBaseModel.getTnPath(parentModel))
                   .select('*')
                   .where(
                     childColumn.column_name,
@@ -503,7 +532,12 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
-              const hmQb = knex(baseModel.getTnPath(childModel))
+              const childBaseModel = await Model.getBaseModelSQL({
+                dbDriver: knex,
+                model: childModel,
+              });
+
+              const hmQb = knex(childBaseModel.getTnPath(childModel))
                 .select('*')
                 .where(
                   childColumn.column_name,

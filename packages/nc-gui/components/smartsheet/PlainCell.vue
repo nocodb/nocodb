@@ -37,7 +37,9 @@ const { basesUser } = storeToRefs(basesStore)
 
 const { isXcdbBase, isMssql, isMysql } = useBase()
 
-const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
+const { getPossibleAttachmentSrc } = useAttachment()
+
+const sqlUi = ref(column.value?.source_id && sqlUis.value[column.value?.source_id] ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -246,7 +248,7 @@ const getLookupValue = (modelValue: string | null | number | Array<any>, col: Co
 
 const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
   if (Array.isArray(modelValue)) {
-    return modelValue.map((v) => `${v.title}`).join(', ')
+    return modelValue.map((v) => `${v.title} (${getPossibleAttachmentSrc(v).join(', ')})`).join(', ')
   }
   return modelValue as string
 }
@@ -341,20 +343,20 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <template>
   <span
-    class="plain-cell before:px-1"
+    class="calendar-cell text-xs before:px-1"
     :class="{
-      '!font-bold': bold,
+      'font-bold': bold,
       'italic': italic,
       'underline': underline,
     }"
-    data-testid="nc-plain-cell"
+    data-testid="nc-calendar-cell"
   >
     {{ parseValue(modelValue, column) }}
   </span>
 </template>
 
 <style lang="scss" scoped>
-.plain-cell {
+.calendar-cell {
   &::before {
     content: '•';
     padding: 0 4px;
@@ -362,9 +364,6 @@ const parseValue = (value: any, col: ColumnType): string => {
   &:first-child::before {
     content: '';
     padding: 0;
-  }
-  &:first-child {
-    padding-left: 0;
   }
 }
 </style>

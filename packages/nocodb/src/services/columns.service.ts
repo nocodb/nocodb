@@ -2472,9 +2472,8 @@ export class ColumnsService {
     },
     ignoreFkDelete = false,
   ) => {
-    if (childTable) {
-      if (!custom) {
-        let foreignKeyName;
+    if (childTable && !custom) {
+      let foreignKeyName;
 
       // if relationColOpt is not provided, extract it from child table
       // and get the foreign key name for dropping the foreign key
@@ -2485,10 +2484,8 @@ export class ColumnsService {
               for (const col of cols) {
                 if (col.uidt === UITypes.LinkToAnotherRecord) {
                   const colOptions =
-                    await col.getColOptions<LinkToAnotherRecordColumn>(
-                      context,
-                      ncMeta,
-                    );
+                    await col.getColOptions<LinkToAnotherRecordColumn>(context,
+                      ncMeta);
                   if (colOptions.fk_related_model_id === parentTable.id) {
                     return { colOptions };
                   }
@@ -2516,7 +2513,6 @@ export class ColumnsService {
           console.log(e.message);
         }
       }
-    }
     }
 
     if (!relationColOpt) return;

@@ -261,7 +261,7 @@ onUnmounted(() => {
 })
 
 const onFilterChange = () => {
-  childrenExcludedListPagination.page = 1
+  childrenExcludedListPagination.page = 1;
   resetChildrenExcludedOffsetCount()
 }
 </script>

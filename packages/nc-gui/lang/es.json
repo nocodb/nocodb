@@ -683,7 +683,7 @@
     "sourceNameRequired": "Se requiere el nombre de la fuente",
     "changeWsName": "Cambiar el nombre del espacio de trabajo",
     "pressEnter": "Pulsa Enter",
-    "newFormLoaded": "Loading new form in",
+    "newFormLoaded": "El nuevo formulario se cargará después de",
     "webhook": "Webhook",
     "multiField": {
       "newField": "Nuevo campo",

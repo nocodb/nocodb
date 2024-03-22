@@ -211,7 +211,7 @@ function tableStaticTest() {
       })
       .expect(404);
 
-    if (response.body.msg !== 'Table not found')
+    if (response.body.message !== "Table 'wrong-table-id' not found")
       throw new Error('Wrong error message');
   });
   it('Find one sorted table data list with required columns', async function () {
@@ -426,7 +426,7 @@ function tableStaticTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Table not found') {
+    if (response.body.message !== "Table 'wrong-id' not found") {
       throw new Error('Wrong error message');
     }
   });
@@ -500,7 +500,7 @@ function tableStaticTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Table not found') {
+    if (response.body.message !== "Table 'invalid-table-id' not found") {
       console.log(response.body);
       throw new Error('Wrong error message');
     }
@@ -518,7 +518,7 @@ function tableStaticTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Table not found') {
+    if (response.body.message !== "Table 'invalid-table-id' not found") {
       throw new Error('Wrong error message');
     }
   });
@@ -535,7 +535,7 @@ function tableStaticTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Column not found') {
+    if (response.body.message !== `Field '${firstNameColumn.id}' not found`) {
       console.log(response.body);
       throw new Error('Wrong error message');
     }
@@ -552,10 +552,10 @@ function tableStaticTest() {
       .expect(404);
 
     if (
-      response.body.msg !== "Column with id/name 'invalid-column' is not found"
+      response.body.message !== "Field 'invalid-column' not found"
     ) {
       console.log(response.body);
-      throw new Error('Should error out');
+      throw new Error('Wrong error message');
     }
   });
   it('List hm with non ltar column', async () => {
@@ -2065,7 +2065,7 @@ function tableTest() {
       .expect(404);
 
     if (
-      response.body.msg !== "Column with id/name 'invalid-column' is not found"
+      response.body.message !== "Field 'invalid-column' not found"
     ) {
       console.log(response.body);
       throw new Error('Should error out');
@@ -2089,7 +2089,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Column not found') {
+    if (response.body.message !== `Field '${firstNameColumn.id}' not found`) {
       console.log(response.body);
       throw new Error('Wrong error message');
     }
@@ -2291,8 +2291,8 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Table not found') {
-      console.log(response.body['msg']);
+    if (response.body.message !== "Table 'invalid-table-id' not found") {
+      console.log(response.body['message']);
       throw new Error('Wrong error message');
     }
   });
@@ -2313,8 +2313,8 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    if (response.body['msg'] !== 'Table not found') {
-      console.log(response.body['msg']);
+    if (response.body.message !== "Table 'invalid-table-id' not found") {
+      console.log(response.body['message']);
       throw new Error('Wrong error message');
     }
   });

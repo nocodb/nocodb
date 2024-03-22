@@ -98,6 +98,26 @@ export class DataAliasNestedController {
     });
   }
 
+  @Get([
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName/exclude',
+  ])
+  @Acl('ooExcludedList')
+  async ooExcludedList(
+    @Req() req: Request,
+    @Param('columnName') columnName: string,
+    @Param('rowId') rowId: string,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+  ) {
+    return await this.dataAliasNestedService.ooExcludedList({
+      query: req.query,
+      columnName: columnName,
+      rowId: rowId,
+      baseName: baseName,
+      tableName: tableName,
+    });
+  }
+
   // todo: handle case where the given column is not ltar
 
   @Get(['/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName'])

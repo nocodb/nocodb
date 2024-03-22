@@ -201,7 +201,7 @@ export class OrgUsersService {
     const user = await User.get(param.userId);
 
     if (!user) {
-      NcError.badRequest(`User with id '${param.userId}' not found`);
+      NcError.userNotFound(param.userId);
     }
 
     const invite_token = uuidv4();
@@ -247,7 +247,7 @@ export class OrgUsersService {
     const user = await User.get(param.userId);
 
     if (!user) {
-      NcError.badRequest(`User with id '${param.userId}' not found`);
+      NcError.userNotFound(param.userId);
     }
     const token = uuidv4();
     await User.update(user.id, {

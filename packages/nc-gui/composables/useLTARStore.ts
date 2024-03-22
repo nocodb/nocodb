@@ -2,11 +2,10 @@ import type {
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
-  RelationTypes,
   type RequestParams,
   type TableType,
 } from 'nocodb-sdk'
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { Row } from '#imports'
 import {
@@ -66,6 +65,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+
     const childrenExcludedOffsetCount = ref(0)
 
     const childrenListPagination = reactive({
@@ -120,7 +120,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return relatedTableMeta.value?.columns
         ?.filter((c) => c.pk)
-        .map((c) => row?.[c.title as string])
+        .map((c) => row?.[c.title as string] ?? row?.[c.id as string])
         .join('___')
     }
 
@@ -132,6 +132,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const relatedTableDisplayValueProp = computed(() => {
       return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
+    })
+
+    // todo: temp fix, handle in backend
+    const relatedTableDisplayValuePropId = computed(() => {
+      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.id || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
@@ -186,8 +191,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
-        let offset =
-          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
+        let offset = childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
         if (offset < 0) {
           offset = 0
@@ -278,6 +282,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           })
         }
       } catch (e: any) {
+        // temporary fix to handle when offset is beyond limit
+        if ((await extractSdkResponseErrorMsg(e)) === 'Offset is beyond the total number of records') {
+          childrenExcludedListPagination.page = 0
+          return loadChildrenExcludedList(activeState)
+        }
+
         message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
         isChildrenExcludedLoading.value = false
@@ -287,7 +297,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenList = async () => {
       try {
         isChildrenLoading.value = true
-        if (colOptions.value.type === 'bt') return
+        if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
         if (!rowId.value || !column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
 
@@ -438,7 +448,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
-        if (colOptions.value.type !== 'bt') {
+        if (colOptions.value.type !== RelationTypes.BELONGS_TO && colOptions.value.type !== RelationTypes.ONE_TO_ONE) {
           childrenListCount.value = childrenListCount.value - 1
         }
       } catch (e: any) {
@@ -505,7 +515,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
 
-        if (colOptions.value.type !== 'bt') {
+        if (colOptions.value.type !== RelationTypes.BELONGS_TO && colOptions.value.type !== RelationTypes.ONE_TO_ONE) {
           childrenListCount.value = childrenListCount.value + 1
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
@@ -540,6 +550,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     })
 
+    const resetChildrenExcludedOffsetCount = () =>{
+      childrenExcludedOffsetCount.value = 0;
+    }
+
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
@@ -569,6 +583,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       deleteRelatedRow,
       getRelatedTableRowId,
       headerDisplayValue,
+      relatedTableDisplayValuePropId,
+      resetChildrenExcludedOffsetCount
     }
   },
   'ltar-store',

@@ -11,12 +11,15 @@ export function parseMetaProp(model: any, propName = 'meta'): any {
   }
 }
 
-export function stringifyMetaProp(model: any, propName = 'meta'): string {
+export function stringifyMetaProp(
+  model: any,
+  propName = 'meta',
+): string | null {
   if (!model) return null;
 
   // stringify meta property
   try {
-    return typeof model[propName] === 'string'
+    return typeof model[propName] === 'string' || model[propName] === null
       ? model[propName]
       : JSON.stringify(model[propName]);
   } catch (e) {

@@ -6,7 +6,7 @@ import {
   Response,
   UseGuards,
 } from '@nestjs/common';
-import { ErrorMessages, isSystemColumn, ViewTypes } from 'nocodb-sdk';
+import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
@@ -35,7 +35,7 @@ export class PublicDatasExportController {
     @Param('publicDataUuid') publicDataUuid: string,
   ) {
     const view = await View.getByUUID(publicDataUuid);
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(publicDataUuid);
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
@@ -45,7 +45,7 @@ export class PublicDatasExportController {
       NcError.notFound('Not found');
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
-      NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      NcError.invalidSharedViewPassword();
     }
 
     const model = await view.getModelWithInfo();
@@ -88,7 +88,7 @@ export class PublicDatasExportController {
     const view = await View.getByUUID(req.params.publicDataUuid);
     const fields = req.query.fields;
 
-    if (!view) NcError.notFound('Not found');
+    if (!view) NcError.viewNotFound(req.params.publicDataUuid);
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
@@ -98,7 +98,7 @@ export class PublicDatasExportController {
       NcError.notFound('Not found');
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
-      NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+      NcError.invalidSharedViewPassword();
     }
 
     const model = await view.getModelWithInfo();

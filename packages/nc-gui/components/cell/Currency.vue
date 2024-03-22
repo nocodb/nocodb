@@ -103,12 +103,21 @@ onMounted(() => {
 </script>
 
 <template>
+  <div
+    v-if="isForm && !isEditColumn"
+    class="nc-currency-code h-full !bg-gray-100 border-r border-gray-200 px-3 mr-1 flex items-center"
+  >
+    <span>
+      {{ currencyMeta.currency_code }}
+    </span>
+  </div>
   <input
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     type="number"
-    class="nc-cell-field w-full h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
+    class="nc-cell-field h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
+    :class="isForm && !isEditColumn ? 'flex flex-1' : 'w-full'"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="onBlur"
     @keydown.enter="onKeydownEnter"

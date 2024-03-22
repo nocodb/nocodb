@@ -136,7 +136,7 @@ export class OldDatasService {
         titleOrId: req.params.viewName,
         fk_model_id: model.id,
       }));
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(req.params.tableName);
     return { model, view };
   }
 }

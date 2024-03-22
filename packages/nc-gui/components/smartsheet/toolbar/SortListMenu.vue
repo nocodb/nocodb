@@ -67,7 +67,10 @@ const availableColumns = computed(() => {
         return false
       } else {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
-        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
+        return !(
+          isLinksOrLTAR(c) &&
+          ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((c.colOptions as LinkToAnotherRecordType).type)
+        )
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       }
     })

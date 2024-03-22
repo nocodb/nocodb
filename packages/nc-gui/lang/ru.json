@@ -339,6 +339,7 @@
     "removeFile": "Удалить файл",
     "hasMany": "Имеет много",
     "manyToMany": "Многие ко многим",
+    "oneToOne": "One to One",
     "virtualRelation": "Виртуальные отношения",
     "linkMore": "Ссылка Подробнее",
     "linkMoreRecords": "Связать больше записей",

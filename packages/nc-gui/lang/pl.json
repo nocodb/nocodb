@@ -198,7 +198,7 @@
     "logo": "Logo",
     "dropdown": "Rozwijane menu",
     "list": "Lista",
-    "apply": "Apply"
+    "apply": "Zastosuj"
   },
   "objects": {
     "day": "Dzień",
@@ -339,6 +339,7 @@
     "removeFile": "Usuń plik",
     "hasMany": "Ma wiele",
     "manyToMany": "Wiele do wielu",
+    "oneToOne": "One to One",
     "virtualRelation": "Relacja wirtualna",
     "linkMore": "Połącz więcej",
     "linkMoreRecords": "Połącz więcej rekordów",
@@ -430,7 +431,7 @@
     },
     "selectFieldsFromRightPannelToAddHere": "Wybierz pole z panelu po prawej stronie aby tutaj dodać",
     "noOptionsFound": "Nie znaleziono opcji",
-    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
+    "surveyFormSubmitConfirmMsg": "Czy na pewno chcesz przesłać ten formularz?"
   },
   "labels": {
     "selectYear": "Wybierz rok",
@@ -682,7 +683,7 @@
     "sourceNameRequired": "nazwa źródła jest wymagana",
     "changeWsName": "Zmień nazwę przestrzeni roboczej",
     "pressEnter": "Naciśnij Enter",
-    "newFormLoaded": "Loading new form in",
+    "newFormLoaded": "Ładowanie nowego formularza w",
     "webhook": "Webhook",
     "multiField": {
       "newField": "Nowe pole",
@@ -703,10 +704,10 @@
     "clearSelection": "Wyczyść wybór"
   },
   "activity": {
-    "addMembers": "Add Members",
-    "enterEmail": "Enter email addresses",
-    "inviteToBase": "Invite to Base",
-    "addMember": "Add Member to Base",
+    "addMembers": "Dodaj Członków",
+    "enterEmail": "Wpisz adresy e-mail",
+    "inviteToBase": "Zaproś do bazy",
+    "addMember": "Dodaj członka do bazy",
     "noRange": "Widok kalendarza wymaga zakresu dat",
     "goToToday": "Przejdź do dzisiaj",
     "toggleSidebar": "Przełącz pasek boczny",

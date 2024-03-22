@@ -111,7 +111,7 @@ export class BasesService {
     const base = await Base.getWithInfo(param.baseId);
 
     if (!base) {
-      NcError.notFound('Base not found');
+      NcError.baseNotFound(param.baseId);
     }
 
     await Base.softDelete(param.baseId);

@@ -322,6 +322,11 @@ export const getModelPaths = async (ctx: {
                           },
                         ],
                       },
+                      'Example 2': {
+                        value: {
+                          Id: 4,
+                        },
+                      },
                     },
                   },
                 },

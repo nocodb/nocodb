@@ -12,7 +12,7 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { ErrorMessages, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
@@ -22,6 +22,7 @@ import {
   createEventHook,
   extractSdkResponseErrorMsg,
   isNumericFieldType,
+  isValidURL,
   message,
   parseProp,
   provide,
@@ -34,6 +35,7 @@ import {
   useMetas,
   useProvideSmartsheetRowStore,
   useViewsStore,
+  validateEmail,
   watch,
 } from '#imports'
 import type { SharedViewMeta } from '#imports'
@@ -138,7 +140,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           c?.cdf &&
           !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
         ) {
-          formState.value[c.title] = c.cdf
+          formState.value[c.title] = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
         }
 
         return {
@@ -176,7 +178,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     } catch (e: any) {
       if (e.response && e.response.status === 404) {
         notFound.value = true
-      } else if ((await extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
+        // TODO - handle invalidSharedViewPassword
+      } else if (await extractSdkResponseErrorMsg(e)) {
         passwordDlg.value = true
 
         if (password.value && password.value !== '') passwordError.value = 'Something went wrong. Please check your credentials.'
@@ -197,7 +200,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
-        obj.localState[column.title!] = { required: fieldRequired() }
+        obj.localState[column.title!] = {
+          required: fieldRequired(),
+        }
       } else if (
         isLinksOrLTAR(column) &&
         column.colOptions &&
@@ -214,6 +219,37 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         obj.virtual[column.title!] = {
           minLength: minLength(1),
           required: fieldRequired(),
+        }
+      }
+
+      if (
+        !isVirtualCol(column) &&
+        parseProp(column.meta)?.validate &&
+        [UITypes.URL, UITypes.Email].includes(column.uidt as UITypes)
+      ) {
+        if (column.uidt === UITypes.URL) {
+          obj.localState[column.title!] = {
+            ...(obj.localState[column.title!] || {}),
+            validateFormURL: helpers.withMessage(t('msg.error.invalidURL'), (value) => {
+              return value ? isValidURL(value) : true
+            }),
+          }
+        } else if (column.uidt === UITypes.Email) {
+          obj.localState[column.title!] = {
+            ...(obj.localState[column.title!] || {}),
+            validateFormEmail: helpers.withMessage(t('msg.error.invalidEmail'), (value) => {
+              return value ? validateEmail(value) : true
+            }),
+          }
+        }
+      }
+
+      if ([UITypes.Number, UITypes.Currency, UITypes.Percent].includes(column.uidt as UITypes)) {
+        obj.localState[column.title!] = {
+          ...(obj.localState[column.title!] || {}),
+          validateFormNumber: helpers.withMessage(t('msg.plsEnterANumber'), (value) => {
+            return value ? (column.uidt === UITypes.Number ? /^\d+$/.test(value) : /^\d*\.?\d+$/.test(value)) : true
+          }),
         }
       }
     }

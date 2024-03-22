@@ -96,7 +96,7 @@ export default class Filter implements FilterType {
       } else if (filter.fk_column_id) {
         model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
       } else {
-        NcError.badRequest('Invalid filter');
+        NcError.invalidFilter(JSON.stringify(filter));
       }
 
       if (model != null) {

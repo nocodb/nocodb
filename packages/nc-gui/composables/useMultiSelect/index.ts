@@ -33,6 +33,7 @@ import {
   isExpandedCellInputExist,
   isMac,
   isMm,
+  isOo,
   isTypableInputColumn,
   message,
   parseProp,
@@ -158,7 +159,7 @@ export function useMultiSelect(
       }
     }
 
-    if (isBt(columnObj)) {
+    if (isBt(columnObj) || isOo(columnObj)) {
       // fk_related_model_id is used to prevent paste operation in different fk_related_model_id cell
       textToCopy = {
         fk_related_model_id: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id,
@@ -859,7 +860,7 @@ export function useMultiSelect(
             const pasteCol = colsToPaste[j]
 
             if (!isPasteable(pasteRow, pasteCol)) {
-              if ((isBt(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
+              if ((isBt(pasteCol) || isOo(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
                 message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                 isInfoShown = true
               }
@@ -1163,7 +1164,7 @@ export function useMultiSelect(
 
             for (const col of cols) {
               if (!col.title || !isPasteable(row, col)) {
-                if ((isBt(col) || isMm(col)) && !isInfoShown) {
+                if ((isBt(col) || isOo(pasteCol) || isMm(col)) && !isInfoShown) {
                   message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                   isInfoShown = true
                 }

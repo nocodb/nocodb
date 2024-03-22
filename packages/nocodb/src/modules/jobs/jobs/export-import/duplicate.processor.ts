@@ -3,7 +3,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import papaparse from 'papaparse';
 import debug from 'debug';
-import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk';
+import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
@@ -202,7 +202,9 @@ export class DuplicateProcessor {
           .filter(
             (c) =>
               isLinksOrLTAR(c) &&
-              c.colOptions.type === 'bt' &&
+              (c.colOptions.type === RelationTypes.BELONGS_TO ||
+                (c.colOptions.type === RelationTypes.ONE_TO_ONE &&
+                  c.meta?.bt)) &&
               c.colOptions.fk_related_model_id === modelId,
           )
           .map((c) => c.id);
@@ -342,7 +344,9 @@ export class DuplicateProcessor {
           .filter(
             (c) =>
               isLinksOrLTAR(c) &&
-              c.colOptions.type === 'bt' &&
+              (c.colOptions.type === RelationTypes.BELONGS_TO ||
+                (c.colOptions.type === RelationTypes.ONE_TO_ONE &&
+                  c.meta?.bt)) &&
               c.colOptions.fk_related_model_id === sourceModel.id,
           )
           .map((c) => c.id);
@@ -522,7 +526,11 @@ export class DuplicateProcessor {
                       colId: id,
                     });
                     if (col) {
-                      if (col.colOptions?.type === 'bt') {
+                      if (
+                        col.colOptions?.type === RelationTypes.BELONGS_TO ||
+                        (col.colOptions?.type === RelationTypes.ONE_TO_ONE &&
+                          col.meta?.bt)
+                      ) {
                         const childCol = await Column.get({
                           source_id: destBase.id,
                           colId: col.colOptions.fk_child_column_id,

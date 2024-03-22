@@ -59,6 +59,7 @@ const {
   link,
   meta,
   headerDisplayValue,
+  resetChildrenListOffsetCount,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -68,6 +69,11 @@ watch(
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
       loadChildrenList()
+    }
+
+    // reset offset count when closing modal
+    if (!nextVal[0]) {
+      resetChildrenListOffsetCount()
     }
   },
   { immediate: true },
@@ -207,9 +213,16 @@ watch(childrenListPagination, () => {
 })
 
 onUnmounted(() => {
+  resetChildrenListOffsetCount()
   childrenListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
 })
+
+const onFilterChange = () => {
+  childrenListPagination.page = 1
+  // reset offset count when filter changes
+  resetChildrenListOffsetCount()
+}
 </script>
 
 <template>
@@ -242,7 +255,7 @@ onUnmounted(() => {
           :placeholder="`Search in ${relatedTableMeta?.title}`"
           class="w-full !sm:rounded-md xs:min-h-8 !xs:rounded-xl"
           size="small"
-          @change="childrenListPagination.page = 1"
+          @change="onFilterChange"
           @keydown.capture.stop="
             (e) => {
               if (e.key === 'Escape') {

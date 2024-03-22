@@ -1,7 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
+    "connect_data_sources": "בחר מקור מידע",
     "alert": "Alert",
     "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
     "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Bases that you want to link to this Interface.",

@@ -256,6 +256,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  resetChildrenExcludedOffsetCount()
   childrenExcludedListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
 })

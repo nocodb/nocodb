@@ -154,7 +154,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: workspace:^
+        specifier: 0.204.7
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1

@@ -33,7 +33,8 @@ jobs:
           cd nocodb
           git fetch --quiet --unshallow origin
           git checkout master
-          BRANCH_NAME=oss/$(git rev-list -n 3 HEAD | tail -1 | cut -c1-8)
+          : # Use the first 8 characters of the latest commit hash as the branch name
+          BRANCH_NAME=nc/$(git rev-list -n 1 HEAD | cut -c1-8)
           git checkout -b $BRANCH_NAME
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'

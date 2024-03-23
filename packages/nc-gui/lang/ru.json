@@ -683,7 +683,7 @@
     "sourceNameRequired": "Имя источника обязательно",
     "changeWsName": "Изменить название рабочего пространства",
     "pressEnter": "Нажмите Enter",
-    "newFormLoaded": "Loading new form in",
+    "newFormLoaded": "Новая форма будет загружена после",
     "webhook": "Вебхук",
     "multiField": {
       "newField": "Новое поле",

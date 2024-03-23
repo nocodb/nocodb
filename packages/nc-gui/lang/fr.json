@@ -683,7 +683,7 @@
     "sourceNameRequired": "Source name is required",
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Appuyez sur Entrée",
-    "newFormLoaded": "Loading new form in",
+    "newFormLoaded": "New form will be loaded after",
     "webhook": "Webhook",
     "multiField": {
       "newField": "New field",

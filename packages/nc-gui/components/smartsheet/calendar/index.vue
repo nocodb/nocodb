@@ -187,7 +187,15 @@ const headerText = computed(() => {
           <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
             <NcButton :class="{ '!w-22': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
               <div class="flex px-2 w-full items-center justify-between">
-                <span class="font-bold text-center text-brand-500" data-testid="nc-calendar-active-date">{{ headerText }}</span>
+                <div class="flex gap-1 text-brand-500">
+                  <span class="font-bold text-center" data-testid="nc-calendar-active-date">{{
+                    activeCalendarView === 'month' ? headerText.split(' ')[0] : headerText
+                  }}</span>
+                  <span v-if="activeCalendarView === 'month'">
+                    {{ ` ${headerText.split(' ')[1]}` }}
+                  </span>
+                </div>
+
                 <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
               </div>
             </NcButton>

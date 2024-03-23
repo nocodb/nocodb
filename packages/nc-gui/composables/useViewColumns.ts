@@ -191,7 +191,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (!disableDataReload) {
         await loadViewColumns()
-        reloadData?.()
+        reloadData?.({ shouldShowLoading: false })
       }
     }
 
@@ -262,20 +262,20 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         undo: {
           fn: (v: boolean) => {
             field.show = !v
-            saveOrUpdate(field, fieldIndex, !field.show)
+            saveOrUpdate(field, fieldIndex)
           },
           args: [checked],
         },
         redo: {
           fn: (v: boolean) => {
             field.show = v
-            saveOrUpdate(field, fieldIndex, !field.show)
+            saveOrUpdate(field, fieldIndex)
           },
           args: [checked],
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex, !field.show)
+      saveOrUpdate(field, fieldIndex)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {

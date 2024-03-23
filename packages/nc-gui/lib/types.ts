@@ -13,6 +13,7 @@ interface User {
   roles: RolesObj
   base_roles: RolesObj
   workspace_roles: RolesObj
+  role_permissions: Record<string, string[]>
   invite_token?: string
   base_id?: string
   display_name?: string | null

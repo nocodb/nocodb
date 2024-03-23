@@ -123,7 +123,12 @@ export class AuthController {
       workspace_roles: extractRolesObj(req.user.workspace_roles),
       base_roles: extractRolesObj(req.user.base_roles),
     };
-    return user;
+    const role_permissions = {};
+    const allRoles = { ...user?.roles, ...user?.base_roles };
+    for (const role in allRoles) {
+      role_permissions[role] = await this.usersService.getRolePermissions(role);
+    }
+    return { ...user, role_permissions };
   }
 
   @Post([

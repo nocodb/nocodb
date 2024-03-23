@@ -578,4 +578,25 @@ export class UsersService {
     });
     setTokenCookie(res, refreshToken);
   }
+
+  async getRolePermissions(role: string): Promise<string[]> {
+    if (!role) {
+      return [];
+    }
+    return Noco.ncMeta
+      .knex(MetaTable.ROLES)
+      .join(
+        MetaTable.ROLES_PERMISSIONS,
+        `${MetaTable.ROLES_PERMISSIONS}.fk_role_id`,
+        `${MetaTable.ROLES}.id`,
+      )
+      .join(
+        MetaTable.PERMISSIONS,
+        `${MetaTable.PERMISSIONS}.id`,
+        `${MetaTable.ROLES_PERMISSIONS}.fk_permission_id`,
+      )
+      .where(`${MetaTable.ROLES}.name`, role)
+      .where(`${MetaTable.PERMISSIONS}.type`, 'frontend')
+      .pluck(`${MetaTable.PERMISSIONS}.name`);
+  }
 }

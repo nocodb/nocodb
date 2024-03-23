@@ -29,6 +29,7 @@ import * as nc_039_sqlite_alter_column_types from '~/meta/migrations/v2/nc_039_s
 import * as nc_040_form_view_alter_column_types from '~/meta/migrations/v2/nc_040_form_view_alter_column_types';
 import * as nc_041_calendar_view from '~/meta/migrations/v2/nc_041_calendar_view';
 import * as nc_042_user_block from '~/meta/migrations/v2/nc_042_user_block';
+import * as nc_043_roles_permissions from '~/meta/migrations/v2/nc_043_roles_permissions';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -69,6 +70,7 @@ export default class XcMigrationSourcev2 {
       'nc_040_form_view_alter_column_types',
       'nc_041_calendar_view',
       'nc_042_user_block',
+      'nc_043_roles_permissions',
     ]);
   }
 
@@ -140,6 +142,8 @@ export default class XcMigrationSourcev2 {
         return nc_041_calendar_view;
       case 'nc_042_user_block':
         return nc_042_user_block;
+      case 'nc_043_roles_permissions':
+        return nc_043_roles_permissions;
     }
   }
 }

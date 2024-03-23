@@ -1,21 +1,19 @@
-import { isString } from '@vue/shared'
 import type { Roles, RolesObj, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import { computed, createSharedComposable, rolePermissions, useApi, useGlobal } from '#imports'
 
-const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolean, permission: Permission | string) => {
-  const rolePermission = rolePermissions[role]
-
+const hasPermission = (
+  role: Exclude<Roles, WorkspaceUserRoles>,
+  hasRole: boolean,
+  permission: Permission | string,
+  rolePermission?: string[],
+) => {
   if (!hasRole || !rolePermission) return false
 
-  if (isString(rolePermission) && rolePermission === '*') return true
+  if (rolePermission.includes('*')) return true
 
-  if ('include' in rolePermission && rolePermission.include) {
-    return !!rolePermission.include[permission as keyof typeof rolePermission.include]
-  }
-
-  return rolePermission[permission as keyof typeof rolePermission]
+  return rolePermission.includes(permission as string)
 }
 
 /**
@@ -90,6 +88,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        role_permissions: res.role_permissions,
       } as typeof User
     } else if (options?.isSharedErd) {
       const res = await api.auth.me(
@@ -107,6 +106,7 @@ export const useRoles = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        role_permissions: res.role_permissions,
       } as typeof User
     } else if (baseId) {
       const res = await api.auth.me({ base_id: baseId })
@@ -116,6 +116,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         display_name: res.display_name,
+        role_permissions: res.role_permissions,
       } as typeof User
     } else {
       const res = await api.auth.me({})
@@ -125,6 +126,7 @@ export const useRoles = createSharedComposable(() => {
         roles: res.roles,
         base_roles: res.base_roles,
         display_name: res.display_name,
+        role_permissions: res.role_permissions,
       } as typeof User
     }
   }
@@ -133,6 +135,10 @@ export const useRoles = createSharedComposable(() => {
     permission: Permission | string,
     args: { roles?: string | Record<string, boolean> | string[] | null } = {},
   ) => {
+    if (!user.value?.role_permissions) {
+      return false
+    }
+
     const { roles } = args
 
     let checkRoles: Record<string, boolean> = {}
@@ -144,7 +150,7 @@ export const useRoles = createSharedComposable(() => {
     }
 
     return Object.entries(checkRoles).some(([role, hasRole]) =>
-      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission),
+      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission, user.value?.role_permissions[role]),
     )
   }
 

@@ -406,34 +406,34 @@ useMenuCloseOnEsc(open)
                         :class="{
                           '!bg-gray-800 !text-white': field.bold,
                         }"
-                        class="!rounded-r-none"
+                        class="!rounded-r-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
-                        <component :is="iconMap.bold" />
+                        <component :is="iconMap.bold" class="!w-3 !h-3" />
                       </NcButton>
                       <NcButton
                         :class="{
                           '!bg-gray-800 !text-white': field.italic,
                         }"
-                        class="!rounded-x-none !border-x-0"
+                        class="!rounded-x-none !border-x-0 !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
-                        <component :is="iconMap.italic" />
+                        <component :is="iconMap.italic" class="!w-3 !h-3" />
                       </NcButton>
                       <NcButton
                         :class="{
                           '!bg-gray-800 !text-white': field.underline,
                         }"
-                        class="!rounded-l-none"
+                        class="!rounded-l-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
-                        <component :is="iconMap.underline" />
+                        <component :is="iconMap.underline" class="!w-3 !h-3" />
                       </NcButton>
                     </div>
                     <NcSwitch :checked="field.show" :disabled="field.isViewEssentialField" @change="$t('a:fields:show-hide')" />
@@ -499,4 +499,8 @@ useMenuCloseOnEsc(open)
 // :deep(.ant-checkbox) {
 //   @apply top-auto;
 // }
+
+:deep(.xxsmall) {
+  @apply !min-w-0;
+}
 </style>

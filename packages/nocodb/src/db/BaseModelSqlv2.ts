@@ -2813,13 +2813,15 @@ class BaseModelSqlv2 {
   async delByPk(id, _trx?, cookie?) {
     let trx: Knex.Transaction = _trx;
     try {
+      const source = await Source.get(this.model.source_id);
       // retrieve data for handling params in hook
-      const data = await this.readByPk(
-        id,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true },
-      );
+      const data = await this.readRecord({
+        idOrRecord: id,
+        validateFormula: false,
+        ignoreView: true,
+        getHiddenColumn: true,
+        source,
+      });
       await this.beforeDelete(id, trx, cookie);
 
       const execQueries: ((trx: Knex.Transaction) => Promise<any>)[] = [];

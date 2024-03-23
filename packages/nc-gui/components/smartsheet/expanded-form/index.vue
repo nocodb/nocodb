@@ -333,7 +333,7 @@ onMounted(async () => {
 
   isLoading.value = false
 
-  if (focusFirstCell) {
+  if (focusFirstCell && isNew.value) {
     setTimeout(() => {
       cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
     }, 300)
@@ -388,7 +388,7 @@ useActiveKeyupListener(
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
       if (changedColumns.value.size > 0) {
-        await Modal.confirm({
+        Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -402,7 +402,7 @@ useActiveKeyupListener(
           },
         })
       } else if (isNew.value) {
-        await Modal.confirm({
+        Modal.confirm({
           title: 'Do you want to save the record?',
           okText: t('general.save'),
           cancelText: t('labels.discard'),

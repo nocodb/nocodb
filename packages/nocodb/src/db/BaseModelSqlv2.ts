@@ -3582,7 +3582,7 @@ class BaseModelSqlv2 {
           );
         }
       } else {
-        const returningObj: Record<string, any> = {};
+        const returningObj: Record<string, string> = {};
 
         if (!raw) {
           for (const col of this.model.primaryKeys) {

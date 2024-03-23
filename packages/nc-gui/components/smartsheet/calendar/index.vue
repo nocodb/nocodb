@@ -52,6 +52,7 @@ const {
   selectedMonth,
   activeDates,
   pageDate,
+  fetchActiveDates,
   showSideMenu,
   selectedDateRange,
   paginateCalendarView,
@@ -127,8 +128,12 @@ reloadViewMetaHook?.on(async () => {
   await loadCalendarMeta()
 })
 
-reloadViewDataHook?.on(async () => {
-  await Promise.all([loadCalendarData(), loadSidebarData()])
+reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) => {
+  await Promise.all([
+    loadCalendarData(params?.shouldShowLoading ?? false),
+    loadSidebarData(params?.shouldShowLoading ?? false),
+    fetchActiveDates(),
+  ])
 })
 
 const goToToday = () => {

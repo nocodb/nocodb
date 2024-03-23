@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { SelectOptionType } from 'nocodb-sdk'

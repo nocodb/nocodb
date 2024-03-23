@@ -1614,7 +1614,6 @@ export default class View implements ViewType {
         const column = columns[i];
 
         let show = 'show' in column ? column.show : true;
-        let columnFormatting = {};
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(view.id, ncMeta);
@@ -1656,16 +1655,6 @@ export default class View implements ViewType {
         } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
           show = false;
         } else if (view.type === ViewTypes.CALENDAR) {
-          if (copyFromView) {
-            const cCol = (copyFromView.columns as CalendarViewColumn[]).find(
-              (c) => c.fk_column_id === column.id,
-            );
-            columnFormatting = {
-              bold: cCol.bold,
-              italic: cCol.italic,
-              underline: cCol.underline,
-            };
-          }
           if (!calendarRangeColumns) break;
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
@@ -1679,7 +1668,6 @@ export default class View implements ViewType {
           fk_view_id: view.id,
           base_id: view.base_id,
           source_id: view.source_id,
-          ...columnFormatting,
         });
       }
     }

@@ -388,7 +388,7 @@ useActiveKeyupListener(
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
       if (changedColumns.value.size > 0) {
-        Modal.confirm({
+        await Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
           cancelText: t('labels.discard'),
@@ -402,7 +402,7 @@ useActiveKeyupListener(
           },
         })
       } else if (isNew.value) {
-        Modal.confirm({
+        await Modal.confirm({
           title: 'Do you want to save the record?',
           okText: t('general.save'),
           cancelText: t('labels.discard'),

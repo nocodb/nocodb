@@ -154,8 +154,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.204.8
-        version: 0.204.8
+        specifier: workspace:^
+        version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
         version: 5.4.1
@@ -20409,18 +20409,6 @@ packages:
       - uWebSockets.js
     dev: true
 
-  /nocodb-sdk@0.204.8:
-    resolution: {integrity: sha512-zNSnoXEx5tf4CiK7nxaXSWYCkgWXYigwdyZtaOGE3cIuia07L4fK6doBXYNGicQ96xUYaBtRKAWGKraIecm+xg==}
-    engines: {node: '>=18.19.1'}
-    requiresBuild: true
-    dependencies:
-      axios: 1.6.8(debug@3.2.7)
-      dayjs: 1.11.10
-      jsep: 1.3.8
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /node-abi@3.47.0:
     resolution: {integrity: sha512-2s6B2CWZM//kPgwnuI0KrYwNjfdByE25zvAaEpq9IH4zcNsarH8Ihu/UuX6XMPEogDAxkuUFeZn60pXNHAqn3A==}
     engines: {node: '>=10'}
@@ -24083,6 +24071,9 @@ packages:
   /sqlite3@5.1.6:
     resolution: {integrity: sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       node-addon-api: 4.3.0
@@ -24097,6 +24088,9 @@ packages:
   /sqlite3@5.1.7:
     resolution: {integrity: sha512-GGIyOiFaG+TUra3JIfkI/zGP8yZYLPQ0pl1bH+ODjiX57sPhrLU5sQJn1y9bDKZUFYkX1crlrPfSYt0BKKdkog==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       bindings: 1.5.0
       node-addon-api: 7.0.0

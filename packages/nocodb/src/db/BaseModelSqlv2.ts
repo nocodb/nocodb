@@ -3582,11 +3582,11 @@ class BaseModelSqlv2 {
           );
         }
       } else {
-        const returningArr: string[] = [];
+        const returningObj: Record<string, string> = {};
 
         if (!raw) {
           for (const col of this.model.primaryKeys) {
-            returningArr.push(col.column_name);
+            returningObj[col.title] = col.column_name;
           }
         }
 
@@ -3594,7 +3594,7 @@ class BaseModelSqlv2 {
           !raw && (this.isPg || this.isMssql)
             ? await trx
                 .batchInsert(this.tnPath, insertDatas, chunkSize)
-                .returning(this.model.primaryKeys?.length ? returningArr : '*')
+                .returning(this.model.primaryKeys?.length ? returningObj : '*')
             : await trx.batchInsert(this.tnPath, insertDatas, chunkSize);
       }
 
@@ -6622,7 +6622,12 @@ export function extractCondition(
 
     if (aliasColObjMap[alias]) {
       if (
-        [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(aliasColObjMap[alias].uidt)
+        [
+          UITypes.Date,
+          UITypes.DateTime,
+          UITypes.LastModifiedTime,
+          UITypes.CreatedTime,
+        ].includes(aliasColObjMap[alias].uidt)
       ) {
         value = value?.split(',');
         // the first element would be sub_op

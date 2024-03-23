@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
-import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib'
 import {
@@ -185,11 +185,6 @@ useSelectedCellKeyupListener(activeCell, (e) => {
       }
       break
   }
-})
-
-// close dropdown list on escape
-useSelectedCellKeyupListener(isOpen, (e) => {
-  if (e.key === 'Escape') isOpen.value = false
 })
 
 async function addIfMissingAndSave() {

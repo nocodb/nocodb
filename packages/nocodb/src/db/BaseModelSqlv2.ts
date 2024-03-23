@@ -3058,7 +3058,7 @@ class BaseModelSqlv2 {
     return this.dbDriver.clientType();
   }
 
-  protected readRecord(params: {
+  public async readRecord(params: {
     idOrRecord: string | Record<string, any>;
     fieldsSet?: Set<string>;
     ignoreView?: boolean;
@@ -3067,7 +3067,7 @@ class BaseModelSqlv2 {
     source: Source;
     disableOptimization?: boolean;
     view?: View;
-  }) {
+  }): Promise<any> {
     return this.readByPk(
       params.idOrRecord,
       false,

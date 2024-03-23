@@ -404,7 +404,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  protected async readRecord(param: {
+  public async readRecord(param: {
     idOrRecord: string | Record<string, any>;
     fieldsSet?: Set<string>;
     ignoreView?: boolean;
@@ -413,7 +413,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     source: Source;
     disableOptimization?: boolean;
     view?: View;
-  }) {
+  }): Promise<any> {
     return (await canUseOptimisedQuery({
       source: param.source,
       disableOptimization: param.disableOptimization,

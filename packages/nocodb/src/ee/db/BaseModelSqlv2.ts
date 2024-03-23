@@ -28,8 +28,8 @@ import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
 import type { Knex } from 'knex';
-import { LinkToAnotherRecordColumn, View } from '~/models'
 import type CustomKnex from '~/db/CustomKnex';
+import type { LinkToAnotherRecordColumn, View } from '~/models';
 import { Audit, Column, Filter, Model, ModelStat, Source } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery } from '~/utils';
@@ -420,7 +420,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }))
       ? await getSingleQueryReadFn(param.source)({
           model: this.model,
-          id: param.idOrRecord,
+          id:
+            // todo: update read method to accept both string and object
+            typeof param.idOrRecord === 'object'
+              ? this.model.primaryKeys
+                  .map(
+                    (c) =>
+                      param.idOrRecord?.[c.title] ??
+                      param.idOrRecord?.[c.column_name],
+                  )
+                  .join('___')
+              : param.idOrRecord,
           view: param.view,
           params: {},
           source: param.source,

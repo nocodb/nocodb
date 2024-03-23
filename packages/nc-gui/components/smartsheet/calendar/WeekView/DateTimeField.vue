@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import { type ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
-import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
+import { computed, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -44,8 +44,6 @@ const getFieldStyle = (field: ColumnType | undefined) => {
     italic: fi?.italic,
   }
 }
-
-const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
@@ -827,17 +825,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
                 @resize-start="onResizeStart"
               >
-                <template v-if="!isRowEmpty(record, displayField)">
-                  <LazySmartsheetCalendarCell
-                    v-if="!isRowEmpty(record, displayField!)"
-                    v-model="record.row[displayField!.title!]"
-                    :bold="getFieldStyle(displayField).bold"
-                    :column="displayField"
-                    :italic="getFieldStyle(displayField).italic"
-                    :underline="getFieldStyle(displayField).underline"
-                  />
-                </template>
-                <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+                <template v-for="(field, id) in fields" :key="id">
                   <LazySmartsheetCalendarCell
                     v-if="!isRowEmpty(record, field!)"
                     v-model="record.row[field!.title!]"

@@ -683,7 +683,7 @@
     "sourceNameRequired": "nazwa źródła jest wymagana",
     "changeWsName": "Zmień nazwę przestrzeni roboczej",
     "pressEnter": "Naciśnij Enter",
-    "newFormLoaded": "Ładowanie nowego formularza w",
+    "newFormLoaded": "Nowy formularz zostanie załadowany po",
     "webhook": "Webhook",
     "multiField": {
       "newField": "Nowe pole",

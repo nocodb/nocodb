@@ -683,7 +683,7 @@
     "sourceNameRequired": "소스 이름이 필요합니다",
     "changeWsName": "작업 공간 이름 변경",
     "pressEnter": "Enter를 누르세요",
-    "newFormLoaded": "Loading new form in",
+    "newFormLoaded": "새로운 폼이 로드되었습니다.",
     "webhook": "Webhook",
     "multiField": {
       "newField": "New field",

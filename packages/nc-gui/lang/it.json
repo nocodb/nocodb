@@ -683,7 +683,7 @@
     "sourceNameRequired": "Nome sorgente obbligatorio",
     "changeWsName": "Cambia nome area di lavoro",
     "pressEnter": "Premi Invio",
-    "newFormLoaded": "Loading new form in",
+    "newFormLoaded": "Il nuovo form verrà caricato dopo",
     "webhook": "Webhook",
     "multiField": {
       "newField": "Nuovo campo",

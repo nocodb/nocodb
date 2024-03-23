@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
+import { type Row, computed, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
@@ -74,8 +74,6 @@ const getFieldStyle = (field: ColumnType | undefined) => {
     italic: fi?.italic,
   }
 }
-
-const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 const dates = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
@@ -796,16 +794,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
               @dblclick.stop="emit('expandRecord', record)"
             >
-              <template v-if="!isRowEmpty(record, displayField)">
-                <LazySmartsheetCalendarCell
-                  v-model="record.row[displayField!.title!]"
-                  :bold="getFieldStyle(displayField).bold"
-                  :column="displayField"
-                  :italic="getFieldStyle(displayField).italic"
-                  :underline="getFieldStyle(displayField).underline"
-                />
-              </template>
-              <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+              <template v-for="(field, id) in fields" :key="id">
                 <LazySmartsheetCalendarCell
                   v-if="!isRowEmpty(record, field!)"
                   v-model="record.row[field!.title!]"

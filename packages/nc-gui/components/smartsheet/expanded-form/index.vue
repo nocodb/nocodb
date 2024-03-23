@@ -333,7 +333,7 @@ onMounted(async () => {
 
   isLoading.value = false
 
-  if (focusFirstCell) {
+  if (focusFirstCell && isNew.value) {
     setTimeout(() => {
       cellWrapperEl.value?.$el?.querySelector('input,select,textarea')?.focus()
     }, 300)

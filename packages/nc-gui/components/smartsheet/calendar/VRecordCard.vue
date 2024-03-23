@@ -71,7 +71,12 @@ const emit = defineEmits(['resize-start'])
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
     <span class="pl-1 pr-1 text-sm h-[80%] text-gray-800 leading-7 break-all whitespace-normal truncate w-full overflow-y-hidden">
-      <slot />
+      <NcTooltip :disabled="selected" show-on-truncate-only>
+        <slot />
+        <template #title>
+          <slot />
+        </template>
+      </NcTooltip>
     </span>
 
     <div v-if="position === 'topRounded' || position === 'none'" class="h-full pb-7 flex items-end ml-3">....</div>

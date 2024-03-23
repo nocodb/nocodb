@@ -432,7 +432,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
-    async function loadCalendarData() {
+    async function loadCalendarData(showLoading = true) {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
 
       if (activeCalendarView.value === 'year') {
@@ -479,7 +479,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
 
       try {
-        isCalendarDataLoading.value = true
+        if (showLoading) isCalendarDataLoading.value = true
 
         const res = !isPublic.value
           ? await api.dbCalendarViewRow.list(
@@ -592,10 +592,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
-    const loadSidebarData = async () => {
+    const loadSidebarData = async (showLoading = true) => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
       try {
-        isSidebarLoading.value = true
+        if (showLoading) isSidebarLoading.value = true
         const res = !isPublic.value
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,

@@ -28,8 +28,8 @@ import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
 import type { Knex } from 'knex';
-import type { LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
+import type { LinkToAnotherRecordColumn, View } from '~/models';
 import { Audit, Column, Filter, Model, ModelStat, Source } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery } from '~/utils';
@@ -402,6 +402,41 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
+  }
+
+  public async readRecord(param: {
+    idOrRecord: string | Record<string, any>;
+    fieldsSet?: Set<string>;
+    ignoreView?: boolean;
+    getHiddenColumn?: boolean;
+    validateFormula?: boolean;
+    source: Source;
+    disableOptimization?: boolean;
+    view?: View;
+  }): Promise<any> {
+    return (await canUseOptimisedQuery({
+      source: param.source,
+      disableOptimization: param.disableOptimization,
+    }))
+      ? await getSingleQueryReadFn(param.source)({
+          model: this.model,
+          id:
+            // todo: update read method to accept both string and object
+            typeof param.idOrRecord === 'object'
+              ? this.model.primaryKeys
+                  .map(
+                    (c) =>
+                      param.idOrRecord?.[c.title] ??
+                      param.idOrRecord?.[c.column_name],
+                  )
+                  .join('___')
+              : param.idOrRecord,
+          view: param.view,
+          params: {},
+          source: param.source,
+          getHiddenColumn: true,
+        })
+      : super.readRecord(param);
   }
 
   async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {

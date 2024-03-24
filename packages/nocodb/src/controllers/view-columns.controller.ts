@@ -83,7 +83,7 @@ export class ViewColumnsController {
 
   @Patch('/api/v3/meta/views/:viewId/columns')
   @Acl('columnUpdate')
-  async viewColumnUpdate(
+  async viewColumnUpdateV3(
     @Req() req,
     @Param('viewId') viewId: string,
     @Body()
@@ -116,7 +116,7 @@ export class ViewColumnsController {
 
   @Get('/api/v3/meta/views/:viewId/columns')
   @Acl('columnList')
-  async viewColumnList(@Req() req, @Param('viewId') viewId: string) {
+  async viewColumnListV3(@Req() req, @Param('viewId') viewId: string) {
     return {
       [APIContext.VIEW_COLUMNS]: await this.viewColumnsService.viewColumnList({
         viewId,

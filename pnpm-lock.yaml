@@ -226,8 +226,8 @@ importers:
         specifier: ^0.2.12
         version: 0.2.12
       vue3-grid-layout-next:
-        specifier: ^1.0.6
-        version: 1.0.6
+        specifier: ^1.0.7
+        version: 1.0.7
       vue3-text-clamp:
         specifier: ^0.1.2
         version: 0.1.2(resize-detector@0.3.0)(vue@3.3.13)
@@ -26573,8 +26573,8 @@ packages:
       - typescript
     dev: false
 
-  /vue3-grid-layout-next@1.0.6:
-    resolution: {integrity: sha512-gkQcvBAkWwiQ/WX3gRQud4AdYE4B07MAxvOHhucCE/E/IcDU252XK1InlqzsXmzjug7Zo7FLUMucGBRT9TdX+Q==}
+  /vue3-grid-layout-next@1.0.7:
+    resolution: {integrity: sha512-0MPPqF+CiOrDZZ1SwyOfsere7VpKXh/KIev4N09cMWio5uf7leM3McvZW0cJO/jOWC1thU26rmWnXjiKThIoxg==}
     dependencies:
       '@interactjs/actions': 1.10.18(@interactjs/core@1.10.18)(@interactjs/utils@1.10.18)
       '@interactjs/auto-scroll': 1.10.18(@interactjs/utils@1.10.18)

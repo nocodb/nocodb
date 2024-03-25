@@ -252,7 +252,7 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 
 We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a> for details.
 
-- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, and etc.
+- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, etc.
 - ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc.
 - ⚡ &nbsp;Storage: AWS S3, Google Cloud Storage, Minio, and etc
 

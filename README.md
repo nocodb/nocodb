@@ -34,7 +34,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 <div align="center">
 
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](markdown/readme/languages/chinese.md)
-[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](markdown/readme/languages/french.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](markdown/readme/languages/French.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263531-fae58600-6616-4b43-95a0-5891019dd35d.png">](markdown/readme/languages/german.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263589-3dbeda9a-0d2e-4bbd-b1fc-691404bb74fb.png">](markdown/readme/languages/spanish.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263669-f567196a-d4e8-4143-a80a-93d3be32ba90.png">](markdown/readme/languages/portuguese.md)
@@ -102,7 +102,7 @@ docker run -d --name nocodb-mssql \
 nocodb/nocodb:latest
 ```
 
-> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
+> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise, your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
 
@@ -163,7 +163,7 @@ cd nocodb/docker-compose/mssql
 docker-compose up -d
 ```
 
-> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
+> To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise, your data will be lost after recreating the container.
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974).
 
@@ -179,7 +179,7 @@ npx create-nocodb-app
 
 ## Node Application
 
-We provide a simple NodeJS Application for getting started.
+We provide a simple Node.js Application for getting started.
 
 ```bash
 git clone https://github.com/nocodb/nocodb-seed
@@ -244,7 +244,7 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
 - ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
-- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
+- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc.
 - ⚡ &nbsp;Access Control with Roles: Fine-grained Access Control at different levels
 - ⚡ &nbsp;and more ...
 
@@ -252,8 +252,8 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 
 We provide different integrations in three main categories. See <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a> for details.
 
-- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, and etc
-- ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc
+- ⚡ &nbsp;Chat: Slack, Discord, Mattermost, etc.
+- ⚡ &nbsp;Email: AWS SES, SMTP, MailerSend, and etc.
 - ⚡ &nbsp;Storage: AWS S3, Google Cloud Storage, Minio, and etc
 
 ### Programmatic Access
@@ -273,7 +273,7 @@ We are keeping all the user operation logs in one place. See <a href="https://do
 
 # Production Setup
 
-By default, SQLite is used for storing metadata. However, you can specify your database. The connection parameters for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
+By default, SQLite is used for storing metadata. However, you can specify your database. The connection parameters for this database can be specified in the `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
 
 ## Environment variables
 
@@ -283,13 +283,21 @@ Please refer to the [Environment variables](https://docs.nocodb.com/getting-star
 
 Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
 
+# Self Hosting
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploy.png)](https://repocloud.io/details/?app_id=100)
+
+[![Deploy on Elestio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/nocodb)
+
+
+
 # Contributing
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Why are we building this?
 
-Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly a glass ceiling on what's possible in the future.
+Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases, which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly, a glass ceiling on what's possible in the future.
 
 # Our Mission
 

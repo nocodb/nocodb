@@ -18,7 +18,7 @@ function onResize(widthPercent: any) {
   }
 }
 
-const normalizeSidebardWidth = computed(() => {
+const normalizeSidebarWidth = computed(() => {
   if (formRightSidebarState.value.width > formRightSidebarState.value.maxWidth) {
     return formRightSidebarState.value.maxWidth
   } else if (formRightSidebarState.value.width < formRightSidebarState.value.minWidth) {
@@ -43,7 +43,7 @@ const normalizeSidebardWidth = computed(() => {
       :size="formRightSidebarWidthPercent"
       :style="{
         minWidth: `${formRightSidebarState.minWidth}px !important`,
-        maxWidth: `${normalizeSidebardWidth}px !important`,
+        maxWidth: `${normalizeSidebarWidth}px !important`,
       }"
     >
       <slot name="sidebar" />

@@ -52,6 +52,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const nonHiddenLeftSidebarWidth = computed(() => (width.value * nonHiddenMobileSidebarSize.value) / 100)
 
+  const formRightSidebarState = ref({
+    minWidth: 384,
+    maxWidth: 600,
+    width: 384,
+  })
+
+  const formRightSidebarWidthPercent = computed(() => {
+    return (formRightSidebarState.value.width / (width.value - leftSidebarWidth.value)) * 100
+  })
+
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
@@ -61,6 +71,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     leftSidebarWidth,
     mobileNormalizedSidebarSize,
     nonHiddenLeftSidebarWidth,
+    windowSize: width,
+    formRightSidebarState,
+    formRightSidebarWidthPercent,
   }
 })
 

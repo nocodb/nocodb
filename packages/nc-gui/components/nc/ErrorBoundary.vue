@@ -80,7 +80,7 @@ export default {
         <p class="mb-0">
           <span
             >Please report this error in our
-            <a href="https://discord.gg/8jX2GQn" target="_blank" rel="noopener noreferrer">Discord channel</a>. You can copy the
+            <a href="https://discord.gg/5RgZmkW" target="_blank" rel="noopener noreferrer">Discord channel</a>. You can copy the
             error message by clicking the "Copy" button below.</span
           >
         </p>

@@ -210,8 +210,14 @@ watch(inputWrapperRef, () => {
         'h-full w-full': isForm,
       }"
     >
+      <div v-if="isForm && isRichMode" class="w-full">
+        <div class="w-full relative pt-11 w-full px-0 pb-1">
+          <LazyCellRichText v-model:value="vModel" class="border-t-1 border-gray-100 !max-h-80" :autofocus="false" show-menu />
+        </div>
+      </div>
+
       <div
-        v-if="isRichMode"
+        v-else-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="{
           'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
@@ -271,7 +277,7 @@ watch(inputWrapperRef, () => {
       <span v-else>{{ vModel }}</span>
 
       <NcTooltip
-        v-if="!isVisible"
+        v-if="!isVisible && !isForm"
         placement="bottom"
         class="!absolute top-1 hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="isForm ? 'right-1' : 'right-0'"

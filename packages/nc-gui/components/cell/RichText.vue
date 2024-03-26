@@ -185,6 +185,12 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
+const onFocusWrapper = () => {
+  if (isForm.value && !props.isFormField) {
+    editor.value?.chain().focus().run()
+  }
+}
+
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
     setEditorContent(vModel.value)
@@ -206,7 +212,7 @@ watch(editorDom, () => {
 
   setEditorContent(vModel.value, true)
 
-  if (props.isFormField) return
+  if (props.isFormField || !props.autofocus) return
   // Focus editor after editor is mounted
   setTimeout(() => {
     editor.value?.chain().focus().run()
@@ -237,6 +243,7 @@ useEventListener(
       'nc-rich-text-grid': isGrid,
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
+    @focus="onFocusWrapper"
   >
     <div v-if="renderAsText" class="truncate">
       <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>

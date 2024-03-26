@@ -886,7 +886,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-        type: FormulaDataTypes.STRING,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.NUMERIC],
       },
     },
     description: 'Retrieve the last n characters from the input string.',
@@ -901,7 +901,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-        type: FormulaDataTypes.STRING,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.NUMERIC],
       },
     },
     description: 'Retrieve the first n characters from the input string.',
@@ -1066,10 +1066,12 @@ export const formulas: Record<string, FormulaMeta> = {
         type: FormulaDataTypes.STRING,
       },
     },
-    description:
-      'Percent-encode the input parameter for use in URLs',
+    description: 'Percent-encode the input parameter for use in URLs',
     syntax: 'URLENCODE(str)',
-    examples: ['URLENCODE("Hello, world") => "Hello%2C%20world"', 'URLENCODE({column1})'],
+    examples: [
+      'URLENCODE("Hello, world") => "Hello%2C%20world"',
+      'URLENCODE({column1})',
+    ],
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {

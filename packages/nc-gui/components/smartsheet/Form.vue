@@ -1250,13 +1250,22 @@ useEventListener(
               </a-card>
             </div>
           </div>
-          <div class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200">
+          <div
+            class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200"
+            :class="{
+              'overflow-y-auto nc-form-scrollbar': activeField,
+            }"
+          >
             <div v-if="activeField">
               <!-- header -->
               <div class="px-3 py-2 flex items-center border-b border-gray-200">
-                <div class="text-lg">
-                  <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(activeField)" :column-meta="activeField" />
-                  <SmartsheetHeaderCellIcon v-else :column-meta="activeField" />
+                <div class="text-lg flex items-center">
+                  <SmartsheetHeaderVirtualCellIcon
+                    v-if="isVirtualCol(activeField)"
+                    :column-meta="activeField"
+                    class="!w-5 !h-5"
+                  />
+                  <SmartsheetHeaderCellIcon v-else :column-meta="activeField" class="!w-5 !h-5" />
                 </div>
 
                 <NcTooltip class="truncate max-w-3/5" show-on-truncate-only>
@@ -1385,9 +1394,9 @@ useEventListener(
                     />
                     <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
                   </div>
-                  <div class="pl-10 mt-2 flex-1 max-w-[calc(100%_-_40px)]">
+                  <div class="pl-10 mt-2 flex-1">
                     <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
-                    <div v-if="activeField.meta.isLimitOption" class="mt-5 max-w-[80%]">
+                    <div v-if="activeField.meta.isLimitOption" class="mt-5">
                       <LazySmartsheetFormLimitOptions
                         v-model:model-value="activeField.meta.limitOptions"
                         :column="activeField"

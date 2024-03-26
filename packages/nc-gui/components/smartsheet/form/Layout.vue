@@ -16,8 +16,6 @@ function onResize(widthPercent: any) {
   } else {
     formRightSidebarState.value.width = sidebarWidth
   }
-
-  return
 }
 
 const normalizeSidebardWidth = computed(() => {

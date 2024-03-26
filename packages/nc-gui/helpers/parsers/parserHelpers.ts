@@ -1,7 +1,17 @@
 import { UITypes } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
+
+// This regex pattern matches email addresses by looking for sequences that start with characters before the "@" symbol, followed by the domain.
+// It's designed to capture most email formats, including those with periods and "+" symbols in the local part.
 const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
+
+export const extractEmail = (v: string) => {
+  const matches = v.match(
+    /(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})/i,
+  )
+  return matches ? matches[0] : null
+}
 
 const booleanOptions = [
   { checked: true, unchecked: false },

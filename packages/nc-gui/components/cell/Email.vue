@@ -11,6 +11,7 @@ import {
   useI18n,
   validateEmail,
 } from '#imports'
+import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   modelValue: string | null | undefined
@@ -56,6 +57,16 @@ const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
+const onPaste = (e: ClipboardEvent) => {
+  const pastedText = e.clipboardData?.getData('text') ?? ''
+
+  if (parseProp(column.value.meta).validate) {
+    vModel.value = extractEmail(pastedText) || pastedText
+  } else {
+    vModel.value = pastedText
+  }
+}
+
 watch(
   () => editEnabled.value,
   () => {
@@ -90,6 +101,7 @@ watch(
     @keydown.delete.stop
     @selectstart.capture.stop
     @mousedown.stop
+    @paste.prevent="onPaste"
   />
 
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>

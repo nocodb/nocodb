@@ -1,0 +1,14 @@
+{
+  "name": "knex-snowflake",
+  "version": "0.1.0",
+  "description": "Knex dialect for Snowflake",
+  "main": "src/index.js",
+  "author": "mertmit",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "knex": "^2.4.2",
+    "lodash": "^4.17.21",
+    "snowflake-sdk": "^1.6.11"
+  }
+}

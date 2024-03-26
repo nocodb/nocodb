@@ -31,7 +31,6 @@ import {
   inject,
   isEeUI,
   message,
-  onClickOutside,
   parseProp,
   provide,
   ref,
@@ -1320,7 +1319,7 @@ useEventListener(
 
               <!-- Field text -->
               <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
-                <div class="text-base font-bold">{{ $t('objects.viewType.form') }} {{ $t('general.text') }}</div>
+                <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('general.text') }}</div>
 
                 <a-textarea
                   ref="focusLabel"
@@ -1351,7 +1350,7 @@ useEventListener(
                 <div class="flex flex-col gap-6">
                   <div class="flex items-center justify-between gap-3">
                     <div class="nc-form-input-required text-gray-800 font-medium">
-                      {{ $t('general.required') }} {{ $t('objects.field') }}
+                      {{ $t('general.required') }} {{ $t('objects.field').toLowerCase() }}
                     </div>
 
                     <a-switch

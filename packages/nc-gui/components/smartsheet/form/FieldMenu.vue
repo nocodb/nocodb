@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { computed } from 'vue'
 import {
   ActiveViewInj,

@@ -92,8 +92,6 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const formRef = ref()
 
-const formFieldSearchInput = ref()
-
 const formState = ref<Record<string, any>>({})
 
 const secondsRemain = ref(0)
@@ -1093,7 +1091,7 @@ useEventListener(
                         v-if="isEditable && !isLocked"
                         v-model:value="formViewData.subheading"
                         :placeholder="$t('msg.info.formDesc')"
-                        class="nc-form-focus-element font-medium text-base !text-gray-500 -ml-1"
+                        class="nc-form-description nc-form-focus-element font-medium text-base !text-gray-500 -ml-1"
                         is-form-field
                         :autofocus="activeRow === NcForm.subheading"
                         :data-testid="NcForm.subheading"
@@ -1509,8 +1507,8 @@ useEventListener(
                   <div>
                     <a-input
                       key="nc-form-field-search-input"
-                      ref="formFieldSearchInput"
-                      :value="searchQuery"
+                      v-model:value="searchQuery"
+                      type="text"
                       autocomplete="off"
                       class="!h-9 !px-3 !py-1 !rounded-lg"
                       :placeholder="`${$t('placeholder.searchFields')}...`"
@@ -2002,6 +2000,11 @@ useEventListener(
       min-height: 5rem;
       max-height: 7.5rem !important;
     }
+  }
+}
+.nc-form-description {
+  .nc-form-field-bubble-menu-wrapper {
+    @apply -bottom-12;
   }
 }
 </style>

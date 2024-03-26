@@ -1263,7 +1263,7 @@ useEventListener(
           </div>
           <!-- Right Panel -->
           <div
-            class="h-full flex-1 max-w-[384px] nc-form-right-panel border-l border-gray-200"
+            class="nc-form-right-panel h-full flex-1 max-w-[384px] border-l border-gray-200"
             :class="{
               'overflow-y-auto nc-form-scrollbar': activeField,
             }"
@@ -1944,6 +1944,13 @@ useEventListener(
   .ant-switch:focus-visible,
   .ant-switch-checked:focus-visible {
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+  }
+}
+.nc-form-right-panel {
+  :deep(.nc-form-rich-text-field) {
+    .nc-text-area-rich-link-option-input {
+      @apply !w-250px;
+    }
   }
 }
 </style>

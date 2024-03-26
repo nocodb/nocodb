@@ -19,8 +19,6 @@ const rowsToLower = (arr) => {
 };
 
 class SnowflakeClient extends KnexClient {
-  protected queries: any;
-  protected _version: any;
   constructor(connectionConfig) {
     super(connectionConfig);
     // this.sqlClient = null;
@@ -2565,20 +2563,6 @@ class SnowflakeClient extends KnexClient {
 
   getTnPath(t) {
     return `${this.database}.${this.schema}.${t}`;
-  }
-
-  /**
-   *
-   * @param {Object} args
-   * @returns {Object} result
-   * @returns {Number} code
-   * @returns {String} message
-   */
-  async totalRecords(args: any = {}) {
-    const func = this.totalRecords.name;
-    log.api(`${func}:args:`, args);
-
-    throw new Error('Function not supported for Snowflake yet');
   }
 
   // Todo: error handling

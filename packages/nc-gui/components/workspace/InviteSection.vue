@@ -43,13 +43,17 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
-const emailInputValidation = (input: string): boolean => {
+const emailInputValidation = (input: string, isBulkEmailCopyPaste: boolean = false): boolean => {
   if (!input.length) {
+    if (isBulkEmailCopyPaste) return false
+
     emailValidation.isError = true
     emailValidation.message = 'Email should not be empty'
     return false
   }
   if (!validateEmail(input.trim())) {
+    if (isBulkEmailCopyPaste) return false
+
     emailValidation.isError = true
     emailValidation.message = 'Invalid Email'
     return false
@@ -180,7 +184,7 @@ const onPaste = (e: ClipboardEvent) => {
   inputArray?.forEach((el) => {
     el = extractEmail(el) || el
 
-    const isEmailIsValid = emailInputValidation(el)
+    const isEmailIsValid = emailInputValidation(el, inputArray.length > 1)
 
     if (!isEmailIsValid) return
 

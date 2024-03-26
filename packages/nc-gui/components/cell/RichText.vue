@@ -10,7 +10,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, IsSurveyFormInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -44,6 +44,8 @@ const readOnlyCell = inject(ReadonlyInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isFocused = ref(false)
 
@@ -217,7 +219,7 @@ watch(editorDom, () => {
 
   setEditorContent(vModel.value, true)
 
-  if (isForm.value || isFormField.value) return
+  if ((isForm.value && !isSurveyForm.value) || isFormField.value) return
   // Focus editor after editor is mounted
   setTimeout(() => {
     editor.value?.chain().focus().run()

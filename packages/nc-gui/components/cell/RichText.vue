@@ -10,7 +10,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, IsSurveyFormInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -26,13 +26,14 @@ const props = withDefaults(
     hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
   }>(),
   {
+    isFormField: false,
     hiddenBubbleMenuOptions: () => [],
   },
 )
 
-const emits = defineEmits(['update:value'])
+const emits = defineEmits(['update:value', 'focus', 'blur'])
 
-const { hiddenBubbleMenuOptions } = toRefs(props)
+const { isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -44,7 +45,11 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isFocused = ref(false)
+
+const keys = useMagicKeys()
 
 const turndownService = new TurndownService({})
 
@@ -124,7 +129,7 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
   StarterKit.configure({
-    heading: props.isFormField ? false : undefined,
+    heading: isFormField.value ? false : undefined,
   }),
   TaskList,
   TaskItem.configure({
@@ -145,16 +150,18 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = props.isFormField && markdown === '<br />' ? '' : markdown
+    vModel.value = isFormField.value && markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
   onFocus: () => {
     isFocused.value = true
+    emits('focus')
   },
   onBlur: (e) => {
     if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
+      emits('blur')
     }
   },
 })
@@ -185,13 +192,19 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
+const onFocusWrapper = () => {
+  if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
+    editor.value?.chain().focus().run()
+  }
+}
+
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
     setEditorContent(vModel.value)
   })
 }
 
-if (props.isFormField) {
+if (isFormField.value) {
   watch([props, editor], () => {
     if (props.readOnly) {
       editor.value?.setEditable(false)
@@ -206,7 +219,7 @@ watch(editorDom, () => {
 
   setEditorContent(vModel.value, true)
 
-  if (props.isFormField) return
+  if ((isForm.value && !isSurveyForm.value) || isFormField.value) return
   // Focus editor after editor is mounted
   setTimeout(() => {
     editor.value?.chain().focus().run()
@@ -220,6 +233,7 @@ useEventListener(
     const targetEl = e?.relatedTarget as HTMLElement
     if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
+      emits('blur')
     }
   },
   true,
@@ -228,7 +242,7 @@ useEventListener(
 
 <template>
   <div
-    class="h-full focus:outline-none"
+    class="nc-rich-text h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
@@ -237,6 +251,7 @@ useEventListener(
       'nc-rich-text-grid': isGrid,
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
+    @focus="onFocusWrapper"
   >
     <div v-if="renderAsText" class="truncate">
       <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
@@ -244,17 +259,22 @@ useEventListener(
     <template v-else>
       <div
         v-if="showMenu && !readOnly && !isFormField"
-        class="absolute top-0 right-0.5 xs:hidden"
+        class="absolute top-0 right-0.5"
         :class="{
-          'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
+          'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
+          'max-w-[calc(100%_-_198px)]': fullMode,
+          'justify-start left-0.5': isForm,
+          'justify-end xs:hidden': !isForm,
         }"
       >
-        <div class="nc-longtext-scrollbar">
+        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
         </div>
       </div>
-      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
+      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
+
       <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+
       <EditorContent
         ref="editorDom"
         :editor="editor"
@@ -444,18 +464,21 @@ useEventListener(
     font-weight: 700;
     font-size: 1.85rem;
     margin-bottom: 0.1rem;
+    line-height: 36px;
   }
 
   h2 {
     font-weight: 600;
     font-size: 1.55rem;
     margin-bottom: 0.1em;
+    line-height: 30px;
   }
 
   h3 {
     font-weight: 600;
     font-size: 1.15rem;
     margin-bottom: 0.1em;
+    line-height: 24px;
   }
 
   blockquote {

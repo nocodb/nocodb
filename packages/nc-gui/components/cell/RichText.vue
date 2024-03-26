@@ -264,7 +264,7 @@ useEventListener(
         class="flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
-          'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
+          'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
           [`!overflow-hidden children:line-clamp-${rowHeight}`]:
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,

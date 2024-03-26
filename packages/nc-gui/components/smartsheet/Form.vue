@@ -444,7 +444,7 @@ function setFormData() {
   localColumns.value = col
     .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
-    .map((c) => ({ ...c, required: !!c.required }))
+    .map((c) => ({ ...c, label: c.label || c.title, required: !!c.required }))
 }
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -1346,7 +1346,7 @@ useEventListener(
                   :rows="1"
                   auto-size
                   hide-details
-                  class="form-meta-input nc-form-input-label"
+                  class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar"
                   data-testid="nc-form-input-label"
                   :placeholder="$t('msg.info.formInput')"
                   @keydown.enter.prevent
@@ -1698,31 +1698,6 @@ useEventListener(
                       {{ $t('msg.info.postFormSubmissionSettings') }}
                     </div>
 
-                    <!-- Show this message -->
-                    <div>
-                      <div class="text-gray-800 mb-2">
-                        {{ $t('msg.info.formDisplayMessage') }}
-                      </div>
-                      <a-form-item class="!my-0">
-                        <LazyCellRichText
-                          v-if="!isLocked && isEditable"
-                          v-model:value="formViewData.success_msg"
-                          class="nc-form-after-submit-msg"
-                          is-form-field
-                          :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
-                          data-testid="nc-form-after-submit-msg"
-                          @update:value="updateView" />
-                        <LazyCellRichText
-                          v-else
-                          :value="formViewData.success_msg"
-                          class="nc-form-after-submit-msg"
-                          is-form-field
-                          read-only
-                          data-testid="nc-form-after-submit-msg"
-                      /></a-form-item>
-                    </div>
-
-                    <!-- Other options -->
                     <div class="flex flex-col gap-3">
                       <div class="flex items-center">
                         <!-- Show "Submit Another Form" button -->
@@ -1770,6 +1745,30 @@ useEventListener(
                           <span class="text-bold text-gray-600">{{ user?.email }}</span>
                         </span>
                       </div>
+                    </div>
+
+                    <!-- Show this message -->
+                    <div class="pb-10">
+                      <div class="text-gray-800 mb-2">
+                        {{ $t('msg.info.formDisplayMessage') }}
+                      </div>
+                      <a-form-item class="!my-0">
+                        <LazyCellRichText
+                          v-if="!isLocked && isEditable"
+                          v-model:value="formViewData.success_msg"
+                          class="nc-form-after-submit-msg"
+                          is-form-field
+                          :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
+                          data-testid="nc-form-after-submit-msg"
+                          @update:value="updateView" />
+                        <LazyCellRichText
+                          v-else
+                          :value="formViewData.success_msg"
+                          class="nc-form-after-submit-msg"
+                          is-form-field
+                          read-only
+                          data-testid="nc-form-after-submit-msg"
+                      /></a-form-item>
                     </div>
                   </div>
                 </Pane>
@@ -1967,6 +1966,9 @@ useEventListener(
   }
   &.nc-form-input-help-text .nc-textarea-rich-editor {
     @apply pt-1 text-gray-700;
+    .ProseMirror {
+      max-height: 7.5rem !important;
+    }
   }
 }
 .nc-form-after-submit-msg {
@@ -1974,6 +1976,7 @@ useEventListener(
     @apply pl-1 pr-2 pt-2 pb-1 !rounded-lg !text-sm border-1 border-gray-200 focus-within:border-brand-500;
     .ProseMirror {
       min-height: 5rem;
+      max-height: 7.5rem !important;
     }
   }
 }

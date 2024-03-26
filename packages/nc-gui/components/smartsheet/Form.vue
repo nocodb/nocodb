@@ -639,6 +639,10 @@ const formElementValidationRules = (element) => {
   return rules
 }
 
+const onFocusActiveFieldLabel = (e: FocusEvent) => {
+  ;(e.target as HTMLTextAreaElement).select()
+}
+
 const updateSelectFieldLayout = (value: boolean) => {
   if (!activeField.value) return
 
@@ -716,9 +720,11 @@ watch(activeField, (newValue) => {
   }
 })
 
-watch([focusLabel, activeRow], () => {
-  if (activeRow && focusLabel.value) {
-    focusLabel.value?.focus()
+watch([focusLabel, activeField], () => {
+  if (activeField && focusLabel.value) {
+    nextTick(() => {
+      focusLabel.value?.focus()
+    })
   }
 })
 
@@ -1349,6 +1355,7 @@ useEventListener(
                   class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar"
                   data-testid="nc-form-input-label"
                   :placeholder="$t('msg.info.formInput')"
+                  @focus="onFocusActiveFieldLabel"
                   @keydown.enter.prevent
                   @change="updateColMeta(activeField)"
                 />
@@ -1499,7 +1506,9 @@ useEventListener(
                   </div>
                   <div>
                     <a-input
+                      key="nc-form-field-search-input"
                       v-model:value="searchQuery"
+                      autocomplete="off"
                       class="!h-9 !px-3 !py-1 !rounded-lg"
                       :placeholder="`${$t('placeholder.searchFields')}...`"
                       name="nc-form-field-search-input"

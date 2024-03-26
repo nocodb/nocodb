@@ -162,7 +162,7 @@ const showOrHideAll = (showAll: boolean) => {
     </div>
 
     <div v-if="vModel.length" class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-gray-200">
-      <NcTooltip class="truncate max-w-full" :disabled="!isRequired">
+      <NcTooltip :disabled="!isRequired">
         <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
 
         <NcButton

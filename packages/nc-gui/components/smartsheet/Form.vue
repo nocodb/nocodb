@@ -339,12 +339,12 @@ async function onMove(event: any, isVisibleFormFields = false) {
   $e('a:form-view:reorder')
 }
 
-async function showOrHideColumn(column: Record<string, any>, show: boolean, isSidePannel = false) {
+async function showOrHideColumn(column: Record<string, any>, show: boolean, isFormSettings = false) {
   if (isLocked.value || !isEditable) return
 
   if (shouldSkipColumn(column)) {
     // Required field can't be moved
-    !isSidePannel && message.info(t('msg.info.requriedFieldsCantBeMoved'))
+    !isFormSettings && message.info(t('msg.info.requriedFieldsCantBeMoved'))
     return
   }
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === column.fk_column_id)
@@ -362,6 +362,9 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isSi
     } else {
       $e('a:form-view:hide-columns')
     }
+  }
+  if (!show && !isFormSettings && activeRow.value) {
+    activeRow.value = ''
   }
 }
 
@@ -465,14 +468,23 @@ function onEmailChange() {
   updateView()
 }
 
-async function submitEditOrAddCallback(type: 'add' | 'edit') {
-  await loadFormView()
-  setFormData()
+async function submitEditOrAddOrDeleteColumnCallback(type: 'add' | 'edit' | 'delete', oldColumn?: ColumnType) {
   if (type === 'add') {
     showAddColumnDropdown.value = false
-  } else {
+  } else if (type === 'edit') {
     showEditColumnDropdown.value = false
   }
+
+  if (activeField.value && (type === 'delete' || activeField.value.uidt !== activeColumn.value?.uidt)) {
+    // Reset the formstate if column type is changed or if column is deleted
+    delete formState.value[activeField.value.title]
+    if (isVirtualCol(activeField.value)) {
+      delete state.value[activeField.value.title]
+    }
+  }
+
+  await loadFormView()
+  setFormData()
 }
 
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
@@ -616,7 +628,7 @@ onClickOutside(draggableRef, (e) => {
     ) ||
     (activeField &&
       (e.target as HTMLElement)?.closest(
-        '.nc-form-left-drawer, .nc-dropdown-form-add-column, .nc-dropdown-form-edit-column, .nc-dropdown-form-column-operations, .ant-select-dropdown, .ant-dropdown',
+        '.nc-form-right-panel, .nc-dropdown-form-add-column, .nc-dropdown-form-edit-column, .nc-dropdown-form-column-operations, .ant-select-dropdown, .ant-dropdown, .ant-modal-wrap',
       ))
   ) {
     return
@@ -1221,7 +1233,7 @@ useEventListener(
           </div>
           <!-- Right Panel-->
           <div
-            class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200"
+            class="h-full flex-1 max-w-[384px] nc-form-right-panel border-l border-gray-200"
             :class="{
               'overflow-y-auto nc-form-scrollbar': activeField,
             }"
@@ -1240,7 +1252,13 @@ useEventListener(
                   :column="activeColumn"
                   :form-column="activeField"
                   :is-required="isRequired(activeField, activeField.required)"
+                  :on-delete="
+                    () => {
+                      submitEditOrAddOrDeleteColumnCallback('delete')
+                    }
+                  "
                   @edit="showEditColumnDropdown = true"
+                  @hide-field="showOrHideColumn(activeField, false, false)"
                 />
                 <a-dropdown
                   v-model:visible="showEditColumnDropdown"
@@ -1253,7 +1271,7 @@ useEventListener(
                     <SmartsheetColumnEditOrAddProvider
                       v-if="showEditColumnDropdown"
                       :column="activeColumn"
-                      @submit="submitEditOrAddCallback('edit')"
+                      @submit="submitEditOrAddOrDeleteColumnCallback('edit')"
                       @cancel="showEditColumnDropdown = false"
                       @click.stop
                       @keydown.stop
@@ -1426,7 +1444,7 @@ useEventListener(
                       <template #overlay>
                         <SmartsheetColumnEditOrAddProvider
                           v-if="showAddColumnDropdown"
-                          @submit="submitEditOrAddCallback('add')"
+                          @submit="submitEditOrAddOrDeleteColumnCallback('add')"
                           @cancel="showAddColumnDropdown = false"
                           @click.stop
                           @keydown.stop

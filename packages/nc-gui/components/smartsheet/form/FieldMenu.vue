@@ -19,9 +19,15 @@ import {
   toRefs,
 } from '#imports'
 
-const props = defineProps<{ column: ColumnType; formColumn: Record<string, any>; isRequired?: boolean; isOpen: boolean }>()
+const props = defineProps<{
+  column: ColumnType
+  formColumn: Record<string, any>
+  isRequired?: boolean
+  isOpen: boolean
+  onDelete: () => void
+}>()
 
-const emit = defineEmits(['edit', 'showOrHideColumn', 'update:isOpen'])
+const emit = defineEmits(['edit', 'hideField', 'update:isOpen'])
 
 const { column, isRequired } = toRefs(props)
 
@@ -149,9 +155,9 @@ const openDuplicateDlg = async () => {
 
 // hide the field in view
 const hideField = async () => {
-  if (isRequired) return
+  if (isRequired.value) return
   isOpen.value = false
-  emit('showOrHideColumn')
+  emit('hideField')
 }
 
 const handleDelete = () => {
@@ -206,42 +212,48 @@ const isDuplicateAllowed = computed(() => {
     <template #overlay>
       <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
         <NcMenuItem @click="onEditPress">
-          <div class="nc-column-edit nc-header-menu-item">
-            <component :is="iconMap.ncEdit" class="text-gray-700" />
+          <div class="nc-column-edit nc-form-header-menu-item">
+            <component :is="iconMap.ncEdit" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
         </NcMenuItem>
 
         <NcMenuItem v-if="false" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
-          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
-            <component :is="iconMap.duplicate" class="text-gray-700" />
+          <div class="nc-column-duplicate nc-form-header-menu-item">
+            <component :is="iconMap.duplicate" />
             <!-- Duplicate -->
             {{ t('general.duplicate') }}
           </div>
         </NcMenuItem>
 
         <NcMenuItem :disabled="isRequired" @click="hideField">
-          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
-            <component :is="iconMap.eye" class="text-gray-700 !w-3.75 !h-3.75" />
+          <div class="nc-column-insert-before nc-form-header-menu-item">
+            <component :is="iconMap.eye" class="!w-3.75 !h-3.75" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
         </NcMenuItem>
 
-        <a-divider v-if="!column?.pv" class="!my-0" />
+        <template v-if="!column?.pv">
+          <a-divider class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pv" :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
-          <div class="nc-column-delete nc-header-menu-item text-red-600">
-            <component :is="iconMap.delete" />
-            <!-- Delete -->
-            {{ $t('general.delete') }}
-          </div>
-        </NcMenuItem>
+          <NcMenuItem :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
+            <div class="nc-column-delete nc-form-header-menu-item text-red-600">
+              <component :is="iconMap.delete" />
+              <!-- Delete -->
+              {{ $t('general.delete') }}
+            </div>
+          </NcMenuItem>
+        </template>
       </NcMenu>
     </template>
   </a-dropdown>
-  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" class="nc-form-column-delete-dropdown" />
+  <SmartsheetHeaderDeleteColumnModal
+    v-model:visible="showDeleteColumnModal"
+    class="nc-form-column-delete-dropdown"
+    :on-delete-column="onDelete"
+  />
   <DlgColumnDuplicate
     v-if="column"
     ref="duplicateDialogRef"
@@ -252,17 +264,7 @@ const isDuplicateAllowed = computed(() => {
 </template>
 
 <style scoped>
-.nc-header-menu-item {
-  @apply text-dropdown flex items-center gap-2;
-}
-
-.nc-column-options {
-  .nc-icons {
-    @apply !w-5 !h-5;
-  }
-}
-
-:deep(.ant-dropdown-menu-item) {
-  @apply !hover:text-black text-gray-700;
+.nc-form-header-menu-item {
+  @apply flex items-center gap-2;
 }
 </style>

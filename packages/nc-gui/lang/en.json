@@ -198,7 +198,9 @@
     "logo": "Logo",
     "dropdown": "Dropdown",
     "list": "List",
-    "apply": "Apply"
+    "apply": "Apply",
+    "text": "Text",
+    "appearance": "Appearance"
   },
   "objects": {
     "day": "Day",
@@ -972,7 +974,7 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "changeIconColour": "Change Icon Colour",
+    "changeIconColour": "Change icon colour",
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },

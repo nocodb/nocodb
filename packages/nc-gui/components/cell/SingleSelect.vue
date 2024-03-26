@@ -11,6 +11,7 @@ import {
   EditModeInj,
   IsFormInj,
   IsKanbanInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   enumColor,
@@ -61,6 +62,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const { $api } = useNuxtApp()
 
@@ -311,6 +314,8 @@ const onFocus = () => {
   setTimeout(() => {
     isFocusing.value = false
   }, 250)
+
+  if (isSurveyForm.value && vModel.value) return
 
   isOpen.value = true
 }

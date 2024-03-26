@@ -60,7 +60,7 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsRequired() {
-    return this.get().locator('[data-testid="nc-form-input-required"] + button');
+    return this.get().locator('[data-testid="nc-form-input-required"]');
   }
 
   getFormFieldsInputLabel() {

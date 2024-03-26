@@ -370,9 +370,9 @@ watchEffect(() => {})
                 <div>
                   {{ $t('activity.surveyMode') }}
                 </div>
-                <NcTooltip>
+                <NcTooltip class="flex items-center">
                   <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
-                  <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+                  <GeneralIcon icon="info" class="flex-none text-gray-600 cursor-pointer"></GeneralIcon>
                 </NcTooltip>
               </div>
               <a-switch
@@ -405,13 +405,13 @@ watchEffect(() => {})
                 {{ $t('activity.preFilledFields.title') }}
               </div>
 
-              <NcTooltip>
+              <NcTooltip class="flex items-center">
                 <template #title>
                   <div class="text-center">
                     {{ $t('tooltip.preFillFormInfo') }}
                   </div>
                 </template>
-                <GeneralIcon icon="info" class="text-gray-600 cursor-pointer"></GeneralIcon>
+                <GeneralIcon icon="info" class="flex-none text-gray-600 cursor-pointer"></GeneralIcon>
               </NcTooltip>
             </div>
             <a-switch

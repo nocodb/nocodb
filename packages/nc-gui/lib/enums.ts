@@ -142,3 +142,20 @@ export enum PreFilledMode {
   Hidden = 'hidden',
   Locked = 'locked',
 }
+
+export enum RichTextBubbleMenuOptions {
+  bold = 'bold',
+  italic = 'italic',
+  underline = 'underline',
+  strike = 'strike',
+  code = 'code',
+  quote = 'quote',
+  heading1 = 'heading1',
+  heading2 = 'heading2',
+  heading3 = 'heading3',
+  blockQuote = 'blockQuote',
+  bulletList = 'bulletList',
+  numberedList = 'numberedList',
+  taskList = 'taskList',
+  link = 'link',
+}

@@ -9,7 +9,8 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj, RichTextBubbleMenuOptions } from '#imports'
+import type { RichTextBubbleMenuOptions } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
 
 const props = withDefaults(
   defineProps<{

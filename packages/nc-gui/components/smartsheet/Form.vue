@@ -24,6 +24,7 @@ import {
   IsGalleryInj,
   MetaInj,
   ReloadViewDataHookInj,
+  RichTextBubbleMenuOptions,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
@@ -44,7 +45,6 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   useViewsStore,
-  RichTextBubbleMenuOptions,
 } from '#imports'
 import type { ImageCropperConfig } from '~/lib'
 

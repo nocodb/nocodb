@@ -92,14 +92,7 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 }
 
 const showDivider = (options: RichTextBubbleMenuOptions[]) => {
-  return isFormField.value
-    ? [
-        RichTextBubbleMenuOptions.blockQuote,
-        RichTextBubbleMenuOptions.bulletList,
-        RichTextBubbleMenuOptions.numberedList,
-        RichTextBubbleMenuOptions.taskList,
-      ].some((o) => !hiddenOptions.value.includes(o))
-    : true
+  return isFormField.value ? options.some((o) => !hiddenOptions.value.includes(o)) : true
 }
 </script>
 
@@ -199,7 +192,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :placement="tooltipPlacement" v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.code)">
+    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.code)" :placement="tooltipPlacement">
       <template #title> {{ $t('general.code') }}</template>
       <NcButton
         size="small"
@@ -287,7 +280,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <div class="divider"></div>
     </template>
 
-    <NcTooltip :placement="tooltipPlacement" v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)">
+    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)" :placement="tooltipPlacement">
       <template #title> {{ $t('labels.blockQuote') }}</template>
       <NcButton
         size="small"
@@ -299,7 +292,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :placement="tooltipPlacement" v-if="isOptionVisible(RichTextBubbleMenuOptions.bulletList)">
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.bulletList)" :placement="tooltipPlacement">
       <template #title> {{ $t('labels.bulletList') }}</template>
       <NcButton
         size="small"
@@ -311,7 +304,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :placement="tooltipPlacement" v-if="isOptionVisible(RichTextBubbleMenuOptions.numberedList)">
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.numberedList)" :placement="tooltipPlacement">
       <template #title> {{ $t('labels.numberedList') }}</template>
       <NcButton
         size="small"
@@ -323,7 +316,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :placement="tooltipPlacement" v-if="isOptionVisible(RichTextBubbleMenuOptions.taskList)">
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.taskList)" :placement="tooltipPlacement">
       <template #title> {{ $t('labels.taskList') }}</template>
       <NcButton
         size="small"

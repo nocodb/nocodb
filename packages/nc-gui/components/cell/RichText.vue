@@ -9,21 +9,29 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj, RichTextBubbleMenuOptions } from '#imports'
 
-const props = defineProps<{
-  value?: string | null
-  readOnly?: boolean
-  syncValueChange?: boolean
-  showMenu?: boolean
-  fullMode?: boolean
-  isFormField?: boolean
-  autofocus?: boolean
-  placeholder?: string
-  renderAsText?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    value?: string | null
+    readOnly?: boolean
+    syncValueChange?: boolean
+    showMenu?: boolean
+    fullMode?: boolean
+    isFormField?: boolean
+    autofocus?: boolean
+    placeholder?: string
+    renderAsText?: boolean
+    hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
+  }>(),
+  {
+    hiddenBubbleMenuOptions: () => [],
+  },
+)
 
 const emits = defineEmits(['update:value'])
+
+const { hiddenBubbleMenuOptions } = toRefs(props)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -208,7 +216,11 @@ useEventListener(
   editorDom,
   'focusout',
   (e: FocusEvent) => {
-    if (!(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+    if (
+      ((e?.target as HTMLElement)?.classList?.contains('tiptap') &&
+        (e?.relatedTarget as HTMLElement)?.classList?.contains('tiptap')) ||
+      !(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')
+    ) {
       isFocused.value = false
     }
   },
@@ -223,7 +235,7 @@ useEventListener(
       'flex flex-col flex-grow nc-rich-text-full': fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
       'readonly': readOnly,
-      'nc-form-rich-text-field !p-0': isFormField,
+      'nc-form-rich-text-field !p-0 relative': isFormField,
       'nc-rich-text-grid': isGrid,
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
@@ -257,15 +269,20 @@ useEventListener(
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
       />
-      <div v-if="isFormField && !readOnly">
+      <div v-if="isFormField && !readOnly" class="nc-form-field-bubble-menu-wrapper overflow-hidden">
         <div
-          class="overflow-hidden"
           :class="isFocused ? 'max-h-[50px]' : 'max-h-0'"
           :style="{
             transition: 'max-height 0.2s ease-in-out',
           }"
         >
-          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+          <CellRichTextSelectedBubbleMenu
+            v-if="editor"
+            :editor="editor"
+            embed-mode
+            is-form-field
+            :hidden-options="hiddenBubbleMenuOptions"
+          />
         </div>
       </div>
     </template>
@@ -461,5 +478,10 @@ useEventListener(
   pre {
     height: fit-content;
   }
+}
+.nc-form-field-bubble-menu-wrapper {
+  @apply absolute -bottom-9 left-1/2 z-50 rounded-lg;
+  transform: translateX(-50%);
+  box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
 }
 </style>

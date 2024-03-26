@@ -44,6 +44,7 @@ import {
   useViewColumnsOrThrow,
   useViewData,
   useViewsStore,
+  RichTextBubbleMenuOptions,
 } from '#imports'
 import type { ImageCropperConfig } from '~/lib'
 
@@ -64,6 +65,14 @@ const hiddenColTypes = [
   UITypes.LastModifiedTime,
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
+]
+
+const hiddenBubbleMenuOptions = [
+  RichTextBubbleMenuOptions.code,
+  RichTextBubbleMenuOptions.blockQuote,
+  RichTextBubbleMenuOptions.bulletList,
+  RichTextBubbleMenuOptions.numberedList,
+  RichTextBubbleMenuOptions.taskList,
 ]
 
 const enum NcForm {
@@ -791,7 +800,7 @@ useEventListener(
                 </h1>
 
                 <div v-if="formViewData.subheading?.trim()">
-                  <LazyCellRichText
+                  <CellRichText
                     :value="formViewData.subheading"
                     class="font-medium text-base text-gray-500 !h-auto mb-4 -ml-1"
                     is-form-field
@@ -805,7 +814,7 @@ useEventListener(
                 <div class="w-full">
                   <a-alert class="nc-form-success-msg !my-4 !py-4 text-left !rounded-lg" type="success" outlined>
                     <template #message>
-                      <LazyCellRichText
+                      <CellRichText
                         v-if="formViewData?.success_msg?.trim()"
                         :value="formViewData?.success_msg"
                         class="!h-auto -ml-1"
@@ -1055,7 +1064,7 @@ useEventListener(
                       class="border-transparent px-4 lg:px-6"
                       :class="[
                         {
-                          'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
+                          'rounded-2xl border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
                         },
                         {
                           'mb-4 py-0 lg:py-0': !isEditable,
@@ -1072,7 +1081,7 @@ useEventListener(
                       ]"
                       @click.stop="onFormItemClick({ id: NcForm.subheading })"
                     >
-                      <LazyCellRichText
+                      <CellRichText
                         v-if="isEditable && !isLocked"
                         v-model:value="formViewData.subheading"
                         :placeholder="$t('msg.info.formDesc')"
@@ -1083,7 +1092,7 @@ useEventListener(
                         :data-title="NcForm.subheading"
                         @update:value="updateView"
                       />
-                      <LazyCellRichText
+                      <CellRichText
                         v-else-if="formViewData.subheading"
                         :value="formViewData.subheading"
                         class="font-medium text-base !text-gray-500 -ml-1"
@@ -1155,7 +1164,7 @@ useEventListener(
                           >
                         </div>
 
-                        <LazyCellRichText
+                        <CellRichText
                           v-if="element.description"
                           :value="element.description"
                           is-form-field
@@ -1343,11 +1352,12 @@ useEventListener(
                   @change="updateColMeta(activeField)"
                 />
 
-                <LazyCellRichText
+                <CellRichText
                   v-model:value="activeField.description"
                   :placeholder="$t('msg.info.formHelpText')"
                   class="form-meta-input nc-form-input-help-text"
                   is-form-field
+                  :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
                   data-testid="nc-form-input-help-text"
                   @update:value="updateColMeta(activeField)"
                 />
@@ -1693,14 +1703,15 @@ useEventListener(
                         {{ $t('msg.info.formDisplayMessage') }}
                       </div>
                       <a-form-item class="!my-0">
-                        <LazyCellRichText
+                        <CellRichText
                           v-if="!isLocked && isEditable"
                           v-model:value="formViewData.success_msg"
                           class="nc-form-after-submit-msg"
-                          :is-form-field="true"
+                          is-form-field
+                          :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
                           data-testid="nc-form-after-submit-msg"
                           @update:value="updateView" />
-                        <LazyCellRichText
+                        <CellRichText
                           v-else
                           :value="formViewData.success_msg"
                           class="nc-form-after-submit-msg"

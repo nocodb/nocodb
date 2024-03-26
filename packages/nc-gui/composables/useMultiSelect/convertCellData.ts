@@ -3,6 +3,7 @@ import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptions
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
 import type { AppInfo } from '~/composables/useGlobal'
 import { isBt, isMm, isOo, parseProp } from '#imports'
+import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 export default function convertCellData(
   args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
@@ -290,6 +291,12 @@ export default function convertCellData(
       } else {
         throw new Error(`Unsupported conversion for ${to}`)
       }
+    }
+    case UITypes.Email: {
+      if (parseProp(column.meta).validate) {
+        return extractEmail(value) || value
+      }
+      return value
     }
     case UITypes.Lookup:
     case UITypes.Rollup:

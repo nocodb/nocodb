@@ -80,7 +80,7 @@ const enum NcForm {
   subheading = 'nc-form-sub-heading',
 }
 
-const { isMobileMode, user } = useGlobal()
+const { user } = useGlobal()
 
 const { $api, $e } = useNuxtApp()
 
@@ -91,6 +91,8 @@ const { base } = storeToRefs(useBase())
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const formRef = ref()
+
+const formFieldSearchInput = ref()
 
 const formState = ref<Record<string, any>>({})
 
@@ -1507,7 +1509,8 @@ useEventListener(
                   <div>
                     <a-input
                       key="nc-form-field-search-input"
-                      v-model:value="searchQuery"
+                      ref="formFieldSearchInput"
+                      :value="searchQuery"
                       autocomplete="off"
                       class="!h-9 !px-3 !py-1 !rounded-lg"
                       :placeholder="`${$t('placeholder.searchFields')}...`"

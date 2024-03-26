@@ -127,12 +127,11 @@ const draggableRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>[]>([])
 
-const showColumnMenuDropdown = ref(false)
-
-const showEditColumnDropdown = ref(false)
-
-const showAddColumnDropdown = ref(false)
-
+const dropdownStates = ref({
+  showColumnMenu: false,
+  showEditColumn: false,
+  showAddColumn: false,
+})
 const drag = ref(false)
 
 const emailMe = ref(false)
@@ -466,23 +465,35 @@ function onEmailChange() {
   updateView()
 }
 
-async function submitEditOrAddOrDeleteColumnCallback(type: 'add' | 'edit' | 'delete') {
-  if (type === 'add') {
-    showAddColumnDropdown.value = false
-  } else if (type === 'edit') {
-    showEditColumnDropdown.value = false
+function resetFormFieldState() {
+  if (!activeField.value) return
+
+  // Reset the formstate if column type is changed or if column is deleted
+  delete formState.value[activeField.value.title]
+  if (isVirtualCol(activeField.value)) {
+    delete state.value[activeField.value.title]
+  }
+}
+
+async function addColumnCallback() {
+  dropdownStates.value.showAddColumn = false
+
+  reloadEventHook.trigger()
+}
+
+async function editColumnCallback() {
+  dropdownStates.value.showEditColumn = false
+
+  if (activeField.value && activeField.value.uidt !== activeColumn.value?.uidt) {
+    resetFormFieldState()
   }
 
-  if (activeField.value && (type === 'delete' || activeField.value.uidt !== activeColumn.value?.uidt)) {
-    // Reset the formstate if column type is changed or if column is deleted
-    delete formState.value[activeField.value.title]
-    if (isVirtualCol(activeField.value)) {
-      delete state.value[activeField.value.title]
-    }
-  }
+  reloadEventHook.trigger()
+}
 
-  await loadFormView()
-  setFormData()
+async function deleteColumnCallback() {
+  resetFormFieldState()
+  reloadEventHook.trigger()
 }
 
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
@@ -688,8 +699,12 @@ watch(activeField, (newValue) => {
       }, 50)
     }
   }
-  showColumnMenuDropdown.value = false
-  showEditColumnDropdown.value = false
+
+  dropdownStates.value = {
+    ...dropdownStates.value,
+    showColumnMenu: false,
+    showEditColumn: false,
+  }
 })
 
 watch([focusLabel, activeRow], () => {
@@ -1277,39 +1292,33 @@ useEventListener(
                 </div>
                 <div class="flex items-center space-x-2">
                   <a-dropdown
-                    v-model:visible="showEditColumnDropdown"
+                    v-model:visible="dropdownStates.showEditColumn"
                     :trigger="['click']"
                     overlay-class-name="nc-dropdown-form-edit-column"
                     :disabled="!isUIAllowed('fieldEdit')"
                   >
-                    <NcButton
-                      type="secondary"
-                      size="small"
-                      class="nc-form-add-field"
-                      data-testid="nc-form-add-field"
-                      @click.stop="showEditColumnDropdown = true"
-                    >
-                      Edit Field
+                    <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
+                      {{ $t('general.edit') }} {{ $t('objects.field') }}
                     </NcButton>
                     <template #overlay>
                       <SmartsheetColumnEditOrAddProvider
-                        v-if="showEditColumnDropdown"
+                        v-if="dropdownStates.showEditColumn"
                         :column="activeColumn"
-                        @submit="submitEditOrAddOrDeleteColumnCallback('edit')"
-                        @cancel="showEditColumnDropdown = false"
+                        @submit="editColumnCallback"
+                        @cancel="dropdownStates.showEditColumn = false"
                         @click.stop
                         @keydown.stop
                       />
                     </template>
                   </a-dropdown>
                   <SmartsheetFormFieldMenu
-                    v-model:is-open="showColumnMenuDropdown"
+                    v-model:is-open="dropdownStates.showColumnMenu"
                     :column="activeColumn"
                     :form-column="activeField"
                     :is-required="isRequired(activeField, activeField.required)"
                     :on-delete="
                       () => {
-                        submitEditOrAddOrDeleteColumnCallback('delete')
+                        deleteColumnCallback()
                       }
                     "
                     @hide-field="showOrHideColumn(activeField, false, false)"
@@ -1445,17 +1454,11 @@ useEventListener(
 
                     <a-dropdown
                       v-if="isUIAllowed('fieldAdd')"
-                      v-model:visible="showAddColumnDropdown"
+                      v-model:visible="dropdownStates.showAddColumn"
                       :trigger="['click']"
                       overlay-class-name="nc-dropdown-form-add-column"
                     >
-                      <NcButton
-                        type="secondary"
-                        size="small"
-                        class="nc-form-add-field"
-                        data-testid="nc-form-add-field"
-                        @click.stop="showAddColumnDropdown = true"
-                      >
+                      <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.plus" class="w-4 h-4" />
                           <span> {{ $t('activity.addFieldFromFormView') }} </span>
@@ -1464,9 +1467,9 @@ useEventListener(
 
                       <template #overlay>
                         <SmartsheetColumnEditOrAddProvider
-                          v-if="showAddColumnDropdown"
-                          @submit="submitEditOrAddOrDeleteColumnCallback('add')"
-                          @cancel="showAddColumnDropdown = false"
+                          v-if="dropdownStates.showAddColumn"
+                          @submit="addColumnCallback"
+                          @cancel="dropdownStates.showAddColumn = false"
                           @click.stop
                           @keydown.stop
                         />

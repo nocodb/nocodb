@@ -137,8 +137,6 @@ const submitted = ref(false)
 
 const activeRow = ref('')
 
-const isTabPressed = ref(false)
-
 const isLoadingFormView = ref(false)
 
 const showCropper = ref(false)
@@ -190,14 +188,7 @@ const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).s
 
 const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value.logo_url)))
 
-const activeField = computed({
-  get: () => {
-    return visibleColumns.value.find((c) => c.title === activeRow.value) || null
-  },
-  set: (val) => {
-    console.log('value', val)
-  },
-})
+const activeField = computed(() => visibleColumns.value.find((c) => c.title === activeRow.value) || null)
 
 const updateView = useDebounceFn(
   () => {
@@ -482,7 +473,6 @@ const onFormItemClick = (element: any) => {
   if (isLocked.value || !isEditable) return
 
   activeRow.value = element.title
-  isTabPressed.value = false
 }
 
 const handleChangeBackground = (color: string) => {
@@ -610,7 +600,6 @@ onClickOutside(draggableRef, (e) => {
   }
 
   activeRow.value = ''
-  isTabPressed.value = false
 })
 
 onMounted(async () => {
@@ -682,41 +671,6 @@ watch([focusLabel, activeRow], () => {
     focusLabel.value?.focus()
   }
 })
-
-useEventListener(
-  formRef,
-  'focusout',
-  (e: FocusEvent) => {
-    const nextActiveFieldTitle =
-      (e?.relatedTarget as HTMLElement)?.getAttribute('data-title') ||
-      (e?.relatedTarget as HTMLElement)?.offsetParent?.closest('.nc-form-focus-element')?.getAttribute('data-title') ||
-      (e?.relatedTarget as HTMLElement)?.closest('.nc-form-focus-element')?.getAttribute('data-title')
-    if (
-      (activeRow.value || [NcForm.heading, NcForm.subheading].includes(nextActiveFieldTitle as NcForm)) &&
-      nextActiveFieldTitle &&
-      activeRow.value !== nextActiveFieldTitle
-    ) {
-      if (isTabPressed.value) {
-        activeRow.value = nextActiveFieldTitle
-      }
-    }
-    isTabPressed.value = false
-  },
-  true,
-)
-
-useEventListener(
-  formRef,
-  'keydown',
-  (e: KeyboardEvent) => {
-    if (e.key === 'Tab') {
-      isTabPressed.value = true
-    } else {
-      isTabPressed.value = false
-    }
-  },
-  true,
-)
 
 useEventListener(
   document,
@@ -1162,17 +1116,7 @@ useEventListener(
                               class="!my-0 nc-input-required-error nc-form-input-item"
                               :rules="formElementValidationRules(element)"
                             >
-                              <LazySmartsheetDivDataCell
-                                class="relative"
-                                @click.stop="
-                                  () => {
-                                    isTabPressed = false
-                                    if (activeRow !== element.title) {
-                                      activeRow = ''
-                                    }
-                                  }
-                                "
-                              >
+                              <LazySmartsheetDivDataCell class="relative" @click.stop>
                                 <LazySmartsheetVirtualCell
                                   v-if="isVirtualCol(element)"
                                   v-model="formState[element.title]"
@@ -1257,15 +1201,9 @@ useEventListener(
           >
             <div v-if="activeField">
               <!-- header -->
-              <div class="px-3 py-2 flex items-center border-b border-gray-200">
-                <div class="text-lg flex items-center">
-                  <SmartsheetHeaderVirtualCellIcon
-                    v-if="isVirtualCol(activeField)"
-                    :column-meta="activeField"
-                    class="!w-5 !h-5"
-                  />
-                  <SmartsheetHeaderCellIcon v-else :column-meta="activeField" class="!w-5 !h-5" />
-                </div>
+              <div class="px-3 py-2 flex items-center border-b border-gray-200 font-medium">
+                <div class="font-medium">{{ $t('objects.viewType.form') }}</div>
+                <div class="px-1.75 text-gray-500">/</div>
                 <a-dropdown
                   v-if="isUIAllowed('fieldEdit')"
                   v-model:visible="showColumnDropdown"
@@ -1274,9 +1212,14 @@ useEventListener(
                   disabled
                 >
                   <div
-                    class="flex items-center space-x-1 px-1 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer"
+                    class="flex items-center space-x-1 pr-1 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer"
                     :class="showColumnDropdown ? 'text-brand-500' : 'text-gray-800'"
                   >
+                    <div class="flex items-center">
+                      <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(activeField)" :column-meta="activeField" />
+                      <SmartsheetHeaderCellIcon v-else :column-meta="activeField" />
+                    </div>
+
                     <NcTooltip show-on-truncate-only>
                       <template #title>
                         <div class="text-center">

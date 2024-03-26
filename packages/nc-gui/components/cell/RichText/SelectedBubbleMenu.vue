@@ -43,6 +43,10 @@ const tooltipPlacement = computed(() => {
   if (isFormField.value) return 'bottom'
 })
 
+const tabIndex = computed(() => {
+  return isFormField.value ? -1 : 0
+})
+
 const onToggleLink = () => {
   const activeNode = editor.value?.state?.selection?.$from?.nodeBefore || editor.value?.state?.selection?.$from?.nodeAfter
 
@@ -123,7 +127,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
@@ -144,7 +148,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         type="text"
         :disabled="editor.isActive('codeBlock')"
         :class="{ 'is-active': editor.isActive('italic') }"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
@@ -165,7 +169,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         type="text"
         :class="{ 'is-active': editor.isActive('underline') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
@@ -185,7 +189,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
@@ -197,6 +201,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <NcButton
         size="small"
         type="text"
+        :tabindex="tabIndex"
         :class="{ 'is-active': editor.isActive('codeBlock') }"
         @click="editor!.chain().focus().toggleCodeBlock().run()"
       >
@@ -212,6 +217,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <NcButton
         size="small"
         type="text"
+        :tabindex="tabIndex"
         :class="{ 'is-active': editor.isActive('code') }"
         :disabled="editor.isActive('codeBlock')"
         @click="editor!.chain().focus().toggleCode().run()"
@@ -285,6 +291,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <NcButton
         size="small"
         type="text"
+        :tabindex="tabIndex"
         :class="{ 'is-active': editor.isActive('blockquote') }"
         @click="editor!.chain().focus().toggleBlockquote().run()"
       >
@@ -297,6 +304,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <NcButton
         size="small"
         type="text"
+        :tabindex="tabIndex"
         :class="{ 'is-active': editor.isActive('bulletList') }"
         @click="editor!.chain().focus().toggleBulletList().run()"
       >
@@ -309,6 +317,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <NcButton
         size="small"
         type="text"
+        :tabindex="tabIndex"
         :class="{ 'is-active': editor.isActive('orderedList') }"
         @click="editor!.chain().focus().toggleOrderedList().run()"
       >
@@ -321,6 +330,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       <NcButton
         size="small"
         type="text"
+        :tabindex="tabIndex"
         :class="{ 'is-active': editor.isActive('taskList') }"
         @click="editor!.chain().focus().toggleTaskList().run()"
       >
@@ -351,7 +361,7 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         type="text"
         :class="{ 'is-active': editor.isActive('link') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="onToggleLink"
       >
         <GeneralIcon v-if="isFormField" icon="link2"></GeneralIcon>

@@ -212,7 +212,7 @@ watch(inputWrapperRef, () => {
     >
       <div v-if="isForm && isRichMode" class="w-full">
         <div class="w-full relative pt-11 w-full px-0 pb-1">
-          <LazyCellRichText v-model:value="vModel" class="border-t-1 border-gray-100 !max-h-80" :autofocus="false" show-menu />
+          <LazyCellRichText v-model:value="vModel" class="border-t-1 border-gray-100 !max-h-50" :autofocus="false" show-menu />
         </div>
       </div>
 

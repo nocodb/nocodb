@@ -28,6 +28,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  IsSurveyFormInj,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -63,6 +64,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const selectedIds = ref<string[]>([])
 
@@ -385,6 +388,8 @@ const onFocus = () => {
   setTimeout(() => {
     isFocusing.value = false
   }, 250)
+
+  if (isSurveyForm.value && vModel.value?.length) return
 
   isOpen.value = true
 }

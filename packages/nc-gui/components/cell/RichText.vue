@@ -26,13 +26,14 @@ const props = withDefaults(
     hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
   }>(),
   {
+    isFormField: false,
     hiddenBubbleMenuOptions: () => [],
   },
 )
 
-const emits = defineEmits(['update:value'])
+const emits = defineEmits(['update:value', 'focus', 'blur'])
 
-const { hiddenBubbleMenuOptions } = toRefs(props)
+const { isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -126,7 +127,7 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
   StarterKit.configure({
-    heading: props.isFormField ? false : undefined,
+    heading: isFormField.value ? false : undefined,
   }),
   TaskList,
   TaskItem.configure({
@@ -147,16 +148,18 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = props.isFormField && markdown === '<br />' ? '' : markdown
+    vModel.value = isFormField.value && markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
   onFocus: () => {
     isFocused.value = true
+    emits('focus')
   },
   onBlur: (e) => {
     if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
+      emits('blur')
     }
   },
 })
@@ -188,7 +191,7 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
 }
 
 const onFocusWrapper = () => {
-  if (isForm.value && !props.isFormField && !(keys.shift.value && keys.tab.value)) {
+  if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
   }
 }
@@ -199,7 +202,7 @@ if (props.syncValueChange) {
   })
 }
 
-if (props.isFormField) {
+if (isFormField.value) {
   watch([props, editor], () => {
     if (props.readOnly) {
       editor.value?.setEditable(false)
@@ -214,7 +217,7 @@ watch(editorDom, () => {
 
   setEditorContent(vModel.value, true)
 
-  if (props.isFormField || !props.autofocus) return
+  if (isForm.value || isFormField.value) return
   // Focus editor after editor is mounted
   setTimeout(() => {
     editor.value?.chain().focus().run()
@@ -228,6 +231,7 @@ useEventListener(
     const targetEl = e?.relatedTarget as HTMLElement
     if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
+      emits('blur')
     }
   },
   true,

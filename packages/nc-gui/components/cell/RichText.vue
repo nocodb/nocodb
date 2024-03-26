@@ -257,12 +257,12 @@ useEventListener(
     <template v-else>
       <div
         v-if="showMenu && !readOnly && !isFormField"
-        class="absolute top-0 left-0.5 right-0.5"
+        class="absolute top-0 right-0.5"
         :class="{
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
           'max-w-[calc(100%_-_198px)]': fullMode,
-          'justify-start': isForm,
-          'justify-end': !isForm,
+          'justify-start left-0.5': isForm,
+          'justify-end xs:hidden': !isForm,
         }"
       >
         <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">

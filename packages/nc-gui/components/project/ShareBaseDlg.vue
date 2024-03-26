@@ -2,6 +2,8 @@
 import type { RoleLabels } from 'nocodb-sdk'
 import { OrderedProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import type { User } from '#imports'
+import { extractEmail } from '~/helpers/parsers/parserHelpers'
+
 const props = defineProps<{
   modelValue: boolean
   baseId?: string
@@ -157,6 +159,8 @@ watch(dialogShow, (newVal) => {
 
 // when bulk email is pasted
 const onPaste = (e: ClipboardEvent) => {
+  emailValidation.isError = false
+
   const pastedText = e.clipboardData?.getData('text')
 
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
@@ -168,6 +172,8 @@ const onPaste = (e: ClipboardEvent) => {
   }
 
   inputArray?.forEach((el) => {
+    el = extractEmail(el) || el
+
     const isEmailIsValid = emailInputValidation(el)
 
     if (!isEmailIsValid) return

@@ -4,6 +4,7 @@ import type { RoleLabels } from 'nocodb-sdk'
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 import { validateEmail } from '~/utils/validation'
+import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 const inviteData = reactive({
   email: '',
@@ -164,6 +165,8 @@ onKeyStroke('Backspace', () => {
 
 // when bulk email is pasted
 const onPaste = (e: ClipboardEvent) => {
+  emailValidation.isError = false
+
   const pastedText = e.clipboardData?.getData('text')
 
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
@@ -175,6 +178,8 @@ const onPaste = (e: ClipboardEvent) => {
   }
 
   inputArray?.forEach((el) => {
+    el = extractEmail(el) || el
+
     const isEmailIsValid = emailInputValidation(el)
 
     if (!isEmailIsValid) return

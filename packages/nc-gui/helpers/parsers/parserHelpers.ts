@@ -1,7 +1,15 @@
 import { UITypes } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
+
 const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
+
+export const extractEmail = (v: string) => {
+  const matches = v.match(
+    /(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})/i,
+  )
+  return matches ? matches[0] : null
+}
 
 const booleanOptions = [
   { checked: true, unchecked: false },

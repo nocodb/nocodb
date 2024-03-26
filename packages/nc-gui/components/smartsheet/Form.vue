@@ -191,7 +191,7 @@ const { open, onChange: onChangeFile } = useFileDialog({
 
 const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
 
-const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value.logo_url)))
+const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value?.logo_url)))
 
 const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
 

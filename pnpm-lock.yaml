@@ -266,8 +266,8 @@ importers:
         specifier: ^1.1.17
         version: 1.1.17
       '@iconify-json/ion':
-        specifier: ^1.1.16
-        version: 1.1.16
+        specifier: ^1.1.17
+        version: 1.1.17
       '@iconify-json/la':
         specifier: ^1.1.8
         version: 1.1.8
@@ -275,8 +275,8 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       '@iconify-json/lucide':
-        specifier: ^1.1.177
-        version: 1.1.177
+        specifier: ^1.1.178
+        version: 1.1.178
       '@iconify-json/material-symbols':
         specifier: ^1.1.76
         version: 1.1.76
@@ -293,8 +293,8 @@ importers:
         specifier: ^1.1.20
         version: 1.1.20
       '@iconify-json/simple-icons':
-        specifier: ^1.1.96
-        version: 1.1.96
+        specifier: ^1.1.97
+        version: 1.1.97
       '@iconify-json/system-uicons':
         specifier: ^1.1.12
         version: 1.1.12
@@ -645,7 +645,7 @@ importers:
         version: 2.2.4
       knex:
         specifier: 2.4.2
-        version: 2.4.2(mysql2@3.9.2)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
+        version: 2.4.2(mysql2@3.9.3)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
       list-github-dir-content:
         specifier: ^3.0.0
         version: 3.0.0
@@ -677,8 +677,8 @@ importers:
         specifier: ^1.4.5-lts.1
         version: 1.4.5-lts.1
       mysql2:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.9.3
+        version: 3.9.3
       nanoid:
         specifier: ^3.3.7
         version: 3.3.7
@@ -4572,8 +4572,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ion@1.1.16:
-    resolution: {integrity: sha512-UDI1ZfGoS2dN68yg0LzogEHdQdtG7aktFmExDZ67nvHRQLQqQK//SxsRKeEzJpXDhW9+ygOBPRy5LYvU73OsfA==}
+  /@iconify-json/ion@1.1.17:
+    resolution: {integrity: sha512-0rO9Yvq7yH/4XU8SoxTUTuN46npF2GobBV0IUcgsQy5/oGc+BD61265Osmp1oNqWUp2p99k2qM+7P4MGJ8MnyA==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4590,8 +4590,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.177:
-    resolution: {integrity: sha512-SQbHei3LEBDR+7O8odUWWWncIovVfJ1oulG9+MaLysNU/7BwjsEuALnGPH3mIYS57mZ2MlLvPr5yj3TILTLU/Q==}
+  /@iconify-json/lucide@1.1.178:
+    resolution: {integrity: sha512-IW5Z3ytfOPtcAlIgeMCGNrbPD/wfOBOyUAXEUgNhGTWxJICtbeHQkmL4mEoJmScSkjpZvyevxOC9kfdJG8VBtg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4626,8 +4626,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/simple-icons@1.1.96:
-    resolution: {integrity: sha512-qwCTomQT5CgV5hhgYyb/4Brcx4suoe0h/Gs4N7/Yoz6trWMC+Hc17EzpFkvZcrGc1Qtra3fuinp1IWrcrQH2WA==}
+  /@iconify-json/simple-icons@1.1.97:
+    resolution: {integrity: sha512-/jTwrcAM2Gh8FtgEn8mHolaoY1iNbRgH3AE8OXu7JULi4Tdp31u7bmCSIaNDTLdBrXjcDpw0y98Dm20TbauBCg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -18800,7 +18800,7 @@ packages:
       - supports-color
     dev: false
 
-  /knex@2.4.2(mysql2@3.9.2)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1):
+  /knex@2.4.2(mysql2@3.9.3)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1):
     resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
     engines: {node: '>=12'}
     hasBin: true
@@ -18837,7 +18837,7 @@ packages:
       getopts: 2.3.0
       interpret: 2.2.0
       lodash: 4.17.21
-      mysql2: 3.9.2
+      mysql2: 3.9.3
       pg: 8.11.3
       pg-connection-string: 2.5.0
       rechoir: 0.8.0
@@ -20162,8 +20162,8 @@ packages:
       seq-queue: 0.0.5
       sqlstring: 2.3.3
 
-  /mysql2@3.9.2:
-    resolution: {integrity: sha512-3Cwg/UuRkAv/wm6RhtPE5L7JlPB877vwSF6gfLAS68H+zhH+u5oa3AieqEd0D0/kC3W7qIhYbH419f7O9i/5nw==}
+  /mysql2@3.9.3:
+    resolution: {integrity: sha512-+ZaoF0llESUy7BffccHG+urErHcWPZ/WuzYAA9TEeLaDYyke3/3D+VQDzK9xzRnXpd0eMtRf0WNOeo4Q1Baung==}
     engines: {node: '>= 8.0'}
     dependencies:
       denque: 2.1.0
@@ -20240,7 +20240,7 @@ packages:
       axios: 1.6.8(debug@4.3.4)
       emittery: 0.13.1
       is-docker: 2.2.1
-      knex: 2.4.2(mysql2@3.9.2)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
+      knex: 2.4.2(mysql2@3.9.3)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
       lodash: 4.17.21
       posthog-node: 1.3.0(debug@4.3.4)
       snowflake-sdk: 1.8.0(asn1.js@5.4.1)

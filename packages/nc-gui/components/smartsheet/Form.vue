@@ -7,6 +7,7 @@ import type { FormItemProps } from 'ant-design-vue'
 
 import {
   type AttachmentResType,
+  type ColumnType,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -15,7 +16,6 @@ import {
   isLinksOrLTAR,
   isSelectTypeCol,
   isVirtualCol,
-  type ColumnType,
 } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
@@ -1231,7 +1231,7 @@ useEventListener(
               </a-card>
             </div>
           </div>
-          <!-- Right Panel-->
+          <!-- Right Panel -->
           <div
             class="h-full flex-1 max-w-[384px] nc-form-right-panel border-l border-gray-200"
             :class="{

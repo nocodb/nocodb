@@ -1616,41 +1616,45 @@ useEventListener(
                     <!-- Appearance Settings -->
                     <div class="text-base font-bold text-gray-900">{{ $t('labels.appearanceSettings') }}</div>
 
-                    <div :class="isLocked || !isEditable ? 'pointer-events-none' : ''">
-                      <div class="text-gray-800">{{ $t('labels.backgroundColor') }}</div>
-                      <div class="flex justify-start">
-                        <LazyGeneralColorPicker
-                          :model-value="(formViewData.meta as Record<string,any>).background_color"
-                          :colors="[
-                            '#FFFFFF',
-                            '#FFDBD9',
-                            '#FEE6D6',
-                            '#FFF0D1',
-                            '#D4F7E0',
-                            '#D7F2FF',
-                            '#FED8F4',
-                            '#E5D4F5',
-                            '#FFCFE6',
-                          ]"
-                          color-box-border
-                          is-new-design
-                          class="nc-form-theme-color-picker !pb-0 !pl-0 -ml-1"
-                          @input="handleChangeBackground"
-                        />
+                    <div class="flex flex-col space-y-3">
+                      <div :class="isLocked || !isEditable ? 'pointer-events-none' : ''">
+                        <div class="text-gray-800">{{ $t('labels.backgroundColor') }}</div>
+                        <div class="flex justify-start">
+                          <LazyGeneralColorPicker
+                            :model-value="(formViewData.meta as Record<string,any>).background_color"
+                            :colors="[
+                              '#FFFFFF',
+                              '#FFDBD9',
+                              '#FEE6D6',
+                              '#FFF0D1',
+                              '#D4F7E0',
+                              '#D7F2FF',
+                              '#FED8F4',
+                              '#E5D4F5',
+                              '#FFCFE6',
+                            ]"
+                            color-box-border
+                            is-new-design
+                            class="nc-form-theme-color-picker !pb-0 !pl-0 -ml-1"
+                            @input="handleChangeBackground"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div class="flex items-center">
-                      <!-- Hide NocoDB Branding -->
-                      <a-switch
-                        v-if="isEeUI"
-                        v-e="[`a:form-view:hide-branding`]"
-                        :checked="parseProp(formViewData.meta)?.hide_branding"
-                        size="small"
-                        class="nc-form-hide-branding"
-                        data-testid="nc-form-hide-branding"
-                        :disabled="isLocked || !isEditable"
-                        @change="
+                      <div class="flex items-center justify-between gap-3">
+                        <!-- Hide NocoDB Branding -->
+
+                        <span>{{ $t('labels.hideNocodbBranding') }}</span>
+
+                        <a-switch
+                          v-if="isEeUI"
+                          v-e="[`a:form-view:hide-branding`]"
+                          :checked="parseProp(formViewData.meta)?.hide_branding"
+                          size="small"
+                          class="nc-form-hide-branding"
+                          data-testid="nc-form-hide-branding"
+                          :disabled="isLocked || !isEditable"
+                          @change="
                       (value) => {
                         if (isLocked || !isEditable) return
 
@@ -1658,27 +1662,28 @@ useEventListener(
                         updateView()
                       }
                     "
-                      />
-                      <NcTooltip v-else placement="top">
-                        <template #title>
-                          <div class="text-center">
-                            {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
-                          </div>
-                        </template>
-                        <a-switch :checked="false" size="small" :disabled="true" />
-                      </NcTooltip>
-                      <span class="ml-4">{{ $t('labels.hideNocodbBranding') }}</span>
-                    </div>
-                    <div class="flex items-center">
-                      <!-- Hide Banner -->
-                      <a-switch
-                        v-e="[`a:form-view:hide-banner`]"
-                        :checked="parseProp(formViewData.meta)?.hide_banner"
-                        size="small"
-                        class="nc-form-hide-banner"
-                        data-testid="nc-form-hide-banner"
-                        :disabled="isLocked || !isEditable"
-                        @change="
+                        />
+
+                        <NcTooltip v-else placement="top">
+                          <template #title>
+                            <div class="text-center">
+                              {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                            </div>
+                          </template>
+                          <a-switch :checked="false" size="small" :disabled="true" />
+                        </NcTooltip>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <!-- Hide Banner -->
+                        <span>{{ $t('general.hide') }} {{ $t('general.banner') }}</span>
+                        <a-switch
+                          v-e="[`a:form-view:hide-banner`]"
+                          :checked="parseProp(formViewData.meta)?.hide_banner"
+                          size="small"
+                          class="nc-form-hide-banner"
+                          data-testid="nc-form-hide-banner"
+                          :disabled="isLocked || !isEditable"
+                          @change="
                       (value) => {
                         if (isLocked || !isEditable) return
 
@@ -1686,9 +1691,8 @@ useEventListener(
                         updateView()
                       }
                     "
-                      />
-
-                      <span class="ml-4">{{ $t('general.hide') }} {{ $t('general.banner') }}</span>
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1699,8 +1703,9 @@ useEventListener(
                     </div>
 
                     <div class="flex flex-col gap-3">
-                      <div class="flex items-center">
+                      <div class="flex items-center justify-between gap-3">
                         <!-- Show "Submit Another Form" button -->
+                        <span>{{ $t('msg.info.submitAnotherForm') }}</span>
                         <a-switch
                           v-model:checked="formViewData.submit_another_form"
                           v-e="[`a:form-view:submit-another-form`]"
@@ -1710,11 +1715,11 @@ useEventListener(
                           :disabled="isLocked || !isEditable"
                           @change="updateView"
                         />
-                        <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
                       </div>
 
-                      <div class="flex items-center">
+                      <div class="flex items-center justify-between gap-3">
                         <!-- Show a blank form after 5 seconds -->
+                        <span>{{ $t('msg.info.showBlankForm') }}</span>
                         <a-switch
                           v-model:checked="formViewData.show_blank_form"
                           v-e="[`a:form-view:show-blank-form`]"
@@ -1724,11 +1729,14 @@ useEventListener(
                           :disabled="isLocked || !isEditable"
                           @change="updateView"
                         />
-
-                        <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
                       </div>
 
-                      <div class="flex items-center">
+                      <div class="flex items-center justify-between gap-3">
+                        <!-- Email me at <email> -->
+                        <span>
+                          {{ $t('msg.info.emailForm') }}
+                          <span class="text-bold text-gray-600">{{ user?.email }}</span>
+                        </span>
                         <a-switch
                           v-model:checked="emailMe"
                           v-e="[`a:form-view:email-me`]"
@@ -1738,12 +1746,6 @@ useEventListener(
                           :disabled="isLocked || !isEditable"
                           @change="onEmailChange"
                         />
-
-                        <!-- Email me at <email> -->
-                        <span class="ml-4">
-                          {{ $t('msg.info.emailForm') }}
-                          <span class="text-bold text-gray-600">{{ user?.email }}</span>
-                        </span>
                       </div>
                     </div>
 

@@ -604,7 +604,7 @@ onClickOutside(draggableRef, (e) => {
     (e.target as HTMLElement)?.closest(
       '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell, .nc-form-rich-text-field',
     ) ||
-    (activeField && (e.target as HTMLElement)?.closest('.nc-form-left-drawer'))
+    (activeField && (e.target as HTMLElement)?.closest('.nc-form-left-drawer, .nc-dropdown-form-add-column'))
   ) {
     return
   }
@@ -679,7 +679,6 @@ watch(activeRow, (newValue) => {
 
 watch([focusLabel, activeRow], () => {
   if (activeRow && focusLabel.value) {
-    console.log('focus input')
     focusLabel.value?.focus()
   }
 })
@@ -1267,20 +1266,47 @@ useEventListener(
                   />
                   <SmartsheetHeaderCellIcon v-else :column-meta="activeField" class="!w-5 !h-5" />
                 </div>
-
-                <NcTooltip class="truncate max-w-3/5" show-on-truncate-only>
-                  <template #title>
-                    <div class="text-center">
-                      {{ activeField.title }}
-                    </div>
-                  </template>
-                  <span data-testid="nc-form-input-label">
-                    {{ activeField.title }}
-                  </span>
-                </NcTooltip>
-                <span v-if="isRequired(activeField, activeField.required)" class="text-red-500 text-base leading-[18px]"
-                  >&nbsp;*</span
+                <a-dropdown
+                  v-if="isUIAllowed('fieldEdit')"
+                  v-model:visible="showColumnDropdown"
+                  :trigger="['click']"
+                  overlay-class-name="nc-dropdown-form-edit-column"
+                  disabled
                 >
+                  <div
+                    class="flex items-center space-x-1 px-1 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer"
+                    :class="showColumnDropdown ? 'text-brand-500' : 'text-gray-800'"
+                  >
+                    <NcTooltip show-on-truncate-only>
+                      <template #title>
+                        <div class="text-center">
+                          {{ activeField.title }}
+                        </div>
+                      </template>
+
+                      <div class="text-sm !leading-5 font-semibold select-none" data-testid="nc-form-input-label">
+                        {{ activeField.title }}
+                      </div>
+                    </NcTooltip>
+
+                    <component
+                      :is="iconMap.chevronDown"
+                      class="w-4 h-4"
+                      :style="{ transform: showColumnDropdown ? 'rotate(180deg)' : undefined }"
+                    />
+                  </div>
+
+                  <template #overlay>
+                    <SmartsheetColumnEditOrAddProvider
+                      v-if="showColumnDropdown"
+                      :column="activeField"
+                      @submit="submitCallback"
+                      @cancel="showColumnDropdown = false"
+                      @click.stop
+                      @keydown.stop
+                    />
+                  </template>
+                </a-dropdown>
               </div>
               <!-- Form text -->
               <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
@@ -1332,11 +1358,18 @@ useEventListener(
                 </div>
               </div>
 
+              <!-- Field Settings -->
               <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-gray-200">
                 <div class="text-base font-bold">Field Settings</div>
-                <div class="flex gap-2 items-center">
+                <div class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white flex items-center gap-3">
+                  <a-switch
+                    v-model:checked="activeField.required"
+                    v-e="['a:form-view:field:mark-required']"
+                    size="small"
+                    @change="updateColMeta(activeField)"
+                  />
                   <span
-                    class="nc-form-input-required text-gray-500 mr-2"
+                    class="nc-form-input-required text-gray-800 font-medium"
                     data-testid="nc-form-input-required"
                     @click.stop="
                       () => {
@@ -1347,12 +1380,6 @@ useEventListener(
                   >
                     {{ $t('general.required') }}
                   </span>
-                  <a-switch
-                    v-model:checked="activeField.required"
-                    v-e="['a:form-view:field:mark-required']"
-                    size="small"
-                    @change="updateColMeta(activeField)"
-                  />
                 </div>
                 <!-- Layout  -->
                 <div v-if="isSelectTypeCol(activeField.uidt)">
@@ -1868,7 +1895,7 @@ useEventListener(
 }
 
 .nc-form-scrollbar {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
+  @apply scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
   &::-webkit-scrollbar-thumb:hover {
     @apply !scrollbar-thumb-gray-300;
   }

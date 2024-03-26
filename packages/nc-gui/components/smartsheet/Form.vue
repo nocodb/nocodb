@@ -627,18 +627,6 @@ const updateSelectFieldLayout = (value: boolean) => {
   updateColMeta(activeField.value)
 }
 
-onClickOutside(draggableRef, (e) => {
-  if (
-    (e.target as HTMLElement)?.closest(
-      '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button',
-    )
-  ) {
-    return
-  }
-
-  activeRow.value = ''
-})
-
 onMounted(async () => {
   if (imageCropperData.value.src) {
     URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
@@ -700,10 +688,9 @@ watch(activeField, (newValue) => {
         field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 50)
     }
-  } else {
-    showColumnMenuDropdown.value = false
-    showEditColumnDropdown.value = false
   }
+  showColumnMenuDropdown.value = false
+  showEditColumnDropdown.value = false
 })
 
 watch([focusLabel, activeRow], () => {
@@ -732,6 +719,24 @@ useEventListener(
         }
         break
     }
+  },
+  true,
+)
+
+useEventListener(
+  document,
+  'mousedown',
+  (e: MouseEvent) => {
+    if (
+      (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
+      (e.target as HTMLElement)?.closest(
+        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button',
+      )
+    ) {
+      return
+    }
+
+    activeRow.value = ''
   },
   true,
 )
@@ -1243,43 +1248,74 @@ useEventListener(
             <!-- Form Field settings -->
             <div v-if="activeField && activeColumn" :key="activeField?.id">
               <!-- Field header -->
-              <div class="px-3 py-2 flex items-center border-b border-gray-200 font-medium">
-                <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
-                  {{ $t('objects.viewType.form') }}
-                </div>
-                <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
+              <div class="px-3 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
+                <div class="flex items-center">
+                  <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
+                    {{ $t('objects.viewType.form') }}
+                  </div>
+                  <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
 
-                <SmartsheetFormFieldMenu
-                  v-model:is-open="showColumnMenuDropdown"
-                  :column="activeColumn"
-                  :form-column="activeField"
-                  :is-required="isRequired(activeField, activeField.required)"
-                  :on-delete="
-                    () => {
-                      submitEditOrAddOrDeleteColumnCallback('delete')
-                    }
-                  "
-                  @edit="showEditColumnDropdown = true"
-                  @hide-field="showOrHideColumn(activeField, false, false)"
-                />
-                <a-dropdown
-                  v-model:visible="showEditColumnDropdown"
-                  :trigger="['click']"
-                  overlay-class-name="nc-dropdown-form-edit-column"
-                  :disabled="!isUIAllowed('fieldEdit')"
-                >
-                  <div />
-                  <template #overlay>
-                    <SmartsheetColumnEditOrAddProvider
-                      v-if="showEditColumnDropdown"
-                      :column="activeColumn"
-                      @submit="submitEditOrAddOrDeleteColumnCallback('edit')"
-                      @cancel="showEditColumnDropdown = false"
-                      @click.stop
-                      @keydown.stop
+                  <div class="flex items-center pr-1 py-1.5 text-gray-800">
+                    <SmartsheetHeaderVirtualCellIcon
+                      v-if="isVirtualCol(activeField)"
+                      :column-meta="activeField"
+                      class="flex-none"
                     />
-                  </template>
-                </a-dropdown>
+                    <SmartsheetHeaderCellIcon v-else :column-meta="activeField" class="flex-none" />
+
+                    <NcTooltip class="truncate max-w-[120px] text-sm font-semibold" show-on-truncate-only>
+                      <template #title>
+                        <div class="text-center">
+                          {{ activeField.title }}
+                        </div>
+                      </template>
+
+                      <span data-testid="nc-form-input-label">
+                        {{ activeField.title }}
+                      </span>
+                    </NcTooltip>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <a-dropdown
+                    v-model:visible="showEditColumnDropdown"
+                    :trigger="['click']"
+                    overlay-class-name="nc-dropdown-form-edit-column"
+                    :disabled="!isUIAllowed('fieldEdit')"
+                  >
+                    <NcButton
+                      type="secondary"
+                      size="small"
+                      class="nc-form-add-field"
+                      data-testid="nc-form-add-field"
+                      @click.stop="showEditColumnDropdown = true"
+                    >
+                      Edit Field
+                    </NcButton>
+                    <template #overlay>
+                      <SmartsheetColumnEditOrAddProvider
+                        v-if="showEditColumnDropdown"
+                        :column="activeColumn"
+                        @submit="submitEditOrAddOrDeleteColumnCallback('edit')"
+                        @cancel="showEditColumnDropdown = false"
+                        @click.stop
+                        @keydown.stop
+                      />
+                    </template>
+                  </a-dropdown>
+                  <SmartsheetFormFieldMenu
+                    v-model:is-open="showColumnMenuDropdown"
+                    :column="activeColumn"
+                    :form-column="activeField"
+                    :is-required="isRequired(activeField, activeField.required)"
+                    :on-delete="
+                      () => {
+                        submitEditOrAddOrDeleteColumnCallback('delete')
+                      }
+                    "
+                    @hide-field="showOrHideColumn(activeField, false, false)"
+                  />
+                </div>
               </div>
 
               <!-- Field text -->

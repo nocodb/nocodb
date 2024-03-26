@@ -12,7 +12,7 @@ const container = ref()
 
 const { isUIAllowed } = useRoles()
 
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, displayField } =
+const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty } =
   useCalendarViewStoreOrThrow()
 
 const fields = inject(FieldsInj, ref())

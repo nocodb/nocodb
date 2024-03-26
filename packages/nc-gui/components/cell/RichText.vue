@@ -46,6 +46,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isFocused = ref(false)
 
+const keys = useMagicKeys()
+
 const turndownService = new TurndownService({})
 
 turndownService.addRule('lineBreak', {
@@ -186,7 +188,7 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
 }
 
 const onFocusWrapper = () => {
-  if (isForm.value && !props.isFormField) {
+  if (isForm.value && !props.isFormField && !(keys.shift.value && keys.tab.value)) {
     editor.value?.chain().focus().run()
   }
 }
@@ -234,7 +236,7 @@ useEventListener(
 
 <template>
   <div
-    class="h-full focus:outline-none"
+    class="nc-rich-text h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
@@ -251,17 +253,22 @@ useEventListener(
     <template v-else>
       <div
         v-if="showMenu && !readOnly && !isFormField"
-        class="absolute top-0 right-0.5 xs:hidden"
+        class="absolute top-0 left-0.5 right-0.5"
         :class="{
-          'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
+          'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
+          'max-w-[calc(100%_-_198px)]': fullMode,
+          'justify-start': isForm,
+          'justify-end': !isForm,
         }"
       >
-        <div class="nc-longtext-scrollbar">
+        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
         </div>
       </div>
-      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
+      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
+
       <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+
       <EditorContent
         ref="editorDom"
         :editor="editor"
@@ -451,18 +458,21 @@ useEventListener(
     font-weight: 700;
     font-size: 1.85rem;
     margin-bottom: 0.1rem;
+    line-height: 36px;
   }
 
   h2 {
     font-weight: 600;
     font-size: 1.55rem;
     margin-bottom: 0.1em;
+    line-height: 30px;
   }
 
   h3 {
     font-weight: 600;
     font-size: 1.15rem;
     margin-bottom: 0.1em;
+    line-height: 24px;
   }
 
   blockquote {

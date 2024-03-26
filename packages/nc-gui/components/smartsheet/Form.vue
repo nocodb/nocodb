@@ -80,7 +80,7 @@ const enum NcForm {
   subheading = 'nc-form-sub-heading',
 }
 
-const { user } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { $api, $e } = useNuxtApp()
 
@@ -1982,13 +1982,6 @@ useEventListener(
   .ant-switch:focus-visible,
   .ant-switch-checked:focus-visible {
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
-  }
-}
-.nc-form-right-panel {
-  :deep(.nc-form-rich-text-field) {
-    .nc-text-area-rich-link-option-input {
-      @apply !w-250px;
-    }
   }
 }
 </style>

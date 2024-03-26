@@ -219,6 +219,8 @@ const isDuplicateAllowed = computed(() => {
           </div>
         </NcMenuItem>
 
+        <!-- Todo: Duplicate column with form column settings -->
+        <!-- eslint-disable vue/no-constant-condition -->
         <NcMenuItem v-if="false" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div class="nc-column-duplicate nc-form-header-menu-item">
             <component :is="iconMap.duplicate" />

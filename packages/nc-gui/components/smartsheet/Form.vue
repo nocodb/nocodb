@@ -1333,57 +1333,74 @@ useEventListener(
               <!-- Field Settings -->
               <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-gray-200">
                 <div class="text-base font-bold">Field Settings</div>
-                <div class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white flex items-center gap-3">
-                  <a-switch
-                    v-model:checked="activeField.required"
-                    v-e="['a:form-view:field:mark-required']"
-                    size="small"
-                    @change="updateColMeta(activeField)"
-                  />
-                  <span
-                    class="nc-form-input-required text-gray-800 font-medium"
-                    data-testid="nc-form-input-required"
-                    @click.stop="
-                      () => {
-                        activeField.required = !activeField.required
-                        updateColMeta(activeField)
-                      }
-                    "
-                  >
-                    {{ $t('general.required') }}
-                  </span>
-                </div>
-                <!-- Layout  -->
-                <div v-if="isSelectTypeCol(activeField.uidt)">
-                  <div>Layout</div>
+                <div class="flex flex-col gap-6">
+                  <div class="flex items-center justify-between gap-3">
+                    <div
+                      class="nc-form-input-required text-gray-800 font-medium"
+                      data-testid="nc-form-input-required"
+                      @click.stop="
+                        () => {
+                          activeField.required = !activeField.required
+                          updateColMeta(activeField)
+                        }
+                      "
+                    >
+                      {{ $t('general.required') }}
+                    </div>
 
-                  <a-radio-group
-                    :value="!!activeField.meta.isList"
-                    class="nc-form-field-layout !mt-2"
-                    @update:value="
-                      (value) => {
-                        activeField.meta.isList = value
-                        updateColMeta(activeField)
-                      }
-                    "
-                  >
-                    <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
-                    <a-radio :value="true">{{ $t('general.list') }}</a-radio>
-                  </a-radio-group>
-                </div>
-                <!-- Todo: Show on conditions,... -->
-                <!-- eslint-disable vue/no-constant-condition -->
-                <div v-if="false" class="flex items-start gap-3 px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
-                  <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
-                  <div>
-                    <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
-                    <div class="text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+                    <a-switch
+                      v-model:checked="activeField.required"
+                      v-e="['a:form-view:field:mark-required']"
+                      size="small"
+                      @change="updateColMeta(activeField)"
+                    />
                   </div>
-                </div>
 
-                <!-- Limit options -->
-                <div v-if="isSelectTypeCol(activeField.uidt)" class="px-3 py-2 border-1 border-gray-200 rounded-lg bg-white">
-                  <div class="flex items-center gap-3">
+                  <!-- Layout  -->
+                  <div v-if="isSelectTypeCol(activeField.uidt)">
+                    <div class="text-gray-800 font-medium">Layout</div>
+
+                    <a-radio-group
+                      :value="!!activeField.meta.isList"
+                      class="nc-form-field-layout !mt-2 max-w-[calc(100%_-_40px)]"
+                      @update:value="
+                        (value) => {
+                          activeField.meta.isList = value
+                          updateColMeta(activeField)
+                        }
+                      "
+                    >
+                      <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
+                      <a-radio :value="true">{{ $t('general.list') }}</a-radio>
+                    </a-radio-group>
+                  </div>
+
+                  <!-- Todo: Show on conditions,... -->
+                  <!-- eslint-disable vue/no-constant-condition -->
+                  <div v-if="false" class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
+                      <div class="text-gray-500 mt-2">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+                    </div>
+                    <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
+                  </div>
+
+                  <!-- Limit options -->
+                  <div v-if="isSelectTypeCol(activeField.uidt)" class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1">
+                        <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
+                        <div class="text-gray-500 mt-2">{{ $t('labels.limitOptionsSubtext') }}.</div>
+                        <div v-if="activeField.meta.isLimitOption" class="mt-3">
+                          <LazySmartsheetFormLimitOptions
+                            v-model:model-value="activeField.meta.limitOptions"
+                            :column="activeField"
+                            :is-required="isRequired(activeField, activeField.required)"
+                            @update:model-value="updateColMeta(activeField)"
+                          ></LazySmartsheetFormLimitOptions>
+                        </div>
+                      </div>
+                    </div>
                     <a-switch
                       v-model:checked="activeField.meta.isLimitOption"
                       v-e="['a:form-view:field:limit-options']"
@@ -1391,18 +1408,6 @@ useEventListener(
                       class="nc-form-switch-focus"
                       @change="updateColMeta(activeField)"
                     />
-                    <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
-                  </div>
-                  <div class="pl-10 mt-2 flex-1">
-                    <div class="text-gray-500">{{ $t('labels.limitOptionsSubtext') }}.</div>
-                    <div v-if="activeField.meta.isLimitOption" class="mt-5">
-                      <LazySmartsheetFormLimitOptions
-                        v-model:model-value="activeField.meta.limitOptions"
-                        :column="activeField"
-                        :is-required="isRequired(activeField, activeField.required)"
-                        @update:model-value="updateColMeta(activeField)"
-                      ></LazySmartsheetFormLimitOptions>
-                    </div>
                   </div>
                 </div>
               </div>

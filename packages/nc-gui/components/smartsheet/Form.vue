@@ -1026,7 +1026,8 @@ useEventListener(
                           class="border-transparent px-4 lg:px-6"
                           :class="[
                             {
-                              'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
+                              'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-gray-50':
+                                isEditable,
                             },
                             {
                               'mb-4 py-0 lg:py-0': !isEditable,
@@ -1062,6 +1063,8 @@ useEventListener(
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
                               @update:value="updateView"
+                              @focus="activeRow = NcForm.heading"
+                              @blur="activeRow = ''"
                             />
                           </a-form-item>
 
@@ -1075,7 +1078,7 @@ useEventListener(
                           class="border-transparent px-4 lg:px-6"
                           :class="[
                             {
-                              'rounded-2xl border-2 cursor-pointer mb-1 py-4 lg:py-6': isEditable,
+                              'rounded-2xl border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-gray-50': isEditable,
                             },
                             {
                               'mb-4 py-0 lg:py-0': !isEditable,
@@ -1102,6 +1105,8 @@ useEventListener(
                             :data-testid="NcForm.subheading"
                             :data-title="NcForm.subheading"
                             @update:value="updateView"
+                            @focus="activeRow = NcForm.subheading"
+                            @blur="activeRow = ''"
                           />
                           <LazyCellRichText
                             v-else-if="formViewData.subheading"

@@ -45,7 +45,7 @@ const isLocked = inject(IsLockedInj)
 
 provide(ColumnInj, column)
 
-const { $api, $e } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 

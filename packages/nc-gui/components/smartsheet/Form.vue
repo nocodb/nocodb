@@ -304,7 +304,6 @@ function onMoveCallback(event: any) {
 async function onMove(event: any, isVisibleFormFields = false) {
   if (isLocked.value || !isEditable) return
 
-  const { oldIndex } = event.moved
   let { newIndex, element } = event.moved
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
@@ -468,7 +467,7 @@ function onEmailChange() {
   updateView()
 }
 
-async function submitEditOrAddOrDeleteColumnCallback(type: 'add' | 'edit' | 'delete', oldColumn?: ColumnType) {
+async function submitEditOrAddOrDeleteColumnCallback(type: 'add' | 'edit' | 'delete') {
   if (type === 'add') {
     showAddColumnDropdown.value = false
   } else if (type === 'edit') {

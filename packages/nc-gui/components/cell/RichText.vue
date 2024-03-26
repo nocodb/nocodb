@@ -217,10 +217,8 @@ useEventListener(
   editorDom,
   'focusout',
   (e: FocusEvent) => {
-    if (
-      (e?.relatedTarget as HTMLElement)?.classList?.contains('tiptap') ||
-      !(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')
-    ) {
+    const targetEl = e?.relatedTarget as HTMLElement
+    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
     }
   },

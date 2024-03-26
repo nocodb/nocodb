@@ -96,22 +96,19 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 }
 
 const showDivider = (options: RichTextBubbleMenuOptions[]) => {
-  return isFormField.value ? options.some((o) => !hiddenOptions.value.includes(o)) : true
+  return !isFormField.value || options.some((o) => !hiddenOptions.value.includes(o))
 }
 </script>
 
 <template>
   <div
     class="bubble-menu flex-row gap-x-1 rounded-lg"
-    :class="[
-      isFormField ? 'py-0' : 'py-1',
-      {
-        'nc-form-field-bubble-menu inline-flex': isFormField,
-        'flex bg-gray-100 px-1': !isFormField,
-        'embed-mode': embedMode,
-        'full-mode': !embedMode,
-      },
-    ]"
+    :class="{
+      'nc-form-field-bubble-menu inline-flex py-0': isFormField,
+      'flex bg-gray-100 px-1 py-1': !isFormField,
+      'embed-mode': embedMode,
+      'full-mode': !embedMode,
+    }"
   >
     <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>

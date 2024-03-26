@@ -48,9 +48,7 @@ const onDelete = async () => {
     $e('a:column:delete')
     visible.value = false
 
-    if (typeof props.onDeleteColumn === 'function') {
-      props.onDeleteColumn()
-    }
+    props.onDeleteColumn?.()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

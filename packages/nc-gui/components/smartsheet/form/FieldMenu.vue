@@ -195,19 +195,23 @@ const isDuplicateAllowed = computed(() => {
         <SmartsheetHeaderCellIcon v-else :column-meta="column" />
       </div>
 
-      <NcTooltip show-on-truncate-only>
+      <NcTooltip class="truncate max-w-[120px] text-sm font-semibold" show-on-truncate-only>
         <template #title>
           <div class="text-center">
             {{ column.title }}
           </div>
         </template>
 
-        <div class="text-sm !leading-5 font-semibold select-none" data-testid="nc-form-input-label">
+        <span class="select-none" data-testid="nc-form-input-label">
           {{ column.title }}
-        </div>
+        </span>
       </NcTooltip>
 
-      <component :is="iconMap.chevronDown" class="w-4 h-4" :style="{ transform: isOpen ? 'rotate(180deg)' : undefined }" />
+      <component
+        :is="iconMap.chevronDown"
+        class="flex-none w-4 h-4"
+        :style="{ transform: isOpen ? 'rotate(180deg)' : undefined }"
+      />
     </div>
     <template #overlay>
       <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">

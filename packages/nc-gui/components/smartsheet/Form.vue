@@ -593,7 +593,7 @@ const validateFormURL = async (_rule, value) => {
 }
 
 const formElementValidationRules = (element) => {
-  const rules: FormItemProps['rules'][] = [
+  const rules: FormItemProps['rules'] = [
     {
       required: isRequired(element, element.required),
       message: t('msg.error.fieldRequired', { value: 'This field' }),
@@ -620,15 +620,18 @@ const formElementValidationRules = (element) => {
   return rules
 }
 
+const updateSelectFieldLayout = (value: boolean) => {
+  if (!activeField.value) return
+
+  activeField.value.meta.isList = value
+  updateColMeta(activeField.value)
+}
+
 onClickOutside(draggableRef, (e) => {
   if (
     (e.target as HTMLElement)?.closest(
-      '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell, .nc-form-rich-text-field',
-    ) ||
-    (activeField &&
-      (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, .nc-dropdown-form-add-column, .nc-dropdown-form-edit-column, .nc-dropdown-form-column-operations, .ant-select-dropdown, .ant-dropdown, .ant-modal-wrap',
-      ))
+      '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button',
+    )
   ) {
     return
   }
@@ -1237,9 +1240,9 @@ useEventListener(
               'overflow-y-auto nc-form-scrollbar': activeField,
             }"
           >
-            <!-- Form Field Settings -->
+            <!-- Form Field settings -->
             <div v-if="activeField && activeColumn">
-              <!-- header -->
+              <!-- Field header -->
               <div class="px-3 py-2 flex items-center border-b border-gray-200 font-medium">
                 <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
                   {{ $t('objects.viewType.form') }}
@@ -1279,9 +1282,9 @@ useEventListener(
                 </a-dropdown>
               </div>
 
-              <!-- Form text -->
+              <!-- Field text -->
               <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
-                <div class="text-base font-bold">Form Text</div>
+                <div class="text-base font-bold">{{ $t('objects.viewType.form') }} {{ $t('general.text') }}</div>
 
                 <a-textarea
                   ref="focusLabel"
@@ -1304,55 +1307,39 @@ useEventListener(
                   data-testid="nc-form-input-help-text"
                   @update:value="updateColMeta(activeField)"
                 />
-
-                <div v-if="columnSupportsScanning(activeField.uidt)" class="!my-0 nc-form-input-enable-scanner-form-item">
-                  <div class="flex space-x-4 items-center">
-                    <a-switch
-                      v-model:checked="activeField.enable_scanner"
-                      v-e="['a:form-view:field:mark-enable-scanner']"
-                      size="small"
-                      @change="updateColMeta(activeField)"
-                    />
-                    <span
-                      class="text-gray-500 nc-form-input-enable-scanner"
-                      data-testid="nc-form-input-enable-scanner"
-                      @click="
-                        () => {
-                          activeField.general.enable_scanner = !activeField.general.enable_scanner
-                          updateColMeta(activeField)
-                        }
-                      "
-                    >
-                      {{ $t('general.enableScanner') }}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               <!-- Field Settings -->
               <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-gray-200">
-                <div class="text-base font-bold">Field Settings</div>
+                <div class="text-base font-bold">{{ $t('objects.field') }} {{ $t('activity.settings') }}</div>
                 <div class="flex flex-col gap-6">
                   <div class="flex items-center justify-between gap-3">
-                    <div
-                      class="nc-form-input-required text-gray-800 font-medium"
-                      data-testid="nc-form-input-required"
-                      @click.stop="
-                        () => {
-                          activeField.required = !activeField.required
-                          updateColMeta(activeField)
-                        }
-                      "
-                    >
-                      {{ $t('general.required') }}
+                    <div class="nc-form-input-required text-gray-800 font-medium">
+                      {{ $t('general.required') }} {{ $t('objects.field') }}
                     </div>
 
                     <a-switch
                       v-model:checked="activeField.required"
                       v-e="['a:form-view:field:mark-required']"
                       size="small"
+                      data-testid="nc-form-input-required"
                       @change="updateColMeta(activeField)"
                     />
+                  </div>
+
+                  <div v-if="columnSupportsScanning(activeField.uidt)" class="!my-0 nc-form-input-enable-scanner-form-item">
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="nc-form-input-enable-scanner text-gray-800 font-medium">
+                        {{ $t('general.enableScanner') }}
+                      </div>
+                      <a-switch
+                        v-model:checked="activeField.enable_scanner"
+                        v-e="['a:form-view:field:mark-enable-scanner']"
+                        data-testid="nc-form-input-enable-scanner"
+                        size="small"
+                        @change="updateColMeta(activeField)"
+                      />
+                    </div>
                   </div>
 
                   <!-- Layout  -->
@@ -1362,12 +1349,7 @@ useEventListener(
                     <a-radio-group
                       :value="!!activeField.meta.isList"
                       class="nc-form-field-layout !mt-2 max-w-[calc(100%_-_40px)]"
-                      @update:value="
-                        (value) => {
-                          activeField.meta.isList = value
-                          updateColMeta(activeField)
-                        }
-                      "
+                      @update:value="updateSelectFieldLayout"
                     >
                       <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
                       <a-radio :value="true">{{ $t('general.list') }}</a-radio>

@@ -198,7 +198,8 @@
     "logo": "Logo",
     "dropdown": "Dropdown",
     "list": "List",
-    "apply": "Apply"
+    "apply": "Apply",
+    "text": "Text"
   },
   "objects": {
     "day": "Day",

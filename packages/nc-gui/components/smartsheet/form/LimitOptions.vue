@@ -172,7 +172,7 @@ const showOrHideAll = (showAll: boolean) => {
           :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
           @click="showOrHideAll(false)"
         >
-          Hide all
+          {{ $t('general.hideAll') }}
         </NcButton>
       </NcTooltip>
 
@@ -184,7 +184,7 @@ const showOrHideAll = (showAll: boolean) => {
           :disabled="vModel.filter((o) => o.show).length === vModel.length"
           @click="showOrHideAll(true)"
         >
-          Show all
+          {{ $t('general.showAll') }}
         </NcButton>
       </div>
     </div>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { ColumnReqType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { computed } from 'vue'
 import {
   ActiveViewInj,
@@ -19,7 +19,7 @@ import {
   toRefs,
 } from '#imports'
 
-const props = defineProps<{ column: Record<string, any>; isRequired?: boolean; isOpen: boolean }>()
+const props = defineProps<{ column: ColumnType; formColumn: Record<string, any>; isRequired?: boolean; isOpen: boolean }>()
 
 const emit = defineEmits(['edit', 'showOrHideColumn', 'update:isOpen'])
 
@@ -36,6 +36,8 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj)
+
+provide(ColumnInj, column)
 
 const { $api, $e } = useNuxtApp()
 
@@ -177,12 +179,29 @@ const isDuplicateAllowed = computed(() => {
     v-if="!isLocked"
     v-model:visible="isOpen"
     :trigger="['click']"
-    placement="bottomRight"
+    placement="bottomLeft"
     overlay-class-name="nc-dropdown-form-column-operations !border-1 rounded-lg !shadow-xl"
     @click.stop="isOpen = !isOpen"
   >
-    <div>
-      <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+    <div class="flex items-center space-x-1 pr-1 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer text-gray-800">
+      <div class="flex items-center">
+        <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(column)" :column-meta="column" />
+        <SmartsheetHeaderCellIcon v-else :column-meta="column" />
+      </div>
+
+      <NcTooltip show-on-truncate-only>
+        <template #title>
+          <div class="text-center">
+            {{ column.title }}
+          </div>
+        </template>
+
+        <div class="text-sm !leading-5 font-semibold select-none" data-testid="nc-form-input-label">
+          {{ column.title }}
+        </div>
+      </NcTooltip>
+
+      <component :is="iconMap.chevronDown" class="w-4 h-4" :style="{ transform: isOpen ? 'rotate(180deg)' : undefined }" />
     </div>
     <template #overlay>
       <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
@@ -222,7 +241,7 @@ const isDuplicateAllowed = computed(() => {
       </NcMenu>
     </template>
   </a-dropdown>
-  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" />
+  <SmartsheetHeaderDeleteColumnModal v-model:visible="showDeleteColumnModal" class="nc-form-column-delete-dropdown" />
   <DlgColumnDuplicate
     v-if="column"
     ref="duplicateDialogRef"

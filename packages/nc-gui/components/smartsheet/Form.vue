@@ -15,6 +15,7 @@ import {
   isLinksOrLTAR,
   isSelectTypeCol,
   isVirtualCol,
+  type ColumnType,
 } from 'nocodb-sdk'
 import type { Permission } from '#imports'
 import {
@@ -127,7 +128,11 @@ const draggableRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>[]>([])
 
-const showColumnDropdown = ref(false)
+const showColumnMenuDropdown = ref(false)
+
+const showEditColumnDropdown = ref(false)
+
+const showAddColumnDropdown = ref(false)
 
 const drag = ref(false)
 
@@ -188,7 +193,18 @@ const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).s
 
 const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value.logo_url)))
 
-const activeField = computed(() => visibleColumns.value.find((c) => c.title === activeRow.value) || null)
+const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
+
+const activeColumn = computed(() => {
+  if (meta.value && activeField.value) {
+    if (meta.value.columnsById && (meta.value.columnsById as Record<string, ColumnType>)[activeField.value?.fk_column_id]) {
+      return (meta.value.columnsById as Record<string, ColumnType>)[activeField.value.fk_column_id]
+    } else if (meta.value.columns) {
+      return meta.value.columns.find((c) => c.id === activeField.value?.fk_column_id) ?? null
+    }
+  }
+  return null
+})
 
 const updateView = useDebounceFn(
   () => {
@@ -449,10 +465,14 @@ function onEmailChange() {
   updateView()
 }
 
-async function submitCallback() {
+async function submitEditOrAddCallback(type: 'add' | 'edit') {
   await loadFormView()
   setFormData()
-  showColumnDropdown.value = false
+  if (type === 'add') {
+    showAddColumnDropdown.value = false
+  } else {
+    showEditColumnDropdown.value = false
+  }
 }
 
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
@@ -472,7 +492,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
 const onFormItemClick = (element: any) => {
   if (isLocked.value || !isEditable) return
 
-  activeRow.value = element.title
+  activeRow.value = element.id
 }
 
 const handleChangeBackground = (color: string) => {
@@ -594,7 +614,10 @@ onClickOutside(draggableRef, (e) => {
     (e.target as HTMLElement)?.closest(
       '.nc-dropdown-single-select-cell, .nc-dropdown-multi-select-cell, .nc-dropdown-user-select-cell, .nc-form-rich-text-field',
     ) ||
-    (activeField && (e.target as HTMLElement)?.closest('.nc-form-left-drawer, .nc-dropdown-form-add-column'))
+    (activeField &&
+      (e.target as HTMLElement)?.closest(
+        '.nc-form-left-drawer, .nc-dropdown-form-add-column, .nc-dropdown-form-edit-column, .nc-dropdown-form-column-operations, .ant-select-dropdown, .ant-dropdown',
+      ))
   ) {
     return
   }
@@ -654,15 +677,18 @@ watch(
   },
 )
 
-watch(activeRow, (newValue) => {
+watch(activeField, (newValue) => {
   if (newValue) {
-    const field = document.querySelector(`.nc-form-field-item-${CSS.escape(newValue?.replaceAll(' ', ''))}`)
+    const field = document.querySelector(`.nc-form-field-item-${CSS.escape(newValue?.title?.replaceAll(' ', ''))}`)
 
     if (field) {
       setTimeout(() => {
         field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 50)
     }
+  } else {
+    showColumnMenuDropdown.value = false
+    showEditColumnDropdown.value = false
   }
 })
 
@@ -962,7 +988,7 @@ useEventListener(
                           '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                         },
                       ]"
-                      @click.stop="onFormItemClick({ title: NcForm.heading })"
+                      @click.stop="onFormItemClick({ id: NcForm.heading })"
                     >
                       <a-form-item v-if="isEditable" class="!my-0">
                         <a-textarea
@@ -1011,7 +1037,7 @@ useEventListener(
                           '!hover:bg-white !ring-0 !cursor-auto': isLocked,
                         },
                       ]"
-                      @click.stop="onFormItemClick({ title: NcForm.subheading })"
+                      @click.stop="onFormItemClick({ id: NcForm.subheading })"
                     >
                       <LazyCellRichText
                         v-if="isEditable && !isLocked"
@@ -1061,11 +1087,11 @@ useEventListener(
                           },
                           {
                             'nc-form-field-drag-handler border-transparent hover:(bg-gray-50) cursor-pointer':
-                              activeRow !== element.title && isEditable,
+                              activeRow !== element.id && isEditable,
                           },
 
                           {
-                            'border-brand-500': activeRow === element.title,
+                            'border-brand-500': activeRow === element.id,
                           },
                           {
                             '!hover:bg-white !ring-0 !cursor-auto': isLocked,
@@ -1075,7 +1101,7 @@ useEventListener(
                         data-testid="nc-form-fields"
                         @click.stop="onFormItemClick(element)"
                       >
-                        <div v-if="activeRow === element.title" class="absolute -left-3 top-6">
+                        <div v-if="activeRow === element.id" class="absolute -left-3 top-6">
                           <NcButton
                             type="primary"
                             size="small"
@@ -1193,64 +1219,49 @@ useEventListener(
               </a-card>
             </div>
           </div>
+          <!-- Right Panel-->
           <div
             class="h-full flex-1 max-w-[384px] nc-form-left-drawer border-l border-gray-200"
             :class="{
               'overflow-y-auto nc-form-scrollbar': activeField,
             }"
           >
-            <div v-if="activeField">
+            <!-- Form Field Settings -->
+            <div v-if="activeField && activeColumn">
               <!-- header -->
               <div class="px-3 py-2 flex items-center border-b border-gray-200 font-medium">
-                <div class="font-medium">{{ $t('objects.viewType.form') }}</div>
-                <div class="px-1.75 text-gray-500">/</div>
+                <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
+                  {{ $t('objects.viewType.form') }}
+                </div>
+                <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
+
+                <SmartsheetFormFieldMenu
+                  v-model:is-open="showColumnMenuDropdown"
+                  :column="activeColumn"
+                  :form-column="activeField"
+                  :is-required="isRequired(activeField, activeField.required)"
+                  @edit="showEditColumnDropdown = true"
+                />
                 <a-dropdown
-                  v-if="isUIAllowed('fieldEdit')"
-                  v-model:visible="showColumnDropdown"
+                  v-model:visible="showEditColumnDropdown"
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-form-edit-column"
-                  disabled
+                  :disabled="!isUIAllowed('fieldEdit')"
                 >
-                  <div
-                    class="flex items-center space-x-1 pr-1 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer"
-                    :class="showColumnDropdown ? 'text-brand-500' : 'text-gray-800'"
-                  >
-                    <div class="flex items-center">
-                      <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(activeField)" :column-meta="activeField" />
-                      <SmartsheetHeaderCellIcon v-else :column-meta="activeField" />
-                    </div>
-
-                    <NcTooltip show-on-truncate-only>
-                      <template #title>
-                        <div class="text-center">
-                          {{ activeField.title }}
-                        </div>
-                      </template>
-
-                      <div class="text-sm !leading-5 font-semibold select-none" data-testid="nc-form-input-label">
-                        {{ activeField.title }}
-                      </div>
-                    </NcTooltip>
-
-                    <component
-                      :is="iconMap.chevronDown"
-                      class="w-4 h-4"
-                      :style="{ transform: showColumnDropdown ? 'rotate(180deg)' : undefined }"
-                    />
-                  </div>
-
+                  <div />
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
-                      v-if="showColumnDropdown"
-                      :column="activeField"
-                      @submit="submitCallback"
-                      @cancel="showColumnDropdown = false"
+                      v-if="showEditColumnDropdown"
+                      :column="activeColumn"
+                      @submit="submitEditOrAddCallback('edit')"
+                      @cancel="showEditColumnDropdown = false"
                       @click.stop
                       @keydown.stop
                     />
                   </template>
                 </a-dropdown>
               </div>
+
               <!-- Form text -->
               <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
                 <div class="text-base font-bold">Form Text</div>
@@ -1378,6 +1389,8 @@ useEventListener(
                 </div>
               </div>
             </div>
+
+            <!-- Form Settings -->
             <template v-else>
               <Splitpanes v-if="formViewData" horizontal class="w-full nc-form-right-splitpane">
                 <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
@@ -1393,7 +1406,7 @@ useEventListener(
 
                     <a-dropdown
                       v-if="isUIAllowed('fieldAdd')"
-                      v-model:visible="showColumnDropdown"
+                      v-model:visible="showAddColumnDropdown"
                       :trigger="['click']"
                       overlay-class-name="nc-dropdown-form-add-column"
                     >
@@ -1402,7 +1415,7 @@ useEventListener(
                         size="small"
                         class="nc-form-add-field"
                         data-testid="nc-form-add-field"
-                        @click.stop="showColumnDropdown = true"
+                        @click.stop="showAddColumnDropdown = true"
                       >
                         <div class="flex gap-2 items-center">
                           <component :is="iconMap.plus" class="w-4 h-4" />
@@ -1412,9 +1425,9 @@ useEventListener(
 
                       <template #overlay>
                         <SmartsheetColumnEditOrAddProvider
-                          v-if="showColumnDropdown"
-                          @submit="submitCallback"
-                          @cancel="showColumnDropdown = false"
+                          v-if="showAddColumnDropdown"
+                          @submit="submitEditOrAddCallback('add')"
+                          @cancel="showAddColumnDropdown = false"
                           @click.stop
                           @keydown.stop
                         />
@@ -1484,7 +1497,7 @@ useEventListener(
                             class="w-full px-2 py-1.5 flex flex-row items-center border-b-1 last:border-none border-gray-200"
                             :class="[
                               `nc-form-field-item-${field.title.replaceAll(' ', '')}`,
-                              `${activeRow === field.title ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
+                              `${activeRow === field.id ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
                             ]"
                             :data-testid="`nc-form-field-item-${field.title}`"
                           >

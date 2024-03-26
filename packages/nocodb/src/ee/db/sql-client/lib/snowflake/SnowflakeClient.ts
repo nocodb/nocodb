@@ -1,10 +1,10 @@
 import { nanoid } from 'nanoid';
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
-import KnexClient from '../KnexClient';
-import Debug from '../../../util/Debug';
-import Result from '../../../util/Result';
 import queries from './snowflake.queries';
+import KnexClient from '~/db/sql-client/lib/KnexClient';
+import Debug from '~/db/util/Debug';
+import Result from '~/db/util/Result';
 
 const log = new Debug('SnowflakeClient');
 

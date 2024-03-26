@@ -1,5 +1,4 @@
 import { Knex, knex } from 'knex';
-import { SnowflakeClient } from 'nc-help';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
@@ -1028,8 +1027,6 @@ function CustomKnex(
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
   }
-
-  if (arg?.client === 'snowflake') arg.client = SnowflakeClient;
 
   const kn: any = knex(arg);
 

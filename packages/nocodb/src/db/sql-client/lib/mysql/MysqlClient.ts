@@ -20,8 +20,6 @@ const log = new Debug('MysqlClient');
 const evt = new Emit();
 
 class MysqlClient extends KnexClient {
-  protected queries: any;
-  protected _version: any;
   protected types: any;
 
   constructor(connectionConfig) {

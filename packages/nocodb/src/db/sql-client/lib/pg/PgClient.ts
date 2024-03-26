@@ -11,8 +11,6 @@ import queries from '~/db/sql-client/lib/pg/pg.queries';
 const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {
-  protected queries: any;
-  protected _version: any;
   constructor(connectionConfig) {
     super(connectionConfig);
     // this.sqlClient = null;

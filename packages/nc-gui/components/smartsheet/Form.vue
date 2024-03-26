@@ -1241,7 +1241,7 @@ useEventListener(
             }"
           >
             <!-- Form Field settings -->
-            <div v-if="activeField && activeColumn">
+            <div v-if="activeField && activeColumn" :key="activeField?.id">
               <!-- Field header -->
               <div class="px-3 py-2 flex items-center border-b border-gray-200 font-medium">
                 <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">

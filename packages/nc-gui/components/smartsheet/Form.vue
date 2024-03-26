@@ -306,11 +306,7 @@ async function onMove(event: any, isVisibleFormFields = false) {
 
   if (isVisibleFormFields) {
     element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
-    newIndex = localColumns.value.findIndex(
-      (c) =>
-        c.fk_column_id ===
-        visibleColumns.value[newIndex > oldIndex ? newIndex - 1 : newIndex < oldIndex ? newIndex + 1 : newIndex].fk_column_id,
-    )
+    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex].fk_column_id)
   }
   if (!localColumns.value.length || localColumns.value.length === 1) {
     element.order = 1
@@ -326,7 +322,7 @@ async function onMove(event: any, isVisibleFormFields = false) {
 
   fields.value[fieldIndex] = element as any
 
-  localColumns.value = localColumns.value.sort((a, b) => {
+  localColumns.value = [...localColumns.value].sort((a, b) => {
     if (a.order !== undefined && b.order !== undefined) {
       return a.order - b.order
     }
@@ -1088,7 +1084,7 @@ useEventListener(
 
                   <Draggable
                     ref="draggableRef"
-                    :list="visibleColumns"
+                    :model-value="visibleColumns"
                     item-key="fk_column_id"
                     draggable=".item"
                     handle=".nc-form-field-drag-handler"
@@ -1105,7 +1101,7 @@ useEventListener(
                         :class="[
                           `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                           {
-                            'rounded-2xl overflow-hidden border-2 my-1': isEditable,
+                            'rounded-2xl border-2 my-1': isEditable,
                           },
                           {
                             'border-transparent my-0': !isEditable,
@@ -1126,6 +1122,18 @@ useEventListener(
                         data-testid="nc-form-fields"
                         @click.stop="onFormItemClick(element)"
                       >
+                        <div v-if="activeRow === element.title" class="absolute -left-3 top-6">
+                          <NcButton
+                            type="primary"
+                            size="small"
+                            class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
+                          >
+                            <component
+                              :is="iconMap.drag"
+                              class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
+                            />
+                          </NcButton>
+                        </div>
                         <div class="text-sm font-semibold text-gray-800">
                           <span data-testid="nc-form-input-label">
                             {{ element.label || element.title }}

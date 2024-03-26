@@ -343,7 +343,7 @@ useEventListener(
 
 .nc-textarea-rich-editor {
   .tiptap p.is-editor-empty:first-child::before {
-    color: #6a7184;
+    color: #9aa2af;
     content: attr(data-placeholder);
     float: left;
     height: 0;

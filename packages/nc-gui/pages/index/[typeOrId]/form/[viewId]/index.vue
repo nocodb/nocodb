@@ -121,10 +121,17 @@ p {
         }
 
         &:not(.readonly) {
-          input,
-          textarea,
-          &.nc-virtual-cell {
-            @apply bg-white !disabled:bg-transparent;
+          &:not(.nc-cell-longtext) {
+            input,
+            textarea,
+            &.nc-virtual-cell {
+              @apply bg-white !disabled:bg-transparent;
+            }
+          }
+          &.nc-cell-longtext {
+            textarea {
+              @apply bg-white !disabled:bg-transparent;
+            }
           }
         }
 
@@ -187,6 +194,9 @@ p {
           .nc-currency-code {
             @apply !bg-gray-100;
           }
+        }
+        &.nc-cell-attachment {
+          @apply h-auto;
         }
       }
     }

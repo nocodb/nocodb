@@ -199,7 +199,8 @@
     "dropdown": "Dropdown",
     "list": "List",
     "apply": "Apply",
-    "text": "Text"
+    "text": "Text",
+    "appearance": "Appearance"
   },
   "objects": {
     "day": "Day",

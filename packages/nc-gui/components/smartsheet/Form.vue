@@ -1397,20 +1397,6 @@ useEventListener(
                     </div>
                   </div>
 
-                  <!-- Layout  -->
-                  <div v-if="isSelectTypeCol(activeField.uidt)">
-                    <div class="text-gray-800 font-medium">Layout</div>
-
-                    <a-radio-group
-                      :value="!!activeField.meta.isList"
-                      class="nc-form-field-layout !mt-2 max-w-[calc(100%_-_40px)]"
-                      @update:value="updateSelectFieldLayout"
-                    >
-                      <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
-                      <a-radio :value="true">{{ $t('general.list') }}</a-radio>
-                    </a-radio-group>
-                  </div>
-
                   <!-- Todo: Show on conditions,... -->
                   <!-- eslint-disable vue/no-constant-condition -->
                   <div v-if="false" class="flex items-start justify-between gap-3">
@@ -1444,6 +1430,30 @@ useEventListener(
                       class="nc-form-switch-focus"
                       @change="updateColMeta(activeField)"
                     />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Field Appearance Settings -->
+
+              <div
+                v-if="isSelectTypeCol(activeField.uidt)"
+                class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-gray-200"
+              >
+                <div class="text-base font-bold">{{ $t('general.appearance') }}</div>
+                <div class="flex flex-col gap-6">
+                  <!-- Select type field Options Layout  -->
+                  <div>
+                    <div class="text-gray-800 font-medium">Options layout</div>
+
+                    <a-radio-group
+                      :value="!!activeField.meta.isList"
+                      class="nc-form-field-layout !mt-3 max-w-[calc(100%_-_40px)]"
+                      @update:value="updateSelectFieldLayout"
+                    >
+                      <a-radio :value="false">{{ $t('general.dropdown') }}</a-radio>
+                      <a-radio :value="true">{{ $t('general.list') }}</a-radio>
+                    </a-radio-group>
                   </div>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import { Form, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import type { Card as AntCard } from 'ant-design-vue'
 import { WorkspaceStatus } from 'nocodb-sdk'
-import type { DefaultConnection, ProjectCreateForm, SQLiteConnection } from '#imports'
+import type { DefaultConnection, ProjectCreateForm, SQLiteConnection, SnowflakeConnection } from '#imports'
 import {
   CertTypes,
   ClientType,
@@ -116,8 +116,8 @@ const customFormState = ref<ProjectCreateForm>({
 })
 
 const clientTypes = computed(() => {
+  // TODO: enable Snowflake when it's ready
   return _clientTypes.filter((type) => {
-    // return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
     return type.value !== ClientType.SNOWFLAKE
   })
 })
@@ -608,6 +608,56 @@ const toggleModal = (val: boolean) => {
               >
                 <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
               </a-form-item>
+
+              <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+                <!-- Account -->
+                <a-form-item :label="$t('labels.account')" v-bind="validateInfos['dataSource.connection.account']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as SnowflakeConnection).account"
+                    class="nc-extdb-host-address"
+                  />
+                </a-form-item>
+
+                <!-- Username -->
+                <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as SnowflakeConnection).username"
+                    class="nc-extdb-host-user"
+                  />
+                </a-form-item>
+
+                <!-- Password -->
+                <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+                  <a-input-password
+                    v-model:value="(formState.dataSource.connection as SnowflakeConnection).password"
+                    class="nc-extdb-host-password"
+                  />
+                </a-form-item>
+
+                <!-- Warehouse -->
+                <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as SnowflakeConnection).warehouse"
+                    class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+
+                <!-- Database -->
+                <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as SnowflakeConnection).database"
+                    class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+
+                <!-- Schema -->
+                <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
+                    class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+              </template>
 
               <template v-else>
                 <!-- Host Address -->

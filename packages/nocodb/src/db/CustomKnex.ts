@@ -1,5 +1,5 @@
 import { Knex, knex } from 'knex';
-import { SnowflakeClient } from 'nc-help';
+import { SnowflakeClient } from 'knex-snowflake';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';

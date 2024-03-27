@@ -17,4 +17,8 @@ export const clientTypes = [
     text: 'PostgreSQL',
     value: ClientType.PG,
   },
+  {
+    text: 'Snowflake',
+    value: ClientType.SNOWFLAKE,
+  },
 ]

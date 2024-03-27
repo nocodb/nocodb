@@ -80,7 +80,10 @@ export class SourceCreateController {
     }
 
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
-      if (!body.config?.connection || !body.config?.connection.host) {
+      if (
+        body.config.client !== 'snowflake' &&
+        (!body.config?.connection || !body.config?.connection.host)
+      ) {
         NcError.badRequest('Connection missing host name or IP address');
       }
       if (body.config?.client && !body.config?.client.includes('sqlite')) {

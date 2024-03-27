@@ -2,5 +2,6 @@ packages:
   - 'packages/nocodb-sdk'
   - 'packages/nc-gui'
   - 'packages/nocodb'
+  - 'packages/nc-connectors/knex-snowflake'
   - 'packages/nc-sql-executor'
   - 'tests/playwright'

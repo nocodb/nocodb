@@ -1,10 +1,10 @@
 import { nanoid } from 'nanoid';
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
-import KnexClient from '../KnexClient';
-import Debug from '../../../util/Debug';
-import Result from '../../../util/Result';
 import queries from './snowflake.queries';
+import KnexClient from '~/db/sql-client/lib/KnexClient';
+import Debug from '~/db/util/Debug';
+import Result from '~/db/util/Result';
 
 const log = new Debug('SnowflakeClient');
 
@@ -19,8 +19,6 @@ const rowsToLower = (arr) => {
 };
 
 class SnowflakeClient extends KnexClient {
-  private queries: any;
-  private _version: any;
   constructor(connectionConfig) {
     super(connectionConfig);
     // this.sqlClient = null;
@@ -536,7 +534,9 @@ class SnowflakeClient extends KnexClient {
       );
 
       result.data.list = rows.filter(
-        ({ table_type }) => table_type.toLowerCase() === 'base table',
+        ({ table_type }) =>
+          table_type.toLowerCase() === 'base table' ||
+          table_type.toLowerCase() === 'hybrid table',
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -2464,9 +2464,10 @@ class SnowflakeClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
-      this.getTnPath(args.tn),
-    ]);
+    query = this.genQuery(
+      `CREATE ${args.is_hybrid === false ? '' : 'HYBRID'} TABLE ?? (${query});`,
+      [this.getTnPath(args.tn)],
+    );
 
     return query;
   }
@@ -2474,7 +2475,7 @@ class SnowflakeClient extends KnexClient {
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = this.sanitiseDefaultValue(n);
+    const defaultValue = this.sanitiseDefaultValue(n.cdf);
     const shouldSanitize = true;
 
     if (change === 0) {
@@ -2562,38 +2563,6 @@ class SnowflakeClient extends KnexClient {
 
   getTnPath(t) {
     return `${this.database}.${this.schema}.${t}`;
-  }
-
-  /**
-   *
-   * @param {Object} args
-   * @returns {Object} result
-   * @returns {Number} code
-   * @returns {String} message
-   */
-  async totalRecords(args: any = {}) {
-    const func = this.totalRecords.name;
-    const result = new Result();
-    log.api(`${func}:args:`, args);
-
-    try {
-      const data = await this.sqlClient.raw(
-        `SELECT SUM(record_count) as "TotalRecords" FROM 
-        (SELECT t.table_schema || '.' ||  t.table_name as "table_name",t.row_count as record_count
-          FROM "${this.database}".information_schema.tables t
-          WHERE t.table_type = 'BASE TABLE and table_schema = ?'
-        )`,
-        [this.schema],
-      );
-      result.data = data.rows[0];
-    } catch (e) {
-      result.code = -1;
-      result.message = e.message;
-      result.object = e;
-    } finally {
-      log.api(`${func} :result: ${result}`);
-    }
-    return result;
   }
 
   // Todo: error handling

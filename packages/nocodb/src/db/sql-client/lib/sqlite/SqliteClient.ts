@@ -15,9 +15,6 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
 const log = new Debug('SqliteClient');
 
 class SqliteClient extends KnexClient {
-  private queries: any;
-  private _version: any;
-
   constructor(connectionConfig) {
     // sqlite does not support inserting default values and knex fires a warning without this flag
     connectionConfig.connection.useNullAsDefault = true;

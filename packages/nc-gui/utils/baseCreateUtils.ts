@@ -137,12 +137,12 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     useNullAsDefault: true,
   },
   [ClientType.SNOWFLAKE]: {
-    account: 'account',
-    username: 'username',
-    password: 'password',
-    warehouse: 'warehouse',
-    database: 'database',
-    schema: 'schema',
+    account: 'LOCATOR.REGION',
+    username: 'USERNAME',
+    password: 'PASSWORD',
+    warehouse: 'COMPUTE_WH',
+    database: 'DATABASE',
+    schema: 'PUBLIC',
   },
   tidb: {
     host: defaultHost,

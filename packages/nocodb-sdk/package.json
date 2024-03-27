@@ -18,7 +18,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18.19.1"
+    "node": ">=18.20.0"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],
@@ -48,7 +48,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@types/jest": "^29.5.12",
     "cspell": "^4.2.8",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^5.0.8",
@@ -58,7 +58,7 @@
     "prettier": "^2.8.8",
     "rimraf": "^5.0.5",
     "tsc-alias": "^1.8.8",
-    "typescript": "^5.3.3",
+    "typescript": "^5.4.3",
     "ts-jest": "^29.1.2"
   },
   "files": [

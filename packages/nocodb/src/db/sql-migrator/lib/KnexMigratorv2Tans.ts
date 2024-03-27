@@ -11,7 +11,6 @@ import type MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
-import type SnowflakeClient from '~/db/sql-client/lib/snowflake/SnowflakeClient';
 import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -33,12 +32,7 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   protected async getSqlClient(
     source: Source,
   ): Promise<
-    | SnowflakeClient
-    | MysqlClient
-    | SqliteClient
-    | MssqlClient
-    | OracleClient
-    | PGClient
+    MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient
   > {
     return this.sqlClient || NcConnectionMgrv2.getSqlClient(source);
   }

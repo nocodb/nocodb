@@ -11100,7 +11100,7 @@ export class Api<
  * @tags DB Data Table Row
  * @name Update
  * @summary Update Table Rows
- * @request PUT:/api/v2/tables/{tableId}/records
+ * @request PATCH:/api/v2/tables/{tableId}/records
  * @response `200` `any` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -11125,7 +11125,7 @@ export class Api<
         }
       >({
         path: `/api/v2/tables/${tableId}/records`,
-        method: 'PUT',
+        method: 'PATCH',
         query: query,
         body: data,
         type: ContentType.Json,

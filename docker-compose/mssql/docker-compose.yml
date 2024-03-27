@@ -22,7 +22,7 @@ services:
       start_period: 10s
       test: "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"
       timeout: 3s
-    image: "mcr.microsoft.com/mssql/server:2017-latest"
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
     restart: always
     volumes: 
       - "db_data:/var/opt/mssql"

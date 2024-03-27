@@ -198,7 +198,9 @@
     "logo": "Logo",
     "dropdown": "Dropdown",
     "list": "List",
-    "apply": "Aplicar"
+    "apply": "Aplicar",
+    "text": "Text",
+    "appearance": "Appearance"
   },
   "objects": {
     "day": "Dia",

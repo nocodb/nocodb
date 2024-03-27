@@ -1446,9 +1446,13 @@ useEventListener(
                             <div v-if="activeField.meta.isLimitOption" class="mt-3">
                               <LazySmartsheetFormLimitOptions
                                 v-model:model-value="activeField.meta.limitOptions"
+                                :form-field-state="formState[activeField.title] || ''"
                                 :column="activeField"
                                 :is-required="isRequired(activeField, activeField.required)"
                                 @update:model-value="updateColMeta(activeField)"
+                                @update:form-field-state="(value)=>{
+                                  formState[activeField!.title] = value
+                                }"
                               ></LazySmartsheetFormLimitOptions>
                             </div>
                           </div>

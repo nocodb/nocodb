@@ -186,6 +186,8 @@ const focusLabel = ref<HTMLTextAreaElement>()
 
 const searchQuery = ref('')
 
+const autoScrollFormField = ref(false)
+
 const { t } = useI18n()
 
 const { betaFeatureToggleState } = useBetaFeatureToggle()
@@ -519,8 +521,12 @@ const columnSupportsScanning = (elementType: UITypes) =>
   betaFeatureToggleState.show &&
   [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 
-const onFormItemClick = (element: any) => {
+const onFormItemClick = (element: any, sidebarClick: boolean = false) => {
   if (isLocked.value || !isEditable) return
+
+  if (sidebarClick) {
+    autoScrollFormField.value = true
+  }
 
   activeRow.value = element.id
 }
@@ -712,16 +718,30 @@ watch(
   },
 )
 
-watch(activeField, (newValue) => {
-  if (newValue) {
-    const field = document.querySelector(`.nc-form-field-item-${CSS.escape(newValue?.title?.replaceAll(' ', ''))}`)
+const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
+  const field = document.querySelector(
+    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(title?.replaceAll(' ', ''))}`,
+  )
 
-    if (field) {
-      setTimeout(() => {
-        field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 50)
-    }
+  if (field) {
+    setTimeout(() => {
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
   }
+}
+
+watch(activeField, (newValue, oldValue) => {
+  if (newValue && autoScrollFormField.value) {
+    nextTick(() => {
+      handleAutoScrollFormField(newValue.title, false)
+    })
+  } else if (oldValue) {
+    nextTick(() => {
+      handleAutoScrollFormField(oldValue.title, true)
+    })
+  }
+
+  autoScrollFormField.value = false
 
   dropdownStates.value = {
     ...dropdownStates.value,
@@ -766,10 +786,11 @@ useEventListener(
   document,
   'mousedown',
   (e: MouseEvent) => {
+    console.log('e.target', e.target)
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button',
+        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter',
       )
     ) {
       return
@@ -1438,30 +1459,29 @@ useEventListener(
                       </div>
 
                       <!-- Limit options -->
-                      <div v-if="isSelectTypeCol(activeField.uidt)" class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                          <div class="flex-1">
-                            <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
-                            <div class="text-gray-500 mt-2">{{ $t('labels.limitOptionsSubtext') }}.</div>
-                            <div v-if="activeField.meta.isLimitOption" class="mt-3">
-                              <LazySmartsheetFormLimitOptions
-                                v-model:model-value="activeField.meta.limitOptions"
-                                :form-field-state="formState[activeField.title] || ''"
-                                :column="activeField"
-                                :is-required="isRequired(activeField, activeField.required)"
-                                @update:model-value="updateColMeta(activeField)"
-                                @update:form-field-state="(value)=>{
+                      <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
+                        <div class="flex-1 max-w-[calc(100%_-_40px)]">
+                          <div class="font-medium text-gray-800">{{ $t('labels.limitOptions') }}</div>
+                          <div class="text-gray-500 mt-2">{{ $t('labels.limitOptionsSubtext') }}.</div>
+                          <div v-if="activeField.meta.isLimitOption" class="mt-3">
+                            <LazySmartsheetFormLimitOptions
+                              v-model:model-value="activeField.meta.limitOptions"
+                              :form-field-state="formState[activeField.title] || ''"
+                              :column="activeField"
+                              :is-required="isRequired(activeField, activeField.required)"
+                              @update:model-value="updateColMeta(activeField)"
+                              @update:form-field-state="(value)=>{
                                   formState[activeField!.title] = value
                                 }"
-                              ></LazySmartsheetFormLimitOptions>
-                            </div>
+                            ></LazySmartsheetFormLimitOptions>
                           </div>
                         </div>
+
                         <a-switch
                           v-model:checked="activeField.meta.isLimitOption"
                           v-e="['a:form-view:field:limit-options']"
                           size="small"
-                          class="nc-form-switch-focus"
+                          class="flex-none nc-form-switch-focus"
                           @change="updateColMeta(activeField)"
                         />
                       </div>
@@ -1596,57 +1616,69 @@ useEventListener(
                               <div
                                 v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase())"
                                 :key="field.id"
-                                class="w-full px-2 py-1.5 flex flex-row items-center border-b-1 last:border-none border-gray-200"
+                                class="w-full px-2 flex flex-row items-center border-b-1 last:border-none border-gray-200"
                                 :class="[
                                   `nc-form-field-item-${field.title.replaceAll(' ', '')}`,
                                   `${activeRow === field.id ? 'bg-brand-50 font-medium' : 'hover:bg-gray-50'}`,
                                 ]"
                                 :data-testid="`nc-form-field-item-${field.title}`"
                               >
-                                <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
+                                <div class="py-1.5 flex items-center">
+                                  <component :is="iconMap.drag" class="flex-none cursor-move !h-4 !w-4 text-gray-600 mr-1" />
+                                </div>
                                 <div
-                                  class="flex-1 flex items-center justify-between cursor-pointer max-w-[calc(100%_-_20px)]"
-                                  @click="showOrHideColumn(field, !field.show, true)"
+                                  class="flex-1 flex items-center justify-between cursor-pointer max-w-[calc(100%_-_20px)] py-1.5"
                                 >
-                                  <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
-                                  <SmartsheetHeaderCellIcon v-else :column-meta="field" />
-                                  <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_68px)] mr-4">
-                                    <div class="w-full flex items-center">
-                                      <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
-                                        <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
-                                          <template #title>
-                                            <div class="text-center">
-                                              {{ field.title }}
-                                            </div>
-                                          </template>
-                                          <span data-testid="nc-field-title"> {{ field.title }} </span>
-                                        </NcTooltip>
+                                  <div
+                                    class="flex-1 flex items-center cursor-pointer max-w-[calc(100%_-_40px)]"
+                                    @click.prevent="onFormItemClick(field, true)"
+                                  >
+                                    <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
+                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" />
+                                    <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_28px)]">
+                                      <div class="w-full flex items-center">
+                                        <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
+                                          <NcTooltip class="truncate text-sm" :disabled="drag" show-on-truncate-only>
+                                            <template #title>
+                                              <div class="text-center">
+                                                {{ field.title }}
+                                              </div>
+                                            </template>
+                                            <span data-testid="nc-field-title"> {{ field.title }} </span>
+                                          </NcTooltip>
+                                        </div>
+                                        <div
+                                          v-if="field.label?.trim()"
+                                          class="truncate inline-flex text-xs font-normal text-gray-700"
+                                        >
+                                          <span>&nbsp;(</span>
+                                          <NcTooltip class="truncate" :disabled="drag" show-on-truncate-only>
+                                            <template #title>
+                                              <div class="text-center">
+                                                {{ field.label }}
+                                              </div>
+                                            </template>
+                                            <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
+                                          </NcTooltip>
+                                          <span>)</span>
+                                        </div>
+                                        <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top"
+                                          >&nbsp;*</span
+                                        >
                                       </div>
-                                      <div
-                                        v-if="field.label?.trim()"
-                                        class="truncate inline-flex text-xs font-normal text-gray-700"
-                                      >
-                                        <span>&nbsp;(</span>
-                                        <NcTooltip class="truncate" :disabled="drag" show-on-truncate-only>
-                                          <template #title>
-                                            <div class="text-center">
-                                              {{ field.label }}
-                                            </div>
-                                          </template>
-                                          <span data-testid="nc-field-title ">{{ field.label?.trim() }}</span>
-                                        </NcTooltip>
-                                        <span>)</span>
-                                      </div>
-                                      <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top"
-                                        >&nbsp;*</span
-                                      >
                                     </div>
                                   </div>
+
                                   <a-switch
                                     :checked="!!field.show"
                                     :disabled="field.required || isLocked || !isEditable"
-                                    class="nc-switch"
+                                    class="flex-none nc-switch"
                                     size="small"
+                                    @change="
+                                      (value) => {
+                                        showOrHideColumn(field, value, true)
+                                      }
+                                    "
                                   />
                                 </div>
                               </div>

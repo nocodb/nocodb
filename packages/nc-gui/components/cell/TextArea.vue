@@ -36,9 +36,13 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits)
+const vModel = useVModel(props, 'modelValue', emits, {
+  shouldEmit: () => !readOnly.value,
+})
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -76,8 +80,6 @@ const isVisible = ref(false)
 const inputWrapperRef = ref<HTMLElement | null>(null)
 
 const inputRef = ref<HTMLTextAreaElement | null>(null)
-
-const readOnly = inject(ReadonlyInj)
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -211,8 +213,22 @@ watch(inputWrapperRef, () => {
       }"
     >
       <div v-if="isForm && isRichMode" class="w-full">
-        <div class="w-full relative pt-11 w-full px-0 pb-1">
-          <LazyCellRichText v-model:value="vModel" class="border-t-1 border-gray-100 !max-h-50" :autofocus="false" show-menu />
+        <div
+          class="w-full relative w-full px-0 pb-1"
+          :class="{
+            'pt-11': !readOnly,
+          }"
+        >
+          <LazyCellRichText
+            v-model:value="vModel"
+            class="!max-h-50"
+            :class="{
+              'border-t-1 border-gray-100': !readOnly,
+            }"
+            :autofocus="false"
+            show-menu
+            :read-only="readOnly"
+          />
         </div>
       </div>
 
@@ -233,7 +249,7 @@ watch(inputWrapperRef, () => {
         <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
       <textarea
-        v-else-if="editEnabled && !isVisible"
+        v-else-if="(editEnabled && !isVisible) || isForm"
         :ref="focus"
         v-model="vModel"
         :rows="isForm ? 5 : 4"

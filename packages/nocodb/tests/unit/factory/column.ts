@@ -28,7 +28,7 @@ const defaultColumns = function (context) {
       dtxp: '',
       dtxs: '',
       uidt: 'CreatedTime',
-      system:true,
+      system: true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
     {
@@ -42,7 +42,7 @@ const defaultColumns = function (context) {
       dtxp: '',
       dtxs: '',
       uidt: 'LastModifiedTime',
-      system:true,
+      system: true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
   ];
@@ -53,7 +53,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'textBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -86,7 +86,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'numberBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -124,7 +124,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'dateBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -142,7 +142,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'selectBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -162,7 +162,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'userBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -179,7 +179,7 @@ const customColumns = function (type: string, options: any = {}) {
         },
       ];
     case 'custom':
-      return [{ title: 'Id', column_name: 'Id', uidt: UITypes.ID }, ...options];
+      return [{ title: 'Id', column_name: 'id', uidt: UITypes.ID }, ...options];
   }
 };
 

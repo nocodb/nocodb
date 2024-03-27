@@ -112,13 +112,14 @@ onMounted(() => {
     </span>
   </div>
   <input
-    v-if="!readOnly && editEnabled"
+    v-if="(!readOnly && editEnabled) || (isForm && !isEditColumn)"
     :ref="focus"
     v-model="vModel"
     type="number"
     class="nc-cell-field h-full text-sm border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
     :class="isForm && !isEditColumn ? 'flex flex-1' : 'w-full'"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    :disabled="readOnly"
     @blur="onBlur"
     @keydown.enter="onKeydownEnter"
     @keydown.down.stop

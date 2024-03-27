@@ -159,37 +159,24 @@ const handleUpdateRefTable = () => {
 }
 const oneToOneEnabled = ref(false)
 
-
 const cusValidators = {
-  'custom.column_id': [
-    { required: true, message: t('general.required') }
-  ],
-  'custom.ref_model_id': [
-    { required: true, message: t('general.required') }
-  ],
-  'custom.ref_column_id': [
-    { required: true, message: t('general.required') }
-  ],
+  'custom.column_id': [{ required: true, message: t('general.required') }],
+  'custom.ref_model_id': [{ required: true, message: t('general.required') }],
+  'custom.ref_column_id': [{ required: true, message: t('general.required') }],
 }
 
 const cusJuncTableValidations = {
-  'custom.junc_model_id': [
-    { required: true, message: t('general.required') }
-  ],
-  'custom.junc_column_id': [
-    { required: true, message: t('general.required') }
-  ],
-  'custom.junc_ref_column_id': [
-    { required: true, message: t('general.required') }
-  ],
+  'custom.junc_model_id': [{ required: true, message: t('general.required') }],
+  'custom.junc_column_id': [{ required: true, message: t('general.required') }],
+  'custom.junc_ref_column_id': [{ required: true, message: t('general.required') }],
 }
 
-const onCustomSwitchToggle = () =>{
-  if(vModel.value?.is_custom_link)
+const onCustomSwitchToggle = () => {
+  if (vModel.value?.is_custom_link)
     setAdditionalValidations({
       childId: [],
       ...cusValidators,
-      ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {})
+      ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
     })
   else
     setAdditionalValidations({
@@ -201,7 +188,7 @@ const onCustomSwitchToggle = () =>{
 <template>
   <div class="w-full flex flex-col mb-2 mt-4">
     <div class="pb-2">
-    <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle"/> Custom
+      <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" /> Custom
     </div>
     <div class="border-2 p-6">
     <div class="flex flex-col gap-4">
@@ -230,36 +217,36 @@ const onCustomSwitchToggle = () =>{
 
       <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_link" v-model:value="vModel" class="mt-2" />
       <template v-else>
-      <a-form-item
-        class="flex w-full pb-2 mt-4 nc-ltar-child-table"
-        :label="$t('labels.childTable')"
-        v-bind="validateInfos.childId"
-      >
-        <a-select
-          v-model:value="referenceTableChildId"
-          show-search
-          :disabled="isEdit"
-          :filter-option="filterOption"
-          placeholder="select table to link"
-          dropdown-class-name="nc-dropdown-ltar-child-table"
-          @change="handleUpdateRefTable"
+        <a-form-item
+          class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+          :label="$t('labels.childTable')"
+          v-bind="validateInfos.childId"
         >
+          <a-select
+          v-model:value="referenceTableChildId"
+            show-search
+          :disabled="isEdit"
+            :filter-option="filterOption"
+          placeholder="select table to link"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+          @change="handleUpdateRefTable"
+          >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="table" class="text-gray-500" />
+            <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="table" class="text-gray-500" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ table.title }}</template>
+                  <span>{{ table.title }}</span>
+                </NcTooltip>
               </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ table.title }}</template>
-                <span>{{ table.title }}</span>
-              </NcTooltip>
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
       </template>
 
       <div v-if="isEeUI" class="w-full flex-col">
@@ -451,3 +438,33 @@ const onCustomSwitchToggle = () =>{
   @apply h-8.5;
 }
 </style>
+
+<!-- todo: remove later
+<style lang="scss" scoped>
+.nc-ltar-relation-type-radio-group {
+  .nc-ltar-icon {
+    @apply flex items-center p-1 rounded;
+
+    &.nc-mm-icon {
+      @apply bg-pink-500;
+    }
+    &.nc-hm-icon {
+      @apply bg-orange-500;
+    }
+    &.nc-oo-icon {
+      @apply bg-purple-500;
+      :deep(svg path) {
+        @apply stroke-purple-50;
+      }
+    }
+  }
+
+  :deep(.ant-radio) {
+    @apply top-0;
+    & + span {
+      @apply flex items-center gap-2;
+    }
+  }
+}
+</style>
+-->

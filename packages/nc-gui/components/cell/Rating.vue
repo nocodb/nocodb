@@ -78,6 +78,7 @@ watch(rateDomRef, () => {
     :count="ratingMeta.max"
     :class="readOnly ? 'pointer-events-none' : ''"
     :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 5px'};`"
+    :key="ratingMeta.icon.full"
     @keydown="onKeyPress"
   >
     <template #character>

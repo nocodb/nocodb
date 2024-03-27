@@ -198,7 +198,9 @@
     "logo": "Logo",
     "dropdown": "Rozwijane menu",
     "list": "Lista",
-    "apply": "Zastosuj"
+    "apply": "Zastosuj",
+    "text": "Text",
+    "appearance": "Appearance"
   },
   "objects": {
     "day": "Dzień",
@@ -699,7 +701,7 @@
     "hideNocodbBranding": "Ukryj branding NocoDB",
     "showOnConditions": "Pokaż na warunkach",
     "showFieldOnConditionsMet": "Pokazuje pole tylko, gdy spełnione są warunki",
-    "limitOptions": "Ogranicz opcje",
+    "limitOptions": "Limit options",
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
     "clearSelection": "Wyczyść wybór"
   },

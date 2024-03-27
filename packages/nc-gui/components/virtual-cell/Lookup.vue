@@ -158,11 +158,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
               }"
             >
               <div
-                class="flex items-start gap-1.5 w-full h-full py-[3px]"
+                class="flex gap-1.5 w-full h-full py-[3px]"
                 :class="{
                   'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                   '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
                     rowHeight === 1 || isAttachment(lookupColumn),
+                  'items-center': rowHeight === 1,
+                  'items-start': rowHeight !== 1,
                 }"
               >
                 <div

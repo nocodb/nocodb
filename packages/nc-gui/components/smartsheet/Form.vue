@@ -444,7 +444,7 @@ function setFormData() {
   localColumns.value = col
     .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
-    .map((c) => ({ ...c, label: c.label || c.title, required: !!c.required }))
+    .map((c) => ({ ...c, required: !!c.required }))
 }
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -641,6 +641,16 @@ const formElementValidationRules = (element) => {
 
 const onFocusActiveFieldLabel = (e: FocusEvent) => {
   ;(e.target as HTMLTextAreaElement).select()
+}
+
+const updateFieldTitle = (value: string) => {
+  if (!activeField.value) return
+
+  if (activeField.value.title === value) {
+    activeField.value.label = null
+  } else {
+    activeField.value.label = value
+  }
 }
 
 const updateSelectFieldLayout = (value: boolean) => {
@@ -1360,7 +1370,7 @@ useEventListener(
 
                     <a-textarea
                       ref="focusLabel"
-                      v-model:value="activeField.label"
+                      :value="activeField.label || activeField.title"
                       :rows="1"
                       auto-size
                       hide-details
@@ -1369,6 +1379,7 @@ useEventListener(
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"
                       @keydown.enter.prevent
+                      @update:value="updateFieldTitle"
                       @change="updateColMeta(activeField)"
                     />
 

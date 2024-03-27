@@ -187,10 +187,19 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     :edit-enabled="false"
                     :virtual="true"
                     :read-only="true"
-                    :class="{
-                      'min-h-0 min-w-0': isAttachment(lookupColumn),
-                      '!min-w-20 !w-auto px-2': !isAttachment(lookupColumn),
-                    }"
+                    :class="[
+                      `${
+                        [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
+                          ? 'pl-2'
+                          : !isAttachment(lookupColumn)
+                          ? 'px-2'
+                          : ''
+                      }`,
+                      {
+                        'min-h-0 min-w-0': isAttachment(lookupColumn),
+                        '!w-auto ': !isAttachment(lookupColumn),
+                      },
+                    ]"
                   />
                 </div>
               </div>

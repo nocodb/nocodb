@@ -1083,11 +1083,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       } else {
         const batches = [];
 
-        const returningArr: string[] = [];
+        const returningObj: Record<string, string> = {};
 
         if (!raw) {
           for (const col of this.model.primaryKeys) {
-            returningArr.push(col.column_name);
+            returningObj[col.title] = col.column_name;
           }
         }
 
@@ -1100,7 +1100,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
-                .returning(this.model.primaryKeys?.length ? returningArr : '*')
+                .returning(this.model.primaryKeys?.length ? returningObj as any : '*')
                 .toQuery(),
             );
           } else {

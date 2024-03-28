@@ -1,5 +1,4 @@
 import { NcErrorType } from 'nocodb-sdk';
-import type { NextFunction, Request, Response } from 'express';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
@@ -390,66 +389,6 @@ export function extractDBError(error): {
       info: { message: error.message, code: error.code },
     };
   }
-}
-
-export default function (
-  requestHandler: (req: Request, res: Response, next?: NextFunction) => any,
-) {
-  return async function (req: Request, res: Response, next?: NextFunction) {
-    try {
-      return await requestHandler(req, res, next);
-    } catch (e) {
-      // skip unnecessary error logging
-      if (
-        process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||
-        !(
-          e instanceof BadRequest ||
-          e instanceof AjvError ||
-          e instanceof Unauthorized ||
-          e instanceof Forbidden ||
-          e instanceof NotFound ||
-          e instanceof UnprocessableEntity
-        )
-      )
-        console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
-
-      const dbError = extractDBError(e);
-
-      if (dbError) {
-        const error = new NcBaseErrorv2(NcErrorType.DATABASE_ERROR, {
-          params: dbError.message,
-          details: dbError,
-        });
-        return res.status(error.code).json({
-          error: error.error,
-          message: error.message,
-          details: error.details,
-        });
-      }
-
-      if (e instanceof BadRequest) {
-        return res.status(400).json({ msg: e.message });
-      } else if (e instanceof Unauthorized) {
-        return res.status(401).json({ msg: e.message });
-      } else if (e instanceof Forbidden) {
-        return res.status(403).json({ msg: e.message });
-      } else if (e instanceof NotFound) {
-        return res.status(404).json({ msg: e.message });
-      } else if (e instanceof AjvError) {
-        return res.status(400).json({ msg: e.message, errors: e.errors });
-      } else if (e instanceof UnprocessableEntity) {
-        return res.status(422).json({ msg: e.message });
-      } else if (e instanceof NotAllowed) {
-        return res.status(405).json({ msg: e.message });
-      } else if (e instanceof NcBaseErrorv2) {
-        return res
-          .status(e.code)
-          .json({ error: e.error, message: e.message, details: e.details });
-      }
-      // if some other error occurs then send 500 and a generic message
-      res.status(500).json({ msg: 'Internal server error' });
-    }
-  };
 }
 
 export class NcBaseError extends Error {

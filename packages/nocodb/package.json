@@ -132,7 +132,7 @@
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
     "knex": "2.4.2",
-    "knex-snowflake": "link:../nc-connectors/knex-snowflake",
+    "knex-snowflake": "link:../nc-knex-dialects/knex-snowflake",
     "list-github-dir-content": "^3.0.0",
     "lodash": "^4.17.21",
     "lru-cache": "^6.0.0",

@@ -1180,7 +1180,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['REGEX_MATCH({title}, "abc.*")'],
     returnType: FormulaDataTypes.NUMERIC,
     docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions/#regex_match',
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_match',
   },
 
   REGEX_EXTRACT: {

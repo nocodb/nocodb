@@ -25,7 +25,7 @@ import {
   View,
 } from '~/models';
 import rolePermissions from '~/utils/acl';
-import { NcError } from '~/middlewares/catchError';
+import { NcError } from '~/helpers/catchError';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',

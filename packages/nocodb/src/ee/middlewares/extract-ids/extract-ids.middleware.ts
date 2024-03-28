@@ -39,7 +39,7 @@ import {
   Workspace,
 } from '~/models';
 import rolePermissions from '~/utils/acl';
-import { NcError } from '~/middlewares/catchError';
+import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';

@@ -35,7 +35,7 @@ const meta = inject(MetaInj, ref({} as TableType))
 
 const vModel = useVModel(props, 'value', emit)
 
-const { validateInfos, setAdditionalValidations, onDataTypeChange } = useColumnCreateStoreOrThrow()
+const { validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
 // const baseStore = useBase()
 // const { base } = storeToRefs(baseStore)
@@ -55,7 +55,6 @@ vModel.value.custom = {
   junc_base_id: meta.value?.base_id,
 }
 
-console.log('meta', meta.value, vModel.value)
 const { basesList, bases } = storeToRefs(useBases())
 const tablesStore = useTablesStore()
 const { baseTables, activeTable, activeTables: sourceTables } = storeToRefs(tablesStore)
@@ -121,17 +120,36 @@ const juncTableColumns = computed(() => {
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
-const resetSelectedColumns = (isJunction: boolean = false) => {
+const resetSelectedColumns = (isJunction: boolean = false, resetOnChangeDataType: boolean = false) => {
   if (isJunction) {
     if (vModel.value.custom.junc_column_id) {
-      vModel.value.custom.junc_column_id = null
+      if (resetOnChangeDataType) {
+        if (sourceColumn.value?.dt !== juncTableColumns.value.find((c) => c.id === vModel.value.custom.junc_column_id)?.dt) {
+          vModel.value.custom.junc_column_id = null
+        }
+      } else {
+        vModel.value.custom.junc_column_id = null
+      }
     }
+
     if (vModel.value.custom.junc_ref_column_id) {
-      vModel.value.custom.junc_ref_column_id = null
+      if (resetOnChangeDataType) {
+        if (sourceColumn.value?.dt !== juncTableColumns.value.find((c) => c.id === vModel.value.custom.junc_ref_column_id)?.dt) {
+          vModel.value.custom.junc_ref_column_id = null
+        }
+      } else {
+        vModel.value.custom.junc_ref_column_id = null
+      }
     }
   } else {
     if (vModel.value.custom.ref_column_id) {
-      vModel.value.custom.ref_column_id = null
+      if (resetOnChangeDataType) {
+        if (sourceColumn.value?.dt !== refTableColumns.value.find((c) => c.id === vModel.value.custom.ref_column_id)?.dt) {
+          vModel.value.custom.ref_column_id = null
+        }
+      } else {
+        vModel.value.custom.ref_column_id = null
+      }
     }
   }
 }
@@ -159,6 +177,12 @@ const onBaseChange = async (baseId, isJunctionBase: boolean = false) => {
   }
 }
 
+const onSourceColumnChange = async () => {
+  await onDataTypeChange()
+  resetSelectedColumns(true, true)
+  resetSelectedColumns(false, true)
+}
+
 const getBaseIconColor = (base, selectedBaseId) => {
   if (base.id === selectedBaseId) {
     return undefined
@@ -183,7 +207,7 @@ watch(pkColumn, () => {
       <div class="nc-relation-settings-table flex flex-col">
         <div class="nc-relation-settings-table-header">Source</div>
 
-        <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-base" v-bind="validateInfos['custom.base_id']">
+        <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-base">
           <a-select
             :value="meta.base_id"
             show-search
@@ -209,10 +233,7 @@ watch(pkColumn, () => {
           </a-select>
         </a-form-item>
 
-        <a-form-item
-          class="nc-relation-settings-table-row disabled nc-ltar-source-table"
-          v-bind="validateInfos['custom.base_id']"
-        >
+        <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-table">
           <a-select
             :value="activeTable?.id"
             show-search
@@ -245,7 +266,7 @@ watch(pkColumn, () => {
             :filter-option="filterOption"
             :bordered="false"
             dropdown-class-name="nc-dropdown-ltar-source-column !text-xs"
-            @change="onDataTypeChange"
+            @change="onSourceColumnChange"
           >
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
               <div class="flex w-full items-center gap-2">
@@ -273,7 +294,7 @@ watch(pkColumn, () => {
       <template v-if="isMm">
         <div class="nc-relation-settings-table flex flex-col">
           <div class="nc-relation-settings-table-header">Junction</div>
-          <a-form-item class="nc-relation-settings-table-row nc-ltar-junction-base" v-bind="validateInfos['custom.junc_base_id']">
+          <a-form-item class="nc-relation-settings-table-row nc-ltar-junction-base">
             <a-select
               v-model:value="vModel.custom.junc_base_id"
               show-search
@@ -341,7 +362,12 @@ watch(pkColumn, () => {
               dropdown-class-name="nc-dropdown-ltar-source-junction-column"
               @change="onDataTypeChange"
             >
-              <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id" :disabled="sourceColumn?.dt !== column.dt">
+              <a-select-option
+                v-for="column of juncTableColumns"
+                :key="column.title"
+                :value="column.id"
+                :disabled="sourceColumn?.dt !== column.dt"
+              >
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
@@ -378,7 +404,12 @@ watch(pkColumn, () => {
               dropdown-class-name="nc-dropdown-ltar-child-junction-column"
               @change="onDataTypeChange"
             >
-              <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id" :disabled="sourceColumn?.dt !== column.dt">
+              <a-select-option
+                v-for="column of juncTableColumns"
+                :key="column.title"
+                :value="column.id"
+                :disabled="sourceColumn?.dt !== column.dt"
+              >
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
@@ -406,7 +437,7 @@ watch(pkColumn, () => {
       <div class="nc-relation-settings-table flex flex-col">
         <div class="nc-relation-settings-table-header">Child</div>
 
-        <a-form-item class="nc-relation-settings-table-row nc-ltar-child-base" v-bind="validateInfos['custom.base_id']">
+        <a-form-item class="nc-relation-settings-table-row nc-ltar-child-base">
           <a-select
             v-model:value="vModel.custom.base_id"
             show-search
@@ -537,9 +568,8 @@ watch(pkColumn, () => {
 
     .nc-table-icon {
       @apply text-gray-500;
-      
     }
-   
+
     .nc-relation-settings-table-connector-point {
       @apply absolute top-[50%] rounded-full w-2 h-2;
       transform: translateY(-50%);

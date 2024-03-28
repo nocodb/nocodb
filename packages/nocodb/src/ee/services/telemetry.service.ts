@@ -67,6 +67,13 @@ export class TelemetryService {
           backend: true,
           ...payload,
         },
+        ...(req?.ncWorkspaceId
+          ? {
+              groups: {
+                workspace_id: req.ncWorkspaceId,
+              },
+            }
+          : {}),
       });
   }
 
@@ -101,6 +108,13 @@ export class TelemetryService {
         properties: {
           ...payload,
         },
+        ...(payload.workspace_id
+          ? {
+              groups: {
+                workspace_id: payload.workspace_id,
+              },
+            }
+          : {}),
       });
     }
 

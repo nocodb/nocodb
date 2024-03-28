@@ -485,6 +485,10 @@ const errorHelpers: {
     code: number;
   };
 } = {
+  [NcErrorType.UNKNOWN_ERROR]: {
+    message: 'Something went wrong',
+    code: 500,
+  },
   [NcErrorType.INTERNAL_SERVER_ERROR]: {
     message: (message: string) => message || `Internal server error`,
     code: 500,

@@ -16,11 +16,13 @@ import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } f
 import { isString } from '@vue/shared'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
+  NcErrorType,
   PreFilledMode,
   SharedViewPasswordInj,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
+  extractSdkResponseErrorMsgv2,
   isNumericFieldType,
   isValidURL,
   message,
@@ -176,13 +178,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       handlePreFillForm()
     } catch (e: any) {
+      const error = await extractSdkResponseErrorMsgv2(e)
+
       if (e.response && e.response.status === 404) {
         notFound.value = true
-        // TODO - handle invalidSharedViewPassword
-      } else if (await extractSdkResponseErrorMsg(e)) {
+      } else if (error.error === NcErrorType.INVALID_SHARED_VIEW_PASSWORD) {
         passwordDlg.value = true
 
-        if (password.value && password.value !== '') passwordError.value = 'Something went wrong. Please check your credentials.'
+        if (password.value && password.value !== '') {
+          passwordError.value = error.message
+        }
       }
     }
   }

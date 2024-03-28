@@ -1,3 +1,5 @@
+import { NcErrorType } from 'nocodb-sdk'
+
 export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
   if (!e || !e.response) return e.message
   let msg
@@ -21,3 +23,38 @@ export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
 
   return msg || 'Some error occurred'
 }
+
+export async function extractSdkResponseErrorMsgv2(e: Error & { response: any }): Promise<{
+  error: NcErrorType
+  message: string
+  details?: any
+}> {
+  const unknownError = {
+    error: NcErrorType.UNKNOWN_ERROR,
+    message: 'Something went wrong',
+  }
+
+  if (!e || !e.response) {
+    return unknownError
+  }
+
+  if (e.response.data instanceof Blob) {
+    try {
+      const parsedError = JSON.parse(await e.response.data.text())
+      if (parsedError.error && parsedError.error in NcErrorType) {
+        return parsedError
+      }
+      return unknownError
+    } catch {
+      return unknownError
+    }
+  } else {
+    if (e.response.data.error && e.response.data.error in NcErrorType) {
+      return e.response.data
+    }
+
+    return unknownError
+  }
+}
+
+export { NcErrorType }

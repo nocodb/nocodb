@@ -159,6 +159,13 @@ const onBaseChange = async (baseId, isJunctionBase: boolean = false) => {
   }
 }
 
+const getBaseIconColor = (base, selectedBaseId) => {
+  if (base.id === selectedBaseId) {
+    return undefined
+  } else {
+    return parseProp(base.meta).iconColor
+  }
+}
 watch(pkColumn, () => {
   if (pkColumn.value?.id && !vModel.value.custom?.column_id) {
     vModel.value.custom = {
@@ -188,8 +195,7 @@ watch(pkColumn, () => {
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
                 <div class="min-w-5 flex items-center justify-center">
-                  <!-- <GeneralTableIcon :meta="base" class="text-gray-500" /> -->
-                  <GeneralProjectIcon :color="parseProp(base.meta).iconColor" />
+                  <GeneralProjectIcon class="nc-project-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ base.title }}</template>
@@ -218,7 +224,7 @@ watch(pkColumn, () => {
             <a-select-option v-for="table of sourceTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
                 <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="table" class="text-gray-500" />
+                  <GeneralTableIcon :meta="table" class="nc-table-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ table.title }}</template>
@@ -279,7 +285,7 @@ watch(pkColumn, () => {
               <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
-                    <GeneralProjectIcon :color="parseProp(base.meta).iconColor" />
+                    <GeneralProjectIcon :color="getBaseIconColor(base, vModel.custom.junc_base_id)" class="nc-project-icon" />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ base.title }}</template>
@@ -308,7 +314,7 @@ watch(pkColumn, () => {
               <a-select-option v-for="table of junctionTables" :key="table.title" :value="table.id">
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
-                    <GeneralTableIcon :meta="table" class="text-gray-500" />
+                    <GeneralTableIcon :meta="table" class="nc-table-icon" />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ table.title }}</template>
@@ -335,7 +341,7 @@ watch(pkColumn, () => {
               dropdown-class-name="nc-dropdown-ltar-source-junction-column"
               @change="onDataTypeChange"
             >
-              <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id">
+              <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id" :disabled="sourceColumn?.dt !== column.dt">
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
@@ -372,7 +378,7 @@ watch(pkColumn, () => {
               dropdown-class-name="nc-dropdown-ltar-child-junction-column"
               @change="onDataTypeChange"
             >
-              <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id">
+              <a-select-option v-for="column of juncTableColumns" :key="column.title" :value="column.id" :disabled="sourceColumn?.dt !== column.dt">
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
@@ -412,7 +418,7 @@ watch(pkColumn, () => {
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
                 <div class="min-w-5 flex items-center justify-center">
-                  <GeneralProjectIcon :color="parseProp(base.meta).iconColor" />
+                  <GeneralProjectIcon :color="getBaseIconColor(base, vModel.custom.base_id)" class="nc-project-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ base.title }}</template>
@@ -439,7 +445,7 @@ watch(pkColumn, () => {
             <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
                 <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="table" class="text-gray-500" />
+                  <GeneralTableIcon :meta="table" class="nc-table-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ table.title }}</template>
@@ -524,6 +530,16 @@ watch(pkColumn, () => {
       @apply mr-2;
     }
 
+    .nc-project-icon {
+      @apply !grayscale;
+      filter: grayscale(100%) brightness(115%) !important;
+    }
+
+    .nc-table-icon {
+      @apply text-gray-500;
+      
+    }
+   
     .nc-relation-settings-table-connector-point {
       @apply absolute top-[50%] rounded-full w-2 h-2;
       transform: translateY(-50%);

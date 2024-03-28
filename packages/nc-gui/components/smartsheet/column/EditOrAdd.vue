@@ -363,7 +363,7 @@ const isFullUpdateAllowed = computed(() => {
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'overflow-visible': formState.uidt === UITypes.Formula,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      'min-w-[400px] !w-full': isLinksOrLTAR(formState.uidt),
+      'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
     }"
     @keydown="handleEscape"

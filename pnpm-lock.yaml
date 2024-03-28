@@ -34,7 +34,7 @@ importers:
         specifier: https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz
         version: '@cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz'
 
-  packages/nc-connectors/knex-snowflake:
+  packages/nc-knex-dialects/knex-snowflake:
     dependencies:
       knex:
         specifier: ^2.4.2
@@ -798,8 +798,8 @@ importers:
         specifier: 2.4.2
         version: 2.4.2(mysql2@3.9.2)(pg@8.11.3)(sqlite3@5.1.7)(tedious@16.6.1)
       knex-snowflake:
-        specifier: link:../nc-connectors/knex-snowflake
-        version: link:../nc-connectors/knex-snowflake
+        specifier: link:../nc-knex-dialects/knex-snowflake
+        version: link:../nc-knex-dialects/knex-snowflake
       list-github-dir-content:
         specifier: ^3.0.0
         version: 3.0.0

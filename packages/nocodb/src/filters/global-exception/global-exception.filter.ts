@@ -1,6 +1,7 @@
 import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { ThrottlerException } from '@nestjs/throttler';
+import { NcErrorType } from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import {
@@ -38,7 +39,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NotFound ||
         exception instanceof UnprocessableEntity ||
         exception instanceof NotFoundException ||
-        exception instanceof ThrottlerException
+        exception instanceof ThrottlerException ||
+        (exception instanceof NcBaseErrorv2 &&
+          ![
+            NcErrorType.INTERNAL_SERVER_ERROR,
+            NcErrorType.DATABASE_ERROR,
+            NcErrorType.UNKNOWN_ERROR,
+          ].includes(exception.error))
       )
     )
       this.logError(exception, request);

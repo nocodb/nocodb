@@ -187,7 +187,8 @@ const onCustomSwitchToggle = () => {
 
 <template>
   <div class="w-full flex flex-col mb-2 mt-4">
-    <div class="pb-2">
+    <div class="mb-2">
+      Relation Type <span class="text-red-500">*</span>
       <a-switch v-model:checked="vModel.is_custom_link" size="small" name="Custom" @change="onCustomSwitchToggle" /> Custom
     </div>
     <div class="border-2 p-6">
@@ -214,14 +215,11 @@ const onCustomSwitchToggle = () => {
           </a-radio>
         </a-radio-group>
       </a-form-item>
-
-      <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_link" v-model:value="vModel" class="mt-2" />
+    </div>
+    <div class="mt-6">
+      <LazySmartsheetColumnLinkAdvancedOptions v-if="vModel.is_custom_link" v-model:value="vModel" />
       <template v-else>
-        <a-form-item
-          class="flex w-full pb-2 mt-4 nc-ltar-child-table"
-          :label="$t('labels.childTable')"
-          v-bind="validateInfos.childId"
-        >
+        <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
           <a-select
           v-model:value="referenceTableChildId"
             show-search
@@ -332,7 +330,8 @@ const onCustomSwitchToggle = () => {
 
             <GeneralIcon :icon="advancedOptions ? 'arrowUp' : 'arrowDown'" class="h-4 w-4" />
           </div>
-        </NcButton>
+
+    </NcButton>
       </div>
 
       <div v-if="advancedOptions" class="flex flex-col gap-4">
@@ -456,6 +455,14 @@ const onCustomSwitchToggle = () => {
       :deep(svg path) {
         @apply stroke-purple-50;
       }
+    }
+  }
+
+  :deep(.ant-radio-wrapper) {
+    @apply px-3 py-2 flex items-center mr-0;
+
+    &:not(:last-child) {
+      @apply border-b border-gray-200;
     }
   }
 

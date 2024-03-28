@@ -1,17 +1,25 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  value?: string | string[]
-  placeholder?: string
-  mode?: 'multiple' | 'tags'
-  size?: 'small' | 'middle' | 'large'
-  dropdownClassName?: string
-  showSearch?: boolean
-  // filterOptions is a function
-  filterOption?: (input: string, option: any) => boolean
-  dropdownMatchSelectWidth?: boolean
-  allowClear?: boolean
-  loading?: boolean
-}>()
+import { iconMap } from '#imports'
+
+const props = withDefaults(
+  defineProps<{
+    value?: string | string[]
+    placeholder?: string
+    mode?: 'multiple' | 'tags'
+    size?: 'small' | 'middle' | 'large'
+    dropdownClassName?: string
+    showSearch?: boolean
+    // filterOptions is a function
+    filterOption?: (input: string, option: any) => boolean
+    dropdownMatchSelectWidth?: boolean
+    allowClear?: boolean
+    loading?: boolean
+    suffixIcon?: keyof typeof iconMap
+  }>(),
+  {
+    suffixIcon: 'arrowDown',
+  },
+)
 
 const emits = defineEmits(['update:value', 'change'])
 
@@ -25,15 +33,7 @@ const dropdownClassName = computed(() => {
   return className
 })
 
-const showSearch = computed(() => props.showSearch)
-
-const filterOption = computed(() => props.filterOption)
-
-const dropdownMatchSelectWidth = computed(() => props.dropdownMatchSelectWidth)
-
-const loading = computed(() => props.loading)
-
-const mode = computed(() => props.mode)
+const { showSearch, filterOption, dropdownMatchSelectWidth, loading, mode } = toRefs(props)
 
 const vModel = useVModel(props, 'value', emits)
 
@@ -60,7 +60,7 @@ const onChange = (value: string) => {
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />
-      <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" icon="arrowDown" />
+      <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" :icon="suffixIcon" />
     </template>
     <slot />
   </a-select>

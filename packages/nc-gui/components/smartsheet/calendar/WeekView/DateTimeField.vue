@@ -785,6 +785,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         >
           <NcButton
             v-if="isOverflowAcrossHourRange(hour).isOverflow"
+            v-e="`['c:calendar:week-view-more']`"
             class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
             size="xxsmall"
             type="secondary"

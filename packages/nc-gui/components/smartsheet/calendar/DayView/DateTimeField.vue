@@ -953,6 +953,7 @@ const newRecord = (hour: dayjs.Dayjs) => {
 
       <NcButton
         v-if="isOverflowAcrossHourRange(hour).isOverflow"
+        v-e="`['c:calendar:week-view-more']`"
         class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
         size="xxsmall"
         type="secondary"

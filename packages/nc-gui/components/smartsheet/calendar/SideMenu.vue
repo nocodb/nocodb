@@ -383,7 +383,7 @@ onUnmounted(() => {
       >
         <NcButton
           v-if="isUIAllowed('dataEdit') && props.visible"
-          v-e="['c:calendar:calendar-new-record-btn']"
+          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
           class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
           data-testid="nc-calendar-side-menu-new-btn"
           type="secondary"

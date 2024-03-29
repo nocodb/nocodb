@@ -759,6 +759,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
               !draggingId
             "
+            v-e="`['c:calendar:month-view-more']`"
             class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
             size="xxsmall"
             type="secondary"

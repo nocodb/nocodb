@@ -205,7 +205,7 @@ export class ViewSidebarPage extends BasePage {
   }
 
   private async createView({ title, type }: { title: string; type: ViewTypes }) {
-    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForTimeout(500);
 
     await this.dashboard.sidebar.createView({ title, type });
   }

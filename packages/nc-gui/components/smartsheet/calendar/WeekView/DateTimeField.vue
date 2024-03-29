@@ -722,7 +722,9 @@ watch(
   () => recordsAcrossAllRange.value,
   () => {
     if (dragRecord.value) return
-    document.querySelectorAll('.draggable-record').item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const records = document.querySelectorAll('.draggable-record')
+    if (records.length) records.item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    else document.querySelectorAll('.nc-calendar-day-hour').item(9)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   },
   { immediate: true },
 )
@@ -751,7 +753,7 @@ watch(
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-15 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
+        class="h-15 first:mt-0 pt-7.1 nc-calendar-day-hour text-center text-xs text-gray-500 py-1"
       >
         {{ hour.format('h A') }}
       </div>

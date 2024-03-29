@@ -848,7 +848,9 @@ watch(
   () => {
     setTimeout(() => {
       if (isDragging.value) return
-      document.querySelectorAll('.draggable-record').item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const records = document.querySelectorAll('.draggable-record')
+      if (records.length) records.item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      else document.querySelectorAll('.nc-calendar-day-hour').item(9)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 100)
   },
   { immediate: true },
@@ -867,7 +869,7 @@ watch(
       :class="{
         '!border-brand-500': hour.isSame(selectedTime),
       }"
-      class="flex w-full h-15 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+      class="flex w-full h-15 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
       data-testid="nc-calendar-day-hour"
       @click="selectHour(hour)"
       @dblclick="newRecord(hour)"

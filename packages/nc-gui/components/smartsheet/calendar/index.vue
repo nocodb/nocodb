@@ -282,7 +282,7 @@ const headerText = computed(() => {
           </NcButton>
         </NcTooltip>
       </div>
-      <template v-if="calendarRange">
+      <template v-if="calendarRange?.length">
         <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
         <template v-if="!isCalendarDataLoading">
           <LazySmartsheetCalendarMonthView

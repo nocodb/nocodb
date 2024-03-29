@@ -369,7 +369,7 @@ onUnmounted(() => {
       </div>
 
       <div
-        v-if="calendarRange"
+        v-if="calendarRange?.length"
         :ref="sideBarListRef"
         :class="{
          '!h-[calc(100vh-10.5rem)]': width <= 1440,
@@ -439,6 +439,17 @@ onUnmounted(() => {
             </LazySmartsheetRow>
           </div>
         </template>
+      </div>
+      <div
+        v-else
+        :class="{
+         '!h-[calc(100vh-10.5rem)]': width <= 1440,
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
+      }"
+        class="flex items-center justify-center h-full"
+      >
+        {{ $t('activity.noRange') }}
       </div>
     </div>
   </div>

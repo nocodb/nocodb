@@ -155,10 +155,7 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          data-testid="sidebar-view-create-calendar"
-          @click="onOpenModal({ type: ViewTypes.CALENDAR })"
-        >
+        <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" />

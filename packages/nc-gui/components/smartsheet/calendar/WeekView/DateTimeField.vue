@@ -88,11 +88,8 @@ const recordsAcrossAllRange = computed<{
       records: [],
       count: {},
     }
-
-  const { scrollHeight } = scrollContainer.value
-
   const perWidth = containerWidth.value / 7
-  const perHeight = scrollHeight / 24
+  const perHeight = 60
 
   const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
   const scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
@@ -193,25 +190,12 @@ const recordsAcrossAllRange = computed<{
           dayIndex = 6
         }
 
-        const hourKey = ogStartDate.format('HH:mm')
-
-        // We calculate the index of the hour in the day and set the top and height of the record
-        const hourIndex = Math.min(
-          Math.max(
-            datesHours.value[dayIndex]?.findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
-            0,
-          ),
-          23,
-        )
-
         const minutes = ogStartDate.minute() + ogStartDate.hour() * 60
-
-        const topPx = (minutes * perHeight) / 60
 
         style = {
           ...style,
-          top: `${topPx - hourIndex - hourIndex * 0.15 + 0.7}px`,
-          height: `${perHeight - 4}px`,
+          top: `${minutes + 1}px`,
+          height: `${perHeight - 2}px`,
         }
 
         recordsToDisplay.push({
@@ -758,7 +742,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-20 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
+        class="h-15 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
       >
         {{ hour.format('h A') }}
       </div>
@@ -772,7 +756,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
-          class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
+          class="text-center relative h-15 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="

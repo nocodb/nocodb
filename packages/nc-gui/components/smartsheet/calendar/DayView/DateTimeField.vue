@@ -218,7 +218,7 @@ const recordsAcrossAllRange = computed<{
     }
   } = {}
 
-  const perRecordHeight = 80
+  const perRecordHeight = 60
 
   /*  const columnArray: Array<Array<Row>> = [[]]
   const gridTimeMap = new Map() */
@@ -262,18 +262,18 @@ const recordsAcrossAllRange = computed<{
           scheduleEnd,
         })
         // The top of the record is calculated based on the start hour and minute
-        const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
+        const topInPixels = startDate.hour() + startDate.minute()
 
         // A minimum height of 80px is set for each record
         // The height of the record is calculated based on the difference between the start and end date
-        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
+        const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
 
         const startHour = startDate.hour()
         let _startDate = startDate.clone()
 
         const style: Partial<CSSStyleDeclaration> = {
           height: `${heightInPixels}px`,
-          top: `${topInPixels + 5 + startHour * 2}px`,
+          top: `${topInPixels}px`,
         }
 
         // We loop through every 1 minutes between the start and end date and keep track of the number of records that overlap at a given time
@@ -369,18 +369,13 @@ const recordsAcrossAllRange = computed<{
         // The top of the record is calculated based on the start hour
         // Update such that it is also based on Minutes
 
-        const minutes = startDate.minute() + startDate.hour() * 60
-
-        const updatedTopInPixels = (minutes * 80) / 60
+        const topInPixels = startDate.minute() + startDate.hour() * 60
 
         // A minimum height of 80px is set for each record
-        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
-
-        const finalTopInPixels = updatedTopInPixels + startHour * 2
-
+        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 60, perRecordHeight)
         style = {
           ...style,
-          top: `${finalTopInPixels + 2}px`,
+          top: `${topInPixels + 1}px`,
           height: `${heightInPixels - 2}px`,
         }
 
@@ -861,12 +856,12 @@ const newRecord = (hour: dayjs.Dayjs) => {
       :class="{
         '!border-brand-500': hour.isSame(selectedTime),
       }"
-      class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+      class="flex w-full h-15 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
       data-testid="nc-calendar-day-hour"
       @click="selectHour(hour)"
       @dblclick="newRecord(hour)"
     >
-      <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
+      <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-15">
         {{ dayjs(hour).format('H A') }}
       </div>
       <div></div>

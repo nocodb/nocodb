@@ -6,13 +6,13 @@ import { Injectable } from '@nestjs/common';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { View } from '~/models';
+import { Base, Hook, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getViewAndModelByAliasOrId } from '~/modules/datas/helpers';
 import { clearPrefix, generateBaseIdMap } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
-import { Base, Hook, Model, Source } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
@@ -233,6 +233,23 @@ export class ExportService {
                   view.view.meta = meta;
                 }
                 break;
+              case 'calendar_range':
+                if (view.type === ViewTypes.CALENDAR) {
+                  const range = view.view[k];
+                  view.view[k] = range.map(
+                    (r: {
+                      fk_to_column_id?: string;
+                      fk_from_column_id: string;
+                    }) => {
+                      return {
+                        fk_to_column_id: idMap.get(r.fk_to_column_id),
+                        fk_from_column_id: idMap.get(r.fk_from_column_id),
+                      };
+                    },
+                  );
+                }
+                break;
+
               case 'created_at':
               case 'updated_at':
               case 'fk_view_id':

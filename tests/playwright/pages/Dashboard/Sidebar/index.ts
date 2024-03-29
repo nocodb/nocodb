@@ -113,8 +113,6 @@ export class SidebarPage extends BasePage {
     } else if (type === ViewTypes.GALLERY) {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-gallery');
     } else if (type === ViewTypes.CALENDAR) {
-      // TODO: Remove this once the easter egg is removed
-      await this.rootPage.waitForTimeout(4500);
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-calendar');
     }
 

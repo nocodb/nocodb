@@ -44,7 +44,7 @@ watch(activeCalendarView, () => {
     <div
       v-for="mode in ['day', 'week', 'month', 'year']"
       :key="mode"
-      v-e="`['c:calendar:change-calendar-range-${mode}']`"
+      v-e="`['c:calendar:change-calendar-view-${mode}']`"
       :class="{ active: activeCalendarView === mode }"
       :data-testid="`nc-calendar-view-mode-${mode}`"
       class="tab"
@@ -64,7 +64,7 @@ watch(activeCalendarView, () => {
           <NcMenuItem
             v-for="mode in ['day', 'week', 'month', 'year']"
             :key="mode"
-            v-e="`['c:calendar:change-calendar-range-${mode}']`"
+            v-e="`['c:calendar:change-calendar-view-${mode}']`"
             @click="changeCalendarView(mode)"
           >
             {{ $t(`objects.${mode}`) }}

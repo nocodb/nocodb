@@ -369,7 +369,7 @@ onUnmounted(() => {
       </div>
 
       <div
-        v-if="calendarRange"
+        v-if="calendarRange?.length"
         :ref="sideBarListRef"
         :class="{
          '!h-[calc(100vh-10.5rem)]': width <= 1440,
@@ -383,7 +383,7 @@ onUnmounted(() => {
       >
         <NcButton
           v-if="isUIAllowed('dataEdit') && props.visible"
-          v-e="['c:calendar:calendar-new-record-btn']"
+          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
           class="!absolute right-5 !border-brand-500 bottom-5 !h-12 !w-12"
           data-testid="nc-calendar-side-menu-new-btn"
           type="secondary"
@@ -439,6 +439,17 @@ onUnmounted(() => {
             </LazySmartsheetRow>
           </div>
         </template>
+      </div>
+      <div
+        v-else
+        :class="{
+         '!h-[calc(100vh-10.5rem)]': width <= 1440,
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
+      }"
+        class="flex items-center justify-center h-full"
+      >
+        {{ $t('activity.noRange') }}
       </div>
     </div>
   </div>

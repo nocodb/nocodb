@@ -312,7 +312,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !calendarRange.value?.length)
+        return
       if (isSidebarLoading.value) return
       try {
         const response = !isPublic.value
@@ -339,7 +340,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const fetchActiveDates = async () => {
-      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value) return
+      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
       let prevDate: dayjs.Dayjs | string | null = null
       let nextDate: dayjs.Dayjs | string | null = null
       let fromDate: dayjs.Dayjs | string | null = null
@@ -433,7 +434,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     async function loadCalendarData(showLoading = true) {
-      if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
+      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) || !calendarRange.value?.length)
+        return
 
       if (activeCalendarView.value === 'year') {
         return
@@ -593,7 +595,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     const loadSidebarData = async (showLoading = true) => {
-      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
+      if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
       try {
         if (showLoading) isSidebarLoading.value = true
         const res = !isPublic.value

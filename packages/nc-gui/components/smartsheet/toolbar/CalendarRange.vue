@@ -92,15 +92,14 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
       })) ?? []
   )
 })
-
-/* const addCalendarRange = async () => {
+const addCalendarRange = async () => {
   _calendar_ranges.value.push({
     fk_from_column_id: dateFieldOptions.value![0].value as string,
     fk_to_column_id: null,
   })
   await saveCalendarRanges()
 }
-
+/*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
   await saveCalendarRanges()
@@ -215,10 +214,17 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcButton>
             -->
         </div>
-        <!--        <NcButton class="mt-2" data-testid="nc-calendar-range-add-btn" size="small" type="secondary" @click="addCalendarRange">
+        <NcButton
+          v-if="_calendar_ranges.length === 0"
+          class="mt-2"
+          data-testid="nc-calendar-range-add-btn"
+          size="small"
+          type="secondary"
+          @click="addCalendarRange"
+        >
           <component :is="iconMap.plus" />
-          Add another date field
-        </NcButton> -->
+          Add date field
+        </NcButton>
       </div>
     </template>
   </NcDropdown>

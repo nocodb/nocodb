@@ -27,9 +27,9 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     if (view.type !== ViewTypes.CALENDAR)
       NcError.badRequest('View is not a calendar view');
 
-    const { ranges } = await CalendarRange.read(view.id);
+    const ranges = await CalendarRange.read(view.id);
 
-    if (!ranges.length) NcError.badRequest('No ranges found');
+    if (!ranges?.ranges.length) NcError.badRequest('No ranges found');
 
     const filterArr = await this.buildFilterArr({
       viewId,
@@ -56,7 +56,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
 
     const columns = await model.getColumns();
 
-    ranges.forEach((range: CalendarRangeType) => {
+    ranges?.ranges?.forEach((range: CalendarRangeType) => {
       const fromCol = columns.find(
         (c) => c.id === range.fk_from_column_id,
       )?.title;

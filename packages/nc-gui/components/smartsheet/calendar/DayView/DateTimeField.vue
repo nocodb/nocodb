@@ -842,6 +842,17 @@ const newRecord = (hour: dayjs.Dayjs) => {
   }
   emit('newRecord', record)
 }
+
+watch(
+  () => recordsAcrossAllRange.value,
+  () => {
+    setTimeout(() => {
+      if (isDragging.value) return
+      document.querySelectorAll('.draggable-record').item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

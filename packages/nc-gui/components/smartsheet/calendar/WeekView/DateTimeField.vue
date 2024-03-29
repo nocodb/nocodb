@@ -717,6 +717,15 @@ const addRecord = (date: dayjs.Dayjs) => {
   }
   emits('newRecord', newRecord)
 }
+
+watch(
+  () => recordsAcrossAllRange.value,
+  () => {
+    if (dragRecord.value) return
+    document.querySelectorAll('.draggable-record').item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

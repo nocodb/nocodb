@@ -144,7 +144,7 @@
     "@types/turndown": "^5.0.4",
     "@types/validator": "^13.11.9",
     "@types/vue-barcode-reader": "^0.0.3",
-    "@unocss/nuxt": "^0.58.7",
+    "@unocss/nuxt": "^0.58.8",
     "@vitest/ui": "^0.34.7",
     "@vue/compiler-sfc": "^3.4.21",
     "@vue/test-utils": "^2.4.5",

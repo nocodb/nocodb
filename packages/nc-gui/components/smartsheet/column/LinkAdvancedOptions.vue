@@ -228,9 +228,6 @@ watch(pkColumn, () => {
                 </NcTooltip>
               </div>
             </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
           </NcSelect>
         </a-form-item>
 
@@ -255,9 +252,6 @@ watch(pkColumn, () => {
                 </NcTooltip>
               </div>
             </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
           </NcSelect>
         </a-form-item>
         <a-form-item class="nc-relation-settings-table-row nc-ltar-source-column" v-bind="validateInfos['custom.column_id']">
@@ -286,11 +280,11 @@ watch(pkColumn, () => {
                 </NcTooltip>
               </div>
             </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
           </NcSelect>
-          <div class="nc-relation-settings-table-connector-point nc-right" :class="`column-type-${vModel.type}`"></div>
+          <div
+            class="nc-relation-settings-table-connector-point nc-relation-settings-table-connector-line nc-right nc-source"
+            :class="`column-type-${vModel.type}`"
+          ></div>
         </a-form-item>
       </div>
 
@@ -345,9 +339,6 @@ watch(pkColumn, () => {
                   </NcTooltip>
                 </div>
               </a-select-option>
-              <template #suffixIcon>
-                <GeneralIcon class="" icon="chevronDown" />
-              </template>
             </NcSelect>
           </a-form-item>
 
@@ -387,11 +378,11 @@ watch(pkColumn, () => {
                   </NcTooltip>
                 </div>
               </a-select-option>
-              <template #suffixIcon>
-                <GeneralIcon class="" icon="chevronDown" />
-              </template>
             </NcSelect>
-            <div class="nc-relation-settings-table-connector-point nc-left" :class="`column-type-${vModel.type}`"></div>
+            <div
+              class="nc-relation-settings-table-connector-point nc-relation-settings-table-connector-line nc-left"
+              :class="`column-type-${vModel.type}`"
+            ></div>
           </a-form-item>
 
           <a-form-item
@@ -430,11 +421,22 @@ watch(pkColumn, () => {
                   </NcTooltip>
                 </div>
               </a-select-option>
-              <template #suffixIcon>
-                <GeneralIcon class="" icon="chevronDown" />
-              </template>
             </NcSelect>
-            <div class="nc-relation-settings-table-connector-point nc-right" :class="`column-type-${vModel.type}`"></div>
+            <div
+              class="nc-relation-settings-table-connector-point nc-relation-settings-table-connector-line nc-right"
+              :class="`column-type-${vModel.type}`"
+            ></div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="7"
+              height="37"
+              viewBox="0 0 7 37"
+              fill="none"
+              class="nc-relation-settings-table-connector-line-junciton-to-child !bg-transparent"
+              :class="`column-type-${vModel.type}`"
+            >
+              <path d="M0 36V36C1.10457 36 2 35.1046 2 34V3C2 1.89543 2.89543 1 4 1H7" stroke="currentColor" />
+            </svg>
           </a-form-item>
         </div>
       </template>
@@ -463,9 +465,6 @@ watch(pkColumn, () => {
                 </NcTooltip>
               </div>
             </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
           </NcSelect>
         </a-form-item>
 
@@ -491,9 +490,6 @@ watch(pkColumn, () => {
                 </NcTooltip>
               </div>
             </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
           </NcSelect>
         </a-form-item>
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-column" v-bind="validateInfos['custom.ref_column_id']">
@@ -529,11 +525,11 @@ watch(pkColumn, () => {
                 </NcTooltip>
               </div>
             </a-select-option>
-            <template #suffixIcon>
-              <GeneralIcon class="" icon="chevronDown" />
-            </template>
           </NcSelect>
-          <div class="nc-relation-settings-table-connector-point nc-left" :class="`column-type-${vModel.type}`"></div>
+          <div
+            class="nc-relation-settings-table-connector-point nc-relation-settings-table-connector-line nc-left"
+            :class="`column-type-${vModel.type}`"
+          ></div>
         </a-form-item>
       </div>
     </div>
@@ -545,7 +541,7 @@ watch(pkColumn, () => {
   @apply min-w-[180px] w-[180px] flex flex-col border-1 border-gray-200 rounded-lg;
 
   .nc-relation-settings-table-header {
-    @apply px-3 py-2 flex items-center space-x-3 bg-gray-100 text-xs font-semibold border-b border-gray-200;
+    @apply px-3 py-2 flex items-center space-x-3 bg-gray-100 text-xs font-semibold border-b border-gray-200 rounded-t-lg;
   }
 
   .nc-relation-settings-table-row {
@@ -587,17 +583,32 @@ watch(pkColumn, () => {
       }
 
       &.nc-left {
-        @apply -left-1;
+        @apply -left-[4px];
+      }
+      &.nc-relation-settings-table-connector-line {
+        &.nc-right::after {
+          @apply content-[''] block h-[1px] bg-current absolute top-[50%];
+          transform: translateY(-50%);
+        }
+        &.nc-right.nc-source::after {
+          @apply w-3 -right-2;
+        }
       }
     }
+    .nc-relation-settings-table-connector-line-junciton-to-child {
+      @apply absolute bottom-[15px] -right-2.8 !text-opacity-90;
+    }
     .column-type-mm {
-      @apply bg-pink-500;
+      @apply bg-pink-500 text-pink-500;
     }
     .column-type-hm {
-      @apply bg-orange-500;
+      @apply bg-orange-500 text-orange-500;
     }
     .column-type-oo {
-      @apply bg-purple-500;
+      @apply bg-purple-500 text-purple-500;
+    }
+    :deep(.ant-form-item-explain) {
+      @apply hidden;
     }
   }
 }

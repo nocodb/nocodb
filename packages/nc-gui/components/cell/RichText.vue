@@ -286,6 +286,8 @@ useEventListener(
           [`!overflow-hidden children:line-clamp-${rowHeight}`]:
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
+        @keydown.alt.enter.stop
+        @keydown.shift.enter.stop
       />
       <div v-if="isFormField && !readOnly" class="nc-form-field-bubble-menu-wrapper overflow-hidden">
         <div

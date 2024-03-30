@@ -786,7 +786,6 @@ useEventListener(
   document,
   'mousedown',
   (e: MouseEvent) => {
-    console.log('e.target', e.target)
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(

@@ -62,7 +62,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.7",
     "@nestjs/platform-socket.io": "^10.3.7",
-    "@nestjs/serve-static": "^4.0.1",
+    "@nestjs/serve-static": "^4.0.2",
     "@nestjs/throttler": "^5.1.2",
     "@nestjs/websockets": "^10.3.7",
     "@ntegral/nestjs-sentry": "^4.0.1",

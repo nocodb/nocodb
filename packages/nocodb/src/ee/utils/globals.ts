@@ -31,7 +31,7 @@ export enum MetaTable {
   KANBAN_VIEW = 'nc_kanban_view_v2',
   KANBAN_VIEW_COLUMNS = 'nc_kanban_view_columns_v2',
   USERS = 'nc_users_v2',
-  ORGS = 'nc_orgs_v2',
+  ORGS_OLD = 'nc_orgs_v2',
   TEAMS = 'nc_teams_v2',
   TEAM_USERS = 'nc_team_users_v2',
   VIEWS = 'nc_views_v2',
@@ -60,6 +60,11 @@ export enum MetaTable {
   MODEL_STAT = 'nc_model_stats_v2',
   DB_MUX = 'nc_sql_executor_v2',
   SSO_CLIENT = 'nc_sso_client',
+  SSO_CLIENT_DOMAIN = 'nc_sso_client_domain',
+  ORG_DOMAIN = 'nc_org_domain',
+  ORG = 'nc_org',
+  ORG_USERS = 'nc_org_users',
+  USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
 }
 
 export const orderedMetaTables = [
@@ -68,7 +73,7 @@ export const orderedMetaTables = [
   MetaTable.AUDIT,
   MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
-  MetaTable.ORGS,
+  MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
   MetaTable.WORKSPACE_USER,
   MetaTable.USERS,
@@ -144,7 +149,7 @@ export enum CacheScope {
   LAYOUT = 'layout',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
   USER = 'user',
-  ORGS = 'orgs',
+  ORGS_OLD = 'orgs',
   TEAM = 'team',
   TEAM_USER = 'teamUser',
   VIEW = 'view',
@@ -178,6 +183,9 @@ export enum CacheScope {
   SSO_CLIENT = 'ssoClient',
   SSO_CLIENT_PUBLIC_LIST = 'ssoClientPublicList',
   DEBUG_USER_EMAILS = 'debugUserEmails',
+  ORG = 'org',
+  ORG_DOMAIN = 'orgDomain',
+  ORG_WORKSPACE = 'orgWorkspace',
 }
 
 export enum DbMuxStatus {

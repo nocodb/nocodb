@@ -27,6 +27,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
+import UserRefreshToken from "~/models/UserRefreshToken";
 
 @Injectable()
 export class UsersService {
@@ -380,10 +381,15 @@ export class UsersService {
 
       const refreshToken = randomTokenString();
 
-      await User.update(user.id, {
-        email: user.email,
-        refresh_token: refreshToken,
-      });
+      // await User.update(user.id, {
+      //   email: user.email,
+      //   refresh_token: refreshToken,
+      // });
+
+      await UserRefreshToken.insert({
+        token: refreshToken,
+        fk_user_id: user.id
+      })
 
       setTokenCookie(param.res, refreshToken);
 
@@ -495,10 +501,15 @@ export class UsersService {
 
     const refreshToken = randomTokenString();
 
-    await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
-    });
+    // await User.update(user.id, {
+    //   refresh_token: refreshToken,
+    //   email: user.email,
+    // });
+
+    await UserRefreshToken.insert({
+      token: refreshToken,
+      fk_user_id: user.id
+    })
 
     setTokenCookie(param.res, refreshToken);
 
@@ -531,10 +542,12 @@ export class UsersService {
       this.clearCookie(param);
       const user = (param.req as any).user;
       if (user?.id) {
-        await User.update(user.id, {
-          refresh_token: null,
-          token_version: randomTokenString(),
-        });
+        // await User.update(user.id, {
+        //   refresh_token: null,
+        //   token_version: randomTokenString(),
+        // });
+        // todo: clear only token present in cookie
+        await UserRefreshToken.deleteAllUserToken(user.id);
       }
       return { msg: 'Signed out successfully' };
     } catch (e) {
@@ -572,10 +585,17 @@ export class UsersService {
     }
 
     await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
+      // refresh_token: refreshToken,
+      // email: user.email,
       token_version: user['token_version'],
     });
+
+    await UserRefreshToken.insert({
+      token: refreshToken,
+      fk_user_id: user.id,
+      meta: req.user?.extra,
+    });
+
     setTokenCookie(res, refreshToken);
   }
 }

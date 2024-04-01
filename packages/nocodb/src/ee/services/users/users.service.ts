@@ -7,6 +7,7 @@ import isEmail from 'validator/lib/isEmail';
 import { T } from 'nc-help';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
+import UserRefreshToken from '../../../models/UserRefreshToken';
 import { setTokenCookie } from './helpers';
 import type { Request } from 'express';
 import type { SignUpReqType, UserType } from 'nocodb-sdk';
@@ -224,9 +225,14 @@ export class UsersService extends UsersServiceCE {
 
     const refreshToken = randomTokenString();
 
-    await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
+    // await User.update(user.id, {
+    //   refresh_token: refreshToken,
+    //   email: user.email,
+    // });
+
+    await UserRefreshToken.insert({
+      token: refreshToken,
+      fk_user_id: user.id,
     });
 
     setTokenCookie(param.res, refreshToken);
@@ -273,11 +279,12 @@ export class UsersService extends UsersServiceCE {
   }
 
   async login(
-    user: UserType & { provider?: string },
+    user: UserType & { provider?: string; extra?: Record<string, any> },
     req: NcRequest,
   ): Promise<any> {
     const workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: user.id,
+      fk_org_id: user.extra?.org_id,
     });
 
     if (workspaces.length === 0) {

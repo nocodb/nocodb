@@ -542,11 +542,10 @@ export class UsersService {
       this.clearCookie(param);
       const user = (param.req as any).user;
       if (user?.id) {
-        // await User.update(user.id, {
-        //   refresh_token: null,
-        //   token_version: randomTokenString(),
-        // });
-        // todo: clear only token present in cookie
+        await User.update(user.id, {
+          token_version: randomTokenString(),
+        });
+        // todo: clear only token present in cookie to avoid invalidating all refresh token
         await UserRefreshToken.deleteAllUserToken(user.id);
       }
       return { msg: 'Signed out successfully' };

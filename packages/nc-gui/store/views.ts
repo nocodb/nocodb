@@ -25,6 +25,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const route = router.currentRoute
 
   const bases = useBases()
+  const { openedProject } = storeToRefs(bases)
 
   const tablesStore = useTablesStore()
 
@@ -348,7 +349,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
   })
 
   const updateTabTitle = () => {
-    if (!activeView.value || !activeView.value.base_id) return
+    if (!activeView.value || !activeView.value.base_id) {
+      if (openedProject.value?.title) {
+        useTitle(openedProject.value?.title)
+      }
+      return
+    }
 
     const tableName = tablesStore.baseTables
       .get(activeView.value.base_id)
@@ -365,8 +371,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
         isSharedView: !!sharedView.value?.id,
       }),
     )
-
-    console.log('Active View', activeView.value.title)
   }
 
   refreshViewTabTitle.on(() => {
@@ -402,7 +406,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeNestedFilters,
     isActiveViewLocked,
     preFillFormSearchParams,
-    refreshViewTabTitle: refreshViewTabTitle.trigger(),
+    refreshViewTabTitle: refreshViewTabTitle.trigger,
   }
 })
 

@@ -1,6 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
-import { useTitle } from '@vueuse/core'
 import type { SidebarTableNode } from '~/lib'
 
 export const useTablesStore = defineStore('tablesStore', () => {
@@ -48,15 +47,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     return activeTables.value.find((t) => t.id === activeTableId.value)
   })
-
-  watch(
-    () => activeTable.value?.title,
-    (title) => {
-      if (basesStore.openedProject?.type !== 'database' || !title) return
-
-      useTitle(basesStore.openedProject?.title)
-    },
-  )
 
   const loadProjectTables = async (baseId: string, force = false) => {
     if (!force && baseTables.value.get(baseId)) {

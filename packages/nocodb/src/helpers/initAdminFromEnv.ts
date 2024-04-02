@@ -185,7 +185,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
-                  refresh_token: null,
                 },
                 ncMeta,
               );
@@ -199,7 +198,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
-                  refresh_token: null,
                 },
                 ncMeta,
               );

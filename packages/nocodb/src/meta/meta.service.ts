@@ -228,7 +228,7 @@ export class MetaService {
       case MetaTable.USERS:
         prefix = 'us';
         break;
-      case MetaTable.ORGS:
+      case MetaTable.ORGS_OLD:
         prefix = 'org';
         break;
       case MetaTable.TEAMS:

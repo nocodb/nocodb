@@ -11,6 +11,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import UserRefreshToken from '~/models/UserRefreshToken';
 
 export default class User implements UserType {
   id: string;
@@ -184,9 +185,21 @@ export default class User implements UserType {
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+    const userRefreshToken = await UserRefreshToken.getByToken(
       refresh_token,
-    });
+      ncMeta,
+    );
+
+    if(!userRefreshToken){
+      return null;
+    }
+
+    return await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.USERS,
+      userRefreshToken.fk_user_id,
+    );
   }
 
   public static async list(
@@ -262,6 +275,7 @@ export default class User implements UserType {
     args: {
       user?: User;
       baseId?: string;
+      orgId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

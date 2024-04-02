@@ -41,6 +41,7 @@ import {
   watch,
 } from '#imports'
 import type { SharedViewMeta } from '#imports'
+import { useTitle } from '@vueuse/core'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -540,6 +541,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   watch(password, (next, prev) => {
     if (next !== prev && passwordError.value) passwordError.value = null
   })
+
+  watch(
+    () => sharedFormView.value?.heading,
+    () => {
+      useTitle(`${sharedFormView.value?.heading ?? 'NocoDB'}`)
+    },
+    {
+      flush: 'post',
+    },
+  )
 
   return {
     sharedView,

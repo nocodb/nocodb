@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import { type ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
-import { computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
+import { computed, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -44,8 +44,6 @@ const getFieldStyle = (field: ColumnType | undefined) => {
     italic: fi?.italic,
   }
 }
-
-const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
@@ -90,11 +88,8 @@ const recordsAcrossAllRange = computed<{
       records: [],
       count: {},
     }
-
-  const { scrollHeight } = scrollContainer.value
-
   const perWidth = containerWidth.value / 7
-  const perHeight = scrollHeight / 24
+  const perHeight = 60
 
   const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
   const scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
@@ -195,25 +190,12 @@ const recordsAcrossAllRange = computed<{
           dayIndex = 6
         }
 
-        const hourKey = ogStartDate.format('HH:mm')
-
-        // We calculate the index of the hour in the day and set the top and height of the record
-        const hourIndex = Math.min(
-          Math.max(
-            datesHours.value[dayIndex]?.findIndex((h) => h.startOf('hour').format('HH:mm') === hourKey),
-            0,
-          ),
-          23,
-        )
-
         const minutes = ogStartDate.minute() + ogStartDate.hour() * 60
-
-        const topPx = (minutes * perHeight) / 60
 
         style = {
           ...style,
-          top: `${topPx - hourIndex - hourIndex * 0.15 + 0.7}px`,
-          height: `${perHeight - 4}px`,
+          top: `${minutes + 1}px`,
+          height: `${perHeight - 2}px`,
         }
 
         recordsToDisplay.push({
@@ -735,6 +717,17 @@ const addRecord = (date: dayjs.Dayjs) => {
   }
   emits('newRecord', newRecord)
 }
+
+watch(
+  () => recordsAcrossAllRange.value,
+  () => {
+    if (dragRecord.value) return
+    const records = document.querySelectorAll('.draggable-record')
+    if (records.length) records.item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    else document.querySelectorAll('.nc-calendar-day-hour').item(9)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -760,7 +753,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-20 first:mt-0 pt-7.1 text-center text-xs text-gray-500 py-1"
+        class="h-15 first:mt-0 pt-7.1 nc-calendar-day-hour text-center text-xs text-gray-500 py-1"
       >
         {{ hour.format('h A') }}
       </div>
@@ -774,7 +767,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
-          class="text-center relative h-20 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
+          class="text-center relative h-15 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="
@@ -787,6 +780,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         >
           <NcButton
             v-if="isOverflowAcrossHourRange(hour).isOverflow"
+            v-e="`['c:calendar:week-view-more']`"
             class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
             size="xxsmall"
             type="secondary"
@@ -827,17 +821,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
                 @resize-start="onResizeStart"
               >
-                <template v-if="!isRowEmpty(record, displayField)">
-                  <LazySmartsheetCalendarCell
-                    v-if="!isRowEmpty(record, displayField!)"
-                    v-model="record.row[displayField!.title!]"
-                    :bold="getFieldStyle(displayField).bold"
-                    :column="displayField"
-                    :italic="getFieldStyle(displayField).italic"
-                    :underline="getFieldStyle(displayField).underline"
-                  />
-                </template>
-                <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+                <template v-for="(field, id) in fields" :key="id">
                   <LazySmartsheetCalendarCell
                     v-if="!isRowEmpty(record, field!)"
                     v-model="record.row[field!.title!]"

@@ -79,7 +79,12 @@ const emit = defineEmits(['resize-start'])
         }"
         class="text-sm pr-3 mb-0.5 mr-3 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
       >
-        <slot />
+        <NcTooltip :disabled="selected" show-on-truncate-only>
+          <slot />
+          <template #title>
+            <slot />
+          </template>
+        </NcTooltip>
       </span>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>

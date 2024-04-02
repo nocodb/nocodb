@@ -73,11 +73,12 @@ watch(rateDomRef, () => {
 <template>
   <a-rate
     ref="rateDomRef"
+    :key="ratingMeta.icon.full"
     v-model:value="vModel"
     :disabled="readOnly"
     :count="ratingMeta.max"
     :class="readOnly ? 'pointer-events-none' : ''"
-    :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 5px'};`"
+    :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 2px'};`"
     @keydown="onKeyPress"
   >
     <template #character>
@@ -89,3 +90,9 @@ watch(rateDomRef, () => {
     </template>
   </a-rate>
 </template>
+
+<style scoped lang="scss">
+:deep(li:not(:last-child)) {
+  @apply mr-[1.5px];
+}
+</style>

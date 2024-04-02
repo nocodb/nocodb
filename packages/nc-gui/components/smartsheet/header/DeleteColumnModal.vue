@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
+  onDeleteColumn?: () => void
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -46,6 +47,8 @@ const onDelete = async () => {
 
     $e('a:column:delete')
     visible.value = false
+
+    props.onDeleteColumn?.()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -58,7 +61,8 @@ const onDelete = async () => {
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.column')" :on-delete="onDelete">
     <template #entity-preview>
       <div v-if="column" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
-        <SmartsheetHeaderCellIcon class="nc-view-icon"></SmartsheetHeaderCellIcon>
+        <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(column)" class="nc-view-icon"></SmartsheetHeaderVirtualCellIcon>
+        <SmartsheetHeaderCellIcon v-else class="nc-view-icon"></SmartsheetHeaderCellIcon>
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.5"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

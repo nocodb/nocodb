@@ -4,6 +4,7 @@ import type { RoleLabels } from 'nocodb-sdk'
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useWorkspace } from '#imports'
 import { validateEmail } from '~/utils/validation'
+import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 const inviteData = reactive({
   email: '',
@@ -42,13 +43,17 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
-const emailInputValidation = (input: string): boolean => {
+const emailInputValidation = (input: string, isBulkEmailCopyPaste: boolean = false): boolean => {
   if (!input.length) {
+    if (isBulkEmailCopyPaste) return false
+
     emailValidation.isError = true
     emailValidation.message = 'Email should not be empty'
     return false
   }
   if (!validateEmail(input.trim())) {
+    if (isBulkEmailCopyPaste) return false
+
     emailValidation.isError = true
     emailValidation.message = 'Invalid Email'
     return false
@@ -164,6 +169,8 @@ onKeyStroke('Backspace', () => {
 
 // when bulk email is pasted
 const onPaste = (e: ClipboardEvent) => {
+  emailValidation.isError = false
+
   const pastedText = e.clipboardData?.getData('text')
 
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
@@ -175,7 +182,9 @@ const onPaste = (e: ClipboardEvent) => {
   }
 
   inputArray?.forEach((el) => {
-    const isEmailIsValid = emailInputValidation(el)
+    el = extractEmail(el) || el
+
+    const isEmailIsValid = emailInputValidation(el, inputArray.length > 1)
 
     if (!isEmailIsValid) return
 

@@ -2592,7 +2592,7 @@ export class ColumnsService {
       (param.column as LinkToAnotherColumnReqType).type === 'bt';
 
     // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.source.isMeta()) {
+    if (param.source.isMeta() || param.source.type === 'snowflake') {
       (param.column as LinkToAnotherColumnReqType).virtual = true;
     }
 
@@ -3004,6 +3004,8 @@ export class ColumnsService {
     indexName?: string;
     nonUnique?: boolean;
   }) {
+    // TODO: implement for snowflake (right now create index does not work with identifier quoting in snowflake - bug?)
+    if (source.type === 'snowflake') return;
     const model = await column.getModel();
     const indexArgs = {
       columns: [column.column_name],

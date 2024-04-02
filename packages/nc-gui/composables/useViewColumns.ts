@@ -191,7 +191,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (!disableDataReload) {
         await loadViewColumns()
-        reloadData?.()
+        reloadData?.({ shouldShowLoading: false })
       }
     }
 

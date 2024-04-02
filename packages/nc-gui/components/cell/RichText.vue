@@ -9,21 +9,31 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
+import type { RichTextBubbleMenuOptions } from '#imports'
+import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, IsSurveyFormInj, ReadonlyInj, RowHeightInj } from '#imports'
 
-const props = defineProps<{
-  value?: string | null
-  readOnly?: boolean
-  syncValueChange?: boolean
-  showMenu?: boolean
-  fullMode?: boolean
-  isFormField?: boolean
-  autofocus?: boolean
-  placeholder?: string
-  renderAsText?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    value?: string | null
+    readOnly?: boolean
+    syncValueChange?: boolean
+    showMenu?: boolean
+    fullMode?: boolean
+    isFormField?: boolean
+    autofocus?: boolean
+    placeholder?: string
+    renderAsText?: boolean
+    hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
+  }>(),
+  {
+    isFormField: false,
+    hiddenBubbleMenuOptions: () => [],
+  },
+)
 
-const emits = defineEmits(['update:value'])
+const emits = defineEmits(['update:value', 'focus', 'blur'])
+
+const { isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -35,7 +45,11 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const isFocused = ref(false)
+
+const keys = useMagicKeys()
 
 const turndownService = new TurndownService({})
 
@@ -115,7 +129,7 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
   StarterKit.configure({
-    heading: props.isFormField ? false : undefined,
+    heading: isFormField.value ? false : undefined,
   }),
   TaskList,
   TaskItem.configure({
@@ -136,16 +150,18 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = props.isFormField && markdown === '<br />' ? '' : markdown
+    vModel.value = isFormField.value && markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
   onFocus: () => {
     isFocused.value = true
+    emits('focus')
   },
   onBlur: (e) => {
     if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
+      emits('blur')
     }
   },
 })
@@ -176,13 +192,19 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
+const onFocusWrapper = () => {
+  if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
+    editor.value?.chain().focus().run()
+  }
+}
+
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
     setEditorContent(vModel.value)
   })
 }
 
-if (props.isFormField) {
+if (isFormField.value) {
   watch([props, editor], () => {
     if (props.readOnly) {
       editor.value?.setEditable(false)
@@ -197,7 +219,7 @@ watch(editorDom, () => {
 
   setEditorContent(vModel.value, true)
 
-  if (props.isFormField) return
+  if ((isForm.value && !isSurveyForm.value) || isFormField.value) return
   // Focus editor after editor is mounted
   setTimeout(() => {
     editor.value?.chain().focus().run()
@@ -208,8 +230,10 @@ useEventListener(
   editorDom,
   'focusout',
   (e: FocusEvent) => {
-    if (!(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+    const targetEl = e?.relatedTarget as HTMLElement
+    if (targetEl?.classList?.contains('tiptap') || !targetEl?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
       isFocused.value = false
+      emits('blur')
     }
   },
   true,
@@ -218,15 +242,16 @@ useEventListener(
 
 <template>
   <div
-    class="h-full focus:outline-none"
+    class="nc-rich-text h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
       'readonly': readOnly,
-      'nc-form-rich-text-field !p-0': isFormField,
+      'nc-form-rich-text-field !p-0 relative': isFormField,
       'nc-rich-text-grid': isGrid,
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
+    @focus="onFocusWrapper"
   >
     <div v-if="renderAsText" class="truncate">
       <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
@@ -234,38 +259,50 @@ useEventListener(
     <template v-else>
       <div
         v-if="showMenu && !readOnly && !isFormField"
-        class="absolute top-0 right-0.5 xs:hidden"
+        class="absolute top-0 right-0.5"
         :class="{
-          'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
+          'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
+          'max-w-[calc(100%_-_198px)]': fullMode,
+          'justify-start left-0.5': isForm,
+          'justify-end xs:hidden': !isForm,
         }"
       >
-        <div class="nc-longtext-scrollbar">
+        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
         </div>
       </div>
-      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
+      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
+
       <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+
       <EditorContent
         ref="editorDom"
         :editor="editor"
         class="flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
-          'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
+          'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
           [`!overflow-hidden children:line-clamp-${rowHeight}`]:
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
+        @keydown.alt.enter.stop
+        @keydown.shift.enter.stop
       />
-      <div v-if="isFormField && !readOnly">
+      <div v-if="isFormField && !readOnly" class="nc-form-field-bubble-menu-wrapper overflow-hidden">
         <div
-          class="overflow-hidden"
           :class="isFocused ? 'max-h-[50px]' : 'max-h-0'"
           :style="{
             transition: 'max-height 0.2s ease-in-out',
           }"
         >
-          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+          <CellRichTextSelectedBubbleMenu
+            v-if="editor"
+            :editor="editor"
+            embed-mode
+            is-form-field
+            :hidden-options="hiddenBubbleMenuOptions"
+          />
         </div>
       </div>
     </template>
@@ -343,7 +380,7 @@ useEventListener(
 
 .nc-textarea-rich-editor {
   .tiptap p.is-editor-empty:first-child::before {
-    color: #6a7184;
+    color: #9aa2af;
     content: attr(data-placeholder);
     float: left;
     height: 0;
@@ -429,18 +466,21 @@ useEventListener(
     font-weight: 700;
     font-size: 1.85rem;
     margin-bottom: 0.1rem;
+    line-height: 36px;
   }
 
   h2 {
     font-weight: 600;
     font-size: 1.55rem;
     margin-bottom: 0.1em;
+    line-height: 30px;
   }
 
   h3 {
     font-weight: 600;
     font-size: 1.15rem;
     margin-bottom: 0.1em;
+    line-height: 24px;
   }
 
   blockquote {
@@ -461,5 +501,10 @@ useEventListener(
   pre {
     height: fit-content;
   }
+}
+.nc-form-field-bubble-menu-wrapper {
+  @apply absolute -bottom-9 left-1/2 z-50 rounded-lg;
+  transform: translateX(-50%);
+  box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
 }
 </style>

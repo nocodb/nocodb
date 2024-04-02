@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
-import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib'
 import {
@@ -11,6 +11,7 @@ import {
   EditModeInj,
   IsFormInj,
   IsKanbanInj,
+  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   enumColor,
@@ -61,6 +62,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
+
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const { $api } = useNuxtApp()
 
@@ -187,11 +190,6 @@ useSelectedCellKeyupListener(activeCell, (e) => {
   }
 })
 
-// close dropdown list on escape
-useSelectedCellKeyupListener(isOpen, (e) => {
-  if (e.key === 'Escape') isOpen.value = false
-})
-
 async function addIfMissingAndSave() {
   if (!tempSelectedOptState.value || isPublic.value) return false
 
@@ -316,6 +314,8 @@ const onFocus = () => {
   setTimeout(() => {
     isFocusing.value = false
   }, 250)
+
+  if (isSurveyForm.value && vModel.value) return
 
   isOpen.value = true
 }

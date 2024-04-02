@@ -198,7 +198,9 @@
     "logo": "Logo",
     "dropdown": "Rozwijane menu",
     "list": "Lista",
-    "apply": "Zastosuj"
+    "apply": "Zastosuj",
+    "text": "Text",
+    "appearance": "Appearance"
   },
   "objects": {
     "day": "Dzień",
@@ -339,7 +341,7 @@
     "removeFile": "Usuń plik",
     "hasMany": "Ma wiele",
     "manyToMany": "Wiele do wielu",
-    "oneToOne": "One to One",
+    "oneToOne": "Jeden do jednego",
     "virtualRelation": "Relacja wirtualna",
     "linkMore": "Połącz więcej",
     "linkMoreRecords": "Połącz więcej rekordów",
@@ -699,7 +701,7 @@
     "hideNocodbBranding": "Ukryj branding NocoDB",
     "showOnConditions": "Pokaż na warunkach",
     "showFieldOnConditionsMet": "Pokazuje pole tylko, gdy spełnione są warunki",
-    "limitOptions": "Ogranicz opcje",
+    "limitOptions": "Limit options",
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
     "clearSelection": "Wyczyść wybór"
   },

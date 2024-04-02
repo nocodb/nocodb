@@ -5,12 +5,12 @@ import glob from 'glob';
 import Handlebars from 'handlebars';
 import mkdirp from 'mkdirp';
 import rmdir from 'rmdir';
-import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
-import Debug from '../../util/Debug';
-import Emit from '../../util/emit';
-import Result from '../../util/Result';
-import * as fileHelp from '../../util/file.help';
-import SqlMigrator from './SqlMigrator';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import Debug from '~/db/util/Debug';
+import Emit from '~/db/util/emit';
+import Result from '~/db/util/Result';
+import * as fileHelp from '~/db/util/file.help';
+import SqlMigrator from '~/db/sql-migrator/lib/SqlMigrator';
 import { getToolDir, NcConfig } from '~/utils/nc-config';
 
 const evt = new Emit();

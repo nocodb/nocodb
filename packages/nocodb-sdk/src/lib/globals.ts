@@ -143,6 +143,7 @@ export enum NcErrorType {
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
   DATABASE_ERROR = 'DATABASE_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;

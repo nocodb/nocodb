@@ -1544,6 +1544,9 @@ export default class View implements ViewType {
             'base_id',
             'source_id',
             'order',
+            ...(view.type === ViewTypes.CALENDAR
+              ? ['bold', 'italic', 'underline']
+              : []),
             ...(view.type === ViewTypes.FORM
               ? [
                   'label',
@@ -1593,6 +1596,20 @@ export default class View implements ViewType {
       let galleryShowLimit = 0;
       let kanbanShowLimit = 0;
 
+      let calendarRangeColumns;
+
+      if (view.type == ViewTypes.CALENDAR) {
+        const calendarRange = await CalendarRange.read(view.id, ncMeta);
+        if (calendarRange) {
+          calendarRangeColumns = calendarRange.ranges
+            .map((range) => [
+              range.fk_from_column_id,
+              (range as any).fk_to_column_id,
+            ])
+            .flat();
+        }
+      }
+
       for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
 
@@ -1637,16 +1654,8 @@ export default class View implements ViewType {
           }
         } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
           show = false;
-        } else if (view.type === ViewTypes.CALENDAR && !copyFromView) {
-          const calendarRange = await CalendarRange.read(view.id, ncMeta);
-          if (!calendarRange) break;
-          const calendarRangeColumns = calendarRange.ranges
-            .map((range) => [
-              range.fk_from_column_id,
-              (range as any).fk_to_column_id,
-            ])
-            .flat();
-
+        } else if (view.type === ViewTypes.CALENDAR) {
+          if (!calendarRangeColumns) break;
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
           }

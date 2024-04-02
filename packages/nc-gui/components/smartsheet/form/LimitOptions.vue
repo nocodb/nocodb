@@ -8,15 +8,16 @@ import { MetaInj, iconMap } from '#imports'
 
 const props = defineProps<{
   modelValue: FormFieldsLimitOptionsType[]
+  formFieldState?: string | null
   column: ColumnType
   isRequired?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'update:formFieldState'])
 
 const meta = inject(MetaInj)!
 
-const column = toRef(props, 'column')
+const { column, formFieldState } = toRefs(props)
 
 const basesStore = useBases()
 
@@ -55,7 +56,7 @@ const vModel = computed({
         .sort((a, b) => a.order - b.order)
 
       if ((props.modelValue || []).length !== collaborators.length) {
-        emit(
+        emits(
           'update:modelValue',
           collaborators.map((o) => ({ id: o.id, order: o.order, show: o.show })),
         )
@@ -78,7 +79,7 @@ const vModel = computed({
         })
 
       if ((props.modelValue || []).length !== ((column.value.colOptions as SelectOptionsType)?.options || []).length) {
-        emit(
+        emits(
           'update:modelValue',
           updateModelValue.map((o) => ({ id: o.id, order: o.order, show: o.show })),
         )
@@ -88,10 +89,24 @@ const vModel = computed({
     return []
   },
   set: (val) => {
-    emit(
+    const fieldState = (formFieldState.value || '').split(',')
+    const optionsToRemoveFromFieldState: string[] = []
+
+    emits(
       'update:modelValue',
-      val.map((o) => ({ id: o.id, order: o.order, show: o.show })),
+      val.map((o) => {
+        if (!o.show) {
+          if (column.value.uidt === UITypes.User && fieldState.includes(o.id)) {
+            optionsToRemoveFromFieldState.push(o.id)
+          } else if (o?.title && fieldState.includes(o.title)) {
+            optionsToRemoveFromFieldState.push(o.title)
+          }
+        }
+        return { id: o.id, order: o.order, show: o.show }
+      }),
     )
+
+    emits('update:formFieldState', fieldState.filter((o) => !optionsToRemoveFromFieldState.includes(o)).join(','))
   },
 })
 
@@ -162,7 +177,7 @@ const showOrHideAll = (showAll: boolean) => {
     </div>
 
     <div v-if="vModel.length" class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-gray-200">
-      <NcTooltip class="truncate max-w-full" :disabled="!isRequired">
+      <NcTooltip :disabled="!isRequired">
         <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
 
         <NcButton
@@ -172,7 +187,7 @@ const showOrHideAll = (showAll: boolean) => {
           :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
           @click="showOrHideAll(false)"
         >
-          Hide all
+          {{ $t('general.hideAll') }}
         </NcButton>
       </NcTooltip>
 
@@ -184,7 +199,7 @@ const showOrHideAll = (showAll: boolean) => {
           :disabled="vModel.filter((o) => o.show).length === vModel.length"
           @click="showOrHideAll(true)"
         >
-          Show all
+          {{ $t('general.showAll') }}
         </NcButton>
       </div>
     </div>

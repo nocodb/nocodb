@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
+import { type Row, computed, ref, useViewColumnsOrThrow } from '#imports'
 import { generateRandomNumber, isRowEmpty } from '~/utils'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
@@ -39,8 +39,6 @@ const getFieldStyle = (field: ColumnType) => {
     italic: fi?.italic,
   }
 }
-
-const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
@@ -220,7 +218,7 @@ const recordsAcrossAllRange = computed<{
     }
   } = {}
 
-  const perRecordHeight = 80
+  const perRecordHeight = 60
 
   /*  const columnArray: Array<Array<Row>> = [[]]
   const gridTimeMap = new Map() */
@@ -264,18 +262,18 @@ const recordsAcrossAllRange = computed<{
           scheduleEnd,
         })
         // The top of the record is calculated based on the start hour and minute
-        const topInPixels = (startDate.hour() + startDate.minute() / 60) * 80
+        const topInPixels = startDate.hour() + startDate.minute()
 
         // A minimum height of 80px is set for each record
         // The height of the record is calculated based on the difference between the start and end date
-        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
+        const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
 
         const startHour = startDate.hour()
         let _startDate = startDate.clone()
 
         const style: Partial<CSSStyleDeclaration> = {
           height: `${heightInPixels}px`,
-          top: `${topInPixels + 5 + startHour * 2}px`,
+          top: `${topInPixels}px`,
         }
 
         // We loop through every 1 minutes between the start and end date and keep track of the number of records that overlap at a given time
@@ -371,18 +369,13 @@ const recordsAcrossAllRange = computed<{
         // The top of the record is calculated based on the start hour
         // Update such that it is also based on Minutes
 
-        const minutes = startDate.minute() + startDate.hour() * 60
-
-        const updatedTopInPixels = (minutes * 80) / 60
+        const topInPixels = startDate.minute() + startDate.hour() * 60
 
         // A minimum height of 80px is set for each record
-        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 80, perRecordHeight)
-
-        const finalTopInPixels = updatedTopInPixels + startHour * 2
-
+        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 60, perRecordHeight)
         style = {
           ...style,
-          top: `${finalTopInPixels + 2}px`,
+          top: `${topInPixels + 1}px`,
           height: `${heightInPixels - 2}px`,
         }
 
@@ -849,6 +842,19 @@ const newRecord = (hour: dayjs.Dayjs) => {
   }
   emit('newRecord', record)
 }
+
+watch(
+  () => recordsAcrossAllRange.value,
+  () => {
+    setTimeout(() => {
+      if (isDragging.value) return
+      const records = document.querySelectorAll('.draggable-record')
+      if (records.length) records.item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      else document.querySelectorAll('.nc-calendar-day-hour').item(9)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -863,12 +869,12 @@ const newRecord = (hour: dayjs.Dayjs) => {
       :class="{
         '!border-brand-500': hour.isSame(selectedTime),
       }"
-      class="flex w-full min-h-20 relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+      class="flex w-full h-15 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
       data-testid="nc-calendar-day-hour"
       @click="selectHour(hour)"
       @dblclick="newRecord(hour)"
     >
-      <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-20">
+      <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-15">
         {{ dayjs(hour).format('H A') }}
       </div>
       <div></div>
@@ -955,6 +961,7 @@ const newRecord = (hour: dayjs.Dayjs) => {
 
       <NcButton
         v-if="isOverflowAcrossHourRange(hour).isOverflow"
+        v-e="`['c:calendar:week-view-more']`"
         class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
         size="xxsmall"
         type="secondary"
@@ -991,17 +998,7 @@ const newRecord = (hour: dayjs.Dayjs) => {
                 color="blue"
                 @resize-start="onResizeStart"
               >
-                <template v-if="!isRowEmpty(record, displayField)">
-                  <LazySmartsheetCalendarCell
-                    v-if="!isRowEmpty(record, displayField!)"
-                    v-model="record.row[displayField!.title!]"
-                    :bold="getFieldStyle(displayField!).bold"
-                    :column="displayField!"
-                    :italic="getFieldStyle(displayField!).italic"
-                    :underline="getFieldStyle(displayField!).underline"
-                  />
-                </template>
-                <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
+                <template v-for="(field, id) in fields" :key="id">
                   <LazySmartsheetCalendarCell
                     v-if="!isRowEmpty(record, field!)"
                     v-model="record.row[field!.title!]"

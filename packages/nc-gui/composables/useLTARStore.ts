@@ -554,6 +554,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenExcludedOffsetCount.value = 0;
     }
 
+    const resetChildrenListOffsetCount = () => {
+      childrenListOffsetCount.value = 0
+    }
+
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
@@ -584,7 +588,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       getRelatedTableRowId,
       headerDisplayValue,
       relatedTableDisplayValuePropId,
-      resetChildrenExcludedOffsetCount
+      resetChildrenExcludedOffsetCount,
+      resetChildrenListOffsetCount,
     }
   },
   'ltar-store',

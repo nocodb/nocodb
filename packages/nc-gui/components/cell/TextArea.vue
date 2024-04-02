@@ -36,9 +36,13 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits)
+const vModel = useVModel(props, 'modelValue', emits, {
+  shouldEmit: () => !readOnly.value,
+})
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -76,8 +80,6 @@ const isVisible = ref(false)
 const inputWrapperRef = ref<HTMLElement | null>(null)
 
 const inputRef = ref<HTMLTextAreaElement | null>(null)
-
-const readOnly = inject(ReadonlyInj)
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -210,8 +212,28 @@ watch(inputWrapperRef, () => {
         'h-full w-full': isForm,
       }"
     >
+      <div v-if="isForm && isRichMode" class="w-full">
+        <div
+          class="w-full relative w-full px-0 pb-1"
+          :class="{
+            'pt-11': !readOnly,
+          }"
+        >
+          <LazyCellRichText
+            v-model:value="vModel"
+            class="!max-h-50"
+            :class="{
+              'border-t-1 border-gray-100': !readOnly,
+            }"
+            :autofocus="false"
+            show-menu
+            :read-only="readOnly"
+          />
+        </div>
+      </div>
+
       <div
-        v-if="isRichMode"
+        v-else-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="{
           'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
@@ -227,7 +249,7 @@ watch(inputWrapperRef, () => {
         <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
       <textarea
-        v-else-if="editEnabled && !isVisible"
+        v-else-if="(editEnabled && !isVisible) || isForm"
         :ref="focus"
         v-model="vModel"
         :rows="isForm ? 5 : 4"
@@ -271,7 +293,7 @@ watch(inputWrapperRef, () => {
       <span v-else>{{ vModel }}</span>
 
       <NcTooltip
-        v-if="!isVisible"
+        v-if="!isVisible && !isForm"
         placement="bottom"
         class="!absolute top-1 hidden nc-text-area-expand-btn group-hover:block z-3"
         :class="isForm ? 'right-1' : 'right-0'"

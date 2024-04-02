@@ -103,21 +103,13 @@ async function onOpenModal({
     close(1000)
   }
 }
-
-const isEasterEggEnabled = ref(false)
-
-watch(isOpen, (val) => {
-  if (!val) {
-    isEasterEggEnabled.value = false
-  }
-})
 </script>
 
 <template>
   <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48" @dblclick.stop="isEasterEggEnabled = true">
+      <NcMenu class="max-w-48">
         <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
@@ -163,11 +155,7 @@ watch(isOpen, (val) => {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          v-if="isEasterEggEnabled"
-          data-testid="sidebar-view-create-calendar"
-          @click="onOpenModal({ type: ViewTypes.CALENDAR })"
-        >
+        <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" />

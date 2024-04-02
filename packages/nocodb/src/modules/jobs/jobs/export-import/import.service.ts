@@ -1061,12 +1061,21 @@ export class ImportService {
             (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
           );
           if (!fcl) continue;
+          const calendarColProperties =
+            vw.type === ViewTypes.CALENDAR
+              ? {
+                  bold: fcl.bold,
+                  italic: fcl.italic,
+                  underline: fcl.underline,
+                }
+              : {};
           await this.viewColumnsService.columnUpdate({
             viewId: vw.id,
             columnId: cl.id,
             column: {
               show: fcl.show,
               order: fcl.order,
+              ...calendarColProperties,
             },
             req: param.req,
           });

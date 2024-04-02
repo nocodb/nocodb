@@ -56,7 +56,7 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar } = use
 
 useSqlEditor()
 
-const reloadEventHook = createEventHook()
+const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
@@ -70,7 +70,7 @@ useProvideCalendarViewStore(meta, activeView)
 provide(MetaInj, meta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
-provide(ReloadViewDataHookInj, reloadEventHook)
+provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
@@ -81,7 +81,7 @@ provide(
   computed(() => !isUIAllowed('dataEdit')),
 )
 
-useProvideViewColumns(activeView, meta, () => reloadEventHook?.trigger())
+useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 
 const grid = ref()
 

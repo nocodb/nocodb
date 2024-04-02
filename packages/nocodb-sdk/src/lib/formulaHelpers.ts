@@ -282,6 +282,8 @@ interface FormulaMeta {
 
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
     validation: {
       args: {
         min: 1,
@@ -296,10 +298,10 @@ export const formulas: Record<string, FormulaMeta> = {
       'AVG({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
   },
   ADD: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
     validation: {
       args: {
         min: 1,
@@ -314,8 +316,6 @@ export const formulas: Record<string, FormulaMeta> = {
       'ADD({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
   },
   DATEADD: {
     docsUrl:
@@ -376,6 +376,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   DATESTR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#datestr',
     validation: {
       args: {
         rqd: 1,
@@ -387,6 +389,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   DAY: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#day',
     validation: {
       args: {
         rqd: 1,
@@ -398,6 +402,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MONTH: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#month',
     validation: {
       args: {
         rqd: 1,
@@ -409,6 +415,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   HOUR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#hour',
     validation: {
       args: {
         rqd: 1,
@@ -886,7 +894,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-        type: FormulaDataTypes.STRING,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.NUMERIC],
       },
     },
     description: 'Retrieve the last n characters from the input string.',
@@ -901,7 +909,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-        type: FormulaDataTypes.STRING,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.NUMERIC],
       },
     },
     description: 'Retrieve the first n characters from the input string.',
@@ -1066,10 +1074,12 @@ export const formulas: Record<string, FormulaMeta> = {
         type: FormulaDataTypes.STRING,
       },
     },
-    description:
-      'Percent-encode the input parameter for use in URLs',
+    description: 'Percent-encode the input parameter for use in URLs',
     syntax: 'URLENCODE(str)',
-    examples: ['URLENCODE("Hello, world") => "Hello%2C%20world"', 'URLENCODE({column1})'],
+    examples: [
+      'URLENCODE("Hello, world") => "Hello%2C%20world"',
+      'URLENCODE({column1})',
+    ],
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {
@@ -1169,6 +1179,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_MATCH(string, regex)',
     examples: ['REGEX_MATCH({title}, "abc.*")'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_match',
   },
 
   REGEX_EXTRACT: {

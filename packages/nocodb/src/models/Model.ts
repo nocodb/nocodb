@@ -817,20 +817,23 @@ export default class Model implements TableType {
       }
     }
 
+    // use set to avoid duplicate
+    const relatedModelIds = new Set<string>();
+
     // clear all single query cache of related views
     for (const col of model.columns) {
       if (!isLinksOrLTAR(col)) continue;
       const colOptions = await col.getColOptions<
         LinkToAnotherRecordColumn | LinksColumn
       >();
-      if (colOptions.fk_related_model_id === model.id) {
-        await View.clearSingleQueryCache(
-          colOptions.fk_related_model_id,
-          null,
-          ncMeta,
-        );
-      }
+      relatedModelIds.add(colOptions?.fk_related_model_id);
     }
+
+    await Promise.all(
+      Array.from(relatedModelIds).map(async (modelId: string) => {
+        await View.clearSingleQueryCache(modelId, null, ncMeta);
+      }),
+    );
 
     return true;
   }

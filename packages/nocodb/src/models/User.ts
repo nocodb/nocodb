@@ -9,9 +9,8 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
-import { Base, BaseUser } from '~/models';
+import { Base, BaseUser, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import UserRefreshToken from '~/models/UserRefreshToken';
 
 export default class User implements UserType {
   id: string;

@@ -13,7 +13,7 @@ export default class UserRefreshToken {
   updated_at?: any;
 
   public static async insert(
-    syncLog: Partial<UserRefreshToken>,
+    userRefreshToken: Partial<UserRefreshToken>,
     ncMeta = Noco.ncMeta,
   ) {
     // clear old invalid tokens before inserting new one
@@ -23,7 +23,7 @@ export default class UserRefreshToken {
       null,
       MetaTable.USER_REFRESH_TOKENS,
       {
-        fk_user_id: syncLog.fk_user_id,
+        fk_user_id: userRefreshToken.fk_user_id,
       },
       {
         expires_at: {
@@ -32,7 +32,7 @@ export default class UserRefreshToken {
       },
     );
 
-    const insertObj = extractProps(syncLog, [
+    const insertObj = extractProps(userRefreshToken, [
       'fk_user_id',
       'token',
       'expires_at',

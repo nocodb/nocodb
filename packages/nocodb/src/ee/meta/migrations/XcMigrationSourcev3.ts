@@ -18,6 +18,7 @@ import * as nc_017_model_stat from './v3/nc_017_model_stat';
 import * as nc_018_sql_executor from './v3/nc_018_sql_executor';
 import * as nc_019_model_stat_extra from './v3/nc_019_model_stat_extra';
 import * as nc_020_sso_client from './v3/nc_020_sso_client';
+import * as nc_021_org from './v3/nc_021_org';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -47,6 +48,7 @@ export default class XcMigrationSourcev3 {
       'nc_018_sql_executor',
       'nc_019_model_stat_extra',
       'nc_020_sso_client',
+      'nc_021_org',
     ]);
   }
 
@@ -96,6 +98,8 @@ export default class XcMigrationSourcev3 {
         return nc_019_model_stat_extra;
       case 'nc_020_sso_client':
         return nc_020_sso_client;
+      case 'nc_021_org':
+        return nc_021_org;
     }
   }
 }

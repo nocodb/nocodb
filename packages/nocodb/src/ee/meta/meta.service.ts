@@ -98,9 +98,6 @@ export class MetaService extends MetaServiceCE {
       case MetaTable.USERS:
         prefix = 'us';
         break;
-      case MetaTable.ORGS:
-        prefix = 'org';
-        break;
       case MetaTable.TEAMS:
         prefix = 'tm';
         break;
@@ -127,6 +124,9 @@ export class MetaService extends MetaServiceCE {
         break;
       case MetaTable.SSO_CLIENT:
         prefix = 'sso';
+        break;
+      case MetaTable.ORG:
+        prefix = 'o';
         break;
       default:
         prefix = 'nc';

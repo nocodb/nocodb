@@ -29,7 +29,7 @@ export enum MetaTable {
   KANBAN_VIEW = 'nc_kanban_view_v2',
   KANBAN_VIEW_COLUMNS = 'nc_kanban_view_columns_v2',
   USERS = 'nc_users_v2',
-  ORGS = 'nc_orgs_v2',
+  ORGS_OLD = 'nc_orgs_v2',
   TEAMS = 'nc_teams_v2',
   TEAM_USERS = 'nc_team_users_v2',
   VIEWS = 'nc_views_v2',
@@ -46,6 +46,7 @@ export enum MetaTable {
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
+  USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
 }
 
 export enum MetaTableOldV2 {
@@ -60,7 +61,7 @@ export const orderedMetaTables = [
   MetaTable.AUDIT,
   MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
-  MetaTable.ORGS,
+  MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
   MetaTable.USERS,
   MetaTable.MAP_VIEW,
@@ -151,7 +152,7 @@ export enum CacheScope {
   MAP_VIEW_COLUMN = 'mapViewColumn',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
   USER = 'user',
-  ORGS = 'orgs',
+  ORGS_OLD = 'orgs',
   TEAM = 'team',
   TEAM_USER = 'teamUser',
   VIEW = 'view',

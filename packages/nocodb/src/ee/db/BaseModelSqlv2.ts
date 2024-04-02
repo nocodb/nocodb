@@ -1100,7 +1100,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
-                .returning(this.model.primaryKeys?.length ? returningObj as any : '*')
+                .returning(
+                  this.model.primaryKeys?.length ? (returningObj as any) : '*',
+                )
                 .toQuery(),
             );
           } else {

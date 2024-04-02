@@ -9,7 +9,7 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
-import { Base, BaseUser } from '~/models';
+import { Base, BaseUser, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 
 export default class User implements UserType {
@@ -20,7 +20,6 @@ export default class User implements UserType {
 
   password?: string;
   salt?: string;
-  refresh_token?: string;
   invite_token?: string;
   invite_token_expires?: number | Date;
   reset_password_expires?: number | Date;
@@ -50,7 +49,6 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
-      'refresh_token',
       'invite_token',
       'invite_token_expires',
       'reset_password_expires',
@@ -91,7 +89,6 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
-      'refresh_token',
       'invite_token',
       'invite_token_expires',
       'reset_password_expires',
@@ -184,9 +181,21 @@ export default class User implements UserType {
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+    const userRefreshToken = await UserRefreshToken.getByToken(
       refresh_token,
-    });
+      ncMeta,
+    );
+
+    if (!userRefreshToken) {
+      return null;
+    }
+
+    return await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.USERS,
+      userRefreshToken.fk_user_id,
+    );
   }
 
   public static async list(
@@ -262,6 +271,7 @@ export default class User implements UserType {
     args: {
       user?: User;
       baseId?: string;
+      orgId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

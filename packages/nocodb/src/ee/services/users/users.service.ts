@@ -16,7 +16,13 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
-import { Store, User, Workspace, WorkspaceUser } from '~/models';
+import {
+  Store,
+  User,
+  UserRefreshToken,
+  Workspace,
+  WorkspaceUser,
+} from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -224,9 +230,9 @@ export class UsersService extends UsersServiceCE {
 
     const refreshToken = randomTokenString();
 
-    await User.update(user.id, {
-      refresh_token: refreshToken,
-      email: user.email,
+    await UserRefreshToken.insert({
+      token: refreshToken,
+      fk_user_id: user.id,
     });
 
     setTokenCookie(param.res, refreshToken);
@@ -273,7 +279,7 @@ export class UsersService extends UsersServiceCE {
   }
 
   async login(
-    user: UserType & { provider?: string },
+    user: UserType & { provider?: string; extra?: Record<string, any> },
     req: NcRequest,
   ): Promise<any> {
     const workspaces = await WorkspaceUser.workspaceList({

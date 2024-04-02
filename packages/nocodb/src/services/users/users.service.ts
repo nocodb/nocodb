@@ -21,13 +21,12 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import { Store, User } from '~/models';
+import { Store, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
-import UserRefreshToken from '~/models/UserRefreshToken';
 
 @Injectable()
 export class UsersService {
@@ -381,11 +380,6 @@ export class UsersService {
 
       const refreshToken = randomTokenString();
 
-      // await User.update(user.id, {
-      //   email: user.email,
-      //   refresh_token: refreshToken,
-      // });
-
       await UserRefreshToken.insert({
         token: refreshToken,
         fk_user_id: user.id,
@@ -584,8 +578,6 @@ export class UsersService {
     }
 
     await User.update(user.id, {
-      // refresh_token: refreshToken,
-      // email: user.email,
       token_version: user['token_version'],
     });
 

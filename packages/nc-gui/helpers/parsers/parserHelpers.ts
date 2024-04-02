@@ -235,3 +235,47 @@ export const extractNextDefaultName = (namesData: string[], defaultName: string,
     ? `${defaultName}${splitOperator}${extractedSortedNumbers[extractedSortedNumbers.length - 1] + 1}`
     : `${defaultName}${splitOperator}1`
 }
+
+export const getFormattedViewTabTitle = ({
+  viewName,
+  tableName,
+  baseName,
+  isDefaultView = false,
+  charLimit = 20,
+  isSharedView = false,
+}: {
+  viewName: string
+  tableName: string
+  baseName: string
+  isDefaultView?: boolean
+  charLimit?: number
+  isSharedView?: boolean
+}) => {
+  if (isSharedView) {
+    return viewName || 'NocoDB'
+  }
+
+  let title = `${viewName} | ${tableName} | ${baseName}`
+
+  if (isDefaultView) {
+    charLimit = 30
+    title = `${tableName} | ${baseName}`
+  }
+
+  if (title.length <= 60) {
+    return title
+  }
+
+  // Function to truncate text and add ellipsis if needed
+  const truncateText = (text: string) => {
+    return text.length > charLimit ? text.substring(0, charLimit - 3) + '...' : text
+  }
+
+  if (isDefaultView) {
+    title = `${truncateText(tableName)} | ${truncateText(baseName)}`
+  } else {
+    title = `${truncateText(viewName)} | ${truncateText(tableName)} | ${truncateText(baseName)}`
+  }
+
+  return title
+}

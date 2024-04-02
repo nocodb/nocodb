@@ -2,6 +2,8 @@ import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { ViewPageType } from '~/lib'
 import { navigateToBlankTargetOpenOption, useMagicKeys } from '#imports'
+import { useTitle } from '@vueuse/core'
+import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -120,6 +122,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isPaginationLoading = ref(true)
 
   const preFillFormSearchParams = ref('')
+
+  const refreshViewTabTitle = createEventHook<void>()
 
   const loadViews = async ({
     tableId,
@@ -343,6 +347,39 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ]
   })
 
+  const updateTabTitle = () => {
+    if (!activeView.value || !activeView.value.base_id) return
+
+    const tableName = tablesStore.baseTables
+      .get(activeView.value.base_id)
+      ?.find((t) => t.id === activeView.value.fk_model_id)?.title
+
+    const baseName = bases.basesList.find((p) => p.id === activeView.value.base_id)?.title
+
+    useTitle(
+      getFormattedViewTabTitle({
+        viewName: activeView.value.title,
+        tableName: tableName || '',
+        baseName: baseName || '',
+        isDefaultView: !!activeView.value.is_default,
+        isSharedView: !!sharedView.value?.id,
+      }),
+    )
+
+    console.log('Active View', activeView.value.title)
+  }
+
+  refreshViewTabTitle.on(() => {
+    updateTabTitle()
+  })
+
+  watch(
+    () => [activeView.value?.title, activeView.value?.id],
+    () => {
+      refreshViewTabTitle.trigger()
+    },
+  )
+
   return {
     isLockedView,
     isViewsLoading,
@@ -365,6 +402,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeNestedFilters,
     isActiveViewLocked,
     preFillFormSearchParams,
+    refreshViewTabTitle: refreshViewTabTitle.trigger(),
   }
 })
 

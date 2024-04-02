@@ -14,6 +14,7 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import { useTitle } from '@vueuse/core'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
   NcErrorType,
@@ -41,7 +42,6 @@ import {
   watch,
 } from '#imports'
 import type { SharedViewMeta } from '#imports'
-import { useTitle } from '@vueuse/core'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)

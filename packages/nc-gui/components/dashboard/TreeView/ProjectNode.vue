@@ -4,7 +4,6 @@ import { message } from 'ant-design-vue'
 import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { useTitle } from '@vueuse/core'
 import {
   NcProjectType,
   ProjectInj,

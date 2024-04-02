@@ -268,7 +268,7 @@ export const getFormattedViewTabTitle = ({
 
   // Function to truncate text and add ellipsis if needed
   const truncateText = (text: string) => {
-    return text.length > charLimit ? text.substring(0, charLimit - 3) + '...' : text
+    return text.length > charLimit ? `${text.substring(0, charLimit - 3)}...` : text
   }
 
   if (isDefaultView) {

@@ -52,12 +52,9 @@ export const useTablesStore = defineStore('tablesStore', () => {
   watch(
     () => activeTable.value?.title,
     (title) => {
-      if (basesStore.openedProject?.type !== 'database') return
+      if (basesStore.openedProject?.type !== 'database' || !title) return
 
-      if (!title) {
-        useTitle(basesStore.openedProject?.title)
-        return
-      }
+      useTitle(basesStore.openedProject?.title)
     },
   )
 

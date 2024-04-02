@@ -19,8 +19,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const workspaceStore = useWorkspace()
 
-  const { refreshViewTabTitle } = useViewsStore()
-
   const activeTableId = computed(() => route.value.params.viewId as string | undefined)
 
   const activeTables = computed(() => {
@@ -60,8 +58,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
         useTitle(basesStore.openedProject?.title)
         return
       }
-
-      refreshViewTabTitle?.()
     },
   )
 

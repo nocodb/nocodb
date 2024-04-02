@@ -11,8 +11,6 @@ export const useBases = defineStore('basesStore', () => {
 
   const { isUIAllowed } = useRoles()
 
-  const { refreshViewTabTitle } = useViewsStore()
-
   const bases = ref<Map<string, NcProject>>(new Map())
 
   const basesList = computed<NcProject[]>(() =>
@@ -364,13 +362,6 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   const toggleStarred = async (..._args: any) => {}
-
-  watch(
-    () => openedProject.value?.title,
-    () => {
-      refreshViewTabTitle?.()
-    },
-  )
 
   return {
     bases,

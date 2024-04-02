@@ -64,6 +64,16 @@ watch(projectPageTab, () => {
     })
   }
 })
+
+watch(
+  () => openedProject.value?.id,
+  () => {
+    useTitle(`${openedProject.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

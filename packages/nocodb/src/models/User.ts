@@ -21,7 +21,6 @@ export default class User implements UserType {
 
   password?: string;
   salt?: string;
-  refresh_token?: string;
   invite_token?: string;
   invite_token_expires?: number | Date;
   reset_password_expires?: number | Date;
@@ -51,7 +50,6 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
-      'refresh_token',
       'invite_token',
       'invite_token_expires',
       'reset_password_expires',
@@ -92,7 +90,6 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
-      'refresh_token',
       'invite_token',
       'invite_token_expires',
       'reset_password_expires',

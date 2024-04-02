@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
-import type { LinkToAnotherRecordColumn } from '~/models/index';
+import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
 import Hook from '~/models/Hook';
 import Audit from '~/models/Audit';
 import View from '~/models/View';
@@ -814,6 +814,21 @@ export default class Model implements TableType {
     if (grid_views_with_column.length) {
       for (const gv of grid_views_with_column) {
         await View.fixPVColumnForView(gv.fk_view_id, ncMeta);
+      }
+    }
+
+    // clear all single query cache of related views
+    for (const col of model.columns) {
+      if (!isLinksOrLTAR(col)) continue;
+      const colOptions = await col.getColOptions<
+        LinkToAnotherRecordColumn | LinksColumn
+      >();
+      if (colOptions.fk_related_model_id === model.id) {
+        await View.clearSingleQueryCache(
+          colOptions.fk_related_model_id,
+          null,
+          ncMeta,
+        );
       }
     }
 

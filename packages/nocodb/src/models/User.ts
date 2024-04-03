@@ -11,6 +11,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import UserRefreshToken from '~/models/UserRefreshToken';
 
 export default class User implements UserType {
   id: string;
@@ -186,7 +187,7 @@ export default class User implements UserType {
       ncMeta,
     );
 
-    if (!userRefreshToken) {
+    if(!userRefreshToken){
       return null;
     }
 

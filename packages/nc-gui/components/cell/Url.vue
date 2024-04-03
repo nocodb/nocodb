@@ -47,6 +47,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
+const trimVal = (val:string) => val && (val + '').trim();
+
 // Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
@@ -54,21 +56,21 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(trimVal(val))) || !val || isForm.value) {
       emit('update:modelValue', val)
     }
   },
 })
 
-const isValid = computed(() => value && isValidURL(value))
+const isValid = computed(() => value && isValidURL(trimVal(value)))
 
 const url = computed(() => {
-  if (!value || !isValidURL(value)) return ''
+  if (!value || !isValidURL(trimVal(value))) return ''
 
   /** add url scheme if missing */
-  if (/^https?:\/\//.test(value)) return value
+  if (/^https?:\/\//.test(trimVal(value))) return trimVal(value)
 
-  return `https://${value}`
+  return `https://${trimVal(value)}`
 })
 
 const { cellUrlOptions } = useCellUrlConfig(url)
@@ -84,7 +86,7 @@ watch(
       parseProp(column.value.meta)?.validate &&
       !editEnabled.value &&
       localState.value &&
-      !isValidURL(localState.value)
+      !isValidURL(trimVal(localState.value))
     ) {
       message.error(t('msg.error.invalidURL'))
       localState.value = undefined

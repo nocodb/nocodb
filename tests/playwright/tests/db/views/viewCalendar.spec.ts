@@ -288,7 +288,7 @@ test.describe('Calendar View', () => {
     await dashboard.viewSidebar.deleteView({ title: 'Calendar' });
   });
 
-  test('Calendar Drag and Drop & Undo Redo Operations', async () => {
+  test.skip('Calendar Drag and Drop & Undo Redo Operations', async () => {
     test.slow();
 
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });

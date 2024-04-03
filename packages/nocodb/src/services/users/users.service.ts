@@ -495,11 +495,6 @@ export class UsersService {
 
     const refreshToken = randomTokenString();
 
-    // await User.update(user.id, {
-    //   refresh_token: refreshToken,
-    //   email: user.email,
-    // });
-
     await UserRefreshToken.insert({
       token: refreshToken,
       fk_user_id: user.id,

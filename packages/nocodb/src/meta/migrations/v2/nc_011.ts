@@ -700,7 +700,7 @@ const up = async (knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.ORGS, (table) => {
+  await knex.schema.createTable(MetaTable.ORGS_OLD, (table) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('title');
@@ -712,13 +712,13 @@ const up = async (knex) => {
 
     table.string('title');
     table.string('org_id', 20);
-    table.foreign('org_id').references(`${MetaTable.ORGS}.id`);
+    table.foreign('org_id').references(`${MetaTable.ORGS_OLD}.id`);
     table.timestamps(true, true);
   });
 
   await knex.schema.createTable(MetaTable.TEAM_USERS, (table) => {
     table.string('org_id', 20);
-    table.foreign('org_id').references(`${MetaTable.ORGS}.id`);
+    table.foreign('org_id').references(`${MetaTable.ORGS_OLD}.id`);
     table.string('user_id', 20);
     table.foreign('user_id').references(`${MetaTable.USERS}.id`);
     table.timestamps(true, true);

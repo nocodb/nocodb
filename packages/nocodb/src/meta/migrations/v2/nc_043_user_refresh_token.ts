@@ -11,7 +11,7 @@ const up = async (knex: Knex) => {
     table.string('token', 255).index();
     table.text('meta');
 
-    table.timestamp('expires_at');
+    table.timestamp('expires_at').index();
 
     table.timestamps(true, true);
   });

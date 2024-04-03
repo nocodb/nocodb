@@ -1671,6 +1671,29 @@ class PGClient extends PGClientCE {
         }
       };
 
+      this.sqlClient.client.__proto__.checkVersion = async (connection) => {
+        return new Promise((resolve, reject) => {
+          connection.query('select version();', (err, resp) => {
+            if (err) return reject(err);
+
+            if (!resp.rows || !resp.rows[0] || !resp.rows[0].version) {
+              unsupportedVariant = true;
+              return reject(
+                new Error(
+                  'Invalid version response, please confirm if your PG variant is supported.',
+                ),
+              );
+            }
+
+            resolve(
+              this.sqlClient.client.__proto__._parseVersion(
+                resp.rows[0].version,
+              ),
+            );
+          });
+        });
+      };
+
       await this.raw('SELECT 1+1 as data');
     } catch (e1) {
       const connectionParamsWithoutDb = JSON.parse(

@@ -27,7 +27,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
-import UserRefreshToken from "~/models/UserRefreshToken";
+import UserRefreshToken from '~/models/UserRefreshToken';
 
 @Injectable()
 export class UsersService {
@@ -388,8 +388,8 @@ export class UsersService {
 
       await UserRefreshToken.insert({
         token: refreshToken,
-        fk_user_id: user.id
-      })
+        fk_user_id: user.id,
+      });
 
       setTokenCookie(param.res, refreshToken);
 
@@ -508,8 +508,8 @@ export class UsersService {
 
     await UserRefreshToken.insert({
       token: refreshToken,
-      fk_user_id: user.id
-    })
+      fk_user_id: user.id,
+    });
 
     setTokenCookie(param.res, refreshToken);
 

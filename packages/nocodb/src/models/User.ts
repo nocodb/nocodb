@@ -187,7 +187,7 @@ export default class User implements UserType {
       ncMeta,
     );
 
-    if(!userRefreshToken){
+    if (!userRefreshToken) {
       return null;
     }
 

@@ -191,7 +191,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           passwordError.value = error.message
         }
       } else if (error.error === NcErrorType.UNKNOWN_ERROR) {
-        console.log(e)
+        console.error('Error occurred while loading shared form view', e)
       }
     }
   }

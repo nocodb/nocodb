@@ -42,6 +42,7 @@ export class PublicMetasService {
       .filter((c) => {
         const column = view.model.columnsById[c.fk_column_id];
 
+        // Check if column exists to prevent processing non-existent columns
         if (!column) return false;
 
         return (

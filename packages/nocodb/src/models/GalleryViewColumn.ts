@@ -66,16 +66,11 @@ export default class GalleryViewColumn {
       insertObj.source_id = viewRef.source_id;
     }
 
-    const { id, fk_column_id } = await ncMeta.metaInsert2(
+    const { id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.GALLERY_VIEW_COLUMNS,
       insertObj,
-    );
-
-    await NocoCache.set(
-      `${CacheScope.GALLERY_VIEW_COLUMN}:${fk_column_id}`,
-      id,
     );
 
     // on new view column, delete any optimised single query cache

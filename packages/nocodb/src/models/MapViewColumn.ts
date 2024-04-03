@@ -57,14 +57,12 @@ export default class MapViewColumn {
       insertObj.source_id = viewRef.source_id;
     }
 
-    const { id, fk_column_id } = await ncMeta.metaInsert2(
+    const { id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.MAP_VIEW_COLUMNS,
       insertObj,
     );
-
-    await NocoCache.set(`${CacheScope.MAP_VIEW_COLUMN}:${fk_column_id}`, id);
 
     return this.get(id, ncMeta).then(async (viewCol) => {
       await NocoCache.appendToList(

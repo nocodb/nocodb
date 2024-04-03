@@ -107,8 +107,6 @@ export default class GridViewColumn implements GridColumnType {
       insertObj,
     );
 
-    await NocoCache.set(`${CacheScope.GRID_VIEW_COLUMN}:${fk_column_id}`, id);
-
     await View.fixPVColumnForView(column.fk_view_id, ncMeta);
 
     // on new view column, delete any optimised single query cache

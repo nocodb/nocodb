@@ -92,14 +92,12 @@ export default class FormViewColumn implements FormColumnType {
       insertObj.source_id = viewRef.source_id;
     }
 
-    const { id, fk_column_id } = await ncMeta.metaInsert2(
+    const { id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,
       insertObj,
     );
-
-    await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${fk_column_id}`, id);
 
     return this.get(id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(

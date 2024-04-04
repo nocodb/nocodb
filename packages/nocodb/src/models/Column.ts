@@ -837,7 +837,7 @@ export default class Column<T = any> implements ColumnType {
       CacheScope.GALLERY_VIEW_COLUMN,
     ];
 
-    for (let i; i < viewColumnTables.length; i++) {
+    for (let i = 0; i < viewColumnTables.length; i++) {
       const table = viewColumnTables[i];
       const cacheScope = viewColumnCacheScope[i];
       const viewColumns = await ncMeta.metaList2(null, null, table, {

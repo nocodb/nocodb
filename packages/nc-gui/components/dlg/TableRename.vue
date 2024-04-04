@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { useTitle } from '@vueuse/core'
 import {
   Form,
   computed,
@@ -179,8 +178,6 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
     refreshCommandPalette()
 
     $e('a:table:rename')
-
-    useTitle(`${base.value?.title}: ${newMeta?.title}`)
 
     dialogShow.value = false
   } catch (e: any) {

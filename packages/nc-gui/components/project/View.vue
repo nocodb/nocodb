@@ -6,7 +6,7 @@ import { isEeUI } from '#imports'
 const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser } = storeToRefs(basesStore)
-const { activeTables } = storeToRefs(useTablesStore())
+const { activeTables, activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace, workspaceUserCount } = storeToRefs(useWorkspace())
 
 const { navigateToProjectPage } = useBase()
@@ -66,9 +66,14 @@ watch(projectPageTab, () => {
 })
 
 watch(
-  () => openedProject.value?.title,
+  () => [openedProject.value?.id, openedProject.value?.title],
   () => {
+    if (activeTable.value?.title) return
+
     useTitle(`${openedProject.value?.title ?? activeWorkspace.value?.title ?? 'NocoDB'}`)
+  },
+  {
+    immediate: true,
   },
 )
 </script>

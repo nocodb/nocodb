@@ -68,11 +68,11 @@ export default class UserRefreshToken {
       null,
       MetaTable.USER_REFRESH_TOKENS,
       {
-        token: oldToken,
+        token: newToken,
         expires_at: dayjs().add(90, 'day').toDate(),
       },
       {
-        token: newToken,
+        token: oldToken,
       },
     );
   }

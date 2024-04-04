@@ -23,7 +23,7 @@ interface Props {
   modelValue?: string | null
 }
 
-const { modelValue: value } = defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -47,12 +47,24 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
+const modelValue = computed(() => {
+  if (props.modelValue) {
+    return props.modelValue.trim()
+  }
+
+  return props.modelValue
+})
+
 // Used in the logic of when to display error since we are not storing the url if it's not valid
-const localState = ref(value)
+const localState = ref(modelValue.value)
 
 const vModel = computed({
-  get: () => value,
+  get: () => modelValue.value,
   set: (val) => {
+    if (val) {
+      val = val.trim()
+    }
+
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && isValidURL(val)) || !val || isForm.value) {
       emit('update:modelValue', val)
@@ -60,15 +72,15 @@ const vModel = computed({
   },
 })
 
-const isValid = computed(() => value && isValidURL(value))
+const isValid = computed(() => modelValue.value && isValidURL(modelValue.value))
 
 const url = computed(() => {
-  if (!value || !isValidURL(value)) return ''
+  if (!modelValue.value || !isValidURL(modelValue.value)) return ''
 
   /** add url scheme if missing */
-  if (/^https?:\/\//.test(value)) return value
+  if (/^https?:\/\//.test(modelValue.value)) return modelValue.value
 
-  return `https://${value}`
+  return `https://${modelValue.value}`
 })
 
 const { cellUrlOptions } = useCellUrlConfig(url)
@@ -90,7 +102,7 @@ watch(
       localState.value = undefined
       return
     }
-    localState.value = value
+    localState.value = modelValue.value
   },
 )
 </script>
@@ -124,7 +136,7 @@ watch(
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
     >
-      <LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field" />
+      <LazyCellClampedText :value="modelValue" :lines="rowHeight" class="nc-cell-field" />
     </nuxt-link>
 
     <nuxt-link
@@ -140,10 +152,10 @@ watch(
     </nuxt-link>
 
     <span v-else class="w-9/10 overflow-ellipsis overflow-hidden"
-      ><LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field"
+      ><LazyCellClampedText :value="modelValue" :lines="rowHeight" class="nc-cell-field"
     /></span>
 
-    <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
+    <div v-if="column.meta?.validate && !isValid && modelValue?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">
         <template #title> {{ t('msg.error.invalidURL') }} </template>
         <div class="flex flex-row items-center">

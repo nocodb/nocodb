@@ -6,7 +6,12 @@ import { MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 const NC_REFRESH_TOKEN_EXP_IN_DAYS =
-  +process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS || 90;
+  parseInt(process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS, 10) || 90;
+
+// throw error if user provided invalid value
+if (NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
+  throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
+}
 
 export default class UserRefreshToken {
   fk_user_id: string;
@@ -43,7 +48,7 @@ export default class UserRefreshToken {
       'meta',
     ]);
 
-    // set default expiry as 90 days if missing
+    // set expiry based on the env or default value
     if (!('expires_at' in insertObj)) {
       insertObj.expires_at = dayjs()
         .add(NC_REFRESH_TOKEN_EXP_IN_DAYS, 'day')

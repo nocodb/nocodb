@@ -380,7 +380,12 @@ export class UsersService {
 
       const refreshToken = randomTokenString();
 
-      await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+      try {
+        await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+      } catch (error) {
+        console.error('Failed to update old refresh token:', error);
+        NcError.internalServerError('Failed to update refresh token');
+      }
 
       setTokenCookie(param.res, refreshToken);
 

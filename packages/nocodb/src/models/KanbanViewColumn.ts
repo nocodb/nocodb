@@ -63,14 +63,12 @@ export default class KanbanViewColumn implements KanbanColumnType {
       insertObj.source_id = viewRef.source_id;
     }
 
-    const { id, fk_column_id } = await ncMeta.metaInsert2(
+    const { id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.KANBAN_VIEW_COLUMNS,
       insertObj,
     );
-
-    await NocoCache.set(`${CacheScope.KANBAN_VIEW_COLUMN}:${fk_column_id}`, id);
 
     return this.get(id, ncMeta).then(async (kanbanViewColumn) => {
       await NocoCache.appendToList(

@@ -79,16 +79,11 @@ export default class CalendarViewColumn {
       insertObj.source_id = viewRef.source_id;
     }
 
-    const { id, fk_column_id } = await ncMeta.metaInsert2(
+    const { id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.CALENDAR_VIEW_COLUMNS,
       insertObj,
-    );
-
-    await NocoCache.set(
-      `${CacheScope.CALENDAR_VIEW_COLUMN}:${fk_column_id}`,
-      id,
     );
 
     {

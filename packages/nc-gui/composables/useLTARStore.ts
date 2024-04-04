@@ -191,7 +191,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
-        let offset = childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
+        let offset =
+          childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
         if (offset < 0) {
           offset = 0
@@ -550,8 +551,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     })
 
-    const resetChildrenExcludedOffsetCount = () =>{
-      childrenExcludedOffsetCount.value = 0;
+    const resetChildrenExcludedOffsetCount = () => {
+      childrenExcludedOffsetCount.value = 0
     }
 
     const resetChildrenListOffsetCount = () => {

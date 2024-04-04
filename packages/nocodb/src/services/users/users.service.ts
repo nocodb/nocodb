@@ -370,9 +370,9 @@ export class UsersService {
         NcError.badRequest(`Missing refresh token`);
       }
 
-      const user = await User.getByRefreshToken(
-        param.req.cookies.refresh_token,
-      );
+      const oldRefreshToken = param.req.cookies.refresh_token;
+
+      const user = await User.getByRefreshToken(oldRefreshToken);
 
       if (!user) {
         NcError.badRequest(`Invalid refresh token`);
@@ -380,10 +380,12 @@ export class UsersService {
 
       const refreshToken = randomTokenString();
 
-      await UserRefreshToken.insert({
-        token: refreshToken,
-        fk_user_id: user.id,
-      });
+      try {
+        await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
+      } catch (error) {
+        console.error('Failed to update old refresh token:', error);
+        NcError.internalServerError('Failed to update refresh token');
+      }
 
       setTokenCookie(param.res, refreshToken);
 

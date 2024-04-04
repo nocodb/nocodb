@@ -1,8 +1,17 @@
+import process from 'process';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+
+const NC_REFRESH_TOKEN_EXP_IN_DAYS =
+  parseInt(process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS, 10) || 90;
+
+// throw error if user provided invalid value
+if (NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
+  throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
+}
 
 export default class UserRefreshToken {
   fk_user_id: string;
@@ -39,9 +48,11 @@ export default class UserRefreshToken {
       'meta',
     ]);
 
-    // set default expiry as 90 days if missing
+    // set expiry based on the env or default value
     if (!('expires_at' in insertObj)) {
-      insertObj.expires_at = dayjs().add(90, 'day').toDate();
+      insertObj.expires_at = dayjs()
+        .add(NC_REFRESH_TOKEN_EXP_IN_DAYS, 'day')
+        .toDate();
     }
 
     if ('meta' in insertObj) {
@@ -68,11 +79,11 @@ export default class UserRefreshToken {
       null,
       MetaTable.USER_REFRESH_TOKENS,
       {
-        token: oldToken,
-        expires_at: dayjs().add(90, 'day').toDate(),
+        token: newToken,
+        expires_at: dayjs().add(NC_REFRESH_TOKEN_EXP_IN_DAYS, 'day').toDate(),
       },
       {
-        token: newToken,
+        token: oldToken,
       },
     );
   }

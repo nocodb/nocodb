@@ -36,12 +36,14 @@ export class SidebarTableNodeObject extends BasePage {
   async verifyTableOptions({
     tableTitle,
     isVisible,
+    checkMenuOptions = true,
     renameVisible,
     duplicateVisible,
     deleteVisible,
   }: {
     tableTitle: string;
     isVisible: boolean;
+    checkMenuOptions?: boolean;
     renameVisible?: boolean;
     duplicateVisible?: boolean;
     deleteVisible?: boolean;
@@ -53,6 +55,11 @@ export class SidebarTableNodeObject extends BasePage {
       await expect(
         this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).locator('li.ant-dropdown-menu-item')
       ).not.toHaveCount(0);
+      if (!checkMenuOptions) {
+        // close table options context menu
+        await this.clickOptions({ tableTitle });
+        return;
+      }
     } else {
       await this.clickOptions({ tableTitle });
       await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });

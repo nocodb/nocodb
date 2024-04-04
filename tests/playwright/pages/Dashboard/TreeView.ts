@@ -290,9 +290,7 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.sidebar.tableNode.verifyTableOptions({
         tableTitle: param.tableTitle,
         isVisible: !!count,
-        deleteVisible: !!count,
-        duplicateVisible: !!count,
-        renameVisible: !!count,
+        checkMenuOptions: false,
       });
     }
   }

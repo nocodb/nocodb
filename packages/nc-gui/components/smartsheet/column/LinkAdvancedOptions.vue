@@ -267,7 +267,7 @@ watch(pkColumn, () => {
           >
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-4 flex items-center justify-center">
+                <div class="flex items-center justify-center">
                   <SmartsheetHeaderVirtualCellIcon
                     v-if="isVirtualCol(column)"
                     :column-meta="column"
@@ -364,7 +364,7 @@ watch(pkColumn, () => {
                 :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
               >
                 <div class="flex w-full items-center gap-2">
-                  <div class="min-w-4 flex items-center justify-center">
+                  <div class="flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
                       v-if="isVirtualCol(column)"
                       :column-meta="column"
@@ -408,7 +408,7 @@ watch(pkColumn, () => {
                 :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
               >
                 <div class="flex w-full items-center gap-2">
-                  <div class="min-w-4 flex items-center justify-center">
+                  <div class="flex items-center justify-center">
                     <SmartsheetHeaderVirtualCellIcon
                       v-if="isVirtualCol(column)"
                       :column-meta="column"
@@ -513,7 +513,7 @@ watch(pkColumn, () => {
               :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
             >
               <div class="flex w-full items-center gap-2">
-                <div class="min-w-4 flex items-center justify-center">
+                <div class="flex items-center justify-center">
                   <SmartsheetHeaderVirtualCellIcon
                     v-if="isVirtualCol(column)"
                     :column-meta="column"
@@ -569,9 +569,11 @@ watch(pkColumn, () => {
       @apply mr-2;
     }
 
-    // :deep(.nc-select-expand-btn) {
-    //   @apply text-gray-500;
-    // }
+    :deep(.ant-select-arrow) {
+      .nc-select-expand-btn {
+        @apply w-3.5 h-3.5;
+      }
+    }
 
     .nc-relation-settings-table-connector-point {
       @apply absolute top-[50%] rounded-full w-2 h-2;
@@ -632,7 +634,7 @@ watch(pkColumn, () => {
   }
 }
 .nc-relation-settings-select.ant-select-dropdown.nc-select-dropdown {
-  @apply !rounded-md;
+  @apply !rounded-md max-w-[180px];
 
   .ant-select-item {
     @apply text-xs;

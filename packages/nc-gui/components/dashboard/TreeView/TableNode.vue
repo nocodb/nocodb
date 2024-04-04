@@ -132,30 +132,25 @@ const onOpenTable = async () => {
     isExpanded.value = true
   }
 }
-
-const onTableIdCopy = async () => {
-  try {
-    await copy(table.value!.id!)
-    isTableIdCopied.value = true
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
 let tableIdCopiedTimeout: NodeJS.Timeout
 
-watch(isTableIdCopied, (value) => {
+const onTableIdCopy = async () => {
   if (tableIdCopiedTimeout) {
     clearTimeout(tableIdCopiedTimeout)
   }
 
-  if (value) {
-    setTimeout(() => {
+  try {
+    await copy(table.value!.id!)
+    isTableIdCopied.value = true
+
+    tableIdCopiedTimeout = setTimeout(() => {
       isTableIdCopied.value = false
       clearTimeout(tableIdCopiedTimeout)
     }, 5000)
+  } catch (e: any) {
+    message.error(e.message)
   }
-})
+}
 
 watch(
   () => activeView.value?.id,

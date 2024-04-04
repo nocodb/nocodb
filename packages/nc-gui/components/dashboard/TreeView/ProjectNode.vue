@@ -4,7 +4,6 @@ import { message } from 'ant-design-vue'
 import { stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import { useTitle } from '@vueuse/core'
 import {
   NcProjectType,
   ProjectInj,
@@ -109,6 +108,8 @@ const keys = ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
 const isProjectDeleteDialogVisible = ref(false)
 
+const { refreshViewTabTitle } = useViewsStore()
+
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
   const routeNameSplit = String(route.value?.name).split('baseId-index-index')
@@ -144,7 +145,7 @@ const updateProjectTitle = async () => {
 
     $e('a:base:rename')
 
-    useTitle(`${base.value?.title}`)
+    refreshViewTabTitle?.()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

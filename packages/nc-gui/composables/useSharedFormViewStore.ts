@@ -14,6 +14,7 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import { useTitle } from '@vueuse/core'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
   NcErrorType,
@@ -545,6 +546,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   watch(password, (next, prev) => {
     if (next !== prev && passwordError.value) passwordError.value = null
   })
+
+  watch(
+    () => sharedFormView.value?.heading,
+    () => {
+      useTitle(`${sharedFormView.value?.heading ?? 'NocoDB'}`)
+    },
+    {
+      flush: 'post',
+    },
+  )
 
   return {
     sharedView,

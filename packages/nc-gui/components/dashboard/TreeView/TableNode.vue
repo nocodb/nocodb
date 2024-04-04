@@ -308,7 +308,7 @@ watch(openedTableId, () => {
             />
 
             <template #overlay>
-              <NcMenu class="!min-w-70">
+              <NcMenu class="!min-w-70" :data-testid="`sidebar-table-context-menu-list-${table.title}`">
                 <NcTooltip>
                   <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
                   <div

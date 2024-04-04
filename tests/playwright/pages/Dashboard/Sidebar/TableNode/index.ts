@@ -46,12 +46,22 @@ export class SidebarTableNodeObject extends BasePage {
     duplicateVisible?: boolean;
     deleteVisible?: boolean;
   }) {
-    const optionsLocator = await this.get({
-      tableTitle,
-    }).getByTestId('nc-sidebar-table-context-menu');
-    if (isVisible) await optionsLocator.isVisible();
-    else {
-      await expect(optionsLocator).toHaveCount(0);
+    if (isVisible) {
+      await this.clickOptions({ tableTitle });
+      await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });
+
+      await expect(
+        this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).locator('li.ant-dropdown-menu-item')
+      ).not.toHaveCount(0);
+    } else {
+      await this.clickOptions({ tableTitle });
+      await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });
+
+      await expect(
+        this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).locator('li.ant-dropdown-menu-item')
+      ).toHaveCount(0);
+
+      await this.clickOptions({ tableTitle });
       return;
     }
 
@@ -69,5 +79,8 @@ export class SidebarTableNodeObject extends BasePage {
 
     if (deleteVisible) await expect(deleteLocator).toBeVisible();
     else await expect(deleteLocator).toHaveCount(0);
+
+    // close table options context menu
+    await this.clickOptions({ tableTitle });
   }
 }

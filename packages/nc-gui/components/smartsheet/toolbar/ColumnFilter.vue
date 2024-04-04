@@ -81,7 +81,7 @@ const {
   activeView,
   parentId?.value,
   computed(() => autoSave.value),
-  () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value }),
+  () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
   modelValue.value || nestedFilters.value,
   !modelValue.value,
   webHook.value,

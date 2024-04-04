@@ -823,64 +823,33 @@ export default class Column<T = any> implements ColumnType {
       );
     }
 
-    // Grid View Columns
-    await ncMeta.metaDelete(null, null, MetaTable.GRID_VIEW_COLUMNS, {
-      fk_column_id: col.id,
-    });
-    const gridViewColumnId = await NocoCache.get(
-      `${CacheScope.GRID_VIEW_COLUMN}:${col.id}`,
-      CacheGetType.TYPE_STRING,
-    );
-    if (gridViewColumnId) {
-      await NocoCache.deepDel(
-        `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
+    // Delete from all view columns
+    const viewColumnTables = [
+      MetaTable.GRID_VIEW_COLUMNS,
+      MetaTable.FORM_VIEW_COLUMNS,
+      MetaTable.KANBAN_VIEW_COLUMNS,
+      MetaTable.GALLERY_VIEW_COLUMNS,
+    ];
+    const viewColumnCacheScope = [
+      CacheScope.GRID_VIEW_COLUMN,
+      CacheScope.FORM_VIEW_COLUMN,
+      CacheScope.KANBAN_VIEW_COLUMN,
+      CacheScope.GALLERY_VIEW_COLUMN,
+    ];
 
-    // Form View Columns
-    await ncMeta.metaDelete(null, null, MetaTable.FORM_VIEW_COLUMNS, {
-      fk_column_id: col.id,
-    });
-    const formViewColumnId = await NocoCache.get(
-      `${CacheScope.FORM_VIEW_COLUMN}:${col.id}`,
-      CacheGetType.TYPE_STRING,
-    );
-    if (formViewColumnId) {
-      await NocoCache.deepDel(
-        `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    // Kanban View Columns
-    await ncMeta.metaDelete(null, null, MetaTable.KANBAN_VIEW_COLUMNS, {
-      fk_column_id: col.id,
-    });
-    const kanbanViewColumnId = await NocoCache.get(
-      `${CacheScope.KANBAN_VIEW_COLUMN}:${col.id}`,
-      CacheGetType.TYPE_STRING,
-    );
-    if (kanbanViewColumnId) {
-      await NocoCache.deepDel(
-        `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    // Gallery View Column
-    await ncMeta.metaDelete(null, null, MetaTable.GALLERY_VIEW_COLUMNS, {
-      fk_column_id: col.id,
-    });
-    const galleryViewColumnId = await NocoCache.get(
-      `${CacheScope.GALLERY_VIEW_COLUMN}:${col.id}`,
-      CacheGetType.TYPE_STRING,
-    );
-    if (galleryViewColumnId) {
-      await NocoCache.deepDel(
-        `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
+    for (let i = 0; i < viewColumnTables.length; i++) {
+      const table = viewColumnTables[i];
+      const cacheScope = viewColumnCacheScope[i];
+      const viewColumns = await ncMeta.metaList2(null, null, table, {
+        condition: { fk_column_id: id },
+      });
+      await ncMeta.metaDelete(null, null, table, { fk_column_id: id });
+      for (const viewColumn of viewColumns) {
+        await NocoCache.deepDel(
+          `${cacheScope}:${viewColumn.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
     }
 
     // Get LTAR columns in which current column is referenced as foreign key

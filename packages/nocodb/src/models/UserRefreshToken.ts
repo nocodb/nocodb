@@ -1,8 +1,12 @@
+import process from 'process';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+
+const NC_REFRESH_TOKEN_EXP_IN_DAYS =
+  +process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS || 90;
 
 export default class UserRefreshToken {
   fk_user_id: string;
@@ -41,7 +45,9 @@ export default class UserRefreshToken {
 
     // set default expiry as 90 days if missing
     if (!('expires_at' in insertObj)) {
-      insertObj.expires_at = dayjs().add(90, 'day').toDate();
+      insertObj.expires_at = dayjs()
+        .add(NC_REFRESH_TOKEN_EXP_IN_DAYS, 'day')
+        .toDate();
     }
 
     if ('meta' in insertObj) {
@@ -69,7 +75,7 @@ export default class UserRefreshToken {
       MetaTable.USER_REFRESH_TOKENS,
       {
         token: newToken,
-        expires_at: dayjs().add(90, 'day').toDate(),
+        expires_at: dayjs().add(NC_REFRESH_TOKEN_EXP_IN_DAYS, 'day').toDate(),
       },
       {
         token: oldToken,

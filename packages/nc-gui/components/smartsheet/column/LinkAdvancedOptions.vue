@@ -573,11 +573,6 @@ watch(pkColumn, () => {
     //   @apply text-gray-500;
     // }
 
-    .nc-project-icon {
-      @apply !grayscale flex-none;
-      filter: grayscale(100%) brightness(115%) !important;
-    }
-
     .nc-relation-settings-table-connector-point {
       @apply absolute top-[50%] rounded-full w-2 h-2;
       transform: translateY(-50%);
@@ -620,15 +615,20 @@ watch(pkColumn, () => {
 
 <style lang="scss">
 .nc-relation-settings-table {
+  .nc-project-icon {
+    @apply !grayscale flex-none w-3.5 h-3.5;
+    filter: grayscale(100%) brightness(115%) !important;
+  }
+
   .nc-table-icon {
-    @apply flex-none !w-4 !mx-0;
+    @apply flex-none mx-0 w-3.5 h-3.5;
     path,
     rect {
       stroke: currentColor !important;
     }
   }
   .nc-cell-icon {
-    @apply !mx-0 flex-none;
+    @apply !mx-0 flex-none w-3.5 h-3.5;
   }
 }
 .nc-relation-settings-select.ant-select-dropdown.nc-select-dropdown {
@@ -637,8 +637,16 @@ watch(pkColumn, () => {
   .ant-select-item {
     @apply text-xs;
 
+    .nc-project-icon {
+      @apply flex-none w-3.5 h-3.5;
+    }
+
+    .nc-table-icon {
+      @apply flex-none mx-0 w-3.5 h-3.5;
+    }
+
     .nc-cell-icon {
-      @apply !mx-0 flex-none;
+      @apply !mx-0 flex-none w-3.5 h-3.5;
     }
   }
 }

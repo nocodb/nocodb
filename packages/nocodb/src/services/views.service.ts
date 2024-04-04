@@ -76,6 +76,10 @@ export class ViewsService {
   }) {
     const model = await Model.get(param.tableId);
 
+    if (!model) {
+      NcError.tableNotFound(param.tableId);
+    }
+
     const viewList = await xcVisibilityMetaGet({
       baseId: model.base_id,
       models: [model],

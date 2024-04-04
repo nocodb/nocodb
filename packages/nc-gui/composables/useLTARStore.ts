@@ -191,7 +191,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async (activeState?: any) => {
       if (activeState) newRowState.state = activeState
       try {
-        // todo: confirm the use case of `childrenExcludedOffsetCount.value`
         let offset =
           childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 

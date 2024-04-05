@@ -55,7 +55,10 @@ const column = inject(ColumnInj)!
 
 const isDateInvalid = ref(false)
 
-const focus: VNodeRef = (el) => !isEditColumn.value && !isForm.value && editable.value && (el as HTMLInputElement)?.focus()
+const dateTimePickerRef = ref<HTMLInputElement>()
+
+const focus: VNodeRef = (el) =>
+  !isExpandedForm.value && !isEditColumn.value && !isForm.value && editable.value && (el as HTMLInputElement)?.focus()
 
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
@@ -141,18 +144,29 @@ const open = ref(false)
 const isOpen = computed(() => {
   if (readOnly.value) return false
 
-  return readOnly.value || (localState.value && isPk) ? false : (open.value && (active.value || editable.value)) || editable.value
+  return readOnly.value || (localState.value && isPk) ? false : open.value && (active.value || editable.value)
 })
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
+onClickOutside(dateTimePickerRef, (e) => {
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  dateTimePickerRef.value?.blur?.()
+  open.value = false
+})
 watch(
   open,
   (next) => {
     if (next) {
       editable.value = true
+      dateTimePickerRef.value?.focus?.()
       console.log('reset')
-      // onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
+        if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
+          return
+        }
+        open.value = false
+      })
 
       if (!modelValue) {
         tempLocalValue.value = dayjs(new Date()).utc().local()
@@ -162,8 +176,12 @@ watch(
     } else {
       editable.value = false
       // tempLocalValue.value = undefined
+      console.log('isOpen', open.value, modelValue, tempLocalValue.value, localState.value, tempLocalValue.value)
+      if (!modelValue && dayjs(localState.value).utc().format('YYYY-MM-DD HH:mm:ssZ')) {
+        tempLocalValue.value = undefined
+      }
     }
-    console.log('tempLocalValue', tempLocalValue.value)
+    // console.log('tempLocalValue', tempLocalValue.value)
   },
   { flush: 'post' },
 )
@@ -188,7 +206,7 @@ const placeholder = computed(() => {
 
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
-  if (readOnly.value) return
+  if (readOnly.value || open.value) return
   open.value = (active.value || editable.value) && true
 }
 
@@ -275,26 +293,33 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 <template>
   <a-date-picker
-    :ref="focus"
+    ref="dateTimePickerRef"
     :value="localState"
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="nc-cell-field !w-full !py-1 !border-none !text-current"
-    :class="{ 'nc-null': modelValue === null && showNull }"
+    class="nc-cell-field nc-cell-picker-datetime !w-full !py-1 !border-none !text-current"
+    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :format="dateTimeFormat"
     :placeholder="placeholder"
     :allow-clear="isForm || (!readOnly && localState && !isPk)"
     :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
+    @focus="
+      () => {
+        console.log('focus')
+      }
+    "
     @click="clickHandler"
     @ok="okHandler"
     @keydown="handleKeydown"
+    @mouseup.stop
+    @mousedown.stop
   >
     <template #suffixIcon></template>
   </a-date-picker>
-  <div v-if="!editable" class="absolute inset-0 z-90 cursor-pointer"></div>
+  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>

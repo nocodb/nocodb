@@ -585,7 +585,7 @@ const {
     // ignore navigating if picker(Date, Time, DateTime, Year)
     // or single/multi select options is open
     const activePickerOrDropdownEl = document.querySelector(
-      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+      '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
     if (activePickerOrDropdownEl) {
       e.preventDefault()

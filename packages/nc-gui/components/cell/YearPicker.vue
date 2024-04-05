@@ -12,7 +12,7 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 
@@ -207,7 +207,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !isPk"
-    :input-read-only="false"
+    :input-read-only="!!isMobileMode"
     :open="isOpen"
     :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     @blur="onBlur"

@@ -26,7 +26,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMssql, isXcdbBase } = useBase()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -318,7 +318,7 @@ watch(editable, (nextValue) => {
     :format="dateTimeFormat"
     :placeholder="placeholder"
     :allow-clear="!isColDisabled && !isEditColumn"
-    :input-read-only="false"
+    :input-read-only="!!isMobileMode"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
     @blur="onBlur"

@@ -31,7 +31,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
 
@@ -254,7 +254,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     :format="dateFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !isEditColumn"
-    :input-read-only="false"
+    :input-read-only="!!isMobileMode"
     :dropdown-class-name="`${randomClass} nc-picker-date  children:border-1 children:border-gray-200  ${open ? 'active' : ''} `"
     :open="isOpen"
     @blur="onBlur"

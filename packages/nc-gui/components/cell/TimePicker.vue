@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useBase()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -218,7 +218,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !isPk && !isEditColumn"
-    :input-read-only="false"
+    :input-read-only="!!isMobileMode"
     :open="isOpen"
     :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     @blur="onBlur"

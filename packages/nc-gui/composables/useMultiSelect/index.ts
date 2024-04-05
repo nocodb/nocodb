@@ -764,6 +764,11 @@ export function useMultiSelect(
             }
           }
 
+          // Handle escape
+          if (e.key === 'Escape') {
+            selectedRange.clear()
+          }
+
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
           }

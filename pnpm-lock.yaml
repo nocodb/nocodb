@@ -154,7 +154,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.205.0
+        specifier: workspace:^
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -275,26 +275,26 @@ importers:
         specifier: ^1.1.42
         version: 1.1.42
       '@iconify-json/lucide':
-        specifier: ^1.1.178
-        version: 1.1.178
+        specifier: ^1.1.179
+        version: 1.1.179
       '@iconify-json/material-symbols':
         specifier: ^1.1.76
         version: 1.1.76
       '@iconify-json/mdi':
-        specifier: ^1.1.64
-        version: 1.1.64
+        specifier: ^1.1.65
+        version: 1.1.65
       '@iconify-json/mi':
         specifier: ^1.1.8
         version: 1.1.8
       '@iconify-json/ph':
-        specifier: ^1.1.11
-        version: 1.1.11
+        specifier: ^1.1.12
+        version: 1.1.12
       '@iconify-json/ri':
         specifier: ^1.1.20
         version: 1.1.20
       '@iconify-json/simple-icons':
-        specifier: ^1.1.97
-        version: 1.1.97
+        specifier: ^1.1.98
+        version: 1.1.98
       '@iconify-json/system-uicons':
         specifier: ^1.1.12
         version: 1.1.12
@@ -317,8 +317,8 @@ importers:
         specifier: ^2.0.7
         version: 2.0.7
       '@types/leaflet':
-        specifier: ^1.9.8
-        version: 1.9.8
+        specifier: ^1.9.9
+        version: 1.9.9
       '@types/leaflet.markercluster':
         specifier: ^1.5.4
         version: 1.5.4
@@ -645,7 +645,7 @@ importers:
         version: 2.2.4
       knex:
         specifier: 2.4.2
-        version: 2.4.2(mysql2@3.9.3)(pg@8.11.4)(sqlite3@5.1.7)(tedious@16.6.1)
+        version: 2.4.2(mysql2@3.9.3)(pg@8.11.5)(sqlite3@5.1.7)(tedious@16.6.1)
       list-github-dir-content:
         specifier: ^3.0.0
         version: 3.0.0
@@ -686,8 +686,8 @@ importers:
         specifier: 0.3.1
         version: 0.3.1(asn1.js@5.4.1)(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.205.0
-        version: 0.205.0
+        specifier: 0.205.1
+        version: 0.205.1
       nc-plugin:
         specifier: ^0.1.3
         version: 0.1.3
@@ -701,7 +701,7 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)(@nestjs/throttler@5.1.2)(ioredis@5.3.2)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: 0.205.0
+        specifier: workspace:^
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.13
@@ -749,8 +749,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       pg:
-        specifier: ^8.11.4
-        version: 8.11.4
+        specifier: ^8.11.5
+        version: 8.11.5
       redlock:
         specifier: ^5.0.0-beta.2
         version: 5.0.0-beta.2
@@ -4339,8 +4339,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/lucide@1.1.178:
-    resolution: {integrity: sha512-IW5Z3ytfOPtcAlIgeMCGNrbPD/wfOBOyUAXEUgNhGTWxJICtbeHQkmL4mEoJmScSkjpZvyevxOC9kfdJG8VBtg==}
+  /@iconify-json/lucide@1.1.179:
+    resolution: {integrity: sha512-dGdR+vkDWzNoX2sky5Pl6u3M3Ar82uwmgRNiThppEghOlAeM7iPM1HbxEYJzMDlvZl0Q8WHPgp29bonpS+sLBQ==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4351,8 +4351,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/mdi@1.1.64:
-    resolution: {integrity: sha512-zGeo5TjhNFAY6FmSDBLAzDO811t77r6v/mDi7CAL9w5eXqKez6bIjk8R9AL/RHIeq44ALP4Ozr4lMqFTkHr7ug==}
+  /@iconify-json/mdi@1.1.65:
+    resolution: {integrity: sha512-P9ovos4pKjqwbcUaF5axnHKc1J4djfwLQ6vheJSzbTuZ7gLyonAI/mDDc+ekC4HFCnrYWPjdpkKT+mIujuqOaA==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4363,8 +4363,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/ph@1.1.11:
-    resolution: {integrity: sha512-izLvLZrU7WM03zNwNWNrAySv3i45hM3D3K6USjCGBSQMUG0HB8zxwrMf4O0leDrganmuQBH7Z0DWTgyH1ET/fg==}
+  /@iconify-json/ph@1.1.12:
+    resolution: {integrity: sha512-m+rXTW084YaQQHT+F8TxdkCoAh+i/5MWRoSuPmxCWPlxwMAaLT/QfyVsbEiV95HM5806U/jKpBV6F1b7Pmr3Vg==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -4375,8 +4375,8 @@ packages:
       '@iconify/types': 2.0.0
     dev: true
 
-  /@iconify-json/simple-icons@1.1.97:
-    resolution: {integrity: sha512-/jTwrcAM2Gh8FtgEn8mHolaoY1iNbRgH3AE8OXu7JULi4Tdp31u7bmCSIaNDTLdBrXjcDpw0y98Dm20TbauBCg==}
+  /@iconify-json/simple-icons@1.1.98:
+    resolution: {integrity: sha512-oL1ucUCQE/aGVhb9Bvo556EcNjww9yzFITvwOKI0h3KYkF5iSAiwCqWkqxUJzrJHobQdd5R91jYfLG847G9uIA==}
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
@@ -8959,11 +8959,11 @@ packages:
   /@types/leaflet.markercluster@1.5.4:
     resolution: {integrity: sha512-tfMP8J62+wfsVLDLGh5Zh1JZxijCaBmVsMAX78MkLPwvPitmZZtSin5aWOVRhZrCS+pEOZwNzexbfWXlY+7yjg==}
     dependencies:
-      '@types/leaflet': 1.9.8
+      '@types/leaflet': 1.9.9
     dev: true
 
-  /@types/leaflet@1.9.8:
-    resolution: {integrity: sha512-EXdsL4EhoUtGm2GC2ZYtXn+Fzc6pluVgagvo2VC1RHWToLGlTRwVYoDpqS/7QXa01rmDyBjJk3Catpf60VMkwg==}
+  /@types/leaflet@1.9.9:
+    resolution: {integrity: sha512-o0qD9ReJzWpGNIAY0O32NkpfM6rhV4sxnwVkz7x7Ah4Zy9sP+2T9Q3byccL5la1ZX416k+qiyvt8ksBavPPY7A==}
     dependencies:
       '@types/geojson': 7946.0.10
     dev: true
@@ -14562,7 +14562,7 @@ packages:
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.9
       eslint-module-utils: 2.8.0(@typescript-eslint/parser@5.62.0)(eslint-import-resolver-node@0.3.9)(eslint@8.56.0)
-      hasown: 2.0.1
+      hasown: 2.0.0
       is-core-module: 2.13.1
       is-glob: 4.0.3
       minimatch: 3.1.2
@@ -18631,7 +18631,7 @@ packages:
       - supports-color
     dev: false
 
-  /knex@2.4.2(mysql2@3.9.3)(pg@8.11.4)(sqlite3@5.1.7)(tedious@16.6.1):
+  /knex@2.4.2(mysql2@3.9.3)(pg@8.11.5)(sqlite3@5.1.7)(tedious@16.6.1):
     resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
     engines: {node: '>=12'}
     hasBin: true
@@ -18669,7 +18669,7 @@ packages:
       interpret: 2.2.0
       lodash: 4.17.21
       mysql2: 3.9.3
-      pg: 8.11.4
+      pg: 8.11.5
       pg-connection-string: 2.5.0
       rechoir: 0.8.0
       resolve-from: 5.0.0
@@ -20071,7 +20071,7 @@ packages:
       axios: 1.6.8(debug@4.3.4)
       emittery: 0.13.1
       is-docker: 2.2.1
-      knex: 2.4.2(mysql2@3.9.3)(pg@8.11.4)(sqlite3@5.1.7)(tedious@16.6.1)
+      knex: 2.4.2(mysql2@3.9.3)(pg@8.11.5)(sqlite3@5.1.7)(tedious@16.6.1)
       lodash: 4.17.21
       posthog-node: 1.3.0(debug@4.3.4)
       snowflake-sdk: 1.8.0(asn1.js@5.4.1)
@@ -20083,8 +20083,8 @@ packages:
       - supports-color
     dev: false
 
-  /nc-lib-gui@0.205.0:
-    resolution: {integrity: sha512-2EpVsZxxkZMVUZCVrox2E1nqllOZ+1wMt90eWAXvPwJXa+PSrIdFZnwDsKkwa1TMcQ/knEHi/gW5tYbc5U+Anw==}
+  /nc-lib-gui@0.205.1:
+    resolution: {integrity: sha512-WV1IVdOp8bXCB2/HcKCAXC45i4PnF6z8zHzMX46m6eXbGLofKWbVleHmO8yPZxWsfaQU2xDVuM9LzjIchZoUdw==}
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:
@@ -21607,8 +21607,8 @@ packages:
   /pg-connection-string@2.6.2:
     resolution: {integrity: sha512-ch6OwaeaPYcova4kKZ15sbJ2hKb/VP48ZD2gE7i1J+L4MspCtBMAx8nMgz7bksc7IojCIIWuEhHibSMFH8m8oA==}
 
-  /pg-connection-string@2.6.3:
-    resolution: {integrity: sha512-77FxhhKJQH+xJx6tDqkhhMa0nZvv3U1HYLDQgwZxZafVD583++O5LXn5oo5HaQZ0vXwYcZA1koYAJM3JvD6Gtw==}
+  /pg-connection-string@2.6.4:
+    resolution: {integrity: sha512-v+Z7W/0EO707aNMaAEfiGnGL9sxxumwLl2fJvCQtMn9Fxsg+lPpPkdcyBSv/KFgpGdYkMfn+EI1Or2EHjpgLCA==}
     dev: false
 
   /pg-int8@1.0.1:
@@ -21622,12 +21622,12 @@ packages:
     dependencies:
       pg: 8.10.0
 
-  /pg-pool@3.6.2(pg@8.11.4):
+  /pg-pool@3.6.2(pg@8.11.5):
     resolution: {integrity: sha512-Htjbg8BlwXqSBQ9V8Vjtc+vzf/6fVUuak/3/XXKA9oxZprwW3IMDQTGHP+KDmVL7rtd+R1QjbnCFPuTHm3G4hg==}
     peerDependencies:
       pg: '>=8.0'
     dependencies:
-      pg: 8.11.4
+      pg: 8.11.5
     dev: false
 
   /pg-protocol@1.6.0:
@@ -21664,8 +21664,8 @@ packages:
       pg-types: 2.2.0
       pgpass: 1.0.5
 
-  /pg@8.11.4:
-    resolution: {integrity: sha512-pWb7JKPxGk1UFbtq7jQ0m3IfPpb7LLACCEyN8/u9DYEom+Q/BSKy+4TRl4+Hh003AOYhppB/z+QK87/hx/bk0w==}
+  /pg@8.11.5:
+    resolution: {integrity: sha512-jqgNHSKL5cbDjFlHyYsCXmQDrfIX/3RsNwYqpd4N0Kt8niLuNoRNH+aazv6cOd43gPh9Y4DjQCtb+X0MH0Hvnw==}
     engines: {node: '>= 8.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -21673,8 +21673,8 @@ packages:
       pg-native:
         optional: true
     dependencies:
-      pg-connection-string: 2.6.3
-      pg-pool: 3.6.2(pg@8.11.4)
+      pg-connection-string: 2.6.4
+      pg-pool: 3.6.2(pg@8.11.5)
       pg-protocol: 1.6.1
       pg-types: 2.2.0
       pgpass: 1.0.5
@@ -23909,9 +23909,6 @@ packages:
   /sqlite3@5.1.6:
     resolution: {integrity: sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       node-addon-api: 4.3.0
@@ -23926,9 +23923,6 @@ packages:
   /sqlite3@5.1.7:
     resolution: {integrity: sha512-GGIyOiFaG+TUra3JIfkI/zGP8yZYLPQ0pl1bH+ODjiX57sPhrLU5sQJn1y9bDKZUFYkX1crlrPfSYt0BKKdkog==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       bindings: 1.5.0
       node-addon-api: 7.0.0

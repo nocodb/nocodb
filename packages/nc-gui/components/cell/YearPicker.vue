@@ -180,19 +180,6 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return
 
   switch (e.key) {
-    case 'Escape':
-      if (open.value) {
-        open.value = false
-        editable.value = false
-        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
-          datePickerRef.value?.blur?.()
-        }
-      } else {
-        editable.value = false
-
-        datePickerRef.value?.blur?.()
-      }
-      break
     case ';':
       localState.value = dayjs(new Date())
       e.preventDefault()

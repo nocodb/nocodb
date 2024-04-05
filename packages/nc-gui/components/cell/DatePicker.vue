@@ -17,7 +17,6 @@ import {
   ref,
   useGlobal,
   useI18n,
-  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
 
@@ -220,8 +219,11 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
-  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  // To prevent event listener on non active cell
+  if (!active.value) return
+
+  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || !isGrid.value || isExpandedForm.value || isEditColumn.value) return
 
   switch (e.key) {
     case ';':

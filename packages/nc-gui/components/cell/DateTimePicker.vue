@@ -12,7 +12,6 @@ import {
   parseProp,
   ref,
   useBase,
-  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
 
@@ -195,6 +194,8 @@ const cellClickHandler = () => {
 }
 
 function okHandler(val: dayjs.Dayjs | string) {
+  isClearedInputMode.value = false
+
   if (!val) {
     emit('update:modelValue', null)
   } else if (dayjs(val).isValid()) {
@@ -210,6 +211,7 @@ function okHandler(val: dayjs.Dayjs | string) {
     editable.value = false
   }
 }
+
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
@@ -276,8 +278,11 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
-  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  // To prevent event listener on non active cell
+  if (!active.value) return
+
+  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || !isGrid.value || isExpandedForm.value || isEditColumn.value) return
 
   switch (e.key) {
     case ';':

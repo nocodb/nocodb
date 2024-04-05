@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   EditColumnInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -13,8 +13,6 @@ import {
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
-
-import { isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: number | string | null
@@ -42,8 +40,6 @@ const isGrid = inject(IsGridInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
-
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isYearInvalid = ref(false)
 

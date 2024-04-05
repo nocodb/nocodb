@@ -7,7 +7,6 @@ import {
   ColumnInj,
   EditColumnInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   inject,
   parseProp,

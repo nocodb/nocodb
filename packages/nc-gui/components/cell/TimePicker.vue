@@ -5,7 +5,6 @@ import {
   ActiveCellInj,
   EditColumnInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   inject,
   onClickOutside,
@@ -40,8 +39,6 @@ const isGrid = inject(IsGridInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
-
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const column = inject(ColumnInj)!
 

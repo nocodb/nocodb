@@ -63,9 +63,11 @@ const dateTimeFormat = computed(() => {
 
 let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
+const isClearedInputMode = ref<boolean>(false)
+
 const localState = computed({
   get() {
-    if (!modelValue) {
+    if (!modelValue || isClearedInputMode.value) {
       return undefined
     }
 
@@ -115,8 +117,10 @@ const localState = computed({
     return dayjs(modelValue).utc().local()
   },
   set(val?: dayjs.Dayjs) {
+    isClearedInputMode.value = false
     if (!val) {
       emit('update:modelValue', null)
+
       return
     }
 
@@ -156,6 +160,7 @@ watch(
     if (next) {
       editable.value = true
       dateTimePickerRef.value?.focus?.()
+
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
         if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
           return
@@ -163,6 +168,7 @@ watch(
         open.value = false
       })
     } else {
+      isClearedInputMode.value = false
     }
   },
   { flush: 'post' },
@@ -188,7 +194,7 @@ const placeholder = computed(() => {
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
   if (readOnly.value || open.value) return
-  open.value = (active.value || editable.value) && true
+  open.value = active.value || editable.value
 }
 
 function okHandler(val: dayjs.Dayjs | string) {
@@ -214,7 +220,14 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 
-const clickHandler = () => {
+const clickHandler = (e) => {
+  if ((e.target as HTMLElement).closest(`.nc-${randomClass} .ant-picker-clear`)) {
+    e.stopPropagation()
+    emit('update:modelValue', null)
+    open.value = false
+    return
+  }
+
   if (cellClickHook) {
     return
   }
@@ -239,7 +252,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       if (open.value) {
         open.value = false
         editable.value = false
-        if (isGrid.value) {
+        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
           dateTimePickerRef.value?.blur?.()
         }
       } else {
@@ -264,11 +277,18 @@ const handleKeydown = (e: KeyboardEvent) => {
 }
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
-  if (!isOpen.value && dateTimePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
-    dateTimePickerRef.value.focus()
-    editable.value = true
-    open.value = true
-    dateTimePickerRef.value.value = e.key
+  switch (e.key) {
+    case ';':
+      localState.value = dayjs(new Date())
+      e.preventDefault()
+      break
+    default:
+      if (!isOpen.value && dateTimePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+        isClearedInputMode.value = true
+        dateTimePickerRef.value.focus()
+        editable.value = true
+        open.value = true
+      }
   }
 })
 
@@ -290,7 +310,7 @@ watch(editable, (nextValue) => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :format="dateTimeFormat"
     :placeholder="placeholder"
-    :allow-clear="isForm || (!readOnly && localState && !isPk)"
+    :allow-clear="!isColDisabled"
     :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"

@@ -185,11 +185,19 @@ const clickHandler = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
-  e.stopPropagation()
+  if (e.key !== 'Enter') {
+    e.stopPropagation()
+  }
 
   switch (e.key) {
     case 'Enter':
       open.value = !open.value
+      if (!open.value) {
+        editable.value = false
+        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          datePickerRef.value?.blur?.()
+        }
+      }
       return
     case 'Escape':
       if (open.value) {

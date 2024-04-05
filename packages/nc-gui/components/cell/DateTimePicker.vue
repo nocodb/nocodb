@@ -236,7 +236,10 @@ const isColDisabled = computed(() => {
 })
 
 const handleKeydown = (e: KeyboardEvent) => {
-  e.stopPropagation()
+  if (e.key !== 'Enter') {
+    e.stopPropagation()
+  }
+
   switch (e.key) {
     case 'Enter':
       if (isOpen.value) {

@@ -56,7 +56,7 @@ const open = ref(false)
 
 const localState = computed({
   get() {
-    if (!modelValue) {
+    if (!modelValue || isClearedInputMode.value) {
       return undefined
     }
     let dateTime = dayjs(modelValue)

@@ -64,7 +64,7 @@ const open = ref<boolean>(false)
 
 const localState = computed({
   get() {
-    if (!modelValue) {
+    if (!modelValue || isClearedInputMode.value) {
       return undefined
     }
 

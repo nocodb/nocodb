@@ -48,7 +48,7 @@ export class TimeCellPageObject extends BasePage {
   async set({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const [hour, minute, _second] = value.split(':');
     await this.get({ index, columnHeader }).click();
-    await this.get({ index, columnHeader }).click();
+    await this.get({ index, columnHeader }).dblclick();
     await this.selectTime({ hour: +hour, minute: +minute });
     await this.save();
   }

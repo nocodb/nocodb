@@ -7,14 +7,11 @@ import {
   ColumnInj,
   EditColumnInj,
   IsFormInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   inject,
-  isDrawerOrModalExist,
   parseProp,
   ref,
   useBase,
-  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
 
@@ -29,7 +26,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMssql, isXcdbBase } = useBase()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -37,17 +34,21 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
-const isForm = inject(IsFormInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+const isForm = inject(IsFormInj, ref(false))
 
 const { t } = useI18n()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const column = inject(ColumnInj)!
 
 const isDateInvalid = ref(false)
+
+const datePickerRef = ref<HTMLInputElement>()
 
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
@@ -57,14 +58,13 @@ const dateTimeFormat = computed(() => {
 
 let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
-const tempLocalValue = ref<dayjs.Dayjs>()
+const isClearedInputMode = ref<boolean>(false)
+
+const open = ref(false)
 
 const localState = computed({
   get() {
-    if (!modelValue && tempLocalValue.value) {
-      return tempLocalValue.value
-    }
-    if (!modelValue) {
+    if (!modelValue || isClearedInputMode.value) {
       return undefined
     }
 
@@ -114,8 +114,10 @@ const localState = computed({
     return dayjs(modelValue).utc().local()
   },
   set(val?: dayjs.Dayjs) {
+    isClearedInputMode.value = false
     if (!val) {
       emit('update:modelValue', null)
+
       return
     }
 
@@ -128,8 +130,6 @@ const localState = computed({
   },
 })
 
-const open = ref(false)
-
 const isOpen = computed(() => {
   if (readOnly.value) return false
 
@@ -137,27 +137,44 @@ const isOpen = computed(() => {
 })
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
+
+onClickOutside(datePickerRef, (e) => {
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  datePickerRef.value?.blur?.()
+  open.value = false
+})
+
+const onBlur = (e) => {
+  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
+
+  open.value = false
+}
+
 watch(
   open,
   (next) => {
     if (next) {
-      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+      editable.value = true
+      datePickerRef.value?.focus?.()
 
-      if (!modelValue) {
-        tempLocalValue.value = dayjs(new Date()).utc().local()
-      } else {
-        tempLocalValue.value = undefined
-      }
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
+        if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
+          return
+        }
+        open.value = false
+      })
     } else {
-      editable.value = false
-      tempLocalValue.value = undefined
+      isClearedInputMode.value = false
     }
   },
   { flush: 'post' },
 )
 
 const placeholder = computed(() => {
-  if (isForm.value && !isDateInvalid.value) {
+  if (
+    ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
+    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
+  ) {
     return dateTimeFormat.value
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
@@ -170,105 +187,18 @@ const placeholder = computed(() => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      e.stopPropagation()
-      // skip if drawer / modal is active
-      if (isDrawerOrModalExist()) {
-        return
-      }
-      if (!open.value) {
-        // open date picker
-        open.value = true
-      } else {
-        // click Ok button to save the currently selected date
-        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-ok button') as HTMLButtonElement)?.click()
-      }
-      break
-    case 'Escape':
-      // skip if drawer / modal is active
-      if (isDrawerOrModalExist()) {
-        return
-      }
-      if (open.value) {
-        e.stopPropagation()
-        open.value = false
-      }
-      break
-    case 'ArrowLeft':
-      if (!localState.value) {
-        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
-      } else {
-        const prevEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-          ?.previousElementSibling as HTMLButtonElement
-        if (prevEl) {
-          prevEl.click()
-        } else {
-          // get the last td from previous tr
-          const prevRowLastEl = document
-            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-            ?.closest('tr')
-            ?.previousElementSibling?.querySelector('td:last-child') as HTMLButtonElement
-          if (prevRowLastEl) {
-            prevRowLastEl.click()
-          } else {
-            // go to the previous month
-            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
-          }
-        }
-      }
-      break
-    case 'ArrowRight':
-      if (!localState.value) {
-        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
-      } else {
-        const nextEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-          ?.nextElementSibling as HTMLButtonElement
-        if (nextEl) {
-          nextEl.click()
-        } else {
-          // get the last td from previous tr
-          const nextRowFirstEl = document
-            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-            ?.closest('tr')
-            ?.nextElementSibling?.querySelector('td:first-child') as HTMLButtonElement
-          if (nextRowFirstEl) {
-            nextRowFirstEl.click()
-          } else {
-            // go to the next month
-            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
-          }
-        }
-      }
-      break
-    case 'ArrowUp':
-      if (!localState.value)
-        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-prev-btn') as HTMLButtonElement)?.click()
-      break
-    case 'ArrowDown':
-      if (!localState.value)
-        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
-      break
-    case ';':
-      localState.value = dayjs(new Date())
-      break
-  }
-})
-
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
-  if (readOnly.value) return
-  open.value = (active.value || editable.value) && !open.value
+  if (readOnly.value || open.value) return
+  open.value = active.value || editable.value
 }
 
 function okHandler(val: dayjs.Dayjs | string) {
+  isClearedInputMode.value = false
+
   if (!val) {
     emit('update:modelValue', null)
-    return
-  }
-
-  if (dayjs(val).isValid()) {
+  } else if (dayjs(val).isValid()) {
     // setting localModelValue to cater NOW function in date picker
     localModelValue = dayjs(val)
     // send the payload in UTC format
@@ -276,7 +206,12 @@ function okHandler(val: dayjs.Dayjs | string) {
   }
 
   open.value = !open.value
+  if (!open.value && isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+    datePickerRef.value?.blur?.()
+    editable.value = false
+  }
 }
+
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
@@ -284,7 +219,14 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHandler)
 })
 
-const clickHandler = () => {
+const clickHandler = (e) => {
+  if ((e.target as HTMLElement).closest(`.nc-${randomClass} .ant-picker-clear`)) {
+    e.stopPropagation()
+    emit('update:modelValue', null)
+    open.value = false
+    return
+  }
+
   if (cellClickHook) {
     return
   }
@@ -296,42 +238,99 @@ const isColDisabled = computed(() => {
 })
 
 const handleKeydown = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case ' ':
-      if (isSurveyForm.value) {
-        open.value = !open.value
-      }
-      break
+  if (e.key !== 'Enter') {
+    e.stopPropagation()
+  }
 
+  switch (e.key) {
     case 'Enter':
-      if (!isSurveyForm.value) {
-        open.value = !open.value
+      if (isOpen.value) {
+        return okHandler((e.target as HTMLInputElement).value)
+      } else {
+        open.value = true
       }
-      break
+      return
+    case 'Escape':
+      if (open.value) {
+        open.value = false
+        editable.value = false
+        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          datePickerRef.value?.blur?.()
+        }
+      } else {
+        editable.value = false
+
+        datePickerRef.value?.blur?.()
+      }
+
+      return
+    case 'Tab':
+      open.value = false
+      if (isGrid.value) {
+        editable.value = false
+        datePickerRef.value?.blur()
+      }
+      return
+    default:
+      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+        open.value = true
+      }
   }
 }
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  // To prevent event listener on non active cell
+  if (!active.value) return
+
+  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || !isGrid.value || isExpandedForm.value || isEditColumn.value) return
+
+  switch (e.key) {
+    case ';':
+      localState.value = dayjs(new Date())
+      e.preventDefault()
+      break
+    default:
+      if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+        isClearedInputMode.value = true
+        datePickerRef.value.focus()
+        editable.value = true
+        open.value = true
+      }
+  }
+})
+
+watch(editable, (nextValue) => {
+  if (isGrid.value && nextValue && !open.value) {
+    open.value = true
+  }
+})
 </script>
 
 <template>
   <a-date-picker
+    ref="datePickerRef"
     :value="localState"
     :disabled="isColDisabled"
     :show-time="true"
     :bordered="false"
-    class="nc-cell-field !w-full !py-1 !border-none !text-current"
-    :class="{ 'nc-null': modelValue === null && showNull }"
+    class="nc-cell-field nc-cell-picker-datetime !w-full !py-1 !border-none !text-current"
+    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :format="dateTimeFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && !localState && !isPk"
-    :input-read-only="true"
+    :allow-clear="!isColDisabled && !isEditColumn"
+    :input-read-only="!!isMobileMode"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
+    @blur="onBlur"
     @click="clickHandler"
     @ok="okHandler"
     @keydown="handleKeydown"
+    @mouseup.stop
+    @mousedown.stop
   >
     <template #suffixIcon></template>
   </a-date-picker>
+  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>

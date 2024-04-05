@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import type { VNodeRef } from '@vue/runtime-core'
+
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 import {
   ActiveCellInj,
@@ -37,6 +39,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isGrid = inject(IsGridInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
@@ -50,6 +54,8 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const column = inject(ColumnInj)!
 
 const isDateInvalid = ref(false)
+
+const focus: VNodeRef = (el) => !isEditColumn.value && !isForm.value && editable.value && (el as HTMLInputElement)?.focus()
 
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
@@ -135,33 +141,38 @@ const open = ref(false)
 const isOpen = computed(() => {
   if (readOnly.value) return false
 
-  return readOnly.value || (localState.value && isPk) ? false : open.value && (active.value || editable.value)
+  return readOnly.value || (localState.value && isPk) ? false : (open.value && (active.value || editable.value)) || editable.value
 })
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
+
 watch(
   open,
   (next) => {
     if (next) {
-      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+      editable.value = true
+      console.log('reset')
+      // onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
 
       if (!modelValue) {
         tempLocalValue.value = dayjs(new Date()).utc().local()
       } else {
-        tempLocalValue.value = undefined
+        // tempLocalValue.value = undefined
       }
     } else {
       editable.value = false
-      tempLocalValue.value = undefined
+      // tempLocalValue.value = undefined
     }
+    console.log('tempLocalValue', tempLocalValue.value)
   },
   { flush: 'post' },
 )
 
 const placeholder = computed(() => {
+  console.log('editable.value', editable.value)
   if (
     (isForm.value && !isDateInvalid.value) ||
-    (!isForm.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value))
+    (!isForm.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
   ) {
     return dateTimeFormat.value
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
@@ -175,97 +186,10 @@ const placeholder = computed(() => {
   }
 })
 
-useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      e.stopPropagation()
-      // skip if drawer / modal is active
-      if (isDrawerOrModalExist()) {
-        return
-      }
-      if (!open.value) {
-        // open date picker
-        open.value = true
-      } else {
-        // click Ok button to save the currently selected date
-        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-ok button') as HTMLButtonElement)?.click()
-      }
-      break
-    case 'Escape':
-      console.log('excape')
-      // skip if drawer / modal is active
-      if (isDrawerOrModalExist()) {
-        return
-      }
-      if (open.value) {
-        e.stopPropagation()
-        open.value = false
-      }
-      break
-    case 'ArrowLeft':
-      if (!localState.value) {
-        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
-      } else {
-        const prevEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-          ?.previousElementSibling as HTMLButtonElement
-        if (prevEl) {
-          prevEl.click()
-        } else {
-          // get the last td from previous tr
-          const prevRowLastEl = document
-            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-            ?.closest('tr')
-            ?.previousElementSibling?.querySelector('td:last-child') as HTMLButtonElement
-          if (prevRowLastEl) {
-            prevRowLastEl.click()
-          } else {
-            // go to the previous month
-            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
-          }
-        }
-      }
-      break
-    case 'ArrowRight':
-      if (!localState.value) {
-        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
-      } else {
-        const nextEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-          ?.nextElementSibling as HTMLButtonElement
-        if (nextEl) {
-          nextEl.click()
-        } else {
-          // get the last td from previous tr
-          const nextRowFirstEl = document
-            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
-            ?.closest('tr')
-            ?.nextElementSibling?.querySelector('td:first-child') as HTMLButtonElement
-          if (nextRowFirstEl) {
-            nextRowFirstEl.click()
-          } else {
-            // go to the next month
-            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
-          }
-        }
-      }
-      break
-    case 'ArrowUp':
-      if (!localState.value)
-        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-prev-btn') as HTMLButtonElement)?.click()
-      break
-    case 'ArrowDown':
-      if (!localState.value)
-        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
-      break
-    case ';':
-      localState.value = dayjs(new Date())
-      break
-  }
-})
-
 const cellClickHook = inject(CellClickHookInj, null)
 const cellClickHandler = () => {
   if (readOnly.value) return
-  open.value = (active.value || editable.value) && !open.value
+  open.value = (active.value || editable.value) && true
 }
 
 function okHandler(val: dayjs.Dayjs | string) {
@@ -291,6 +215,7 @@ onUnmounted(() => {
 })
 
 const clickHandler = () => {
+  console.log('click')
   if (cellClickHook) {
     return
   }
@@ -302,6 +227,7 @@ const isColDisabled = computed(() => {
 })
 
 const handleKeydown = (e: KeyboardEvent) => {
+  e.stopPropagation()
   console.log(
     '!readOnly && !localState && !isPk',
     !readOnly.value && localState.value && !isPk,
@@ -317,8 +243,8 @@ const handleKeydown = (e: KeyboardEvent) => {
       break
 
     case 'Enter':
-      console.log('enter', (e.target as HTMLInputElement).value)
-      e.stopPropagation()
+      console.log('enter', localState.value, (e.target as HTMLInputElement).value)
+
       if (open.value) {
         okHandler((e.target as HTMLInputElement).value)
         break
@@ -330,21 +256,26 @@ const handleKeydown = (e: KeyboardEvent) => {
     case 'Escape':
       console.log('on escape')
       if (open.value) {
-        if (isExpandedForm.value) {
-          e.stopPropagation()
-        }
-
-        if (isForm.value || isExpandedForm.value) {
-          open.value = false
+        open.value = false
+        if (isGrid.value) {
+          editable.value = false
         }
       }
       break
+
+    case 'Delete':
+    case 'Backspace':
+      e.stopPropagation()
+      break
+    default:
+      e.stopPropagation()
   }
 }
 </script>
 
 <template>
   <a-date-picker
+    :ref="focus"
     :value="localState"
     :disabled="isColDisabled"
     :show-time="true"
@@ -363,6 +294,7 @@ const handleKeydown = (e: KeyboardEvent) => {
   >
     <template #suffixIcon></template>
   </a-date-picker>
+  <div v-if="!editable" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>

@@ -221,7 +221,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     class="nc-cell-field !w-full !py-1 !border-none !text-current"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :placeholder="placeholder"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !isPk"
     :input-read-only="false"
     :open="isOpen"
     :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"

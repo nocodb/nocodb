@@ -7,7 +7,6 @@ import {
   ColumnInj,
   EditColumnInj,
   EditModeInj,
-  IsSurveyFormInj,
   ReadonlyInj,
   computed,
   inject,
@@ -120,7 +119,12 @@ watch(
       editable.value = true
       datePickerRef.value?.focus?.()
 
-      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => (open.value = false))
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
+        if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
+          return
+        }
+        open.value = false
+      })
     } else {
       isClearedInputMode.value = false
     }

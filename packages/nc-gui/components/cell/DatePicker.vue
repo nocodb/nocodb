@@ -150,6 +150,8 @@ const placeholder = computed(() => {
 })
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return
+
   switch (e.key) {
     case ';':
       localState.value = dayjs(new Date())

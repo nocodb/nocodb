@@ -15,6 +15,7 @@ import {
   storeToRefs,
   useBases,
   useMagicKeys,
+  useCopy,
 } from '#imports'
 import { useNuxtApp } from '#app'
 
@@ -429,6 +430,31 @@ const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
+
+const { copy } = useCopy()
+
+// Tracks if the table ID has been successfully copied to the clipboard
+const isTableIdCopied = ref(false)
+
+let tableIdCopiedTimeout: NodeJS.Timeout
+
+const onTableIdCopy = async () => {
+  if (tableIdCopiedTimeout) {
+    clearTimeout(tableIdCopiedTimeout)
+  }
+
+  try {
+    await copy(contextMenuTarget.value.id)
+    isTableIdCopied.value = true
+
+    tableIdCopiedTimeout = setTimeout(() => {
+      isTableIdCopied.value = false
+      clearTimeout(tableIdCopiedTimeout)
+    }, 5000)
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
 </script>
 
 <template>
@@ -763,7 +789,12 @@ const duplicateProject = (base: BaseType) => {
       </div>
     </div>
     <template v-if="!isSharedBase" #overlay>
-      <NcMenu class="!py-0 rounded text-sm">
+      <NcMenu
+        class="!py-0 rounded text-sm"
+        :class="{
+          '!min-w-70': contextMenuTarget.type === 'table',
+        }"
+      >
         <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'">
           <!--
           <NcMenuItem v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
@@ -794,29 +825,51 @@ const duplicateProject = (base: BaseType) => {
         </template>
 
         <template v-else-if="contextMenuTarget.type === 'table'">
-          <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
-            <div class="nc-base-option-item">
-              <GeneralIcon icon="rename" class="text-gray-700" />
-              {{ $t('general.rename') }}
+          <NcTooltip>
+            <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
+            <div
+              class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
+              @click.stop="onTableIdCopy"
+            >
+              <div class="flex text-xs font-bold text-gray-500 ml-1">
+                {{
+                  $t('labels.tableIdColon', {
+                    tableId: contextMenuTarget.value?.id,
+                  })
+                }}
+              </div>
+              <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
+                <GeneralIcon v-if="isTableIdCopied" class="max-h-4 min-w-4" icon="check" />
+                <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
+              </NcButton>
             </div>
-          </NcMenuItem>
+          </NcTooltip>
+          <template v-if="isUIAllowed('tableRename') || isUIAllowed('tableDelete')">
+            <NcDivider />
+            <NcMenuItem v-if="isUIAllowed('tableRename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
+              <div class="nc-base-option-item">
+                <GeneralIcon icon="rename" class="text-gray-700" />
+                {{ $t('general.rename') }} {{ $t('objects.table') }}
+              </div>
+            </NcMenuItem>
 
-          <NcMenuItem
-            v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
-            @click="duplicateTable(contextMenuTarget.value)"
-          >
-            <div class="nc-base-option-item">
-              <GeneralIcon icon="duplicate" class="text-gray-700" />
-              {{ $t('general.duplicate') }}
-            </div>
-          </NcMenuItem>
-
-          <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
-            <div class="nc-base-option-item text-red-600">
-              <GeneralIcon icon="delete" />
-              {{ $t('general.delete') }}
-            </div>
-          </NcMenuItem>
+            <NcMenuItem
+              v-if="isUIAllowed('tableDuplicate') && (contextMenuBase?.is_meta || contextMenuBase?.is_local)"
+              @click="duplicateTable(contextMenuTarget.value)"
+            >
+              <div class="nc-base-option-item">
+                <GeneralIcon icon="duplicate" class="text-gray-700" />
+                {{ $t('general.duplicate') }} {{ $t('objects.table') }}
+              </div>
+            </NcMenuItem>
+            <NcDivider />
+            <NcMenuItem v-if="isUIAllowed('tableDelete')" @click="isTableDeleteDialogVisible = true">
+              <div class="nc-base-option-item text-red-600">
+                <GeneralIcon icon="delete" />
+                {{ $t('general.delete') }} {{ $t('objects.table') }}
+              </div>
+            </NcMenuItem>
+          </template>
         </template>
       </NcMenu>
     </template>

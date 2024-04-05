@@ -13,6 +13,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.19.1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -39,6 +43,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           revertSDK=true node scripts/upgradeNocodbSdk.js
+          pnpm bootstrap
           git add .
           git diff-index --quiet HEAD || git commit -m "chore: update sdk path"
           git push origin $BRANCH_NAME

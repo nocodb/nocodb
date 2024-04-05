@@ -287,9 +287,11 @@ export class TreeViewPage extends BasePage {
       await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
       // table context menu
-      const tblNode = await this.getTable({ index: 0, tableTitle: param.tableTitle });
-      await tblNode.hover();
-      await expect(tblNode.locator('.nc-tbl-context-menu')).toHaveCount(count);
+      await this.dashboard.sidebar.tableNode.verifyTableOptions({
+        tableTitle: param.tableTitle,
+        isVisible: !!count,
+        checkMenuOptions: false,
+      });
     }
   }
 

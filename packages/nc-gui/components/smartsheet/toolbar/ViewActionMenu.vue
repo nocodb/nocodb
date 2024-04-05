@@ -153,7 +153,7 @@ const onDelete = async () => {
   >
     <NcTooltip>
       <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
-      <div class="flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
+      <div class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group" @click="onViewIdCopy">
         <div class="flex text-xs font-bold text-gray-500 ml-1">
           {{
             $t('labels.viewIdColon', {

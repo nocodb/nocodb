@@ -14,6 +14,8 @@ import {
   watch,
 } from '#imports'
 
+import { isSystemColumn } from 'nocodb-sdk'
+
 interface Props {
   modelValue?: number | string | null
   isPk?: boolean
@@ -25,6 +27,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { showNull } = useGlobal()
 
+const column = inject(ColumnInj, null)!
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -33,13 +37,23 @@ const editable = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isGrid = inject(IsGridInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isYearInvalid = ref(false)
 
+const datePickerRef = ref<HTMLInputElement>()
+
+const isClearedInputMode = ref<boolean>(false)
+
 const { t } = useI18n()
+
+const open = ref<boolean>(false)
 
 const localState = computed({
   get() {
@@ -56,6 +70,8 @@ const localState = computed({
     return yearDate
   },
   set(val?: dayjs.Dayjs) {
+    isClearedInputMode.value = false
+
     if (!val) {
       emit('update:modelValue', null)
       return
@@ -64,26 +80,56 @@ const localState = computed({
     if (val?.isValid()) {
       emit('update:modelValue', val.format('YYYY'))
     }
+
+    open.value = false
   },
 })
 
-const open = ref<boolean>(false)
-
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
+
+onClickOutside(datePickerRef, (e) => {
+  if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
+  datePickerRef.value?.blur?.()
+  open.value = false
+})
+
+const onBlur = (e) => {
+  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
+
+  open.value = false
+}
+
 watch(
   open,
   (next) => {
     if (next) {
-      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+      editable.value = true
+      datePickerRef.value?.focus?.()
+
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
+        if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
+          return
+        }
+        open.value = false
+      })
     } else {
-      editable.value = false
+      isClearedInputMode.value = false
     }
   },
   { flush: 'post' },
 )
 
+watch(editable, (nextValue) => {
+  if (isGrid.value && nextValue && !open.value) {
+    open.value = true
+  }
+})
+
 const placeholder = computed(() => {
-  if (isForm.value && !isYearInvalid.value) {
+  if (
+    ((isForm.value || isExpandedForm.value) && !isYearInvalid.value) ||
+    (isGrid.value && !showNull.value && !isYearInvalid.value && !isSystemColumn(column.value) && active.value)
+  ) {
     return 'YYYY'
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
@@ -98,62 +144,96 @@ const placeholder = computed(() => {
 
 const isOpen = computed(() => {
   if (readOnly.value) return false
-
   return (readOnly.value || (localState.value && isPk)) && !active.value && !editable.value ? false : open.value
 })
 
-const handleKeydown = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case ' ':
-      if (isSurveyForm.value) {
-        open.value = !open.value
-      }
-      break
+const clickHandler = () => {
+  if (readOnly.value || open.value) return
+  open.value = active.value || editable.value
+}
 
+const handleKeydown = (e: KeyboardEvent) => {
+  e.stopPropagation()
+
+  switch (e.key) {
     case 'Enter':
-      if (!isSurveyForm.value) {
-        open.value = !open.value
+      open.value = !open.value
+
+      return
+    case 'Escape':
+      if (open.value) {
+        open.value = false
+        editable.value = false
+        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          datePickerRef.value?.blur?.()
+        }
+      } else {
+        editable.value = false
+
+        datePickerRef.value?.blur?.()
       }
-      break
+      return
+    default:
+      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+        open.value = true
+      }
   }
 }
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
-    case 'Enter':
-      e.stopPropagation()
-      open.value = true
-      break
     case 'Escape':
       if (open.value) {
-        e.stopPropagation()
         open.value = false
+        editable.value = false
+        if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+          datePickerRef.value?.blur?.()
+        }
+      } else {
+        editable.value = false
+
+        datePickerRef.value?.blur?.()
       }
       break
+    case ';':
+      localState.value = dayjs(new Date())
+      e.preventDefault()
+      break
+    default:
+      if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+        isClearedInputMode.value = true
+        datePickerRef.value.focus()
+        editable.value = true
+        open.value = true
+      }
   }
 })
 </script>
 
 <template>
   <a-date-picker
+    ref="datePickerRef"
     v-model:value="localState"
+    :disabled="readOnly"
     :tabindex="0"
     picker="year"
     :bordered="false"
     class="nc-cell-field !w-full !py-1 !border-none !text-current"
-    :class="{ 'nc-null': modelValue === null && showNull }"
+    :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :placeholder="placeholder"
-    :allow-clear="(!readOnly && !localState && !isPk) || isEditColumn"
-    :input-read-only="true"
+    :allow-clear="!readOnly"
+    :input-read-only="false"
     :open="isOpen"
     :dropdown-class-name="`${randomClass} nc-picker-year children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
+    @blur="onBlur"
     @keydown="handleKeydown"
-    @click="open = (active || editable) && !open"
-    @change="open = (active || editable) && !open"
-    @ok="open = !open"
+    @click="clickHandler"
+    @mouseup.stop
+    @mousedown.stop
   >
     <template #suffixIcon></template>
   </a-date-picker>
+  <div v-if="!editable && isGrid" class="absolute inset-0 z-90 cursor-pointer"></div>
 </template>
 
 <style scoped>

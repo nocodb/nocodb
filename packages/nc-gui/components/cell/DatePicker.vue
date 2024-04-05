@@ -49,19 +49,19 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isSurveyForm = inject(IsSurveyFormInj, ref(false))
-
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isDateInvalid = ref(false)
 
-const dateTimePickerRef = ref<HTMLInputElement>()
+const datePickerRef = ref<HTMLInputElement>()
 
 const dateFormat = computed(() => parseProp(columnMeta?.value?.meta)?.date_format ?? 'YYYY-MM-DD')
 
 const picker = computed(() => (isDateMonthFormat(dateFormat.value) ? 'month' : ''))
 
 const isClearedInputMode = ref<boolean>(false)
+
+const open = ref<boolean>(false)
 
 const localState = computed({
   get() {
@@ -98,13 +98,12 @@ const localState = computed({
     open.value = false
   },
 })
-const open = ref<boolean>(false)
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 
-onClickOutside(dateTimePickerRef, (e) => {
+onClickOutside(datePickerRef, (e) => {
   if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
-  dateTimePickerRef.value?.blur?.()
+  datePickerRef.value?.blur?.()
   open.value = false
 })
 
@@ -119,11 +118,9 @@ watch(
   (next) => {
     if (next) {
       editable.value = true
-      dateTimePickerRef.value?.focus?.()
+      datePickerRef.value?.focus?.()
 
-      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
-        open.value = false
-      })
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => (open.value = false))
     } else {
       isClearedInputMode.value = false
     }
@@ -155,9 +152,9 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       e.preventDefault()
       break
     default:
-      if (!isOpen.value && dateTimePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+      if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
         isClearedInputMode.value = true
-        dateTimePickerRef.value.focus()
+        datePickerRef.value.focus()
         editable.value = true
         open.value = true
       }
@@ -199,21 +196,21 @@ const handleKeydown = (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       open.value = !open.value
-      break
+      return
     case 'Escape':
       if (open.value) {
         open.value = false
         editable.value = false
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
-          dateTimePickerRef.value?.blur?.()
+          datePickerRef.value?.blur?.()
         }
       } else {
         editable.value = false
 
-        dateTimePickerRef.value?.blur?.()
+        datePickerRef.value?.blur?.()
       }
 
-      break
+      return
     default:
       if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
@@ -224,7 +221,7 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 <template>
   <a-date-picker
-    ref="dateTimePickerRef"
+    ref="datePickerRef"
     v-model:value="localState"
     :disabled="readOnly"
     :picker="picker"

@@ -277,7 +277,9 @@ onUnmounted(() => {
   }
 }
 
-.nc-cell .nc-cell-field {
-  @apply px-0;
+.nc-cell {
+  :deep(.nc-cell-field) {
+    @apply px-0;
+  }
 }
 </style>

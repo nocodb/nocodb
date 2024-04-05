@@ -309,7 +309,7 @@ watch(editable, (nextValue) => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :format="dateTimeFormat"
     :placeholder="placeholder"
-    :allow-clear="!isColDisabled"
+    :allow-clear="!isColDisabled && !isEditColumn"
     :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"

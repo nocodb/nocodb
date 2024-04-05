@@ -216,7 +216,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     class="nc-cell-field !w-full !py-1 !border-none !text-current"
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && !isPk"
+    :allow-clear="!readOnly && !isPk && !isEditColumn"
     :input-read-only="false"
     :open="isOpen"
     :popup-class-name="`${randomClass} nc-picker-time children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"

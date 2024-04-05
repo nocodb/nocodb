@@ -243,7 +243,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
     :format="dateFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !isEditColumn"
     :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-date  children:border-1 children:border-gray-200  ${open ? 'active' : ''} `"
     :open="isOpen"

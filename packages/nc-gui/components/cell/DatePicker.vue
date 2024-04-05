@@ -132,6 +132,12 @@ watch(
   { flush: 'post' },
 )
 
+watch(editable, (nextValue) => {
+  if (isGrid.value && nextValue && !open.value) {
+    open.value = true
+  }
+})
+
 const placeholder = computed(() => {
   if (
     ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||

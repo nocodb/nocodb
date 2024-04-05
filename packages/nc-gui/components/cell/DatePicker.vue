@@ -103,7 +103,7 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isForm.value && !isDateInvalid.value) {
+  if (!isDateInvalid.value) {
     return dateFormat.value
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
@@ -249,9 +249,10 @@ const handleKeydown = (e: KeyboardEvent) => {
       break
 
     case 'Enter':
-      if (!isSurveyForm.value) {
-        open.value = !open.value
+      if (isSurveyForm.value) {
+        e.stopPropagation()
       }
+      open.value = !open.value
       break
   }
 }
@@ -268,8 +269,8 @@ const handleKeydown = (e: KeyboardEvent) => {
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && !localState && !isPk"
-    :input-read-only="true"
+    :allow-clear="isForm || (!readOnly && localState && !isPk)"
+    :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-date  children:border-1 children:border-gray-200  ${open ? 'active' : ''} `"
     :open="isOpen"
     @click="clickHandler"

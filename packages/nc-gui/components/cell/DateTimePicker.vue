@@ -45,6 +45,8 @@ const { t } = useI18n()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const column = inject(ColumnInj)!
 
 const isDateInvalid = ref(false)
@@ -157,7 +159,10 @@ watch(
 )
 
 const placeholder = computed(() => {
-  if (isForm.value && !isDateInvalid.value) {
+  if (
+    (isForm.value && !isDateInvalid.value) ||
+    (!isForm.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value))
+  ) {
     return dateTimeFormat.value
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
     return t('labels.optional')
@@ -187,6 +192,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
     case 'Escape':
+      console.log('excape')
       // skip if drawer / modal is active
       if (isDrawerOrModalExist()) {
         return
@@ -296,6 +302,13 @@ const isColDisabled = computed(() => {
 })
 
 const handleKeydown = (e: KeyboardEvent) => {
+  console.log(
+    '!readOnly && !localState && !isPk',
+    !readOnly.value && localState.value && !isPk,
+    !readOnly.value,
+    !localState.value,
+    !isPk,
+  )
   switch (e.key) {
     case ' ':
       if (isSurveyForm.value) {
@@ -304,8 +317,26 @@ const handleKeydown = (e: KeyboardEvent) => {
       break
 
     case 'Enter':
+      console.log('enter', (e.target as HTMLInputElement).value)
+      e.stopPropagation()
+      if (open.value) {
+        okHandler((e.target as HTMLInputElement).value)
+        break
+      }
       if (!isSurveyForm.value) {
         open.value = !open.value
+      }
+      break
+    case 'Escape':
+      console.log('on escape')
+      if (open.value) {
+        if (isExpandedForm.value) {
+          e.stopPropagation()
+        }
+
+        if (isForm.value || isExpandedForm.value) {
+          open.value = false
+        }
       }
       break
   }
@@ -322,8 +353,8 @@ const handleKeydown = (e: KeyboardEvent) => {
     :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateTimeFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && !localState && !isPk"
-    :input-read-only="true"
+    :allow-clear="isForm || (!readOnly && localState && !isPk)"
+    :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
     @click="clickHandler"

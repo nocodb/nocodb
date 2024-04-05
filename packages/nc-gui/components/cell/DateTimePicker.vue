@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import type { VNodeRef } from '@vue/runtime-core'
-
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 import {
   ActiveCellInj,
@@ -57,9 +55,6 @@ const isDateInvalid = ref(false)
 
 const dateTimePickerRef = ref<HTMLInputElement>()
 
-const focus: VNodeRef = (el) =>
-  !isExpandedForm.value && !isEditColumn.value && !isForm.value && editable.value && (el as HTMLInputElement)?.focus()
-
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(column?.value?.meta)?.time_format ?? timeFormats[0]
@@ -68,13 +63,8 @@ const dateTimeFormat = computed(() => {
 
 let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
 
-const tempLocalValue = ref<dayjs.Dayjs>()
-
 const localState = computed({
   get() {
-    if (!modelValue && tempLocalValue.value) {
-      return tempLocalValue.value
-    }
     if (!modelValue) {
       return undefined
     }
@@ -154,43 +144,34 @@ onClickOutside(dateTimePickerRef, (e) => {
   dateTimePickerRef.value?.blur?.()
   open.value = false
 })
+
+const onBlur = (e) => {
+  if ((e?.relatedTarget as HTMLElement)?.closest(`.${randomClass}`)) return
+
+  open.value = false
+}
 watch(
   open,
   (next) => {
     if (next) {
       editable.value = true
       dateTimePickerRef.value?.focus?.()
-      console.log('reset')
       onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, (e) => {
         if ((e?.target as HTMLElement)?.closest(`.nc-${randomClass}`)) {
           return
         }
         open.value = false
       })
-
-      if (!modelValue) {
-        tempLocalValue.value = dayjs(new Date()).utc().local()
-      } else {
-        // tempLocalValue.value = undefined
-      }
     } else {
-      editable.value = false
-      // tempLocalValue.value = undefined
-      console.log('isOpen', open.value, modelValue, tempLocalValue.value, localState.value, tempLocalValue.value)
-      if (!modelValue && dayjs(localState.value).utc().format('YYYY-MM-DD HH:mm:ssZ')) {
-        tempLocalValue.value = undefined
-      }
     }
-    // console.log('tempLocalValue', tempLocalValue.value)
   },
   { flush: 'post' },
 )
 
 const placeholder = computed(() => {
-  console.log('editable.value', editable.value)
   if (
-    (isForm.value && !isDateInvalid.value) ||
-    (!isForm.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
+    ((isForm.value || isExpandedForm.value) && !isDateInvalid.value) ||
+    (isGrid.value && !showNull.value && !isDateInvalid.value && !isSystemColumn(column.value) && active.value)
   ) {
     return dateTimeFormat.value
   } else if (isEditColumn.value && (modelValue === '' || modelValue === null)) {
@@ -213,10 +194,7 @@ const cellClickHandler = () => {
 function okHandler(val: dayjs.Dayjs | string) {
   if (!val) {
     emit('update:modelValue', null)
-    return
-  }
-
-  if (dayjs(val).isValid()) {
+  } else if (dayjs(val).isValid()) {
     // setting localModelValue to cater NOW function in date picker
     localModelValue = dayjs(val)
     // send the payload in UTC format
@@ -224,6 +202,10 @@ function okHandler(val: dayjs.Dayjs | string) {
   }
 
   open.value = !open.value
+  if (!open.value && isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+    dateTimePickerRef.value?.blur?.()
+    editable.value = false
+  }
 }
 onMounted(() => {
   cellClickHook?.on(cellClickHandler)
@@ -233,7 +215,6 @@ onUnmounted(() => {
 })
 
 const clickHandler = () => {
-  console.log('click')
   if (cellClickHook) {
     return
   }
@@ -246,49 +227,56 @@ const isColDisabled = computed(() => {
 
 const handleKeydown = (e: KeyboardEvent) => {
   e.stopPropagation()
-  console.log(
-    '!readOnly && !localState && !isPk',
-    !readOnly.value && localState.value && !isPk,
-    !readOnly.value,
-    !localState.value,
-    !isPk,
-  )
   switch (e.key) {
-    case ' ':
-      if (isSurveyForm.value) {
-        open.value = !open.value
-      }
-      break
-
     case 'Enter':
-      console.log('enter', localState.value, (e.target as HTMLInputElement).value)
-
-      if (open.value) {
-        okHandler((e.target as HTMLInputElement).value)
-        break
+      if (isOpen.value) {
+        return okHandler((e.target as HTMLInputElement).value)
+      } else {
+        open.value = true
       }
-      if (!isSurveyForm.value) {
-        open.value = !open.value
-      }
-      break
+      return
     case 'Escape':
-      console.log('on escape')
       if (open.value) {
         open.value = false
+        editable.value = false
         if (isGrid.value) {
-          editable.value = false
+          dateTimePickerRef.value?.blur?.()
         }
-      }
-      break
+      } else {
+        editable.value = false
 
-    case 'Delete':
-    case 'Backspace':
-      e.stopPropagation()
-      break
+        dateTimePickerRef.value?.blur?.()
+      }
+
+      return
+    case 'Tab':
+      open.value = false
+      if (isGrid.value) {
+        editable.value = false
+        dateTimePickerRef.value?.blur()
+      }
+      return
     default:
-      e.stopPropagation()
+      if (!open.value && /^[0-9a-z]$/i.test(e.key)) {
+        open.value = true
+      }
   }
 }
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  if (!isOpen.value && dateTimePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+    dateTimePickerRef.value.focus()
+    editable.value = true
+    open.value = true
+    dateTimePickerRef.value.value = e.key
+  }
+})
+
+watch(editable, (nextValue) => {
+  if (isGrid.value && nextValue && !open.value) {
+    open.value = true
+  }
+})
 </script>
 
 <template>
@@ -306,11 +294,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     :input-read-only="false"
     :dropdown-class-name="`${randomClass} nc-picker-datetime children:border-1 children:border-gray-200 ${open ? 'active' : ''}`"
     :open="isOpen"
-    @focus="
-      () => {
-        console.log('focus')
-      }
-    "
+    @blur="onBlur"
     @click="clickHandler"
     @ok="okHandler"
     @keydown="handleKeydown"

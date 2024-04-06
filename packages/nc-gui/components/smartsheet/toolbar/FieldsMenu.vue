@@ -468,8 +468,8 @@ useMenuCloseOnEsc(open)
                     <NcSwitch
                       :checked="field.show"
                       :disabled="field.isViewEssentialField"
-                      @change="$t('a:fields:show-hide')"
                       size="xsmall"
+                      @change="$t('a:fields:show-hide')"
                     />
                   </div>
 

@@ -165,8 +165,8 @@ watch(
 
         <GeneralIcon
           v-if="showSelectedOption && option.id === selectedOptionId"
-          icon="check"
           id="nc-selected-item-icon"
+          icon="check"
           class="flex-none text-primary w-4 h-4"
         />
       </div>

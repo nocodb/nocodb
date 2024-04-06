@@ -409,7 +409,7 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center rounded-md hover:bg-gray-50"
+                  class="pl-2 flex flex-row items-center rounded-md hover:bg-gray-100"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />

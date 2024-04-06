@@ -112,7 +112,7 @@ watch(
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(filteredOptions[activeFieldIndex])"
   >
-    <div class="w-full pb-3 px-2" @click.stop>
+    <div class="w-full pb-2 px-2" @click.stop>
       <a-input
         ref="inputRef"
         v-model:value="searchQuery"
@@ -140,7 +140,7 @@ watch(
         v-for="(option, index) in filteredOptions"
         :key="index"
         v-e="configByToolbarMenu.selectOptionEvent"
-        class="flex w-full h-10 items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+        class="flex w-full py-[5px] items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
         :class="[
           `${configByToolbarMenu.optionClassName}`,
           `nc-field-list-option-${index}`,
@@ -157,7 +157,7 @@ watch(
             'max-w-full': !showSelectedOption,
           }"
         >
-          <SmartsheetHeaderIcon :column="option" />
+          <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-700" />
           <NcTooltip class="truncate" show-on-truncate-only>
             <template #title> {{ option.title }}</template>
             <span>

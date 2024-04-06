@@ -300,6 +300,8 @@ const showSystemField = computed({
   },
 })
 
+const isDragging = ref<boolean>(false)
+
 const fieldsMenuSearchRef = ref<HTMLInputElement>()
 
 watch(open, (value) => {
@@ -390,7 +392,14 @@ useMenuCloseOnEsc(open)
 
               {{ $t('title.noResultsMatchedYourSearch') }}
             </div>
-            <Draggable v-model="fields" item-key="id" @change="onMove($event)">
+            <Draggable
+              v-model="fields"
+              item-key="id"
+              ghost-class="nc-fields-menu-items-ghost"
+              @change="onMove($event)"
+              @start="isDragging = true"
+              @end="isDragging = false"
+            >
               <template #item="{ element: field }">
                 <div
                   v-if="
@@ -400,13 +409,13 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center"
+                  class="pl-2 flex flex-row items-center rounded-lg hover:bg-gray-50"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1 py-2 pr-2"
+                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1 py-1.5 pr-2"
                     @click="
                       () => {
                         field.show = !field.show
@@ -414,8 +423,8 @@ useMenuCloseOnEsc(open)
                       }
                     "
                   >
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                    <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
+                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-700" />
+                    <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
                       <template #title>
                         {{ field.title }}
                       </template>
@@ -456,7 +465,12 @@ useMenuCloseOnEsc(open)
                         <component :is="iconMap.underline" class="!w-3 !h-3" />
                       </NcButton>
                     </div>
-                    <NcSwitch :checked="field.show" :disabled="field.isViewEssentialField" @change="$t('a:fields:show-hide')" />
+                    <NcSwitch
+                      :checked="field.show"
+                      :disabled="field.isViewEssentialField"
+                      @change="$t('a:fields:show-hide')"
+                      size="xsmall"
+                    />
                   </div>
 
                   <div class="flex-1" />
@@ -474,13 +488,16 @@ useMenuCloseOnEsc(open)
                   class="pl-7.4 pr-2 py-2 flex flex-row items-center"
                   @click.stop
                 >
-                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
-                  <NcTooltip class="px-1 flex-1 truncate" show-on-truncate-only>
+                  <component
+                    :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])"
+                    class="!w-3.5 !h-3.5 !text-gray-700"
+                  />
+                  <NcTooltip class="px-1 flex-1 truncate" show-on-truncate-only :disabled="isDragging">
                     <template #title>{{ filteredFieldList[0].title }}</template>
                     <template #default>{{ filteredFieldList[0].title }}</template>
                   </NcTooltip>
 
-                  <NcSwitch :checked="true" :disabled="true" />
+                  <NcSwitch :checked="true" :disabled="true" size="xsmall" />
                 </div>
               </template>
             </Draggable>
@@ -531,5 +548,9 @@ useMenuCloseOnEsc(open)
   &.ant-input-affix-wrapper-focused .nc-search-icon {
     @apply text-gray-800;
   }
+}
+
+.nc-fields-menu-items-ghost {
+  @apply bg-gray-50;
 }
 </style>

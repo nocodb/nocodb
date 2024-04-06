@@ -306,7 +306,6 @@ const fieldsMenuSearchRef = ref<HTMLInputElement>()
 
 watch(open, (value) => {
   if (value) {
-    console.log('value', fieldsMenuSearchRef.value)
     setTimeout(() => {
       fieldsMenuSearchRef.value?.focus()
     }, 100)
@@ -528,23 +527,16 @@ useMenuCloseOnEsc(open)
 </template>
 
 <style lang="scss" scoped>
-// :deep(.ant-checkbox-inner) {
-//   @apply transform scale-60;
-// }
-
-// :deep(.ant-checkbox) {
-//   @apply top-auto;
-// }
-
 :deep(.xxsmall) {
   @apply !min-w-0;
 }
 
 .nc-fields-menu-search-field {
   .nc-search-icon {
-    @apply text-gray-500;
+    @apply text-gray-400;
   }
 
+  &:hover .nc-search-icon,
   &.ant-input-affix-wrapper-focused .nc-search-icon {
     @apply text-gray-800;
   }

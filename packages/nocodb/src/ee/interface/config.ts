@@ -18,7 +18,15 @@ export interface AppConfig {
       ttl: number;
       max_apis: number;
     };
+    data_gui: {
+      ttl: number;
+      max_apis: number;
+    };
     meta: {
+      ttl: number;
+      max_apis: number;
+    };
+    meta_gui: {
       ttl: number;
       max_apis: number;
     };

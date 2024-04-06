@@ -30,6 +30,7 @@ class CustomThrottlerStorageRedisService extends ThrottlerStorageRedisService {
 }
 
 const HEADER_NAME = 'xc-token';
+const HEADER_NAME1 = 'xc-auth';
 
 @Injectable()
 export class ThrottlerConfigService implements ThrottlerOptionsFactory {
@@ -49,10 +50,26 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
           name: 'meta',
         },
         {
+          ttl: config.meta_gui.ttl,
+          limit: config.meta_gui.max_apis,
+          skipIf: (context) => {
+            return !context.switchToHttp().getRequest().headers[HEADER_NAME1];
+          },
+          name: 'meta',
+        },
+        {
           ttl: config.data.ttl,
           limit: config.data.max_apis,
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[HEADER_NAME];
+          },
+          name: 'data',
+        },
+        {
+          ttl: config.data_gui.ttl,
+          limit: config.data_gui.max_apis,
+          skipIf: (context) => {
+            return !context.switchToHttp().getRequest().headers[HEADER_NAME1];
           },
           name: 'data',
         },

@@ -384,7 +384,11 @@ useMenuCloseOnEsc(open)
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
               class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6"
             >
-              <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" />
+              <img
+                src="~assets/img/placeholder/no-search-result-found.png"
+                class="!w-[164px] flex-none"
+                alt="No search results found"
+              />
 
               {{ $t('title.noResultsMatchedYourSearch') }}
             </div>

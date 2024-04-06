@@ -112,7 +112,11 @@ const onArrowUp = () => {
 
     <div class="flex-col w-full max-h-100 nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
       <div v-if="!options.length" class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6">
-        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" />
+        <img
+          src="~assets/img/placeholder/no-search-result-found.png"
+          class="!w-[164px] flex-none"
+          alt="No search results found"
+        />
 
         {{ $t('title.noResultsMatchedYourSearch') }}
       </div>

@@ -794,3 +794,9 @@ svg.nc-virtual-cell-icon {
     @apply text-gray-800;
   }
 }
+
+// switch - on tab focus show outline
+.ant-switch:focus-visible,
+.ant-switch-checked:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}

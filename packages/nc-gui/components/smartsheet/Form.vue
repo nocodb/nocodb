@@ -2028,13 +2028,6 @@ useEventListener(
     }
   }
 }
-
-.nc-form-wrapper {
-  .ant-switch:focus-visible,
-  .ant-switch-checked:focus-visible {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
-  }
-}
 </style>
 
 <style lang="scss">

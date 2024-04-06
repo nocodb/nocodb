@@ -349,7 +349,7 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <div class="py-2 bg-white w-80 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div class="pt-2 bg-white w-80 rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 px-2 mb-6"
@@ -371,7 +371,7 @@ useMenuCloseOnEsc(open)
             ref="fieldsMenuSearchRef"
             v-model:value="filterQuery"
             :placeholder="$t('placeholder.searchFields')"
-            class="!rounded-lg nc-fields-menu-search-field"
+            class="nc-toolbar-dropdown-search-field-input"
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
           ></a-input>
@@ -385,7 +385,7 @@ useMenuCloseOnEsc(open)
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
-              class="px-0.5 py-6 text-gray-500 flex flex-col items-center gap-6"
+              class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6"
             >
               <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" />
 
@@ -408,7 +408,7 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center rounded-lg hover:bg-gray-50"
+                  class="pl-2 flex flex-row items-center rounded-md hover:bg-gray-50"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
@@ -475,34 +475,10 @@ useMenuCloseOnEsc(open)
                   <div class="flex-1" />
                 </div>
               </template>
-              <template v-if="activeView?.type === ViewTypes.GRID" #header>
-                <div
-                  v-if="gridDisplayValueField && filteredFieldList[0].title.toLowerCase().includes(filterQuery.toLowerCase())"
-                  :key="`pv-${gridDisplayValueField.id}`"
-                  :class="{
-                    'rounded-t-lg': filteredFieldList.length > 1,
-                    'rounded-lg': filteredFieldList.length === 1,
-                  }"
-                  :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
-                  class="pl-7.4 pr-2 py-2 flex flex-row items-center"
-                  @click.stop
-                >
-                  <component
-                    :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])"
-                    class="!w-3.5 !h-3.5 !text-gray-700"
-                  />
-                  <NcTooltip class="px-1 flex-1 truncate" show-on-truncate-only :disabled="isDragging">
-                    <template #title>{{ filteredFieldList[0].title }}</template>
-                    <template #default>{{ filteredFieldList[0].title }}</template>
-                  </NcTooltip>
-
-                  <NcSwitch :checked="true" :disabled="true" size="xsmall" />
-                </div>
-              </template>
             </Draggable>
           </div>
         </div>
-        <div v-if="!filterQuery" class="flex px-2 gap-2 pt-2 border-t-1 border-gray-200">
+        <div v-if="!filterQuery" class="flex px-2 gap-2 py-2 border-t-1 border-gray-200">
           <NcButton
             class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
             size="small"
@@ -529,17 +505,6 @@ useMenuCloseOnEsc(open)
 <style lang="scss" scoped>
 :deep(.xxsmall) {
   @apply !min-w-0;
-}
-
-.nc-fields-menu-search-field {
-  .nc-search-icon {
-    @apply text-gray-400;
-  }
-
-  &:hover .nc-search-icon,
-  &.ant-input-affix-wrapper-focused .nc-search-icon {
-    @apply text-gray-800;
-  }
 }
 
 .nc-fields-menu-items-ghost {

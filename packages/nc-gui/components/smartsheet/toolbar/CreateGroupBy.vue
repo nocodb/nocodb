@@ -97,7 +97,7 @@ const onArrowUp = () => {
 
 <template>
   <div
-    class="flex flex-col w-full pt-2 w-80 nc-group-by-create-modal"
+    class="flex flex-col w-full pt-2 w-64 nc-group-by-create-modal"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(options[activeFieldIndex])"

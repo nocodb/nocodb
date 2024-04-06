@@ -305,11 +305,12 @@ const isDragging = ref<boolean>(false)
 const fieldsMenuSearchRef = ref<HTMLInputElement>()
 
 watch(open, (value) => {
-  if (value) {
-    setTimeout(() => {
-      fieldsMenuSearchRef.value?.focus()
-    }, 100)
-  }
+  if (!value) return
+
+  filterQuery.value = ''
+  setTimeout(() => {
+    fieldsMenuSearchRef.value?.focus()
+  }, 100)
 })
 
 useMenuCloseOnEsc(open)

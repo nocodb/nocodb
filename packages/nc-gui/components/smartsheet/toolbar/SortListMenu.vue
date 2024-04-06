@@ -139,13 +139,8 @@ onMounted(() => {
     </div>
     <template #overlay>
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
-      <div
-        v-else
-        :class="{ 'min-w-102': sorts.length }"
-        class="py-6 pl-6 nc-filter-list max-h-[max(80vh,30rem)]"
-        data-testid="nc-sorts-menu"
-      >
-        <div class="sort-grid max-h-120 nc-scrollbar-md" :class="{ 'pr-3.5': sorts?.length }" @click.stop>
+      <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
+        <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
@@ -198,14 +193,13 @@ onMounted(() => {
           v-if="availableColumns.length"
           v-model:visible="showCreateSort"
           :trigger="['click']"
-          class="mt-3"
           overlay-class-name="nc-toolbar-dropdown"
         >
           <template v-if="isEeUI && !isPublic">
             <NcButton
               v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
               v-e="['c:sort:add']"
-              class="!text-brand-500"
+              class="!text-brand-500 mt-1 mb-2"
               type="text"
               size="small"
               @click.stop="showCreateSort = true"
@@ -219,7 +213,13 @@ onMounted(() => {
             <span v-else></span>
           </template>
           <template v-else>
-            <NcButton v-e="['c:sort:add']" class="!text-brand-500" type="text" size="small" @click.stop="showCreateSort = true">
+            <NcButton
+              v-e="['c:sort:add']"
+              class="!text-brand-500 mt-1 mb-2"
+              type="text"
+              size="small"
+              @click.stop="showCreateSort = true"
+            >
               <div class="flex gap-1 items-center">
                 <component :is="iconMap.plus" />
                 <!-- Add Sort Option -->

@@ -133,7 +133,7 @@ watch(
           alt="No search results found"
         />
 
-        {{ $t('title.noResultsMatchedYourSearch') }}
+        {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
 
       <div

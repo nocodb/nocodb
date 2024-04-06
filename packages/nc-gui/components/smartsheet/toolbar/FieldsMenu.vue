@@ -503,23 +503,23 @@ useMenuCloseOnEsc(open)
             </Draggable>
           </div>
         </div>
-        <div v-if="!filterQuery" class="flex items-center justify-between gap-2 px-2 pt-2 border-t-1 border-gray-200">
-          <div
-            v-if="!isPublic"
-            class="flex items-center gap-2 text-black-100 cursor-pointer select-none"
-            @click.stop="showSystemField = !showSystemField"
-          >
-            <NcSwitch :checked="showSystemField" class="nc-fields-show-system-fields" />
-            {{ $t('activity.showSystemFields') }}
-          </div>
-
+        <div v-if="!filterQuery" class="flex px-2 gap-2 pt-2 border-t-1 border-gray-200">
           <NcButton
-            class="nc-fields-show-all-fields !text-black-100"
+            class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
             size="small"
             type="ghost"
             @click="showAllColumns = !showAllColumns"
           >
-            {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }}
+            {{ showAllColumns ? 'Hide all' : 'Show all' }} fields
+          </NcButton>
+          <NcButton
+            v-if="!isPublic"
+            class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
+            size="small"
+            type="ghost"
+            @click="showSystemField = !showSystemField"
+          >
+            {{ showSystemField ? 'Hide system fields' : 'Show system fields' }}
           </NcButton>
         </div>
       </div>

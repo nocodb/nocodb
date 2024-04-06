@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import type { TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ReloadViewDataHookInj,
@@ -27,19 +27,8 @@ const { isMobileMode } = useGlobal()
 
 const isFocused = ref(false)
 
-const searchDropdown = ref(null)
-
-onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
-
-const columns = computed(() =>
-  (meta.value as TableType)?.columns
-    ?.filter((column) => !isSystemColumn(column) && column?.uidt !== UITypes.Links)
-    ?.map((column) => ({
-      value: column.id,
-      label: column.title,
-      column,
-      primaryValue: column.pv,
-    })),
+const columns = computed(
+  () => (meta.value as TableType)?.columns?.filter((column) => !isSystemColumn(column) && column?.uidt !== UITypes.Links) ?? [],
 )
 
 watch(
@@ -59,10 +48,12 @@ function onPressEnter() {
 const displayColumnLabel = computed(() => {
   if (search.value.field) {
     // use search field label if specified
-    return columns.value?.find((column) => column.value === search.value.field)?.label
+    return columns.value?.find((column) => column.id === search.value.field)?.title
   }
   // use primary value label by default
-  return columns.value?.find((column) => column.primaryValue)?.label
+  const pvColumn = columns.value?.find((column) => column.pv)
+  search.value.field = pvColumn?.id as string
+  return pvColumn?.title
 })
 
 watchDebounced(
@@ -76,11 +67,10 @@ watchDebounced(
   },
 )
 
-watch(columns, () => {
-  if (columns.value?.length) {
-    search.value.field = columns.value[0].value as string
-  }
-})
+const onSelectOption = (column: ColumnType) => {
+  search.value.field = column.id as string
+  isDropdownOpen.value = false
+}
 </script>
 
 <template>
@@ -88,46 +78,35 @@ watch(columns, () => {
     class="flex flex-row border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden"
     :class="{ 'border-primary': search.query.length !== 0 || isFocused }"
   >
-    <div
-      ref="searchDropdown"
-      class="flex items-center group relative px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
-      :class="{ 'bg-gray-50 ': isDropdownOpen }"
-      @click="isDropdownOpen = !isDropdownOpen"
+    <NcDropdown
+      v-model:visible="isDropdownOpen"
+      :trigger="['click']"
+      overlay-class-name="nc-dropdown-toolbar-search-field-option"
     >
-      <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
-      <div v-if="!isMobileMode" class="w-16 text-[0.75rem] font-medium text-gray-400 truncate">
-        {{ displayColumnLabel }}
-      </div>
-      <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
-        <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
-      </div>
-      <a-select
-        v-model:value="search.field"
-        v-e="['c:search:field:select:open']"
-        :open="isDropdownOpen"
-        size="small"
-        :dropdown-match-select-width="false"
-        dropdown-class-name="!rounded-lg nc-dropdown-toolbar-search-field-option max-w-64"
-        class="py-1 !absolute top-2 left-0 w-full h-full z-10 text-xs opacity-0"
-        @change="onPressEnter"
+      <div
+        class="flex items-center group relative px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
+        :class="{ 'bg-gray-50 ': isDropdownOpen }"
+        @click="isDropdownOpen = !isDropdownOpen"
       >
-        <a-select-option v-for="op of columns" :key="op.value" v-e="['c:search:field:select']" :value="op.value">
-          <div class="text-sm flex items-center gap-2">
-            <SmartsheetHeaderIcon :column="op.column" />
-            <NcTooltip class="truncate flex-1" placement="top" show-on-truncate-only>
-              <template #title>{{ op.label }}</template>
-              {{ op.label }}
-            </NcTooltip>
-            <component
-              :is="iconMap.check"
-              v-if="search.field === op.value"
-              id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
-            />
-          </div>
-        </a-select-option>
-      </a-select>
-    </div>
+        <GeneralIcon icon="search" class="ml-1 mr-2 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+        <div v-if="!isMobileMode" class="w-16 text-xs font-medium text-gray-400 truncate">
+          {{ displayColumnLabel }}
+        </div>
+        <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
+          <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
+        </div>
+      </div>
+      <template #overlay>
+        <SmartsheetToolbarFieldListWithSearch
+          :is-parent-open="isDropdownOpen"
+          :selected-option-id="search.field"
+          show-selected-option
+          :options="columns"
+          toolbar-menu="globalSearch"
+          @selected="onSelectOption"
+        />
+      </template>
+    </NcDropdown>
 
     <a-input
       v-model:value="search.query"

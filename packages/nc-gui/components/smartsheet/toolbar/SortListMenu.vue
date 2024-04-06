@@ -160,7 +160,7 @@ onMounted(() => {
               v-model:value="sort.direction"
               class="shrink grow-0 nc-sort-dir-select"
               :label="$t('labels.operation')"
-              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
+              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
               @click.stop
               @select="saveOrUpdate(sort, i)"
             >
@@ -170,7 +170,7 @@ onMounted(() => {
                 v-e="['c:sort:operation:select']"
                 :value="option.value"
               >
-                <div class="flex items-center justify-between gap-2">
+                <div class="w-full flex items-center justify-between gap-2">
                   <div class="truncate flex-1">{{ option.text }}</div>
                   <component
                     :is="iconMap.check"

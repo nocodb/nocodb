@@ -414,7 +414,7 @@ useMenuCloseOnEsc(open)
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1 py-1.5 pr-2"
+                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1 py-[5px] pr-2"
                     @click="
                       () => {
                         field.show = !field.show

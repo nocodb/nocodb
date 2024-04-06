@@ -71,6 +71,7 @@ watch(
   () => {
     if (!isParentOpen.value) return
 
+    search.value = ''
     setTimeout(() => {
       inputRef.value?.focus()
     }, 100)
@@ -96,28 +97,41 @@ const onArrowUp = () => {
 
 <template>
   <div
-    class="flex flex-col w-full pt-4 pb-2 min-w-64 nc-group-by-create-modal"
+    class="flex flex-col w-full pt-2 w-80 nc-group-by-create-modal"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="onClick(options[activeFieldIndex])"
   >
-    <div class="flex pb-3 px-4 border-b-1 border-gray-100">
-      <input ref="inputRef" v-model="search" class="w-full focus:outline-none" :placeholder="$t('msg.selectFieldToGroup')" />
+    <div class="w-full pb-3 px-2" @click.stop>
+      <a-input
+        ref="inputRef"
+        v-model:value="search"
+        :placeholder="$t('msg.selectFieldToGroup')"
+        class="nc-toolbar-dropdown-search-field-input"
+      >
+        <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+      ></a-input>
     </div>
-    <div class="flex-col w-full max-h-100 max-w-76 nc-scrollbar-md !overflow-y-auto">
-      <div v-if="!options.length" class="flex text-gray-500 px-4 py-2.25">{{ $t('general.empty') }}</div>
+
+    <div class="flex-col w-full max-h-100 nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
+      <div v-if="!options.length" class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6">
+        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" />
+
+        {{ $t('title.noResultsMatchedYourSearch') }}
+      </div>
+
       <div
         v-for="(option, index) in options"
         :key="index"
         v-e="['c:group-by:add:column:select']"
-        class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-group-by-column-search-item"
+        class="flex flex-row h-10 items-center gap-x-1.5 px-2 hover:bg-gray-100 cursor-pointer nc-group-by-column-search-item rounded-md"
         :class="{
           'bg-gray-100': activeFieldIndex === index,
         }"
         @click="onClick(option)"
       >
         <SmartsheetHeaderIcon :column="option" />
-        <NcTooltip class="truncate">
+        <NcTooltip class="truncate" show-on-truncate-only>
           <template #title> {{ option.title }}</template>
           <span>
             {{ option.title }}

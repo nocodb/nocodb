@@ -220,7 +220,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const filteredFieldList = computed(() => {
       return (
         fields.value?.filter((field: Field) => {
-          if (metaColumnById?.value?.[field.fk_column_id!]?.pv) return true
+          if (
+            metaColumnById?.value?.[field.fk_column_id!]?.pv &&
+            (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
+          ) {
+            return true
+          }
 
           // hide system columns if not enabled
           if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {

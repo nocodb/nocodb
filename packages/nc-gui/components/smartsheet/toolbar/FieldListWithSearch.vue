@@ -77,9 +77,11 @@ const onArrowUp = () => {
 }
 
 const handleKeydownEnter = (e: KeyboardEvent) => {
-  if (!filteredOptions.value[activeFieldIndex.value]) return
-
-  onClick(filteredOptions.value[activeFieldIndex.value])
+  if (filteredOptions.value[activeFieldIndex.value]) {
+    onClick(filteredOptions.value[activeFieldIndex.value])
+  } else if (filteredOptions.value[0]) {
+    onClick(filteredOptions.value[activeFieldIndex.value])
+  }
 }
 
 onMounted(() => {
@@ -117,6 +119,7 @@ watch(
         :placeholder="searchInputPlaceholder || $t('placeholder.searchFields')"
         class="nc-toolbar-dropdown-search-field-input"
         @keydown.enter.stop="handleKeydownEnter"
+        @change="activeFieldIndex = 0"
       >
         <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
       ></a-input>

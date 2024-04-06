@@ -25,8 +25,6 @@ const isDropdownOpen = ref(false)
 
 const { isMobileMode } = useGlobal()
 
-const isFocused = ref(false)
-
 const columns = computed(
   () => (meta.value as TableType)?.columns?.filter((column) => !isSystemColumn(column) && column?.uidt !== UITypes.Links) ?? [],
 )
@@ -75,8 +73,8 @@ const onSelectOption = (column: ColumnType) => {
 
 <template>
   <div
-    class="flex flex-row border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden"
-    :class="{ 'border-primary': search.query.length !== 0 || isFocused }"
+    class="flex flex-row border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden focus-within:border-primary"
+    :class="{ 'border-primary': search.query.length !== 0 }"
   >
     <NcDropdown
       v-model:visible="isDropdownOpen"
@@ -84,7 +82,7 @@ const onSelectOption = (column: ColumnType) => {
       overlay-class-name="nc-dropdown-toolbar-search-field-option"
     >
       <div
-        class="flex items-center group relative px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
+        class="flex items-center group px-2 cursor-pointer border-r-1 border-gray-200 hover:bg-gray-100"
         :class="{ 'bg-gray-50 ': isDropdownOpen }"
         @click="isDropdownOpen = !isDropdownOpen"
       >
@@ -116,8 +114,6 @@ const onSelectOption = (column: ColumnType) => {
       :bordered="false"
       data-testid="search-data-input"
       @press-enter="onPressEnter"
-      @focus="isFocused = true"
-      @blur="isFocused = false"
     >
     </a-input>
   </div>

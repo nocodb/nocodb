@@ -378,10 +378,6 @@ useMenuCloseOnEsc(open)
           ></a-input>
         </div>
 
-        <div v-if="!filterQuery" class="px-2">
-          <div class="pt-0.25 w-full bg-gray-50"></div>
-        </div>
-
         <div class="flex flex-col mt-2 pb-2 nc-scrollbar-thin max-h-[47vh] px-2">
           <div class="nc-fields-list">
             <div
@@ -481,7 +477,7 @@ useMenuCloseOnEsc(open)
         </div>
         <div v-if="!filterQuery" class="flex px-2 gap-2 py-2 border-t-1 border-gray-200">
           <NcButton
-            class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
+            class="nc-fields-show-all-fields !text-gray-500 !w-1/2 !text-xs"
             size="small"
             type="ghost"
             @click="showAllColumns = !showAllColumns"
@@ -490,7 +486,7 @@ useMenuCloseOnEsc(open)
           </NcButton>
           <NcButton
             v-if="!isPublic"
-            class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
+            class="nc-fields-show-system-fields !text-gray-500 !w-1/2 !text-xs"
             size="small"
             type="ghost"
             @click="showSystemField = !showSystemField"

@@ -479,18 +479,13 @@ useMenuCloseOnEsc(open)
             </Draggable>
           </div>
         </div>
-        <div v-if="!filterQuery" class="flex px-2 gap-2 py-2 border-t-1 border-gray-200">
-          <NcButton
-            class="nc-fields-show-all-fields !text-gray-500 !w-1/2 !text-xs"
-            size="small"
-            type="ghost"
-            @click="showAllColumns = !showAllColumns"
-          >
+        <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
+          <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
             {{ showAllColumns ? 'Hide all' : 'Show all' }} fields
           </NcButton>
           <NcButton
             v-if="!isPublic"
-            class="nc-fields-show-system-fields !text-gray-500 !w-1/2 !text-xs"
+            class="nc-fields-show-system-fields"
             size="small"
             type="ghost"
             @click="showSystemField = !showSystemField"
@@ -510,5 +505,10 @@ useMenuCloseOnEsc(open)
 
 .nc-fields-menu-items-ghost {
   @apply bg-gray-50;
+}
+
+.nc-fields-show-all-fields,
+.nc-fields-show-system-fields {
+  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100 hover:(!text-gray-600 bg-gray-200);
 }
 </style>

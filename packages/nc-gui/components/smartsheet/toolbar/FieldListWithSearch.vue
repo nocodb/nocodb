@@ -157,7 +157,7 @@ watch(
             'max-w-full': !showSelectedOption,
           }"
         >
-          <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-700" />
+          <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-500" />
           <NcTooltip class="truncate" show-on-truncate-only>
             <template #title> {{ option.title }}</template>
             <span>

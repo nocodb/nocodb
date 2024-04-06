@@ -423,7 +423,7 @@ useMenuCloseOnEsc(open)
                       }
                     "
                   >
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-700" />
+                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
                     <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
                       <template #title>
                         {{ field.title }}

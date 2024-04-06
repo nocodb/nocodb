@@ -90,7 +90,7 @@ onMounted(() => {
       :is-parent-open="isParentOpen"
       :search-input-placeholder="$t('msg.selectFieldToSort')"
       :options="options"
-      toolbar-menu="groupBy"
+      toolbar-menu="sort"
       @selected="onClick"
     />
   </div>

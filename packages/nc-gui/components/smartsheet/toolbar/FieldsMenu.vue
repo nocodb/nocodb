@@ -300,6 +300,17 @@ const showSystemField = computed({
   },
 })
 
+const fieldsMenuSearchRef = ref<HTMLInputElement>()
+
+watch(open, (value) => {
+  if (value) {
+    console.log('value', fieldsMenuSearchRef.value)
+    setTimeout(() => {
+      fieldsMenuSearchRef.value?.focus()
+    }, 100)
+  }
+})
+
 useMenuCloseOnEsc(open)
 </script>
 
@@ -337,40 +348,47 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <div class="p-4 pr-0 bg-white w-90 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div class="py-2 bg-white w-80 rounded-2xl nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex flex-col gap-y-2 pr-4 mb-6"
+          class="flex flex-col gap-y-2 px-2 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>
           <a-select
             v-model:value="coverImageColumnId"
             :options="coverOptions"
             class="w-full"
-            dropdown-class-name="nc-dropdown-cover-image"
+            dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
             @click.stop
           >
             <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
           </a-select>
         </div>
 
-        <div class="pr-4" @click.stop>
-          <a-input v-model:value="filterQuery" :placeholder="$t('placeholder.searchFields')" class="!rounded-lg">
-            <template #prefix> <img class="h-3.5 w-3.5 mr-1" src="~/assets/nc-icons/search.svg" /> </template
+        <div class="px-2" @click.stop>
+          <a-input
+            ref="fieldsMenuSearchRef"
+            v-model:value="filterQuery"
+            :placeholder="$t('placeholder.searchFields')"
+            class="!rounded-lg nc-fields-menu-search-field"
+          >
+            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
           ></a-input>
         </div>
 
-        <div v-if="!filterQuery" class="pr-4">
+        <div v-if="!filterQuery" class="px-2">
           <div class="pt-0.25 w-full bg-gray-50"></div>
         </div>
 
-        <div class="flex flex-col my-1.5 nc-scrollbar-md max-h-[47.5vh] pr-3">
+        <div class="flex flex-col mt-2 pb-2 nc-scrollbar-thin max-h-[47vh] px-2">
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
-              class="px-0.5 py-2 text-gray-500"
+              class="px-0.5 py-6 text-gray-500 flex flex-col items-center gap-6"
             >
-              {{ $t('title.noFieldsFound') }}
+              <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" />
+
+              {{ $t('title.noResultsMatchedYourSearch') }}
             </div>
             <Draggable v-model="fields" item-key="id" @change="onMove($event)">
               <template #item="{ element: field }">
@@ -382,13 +400,13 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="px-2 py-2 flex flex-row items-center first:border-t-1 border-b-1 border-x-1 first:rounded-t-lg last:rounded-b-lg border-gray-200"
+                  class="pl-2 flex flex-row items-center"
                   @click.stop
                 >
                   <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1"
+                    class="flex flex-row items-center w-full truncate cursor-pointer ml-1 py-2 pr-2"
                     @click="
                       () => {
                         field.show = !field.show
@@ -397,7 +415,7 @@ useMenuCloseOnEsc(open)
                     "
                   >
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
-                    <NcTooltip class="flex-1 px-1 truncate" show-on-truncate-only>
+                    <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
                       <template #title>
                         {{ field.title }}
                       </template>
@@ -453,7 +471,7 @@ useMenuCloseOnEsc(open)
                     'rounded-lg': filteredFieldList.length === 1,
                   }"
                   :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
-                  class="pl-7.4 pr-2 py-2 flex flex-row items-center border-1 border-gray-200"
+                  class="pl-7.4 pr-2 py-2 flex flex-row items-center"
                   @click.stop
                 >
                   <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
@@ -468,24 +486,23 @@ useMenuCloseOnEsc(open)
             </Draggable>
           </div>
         </div>
-        <div class="flex pr-4 mt-1 gap-2">
+        <div v-if="!filterQuery" class="flex items-center justify-between gap-2 px-2 pt-2 border-t-1 border-gray-200">
+          <div
+            v-if="!isPublic"
+            class="flex items-center gap-2 text-black-100 cursor-pointer select-none"
+            @click.stop="showSystemField = !showSystemField"
+          >
+            <NcSwitch :checked="showSystemField" class="nc-fields-show-system-fields" />
+            {{ $t('activity.showSystemFields') }}
+          </div>
+
           <NcButton
-            v-if="!filterQuery"
-            class="nc-fields-show-all-fields !text-gray-500 !w-1/2"
+            class="nc-fields-show-all-fields !text-black-100"
             size="small"
             type="ghost"
             @click="showAllColumns = !showAllColumns"
           >
-            {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
-          </NcButton>
-          <NcButton
-            v-if="!isPublic && !filterQuery"
-            class="nc-fields-show-system-fields !text-gray-500 !w-1/2"
-            size="small"
-            type="ghost"
-            @click="showSystemField = !showSystemField"
-          >
-            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
+            {{ showAllColumns ? $t('title.hideAll') : $t('general.showAll') }}
           </NcButton>
         </div>
       </div>
@@ -504,5 +521,15 @@ useMenuCloseOnEsc(open)
 
 :deep(.xxsmall) {
   @apply !min-w-0;
+}
+
+.nc-fields-menu-search-field {
+  .nc-search-icon {
+    @apply text-gray-500;
+  }
+
+  &.ant-input-affix-wrapper-focused .nc-search-icon {
+    @apply text-gray-800;
+  }
 }
 </style>

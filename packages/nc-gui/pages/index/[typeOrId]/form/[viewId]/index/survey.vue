@@ -226,13 +226,17 @@ const showSubmitConfirmModal = async () => {
 }
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
+  if (isMobileMode.value) return
+
   goPrevious(AnimationTarget.ArrowLeft)
 })
 onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
+  if (isMobileMode.value) return
+
   goNext(AnimationTarget.ArrowRight)
 })
 onKeyStroke(['Enter'], async (e) => {
-  if (submitted.value) return
+  if (isMobileMode.value || submitted.value) return
 
   if (!isStarted.value && !submitted.value) {
     onStart()
@@ -441,7 +445,10 @@ onMounted(() => {
                         </div>
                       </template>
 
-                      <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
+                      <div
+                        v-if="field.uidt === UITypes.LongText"
+                        class="hidden text-sm text-gray-500 md:flex flex-wrap items-center"
+                      >
                         {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
                         <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.info.makeLineBreak') }}
                       </div>

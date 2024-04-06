@@ -386,7 +386,7 @@ useMenuCloseOnEsc(open)
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
-              class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6"
+              class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
             >
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"

@@ -7,7 +7,6 @@ import {
   computed,
   iconMap,
   inject,
-  onClickOutside,
   ref,
   useFieldQuery,
   useSmartsheetStoreOrThrow,

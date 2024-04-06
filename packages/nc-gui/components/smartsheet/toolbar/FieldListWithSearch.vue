@@ -76,7 +76,7 @@ const onArrowUp = () => {
   handleAutoScrollOption()
 }
 
-const handleKeydownEnter = (e: KeyboardEvent) => {
+const handleKeydownEnter = () => {
   if (filteredOptions.value[activeFieldIndex.value]) {
     onClick(filteredOptions.value[activeFieldIndex.value])
   } else if (filteredOptions.value[0]) {

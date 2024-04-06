@@ -93,14 +93,14 @@ export class ToolbarGroupByPage extends BasePage {
 
     await this.rootPage
       .locator('.nc-group-by-create-modal')
-      .locator('.nc-group-by-column-search-item >> div', { hasText: regexTitle })
+      .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
       .scrollIntoViewIfNeeded();
 
     // select column
     const selectColumn = async () =>
       await this.rootPage
         .locator('.nc-group-by-create-modal')
-        .locator('.nc-group-by-column-search-item  >> div', { hasText: regexTitle })
+        .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
         .click({ force: true });
 
     await this.waitForResponse({

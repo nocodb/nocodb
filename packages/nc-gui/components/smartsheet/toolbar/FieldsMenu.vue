@@ -350,7 +350,11 @@ useMenuCloseOnEsc(open)
     </div>
 
     <template #overlay>
-      <div class="pt-2 bg-white w-full min-w-72 max-w-80 rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div
+        class="pt-2 bg-white w-full min-w-72 max-w-80 rounded-lg nc-table-toolbar-menu"
+        data-testid="nc-fields-menu"
+        @click.stop
+      >
         <div
           v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 px-2 mb-6"

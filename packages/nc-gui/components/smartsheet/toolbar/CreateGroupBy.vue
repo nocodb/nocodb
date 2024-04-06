@@ -12,12 +12,6 @@ const emits = defineEmits(['created'])
 
 const { isParentOpen, columns } = toRefs(props)
 
-const inputRef = ref()
-
-const search = ref('')
-
-const activeFieldIndex = ref(-1)
-
 const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
@@ -58,33 +52,12 @@ const options = computed<ColumnType[]>(
           )
         }
       })
-      .filter((c: ColumnType) => !groupBy.value.find((g) => g.column?.id === c.id))
-      .filter((c: ColumnType) => c.title?.toLowerCase().includes(search.value.toLowerCase())) ?? [],
+      .filter((c: ColumnType) => !groupBy.value.find((g) => g.column?.id === c.id)) ?? [],
 )
 
 const onClick = (column: ColumnType) => {
   emits('created', column)
 }
-
-watch(
-  isParentOpen,
-  () => {
-    if (!isParentOpen.value) return
-
-    search.value = ''
-    setTimeout(() => {
-      inputRef.value?.focus()
-    }, 100)
-  },
-  {
-    immediate: true,
-  },
-)
-
-onMounted(() => {
-  search.value = ''
-  activeFieldIndex.value = -1
-})
 </script>
 
 <template>

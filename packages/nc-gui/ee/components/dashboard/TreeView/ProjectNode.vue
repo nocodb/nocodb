@@ -14,8 +14,8 @@ import {
   openLink,
   storeToRefs,
   useBases,
-  useMagicKeys,
   useCopy,
+  useMagicKeys,
 } from '#imports'
 import { useNuxtApp } from '#app'
 

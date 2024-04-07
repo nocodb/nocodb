@@ -37,7 +37,7 @@ body {
 }
 
 .rc-virtual-list-holder-inner {
-  @apply !px-1.5
+  @apply !px-1.5;
 }
 
 .ant-layout-header {
@@ -57,7 +57,12 @@ main {
 }
 
 .mobile {
-  .nc-scrollbar-md, .nc-scrollbar-lg, .nc-scrollbar-x-md, .nc-scrollbar-dark-md, .nc-scrollbar-x-md-dark, .nc-scrollbar-x-lg {
+  .nc-scrollbar-md,
+  .nc-scrollbar-lg,
+  .nc-scrollbar-x-md,
+  .nc-scrollbar-dark-md,
+  .nc-scrollbar-x-md-dark,
+  .nc-scrollbar-x-lg {
     &::-webkit-scrollbar {
       width: 0px;
     }
@@ -115,11 +120,9 @@ main {
   }
 }
 
-
 .nc-scrollbar-x-md {
   overflow-x: auto !important;
   scrollbar-width: thin !important;
-
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -135,7 +138,6 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 4px;
     @apply bg-gray-200;
   }
@@ -148,7 +150,6 @@ main {
   overflow-y: auto !important;
   overflow-x: hidden;
   scrollbar-width: thin !important;
-
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -181,7 +182,6 @@ main {
   overflow-x: auto !important;
   scrollbar-width: thin !important;
 
-  
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -196,14 +196,11 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 4px;
-    background-color: rgba(0, 0, 0, 0.3)
-
+    background-color: rgba(0, 0, 0, 0.3);
   }
   &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4)
-
+    background-color: rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -224,7 +221,6 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 8px;
     @apply bg-gray-200;
   }
@@ -232,7 +228,6 @@ main {
     @apply bg-gray-300;
   }
 }
-
 
 main {
   @apply flex-0 w-full relative scrollbar-thin-dull;
@@ -259,13 +254,13 @@ a {
   @apply border-1 border-gray-200;
 
   .rc-virtual-list-scrollbar {
-      @apply !w-1;
+    @apply !w-1;
   }
-  
-  .rc-virtual-list-scrollbar-thumb{
+
+  .rc-virtual-list-scrollbar-thumb {
     @apply !bg-gray-200;
 
-    &:hover{
+    &:hover {
       @apply !bg-gray-300;
     }
   }
@@ -472,8 +467,8 @@ a {
 .ant-dropdown-menu-submenu {
   @apply !py-0;
 
-  &.ant-dropdown-menu-submenu-popup{
-    @apply border-1 border-gray-200
+  &.ant-dropdown-menu-submenu-popup {
+    @apply border-1 border-gray-200;
   }
 
   .ant-dropdown-menu,
@@ -547,11 +542,11 @@ a {
   @apply p-4;
 }
 
-.ant-select-item-option:hover{
+.ant-select-item-option:hover {
   @apply !bg-gray-100;
 }
 
-.ant-select-item-option-selected{
+.ant-select-item-option-selected {
   @apply !bg-white;
 }
 
@@ -657,7 +652,7 @@ a {
 }
 
 .nc-toolbar-dropdown {
-  @apply !rounded-2xl;
+  @apply !rounded-lg;
 }
 
 .ant-message {
@@ -719,7 +714,8 @@ a {
   .nc-emoji {
     @apply xs:(text-lg);
   }
-  .material-symbols, .nc-icon {
+  .material-symbols,
+  .nc-icon {
     @apply !xs:(text-xl -mt-0.25);
   }
 
@@ -751,17 +747,18 @@ a {
 .ant-message-notice-content {
   @apply !rounded-md;
 
-  .ant-message-custom-content{
+  .ant-message-custom-content {
     @apply flex items-center;
   }
 }
 
-svg.nc-cell-icon, svg.nc-virtual-cell-icon {
+svg.nc-cell-icon,
+svg.nc-virtual-cell-icon {
   @apply w-1em h-1em flex-none;
   font-size: 1rem;
 }
 
-// For select type field list layout 
+// For select type field list layout
 .nc-field-layout-list {
   @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
 
@@ -794,4 +791,23 @@ svg.nc-cell-icon, svg.nc-virtual-cell-icon {
       @apply !flex !pl-4 max-w-[calc(100%_-_16px)];
     }
   }
+}
+
+.nc-toolbar-dropdown-search-field-input {
+  @apply !rounded-lg;
+
+  .nc-search-icon {
+    @apply text-gray-400;
+  }
+
+  &:hover .nc-search-icon,
+  &.ant-input-affix-wrapper-focused .nc-search-icon {
+    @apply text-gray-800;
+  }
+}
+
+// switch - on tab focus show outline
+.ant-switch:focus-visible,
+.ant-switch-checked:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }

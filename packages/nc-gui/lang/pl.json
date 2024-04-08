@@ -199,8 +199,8 @@
     "dropdown": "Rozwijane menu",
     "list": "Lista",
     "apply": "Zastosuj",
-    "text": "Text",
-    "appearance": "Appearance"
+    "text": "Tekst",
+    "appearance": "Wygląd"
   },
   "objects": {
     "day": "Dzień",
@@ -468,6 +468,7 @@
     "noToken": "Brak tokenu",
     "tokenLimit": "Dozwolony tylko jeden token na użytkownika",
     "duplicateAttachment": "Plik o nazwie {filename} jest już załączony",
+    "tableIdColon": "ID TABELI: {tableId}",
     "viewIdColon": "ID WIDOKU: {viewId}",
     "toAddress": "Adresat",
     "subject": "Temat",
@@ -506,6 +507,7 @@
     "clickToHide": "Kliknij, aby ukryć",
     "clickToDownload": "Kliknij, aby pobrać",
     "forRole": "dla roli",
+    "clickToCopyTableID": "Kliknij, aby skopiować identyfikator tabeli",
     "clickToCopyViewID": "Kliknij, aby skopiować ID widoku",
     "viewMode": "Tryb widoku",
     "searchUsers": "Szukaj użytkowników",
@@ -701,7 +703,7 @@
     "hideNocodbBranding": "Ukryj branding NocoDB",
     "showOnConditions": "Pokaż na warunkach",
     "showFieldOnConditionsMet": "Pokazuje pole tylko, gdy spełnione są warunki",
-    "limitOptions": "Limit options",
+    "limitOptions": "Ogranicz opcje",
     "limitOptionsSubtext": "Ogranicz opcje widoczne dla użytkowników, wybierając dostępne opcje",
     "clearSelection": "Wyczyść wybór"
   },
@@ -974,7 +976,7 @@
     "clientKey": "Wybierz plik .key.",
     "clientCert": "Wybierz plik .Cert.",
     "clientCA": "Wybierz plik CA.",
-    "changeIconColour": "Change icon colour",
+    "changeIconColour": "Zmiana koloru ikony",
     "preFillFormInfo": "Generuj URL formularza udostępniania z wstępnie wypełnionymi danymi pola. Aby uzyskać link z wstępnie wypełnionymi danymi, upewnij się, że wypełniłeś wymagane pola w kreatorze widoku formularza.",
     "surveyFormInfo": "Tryb formularza z jednym polem na stronę"
   },
@@ -1124,7 +1126,7 @@
     "selectFieldToGroup": "Wybierz pole do grupowania",
     "thereAreNoRecordsInTable": "Nie ma rekordów w tabeli",
     "createWebhookMsg1": "Rozpocznij pracę z webhookami!",
-    "createWebhookMsg2": "Power your automations. Get notified as soon as there are changes in your data",
+    "createWebhookMsg2": "Zasil automatyzację. Otrzymuj powiadomienia jak tylko pojawią się zmiany w Twoich danych",
     "areYouSureUWantTo": "Czy na pewno chcesz usunąć następujące",
     "areYouSureUWantToDeleteLabel": "Czy na pewno chcesz {deleteLabel} następujące",
     "idColumnRequired": "Pole ID jest wymagane, możesz to później zmienić, jeśli będzie to konieczne.",

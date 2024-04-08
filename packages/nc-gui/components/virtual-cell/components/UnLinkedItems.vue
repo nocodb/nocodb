@@ -51,7 +51,7 @@ const {
   unlink,
   row,
   headerDisplayValue,
-  resetChildrenExcludedOffsetCount
+  resetChildrenExcludedOffsetCount,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -102,7 +102,7 @@ watch(
       }
       loadChildrenExcludedList(rowState.value)
     }
-    if(!nextVal){
+    if (!nextVal) {
       resetChildrenExcludedOffsetCount()
     }
   },
@@ -262,7 +262,7 @@ onUnmounted(() => {
 })
 
 const onFilterChange = () => {
-  childrenExcludedListPagination.page = 1;
+  childrenExcludedListPagination.page = 1
   resetChildrenExcludedOffsetCount()
 }
 </script>

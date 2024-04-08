@@ -14,6 +14,7 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import { useTitle } from '@vueuse/core'
 import { filterNullOrUndefinedObjectProperties } from '~/helpers/parsers/parserHelpers'
 import {
   NcErrorType,
@@ -132,25 +133,27 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {} as Record<string, FormColumnType>,
       )
 
-      columns.value = viewMeta.model?.columns?.map((c) => {
-        if (
-          !isSystemColumn(c) &&
-          !isVirtualCol(c) &&
-          !isAttachment(c) &&
-          c.uidt !== UITypes.SpecificDBType &&
-          c?.title &&
-          c?.cdf &&
-          !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
-        ) {
-          formState.value[c.title] = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
-        }
+      columns.value = (viewMeta.model?.columns || [])
+        .filter((c) => fieldById[c.id])
+        .map((c) => {
+          if (
+            !isSystemColumn(c) &&
+            !isVirtualCol(c) &&
+            !isAttachment(c) &&
+            c.uidt !== UITypes.SpecificDBType &&
+            c?.title &&
+            c?.cdf &&
+            !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
+          ) {
+            formState.value[c.title] = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+          }
 
-        return {
-          ...c,
-          meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
-          description: fieldById[c.id].description,
-        }
-      })
+          return {
+            ...c,
+            meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
+            description: fieldById[c.id].description,
+          }
+        })
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
@@ -188,6 +191,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (password.value && password.value !== '') {
           passwordError.value = error.message
         }
+      } else if (error.error === NcErrorType.UNKNOWN_ERROR) {
+        console.error('Error occurred while loading shared form view', e)
+        message.error('Error occurred while loading shared form view')
       }
     }
   }
@@ -540,6 +546,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   watch(password, (next, prev) => {
     if (next !== prev && passwordError.value) passwordError.value = null
   })
+
+  watch(
+    () => sharedFormView.value?.heading,
+    () => {
+      useTitle(`${sharedFormView.value?.heading ?? 'NocoDB'}`)
+    },
+    {
+      flush: 'post',
+    },
+  )
 
   return {
     sharedView,

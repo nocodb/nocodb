@@ -26,7 +26,7 @@ SSO-functionaliteit wordt bereikt door een verbinding tot stand te brengen met e
 
 Google OAuth, een afkorting van Open Authorization, is een veelgebruikt en gestandaardiseerd protocol dat veilige authenticatie- en autorisatieprocessen mogelijk maakt, vooral in de context van web- en mobiele applicaties. OAuth is ontwikkeld door Google en stelt gebruikers in staat applicaties van derden beperkte toegang tot hun bronnen te verlenen zonder hun inloggegevens vrij te geven. Dit autorisatieframework is gebaseerd op op tokens gebaseerde authenticatie, waarbij gebruikers kunnen inloggen met hun Google-inloggegevens, en ontwikkelaars een toegangstoken kunnen verkrijgen om namens de gebruiker met Google API's te communiceren.
 
-Volg de details in het artikel om mee te integreren[Google OAuth](google-oauth)
+Volg de details in het artikel om mee te integreren [Google OAuth](google-oauth)
 
 ### Security Assertion Markup Language (SAML)
 

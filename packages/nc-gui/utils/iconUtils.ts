@@ -172,6 +172,10 @@ import NcDiscord from '~icons/nc-icons/discord'
 import NcReddit from '~icons/nc-icons/reddit'
 import NcTwitter from '~icons/nc-icons/twitter'
 
+import NcFile from '~icons/nc-icons/file'
+import NcSettings from '~icons/nc-icons/settings'
+import NcHelp from '~icons/nc-icons/help'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -575,7 +579,10 @@ export const iconMap = {
   circleCheck2: NcCircleCheck,
   ncDiscord: NcDiscord,
   ncReddit: NcReddit,
-  ncTwitter: NcTwitter
+  ncTwitter: NcTwitter,
+  file: NcFile,
+  ncSettings: NcSettings,
+  ncHelp: NcHelp,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -1,25 +1,21 @@
 <script lang="ts" setup>
 import {
   computed,
-  message,
   navigateTo,
   onMounted,
   ref,
   storeToRefs,
-  useCopy,
   useGlobal,
   useSidebarStore,
   useUsers,
   watch,
 } from '#imports'
 
-const { user, signOut, token, appInfo } = useGlobal()
+const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
-
-const { copy } = useCopy(true)
 
 const name = computed(() => user.value?.display_name?.trim())
 
@@ -44,16 +40,6 @@ const logout = async () => {
     console.error(e)
   } finally {
     isLoggingOut.value = false
-  }
-}
-
-const onCopy = async () => {
-  try {
-    await copy(token.value!)
-    isAuthTokenCopied.value = true
-  } catch (e: any) {
-    console.error(e)
-    message.error(e.message)
   }
 }
 
@@ -99,16 +85,6 @@ onMounted(() => {
               <span class="menu-btn"> {{ $t('general.logout') }}</span>
             </div>
           </NcMenuItem>
-          <template v-if="!isMobileMode">
-            <NcMenuItem @click="onCopy">
-              <div v-e="['c:auth-token:copy']" class="flex gap-2 items-center">
-                <GeneralIcon v-if="isAuthTokenCopied" icon="check" class="group-hover:text-black menu-icon" />
-                <GeneralIcon v-else icon="copy" class="menu-icon" />
-                <template v-if="isAuthTokenCopied"> {{ $t('title.copiedAuthToken') }} </template>
-                <template v-else> {{ $t('title.copyAuthToken') }} </template>
-              </div>
-            </NcMenuItem>
-          </template>
           <NcDivider />
           <a
             v-e="['c:nocodb:discord']"
@@ -181,7 +157,7 @@ onMounted(() => {
               rel="noopener"
             >
               <NcMenuItem>
-                <GeneralIcon icon="help" class="menu-icon mt-0.5" />
+                <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('title.forum') }} </span>
               </NcMenuItem>
             </a>
@@ -194,7 +170,7 @@ onMounted(() => {
               rel="noopener"
             >
               <NcMenuItem>
-                <GeneralIcon icon="doc" class="menu-icon mt-0.5" />
+                <GeneralIcon icon="file" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('title.docs') }} </span>
               </NcMenuItem>
             </a>
@@ -202,7 +178,7 @@ onMounted(() => {
             <NcDivider />
 
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
-              <NcMenuItem> <GeneralIcon icon="settings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
+              <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>
           </template>
         </NcMenu>

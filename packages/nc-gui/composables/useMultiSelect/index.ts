@@ -764,16 +764,6 @@ export function useMultiSelect(
             }
           }
 
-          // Handle escape
-          if (e.key === 'Escape') {
-            if (selectedRange.isSingleCell()) return
-
-            selectedRange.clear()
-
-            activeCell.col = null
-            activeCell.row = null
-          }
-
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
           }

@@ -1606,6 +1606,38 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       throw e;
     }
   }
+
+  public async afterUpdate(
+    prevData: any,
+    newData: any,
+    _trx: any,
+    req,
+    _updateObj?: Record<string, any>,
+  ): Promise<void> {
+    // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
+    const id = this._extractPksValues(newData);
+    const desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.UPDATE,
+      description: desc,
+      details: '',
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
+    const ignoreWebhook = req.query?.ignoreWebhook;
+    if (ignoreWebhook) {
+      if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
+        throw new Error('ignoreWebhook value can be either true or false');
+      }
+    }
+    if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
+      await this.handleHooks('after.update', prevData, newData, req);
+    }
+  }
 }
 
 export {

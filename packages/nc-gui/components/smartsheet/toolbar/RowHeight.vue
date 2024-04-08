@@ -94,7 +94,7 @@ useMenuCloseOnEsc(open)
     </div>
     <template #overlay>
       <div
-        class="w-full bg-white shadow-lg p-1.5 menu-filter-dropdown border-1 border-gray-200 rounded-md overflow-hidden w-[160px]"
+        class="w-full bg-white shadow-lg p-1.5 menu-filter-dropdown border-1 border-gray-200 rounded-lg overflow-hidden w-[160px]"
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>

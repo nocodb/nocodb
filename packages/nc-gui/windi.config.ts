@@ -46,6 +46,8 @@ export default defineConfig({
     'color-transition': 'transition-colors duration-100 ease-in',
     'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
     'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-100 scrollbar-track-white',
+    'nc-scrollbar-thin':
+      'scrollbar scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent',
   },
 
   theme: {

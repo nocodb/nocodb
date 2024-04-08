@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{ checked: boolean; disabled?: boolean; size?: 'default' | 'small' }>(), {
+const props = withDefaults(defineProps<{ checked: boolean; disabled?: boolean; size?: 'default' | 'small' | 'xsmall' }>(), {
   size: 'small',
 })
 
@@ -31,3 +31,27 @@ const onChange = (e: boolean) => {
     <slot />
   </span>
 </template>
+
+<style lang="scss" scoped>
+.size-xsmall {
+  @apply h-3.5 min-w-[26px] leading-[14px];
+
+  :deep(.ant-switch-handle) {
+    @apply h-[10px] w-[10px] top-[2px] left-[calc(100%_-_24px)];
+  }
+
+  :deep(.ant-switch-inner) {
+    @apply !mr-[5px] !ml-[18px] !my-0;
+  }
+
+  &.ant-switch-checked {
+    :deep(.ant-switch-handle) {
+      @apply left-[calc(100%_-_12px)];
+    }
+
+    :deep(.ant-switch-inner) {
+      @apply !mr-[18px] !ml-[5px];
+    }
+  }
+}
+</style>

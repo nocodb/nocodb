@@ -337,15 +337,16 @@ function isDateType(uidt: UITypes) {
   <div
     class="menu-filter-dropdown"
     :class="{
-      'max-h-[max(80vh,500px)] min-w-112 py-6 pl-6': !nested,
+      'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
       'w-full ': nested,
+      'py-4': !filters.length,
     }"
   >
     <div
       v-if="filters && filters.length"
       ref="wrapperDomRef"
-      class="flex flex-col gap-y-3 nc-filter-grid pb-2 w-full"
-      :class="{ 'max-h-420px nc-scrollbar-md  pr-3.5 nc-filter-top-wrapper': !nested }"
+      class="flex flex-col gap-y-3 nc-filter-grid w-full"
+      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -544,7 +545,14 @@ function isDateType(uidt: UITypes) {
     </div>
 
     <template v-if="isEeUI && !isPublic">
-      <div v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)" ref="addFiltersRowDomRef" class="flex gap-2">
+      <div
+        v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
+        ref="addFiltersRowDomRef"
+        class="flex gap-2"
+        :class="{
+          'mt-1 mb-2': filters.length,
+        }"
+      >
         <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />
@@ -563,7 +571,13 @@ function isDateType(uidt: UITypes) {
       </div>
     </template>
     <template v-else>
-      <div ref="addFiltersRowDomRef" class="flex gap-2">
+      <div
+        ref="addFiltersRowDomRef"
+        class="flex gap-2"
+        :class="{
+          'mt-1 mb-2': filters.length,
+        }"
+      >
         <NcButton size="small" type="text" class="!text-brand-500" @click.stop="addFilter()">
           <div class="flex items-center gap-1">
             <component :is="iconMap.plus" />

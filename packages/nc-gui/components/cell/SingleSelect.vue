@@ -254,12 +254,6 @@ const onKeydown = (e: KeyboardEvent) => {
 
   if (e.key === 'Escape') {
     isOpen.value = false
-
-    if (isForm.value) return
-
-    setTimeout(() => {
-      aselect.value?.$el.querySelector('.ant-select-selection-search > input').focus()
-    }, 100)
   }
 }
 

@@ -7,6 +7,8 @@ const emit = defineEmits(['change', 'update:checked'])
 
 const checked = useVModel(props, 'checked', emit)
 
+const switchSize = computed(() => (['default', 'small'].includes(props.size) ? props.size : undefined))
+
 const onChange = (e: boolean) => {
   emit('change', e)
 }
@@ -21,7 +23,7 @@ const onChange = (e: boolean) => {
       'size-xsmall': size === 'xsmall',
     }"
     v-bind="$attrs"
-    :size="size === 'xsmall' ? undefined : size"
+    :size="switchSize"
     @change="onChange"
   >
   </a-switch>

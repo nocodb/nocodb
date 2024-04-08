@@ -459,7 +459,10 @@ onMounted(() => {
                         </div>
                       </template>
 
-                      <div v-if="field.uidt === UITypes.LongText" class="hidden text-sm text-gray-500 md:flex flex-wrap items-center">
+                      <div
+                        v-if="field.uidt === UITypes.LongText"
+                        class="hidden text-sm text-gray-500 md:flex flex-wrap items-center"
+                      >
                         {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
                         <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> {{ $t('msg.info.makeLineBreak') }}
                       </div>

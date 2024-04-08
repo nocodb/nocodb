@@ -810,6 +810,8 @@ test.describe.serial('Webhook', () => {
       });
     }
 
+    await dashboard.grid.clickRow(0);
+
     // Select one record and delete
     await dashboard.grid.selectRow(0);
     await dashboard.grid.deleteSelectedRows();

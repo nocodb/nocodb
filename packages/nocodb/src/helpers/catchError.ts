@@ -514,6 +514,10 @@ const errorHelpers: {
     message: (feature: string) => `${feature} is not implemented`,
     code: 501,
   },
+  [NcErrorType.BAD_JSON]: {
+    message: 'Invalid JSON in request body',
+    code: 400,
+  },
 };
 
 function generateError(

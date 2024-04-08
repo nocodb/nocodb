@@ -11,7 +11,7 @@ const props = defineProps<{
   showSelectedOption?: boolean
 }>()
 
-const emits = defineEmits(['selected'])
+const emits = defineEmits<{ selected: [ColumnType] }>()
 
 const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, options, showSelectedOption } = toRefs(props)
 

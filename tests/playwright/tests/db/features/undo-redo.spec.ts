@@ -144,7 +144,9 @@ test.describe('Undo Redo', () => {
     await verifyRecords([555, 666]);
 
     // Row.Delete
+    await grid.clickRow(10, 'Number');
     await grid.deleteRow(10, 'Number');
+    await grid.clickRow(10, 'Number');
     await grid.deleteRow(10, 'Number');
     await verifyRecords([]);
 

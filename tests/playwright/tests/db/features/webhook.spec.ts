@@ -173,6 +173,7 @@ test.describe.serial('Webhook', () => {
     // verify that the hook is not triggered (count doesn't change in this case)
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
     await verifyHookTrigger(1, null, request);
+    await dashboard.grid.clickRow(0);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(1, null, request);
 
@@ -208,6 +209,7 @@ test.describe.serial('Webhook', () => {
       request,
       buildExpectedResponseData('records.after.update', 'Delaware', 'Poole')
     );
+    await dashboard.grid.clickRow(0);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(3, 'Delaware', request);
 
@@ -241,6 +243,7 @@ test.describe.serial('Webhook', () => {
       request,
       buildExpectedResponseData('records.after.update', 'Delaware', 'Poole')
     );
+    await dashboard.grid.clickRow(0);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(4, 'Delaware', request, buildExpectedResponseData('records.after.delete', 'Delaware'));
 
@@ -282,6 +285,7 @@ test.describe.serial('Webhook', () => {
     await verifyHookTrigger(0, 'Poole', request);
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
     await verifyHookTrigger(0, 'Delaware', request);
+    await dashboard.grid.clickRow(0);
     await dashboard.grid.deleteRow(0);
 
     // for delete, the hook should be triggered (thrice in this case)
@@ -313,6 +317,7 @@ test.describe.serial('Webhook', () => {
     await verifyHookTrigger(0, '', request);
     await dashboard.grid.editRow({ index: 0, value: 'Delaware' });
     await verifyHookTrigger(0, '', request);
+    await dashboard.grid.clickRow(0);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(0, '', request);
   });
@@ -397,7 +402,9 @@ test.describe.serial('Webhook', () => {
       request,
       buildExpectedResponseData('records.after.update', 'Poole', 'Delaware')
     );
+    await dashboard.grid.clickRow(1);
     await dashboard.grid.deleteRow(1);
+    await dashboard.rootPage.waitForTimeout(3000);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(3, 'Poole', request, buildExpectedResponseData('records.after.delete', 'Poole'));
 
@@ -439,6 +446,7 @@ test.describe.serial('Webhook', () => {
       request,
       buildExpectedResponseData('records.after.update', 'Poole', 'Delaware')
     );
+    await dashboard.grid.clickRow(1);
     await dashboard.grid.deleteRow(1);
     await dashboard.grid.deleteRow(0);
     await verifyHookTrigger(8, 'Delaware', request, buildExpectedResponseData('records.after.delete', 'Delaware'));
@@ -801,6 +809,8 @@ test.describe.serial('Webhook', () => {
         value: titles[i],
       });
     }
+
+    await dashboard.grid.clickRow(0);
 
     // Select one record and delete
     await dashboard.grid.selectRow(0);

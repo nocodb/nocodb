@@ -212,6 +212,9 @@ export class GridPage extends BasePage {
   }
 
   async deleteRow(index: number, title = 'Title') {
+    await this.get().getByTestId(`cell-${title}-${index}`).click();
+    await this.rootPage.waitForTimeout(300);
+
     await this.get().getByTestId(`cell-${title}-${index}`).click({
       button: 'right',
     });

@@ -766,9 +766,9 @@ export function useMultiSelect(
 
           // Handle escape
           if (e.key === 'Escape') {
-            selectedRange.clear()
-
             if (selectedRange.isSingleCell()) return
+
+            selectedRange.clear()
 
             activeCell.col = null
             activeCell.row = null

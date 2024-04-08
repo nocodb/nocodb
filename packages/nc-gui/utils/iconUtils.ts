@@ -168,6 +168,10 @@ import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
 
+import NcDiscord from '~icons/nc-icons/discord'
+import NcReddit from '~icons/nc-icons/reddit'
+import NcTwitter from '~icons/nc-icons/twitter'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -569,6 +573,9 @@ export const iconMap = {
   phoneCall: NcPhoneCall,
   crop: NcCrop,
   circleCheck2: NcCircleCheck,
+  ncDiscord: NcDiscord,
+  ncReddit: NcReddit,
+  ncTwitter: NcTwitter
 }
 
 export const getMdiIcon = (type: string): any => {

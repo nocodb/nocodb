@@ -118,7 +118,7 @@ onMounted(() => {
             rel="noopener noreferrer"
           >
             <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="discord" />
+              <GeneralIcon class="social-icon" icon="ncDiscord" />
               <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
             </NcMenuItem>
           </a>
@@ -130,7 +130,7 @@ onMounted(() => {
             rel="noopener noreferrer"
           >
             <NcMenuItem class="social-icon-wrapper">
-              <GeneralIcon class="social-icon" icon="reddit" />
+              <GeneralIcon class="social-icon" icon="ncReddit" />
               <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
             </NcMenuItem>
           </a>
@@ -142,7 +142,7 @@ onMounted(() => {
             rel="noopener noreferrer"
           >
             <NcMenuItem class="social-icon-wrapper group">
-              <GeneralIcon class="text-gray-500 group-hover:text-gray-800 my-0.5" icon="twitter" />
+              <GeneralIcon class="social-icon text-gray-500 group-hover:text-gray-800" icon="ncTwitter" />
               <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
             </NcMenuItem>
           </a>
@@ -222,9 +222,9 @@ onMounted(() => {
   line-height: 1.5;
 }
 .menu-icon {
-  @apply !min-h-4.5;
+  @apply w-4 h-4;
   line-height: 1rem;
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
 :deep(.ant-popover-inner-content) {
@@ -232,7 +232,7 @@ onMounted(() => {
 }
 
 .social-icon {
-  @apply my-0.5;
+  @apply my-0.5 w-4 h-4 stroke-transparent;
   // Make icon black and white
   filter: grayscale(100%);
 

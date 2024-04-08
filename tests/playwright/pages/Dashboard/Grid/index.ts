@@ -211,10 +211,12 @@ export class GridPage extends BasePage {
     return await expect(this.get().locator(`td[data-testid="cell-Title-${index}"]`)).toHaveCount(0);
   }
 
-  async deleteRow(index: number, title = 'Title') {
+  async clickRow(index: number, title = 'Title') {
     await this.get().getByTestId(`cell-${title}-${index}`).click();
     await this.rootPage.waitForTimeout(300);
+  }
 
+  async deleteRow(index: number, title = 'Title') {
     await this.get().getByTestId(`cell-${title}-${index}`).click({
       button: 'right',
     });

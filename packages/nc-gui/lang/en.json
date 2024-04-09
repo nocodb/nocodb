@@ -434,7 +434,7 @@
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
-    "noResultsMatchedYourSearch": "No results matched your search"
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
     "selectYear": "Select Year",
@@ -977,7 +977,7 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "changeIconColour": "Change Icon Colour",
+    "changeIconColour": "Change icon colour",
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page"
   },

@@ -176,7 +176,7 @@ onMounted(() => {
     </NcDropdown>
 
     <template v-if="isMobileMode"></template>
-    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3 mt-1">© 2023 NocoDB. Inc</div>
+    <div v-else-if="appInfo.ee" class="text-gray-500 text-xs pl-3 mt-1">© 2024 NocoDB. Inc</div>
     <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
       <GeneralJoinCloud />
     </div>

@@ -433,7 +433,8 @@
     },
     "selectFieldsFromRightPannelToAddHere": "Selecciona los campos del panel derecho para añadirlos aquí",
     "noOptionsFound": "No options found",
-    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?"
+    "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
     "selectYear": "Seleccionar Año",

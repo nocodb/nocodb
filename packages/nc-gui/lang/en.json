@@ -434,7 +434,7 @@
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
-    "noResultsMatchedYourSearch": "Your search did not yield any matching results."
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results"
   },
   "labels": {
     "selectYear": "Select Year",

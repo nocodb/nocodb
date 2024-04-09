@@ -433,7 +433,8 @@
     },
     "selectFieldsFromRightPannelToAddHere": "从右侧面板选择要添加的字段",
     "noOptionsFound": "未找到选项",
-    "surveyFormSubmitConfirmMsg": "您确定要提交吗？"
+    "surveyFormSubmitConfirmMsg": "您确定要提交吗？",
+    "noResultsMatchedYourSearch": "Your search did not yield any matching results."
   },
   "labels": {
     "selectYear": "选择年份",

@@ -28,6 +28,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    // catch body-parser error and replace with NcBaseErrorv2
+    if (
+      exception.name === 'BadRequestException' &&
+      exception.status === 400 &&
+      /^Unexpected token .*? in JSON/.test(exception.message)
+    ) {
+      exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
+    }
+
     // skip unnecessary error logging
     if (
       process.env.NC_ENABLE_ALL_API_ERROR_LOGGING === 'true' ||

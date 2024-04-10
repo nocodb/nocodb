@@ -55,7 +55,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[HEADER_NAME1];
           },
-          name: 'meta1',
+          name: 'meta-gui',
         },
         {
           ttl: config.data.ttl,
@@ -71,7 +71,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
           skipIf: (context) => {
             return !context.switchToHttp().getRequest().headers[HEADER_NAME1];
           },
-          name: 'data1',
+          name: 'data-gui',
         },
         {
           ttl: config.public.ttl,

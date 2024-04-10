@@ -1,6 +1,3 @@
-process.env['NC_THROTTLER_REDIS'] = 'redis://localhost:6379/0';
-
-// import { Logger as PinoLogger } from 'nestjs-pino';
 import NocoCE from 'src/Noco';
 import type { INestApplication } from '@nestjs/common';
 import { NcLogger } from '~/utils/logger/NcLogger';

@@ -19,7 +19,7 @@ export class DataApiLimiterGuardEE extends ThrottlerGuard {
       {
         ..._config,
         throttlers: _config.throttlers.filter(
-          (t) => t.name === 'data' || t.name === 'data1',
+          (t) => t.name === 'data' || t.name === 'data-gui',
         ),
       },
       storageService,

@@ -18,7 +18,9 @@ export class MetaApiLimiterGuardEE extends ThrottlerGuard {
     super(
       {
         ..._config,
-        throttlers: _config.throttlers.filter((t) => t.name === 'meta' || t.name === 'meta1'),
+        throttlers: _config.throttlers.filter(
+          (t) => t.name === 'meta' || t.name === 'meta-gui',
+        ),
       },
       storageService,
       reflector,

@@ -89,6 +89,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledformState = ref<Record<string, any>>({})
 
+  const preFilledDefaultValueformState = ref<Record<string, any>>({})
+
   const { state: additionalState } = useProvideSmartsheetRowStore(
     meta as Ref<TableType>,
     ref({
@@ -145,7 +147,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             c?.cdf &&
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
-            formState.value[c.title] = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+            const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+            
+            formState.value[c.title] = defaultValue
+            preFilledDefaultValueformState.value[c.title] = defaultValue
           }
 
           return {
@@ -318,9 +323,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
     additionalState.value = {}
     formState.value = {
-      ...([PreFilledMode.Locked, PreFilledMode.Hidden].includes(sharedViewMeta.value.preFilledMode)
-        ? preFilledformState.value
-        : {}),
+      ...preFilledDefaultValueformState.value,
+      ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
     }
     v$.value?.$reset()
   }
@@ -344,7 +348,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (preFillValue !== undefined) {
           // Prefill form state
           formState.value[c.title] = preFillValue
-          // preFilledformState will be used in clear for to fill the filled data
+          // preFilledformState will be used in clear form to fill the prefilled data
           preFilledformState.value[c.title] = preFillValue
 
           // Update column
@@ -537,9 +541,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if (sharedFormView.value?.show_blank_form) {
         clearInterval(intvl)
       }
-      additionalState.value = {}
-      formState.value = {}
-      v$.value?.$reset()
+      clearForm()
     }
   })
 

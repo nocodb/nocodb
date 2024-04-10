@@ -134,8 +134,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
     tableId = tableId ?? tablesStore.activeTableId
 
     if (tableId) {
-      if (!force && viewsByTable.value.get(tableId)) return
+      if (!force && viewsByTable.value.get(tableId)) {
+        viewsByTable.value.set(
+          tableId,
+          viewsByTable.value.get(tableId).sort((a, b) => a.order! - b.order!),
+        )
 
+        return
+      }
       if (!ignoreLoading) isViewsLoading.value = true
 
       const response = (await $api.dbView.list(tableId)).list as ViewType[]

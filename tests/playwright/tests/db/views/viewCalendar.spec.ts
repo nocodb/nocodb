@@ -288,7 +288,7 @@ test.describe('Calendar View', () => {
     await dashboard.viewSidebar.deleteView({ title: 'Calendar' });
   });
 
-  test.skip('Calendar Drag and Drop & Undo Redo Operations', async () => {
+  test('Calendar Drag and Drop & Undo Redo Operations', async () => {
     test.slow();
 
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
@@ -350,7 +350,7 @@ test.describe('Calendar View', () => {
 
     await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
 
-    await dashboard.rootPage.waitForTimeout(5000);
+    await dashboard.rootPage.waitForTimeout(2000);
 
     await calendar.calendarDayDateTime.dragAndDrop({
       record: 'Team Catchup',

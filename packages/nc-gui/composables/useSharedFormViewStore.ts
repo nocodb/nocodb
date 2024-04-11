@@ -148,7 +148,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
             const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
-            
+
             formState.value[c.title] = defaultValue
             preFilledDefaultValueformState.value[c.title] = defaultValue
           }

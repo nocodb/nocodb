@@ -221,9 +221,10 @@ const newRecord = () => {
           @click="emit('expandRecord', record)"
         >
           <template v-for="(field, id) in fields" :key="id">
-            <LazySmartsheetCalendarCell
+            <LazySmartsheetPlainCell
               v-if="!isRowEmpty(record, field!)"
               v-model="record.row[field!.title!]"
+              class="text-xs"
               :bold="getFieldStyle(field).bold"
               :column="field"
               :italic="getFieldStyle(field).italic"

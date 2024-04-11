@@ -433,7 +433,7 @@ onUnmounted(() => {
                 @dragover.prevent
               >
                 <template v-if="!isRowEmpty(record, displayField)">
-                  <LazySmartsheetCalendarCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                  <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>
               </LazySmartsheetCalendarSideRecordCard>
             </LazySmartsheetRow>

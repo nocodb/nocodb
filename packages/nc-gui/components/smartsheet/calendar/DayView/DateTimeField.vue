@@ -98,7 +98,6 @@ const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => {
 }
 
 const hasSlotForRecord = (
-  record: Row,
   columnArray: Row[],
   dates: {
     fromDate: dayjs.Dayjs
@@ -133,61 +132,10 @@ const hasSlotForRecord = (
   }
   return true
 }
-
-const getMaxOfGrid = (
-  {
-    fromDate,
-    toDate,
-  }: {
-    fromDate: dayjs.Dayjs
-    toDate: dayjs.Dayjs
-  },
-  gridTimeMap: Map<
-    number,
-    {
-      count: number
-      id: string[]
-    }
-  >,
-) => {
-  let max = 0
-  const gridTimes = getGridTimeSlots(fromDate, toDate)
-
-  for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
-    if (gridTimeMap.has(gridCounter) && gridTimeMap.get(gridCounter).count && gridTimeMap.get(gridCounter).count > max) {
-      max = gridTimeMap.get(gridCounter).count
-    }
-  }
-  return max
-}
-const isOverlaps = (row1: Row, row2: Row) => {
-  const fromCol1 = row1.rowMeta.range?.fk_from_col
-  const toCol1 = row1.rowMeta.range?.fk_to_col
-  const fromCol2 = row2.rowMeta.range?.fk_from_col
-  const toCol2 = row2.rowMeta.range?.fk_to_col
-
-  if (!fromCol1 || !fromCol2) return false
-
-  const { startDate: startDate1, endDate: endDate1 } = calculateNewDates({
-    endDate: toCol1 ? dayjs(row1.row[toCol1.title!]) : dayjs(row1.row[fromCol1.title!]).add(1, 'hour').subtract(1, 'minute'),
-    startDate: dayjs(row1.row[fromCol1.title!]),
-    scheduleStart: dayjs(selectedDate.value).startOf('day'),
-    scheduleEnd: dayjs(selectedDate.value).endOf('day'),
-  })
-
-  const { startDate: startDate2, endDate: endDate2 } = calculateNewDates({
-    endDate: toCol2 ? dayjs(row2.row[toCol2.title!]) : dayjs(row2.row[fromCol2.title!]).add(1, 'hour').subtract(1, 'minute'),
-    startDate: dayjs(row2.row[fromCol2.title!]),
-    scheduleStart: dayjs(selectedDate.value).startOf('day'),
-    scheduleEnd: dayjs(selectedDate.value).endOf('day'),
-  })
-
-  return startDate1.isBetween(startDate2, endDate2, null, '[]') || endDate1.isBetween(startDate2, endDate2, null, '[]')
-}
-
 const getMaxOverlaps = ({
   row,
   gridTimeMap,
+  columnArray,
 }: {
   row: Row
   gridTimeMap: Map<
@@ -197,12 +145,13 @@ const getMaxOverlaps = ({
       id: string[]
     }
   >
+  columnArray: Array<Array<Row>>
 }) => {
   const visited: Set<string> = new Set()
   const graph: Map<string, Set<string>> = new Map()
 
   // Build the graph
-  for (const [gridTime, { id: ids }] of gridTimeMap) {
+  for (const [_gridTime, { id: ids }] of gridTimeMap) {
     for (const id1 of ids) {
       if (!graph.has(id1)) {
         graph.set(id1, new Set())
@@ -215,8 +164,6 @@ const getMaxOverlaps = ({
     }
   }
 
-  console.log(graph)
-
   const dfs = (id: string): number => {
     visited.add(id)
     let maxOverlaps = 1
@@ -224,7 +171,7 @@ const getMaxOverlaps = ({
     if (neighbors) {
       for (const neighbor of neighbors) {
         if (!visited.has(neighbor)) {
-          maxOverlaps += dfs(neighbor)
+          maxOverlaps = Math.min(Math.max(maxOverlaps, dfs(neighbor) + 1), columnArray.length)
         }
       }
     }
@@ -434,7 +381,7 @@ const recordsAcrossAllRange = computed<{
 
     for (const column in columnArray) {
       if (
-        hasSlotForRecord(record, columnArray[column], {
+        hasSlotForRecord(columnArray[column], {
           fromDate: startDate,
           toDate: endDate,
         })
@@ -451,27 +398,6 @@ const recordsAcrossAllRange = computed<{
   }
   for (const columnIndex in columnArray) {
     for (const record of columnArray[columnIndex]) {
-      const recordRange = record.rowMeta.range
-      const fromCol = recordRange?.fk_from_col
-      const toCol = recordRange?.fk_to_col
-
-      if (!fromCol) continue
-
-      const { startDate, endDate } = calculateNewDates({
-        startDate: dayjs(record.row[fromCol.title!]),
-        endDate: toCol ? dayjs(record.row[toCol.title!]) : dayjs(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-        scheduleStart,
-        scheduleEnd,
-      })
-
-      record.rowMeta.numberOfOverlaps =
-        getMaxOfGrid(
-          {
-            fromDate: startDate,
-            toDate: endDate,
-          },
-          gridTimeMap,
-        ) - 1
       record.rowMeta.overLapIteration = parseInt(columnIndex) + 1
     }
   }
@@ -479,18 +405,23 @@ const recordsAcrossAllRange = computed<{
     const numberOfOverlaps = getMaxOverlaps({
       row: record,
       gridTimeMap,
+      columnArray,
     })
-
-    console.log(record.row[displayField.value.title], numberOfOverlaps)
 
     record.rowMeta.numberOfOverlaps = numberOfOverlaps
 
     let width
-    let left
+    let left = 100
+    let display = 'block'
 
     if (numberOfOverlaps && numberOfOverlaps > 0) {
-      width = 100 / numberOfOverlaps
-      left = width * (record.rowMeta.overLapIteration! - 1)
+      width = 100 / Math.min(numberOfOverlaps, 8)
+
+      if (record.rowMeta.overLapIteration! - 1 > 7) {
+        display = 'none'
+      } else {
+        left = width * (record.rowMeta.overLapIteration! - 1)
+      }
     } else {
       width = 100
       left = 0
@@ -498,6 +429,7 @@ const recordsAcrossAllRange = computed<{
 
     record.rowMeta.style = {
       ...record.rowMeta.style,
+      display,
       width: `${width.toFixed(2)}%`,
       left: `${left.toFixed(2)}%`,
     }

@@ -356,20 +356,20 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <template>
   <span
-    class="calendar-cell text-xs before:px-1"
+    class="plain-cell before:px-1"
     :class="{
       'font-bold': bold,
       'italic': italic,
       'underline': underline,
     }"
-    data-testid="nc-calendar-cell"
+    data-testid="nc-plain-cell"
   >
     {{ parseValue(modelValue, column) }}
   </span>
 </template>
 
 <style lang="scss" scoped>
-.calendar-cell {
+.plain-cell {
   &::before {
     content: '•';
     padding: 0 4px;

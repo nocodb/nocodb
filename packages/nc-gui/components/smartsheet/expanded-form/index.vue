@@ -19,6 +19,7 @@ import {
   IsPublicInj,
   MetaInj,
   ReloadRowDataHookInj,
+  computed,
   computedInject,
   createEventHook,
   iconMap,
@@ -116,6 +117,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
   }
   return _fields?.value ?? []
 })
+
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
   // todo: figure out when meta.value is undefined
@@ -493,8 +496,7 @@ watch([expandedFormScrollWrapper, isLoading], () => {
   const expandedFormScrollWrapperEl = expandedFormScrollWrapper.value
 
   if (expandedFormScrollWrapperEl && !isLoading.value) {
-    const height = expandedFormScrollWrapperEl.scrollHeight
-    expandedFormScrollWrapperEl.scrollTop = height
+    expandedFormScrollWrapperEl.scrollTop = expandedFormScrollWrapperEl.scrollHeight
 
     setTimeout(() => {
       expandedFormScrollWrapperEl.scrollTop = 0
@@ -555,8 +557,8 @@ export default {
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div v-else-if="displayValue && !row.rowMeta?.new" class="flex items-center font-bold text-gray-800 text-xl w-64">
-              <span class="truncate">
-                {{ displayValue }}
+              <span class="truncate !text-xl">
+                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>

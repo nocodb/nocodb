@@ -7,7 +7,6 @@ import { generateRandomNumber, isRowEmpty } from '~/utils'
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const {
-  // activeCalendarView,
   selectedDate,
   selectedTime,
   formattedData,
@@ -419,6 +418,24 @@ const recordsAcrossAllRange = computed<{
 
       if (record.rowMeta.overLapIteration! - 1 > 7) {
         display = 'none'
+        gridTimeMap.forEach((value, key) => {
+          if (value.id.includes(record.rowMeta.id!)) {
+            if (!overlaps[key]) {
+              overlaps[key] = {
+                id: value.id,
+                overflow: true,
+                overflowCount: value.id.length,
+              }
+            } else {
+              overlaps[key].overflow = true
+              value.id.forEach((id) => {
+                if (!overlaps[key].id.includes(id)) {
+                  overlaps[key].id.push(id)
+                }
+              })
+            }
+          }
+        })
       } else {
         left = width * (record.rowMeta.overLapIteration! - 1)
       }
@@ -727,7 +744,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
   let overflowCount = 0
 
   while (startOfHour.isBefore(endOfHour, 'minute')) {
-    const hourKey = startOfHour.format('HH:mm')
+    const hourKey = startOfHour.hour() * 60 + startOfHour.minute()
     if (recordsAcrossAllRange.value?.count?.[hourKey]?.overflow) {
       isOverflow = true
 

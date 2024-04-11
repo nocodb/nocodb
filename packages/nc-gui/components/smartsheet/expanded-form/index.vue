@@ -893,8 +893,8 @@ export default {
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-          <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
-            {{ displayValue }}
+          <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
+            <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
           </div>
         </div>
       </span>

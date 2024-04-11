@@ -76,7 +76,6 @@ let hookRef = reactive<
   version: 'v2',
 })
 
-const isBodyShownEasterEgg = ref(false)
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
 
 const urlTabKey = ref<'params' | 'headers' | 'body'>('params')
@@ -478,13 +477,6 @@ const getDefaultHookName = (hooks: HookType[]) => {
   return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
 }
 
-const handleToggleEasterEgg = () => {
-  isBodyShownEasterEgg.value = !isBodyShownEasterEgg.value
-  if (!(isBodyShown.value && isBodyShownEasterEgg.value) && urlTabKey.value === 'body') {
-    urlTabKey.value = 'params'
-  }
-}
-
 watch(
   () => hookRef.eventOperation,
   () => {
@@ -662,7 +654,6 @@ onMounted(async () => {
                 size="large"
                 class="nc-select-hook-url-method"
                 dropdown-class-name="nc-dropdown-hook-notification-url-method"
-                @dblclick="handleToggleEasterEgg"
               >
                 <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
                   <div class="flex items-center gap-2 justify-between">
@@ -700,7 +691,7 @@ onMounted(async () => {
                   <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" class="!p-4" />
                 </a-tab-pane>
 
-                <a-tab-pane v-if="isBodyShown && isBodyShownEasterEgg" key="body" tab="Body">
+                <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                   <LazyMonacoEditor
                     v-model="hookRef.notification.payload.body"
                     disable-deep-compare
@@ -812,7 +803,7 @@ onMounted(async () => {
 
           <a-row>
             <a-col :span="24">
-              <div v-if="isBodyShown && isBodyShownEasterEgg" class="text-gray-600">
+              <div v-if="isBodyShown" class="text-gray-600">
                 <div class="flex items-center">
                   <em
                     >{{ $t('msg.webhookBodyMsg1') }} <strong>{{ $t('msg.webhookBodyMsg2') }}</strong>

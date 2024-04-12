@@ -215,28 +215,6 @@ watch(openedTableId, () => {
       @click="onOpenTable"
     >
       <div class="flex flex-row h-full items-center">
-        <NcButton
-          v-e="['c:table:toggle-expand']"
-          type="text"
-          size="xxsmall"
-          class="nc-sidebar-node-btn nc-sidebar-expand"
-          @click.stop="onExpand"
-        >
-          <GeneralLoader
-            v-if="table.isViewsLoading"
-            class="flex w-4 h-4 !text-gray-600 !mt-0.75"
-            :class="{
-              '!visible': !isExpanded,
-            }"
-          />
-          <GeneralIcon
-            v-else
-            icon="triangleFill"
-            class="nc-sidebar-source-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
-            :class="{ '!rotate-180': isExpanded }"
-          />
-        </NcButton>
-
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
           <div
             v-e="['c:table:emoji-picker']"
@@ -380,6 +358,27 @@ watch(openedTableId, () => {
           </NcDropdown>
         </div>
       </div>
+      <NcButton
+        v-e="['c:table:toggle-expand']"
+        type="text"
+        size="xxsmall"
+        class="nc-sidebar-node-btn nc-sidebar-expand"
+        @click.stop="onExpand"
+      >
+        <GeneralLoader
+          v-if="table.isViewsLoading"
+          class="flex w-4 h-4 !text-gray-600 !mt-0.75"
+          :class="{
+            '!visible': !isExpanded,
+          }"
+        />
+        <GeneralIcon
+          v-else
+          icon="chevronDown"
+          class="nc-sidebar-source-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 !text-gray-600 rotate-270"
+          :class="{ '!rotate-180': isExpanded }"
+        />
+      </NcButton>
     </div>
     <DlgTableDelete
       v-if="table.id && base?.id"

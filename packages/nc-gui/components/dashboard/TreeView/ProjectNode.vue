@@ -433,20 +433,6 @@ const onTableIdCopy = async () => {
           :data-testid="`nc-sidebar-base-title-${base.title}`"
           class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
         >
-          <NcButton
-            v-e="['c:base:expand']"
-            type="text"
-            size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
-            @click="onProjectClick(base, true, true)"
-          >
-            <GeneralIcon
-              icon="triangleFill"
-              class="group-hover:visible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.75 rotate-90 !xs:visible"
-              :class="{ '!rotate-180': base.isExpanded, '!visible': isOptionsOpen }"
-            />
-          </NcButton>
-
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
               <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
@@ -625,6 +611,20 @@ const onTableIdCopy = async () => {
             @click.stop="addNewProjectChildEntity"
           >
             <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+          </NcButton>
+
+          <NcButton
+            v-e="['c:base:expand']"
+            type="text"
+            size="xxsmall"
+            class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:visible"
+            @click="onProjectClick(base, true, true)"
+          >
+            <GeneralIcon
+              icon="chevronDown"
+              class="group-hover:visible cursor-pointer transform transition-transform duration-500 rotate-270 !xs:visible"
+              :class="{ '!rotate-180': base.isExpanded, '!visible': isOptionsOpen }"
+            />
           </NcButton>
         </div>
       </div>

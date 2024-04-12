@@ -279,7 +279,7 @@ const deleteTable = () => {
         </div>
       </div>
       <NcTooltip
-        class="nc-tbl-title nc-sidebar-node-title text-ellipsis w-full overflow-hidden select-none"
+        class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none !flex-1"
         show-on-truncate-only
       >
         <template #title>{{ table.title }}</template>

@@ -252,7 +252,7 @@ watch(isDropdownOpen, async () => {
         v-if="isEditing"
         :ref="focusInput"
         v-model:value="_title"
-        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0"
+        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
         :class="{
           'font-medium': activeView?.id === vModel.id,
         }"
@@ -283,6 +283,7 @@ watch(isDropdownOpen, async () => {
               '!visible !opacity-100': isDropdownOpen,
             }"
             @click.stop="isDropdownOpen = !isDropdownOpen"
+            @dblclick.stop
           >
             <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
           </NcButton>

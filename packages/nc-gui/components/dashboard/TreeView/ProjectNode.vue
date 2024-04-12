@@ -459,7 +459,7 @@ const onTableIdCopy = async () => {
             v-if="editMode"
             ref="input"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent w-[98%]"
+            class="flex-grow leading-1 outline-0 ring-none capitalize !text-inherit !bg-transparent flex-1 mr-4"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode }"
             @click.stop
             @keyup.enter="updateProjectTitle"
@@ -468,7 +468,7 @@ const onTableIdCopy = async () => {
           />
           <NcTooltip
             v-else
-            class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
+            class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
             show-on-truncate-only
@@ -478,7 +478,6 @@ const onTableIdCopy = async () => {
               {{ base.title }}
             </span>
           </NcTooltip>
-          <div :class="{ 'flex flex-grow h-full': !editMode }" @click="onProjectClick(base)"></div>
 
           <template v-if="!editMode">
             <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
@@ -625,7 +624,7 @@ const onTableIdCopy = async () => {
               v-e="['c:base:expand']"
               type="text"
               size="xxsmall"
-              class="nc-sidebar-node-btn nc-sidebar-expand ml-0.75 !xs:opacity-100"
+              class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
               :class="{
                 '!opacity-100': isOptionsOpen,
               }"
@@ -678,7 +677,6 @@ const onTableIdCopy = async () => {
                           class="flex-none nc-sidebar-source-node-btns -mt-0.75 invisible xs:visible cursor-pointer transform transition-transform duration-500 text-gray-500 rotate-270"
                           :class="{ '!rotate-180': isActive }"
                         />
-                      </div>
                       </div>
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">

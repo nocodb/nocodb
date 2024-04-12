@@ -1610,11 +1610,11 @@ onKeyStroke('ArrowDown', onDown)
                   >
                     <td
                       key="row-index"
-                      class="caption nc-grid-cell pl-2 pr-1 w-[52px] min-w-[52px]"
+                      class="caption nc-grid-cell w-[64px] min-w-[64px]"
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
-                      <div class="items-center flex gap-1 min-w-[60px]">
+                      <div class="pl-2 pr-1 items-center flex gap-1">
                         <div
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
@@ -1648,7 +1648,7 @@ onKeyStroke('ArrowDown', onDown)
                           <span
                             v-if="row.rowMeta?.commentCount && expandForm"
                             v-e="['c:expanded-form:open']"
-                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                             :style="{
                               backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
                             }"
@@ -2220,7 +2220,7 @@ onKeyStroke('ArrowDown', onDown)
 
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
-      @apply bg-gray-100 bg-opacity-50;
+      @apply bg-gray-100 border-b-gray-200 border-r-gray-200;
     }
   }
 }

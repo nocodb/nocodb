@@ -271,7 +271,6 @@ watch(isDropdownOpen, async () => {
           {{ vModel.alias || vModel.title }}
         </div>
       </NcTooltip>
-      <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
@@ -279,9 +278,9 @@ watch(isDropdownOpen, async () => {
             v-e="['c:view:option']"
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn invisible !group-hover:visible nc-sidebar-view-node-context-btn"
+            class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-view-node-context-btn"
             :class="{
-              '!visible': isDropdownOpen,
+              '!visible !opacity-100': isDropdownOpen,
             }"
             @click.stop="isDropdownOpen = !isDropdownOpen"
           >

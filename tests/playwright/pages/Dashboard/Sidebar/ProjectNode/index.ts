@@ -24,12 +24,20 @@ export class SidebarProjectNodeObject extends BasePage {
   async clickOptions({ baseTitle }: { baseTitle: string }) {
     await this.get({
       baseTitle,
+    }).hover();
+
+    await this.get({
+      baseTitle,
     })
       .getByTestId(`nc-sidebar-context-menu`)
       .click();
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
+    await this.get({
+      baseTitle,
+    }).hover();
+
     const addBtn = await this.get({
       baseTitle,
     }).getByTestId('nc-sidebar-add-base-entity');
@@ -65,6 +73,10 @@ export class SidebarProjectNodeObject extends BasePage {
     deleteVisible?: boolean;
     copyProjectInfoVisible?: boolean;
   }) {
+    await this.get({
+      baseTitle,
+    }).hover();
+
     const renameLocator = await this.rootPage
       .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
       .getByTestId('nc-sidebar-base-rename');

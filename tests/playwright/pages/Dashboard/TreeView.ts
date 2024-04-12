@@ -61,7 +61,9 @@ export class TreeViewPage extends BasePage {
   }
 
   async focusTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).focus();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .focus();
   }
 
   async openBase({ title }: { title: string }) {
@@ -164,10 +166,17 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .waitFor({ state: 'visible' });
 
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).scrollIntoViewIfNeeded();
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .scrollIntoViewIfNeeded();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .locator('.nc-tbl-context-menu')
+      .click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({
@@ -186,9 +195,16 @@ export class TreeViewPage extends BasePage {
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).waitFor({ state: 'visible' });
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).scrollIntoViewIfNeeded();
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).locator('.nc-tbl-context-menu').click();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .waitFor({ state: 'visible' });
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .scrollIntoViewIfNeeded();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .locator('.nc-tbl-context-menu')
+      .click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Rename")').click();
 
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
@@ -222,18 +238,25 @@ export class TreeViewPage extends BasePage {
   }
 
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
-    await this.get().locator(`.nc-base-tree-tbl-${title} .nc-table-icon`).click();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')} .nc-table-icon`)
+      .click();
 
     await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
-      this.get().locator(`.nc-base-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get()
+        .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+        .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
   async duplicateTable(title: string, includeData = true, includeViews = true) {
-    await this.get().locator(`.nc-base-tree-tbl-${title}`).locator('.nc-icon.ant-dropdown-trigger').click();
+    await this.get()
+      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+      .locator('.nc-icon.ant-dropdown-trigger')
+      .click();
     await this.dashboard.get().locator('div.nc-base-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
@@ -261,9 +284,11 @@ export class TreeViewPage extends BasePage {
   async verifyTabIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    await this.rootPage.locator(`.nc-base-tree-tbl-${title}`).waitFor({ state: 'visible' });
+    await this.rootPage.locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`).waitFor({ state: 'visible' });
     await expect(
-      this.get().locator(`.nc-base-tree-tbl-${title}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get()
+        .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
+        .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 

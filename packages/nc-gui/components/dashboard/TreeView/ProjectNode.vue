@@ -424,7 +424,7 @@ const onTableIdCopy = async () => {
     <div
       class="mx-1 nc-base-sub-menu rounded-md"
       :class="{ active: base.isExpanded }"
-      :data-testid="`nc-sidebar-base-${base.title?.replaceAll(' ', '')}`"
+      :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
       <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('base', base)">

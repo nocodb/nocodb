@@ -670,25 +670,29 @@ const onTableIdCopy = async () => {
                     ghost
                   >
                     <template #expandIcon="{ isActive }">
-                      <div
-                        class="flex-none nc-sidebar-expand nc-sidebar-node-btn flex flex-row items-center xs:(mt-3 border-1 border-gray-200 px-1 py-0.5 rounded-md !ml-0.25) !right-2"
+                      <NcButton
+                        v-e="['c:external:base:expand']"
+                        type="text"
+                        size="xxsmall"
+                        class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
+                        :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
                       >
                         <GeneralIcon
                           icon="chevronDown"
-                          class="flex-none nc-sidebar-source-node-btns -mt-0.75 invisible xs:visible cursor-pointer transform transition-transform duration-500 text-gray-500 rotate-270"
+                          class="flex-none cursor-pointer transform transition-transform duration-500 rotate-270"
                           :class="{ '!rotate-180': isActive }"
                         />
-                      </div>
+                      </NcButton>
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
-                        <div class="nc-sidebar-node min-w-20 w-full flex flex-row group py-0.25 pr-6.5 !mr-0">
+                        <div class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.25 pr-6.5 !mr-0">
                           <div
                             v-if="sourceIndex === 0"
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
                             {{ $t('general.default') }}
                           </div>
                           <div
@@ -696,22 +700,29 @@ const onTableIdCopy = async () => {
                             class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
-                            <GeneralBaseLogo class="min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
-                            <div
-                              :data-testid="`nc-sidebar-base-${source.alias}`"
-                              class="nc-sidebar-node-title flex capitalize text-ellipsis overflow-hidden select-none"
+                            <GeneralBaseLogo
+                              class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm) !text-gray-600 !group-hover:text-gray-800"
+                            />
+                            <NcTooltip
+                              class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
                               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+                              :class="{
+                                'text-black font-semibold': activeProjectId === base.id && baseViewOpen && !isMobileMode,
+                              }"
+                              show-on-truncate-only
                             >
-                              {{ source.alias || '' }}
-                            </div>
-                            <a-tooltip class="xs:(hidden)">
+                              <template #title> {{ source.alias || '' }}</template>
+                              <span :data-testid="`nc-sidebar-base-${source.alias}`">
+                                {{ source.alias || '' }}
+                              </span>
+                            </NcTooltip>
+                            <NcTooltip class="xs:(hidden) flex items-center mr-1">
                               <template #title>{{ $t('objects.externalDb') }}</template>
-                              <div>
-                                <GeneralIcon icon="info" class="text-gray-400 -mt-0.5 hover:text-gray-700 mr-1" />
-                              </div>
-                            </a-tooltip>
+
+                              <GeneralIcon icon="info" class="flex-none text-gray-400 hover:text-gray-700 mr-1" />
+                            </NcTooltip>
                           </div>
-                          <div class="flex flex-row items-center gap-x-0.25 w-12.25">
+                          <div class="flex flex-row items-center gap-x-0.25">
                             <NcDropdown
                               :visible="isBasesOptionsOpen[source!.id!]"
                               :trigger="['click']"
@@ -720,7 +731,7 @@ const onTableIdCopy = async () => {
                               <NcButton
                                 v-e="['c:source:options']"
                                 class="nc-sidebar-node-btn"
-                                :class="{ '!text-black !opacity-100': isBasesOptionsOpen[source!.id!] }"
+                                :class="{ '!text-black !opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
                                 type="text"
                                 size="xxsmall"
                                 @click.stop="isBasesOptionsOpen[source!.id!] = !isBasesOptionsOpen[source!.id!]"
@@ -755,6 +766,7 @@ const onTableIdCopy = async () => {
                               type="text"
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
+                              :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
                               @click.stop="openTableCreateDialog(sourceIndex)"
                             >
                               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
@@ -857,7 +869,11 @@ const onTableIdCopy = async () => {
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 !xs:(pl-7) !pr-0.5 !py-0.5 hover:bg-gray-200 xs:(hover:bg-gray-50 ) !rounded-md;
+  @apply !mx-0 !pl-8.75 h-7.1 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+
+  .ant-collapse-arrow {
+    @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5);
+  }
 }
 
 :deep(.ant-collapse-item) {
@@ -868,7 +884,13 @@ const onTableIdCopy = async () => {
   @apply !px-0 !pb-0 !pt-0.25;
 }
 
-:deep(.ant-collapse-header:hover .nc-sidebar-source-node-btns) {
-  @apply visible;
+:deep(.ant-collapse-header:hover) {
+  .nc-sidebar-node-btn {
+    @apply !opacity-100 !inline-block;
+
+    &:not(.nc-sidebar-expand) {
+      @apply !xs:hidden;
+    }
+  }
 }
 </style>

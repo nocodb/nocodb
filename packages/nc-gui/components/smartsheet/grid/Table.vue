@@ -2062,8 +2062,8 @@ onKeyStroke('ArrowDown', onDown)
   td,
   th {
     @apply border-gray-100 border-solid border-r bg-gray-50;
-    min-height: 41px !important;
-    height: 41px !important;
+    min-height: 32px !important;
+    height: 32px !important;
     position: relative;
   }
 

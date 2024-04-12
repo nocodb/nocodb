@@ -197,7 +197,7 @@ const keydownSpace = (e: KeyboardEvent) => {
   <div
     ref="attachmentCellRef"
     :style="{
-      height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+      height: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 30px)`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center w-full xs:(min-h-12 max-h-32)"
     :class="{ 'justify-center': !active, 'justify-between': active, 'px-2': isExpandedForm }"
@@ -236,15 +236,15 @@ const keydownSpace = (e: KeyboardEvent) => {
 
         <div
           v-if="active || !visibleItems.length || (isForm && visibleItems.length)"
-          class="flex items-center gap-1 xs:(w-full min-w-12 h-8 justify-center)"
+          class="flex items-center gap-1 xs:(w-full min-w-12 h-7 justify-center)"
         >
           <MaterialSymbolsAttachFile
-            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-tiny"
           />
           <div
             v-if="!visibleItems.length"
             data-rec="true"
-            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs xs:(justify-center rounded-lg text-sm)"
+            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-tiny xs:(justify-center rounded-lg text-sm)"
           >
             {{ $t('activity.addFiles') }}
           </div>
@@ -260,7 +260,7 @@ const keydownSpace = (e: KeyboardEvent) => {
         :class="{ 'justify-center': !isExpandedForm && !isGallery && !isKanban }"
         class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
-          maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 41px)`,
+          maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 30px)`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">

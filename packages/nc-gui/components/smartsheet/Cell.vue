@@ -194,7 +194,7 @@ onUnmounted(() => {
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       {
-        'text-brand-500': isPrimary(column) && !props.virtual && !isForm && !isCalendar,
+        'nc-display-value-cell': isPrimary(column) && !props.virtual && !isForm && !isCalendar,
         'nc-grid-numeric-cell-right':
           isGrid &&
           isNumericField &&
@@ -278,6 +278,28 @@ onUnmounted(() => {
 }
 
 .nc-cell {
+  @apply text-small text-gray-600;
+  font-weight: 500;
+
+  &.nc-display-value-cell {
+    @apply text-brand-500;
+  }
+
+  input {
+    @apply text-small leading-4;
+    font-weight: 500;
+  }
+
+  :deep(.ant-picker-input) {
+    @apply text-small leading-4;
+    font-weight: 500;
+
+    input {
+      @apply text-small leading-4;
+      font-weight: 500;
+    }
+  }
+
   :deep(.nc-cell-field) {
     @apply px-0;
   }

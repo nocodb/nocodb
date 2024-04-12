@@ -71,6 +71,10 @@ export default defineConfig({
           min: '1780px',
         },
       },
+      fontSize: {
+        tiny: ['11px', '14px'],
+        small: ['13px', '16px'],
+      },
       fontWeight: {
         thin: 150,
         extraLight: 250,

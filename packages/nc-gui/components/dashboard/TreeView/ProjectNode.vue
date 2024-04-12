@@ -424,7 +424,7 @@ const onTableIdCopy = async () => {
     <div
       class="mx-1 nc-base-sub-menu rounded-md"
       :class="{ active: base.isExpanded }"
-      :data-testid="`nc-sidebar-base-${base.title}`"
+      :data-testid="`nc-sidebar-base-${base.title?.replaceAll(' ', '')}`"
       :data-base-id="base.id"
     >
       <div class="flex items-center gap-0.75 py-0.25 cursor-pointer" @contextmenu="setMenuContext('base', base)">
@@ -472,9 +472,10 @@ const onTableIdCopy = async () => {
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             :class="{ 'text-black font-semibold': activeProjectId === base.id && baseViewOpen }"
             show-on-truncate-only
+            @click="onProjectClick(base)"
           >
             <template #title>{{ base.title }}</template>
-            <span @click="onProjectClick(base)">
+            <span>
               {{ base.title }}
             </span>
           </NcTooltip>

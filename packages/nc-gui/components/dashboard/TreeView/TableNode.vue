@@ -215,7 +215,7 @@ const deleteTable = () => {
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"
-    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title}`]"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title?.replaceAll(' ', '')}`]"
     :data-active="openedTableId === table.id"
   >
     <div
@@ -233,7 +233,9 @@ const deleteTable = () => {
     >
       <div class="flex flex-row h-full items-center">
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+          <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-gray-600" />
           <div
+            v-else
             v-e="['c:table:emoji-picker']"
             class="flex items-center nc-table-icon"
             :class="{
@@ -391,15 +393,7 @@ const deleteTable = () => {
         }"
         @click.stop="onExpand"
       >
-        <GeneralLoader
-          v-if="table.isViewsLoading"
-          class="flex w-4 h-4 !text-gray-600 !mt-0.75"
-          :class="{
-            '!visible': !isExpanded,
-          }"
-        />
         <GeneralIcon
-          v-else
           icon="chevronDown"
           class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-500 !text-gray-600 rotate-270"
           :class="{ '!rotate-180': isExpanded }"

@@ -872,7 +872,7 @@ const onTableIdCopy = async () => {
   @apply !mx-0 !pl-8.75 h-7.1 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 
   .ant-collapse-arrow {
-    @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5);
+    @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
   }
 }
 

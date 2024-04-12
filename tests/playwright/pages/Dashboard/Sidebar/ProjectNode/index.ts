@@ -12,7 +12,7 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   get({ baseTitle }: { baseTitle: string }) {
-    return this.sidebar.get().getByTestId(`nc-sidebar-base-${baseTitle}`);
+    return this.sidebar.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`);
   }
 
   async click({ baseTitle }: { baseTitle: string }) {
@@ -36,16 +36,19 @@ export class SidebarProjectNodeObject extends BasePage {
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
     await this.get({
       baseTitle,
+    }).waitFor({ state: 'visible' });
+    await this.get({
+      baseTitle,
+    }).scrollIntoViewIfNeeded();
+    await this.get({
+      baseTitle,
     }).hover();
 
-    const addBtn = await this.get({
+    const addBtn = this.get({
       baseTitle,
     }).getByTestId('nc-sidebar-add-base-entity');
 
     if (visible) {
-      await addBtn.hover({
-        force: true,
-      });
       await expect(addBtn).toBeVisible();
     } else await expect(addBtn).toHaveCount(0);
   }
@@ -73,6 +76,12 @@ export class SidebarProjectNodeObject extends BasePage {
     deleteVisible?: boolean;
     copyProjectInfoVisible?: boolean;
   }) {
+    await this.get({
+      baseTitle,
+    }).waitFor({ state: 'visible' });
+    await this.get({
+      baseTitle,
+    }).scrollIntoViewIfNeeded();
     await this.get({
       baseTitle,
     }).hover();

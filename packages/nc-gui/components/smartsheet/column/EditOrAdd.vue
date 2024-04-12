@@ -208,6 +208,13 @@ onMounted(() => {
         emit('add', formState.value)
       }
     }
+
+    if (isForm.value && !props.fromTableExplorer) {
+      setTimeout(() => {
+        antInput.value?.focus()
+        antInput.value?.select()
+      }, 100)
+    }
   })
 })
 

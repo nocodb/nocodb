@@ -794,7 +794,7 @@ const onTableIdCopy = async () => {
       <NcMenu
         class="!py-0 rounded text-sm"
         :class="{
-          '!min-w-70': contextMenuTarget.type === 'table',
+          '!min-w-62.5': contextMenuTarget.type === 'table',
         }"
       >
         <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'"></template>

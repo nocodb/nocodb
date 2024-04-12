@@ -259,10 +259,11 @@ const deleteTable = () => {
                   <component
                     :is="iconMap.table"
                     v-if="table.type === 'table'"
-                    class="w-4 !text-gray-600 text-sm"
+                    class="w-4 text-sm"
                     :class="{
-                      '!group-hover:text-gray-800': isUIAllowed('tableSort', { roles: baseRole }),
-                      '!text-gray-800': openedTableId === table.id,
+                      '!group-hover:text-gray-700': isUIAllowed('tableSort', { roles: baseRole }),
+                      '!text-gray-700': openedTableId === table.id,
+                      '!text-gray-600/75': openedTableId !== table.id,
                     }"
                   />
 
@@ -312,7 +313,7 @@ const deleteTable = () => {
         </NcButton>
 
         <template #overlay>
-          <NcMenu class="!min-w-70" :data-testid="`sidebar-table-context-menu-list-${table.title}`">
+          <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`">
             <NcTooltip>
               <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
               <div

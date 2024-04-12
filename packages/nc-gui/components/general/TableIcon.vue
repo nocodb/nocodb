@@ -18,5 +18,5 @@ const { meta: tableMeta } = defineProps<{
   />
 
   <component :is="iconMap.eye" v-else-if="tableMeta?.type === 'view'" class="w-4 mx-0.75" />
-  <component :is="iconMap.table" v-else class="w-4 mx-0.5 !text-gray-600" />
+  <component :is="iconMap.table" v-else class="w-4 mx-0.5 !text-gray-600/75" />
 </template>

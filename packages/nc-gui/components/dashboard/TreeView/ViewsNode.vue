@@ -217,8 +217,8 @@ watch(isDropdownOpen, async () => {
   <a-menu-item
     class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
     :class="{
-      '!pl-13.5 !xs:(pl-19.75)': isDefaultBase,
-      '!pl-19 !xs:(pl-27)': !isDefaultBase,
+      '!pl-13.5 !xs:(pl-12)': isDefaultBase,
+      '!pl-19 ': !isDefaultBase,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"

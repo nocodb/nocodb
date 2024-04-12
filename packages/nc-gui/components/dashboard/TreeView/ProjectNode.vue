@@ -845,7 +845,7 @@ const onTableIdCopy = async () => {
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 !xs:(pl-8) !pr-0.5 !py-0.5 hover:bg-gray-200 xs:(hover:bg-gray-50 ) !rounded-md;
+  @apply !mx-0 !pl-8.75 !xs:(pl-7) !pr-0.5 !py-0.5 hover:bg-gray-200 xs:(hover:bg-gray-50 ) !rounded-md;
 }
 
 :deep(.ant-collapse-item) {

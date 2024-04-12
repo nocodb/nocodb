@@ -10,7 +10,7 @@ import { iconMap } from '#imports'
   >
     <div class="flex flex-col">
       <div class="flex items-center gap-1.5 p-2">
-        <component :is="iconMap.table" />
+        <component :is="iconMap.table" class="!text-gray-600" />
         <div>{{ $t('objects.table') }}</div>
       </div>
 

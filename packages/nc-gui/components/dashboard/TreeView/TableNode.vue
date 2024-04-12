@@ -240,10 +240,10 @@ watch(openedTableId, () => {
                   <component
                     :is="iconMap.table"
                     v-if="table.type === 'table'"
-                    class="flex w-5 !text-gray-500 text-sm"
+                    class="w-4 !text-gray-600 text-sm"
                     :class="{
-                      'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: baseRole }),
-                      '!text-black': openedTableId === table.id,
+                      '!group-hover:text-gray-800': isUIAllowed('tableSort', { roles: baseRole }),
+                      '!text-gray-800': openedTableId === table.id,
                     }"
                   />
 

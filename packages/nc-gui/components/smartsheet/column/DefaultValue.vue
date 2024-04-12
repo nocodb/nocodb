@@ -56,7 +56,7 @@ watch(
         :edit-enabled="true"
         :model-value="cdfValue"
         :column="vModel"
-        class="!border-none h-auto my-auto"
+        class="!border-none"
         @update:cdf="updateCdfValue"
         @update:edit-enabled="editEnabled = $event"
         @click="editEnabled = true"

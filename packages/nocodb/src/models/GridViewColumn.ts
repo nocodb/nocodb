@@ -100,8 +100,6 @@ export default class GridViewColumn implements GridColumnType {
       insertObj.source_id = viewRef.source_id;
     }
 
-    insertObj.width = column?.width ?? '180px';
-
     const { id, fk_column_id } = await ncMeta.metaInsert2(
       null,
       null,

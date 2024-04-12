@@ -102,7 +102,7 @@ onUnmounted(() => {
     class="nc-virtual-cell w-full flex items-center"
     :class="{
       'text-right justify-end': isGrid && !isForm && isRollup(column) && !isExpandedForm,
-      'nc-display-value-cell': isPrimary(column) && !isForm,
+      'text-brand-500': isPrimary(column) && !isForm,
     }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
@@ -124,14 +124,3 @@ onUnmounted(() => {
     </template>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-virtual-cell {
-  @apply text-small leading-4;
-  font-weight: 500;
-
-  &.nc-display-value-cell {
-    @apply text-brand-500;
-  }
-}
-</style>

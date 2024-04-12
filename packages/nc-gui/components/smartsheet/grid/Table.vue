@@ -1412,8 +1412,8 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
               </tr>
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
-                <th class="w-[64px] min-w-[64px]" data-testid="grid-id-column" @dblclick="() => {}">
-                  <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
+                <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
+                  <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
@@ -1454,7 +1454,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(col.id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-800"
+                    class="w-full h-full flex items-center"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -1477,7 +1477,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1610,11 +1610,11 @@ onKeyStroke('ArrowDown', onDown)
                   >
                     <td
                       key="row-index"
-                      class="caption nc-grid-cell w-[64px] min-w-[64px]"
+                      class="caption nc-grid-cell pl-5 pr-1"
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
-                      <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
+                      <div class="items-center flex gap-1 min-w-[60px]">
                         <div
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
@@ -1648,7 +1648,7 @@ onKeyStroke('ArrowDown', onDown)
                           <span
                             v-if="row.rowMeta?.commentCount && expandForm"
                             v-e="['c:expanded-form:open']"
-                            class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                             :style="{
                               backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
                             }"
@@ -1698,9 +1698,9 @@ onKeyStroke('ArrowDown', onDown)
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
                       :style="{
-                        'min-width': gridViewCols[columnObj.id]?.width || '180px',
-                        'max-width': gridViewCols[columnObj.id]?.width || '180px',
-                        'width': gridViewCols[columnObj.id]?.width || '180px',
+                        'min-width': gridViewCols[columnObj.id]?.width || '200px',
+                        'max-width': gridViewCols[columnObj.id]?.width || '200px',
+                        'width': gridViewCols[columnObj.id]?.width || '200px',
                       }"
                       :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                       :data-key="`data-key-${rowIndex}-${columnObj.id}`"
@@ -1758,7 +1758,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="addEmptyRow()"
               >
                 <div
-                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  class="h-10.5 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                 >
                   <component
                     :is="iconMap.plus"
@@ -2062,17 +2062,13 @@ onKeyStroke('ArrowDown', onDown)
   td,
   th {
     @apply border-gray-100 border-solid border-r bg-gray-50;
-    min-height: 32px !important;
-    height: 32px !important;
+    min-height: 41px !important;
+    height: 41px !important;
     position: relative;
   }
 
   th {
     @apply border-b-1 border-gray-200;
-
-    :deep(.name) {
-      @apply text-gray-800 text-small;
-    }
   }
 
   .nc-grid-header th:last-child {
@@ -2162,14 +2158,14 @@ onKeyStroke('ArrowDown', onDown)
     thead th:nth-child(2) {
       position: sticky !important;
       z-index: 5;
-      left: 64px;
+      left: 85px;
       @apply border-r-1 border-r-gray-200;
     }
 
     tbody td:nth-child(2) {
       position: sticky !important;
       z-index: 4;
-      left: 64px;
+      left: 85px;
       background: white;
       @apply border-r-1 border-r-gray-100;
     }
@@ -2221,11 +2217,6 @@ onKeyStroke('ArrowDown', onDown)
     .nc-row-expand-and-checkbox {
       @apply !xs:hidden flex;
     }
-
-    td.nc-grid-cell:not(.active),
-    td:nth-child(2):not(.active) {
-      @apply bg-gray-100 border-b-gray-200 border-r-gray-200;
-    }
   }
 }
 
@@ -2244,6 +2235,10 @@ onKeyStroke('ArrowDown', onDown)
       @apply flex;
     }
   }
+}
+
+tbody tr:hover {
+  @apply bg-gray-100 bg-opacity-50;
 }
 
 .nc-required-cell {

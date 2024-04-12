@@ -296,7 +296,7 @@ const deleteTable = () => {
         </span>
       </NcTooltip>
 
-      <NcDropdown :trigger="['click']" v-model:visible="isOptionsOpen" class="nc-sidebar-node-btn" @click.stop>
+      <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']" class="nc-sidebar-node-btn" @click.stop>
         <NcButton
           v-e="['c:table:option']"
           class="nc-sidebar-node-btn text-gray-600"

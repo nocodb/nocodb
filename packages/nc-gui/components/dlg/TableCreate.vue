@@ -139,7 +139,7 @@ onMounted(() => {
   <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" class="!text-gray-600"/>
+        <GeneralIcon icon="table" class="!text-gray-600" />
         {{ $t('activity.createTable') }}
       </div>
     </template>

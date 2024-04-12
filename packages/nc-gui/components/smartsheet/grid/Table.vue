@@ -1614,7 +1614,7 @@ onKeyStroke('ArrowDown', onDown)
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
-                      <div class="pl-2 pr-1 items-center flex gap-1">
+                      <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
                         <div
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
@@ -1698,9 +1698,9 @@ onKeyStroke('ArrowDown', onDown)
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
                       :style="{
-                        'min-width': gridViewCols[columnObj.id]?.width || '200px',
-                        'max-width': gridViewCols[columnObj.id]?.width || '200px',
-                        'width': gridViewCols[columnObj.id]?.width || '200px',
+                        'min-width': gridViewCols[columnObj.id]?.width || '180px',
+                        'max-width': gridViewCols[columnObj.id]?.width || '180px',
+                        'width': gridViewCols[columnObj.id]?.width || '180px',
                       }"
                       :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                       :data-key="`data-key-${rowIndex}-${columnObj.id}`"

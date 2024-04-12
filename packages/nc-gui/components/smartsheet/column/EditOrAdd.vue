@@ -209,12 +209,12 @@ onMounted(() => {
       }
     }
 
-    if (!isForm.value || props.fromTableExplorer) return
-
-    setTimeout(() => {
-      antInput.value?.focus()
-      antInput.value?.select()
-    }, 100)
+    if (isForm.value && !props.fromTableExplorer) {
+      setTimeout(() => {
+        antInput.value?.focus()
+        antInput.value?.select()
+      }, 100)
+    }
   })
 })
 

@@ -431,7 +431,7 @@ const onTableIdCopy = async () => {
             'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
           }"
           :data-testid="`nc-sidebar-base-title-${base.title}`"
-          class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1"
+          class="nc-sidebar-node base-title-node h-7.25 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
         >
           <div class="flex items-center mr-1" @click="onProjectClick(base)">
             <div class="flex items-center select-none w-6 h-full">
@@ -659,7 +659,7 @@ const onTableIdCopy = async () => {
                   >
                     <template #expandIcon="{ isActive }">
                       <div
-                        class="nc-sidebar-expand nc-sidebar-node-btn flex flex-row items-center -mt-2 xs:(mt-3 border-1 border-gray-200 px-2.25 py-0.5 rounded-md !mr-0.25)"
+                        class="nc-sidebar-expand nc-sidebar-node-btn flex flex-row items-center -mt-2 xs:(mt-3 border-1 border-gray-200 px-1 py-0.5 rounded-md !mr-0.25)"
                       >
                         <GeneralIcon
                           icon="triangleFill"
@@ -670,7 +670,7 @@ const onTableIdCopy = async () => {
                     </template>
                     <a-collapse-panel :key="`collapse-${source.id}`">
                       <template #header>
-                        <div class="nc-sidebar-node min-w-20 w-full flex flex-row group py-0.25">
+                        <div class="nc-sidebar-node min-w-20 w-full flex flex-row group py-0.25 pr-6.5 !mr-0">
                           <div
                             v-if="sourceIndex === 0"
                             class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"

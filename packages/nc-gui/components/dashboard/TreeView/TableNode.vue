@@ -203,11 +203,11 @@ watch(openedTableId, () => {
   >
     <div
       v-e="['a:table:open']"
-      class="table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
+      class="table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
-        'pl-12 xs:(pl-14)': sourceIndex !== 0,
-        'pl-6.5': sourceIndex === 0,
+        'pl-13.5': sourceIndex !== 0,
+        'pl-7.5 xs:(pl-6)': sourceIndex === 0,
         '!bg-primary-selected': isTableOpened,
       }"
       :data-testid="`nc-tbl-side-node-${table.title}`"

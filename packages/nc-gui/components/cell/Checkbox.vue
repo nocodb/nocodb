@@ -110,7 +110,7 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     :style="{
       height:
-        isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 30px)`,
+        isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 28px)`,
     }"
     :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"

@@ -1454,7 +1454,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(col.id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center"
+                    class="w-full h-full flex items-center text-gray-800"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -1477,7 +1477,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1758,7 +1758,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="addEmptyRow()"
               >
                 <div
-                  class="h-10.5 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                 >
                   <component
                     :is="iconMap.plus"
@@ -2069,6 +2069,10 @@ onKeyStroke('ArrowDown', onDown)
 
   th {
     @apply border-b-1 border-gray-200;
+
+    :deep(.name) {
+      @apply text-gray-800 text-small;
+    }
   }
 
   .nc-grid-header th:last-child {

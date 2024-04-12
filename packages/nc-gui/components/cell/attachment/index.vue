@@ -257,8 +257,12 @@ const keydownSpace = (e: KeyboardEvent) => {
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
-        :class="{ 'justify-center': !isExpandedForm && !isGallery && !isKanban }"
-        class="flex cursor-pointer w-full items-center flex-wrap gap-2 py-1.5 scrollbar-thin-dull overflow-hidden mt-0 items-start"
+        :class="{
+          'justify-center': !isExpandedForm && !isGallery && !isKanban,
+          'py-1': rowHeight === 1 && !isForm && !isExpandedForm,
+          'py-1.5': rowHeight !== 1 || isForm || isExpandedForm,
+        }"
+        class="flex cursor-pointer w-full items-center flex-wrap gap-2 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
           maxHeight: isForm || isExpandedForm ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 30px)`,
         }"
@@ -278,7 +282,7 @@ const keydownSpace = (e: KeyboardEvent) => {
                   :alt="item.title || `#${i}`"
                   class="rounded"
                   :class="{
-                    'h-7.5 w-8.8': rowHeight === 1,
+                    'h-5.5 w-8.8': rowHeight === 1,
                     'h-11.5 w-12.8': rowHeight === 2,
                     'h-16.8 w-20.8': rowHeight === 4,
                     'h-20.8 !w-30': isForm || isExpandedForm || rowHeight === 6,
@@ -327,7 +331,7 @@ const keydownSpace = (e: KeyboardEvent) => {
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply min-h-[1.8rem] min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
+      @apply min-h-5.5 min-w-[1.8rem] !ring-1 !ring-gray-300 !rounded;
     }
 
     .ghost,

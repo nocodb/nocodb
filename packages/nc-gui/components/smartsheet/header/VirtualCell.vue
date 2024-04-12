@@ -161,7 +161,7 @@ const openDropDown = (e: Event) => {
 
 <template>
   <div
-    class="flex items-center w-full h-full text-xs text-gray-500 font-weight-medium"
+    class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium"
     @dblclick="openHeaderMenu"
     @click.right="openDropDown"
   >

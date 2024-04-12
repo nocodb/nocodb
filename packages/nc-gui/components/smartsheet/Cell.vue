@@ -285,9 +285,8 @@ onUnmounted(() => {
     @apply text-brand-500;
   }
 
-  input {
-    @apply text-small leading-4;
-    font-weight: 500;
+  &.nc-cell-longtext {
+    @apply leading-5;
   }
 
   :deep(.ant-picker-input) {

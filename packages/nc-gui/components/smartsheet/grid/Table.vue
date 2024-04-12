@@ -1412,8 +1412,8 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
               </tr>
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
-                <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
-                  <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
+                <th class="w-[64px] min-w-[64px]" data-testid="grid-id-column" @dblclick="() => {}">
+                  <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
@@ -1610,7 +1610,7 @@ onKeyStroke('ArrowDown', onDown)
                   >
                     <td
                       key="row-index"
-                      class="caption nc-grid-cell pl-5 pr-1"
+                      class="caption nc-grid-cell pl-2 pr-1 w-[52px] min-w-[52px]"
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
@@ -2158,14 +2158,14 @@ onKeyStroke('ArrowDown', onDown)
     thead th:nth-child(2) {
       position: sticky !important;
       z-index: 5;
-      left: 85px;
+      left: 64px;
       @apply border-r-1 border-r-gray-200;
     }
 
     tbody td:nth-child(2) {
       position: sticky !important;
       z-index: 4;
-      left: 85px;
+      left: 64px;
       background: white;
       @apply border-r-1 border-r-gray-100;
     }

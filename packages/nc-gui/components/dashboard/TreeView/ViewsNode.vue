@@ -158,6 +158,10 @@ async function onRename() {
   isDropdownOpen.value = false
   if (!isEditing.value) return
 
+  if (_title.value) {
+    _title.value = _title.value.trim()
+  }
+
   const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {

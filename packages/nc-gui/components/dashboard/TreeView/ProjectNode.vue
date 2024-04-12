@@ -134,6 +134,10 @@ const enableEditMode = () => {
 }
 
 const updateProjectTitle = async () => {
+  if (tempTitle.value) {
+    tempTitle.value = tempTitle.value.trim()
+  }
+
   if (!tempTitle.value) return
 
   try {

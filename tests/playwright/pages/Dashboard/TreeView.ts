@@ -27,11 +27,14 @@ export class TreeViewPage extends BasePage {
       .locator('[data-testid="nc-sidebar-add-base-entity"]');
   }
 
-  private getProjectContextMenu({ baseTitle }: { baseTitle: string }) {
-    return this.dashboard
+  private async openProjectContextMenu({ baseTitle }: { baseTitle: string }) {
+    await this.dashboard.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
+
+    await this.dashboard
       .get()
       .getByTestId(`nc-sidebar-base-title-${baseTitle}`)
-      .locator('[data-testid="nc-sidebar-context-menu"]');
+      .locator('[data-testid="nc-sidebar-context-menu"]')
+      .click();
   }
 
   async isVisible() {
@@ -78,6 +81,16 @@ export class TreeViewPage extends BasePage {
     }
 
     return this.get().locator('.nc-tree-item').nth(index);
+  }
+
+  async waitForTableOptions({ title }: { title: string }) {
+    const tableTitle = title.replace(/ /g, '');
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).waitFor({ state: 'visible' });
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).scrollIntoViewIfNeeded();
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).getByTestId(`nc-tbl-title-${title}`).hover();
   }
 
   // assumption: first view rendered is always GRID
@@ -166,17 +179,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .waitFor({ state: 'visible' });
+    const tableTitle = title.replace(/ /g, '');
 
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .scrollIntoViewIfNeeded();
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .locator('.nc-tbl-context-menu')
-      .click();
+    await this.waitForTableOptions({ title });
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-tbl-context-menu').click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({
@@ -195,16 +202,11 @@ export class TreeViewPage extends BasePage {
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .waitFor({ state: 'visible' });
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .scrollIntoViewIfNeeded();
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .locator('.nc-tbl-context-menu')
-      .click();
+    const tableTitle = title.replace(/ /g, '');
+
+    await this.waitForTableOptions({ title });
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-tbl-context-menu').click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-menu-item:has-text("Rename")').click();
 
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
@@ -220,8 +222,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async baseSettings({ title }: { title?: string }) {
-    await this.getProjectContextMenu({ baseTitle: title }).hover();
-    await this.getProjectContextMenu({ baseTitle: title }).click();
+    await this.openProjectContextMenu({ baseTitle: title });
     const settingsMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md');
     await settingsMenu.locator(`.nc-sidebar-base-base-settings`).click();
   }
@@ -229,8 +230,7 @@ export class TreeViewPage extends BasePage {
   async quickImport({ title, baseTitle, context }: { title: string; baseTitle: string; context: NcContext }) {
     baseTitle = this.scopedProjectTitle({ title: baseTitle, context });
 
-    await this.getProjectContextMenu({ baseTitle }).hover();
-    await this.getProjectContextMenu({ baseTitle }).click();
+    await this.openProjectContextMenu({ baseTitle });
     const importMenu = this.dashboard.get().locator('.ant-dropdown-menu');
     await importMenu.locator(`.nc-sub-menu:has-text("Import Data")`).click();
     await this.rootPage.locator(`.ant-dropdown-menu-item:has-text("${title}")`).waitFor();
@@ -238,25 +238,24 @@ export class TreeViewPage extends BasePage {
   }
 
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')} .nc-table-icon`)
-      .click();
+    const tableTitle = title.replace(/ /g, '');
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle} .nc-table-icon`).click();
 
     await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
-      this.get()
-        .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-        .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
   async duplicateTable(title: string, includeData = true, includeViews = true) {
-    await this.get()
-      .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-      .locator('.nc-icon.ant-dropdown-trigger')
-      .click();
+    const tableTitle = title.replace(/ /g, '');
+
+    await this.waitForTableOptions({ title });
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-icon.ant-dropdown-trigger').click();
     await this.dashboard.get().locator('div.nc-base-menu-item:has-text("Duplicate")').click();
 
     // Find the checkbox element with the label "Include data"
@@ -284,11 +283,11 @@ export class TreeViewPage extends BasePage {
   async verifyTabIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    await this.rootPage.locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`).waitFor({ state: 'visible' });
+    const tableTitle = title.replace(/ /g, '');
+
+    await this.rootPage.locator(`.nc-base-tree-tbl-${tableTitle}`).waitFor({ state: 'visible' });
     await expect(
-      this.get()
-        .locator(`.nc-base-tree-tbl-${title.replace(/ /g, '')}`)
-        .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
@@ -347,8 +346,7 @@ export class TreeViewPage extends BasePage {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
     param.newTitle = this.scopedProjectTitle({ title: param.newTitle, context: param.context });
 
-    await this.getProjectContextMenu({ baseTitle: param.title }).hover();
-    await this.getProjectContextMenu({ baseTitle: param.title }).click();
+    await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Rename")`).click();
@@ -362,8 +360,7 @@ export class TreeViewPage extends BasePage {
   async deleteProject(param: { title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
 
-    await this.getProjectContextMenu({ baseTitle: param.title }).hover();
-    await this.getProjectContextMenu({ baseTitle: param.title }).click();
+    await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Delete")`).click();
@@ -374,8 +371,7 @@ export class TreeViewPage extends BasePage {
   async duplicateProject(param: { title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
 
-    await this.getProjectContextMenu({ baseTitle: param.title }).hover();
-    await this.getProjectContextMenu({ baseTitle: param.title }).click();
+    await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate")`).click();

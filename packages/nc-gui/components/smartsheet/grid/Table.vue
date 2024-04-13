@@ -1367,7 +1367,7 @@ onKeyStroke('ArrowDown', onDown)
     </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
-        v-show="isPaginationLoading"
+        v-show="isPaginationLoading && !headerOnly"
         class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
         <div class="flex flex-col justify-center gap-2">
@@ -1948,13 +1948,14 @@ onKeyStroke('ArrowDown', onDown)
       :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed && !showSkeleton && !isPaginationLoading" class="flex ml-1">
+        <div v-if="isAddingEmptyRowAllowed && !showSkeleton" class="flex ml-1">
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             class="nc-grid-add-new-row"
             type="secondary"
             @click="onNewRecordToFormClick()"
+            :disabled="isPaginationLoading"
           >
             {{ $t('activity.newRecord') }}
           </NcButton>
@@ -1964,6 +1965,7 @@ onKeyStroke('ArrowDown', onDown)
             class="nc-grid-add-new-row"
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            :disabled="isPaginationLoading"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>
@@ -2162,7 +2164,7 @@ onKeyStroke('ArrowDown', onDown)
       @apply border-r-1 border-r-gray-200;
     }
 
-    tbody td:nth-child(2) {
+    tbody tr:not(.nc-grid-add-new-cell) td:nth-child(2) {
       position: sticky !important;
       z-index: 4;
       left: 85px;

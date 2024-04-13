@@ -1367,7 +1367,7 @@ onKeyStroke('ArrowDown', onDown)
     </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
-        v-show="isPaginationLoading"
+        v-show="isPaginationLoading && !headerOnly"
         class="flex items-center justify-center absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
         <div class="flex flex-col justify-center gap-2">

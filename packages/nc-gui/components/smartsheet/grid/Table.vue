@@ -1948,13 +1948,14 @@ onKeyStroke('ArrowDown', onDown)
       :extra-style="paginationStyleRef?.extraStyle"
     >
       <template #add-record>
-        <div v-if="isAddingEmptyRowAllowed && !showSkeleton && !isPaginationLoading" class="flex ml-1">
+        <div v-if="isAddingEmptyRowAllowed && !showSkeleton" class="flex ml-1">
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             class="nc-grid-add-new-row"
             type="secondary"
             @click="onNewRecordToFormClick()"
+            :disabled="isPaginationLoading"
           >
             {{ $t('activity.newRecord') }}
           </NcButton>
@@ -1964,6 +1965,7 @@ onKeyStroke('ArrowDown', onDown)
             class="nc-grid-add-new-row"
             placement="top"
             @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            :disabled="isPaginationLoading"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>

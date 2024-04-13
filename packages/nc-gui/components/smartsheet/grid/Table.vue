@@ -2164,7 +2164,7 @@ onKeyStroke('ArrowDown', onDown)
       @apply border-r-1 border-r-gray-200;
     }
 
-    tbody td:nth-child(2) {
+    tbody tr:not(.nc-grid-add-new-cell) td:nth-child(2) {
       position: sticky !important;
       z-index: 4;
       left: 85px;

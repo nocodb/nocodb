@@ -209,7 +209,7 @@ const shouldRenderCell = (column) =>
     >
       <div
         ref="scrollable"
-        class="flex flex-col h-full"
+        class="flex flex-col"
         :class="{ 'my-2': vGroup.root !== true }"
         :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`"
       >

@@ -12,6 +12,7 @@ const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
   [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
 };
 
 @Injectable()
@@ -76,7 +77,6 @@ export class CommandPaletteService {
         const workspace = workspaces.find((el) => el.id === data.workspace_id);
 
         for (const _workspace of workspaces) {
-          if (_workspace.id === data.workspace_id) continue;
           cmdData.push({
             id: `ws-nav-${_workspace.id}`,
             title: _workspace.title,

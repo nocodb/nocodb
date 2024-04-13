@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CalendarType, ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ProjectRoles, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -17,11 +17,14 @@ import {
   resolveComponent,
   useMenuCloseOnEsc,
   useNuxtApp,
+  useRoles,
   useSmartsheetStoreOrThrow,
   useUndoRedo,
   useViewColumnsOrThrow,
   watch,
 } from '#imports'
+
+const { baseRoles } = useRoles()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -53,6 +56,9 @@ const {
   toggleFieldStyles,
   toggleFieldVisibility,
 } = useViewColumnsOrThrow()
+
+const shouldShowField = (show: boolean) =>
+  !((baseRoles?.value[ProjectRoles.COMMENTER] || baseRoles?.value[ProjectRoles.VIEWER]) && !show)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -409,7 +415,7 @@ useMenuCloseOnEsc(open)
                   v-if="
                     filteredFieldList
                       .filter((el) => (activeView.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField : true))
-                      .includes(field)
+                      .includes(field) && shouldShowField(field.show)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"

@@ -10,6 +10,7 @@ const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
   [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
 };
 
 @Injectable()

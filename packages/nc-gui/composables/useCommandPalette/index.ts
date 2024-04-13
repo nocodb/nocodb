@@ -28,7 +28,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdLoading = ref(false)
 
-  const cmdPlaceholder = ref('Search...')
+  const cmdPlaceholder = ref('Search workspace, bases, tables, views & more...')
 
   const { token, user, signOut } = useGlobal()
 
@@ -72,7 +72,7 @@ export const useCommandPalette = createSharedComposable(() => {
     if (cmdLoading.value) {
       return [{ id: 'loading', title: 'Loading...' }, ...staticData.value]
     } else {
-      return [...dynamicData.value, ...staticData.value, ...tempData.value]
+      return [...dynamicData.value, ...staticData.value]
     }
   })
 

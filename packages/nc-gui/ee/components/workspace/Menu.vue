@@ -131,7 +131,7 @@ const onWorkspaceCreateClick = () => {
           <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>
-          <GeneralIcon icon="arrowDown" class="ml-1 min-w-6 text-lg !text-gray-700" />
+          <GeneralIcon icon="arrowDown" class="ml-1 min-w-6 text-lg !text-gray-500/75" />
         </div>
       </div>
 

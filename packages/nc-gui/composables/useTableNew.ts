@@ -146,6 +146,11 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const createTable = async () => {
     const { onTableCreate, baseId } = param
+
+    if (table.title) {
+      table.title = table.title.trim()
+    }
+
     let { sourceId } = param
 
     if (!(baseId in bases.value)) {

@@ -728,12 +728,16 @@ a {
   }
 
   .nc-sidebar-node-btn.nc-sidebar-expand {
-    @apply !xs:(border-1 border-gray-200 w-6.5 h-6.5 mr-1);
+    @apply !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
   }
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
+}
+
+.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn) {
+  @apply hidden group-hover:(inline-block);
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {

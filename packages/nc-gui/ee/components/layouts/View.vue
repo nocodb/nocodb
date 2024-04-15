@@ -65,7 +65,7 @@ const { base } = useBase()
       <LayoutsWidgetsLibraryPanel />
       <div ref="mainArea" class="overflow-y-auto flex-1 border-10" @click="resetFocus" @dragover.prevent @drop="drop">
         <div class="flex border-b-1 text-xs py-2 border-gray-100 items-center">
-          <GeneralIcon class="text-gray-500 mx-2" icon="table"></GeneralIcon>
+          <GeneralIcon class="!text-gray-500 mx-2" icon="table"></GeneralIcon>
           <h4 class="mb-0">{{ base.title }} / {{ openedLayoutSidebarNode?.title }}</h4>
         </div>
         <GridLayout

@@ -33,8 +33,20 @@ const selectedView = inject(ActiveViewInj)
     <div :class="{ 'show-tick': !hideTick }">
       <div class="flex flex-col gap-y-1">
         <div class="flex items-center gap-2 flex-grow">
-          <component :is="types[type].icon" class="!w-4 !min-w-4 text-inherit !h-4" />
-          <div class="flex">
+          <component
+            :is="types[type].icon"
+            class="flex-none"
+            :class="{
+              '!w-3 h-3': hideTick,
+              '!w-4 h-4': !hideTick,
+            }"
+          />
+          <div
+            class="flex"
+            :class="{
+              'text-xs py-0.7': hideTick,
+            }"
+          >
             {{ $t(types[type].title) }}
           </div>
           <div v-if="!hideTick" class="flex flex-grow"></div>

@@ -118,7 +118,11 @@ export default abstract class CacheMgr {
     const { skipPrepare, timestamp } = options;
 
     if (typeof value !== 'undefined' && value) {
-      log(`${this.context}::set: setting key ${key} with value ${value}`);
+      log(
+        `${this.context}::set: setting key ${key} with value ${this.stringify(
+          value,
+        )}`,
+      );
 
       // if provided value is an array store it as a set
       if (Array.isArray(value) && value.length) {
@@ -131,7 +135,11 @@ export default abstract class CacheMgr {
             .exec((err) => {
               if (err) {
                 logger.error(
-                  `${this.context}::set: error setting key ${key} with value ${value}`,
+                  `${
+                    this.context
+                  }::set: error setting key ${key} with value ${this.stringify(
+                    value,
+                  )}`,
                 );
               }
               resolve(true);
@@ -185,7 +193,9 @@ export default abstract class CacheMgr {
 
     if (typeof value !== 'undefined' && value) {
       log(
-        `${this.context}::setExpiring: setting key ${key} with value ${value}`,
+        `${
+          this.context
+        }::setExpiring: setting key ${key} with value ${this.stringify(value)}`,
       );
 
       if (Array.isArray(value) && value.length) {
@@ -197,7 +207,11 @@ export default abstract class CacheMgr {
             .exec((err) => {
               if (err) {
                 logger.error(
-                  `${this.context}::set: error setting key ${key} with value ${value}`,
+                  `${
+                    this.context
+                  }::set: error setting key ${key} with value ${this.stringify(
+                    value,
+                  )}`,
                 );
               }
               resolve(true);
@@ -276,7 +290,9 @@ export default abstract class CacheMgr {
             }
           } catch (e) {
             logger.error(
-              `${this.context}::getList: Bad value stored for key ${arr[0]} : ${v}`,
+              `${this.context}::getList: Bad value stored for key ${
+                arr[0]
+              } : ${this.stringify(v)}`,
             );
           }
         }
@@ -576,7 +592,11 @@ export default abstract class CacheMgr {
               }
             } catch (e) {
               logger.error(
-                `${this.context}::refreshTTL: Bad value stored for key ${key} : ${v}`,
+                `${
+                  this.context
+                }::refreshTTL: Bad value stored for key ${key} : ${this.stringify(
+                  v,
+                )}`,
               );
             }
           }
@@ -627,5 +647,13 @@ export default abstract class CacheMgr {
     ).then(() => {
       return res;
     });
+  }
+
+  // function to stringify value if having null prototype
+  private stringify(value: any) {
+    if (Object.prototype.hasOwnProperty.call(value, 'toString')) {
+      return value;
+    }
+    return JSON.stringify(value, this.getCircularReplacer());
   }
 }

@@ -946,7 +946,8 @@
       "hidden": "隐藏预填充字段",
       "lockedFieldTooltip": "预填值"
     },
-    "getPreFilledLink": "获取预填链接"
+    "getPreFilledLink": "获取预填链接",
+    "group": "Group"
   },
   "tooltip": {
     "reachedSourceLimit": "暂时只限于一个数据源",

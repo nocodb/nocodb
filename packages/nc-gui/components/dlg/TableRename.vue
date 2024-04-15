@@ -87,11 +87,10 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
-            if (/^\s+|\s+$/.test(value)) {
-              return reject(new Error('Leading or trailing whitespace not allowed in table name'))
-            }
             if (
-              !(tables?.value || []).every((t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase())
+              !(tables?.value || []).every(
+                (t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value?.trim() || '').toLowerCase(),
+              )
             ) {
               return reject(new Error('Duplicate table alias'))
             }
@@ -123,6 +122,11 @@ watchEffect(
 
 const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
   if (!tableMeta) return
+
+  if (formState.title) {
+    formState.title = formState.title.trim()
+  }
+
   if (formState.title === tableMeta.title && !disableTitleDiffCheck) return
 
   loading.value = true
@@ -216,7 +220,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
         <NcButton
           key="submit"
           type="primary"
-          :disabled="validateInfos.title.validateStatus === 'error' || formState.title === tableMeta.title"
+          :disabled="validateInfos.title.validateStatus === 'error' || formState.title?.trim() === tableMeta.title"
           label="Rename Table"
           loading-label="Renaming Table"
           :loading="loading"

@@ -147,8 +147,11 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'UPDATE',
-      description: 'Record with ID 1 has been updated in Table Table1_Title.',
     });
+
+    expect(rowUpdatedAudit.description).to.contains(
+      'Record with ID 1 has been updated in Table Table1_Title',
+    );
   });
 
   it('Bulk update record', async () => {

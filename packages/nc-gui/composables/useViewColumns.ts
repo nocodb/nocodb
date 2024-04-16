@@ -111,8 +111,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
     }
 
+    // `ignoreIds` allows specifying field IDs that should not be altered by this function.
     const showAll = async (ignoreIds: Array<string> = []) => {
-      console.log(ignoreIds)
       if (isLocalMode.value) {
         fields.value = fields.value?.map((field: Field) => {
           if (ignoreIds.includes(field.id)) {

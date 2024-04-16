@@ -5,7 +5,15 @@ import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
 import MapViewColumn from '../models/MapViewColumn';
 import FormViewColumn from '../models/FormViewColumn';
-import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
+import type {
+  CalendarColumnReqType,
+  FormColumnReqType,
+  GalleryColumnReqType,
+  GridColumnReqType,
+  KanbanColumnReqType,
+  ViewColumnReqType,
+  ViewColumnUpdateReqType,
+} from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -75,8 +83,22 @@ export class ViewColumnsService {
   async columnsUpdate(param: {
     viewId: string;
     columns:
-      | GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType[]
-      | Record<APIContext.VIEW_COLUMNS, Record<string, GridColumnReqType | GalleryColumnReqType  | KanbanColumnReqType  | FormColumnReqType | CalendarColumnReqType>>;
+      | GridColumnReqType
+      | GalleryColumnReqType
+      | KanbanColumnReqType
+      | FormColumnReqType
+      | CalendarColumnReqType[]
+      | Record<
+          APIContext.VIEW_COLUMNS,
+          Record<
+            string,
+            | GridColumnReqType
+            | GalleryColumnReqType
+            | KanbanColumnReqType
+            | FormColumnReqType
+            | CalendarColumnReqType
+          >
+        >;
     req: any;
   }) {
     const { viewId } = param;
@@ -118,9 +140,9 @@ export class ViewColumnsService {
               updateOrInsertOptions.push(
                 GridViewColumn.insert(
                   {
+                    ...(column as GridColumnReqType),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
-                    ...column,
                   },
                   ncMeta,
                 ),
@@ -136,9 +158,9 @@ export class ViewColumnsService {
               updateOrInsertOptions.push(
                 GalleryViewColumn.insert(
                   {
+                    ...(column as GalleryColumnReqType),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
-                    ...column,
                   },
                   ncMeta,
                 ),
@@ -154,9 +176,9 @@ export class ViewColumnsService {
               updateOrInsertOptions.push(
                 KanbanViewColumn.insert(
                   {
+                    ...(column as KanbanColumnReqType),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
-                    ...column,
                   },
                   ncMeta,
                 ),
@@ -172,9 +194,9 @@ export class ViewColumnsService {
               updateOrInsertOptions.push(
                 MapViewColumn.insert(
                   {
+                    ...(column as MapViewColumn),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
-                    ...column,
                   },
                   ncMeta,
                 ),
@@ -190,9 +212,9 @@ export class ViewColumnsService {
               updateOrInsertOptions.push(
                 FormViewColumn.insert(
                   {
+                    ...(column as FormColumnReqType),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
-                    ...column,
                   },
                   ncMeta,
                 ),
@@ -208,9 +230,9 @@ export class ViewColumnsService {
               updateOrInsertOptions.push(
                 CalendarViewColumn.insert(
                   {
+                    ...(column as CalendarColumnReqType),
                     fk_view_id: viewId,
                     fk_column_id: columnId,
-                    ...column,
                   },
                   ncMeta,
                 ),

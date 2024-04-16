@@ -132,13 +132,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW_COLUMN}:${columnId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o) {
-      // update data
-      o = { ...o, ...updateObj };
-      // set cache
-      await NocoCache.set(key, o);
-    }
+    await NocoCache.update(key, updateObj);
 
     // on view column update, delete any optimised single query cache
     {

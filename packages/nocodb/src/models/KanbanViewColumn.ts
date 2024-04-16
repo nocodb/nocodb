@@ -113,7 +113,6 @@ export default class KanbanViewColumn implements KanbanColumnType {
     return views?.map((v) => new KanbanViewColumn(v));
   }
 
-
   // todo: update prop names
   static async update(
     columnId: string,

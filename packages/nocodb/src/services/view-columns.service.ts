@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import { APIContext, AppEvents, ViewTypes } from 'nocodb-sdk';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -74,10 +74,16 @@ export class ViewColumnsService {
 
   async columnsUpdate(param: {
     viewId: string;
-    columns: ViewColumnReqType[] | Record<string, ViewColumnReqType>;
+    columns:
+      | ViewColumnReqType[]
+      | Record<APIContext.VIEW_COLUMNS, Record<string, ViewColumnReqType>>;
     req: any;
   }) {
-    const { viewId, columns } = param;
+    const { viewId } = param;
+
+    const columns = Array.isArray(param.columns)
+      ? param.columns
+      : param.columns[APIContext.VIEW_COLUMNS];
 
     const view = await View.get(viewId);
 
@@ -120,7 +126,7 @@ export class ViewColumnsService {
                 ),
               );
             }
-            break
+            break;
           case ViewTypes.GALLERY:
             if (existingCol) {
               updateOrInsertOptions.push(

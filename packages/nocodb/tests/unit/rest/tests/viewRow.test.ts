@@ -2,7 +2,7 @@ import 'mocha';
 // @ts-ignore
 import assert from 'assert';
 import request from 'supertest';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { APIContext, UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
@@ -1766,14 +1766,20 @@ function viewRowTests() {
     }
 
     // get view columns and verify hidden columns
-    const viewColumnsViaApi: any = await getViewColumns(context, {
+    const viewColApiRes: any = await getViewColumns(context, {
       view,
     });
 
-    for (const colId of Object.keys(viewColumnsViaApi)) {
+    for (const colId of Object.keys(viewColApiRes[APIContext.VIEW_COLUMNS])) {
       const column = columns.find((c) => c.id === colId);
-      if (columnsToHide.includes(column.title))
-        expect(!!viewColumnsViaApi[colId]).to.have.property('show', false);
+      if (columnsToHide.includes(column.title)) {
+        expect(viewColApiRes[APIContext.VIEW_COLUMNS][colId]).to.have.property(
+          'show',
+        );
+        expect(!!viewColApiRes[APIContext.VIEW_COLUMNS][colId].show).to.be.eq(
+          false,
+        );
+      }
     }
   });
 }

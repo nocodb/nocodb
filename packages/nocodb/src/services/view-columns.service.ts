@@ -105,7 +105,11 @@ export class ViewColumnsService {
 
     const columns = Array.isArray(param.columns)
       ? param.columns
-      : param.columns[APIContext.VIEW_COLUMNS];
+      : param.columns?.[APIContext.VIEW_COLUMNS];
+
+    if (!columns) {
+      NcError.badRequest('Invalid request - fields not found');
+    }
 
     const view = await View.get(viewId);
 
@@ -113,11 +117,12 @@ export class ViewColumnsService {
 
     let result: any;
     const ncMeta = await Noco.ncMeta.startTransaction();
-    try {
-      if (!view) {
-        NcError.notFound('View not found');
-      }
 
+    if (!view) {
+      NcError.notFound('View not found');
+    }
+
+    try {
       const table = View.extractViewColumnsTableName(view);
 
       // iterate over view columns and update/insert accordingly
@@ -132,6 +137,10 @@ export class ViewColumnsService {
 
         switch (view.type) {
           case ViewTypes.GRID:
+            validatePayload(
+              'swagger.json#/components/schemas/GridColumnReq',
+              column,
+            );
             if (existingCol) {
               updateOrInsertOptions.push(
                 GridViewColumn.update(existingCol.id, column, ncMeta),
@@ -150,6 +159,10 @@ export class ViewColumnsService {
             }
             break;
           case ViewTypes.GALLERY:
+            validatePayload(
+              'swagger.json#/components/schemas/GalleryColumnReq',
+              column,
+            );
             if (existingCol) {
               updateOrInsertOptions.push(
                 GalleryViewColumn.update(existingCol.id, column, ncMeta),
@@ -168,6 +181,10 @@ export class ViewColumnsService {
             }
             break;
           case ViewTypes.KANBAN:
+            validatePayload(
+              'swagger.json#/components/schemas/KanbanColumnReq',
+              column,
+            );
             if (existingCol) {
               updateOrInsertOptions.push(
                 KanbanViewColumn.update(existingCol.id, column, ncMeta),
@@ -186,6 +203,10 @@ export class ViewColumnsService {
             }
             break;
           case ViewTypes.MAP:
+            validatePayload(
+              'swagger.json#/components/schemas/MapColumn',
+              column,
+            );
             if (existingCol) {
               updateOrInsertOptions.push(
                 MapViewColumn.update(existingCol.id, column, ncMeta),
@@ -204,6 +225,10 @@ export class ViewColumnsService {
             }
             break;
           case ViewTypes.FORM:
+            validatePayload(
+              'swagger.json#/components/schemas/FormColumnReq',
+              column,
+            );
             if (existingCol) {
               updateOrInsertOptions.push(
                 FormViewColumn.update(existingCol.id, column, ncMeta),
@@ -222,6 +247,10 @@ export class ViewColumnsService {
             }
             break;
           case ViewTypes.CALENDAR:
+            validatePayload(
+              'swagger.json#/components/schemas/CalendarColumnReq',
+              column,
+            );
             if (existingCol) {
               updateOrInsertOptions.push(
                 CalendarViewColumn.update(existingCol.id, column, ncMeta),

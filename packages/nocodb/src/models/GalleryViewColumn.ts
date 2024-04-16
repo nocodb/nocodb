@@ -121,4 +121,7 @@ export default class GalleryViewColumn {
     );
     return views?.map((v) => new GalleryViewColumn(v));
   }
+
+  // todo: update method
+
 }

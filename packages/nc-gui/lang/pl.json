@@ -946,7 +946,8 @@
       "hidden": "Ukryj wstępnie wypełnione pola",
       "lockedFieldTooltip": "Wstępnie wypełniona wartość"
     },
-    "getPreFilledLink": "Uzyskaj link z wstępnie wypełnionymi danymi"
+    "getPreFilledLink": "Uzyskaj link z wstępnie wypełnionymi danymi",
+    "group": "Group"
   },
   "tooltip": {
     "reachedSourceLimit": "Ograniczenie do jednego źródła danych w tej chwili",

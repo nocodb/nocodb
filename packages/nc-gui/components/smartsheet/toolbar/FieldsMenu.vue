@@ -57,8 +57,9 @@ const {
   toggleFieldVisibility,
 } = useViewColumnsOrThrow()
 
-const shouldShowField = (show: boolean) =>
-  !((baseRoles?.value[ProjectRoles.COMMENTER] || baseRoles?.value[ProjectRoles.VIEWER]) && !show)
+const isViewerOrCommentor = computed(() => baseRoles?.value[ProjectRoles.COMMENTER] || baseRoles?.value[ProjectRoles.VIEWER])
+
+const shouldShowField = (show: boolean) => !isViewerOrCommentor.value || show
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -224,7 +225,7 @@ const coverImageColumnId = computed({
   },
 })
 
-const onShowAll = () => {
+const onShowAll = (hiddenFields: Array<string> = []) => {
   addUndo({
     undo: {
       fn: async () => {
@@ -240,7 +241,7 @@ const onShowAll = () => {
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  showAll()
+  showAll(hiddenFields)
 }
 
 const onHideAll = () => {
@@ -262,13 +263,31 @@ const onHideAll = () => {
   hideAll()
 }
 
+const hiddenFields = ref<string[]>([])
+
+onMounted(() => {
+  if (isViewerOrCommentor.value) {
+    hiddenFields.value = filteredFieldList.value.filter((field) => !field.show).map((field) => field.id)
+  }
+})
+
 const showAllColumns = computed({
   get: () => {
+    if (isViewerOrCommentor.value) {
+      if (filteredFieldList.value?.every((field) => !field.show)) return false
+      return filteredFieldList.value?.every((field) => {
+        if (hiddenFields.value.includes(field.id)) {
+          // Skip fields with IDs listed in hiddenFields
+          return true
+        }
+        return field?.show
+      })
+    }
     return filteredFieldList.value?.every((field) => field.show)
   },
   set: async (val) => {
     if (val) {
-      await onShowAll()
+      await onShowAll(hiddenFields.value)
     } else {
       await onHideAll()
     }
@@ -348,7 +367,10 @@ useMenuCloseOnEsc(open)
               {{ $t('objects.fields') }}
             </template>
           </span>
-          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
+          <span
+            v-if="numberOfHiddenFields && !isViewerOrCommentor"
+            class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md"
+          >
             {{ numberOfHiddenFields }}
           </span>
         </div>

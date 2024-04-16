@@ -111,12 +111,19 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
     }
 
-    const showAll = async (ignoreIds?: any) => {
+    const showAll = async (ignoreIds: Array<string> = []) => {
+      console.log(ignoreIds)
       if (isLocalMode.value) {
-        fields.value = fields.value?.map((field: Field) => ({
-          ...field,
-          show: true,
-        }))
+        fields.value = fields.value?.map((field: Field) => {
+          if (ignoreIds.includes(field.id)) {
+            return field
+          } else {
+            return {
+              ...field,
+              show: true,
+            }
+          }
+        })
         reloadData?.()
         return
       }

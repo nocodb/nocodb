@@ -30,6 +30,7 @@ interface ProjectMetaInfo {
 }
 
 interface Field {
+  id: string
   order: number
   show: number | boolean
   bold: boolean | number

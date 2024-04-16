@@ -9,7 +9,7 @@ import type { ViewColumnReqType, ViewColumnUpdateReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
-import { View } from '~/models';
+import { CalendarViewColumn, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 
@@ -81,7 +81,6 @@ export class ViewColumnsService {
 
     const view = await View.get(viewId);
 
-
     const updateOrInsertOptions: Promise<any>[] = [];
 
     let result: any;
@@ -96,7 +95,7 @@ export class ViewColumnsService {
       // iterate over view columns and update/insert accordingly
       for (const [indexOrId, column] of Object.entries(columns)) {
         const columnId =
-          typeof param.columns === 'object' ? indexOrId : column.id;
+          typeof param.columns === 'object' ? indexOrId : column['id'];
 
         const existingCol = await ncMeta.metaGet2(null, null, table, {
           fk_view_id: viewId,
@@ -111,13 +110,17 @@ export class ViewColumnsService {
               );
             } else {
               updateOrInsertOptions.push(
-                GridViewColumn.insert({
-                  fk_view_id: viewId,
-                  fk_column_id: columnId,
-                  ...column,
-                }, ncMeta),
+                GridViewColumn.insert(
+                  {
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                    ...column,
+                  },
+                  ncMeta,
+                ),
               );
             }
+            break
           case ViewTypes.GALLERY:
             if (existingCol) {
               updateOrInsertOptions.push(
@@ -125,13 +128,17 @@ export class ViewColumnsService {
               );
             } else {
               updateOrInsertOptions.push(
-                GalleryViewColumn.insert({
-                  fk_view_id: viewId,
-                  fk_column_id: columnId,
-                  ...column,
-                }, ncMeta),
+                GalleryViewColumn.insert(
+                  {
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                    ...column,
+                  },
+                  ncMeta,
+                ),
               );
             }
+            break;
           case ViewTypes.KANBAN:
             if (existingCol) {
               updateOrInsertOptions.push(
@@ -139,11 +146,14 @@ export class ViewColumnsService {
               );
             } else {
               updateOrInsertOptions.push(
-                KanbanViewColumn.insert({
-                  fk_view_id: viewId,
-                  fk_column_id: columnId,
-                  ...column,
-                }, ncMeta),
+                KanbanViewColumn.insert(
+                  {
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                    ...column,
+                  },
+                  ncMeta,
+                ),
               );
             }
             break;
@@ -154,11 +164,14 @@ export class ViewColumnsService {
               );
             } else {
               updateOrInsertOptions.push(
-                MapViewColumn.insert({
-                  fk_view_id: viewId,
-                  fk_column_id: columnId,
-                  ...column,
-                }, ncMeta),
+                MapViewColumn.insert(
+                  {
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                    ...column,
+                  },
+                  ncMeta,
+                ),
               );
             }
             break;
@@ -169,11 +182,32 @@ export class ViewColumnsService {
               );
             } else {
               updateOrInsertOptions.push(
-                FormViewColumn.insert({
-                  fk_view_id: viewId,
-                  fk_column_id: columnId,
-                  ...column,
-                }, ncMeta),
+                FormViewColumn.insert(
+                  {
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                    ...column,
+                  },
+                  ncMeta,
+                ),
+              );
+            }
+            break;
+          case ViewTypes.CALENDAR:
+            if (existingCol) {
+              updateOrInsertOptions.push(
+                CalendarViewColumn.update(existingCol.id, column, ncMeta),
+              );
+            } else {
+              updateOrInsertOptions.push(
+                CalendarViewColumn.insert(
+                  {
+                    fk_view_id: viewId,
+                    fk_column_id: columnId,
+                    ...column,
+                  },
+                  ncMeta,
+                ),
               );
             }
             break;
@@ -191,5 +225,17 @@ export class ViewColumnsService {
       await ncMeta.rollback();
       throw e;
     }
+  }
+
+  async viewColumnList(param: { viewId: string; req: any }) {
+    const columnList = await View.getColumns(param.viewId, undefined);
+
+    // generate key-value pair of column id and column
+    const columnMap = columnList.reduce((acc, column) => {
+      acc[column.fk_column_id] = column;
+      return acc;
+    }, {});
+
+    return columnMap;
   }
 }

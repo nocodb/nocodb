@@ -1,0 +1,1238 @@
+{
+  "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "qiz1rcfqd2jy6"
+  },
+  "info": {
+    "title": "NocoDB v2",
+    "version": "",
+    "description": "NocoDB API Documentation"
+  },
+  "x-tagGroups": [
+    {
+      "name": "Auth APIs",
+      "tags": [
+        "Auth",
+        "API Token"
+      ]
+    },
+    {
+      "name": "Public APIs",
+      "tags": [
+        "Public"
+      ]
+    },
+    {
+      "name": "Data APIs",
+      "tags": [
+        "DB Table Row",
+        "DB View Row",
+        "Storage"
+      ]
+    },
+    {
+      "name": "Meta APIs",
+      "tags": [
+        "Source",
+        "DB Table",
+        "DB Table Column",
+        "DB Table Filter",
+        "DB Table Sort",
+        "DB Table Webhook",
+        "DB Table Webhook Filter",
+        "DB View",
+        "DB View Column",
+        "DB View Share",
+        "Plugin",
+        "Base",
+        "Utils"
+      ]
+    },
+    {
+      "name": "Organisation APIs",
+      "tags": [
+        "Org App Settings",
+        "Org License",
+        "Org Tokens",
+        "Org Users"
+      ]
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/api/v3/meta/views/{viewId}/columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID"
+        }
+      ],
+      "patch": {
+        "summary": "Set view column metas",
+        "operationId": "db-view-columns-set",
+        "tags": [
+          "DB View Columns"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/GridColumnReq"
+                    },
+                    {
+                      "$ref": "#/components/schemas/GalleeryColumnReq"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FormColumnReq"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KanbanColumnReq"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MapColumnReq"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CalendarColumnReq"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get view column metas",
+        "operationId": "db-view-columns-get",
+        "tags": [
+          "DB View Columns"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/GridColumn"
+                      },
+                      {
+                        "$ref": "#/components/schemas/GalleeryColumn"
+                      },
+                      {
+                        "$ref": "#/components/schemas/FormColumn"
+                      },
+                      {
+                        "$ref": "#/components/schemas/KanbanColumn"
+                      },
+                      {
+                        "$ref": "#/components/schemas/MapColumn"
+                      },
+                      {
+                        "$ref": "#/components/schemas/CalendarColumn"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Copy links from the one cell and paste them into another cell or delete all records from cell",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FormColumn": {
+        "description": "Model for Form Column",
+        "examples": [
+          {
+            "id": "fvc_1m9b0aub791d4m",
+            "description": null,
+            "fk_column_id": "cl_ah9zavkn25ihyd",
+            "fk_view_id": "vw_6fqln9vdytdv8q",
+            "help": "This is a help text",
+            "label": "Form Label",
+            "meta": null,
+            "order": 1,
+            "required": 0,
+            "show": 0,
+            "uuid": null
+          }
+        ],
+        "title": "Form Column Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "_cn": "first_name",
+            "alias": "first_name",
+            "created_at": "2022-02-15 12:39:04",
+            "description": "dsdsdsdsd",
+            "fk_column_id": "cl_yvyhsl9u81tokc",
+            "fk_view_id": "vw_s1pf4umdnikoyn",
+            "help": null,
+            "id": "fvc_8z1i7t8aswkqxx",
+            "label": "dsdsds",
+            "order": 1,
+            "required": false,
+            "show": 1,
+            "enable_scanner": true,
+            "updated_at": "2022-02-15 12:39:16",
+            "uuid": null
+          }
+        },
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View"
+          },
+          "help": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
+          },
+          "label": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Label"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among all the columns in the form",
+            "example": 1
+          },
+          "required": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this form column required in submission?"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown in Form?"
+          },
+          "enable_scanner": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates whether the 'Fill by scan' button is visible for this column or not.",
+            "example": true
+          },
+          "uuid": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column UUID (Not in use)"
+          }
+        },
+        "x-stoplight": {
+          "id": "rs2uh5opf10q6"
+        }
+      },
+      "FormColumnReq": {
+        "description": "Model for Form Column Request",
+        "examples": [
+          {
+            "description": null,
+            "help": "This is a help text",
+            "label": "Form Label",
+            "meta": null,
+            "order": 1,
+            "required": 0,
+            "show": 0
+          }
+        ],
+        "title": "Form Column Request Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "_cn": "first_name",
+            "alias": "first_name",
+            "created_at": "2022-02-15 12:39:04",
+            "description": "dsdsdsdsd",
+            "fk_column_id": "cl_yvyhsl9u81tokc",
+            "fk_view_id": "vw_s1pf4umdnikoyn",
+            "help": null,
+            "id": "fvc_8z1i7t8aswkqxx",
+            "label": "dsdsds",
+            "order": 1,
+            "required": false,
+            "show": 1,
+            "updated_at": "2022-02-15 12:39:16",
+            "uuid": null
+          }
+        },
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
+          },
+          "help": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
+          },
+          "label": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Label"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among all the columns in the form"
+          },
+          "required": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this form column required in submission?"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown in Form?"
+          }
+        },
+        "x-stoplight": {
+          "id": "a1vgymjna1ose"
+        }
+      },
+      "GalleryColumn": {
+        "description": "Model for Gallery Column",
+        "examples": [
+          {
+            "fk_col_id": "string",
+            "fk_gallery_id": "string",
+            "help": "string",
+            "id": "string",
+            "label": "string"
+          }
+        ],
+        "properties": {
+          "fk_col_id": {
+            "type": "string"
+          },
+          "fk_gallery_id": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "title": "Gallery Column Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "auloy6128iwh9"
+        }
+      },
+      "GridColumn": {
+        "description": "Model for Grid Column",
+        "examples": [
+          {
+            "id": "nc_c8jz4kxe6xvh11",
+            "fk_view_id": "vw_p2jcatxz4mvcfw",
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "base_id": "p_xm3thidrblw4n7",
+            "source_id": "ds_g4ccx6e77h1dmi",
+            "show": 0,
+            "order": 1,
+            "width": "200px",
+            "help": null,
+            "group_by": 0,
+            "group_by_order": null,
+            "group_by_sort": null
+          }
+        ],
+        "title": "Grid Column Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID",
+            "x-stoplight": {
+              "id": "jc14yojp52rqj"
+            }
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View",
+            "x-stoplight": {
+              "id": "vl18dbt5c2r8r"
+            }
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Source ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "d47eer13oa8yr"
+            }
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "d47eer13oa8yr"
+            },
+            "example": 1,
+            "description": "Grid Column Order"
+          },
+          "width": {
+            "type": "string",
+            "description": "Column Width",
+            "example": "200px"
+          },
+          "help": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Column Help Text",
+            "x-stoplight": {
+              "id": "azwh6zn37qzkc"
+            }
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1
+          },
+          "group_by_sort": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Group By Sort",
+            "example": "asc"
+          }
+        },
+        "x-stoplight": {
+          "id": "195gzd7s6p7nv"
+        }
+      },
+      "GridColumnReq": {
+        "description": "Model for Grid Column Request",
+        "examples": [
+          {
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "help": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "label": {
+            "description": "The label of the column",
+            "example": "My Column",
+            "maxLength": 255,
+            "type": "string"
+          },
+          "width": {
+            "description": "The width of the column",
+            "example": "200px",
+            "maxLength": 255,
+            "pattern": "^[0-9]+(px|%)$",
+            "type": "string"
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1
+          },
+          "group_by_sort": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Group By Sort",
+            "example": "asc"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        },
+        "title": "Grid Column Request Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "9yhalgmix6d0m"
+        }
+      },
+      "KanbanColumn": {
+        "description": "Model for Kanban Column",
+        "examples": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "source_id": "ds_hd4ojj0xpquaam",
+            "base_id": "p_kzfl5lb0t3tcok",
+            "title": "string",
+            "show": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Kanban Column Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Baes ID\n"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID"
+          },
+          "title": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID",
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+        "properties": {
+          "source_id": {
+            "description": "The ID of the source that this map column belongs to",
+            "example": "ds_g4ccx6e77h1dmi",
+            "type": "string"
+          },
+          "fk_column_id": {
+            "description": "Foreign Key to Column",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "example": "vw_qjt7klod1p9kyv",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique ID of Map Column",
+            "example": "nc_46xcacqn4rc9xf",
+            "type": "string"
+          },
+          "order": {
+            "description": "the order in the list of map columns",
+            "example": 1,
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The ID of the base that this map column belongs to",
+            "example": "p_xm3thidrblw4n7",
+            "type": "string"
+          },
+          "show": {
+            "description": "Whether to show this column or not",
+            "example": 1,
+            "type": "number"
+          }
+        },
+        "title": "Map Column Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "01nfqgzhqlqoe"
+        }
+      },
+      "GalleryColumnReq": {
+        "description": "Model for Gallery Column Request",
+        "examples": [
+          {
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        },
+        "title": "Gallery Column Request Model",
+        "type": "object"
+      },
+      "KanbanColumnReq": {
+        "description": "Model for Kanban Column Request",
+        "examples": [
+          {
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        },
+        "title": "Kanban Column Request Model",
+        "type": "object"
+      },
+
+      "GalleryColumnReq": {
+        "description": "Model for Gallery Column Request",
+        "examples": [
+          {
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        },
+        "title": "Gallery Column Request Model",
+        "type": "object"
+      },
+      "KanbanColumnReq": {
+        "description": "Model for Kanban Column Request",
+        "examples": [
+          {
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        },
+        "title": "Kanban Column Request Model",
+        "type": "object"
+      }
+    },
+    "responses": {
+      "ProjectList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProjectList"
+            },
+            "examples": {
+              "example-1": {
+                "value": {
+                  "list": [
+                    {
+                      "sources": [
+                        {
+                          "alias": "string",
+                          "config": null,
+                          "created_at": "2023-03-01 14:27:36",
+                          "enabled": true,
+                          "id": "string",
+                          "inflection_column": "camelize",
+                          "inflection_table": "camelize",
+                          "is_meta": true,
+                          "order": 1,
+                          "base_id": "string",
+                          "type": "mysql2",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "color": "#24716E",
+                      "created_at": "2023-03-01 14:27:36",
+                      "deleted": true,
+                      "description": "This is my base description",
+                      "id": "p_124hhlkbeasewh",
+                      "is_meta": true,
+                      "meta": {},
+                      "order": 0,
+                      "prefix": "nc_vm5q__",
+                      "status": "string",
+                      "title": "my-base",
+                      "updated_at": "2023-03-01 14:27:36"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "BaseList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/BaseList"
+            },
+            "examples": {
+              "example-1": {
+                "value": {
+                  "list": [
+                    {
+                      "id": "ds_krsappzu9f8vmo",
+                      "base_id": "p_01clqvzik3izk6",
+                      "alias": null,
+                      "config": "<ENCRYPTED>",
+                      "meta": null,
+                      "is_meta": 1,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-01 16:31:49",
+                      "updated_at": "2023-03-02 11:28:17",
+                      "enabled": 1,
+                      "order": 1
+                    },
+                    {
+                      "id": "ds_btbdt19zde0gj9",
+                      "base_id": "p_01clqvzik3izk6",
+                      "alias": "sakila",
+                      "config": "<ENCRYPTED>",
+                      "meta": null,
+                      "is_meta": null,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-02 11:28:17",
+                      "updated_at": "2023-03-02 11:28:17",
+                      "enabled": 1,
+                      "order": 2
+                    }
+                  ],
+                  "pageInfo": {
+                    "totalRows": 2,
+                    "page": 1,
+                    "pageSize": 2,
+                    "isFirstPage": true,
+                    "isLastPage": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TableList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TableList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "id": "md_5hua2iqloqirhd",
+                      "source_id": "ds_jxuewivwbxeum2",
+                      "base_id": "p_tbhl1hnycvhe5l",
+                      "table_name": "nc_b84e___Sheet-1",
+                      "title": "Sheet-1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
+                      "enabled": true,
+                      "mm": false,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-11T09:11:45.907Z",
+                      "updated_at": "2023-03-11T09:11:45.907Z"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ColumnList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ColumnList"
+            }
+          }
+        }
+      },
+      "FilterList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/FilterList"
+            }
+          }
+        }
+      },
+      "SortList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SortList"
+            },
+            "examples": {}
+          }
+        }
+      },
+      "ViewList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ViewList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "alias": "string",
+                      "column": [
+                        {
+                          "alias": "string",
+                          "auto_increment": true,
+                          "auto_update_timestamp": true,
+                          "source_id": "string",
+                          "character_maximum_length": "string",
+                          "character_set_name": "string",
+                          "colOptions": {
+                            "deleted": "string",
+                            "dr": "string",
+                            "fk_child_column_id": "string",
+                            "fk_column_id": "string",
+                            "fk_index_name": "string",
+                            "fk_mm_child_column_id": "string",
+                            "fk_mm_model_id": "string",
+                            "fk_mm_parent_column_id": "string",
+                            "fk_parent_column_id": "string",
+                            "id": "string",
+                            "order": "string",
+                            "type": "string",
+                            "ur": "string",
+                            "virtual": true
+                          },
+                          "column_comment": "string",
+                          "column_default": "string",
+                          "column_ordinal_position": "string",
+                          "column_type": "string",
+                          "data_type": "string",
+                          "data_type_x": "string",
+                          "data_type_x_precision": "string",
+                          "data_type_x_scale": "string",
+                          "deleted": true,
+                          "fk_model_id": "string",
+                          "id": "string",
+                          "numeric_precision": "string",
+                          "numeric_scale": "string",
+                          "order": 0,
+                          "primary_key": true,
+                          "primary_value": true,
+                          "rqd": "string",
+                          "title": "string",
+                          "ui_data_type": "string",
+                          "un": "string",
+                          "unique": true,
+                          "visible": true
+                        }
+                      ],
+                      "columnByIds": {},
+                      "deleted": true,
+                      "enabled": true,
+                      "fk_base_id": "string",
+                      "fk_project_id": "string",
+                      "id": "string",
+                      "order": 0,
+                      "parent_id": "string",
+                      "pinned": true,
+                      "show_as": "string",
+                      "tags": "string",
+                      "title": "string",
+                      "type": "string"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "SharedViewList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SharedViewList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "source_id": "ds_g4ccx6e77h1dmi",
+                      "created_at": "2023-03-02 17:46:31",
+                      "fk_model_id": "md_mhs9z4r2ak98x0",
+                      "id": "vw_lg052cnc1c26kf",
+                      "is_default": 1,
+                      "lock_type": "collaborative",
+                      "meta": {},
+                      "order": 1,
+                      "password": null,
+                      "base_id": "p_xm3thidrblw4n7",
+                      "show": 1,
+                      "show_system_fields": null,
+                      "title": "Sheet-1",
+                      "type": 3,
+                      "updated_at": "2023-03-02 17:46:31",
+                      "uuid": null,
+                      "view": {
+                        "source_id": "ds_g4ccx6e77h1dmi",
+                        "created_at": "2023-03-02 17:46:31",
+                        "fk_view_id": "vw_lg052cnc1c26kf",
+                        "meta": null,
+                        "base_id": "p_xm3thidrblw4n7",
+                        "row_height": null,
+                        "updated_at": "2023-03-02 17:46:31",
+                        "uuid": null
+                      }
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "HookList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/HookList"
+            }
+          }
+        }
+      },
+      "UserList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserList"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "list": [
+                    {
+                      "email": "user@example.com",
+                      "email_verified": true,
+                      "firstname": "Alice",
+                      "id": "us_8kugj628ebjngs",
+                      "lastname": "Smith",
+                      "roles": "org-level-viewer"
+                    }
+                  ],
+                  "pageInfo": {
+                    "isFirstPage": true,
+                    "isLastPage": true,
+                    "page": 1,
+                    "pageSize": 10,
+                    "totalRows": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "APITokenList": {
+        "description": "Example response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiTokenList"
+            },
+            "examples": {}
+          }
+        },
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "uukp6v55zfp7i"
+            },
+            "items": {
+              "$ref": "#/components/schemas/ApiToken",
+              "x-stoplight": {
+                "id": "9zqpoqfkdxy0y"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "6unr17jyisial"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "BadReqeust",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "x-stoplight": {
+                    "id": "p9mk4oi0hbihm"
+                  },
+                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              },
+              "required": [
+                "msg"
+              ]
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
+            }
+          }
+        },
+        "headers": {}
+      }
+    },
+    "securitySchemes": {
+      "xc-auth": {
+        "name": "Auth Token ",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
+      },
+      "xc-shared-base-id": {
+        "name": "Shared Base ID",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Shared base uuid"
+      },
+      "xc-shared-erd-id": {
+        "name": "Shared ERD ID",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Shared ERD uuid"
+      }
+    },
+    "parameters": {
+      "xc-auth": {
+        "name": "xc-auth",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+      }
+    }
+  }
+}

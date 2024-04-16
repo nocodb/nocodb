@@ -74,20 +74,28 @@ export class ViewColumnsController {
     return result;
   }
 
-
-
-  @Patch(
-    '/api/v3/meta/views/:viewId/columns',
-  )
-  @Acl('columnList')
-  async columnUpdate(@Param('viewId') viewId: string, @Body() body: ViewColumnReqType[] | Record<string, ViewColumnReqType>) {
+  @Patch('/api/v3/meta/views/:viewId/columns')
+  @Acl('columnUpdate')
+  async viewColumnUpdate(
+    @Req() req,
+    @Param('viewId') viewId: string,
+    @Body() body: ViewColumnReqType[] | Record<string, ViewColumnReqType>,
+  ) {
     return new PagedResponseImpl(
       await this.viewColumnsService.columnsUpdate({
         viewId,
         columns: body,
-        req
+        req,
       }),
     );
   }
 
+  @Get('/api/v3/meta/views/:viewId/columns')
+  @Acl('columnList')
+  async viewColumnList(@Req() req, @Param('viewId') viewId: string) {
+    return await this.viewColumnsService.viewColumnList({
+      viewId,
+      req,
+    });
+  }
 }

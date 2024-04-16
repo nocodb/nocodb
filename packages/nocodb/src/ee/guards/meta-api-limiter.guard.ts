@@ -6,7 +6,7 @@ import { MetaApiLimiterGuard as MetaApiLimiterGuardCE } from 'src/guards/meta-ap
 import type { ExecutionContext } from '@nestjs/common';
 
 const HEADER_NAME = 'xc-token';
-const HEADER_NAME1 = 'xc-auth';
+const HEADER_NAME_GUI = 'xc-auth';
 
 @Injectable()
 export class MetaApiLimiterGuardEE extends ThrottlerGuard {
@@ -29,14 +29,14 @@ export class MetaApiLimiterGuardEE extends ThrottlerGuard {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    return req.headers[HEADER_NAME] || req.headers[HEADER_NAME1]
+    return req.headers[HEADER_NAME] || req.headers[HEADER_NAME_GUI]
       ? super.canActivate(context)
       : true;
   }
 
   protected async getTracker(req: Record<string, any>): Promise<string> {
     return `meta|${
-      req.headers[HEADER_NAME] || req.headers[HEADER_NAME1]
+      req.headers[HEADER_NAME] || req.headers[HEADER_NAME_GUI]
     }` as string;
   }
 

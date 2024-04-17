@@ -24,10 +24,6 @@ const updateHighlightPosition = () => {
   })
 }
 
-onMounted(() => {
-  updateHighlightPosition()
-})
-
 watch(activeCalendarView, () => {
   if (!props.tab) return
   updateHighlightPosition()
@@ -37,7 +33,7 @@ watch(activeCalendarView, () => {
 <template>
   <div
     v-if="props.tab"
-    class="flex flex-row relative p-1 mx-3 mt-3 mb-3 bg-gray-100 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+    class="flex flex-row relative px-1 mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
     data-testid="nc-calendar-view-mode"
   >
     <div :style="highlightStyle" class="highlight"></div>
@@ -77,16 +73,16 @@ watch(activeCalendarView, () => {
 
 <style lang="scss" scoped>
 .highlight {
-  @apply absolute h-7.5 w-20 shadow bg-white rounded-lg transition-all duration-300;
+  @apply absolute h-9 w-20 transition-all border-b-2 border-brand-500 duration-200;
   z-index: 0;
 }
 
 .tab {
-  @apply flex items-center h-7.5 w-20 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex items-center h-9 w-20 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab .tab-title {
-  @apply min-w-0 pointer-events-none;
+  @apply min-w-0 mb-3 pointer-events-none;
   word-break: 'keep-all';
   white-space: 'nowrap';
   display: 'inline';
@@ -94,7 +90,7 @@ watch(activeCalendarView, () => {
 }
 
 .active {
-  @apply text-black bg-transparent;
+  @apply !text-brand-500 font-medium bg-transparent;
 }
 
 .nc-calendar-mode-tab {

@@ -1018,7 +1018,7 @@ watch(
       </div>
     </div>
     <div class="absolute inset-0 pointer-events-none">
-      <div class="relative !ml-[68px] !mr-1" data-testid="nc-calendar-day-record-container">
+      <div class="relative !ml-[68px] !mr-1 nc-calendar-day-record-container" data-testid="nc-calendar-day-record-container">
         <template v-for="(record, rowIndex) in recordsAcrossAllRange.record" :key="rowIndex">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"

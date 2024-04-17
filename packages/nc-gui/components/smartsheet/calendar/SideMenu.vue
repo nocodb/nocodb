@@ -288,8 +288,8 @@ onUnmounted(() => {
   <div
     :class="{
       '!w-0': !props.visible,
-      'min-w-[356px]': width > 1440 && props.visible,
-      'min-w-[264px]': width <= 1440 && props.visible,
+      'min-w-[324px]': width > 1440 && props.visible,
+      'min-w-[288px]': width <= 1440 && props.visible,
       'nc-calendar-side-menu-open': props.visible,
     }"
     class="h-full border-l-1 border-gray-200 transition-all"
@@ -334,21 +334,9 @@ onUnmounted(() => {
       }"
       class="border-t-1 border-gray-200 relative flex flex-col gap-y-4 pt-3"
     >
-      <div class="flex px-4 items-center gap-2">
-        <a-input
-          v-model:value="searchQuery.value"
-          :class="{
-            '!border-brand-500': searchQuery.value.length > 0,
-          }"
-          class="!rounded-lg !h-8 !border-gray-200 !px-4"
-          data-testid="nc-calendar-sidebar-search"
-          placeholder="Search records"
-        >
-          <template #prefix>
-            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
-          </template>
-        </a-input>
-        <NcSelect v-model:value="sideBarFilterOption" class="min-w-38 !text-gray-600" data-testid="nc-calendar-sidebar-filter">
+      <div class="flex px-4 items-center gap-3">
+        <span class="capitalize text-base font-bold">{{ $t('objects.records') }}</span>
+        <NcSelect v-model:value="sideBarFilterOption" class="w-full !text-gray-600" data-testid="nc-calendar-sidebar-filter">
           <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
             <div class="flex items-center justify-between gap-2">
               <div class="truncate flex-1">
@@ -367,12 +355,27 @@ onUnmounted(() => {
           </a-select-option>
         </NcSelect>
       </div>
+      <div class="flex px-4 items-center gap-2">
+        <a-input
+          v-model:value="searchQuery.value"
+          :class="{
+            '!border-brand-500': searchQuery.value.length > 0,
+          }"
+          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
+          data-testid="nc-calendar-sidebar-search"
+          placeholder="Search records"
+        >
+          <template #prefix>
+            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+          </template>
+        </a-input>
+      </div>
 
       <div
         v-if="calendarRange?.length"
         :ref="sideBarListRef"
         :class="{
-         '!h-[calc(100vh-10.5rem)]': width <= 1440,
+         '!h-[calc(100vh-13.5rem)]': width <= 1440,
         'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
         'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
    
@@ -443,7 +446,7 @@ onUnmounted(() => {
       <div
         v-else
         :class="{
-         '!h-[calc(100vh-10.5rem)]': width <= 1440,
+         '!h-[calc(100vh-13.5rem)]': width <= 1440,
         'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
         'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
       }"

@@ -204,7 +204,7 @@ export function useViewData(
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: where?.value,
-              ...(excludePageInfo.value ? {} : { excludeCount: 'true' }),
+              ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
             } as any,
             {
               cancelToken: controller.value.token,

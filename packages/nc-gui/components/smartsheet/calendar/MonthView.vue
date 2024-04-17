@@ -356,7 +356,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const day = Math.floor(percentX * 7)
 
   const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
-  if (!newStartDate) return
+  if (!newStartDate) return { newRow: null, updateProperty: [] }
 
   let endDate
 
@@ -586,13 +586,15 @@ const dropEvent = (event: DragEvent) => {
   if (data) {
     const {
       record,
+      isWithoutDates,
     }: {
       record: Row
+      isWithoutDates: boolean
     } = JSON.parse(data)
 
     dragRecord.value = record
 
-    const { newRow, updateProperty } = calculateNewRow(event, true)
+    const { newRow, updateProperty } = calculateNewRow(event, isWithoutDates)
 
     if (dragElement.value) {
       dragElement.value.style.boxShadow = 'none'
@@ -643,7 +645,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-100 font-semibold text-gray-500"
+        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-200 font-semibold text-gray-500"
       >
         {{ day }}
       </div>
@@ -668,7 +670,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             '!text-gray-400': !isDayInPagedMonth(day),
             '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
           }"
-          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
           data-testid="nc-calendar-month-day"
           @click="selectDate(day)"
           @dblclick="addRecord(day)"
@@ -744,9 +746,9 @@ const addRecord = (date: dayjs.Dayjs) => {
             </NcButton>
             <span
               :class="{
-                'bg-brand-50 text-brand-500': day.isSame(dayjs(), 'date'),
+                'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
               }"
-              class="px-1.3 py-1 text-xs rounded-lg"
+              class="px-1.3 py-1 text-sm font-medium rounded-lg"
             >
               {{ day.format('DD') }}
             </span>
@@ -795,6 +797,11 @@ const addRecord = (date: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
               @dblclick.stop="emit('expandRecord', record)"
             >
+              <template #time>
+                <span class="text-xs font-medium text-gray-400">
+                  {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
+                </span>
+              </template>
               <template v-for="(field, id) in fields" :key="id">
                 <LazySmartsheetPlainCell
                   v-if="!isRowEmpty(record, field!)"

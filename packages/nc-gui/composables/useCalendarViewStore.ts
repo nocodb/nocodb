@@ -62,7 +62,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarDataLoading = ref<boolean>(false)
 
-    const showSideMenu = ref(true)
+    const isCalendarMetaLoading = ref<boolean>(false)
+
+    const showSideMenu = ref(false)
 
     const selectedDateRange = ref<{
       start: dayjs.Dayjs
@@ -415,6 +417,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     async function loadCalendarMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
+      isCalendarMetaLoading.value = true
       try {
         const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
         calendarMetaData.value = res
@@ -430,6 +433,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }) as any
       } catch (e) {
         message.error(`Error loading calendar meta ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        isCalendarMetaLoading.value = false
       }
     }
 
@@ -715,16 +720,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(selectedTime, async () => {
-      if (calDataType.value !== UITypes.Date && showSideMenu.value) {
+      if (calDataType.value !== UITypes.Date && showSideMenu.value && sideBarFilterOption.value === 'selectedHours') {
         await loadSidebarData()
       }
     })
 
-    watch(selectedMonth, async (value, oldValue) => {
+    watch(selectedMonth, async () => {
       if (activeCalendarView.value !== 'month') return
-      if (value.month() !== oldValue.month()) {
-        await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
-      }
+      await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
     })
 
     watch(selectedDateRange, async () => {
@@ -797,6 +800,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       searchQuery,
       activeDates,
       isCalendarDataLoading,
+      isCalendarMetaLoading,
       changeCalendarView,
       calDataType,
       loadCalendarMeta,

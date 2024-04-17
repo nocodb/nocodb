@@ -89,7 +89,7 @@ const recordsAcrossAllRange = computed<{
       count: {},
     }
   const perWidth = containerWidth.value / 7
-  const perHeight = 60
+  const perHeight = 52
 
   const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
   const scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
@@ -190,7 +190,7 @@ const recordsAcrossAllRange = computed<{
           dayIndex = 6
         }
 
-        const minutes = ogStartDate.minute() + ogStartDate.hour() * 60
+        const minutes = (ogStartDate.minute() / 60 + ogStartDate.hour()) * 52
 
         style = {
           ...style,
@@ -744,7 +744,7 @@ watch(
         :class="{
           'text-brand-500': date[0].isSame(dayjs(), 'date'),
         }"
-        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-100 last:border-r-0 border-b-0 border-l-1 border-r-0 bg-gray-50"
+        class="w-1/7 text-center text-sm text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
       >
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
@@ -753,9 +753,9 @@ watch(
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-15 first:mt-0 pt-7.1 nc-calendar-day-hour text-center text-xs text-gray-500 py-1"
+        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-center font-semibold text-xs text-gray-400 py-1"
       >
-        {{ hour.format('h A') }}
+        {{ hour.format('hh a') }}
       </div>
     </div>
     <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
@@ -767,7 +767,7 @@ watch(
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
-          class="text-center relative h-15 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100"
+          class="text-center relative h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="
@@ -831,6 +831,11 @@ watch(
                     :italic="getFieldStyle(field).italic"
                     :underline="getFieldStyle(field).underline"
                   />
+                </template>
+                <template #time>
+                  <div class="text-xs font-medium text-gray-400">
+                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
+                  </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>
             </LazySmartsheetRow>

@@ -53,9 +53,9 @@ install_package() {
   fi
 }
 
-# Function to check if sudo is required for Docker Compose command
-check_for_docker_compose_sudo() {
-    if docker-compose ps >/dev/null 2>&1; then
+# Function to check if sudo is required for Docker command
+check_for_docker_sudo() {
+    if docker ps >/dev/null 2>&1; then
         echo "n"
     else
         echo "y"
@@ -107,7 +107,7 @@ read_number_range() {
 # ******************** SYSTEM REQUIREMENTS CHECK START  *************************
 
 # Check if the following requirements are met:
-# a. docker, docker-compose, jq installed
+# a. docker, jq installed
 # b. port mapping check : 80,443 are free or being used by nginx container
 
 REQUIRED_PORTS=(80 443)
@@ -121,14 +121,11 @@ if ! command_exists wget; then
 fi
 
 # d. Check if required tools are installed
-echo " | Checking if required tools (docker, docker-compose, lsof) are installed..."
-for tool in docker docker-compose lsof openssl; do
+echo " | Checking if required tools (docker, lsof) are installed..."
+for tool in docker lsof openssl; do
   if ! command_exists "$tool"; then
     echo "$tool is not installed. Setting up for installation..."
-    if [ "$tool" = "docker-compose" ]; then
-      sudo -E curl -L https://github.com/docker/compose/releases/download/1.29.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-      sudo chmod +x /usr/local/bin/docker-compose
-    elif [ "$tool" = "docker" ]; then
+    if [ "$tool" = "docker" ]; then
       wget -qO- https://get.docker.com/ | sh
     elif [ "$tool" = "lsof" ]; then
          install_package lsof
@@ -306,6 +303,10 @@ services:
   nocodb:
     image: ${IMAGE}
     env_file: docker.env
+    deploy:
+      mode: replicated
+      replicas: ${NUM_INSTANCES}
+      endpoint_mode: dnsrr
     depends_on:
       - db
       ${DEPENDS_ON}
@@ -524,20 +525,20 @@ server {
 EOF
 fi
 
-IS_DOCKER_COMPOSE_REQUIRE_SUDO=$(check_for_docker_compose_sudo)
+IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
 
 
 # Generate the update.sh file for upgrading images
-if [ "$IS_DOCKER_COMPOSE_REQUIRE_SUDO" = "y" ]; then
+if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
   cat > ./update.sh <<EOF
-sudo docker-compose pull
-sudo docker-compose up -d --force-recreate
+sudo docker compose pull
+sudo docker compose up -d --force-recreate
 sudo docker image prune -a -f
 EOF
 else
   cat > ./update.sh <<EOF
-docker-compose pull
-docker-compose up -d --force-recreate
+docker compose pull
+docker compose up -d --force-recreate
 docker image prune -a -f
 EOF
 fi
@@ -546,13 +547,13 @@ fi
 message_arr+=("Update script: update.sh")
 
 # Pull latest images and start the docker-compose setup
-if [ "$IS_DOCKER_COMPOSE_REQUIRE_SUDO" = "y" ]; then
-  echo "Docker compose requires sudo. Running the docker-compose setup with sudo."
-  sudo docker-compose pull
-  sudo docker-compose up -d
+if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
+  echo "Docker requires sudo. Running the docker compose with sudo."
+  sudo docker compose pull
+  sudo docker compose up -d
 else
-  docker-compose pull
-  docker-compose up -d
+  docker compose pull
+  docker compose up -d
 fi
 
 
@@ -563,10 +564,10 @@ sleep 5
 if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   echo 'Starting Letsencrypt certificate request...';
 
-  if [ "$IS_DOCKER_COMPOSE_REQUIRE_SUDO" = "y" ]; then
-    sudo docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
+  if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
+    sudo docker compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
   else
-    docker-compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
+    docker compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
   fi
   # Initial Let's Encrypt certificate request
 
@@ -577,10 +578,10 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 
   echo "Restarting nginx to apply the new certificates"
   # Reload nginx to apply the new certificates
-  if [ "$IS_DOCKER_COMPOSE_REQUIRE_SUDO" = "y" ]; then
-    sudo docker-compose exec nginx nginx -s reload
+  if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
+    sudo docker compose exec nginx nginx -s reload
   else
-    docker-compose exec nginx nginx -s reload
+    docker compose exec nginx nginx -s reload
   fi
 
 

@@ -537,12 +537,18 @@ DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || ec
 cat > ./help.sh <<EOF
 #!/bin/bash
 
+trap show_menu INT
+
+
 $(declare -f read_number)
 
 $(declare -f read_number_range)
 
 # Function to display the menu
 show_menu() {
+    clear
+    echo ""
+    echo \$MSG
     echo "Service Management Menu:"
     echo "1. Start Service"
     echo "2. Stop Service"
@@ -568,7 +574,8 @@ stop_service() {
 
 # Function to show logs
 show_logs() {
-    echo -e "\nSelect a container for logs:"
+    clear
+    echo "Select a container for logs:"
     echo "1. nocodb"
     echo "2. db"
     echo "3. nginx"
@@ -602,15 +609,23 @@ upgrade_service() {
 
 # Function to scale the service
 scale_service() {
-    NUM_CORES=\$(nproc)
-    echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
-    \$scale_num=\$(read_number_range 1 \$NUM_CORES)
-    $DOCKER_COMMAND compose up -d --scale nocodb=\$scale_num nocodb
+    num_cores=\$(nproc)
+    current_scale=\$($DOCKER_COMMAND compose ps -q nocodb | wc -l)
+    echo -e "\nCurrent number of instances: \$current_scale"
+    echo "How many instances of NocoDB do you want to run (Maximum: \${num_cores}) ? (default: 1): "
+    scale_num=\$(read_number_range 1 \$num_cores)
+
+    if [ \$scale_num -eq \$current_scale ]; then
+        echo "Number of instances is already set to \$scale_num. Returning to main menu."
+        return
+    fi
+
+    $DOCKER_COMMAND compose up -d --scale nocodb=\$scale_num
 }
 
 # Function for basic monitoring
 monitoring_service() {
-    echo -e '\nDisplaying basic monitoring info...'
+    echo -e '\nLoading stats...'
     $DOCKER_COMMAND stats
 }
 
@@ -621,15 +636,15 @@ while true; do
 
     read -n 1 choice
     case \$choice in
-        1) start_service ;;
-        2) stop_service ;;
+        1) start_service && MSG="NocoDB Started" ;;
+        2) stop_service && MSG="NocoDB Stopped" ;;
         3) show_logs ;;
-        4) restart_service ;;
-        5) upgrade_service ;;
-        6) scale_service ;;
+        4) restart_service && MSG="NocoDB Restarted" ;;
+        5) upgrade_service && MSG="NocoDB has been upgraded to latest version" ;;
+        6) scale_service && MSG="NocoDB has been scaled" ;;
         7) monitoring_service ;;
         0) exit 0 ;;
-        *) echo -e "\nInvalid choice. Please select a correct option." ;;
+        *) MSG="\nInvalid choice. Please select a correct option." ;;
     esac
 done
 EOF

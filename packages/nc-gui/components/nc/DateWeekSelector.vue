@@ -9,7 +9,7 @@ interface Props {
   activeDates?: Array<dayjs.Dayjs>
   isMondayFirst?: boolean
   isWeekPicker?: boolean
-  disablePagination?: boolean
+  disableHeader?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
     end: dayjs.Dayjs
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   isMondayFirst: true,
   pageDate: dayjs(),
   isWeekPicker: false,
-  disablePagination: false,
+  disableHeader: false,
   activeDates: [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
 })
@@ -144,15 +144,9 @@ const paginate = (action: 'next' | 'prev') => {
     }"
     class="flex flex-col"
   >
-    <div
-      :class="{
-        'justify-center': disablePagination,
-        'justify-between': !disablePagination,
-      }"
-      class="flex items-center"
-    >
+    <div v-if="!disableHeader" class="flex justify-between items-center">
       <NcTooltip>
-        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
+        <NcButton size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
         </NcButton>
         <template #title>
@@ -169,7 +163,7 @@ const paginate = (action: 'next' | 'prev') => {
         >{{ currentMonthYear }}</span
       >
       <NcTooltip>
-        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
+        <NcButton size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
         </NcButton>
         <template #title>
@@ -182,7 +176,7 @@ const paginate = (action: 'next' | 'prev') => {
         'rounded-lg': size === 'small',
         'rounded-y-xl': size !== 'small',
       }"
-      class="border-1 border-gray-200 max-w-[320px]"
+      class="max-w-[320px]"
     >
       <div
         :class="{
@@ -191,7 +185,7 @@ const paginate = (action: 'next' | 'prev') => {
           'px-2 py-1 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
-        class="flex flex-row bg-gray-100 justify-between"
+        class="flex flex-row border-b-1 border-gray-200 justify-between"
       >
         <span
           v-for="(day, index) in days"
@@ -201,7 +195,7 @@ const paginate = (action: 'next' | 'prev') => {
             'w-8 h-8': size === 'medium',
             'text-[10px]': size === 'small',
           }"
-          class="flex items-center uppercase justify-center text-gray-500"
+          class="flex items-center uppercase font-medium justify-center text-gray-500"
           >{{ day[0] }}</span
         >
       </div>
@@ -217,7 +211,7 @@ const paginate = (action: 'next' | 'prev') => {
           :key="index"
           :class="{
             'rounded-lg': !isWeekPicker,
-            'bg-brand-50 border-1 !border-brand-500': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'bg-gray-200 border-1 font-bold text-brand-500': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
             'nc-selected-week z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
@@ -225,25 +219,27 @@ const paginate = (action: 'next' | 'prev') => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md bg-brand-50 nc-calendar-today text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'rounded-md bg-brand-50 text-brand-500 nc-calendar-today ': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
             'h-9 w-9': size === 'large',
             'h-8 w-8': size === 'medium',
             'h-6 w-6 text-[10px]': size === 'small',
           }"
-          class="px-1 py-1 relative border-1 font-large flex items-center cursor-pointer justify-center"
+          class="px-1 py-1 relative border-1 font-medium flex items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           @click="handleSelectDate(date)"
         >
           <span
             v-if="isActiveDate(date)"
             :class="{
-              'h-1.5 w-1.5': size === 'large',
+              'h-2 w-2': size === 'large',
               'h-1 w-1': size === 'medium',
               'h-0.75 w-0.75': size === 'small',
               'top-1 right-1': size !== 'small',
               'top-0.5 right-0.5': size === 'small',
+              '!border-white': isSelectedDate(date),
+              'border-brand-50': isSameDate(date, dayjs()),
             }"
-            class="absolute z-2 rounded-full bg-brand-500"
+            class="absolute z-2 rounded-full border-2 border-white bg-brand-500"
           ></span>
           <span class="z-2">
             {{ date.get('date') }}
@@ -260,7 +256,7 @@ const paginate = (action: 'next' | 'prev') => {
 }
 
 .nc-selected-week:before {
-  @apply absolute top-0 left-0 w-full h-full border-y-1 bg-brand-50 border-brand-500;
+  @apply absolute top-0 left-0 w-full h-full bg-gray-200;
   content: '';
   width: 124%;
   height: 100%;

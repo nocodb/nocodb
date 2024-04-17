@@ -753,9 +753,9 @@ watch(
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-center font-semibold text-xs text-gray-500 py-1"
+        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-center font-semibold text-xs text-gray-400 py-1"
       >
-        {{ hour.format('h A') }}
+        {{ hour.format('hh A') }}
       </div>
     </div>
     <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
@@ -766,7 +766,6 @@ watch(
           :class="{
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
             '!bg-gray-100': hour.get('day') === 0 || hour.get('day') === 6,
-            'border-b-gray-200': hour.get('hour') % 3 === 2,
           }"
           class="text-center relative h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
           data-testid="nc-calendar-week-hour"
@@ -834,8 +833,8 @@ watch(
                   />
                 </template>
                 <template #time>
-                  <div class="text-xs font-medium text-gray-600">
-                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm A') }}
+                  <div class="text-xs font-medium text-gray-400">
+                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                   </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>

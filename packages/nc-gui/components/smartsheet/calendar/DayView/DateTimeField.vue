@@ -903,8 +903,8 @@ watch(
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
       >
-        <div class="pt-2 w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-500 font-semibold h-13">
-          {{ dayjs(hour).format('h A') }}
+        <div class="pt-2 w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+          {{ dayjs(hour).format('hh A') }}
         </div>
       </div>
     </div>
@@ -1053,8 +1053,8 @@ watch(
                   />
                 </template>
                 <template #time>
-                  <div class="text-xs font-medium text-gray-600">
-                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm A') }}
+                  <div class="text-xs font-medium text-gray-400">
+                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                   </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>

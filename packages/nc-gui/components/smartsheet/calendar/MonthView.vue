@@ -798,8 +798,8 @@ const addRecord = (date: dayjs.Dayjs) => {
               @dblclick.stop="emit('expandRecord', record)"
             >
               <template #time>
-                <span class="text-xs font-medium min-w-13.8 text-gray-600">
-                  {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm A') }}
+                <span class="text-xs font-medium text-gray-400">
+                  {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
                 </span>
               </template>
               <template v-for="(field, id) in fields" :key="id">

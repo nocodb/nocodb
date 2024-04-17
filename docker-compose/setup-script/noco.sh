@@ -531,36 +531,18 @@ EOF
 fi
 
 IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
+DOCKER_COMMAND=([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
 
-
-# Generate the update.sh file for upgrading images
-if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
-  cat > ./update.sh <<EOF
-sudo docker compose pull
-sudo docker compose up -d --force-recreate
-sudo docker image prune -a -f
+cat > ./update.sh <<EOF
+$DOCKER_COMMAND compose pull
+$DOCKER_COMMAND up -d --force-recreate
+$DOCKER_COMMAND image prune -a -f
 EOF
-else
-  cat > ./update.sh <<EOF
-docker compose pull
-docker compose up -d --force-recreate
-docker image prune -a -f
-EOF
-fi
-
 
 message_arr+=("Update script: update.sh")
 
-# Pull latest images and start the docker-compose setup
-if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
-  echo "Docker requires sudo. Running the docker compose with sudo."
-  sudo docker compose pull
-  sudo docker compose up -d
-else
-  docker compose pull
-  docker compose up -d
-fi
-
+$DOCKER_COMMAND compose pull
+$DOCKER_COMMAND compose up -d
 
 echo 'Waiting for Nginx to start...';
 
@@ -569,11 +551,7 @@ sleep 5
 if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   echo 'Starting Letsencrypt certificate request...';
 
-  if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
-    sudo docker compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
-  else
-    docker compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
-  fi
+  $DOCKER_COMMAND compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
   # Initial Let's Encrypt certificate request
 
   # Update the nginx config to use the new certificates
@@ -583,12 +561,7 @@ if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
 
   echo "Restarting nginx to apply the new certificates"
   # Reload nginx to apply the new certificates
-  if [ "$IS_DOCKER_REQUIRE_SUDO" = "y" ]; then
-    sudo docker compose exec nginx nginx -s reload
-  else
-    docker compose exec nginx nginx -s reload
-  fi
-
+  $DOCKER_COMMAND compose exec nginx nginx -s reload
 
   message_arr+=("NocoDB is now available at https://$DOMAIN_NAME")
 

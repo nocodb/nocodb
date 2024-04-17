@@ -1,5 +1,6 @@
 // eslint-disable-file no-fallthrough
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import { shouldSkipCache } from './common-helpers';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -58,6 +59,10 @@ export function generateNestedRowSelectQuery({
     pramsValueArr,
   );
 }
+
+const SKIP_COUNT_CACHE_VALUE = '__nc_skip__';
+const COUNT_QUERY_TIMEOUT = 3000;
+const logger = new Logger('pg-single-query');
 
 export async function extractColumns({
   columns,
@@ -987,12 +992,8 @@ export async function singleQueryRead(ctx: {
     }),
   ];
 
-  // apply filters on root query and count query
+  // apply filters on root query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
-  // await conditionV2(baseModel, aggrConditionObj, countQb);
-
-  // apply sort on root query
-  // if (sorts) await sortV2(baseModel, sorts, rootQb);
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
@@ -1109,8 +1110,10 @@ export async function singleQueryList(ctx: {
     if (cachedQuery && cachedCountQuery) {
       let res, countRes;
       await Promise.all([
+        // skip count query if excludeCount is present or takes more than the timeout seconds
+        // or if the cached count query value is SKIP_COUNT_CACHE_VALUE
         new Promise((resolve, reject) => {
-          if (excludeCount) {
+          if (excludeCount || cachedCountQuery === SKIP_COUNT_CACHE_VALUE) {
             return resolve(null);
           }
 
@@ -1121,7 +1124,7 @@ export async function singleQueryList(ctx: {
             if (resolved) return;
             resolved = true;
             resolve(null);
-          }, 3000);
+          }, COUNT_QUERY_TIMEOUT);
 
           baseModel
             .execAndParse(knex.raw(cachedCountQuery).toQuery(), null, {
@@ -1303,6 +1306,7 @@ export async function singleQueryList(ctx: {
   let res: any;
   let count: number;
   await Promise.all([
+    // skip count query if excludeCount is present or takes more than the timeout seconds
     new Promise((resolve, reject) => {
       if (excludeCount) {
         return resolve(null);
@@ -1310,12 +1314,24 @@ export async function singleQueryList(ctx: {
 
       let resolved = false;
 
+      const countQuery = countQb.toQuery();
+
+      NocoCache.set(countCacheKey, countQuery).catch((e) => {
+        if (resolved) return;
+        resolved = true;
+        reject(e);
+      });
+
       // if count query takes more than 3 seconds then skip it
       setTimeout(() => {
         if (resolved) return;
         resolved = true;
         resolve(null);
-      }, 3000);
+        NocoCache.set(countCacheKey, SKIP_COUNT_CACHE_VALUE).catch((e) => {
+          // ignore
+          logger.error(e);
+        });
+      }, COUNT_QUERY_TIMEOUT);
       baseModel
         .execAndParse(countQb.toQuery(), null, {
           skipDateConversion: true,
@@ -1360,11 +1376,8 @@ export async function singleQueryList(ctx: {
             'limit ? offset ?',
           );
 
-        const countQuery = countQb.toQuery();
-
         // cache query for later use
         await NocoCache.set(cacheKey, query);
-        await NocoCache.set(countCacheKey, countQuery);
 
         const startTime = process.hrtime();
 

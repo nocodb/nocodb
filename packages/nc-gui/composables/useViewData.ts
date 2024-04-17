@@ -215,7 +215,7 @@ export function useViewData(
       return message.error(await extractSdkResponseErrorMsg(error))
     }
     formattedData.value = formatData(response.list)
-    paginationData.value = response.pageInfo
+    paginationData.value = response.pageInfo || {}
     isPaginationLoading.value = false
 
     // to cater the case like when querying with a non-zero offset

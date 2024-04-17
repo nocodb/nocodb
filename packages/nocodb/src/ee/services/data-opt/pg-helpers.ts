@@ -1071,6 +1071,8 @@ export async function singleQueryList(ctx: {
   ignorePagination?: boolean;
   limitOverride?: number;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
+  const excludeCount = ctx.params?.excludeCount;
+
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
   }
@@ -1094,22 +1096,67 @@ export async function singleQueryList(ctx: {
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:queries`;
+  const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
+    ctx.view?.id ?? 'default'
+  }:queries:count`;
 
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
-    if (cachedQuery) {
-      const startTime = process.hrtime();
-      const res = await baseModel.execAndParse(
-        knex.raw(cachedQuery, [+listArgs.limit, +listArgs.offset]).toQuery(),
-        null,
-        { skipDateConversion: true },
-      );
-      dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    const cachedCountQuery = await NocoCache.get(
+      countCacheKey,
+      CacheGetType.TYPE_STRING,
+    );
+    if (cachedQuery && cachedCountQuery) {
+      let res, countRes;
+      await Promise.all([
+        new Promise((resolve, reject) => {
+          if (excludeCount) {
+            return resolve(null);
+          }
 
+          let resolved = false;
+
+          // if count query takes more than 3 seconds then skip it
+          setTimeout(() => {
+            if (resolved) return;
+            resolved = true;
+            resolve(null);
+          }, 3000);
+
+          baseModel
+            .execAndParse(knex.raw(cachedCountQuery).toQuery(), null, {
+              skipDateConversion: true,
+            })
+            .then(
+              (count) => {
+                if (resolved) return;
+                resolved = true;
+                countRes = +count?.[0]?.count || 0;
+                resolve(null);
+              },
+              (err) => {
+                if (resolved) return;
+                resolved = true;
+                reject(err);
+              },
+            );
+        }),
+        (async () => {
+          const startTime = process.hrtime();
+          res = await baseModel.execAndParse(
+            knex
+              .raw(cachedQuery, [+listArgs.limit, +listArgs.offset])
+              .toQuery(),
+            null,
+            { skipDateConversion: true },
+          );
+          dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+        })(),
+      ]);
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
         {
-          count: +res[0]?.__nc_count || 0,
+          count: countRes,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
           limitOverride: +ctx.limitOverride,
@@ -1251,51 +1298,90 @@ export async function singleQueryList(ctx: {
     }*/
   }
 
-  const finalQb = qb.select(countQb.as('__nc_count'));
-
+  // const finalQb = qb.select(countQb.as('__nc_count'));
+  const finalQb = qb;
   let res: any;
-  if (skipCache) {
-    const startTime = process.hrtime();
-    res = await baseModel.execAndParse(finalQb, null, {
-      skipDateConversion: true,
-    });
-    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-  } else {
-    const { sql, bindings } = finalQb.toSQL();
+  let count: number;
+  await Promise.all([
+    new Promise(async (resolve, reject) => {
+      if (excludeCount) {
+        return resolve(null);
+      }
 
-    // get unique placeholder for limit and offset which is not present in query
-    const placeholder = getUniquePlaceholders(finalQb.toQuery());
+      let resolved = false;
 
-    // bind all params and replace limit and offset with placeholders
-    // and in generated sql replace placeholders with bindings
-    const query = knex
-      .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
-      .toQuery()
-      // escape any `?` in the query to avoid replacing them with bindings
-      .replace(/\?/g, '\\?')
-      .replace(
-        `limit '${placeholder}' offset '${placeholder}'`,
-        'limit ? offset ?',
-      );
+      // if count query takes more than 3 seconds then skip it
+      setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        resolve(null);
+      }, 3000);
+      baseModel
+        .execAndParse(countQb.toQuery(), null, {
+          skipDateConversion: true,
+          first: true,
+        })
+        .then(
+          (r) => {
+            resolved = true;
+            count = +r?.count || 0;
+            resolve(null);
+          },
+          (e) => {
+            resolved = true;
+            reject(e);
+          },
+        );
+    }),
+    (async () => {
+      if (skipCache) {
+        const startTime = process.hrtime();
+        res = await baseModel.execAndParse(finalQb, null, {
+          skipDateConversion: true,
+        });
+        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+      } else {
+        const { sql, bindings } = finalQb.toSQL();
 
-    // cache query for later use
-    await NocoCache.set(cacheKey, query);
+        // get unique placeholder for limit and offset which is not present in query
+        const placeholder = getUniquePlaceholders(finalQb.toQuery());
 
-    const startTime = process.hrtime();
+        // bind all params and replace limit and offset with placeholders
+        // and in generated sql replace placeholders with bindings
+        const query = knex
+          .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
+          .toQuery()
+          // escape any `?` in the query to avoid replacing them with bindings
+          .replace(/\?/g, '\\?')
+          .replace(
+            `limit '${placeholder}' offset '${placeholder}'`,
+            'limit ? offset ?',
+          );
 
-    // run the query with actual limit and offset
-    res = await baseModel.execAndParse(
-      knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
-      null,
-      { skipDateConversion: true },
-    );
-    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-  }
+        const countQuery = countQb.toQuery();
+
+        // cache query for later use
+        await NocoCache.set(cacheKey, query);
+        await NocoCache.set(countCacheKey, countQuery);
+
+        const startTime = process.hrtime();
+
+        // run the query with actual limit and offset
+        res = await baseModel.execAndParse(
+          knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+          null,
+          { skipDateConversion: true },
+        );
+        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+      }
+    })(),
+  ]);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),
     {
-      count: +res[0]?.__nc_count || 0,
+      // count: +res[0]?.__nc_count || 0,
+      count,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
       limitOverride: +ctx.limitOverride,

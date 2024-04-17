@@ -264,6 +264,8 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
 const isJsonExpand = ref(false)
 provide(JsonExpandInj, isJsonExpand)
 
+const isKeyDown = ref(false)
+
 // #Cell - 1
 
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
@@ -632,6 +634,8 @@ const {
         e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          isKeyDown.value = true
+
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
           await resetAndChangePage(0, 0, 1)
@@ -649,6 +653,8 @@ const {
         e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
+          isKeyDown.value = true
+
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
           await resetAndChangePage(0, activeCell.col!, 1)
@@ -1194,7 +1200,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-  if (!isRichModalOpen && !activeDropdownEl && !isDrawerOrModalExist() && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+  if (isKeyDown.value && !isRichModalOpen && !activeDropdownEl && !isDrawerOrModalExist() && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
     if (
       (e.key === 'Tab' && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) ||
       (e.key === 'ArrowDown' &&
@@ -1204,6 +1210,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
     ) {
       addEmptyRow()
       await resetAndChangePage(dataRef.value.length - 1, 0)
+      isKeyDown.value = false
     }
   }
 })

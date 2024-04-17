@@ -582,12 +582,11 @@ const {
   makeEditable,
   scrollToCell,
   async (e: KeyboardEvent) => {
-    // ignore navigating if picker(Date, Time, DateTime, Year)
-    // or single/multi select options is open
-    const activePickerOrDropdownEl = document.querySelector(
+    // ignore navigating if single/multi select options is open
+    const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
-    if (activePickerOrDropdownEl) {
+    if (activeDropdownEl) {
       e.preventDefault()
       return true
     }
@@ -633,8 +632,6 @@ const {
         e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
-          addEmptyRow()
-          await resetAndChangePage(dataRef.value.length - 1, 0)
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
           await resetAndChangePage(0, 0, 1)
@@ -652,8 +649,6 @@ const {
         e.preventDefault()
 
         if (paginationDataRef.value?.isLastPage && isAddingEmptyRowAllowed.value) {
-          addEmptyRow()
-          await resetAndChangePage(dataRef.value.length - 1, activeCell.col!)
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
           await resetAndChangePage(0, activeCell.col!, 1)
@@ -1193,6 +1188,23 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   if (e.key === 'Alt' && !isRichModalOpen) {
     altModifier.value = false
     disableUrlOverlay.value = false
+  }
+
+  const activeDropdownEl = document.querySelector('.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active')
+
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+  if (!isRichModalOpen && !activeDropdownEl && !isDrawerOrModalExist() && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+    if (
+      (e.key === 'Tab' && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) ||
+      (e.key === 'ArrowDown' &&
+        activeCell.row === dataRef.value.length - 1 &&
+        paginationDataRef.value?.isLastPage &&
+        isAddingEmptyRowAllowed.value)
+    ) {
+      addEmptyRow()
+      await resetAndChangePage(dataRef.value.length - 1, 0)
+    }
   }
 })
 

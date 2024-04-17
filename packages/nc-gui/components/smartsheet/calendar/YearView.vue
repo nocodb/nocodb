@@ -41,6 +41,7 @@ watch(width, handleResize)
         v-model:active-dates="activeDates"
         v-model:page-date="months[index]"
         v-model:selected-date="selectedDate"
+        class="nc-year-view-calendar"
         :size="size"
         data-testid="nc-calendar-year-view-month-selector"
         disable-pagination
@@ -49,4 +50,14 @@ watch(width, handleResize)
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.nc-year-view-calendar {
+  :deep(.nc-date-week-header) {
+    @apply !bg-gray-100 border-x-1 border-t-1;
+  }
+
+  :deep(.nc-date-week-grid-wrapper) {
+    @apply !border-x-1 border-b-1 rounded-b-lg;
+  }
+}
+</style>

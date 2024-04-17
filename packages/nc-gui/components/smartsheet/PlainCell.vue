@@ -261,7 +261,7 @@ const getLookupValue = (modelValue: string | null | number | Array<any>, col: Co
 
 const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
   if (Array.isArray(modelValue)) {
-    return modelValue.map((v) => `${v.title} (${getPossibleAttachmentSrc(v).join(', ')})`).join(', ')
+    return modelValue.map((v) => `${v.title}`).join(', ')
   }
   return modelValue as string
 }
@@ -358,7 +358,7 @@ const parseValue = (value: any, col: ColumnType): string => {
   <span
     class="plain-cell before:px-1"
     :class="{
-      'font-bold': bold,
+      '!font-bold': bold,
       'italic': italic,
       'underline': underline,
     }"
@@ -377,6 +377,9 @@ const parseValue = (value: any, col: ColumnType): string => {
   &:first-child::before {
     content: '';
     padding: 0;
+  }
+  &:first-child {
+    padding-left: 0;
   }
 }
 </style>

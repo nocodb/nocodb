@@ -436,7 +436,9 @@ const onConfirmDeleteRowClick = async () => {
   showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
   message.success(t('msg.rowDeleted'))
-  reloadTrigger.trigger()
+  await reloadViewDataTrigger.trigger({
+    shouldShowLoading: false,
+  })
   onClose()
   showDeleteRowModal.value = false
 }

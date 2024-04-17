@@ -28,15 +28,15 @@ const config: AppConfig = {
 
     // todo: decide on xc-auth API limits
     data_gui: {
-      ttl: +process.env.NC_DATA_GUI_API_TTL || 1,
+      ttl: +process.env.NC_DATA_GUI_API_TTL || 20,
       max_apis: +process.env.NC_DATA_GUI_COUNT || 20,
     },
     meta_gui: {
-      ttl: +process.env.NC_META_GUI_API_TTL || 1,
+      ttl: +process.env.NC_META_GUI_API_TTL || 20,
       max_apis: +process.env.NC_META_GUI_COUNT || 20,
     },
     public: {
-      ttl: +process.env.NC_PUBLIC_API_TTL || 1,
+      ttl: +process.env.NC_PUBLIC_API_TTL || 20,
       max_apis: +process.env.NC_PUBLIC_COUNT || 10,
     },
     calc_execution_time: false,

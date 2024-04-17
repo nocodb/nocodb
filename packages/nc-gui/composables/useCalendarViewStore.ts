@@ -62,7 +62,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarDataLoading = ref<boolean>(false)
 
-    const showSideMenu = ref(true)
+    const showSideMenu = ref(false)
 
     const selectedDateRange = ref<{
       start: dayjs.Dayjs

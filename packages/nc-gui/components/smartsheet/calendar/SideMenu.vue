@@ -55,7 +55,6 @@ const dragElement = ref<HTMLElement | null>(null)
 const dragStart = (event: DragEvent, record: Row) => {
   dragElement.value = event.target as HTMLElement
 
-  dragElement.value.style.boxShadow = '0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.10)'
   const eventRect = dragElement.value.getBoundingClientRect()
 
   const initialClickOffsetX = event.clientX - eventRect.left
@@ -428,8 +427,8 @@ onUnmounted(() => {
               "
                 color="blue"
                 data-testid="nc-sidebar-record-card"
-                @click="emit('expand-record', record)"
                 @dragstart="dragStart($event, record)"
+                @click="emit('expandRecord', record)"
                 @dragover.prevent
               >
                 <template v-if="!isRowEmpty(record, displayField)">

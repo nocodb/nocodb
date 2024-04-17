@@ -734,6 +734,90 @@ const dragStart = (event: MouseEvent, record: Row) => {
   document.addEventListener('mouseup', onMouseUp)
 }
 
+// We support drag and drop from the sidebar to the day view of the date field
+const dropEvent = (event: DragEvent) => {
+  if (!isUIAllowed('dataEdit') || !container.value) return
+  event.preventDefault()
+  const data = event.dataTransfer?.getData('text/plain')
+  if (data) {
+    const {
+      record,
+    }: {
+      record: Row
+      initialClickOffsetY: number
+      initialClickOffsetX: number
+    } = JSON.parse(data)
+
+    const fromCol = record.rowMeta.range?.fk_from_col
+    const toCol = record.rowMeta.range?.fk_to_col
+
+    if (!fromCol) return
+
+    const { top } = container.value.getBoundingClientRect()
+
+    const { scrollHeight } = container.value
+
+    // We calculate the percentage of the mouse position in the scroll container
+    const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
+
+    const hour = Math.max(Math.floor(percentY * 23), 0)
+    const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
+
+    const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+
+    let endDate
+
+    const newRow = {
+      ...record,
+      row: {
+        ...record.row,
+        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      },
+    }
+
+    const updateProperty = [fromCol.title!]
+
+    if (toCol) {
+      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
+      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
+
+      if (fromDate && toDate) {
+        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      } else if (fromDate && !toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else if (!fromDate && toDate) {
+        endDate = dayjs(newStartDate).endOf('day')
+      } else {
+        endDate = newStartDate.clone()
+      }
+      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+      updateProperty.push(toCol.title!)
+    }
+
+    if (!newRow) return
+
+    const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
+
+    if (dragElement.value) {
+      formattedData.value = formattedData.value.map((r) => {
+        const pk = extractPkFromRow(r.row, meta.value!.columns!)
+        return pk === newPk ? newRow : r
+      })
+    } else {
+      formattedData.value = [...formattedData.value, newRow]
+      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+        return extractPkFromRow(r.row, meta.value!.columns!) !== newPk
+      })
+    }
+
+    if (dragElement.value) {
+      dragElement.value.style.boxShadow = 'none'
+      dragElement.value = null
+    }
+    updateRowProperty(newRow, updateProperty, false)
+  }
+}
+
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
   let startOfHour = hour.startOf('hour')
   const endOfHour = hour.endOf('hour')
@@ -804,6 +888,7 @@ watch(
     ref="container"
     class="w-full flex relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
+    @drop="dropEvent"
   >
     <div>
       <div

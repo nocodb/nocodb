@@ -135,7 +135,6 @@ test.describe('Calendar View', () => {
 
   test('Calendar Sidebar Verify Sidebar Filter, Calendar View Mode', async () => {
     // Create & Verify Calendar View
-    test.slow();
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
 
@@ -161,6 +160,8 @@ test.describe('Calendar View', () => {
 
     // Verify Sidebar
     const calendar = dashboard.calendar;
+
+    await calendar.calendarTopbar.toggleSideBar();
 
     await calendar.verifySideBarOpen();
 
@@ -289,8 +290,6 @@ test.describe('Calendar View', () => {
   });
 
   test('Calendar Drag and Drop & Undo Redo Operations', async () => {
-    test.slow();
-
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
     await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
@@ -307,6 +306,8 @@ test.describe('Calendar View', () => {
     await dashboard.viewSidebar.openView({ title: 'Calendar' });
 
     const calendar = dashboard.calendar;
+
+    await calendar.calendarTopbar.toggleSideBar();
 
     await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
 
@@ -367,8 +368,6 @@ test.describe('Calendar View', () => {
   });
 
   test('Calendar shared view operations', async ({ page }) => {
-    test.slow();
-
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
 
@@ -380,8 +379,6 @@ test.describe('Calendar View', () => {
       title: 'Calendar',
       index: 0,
     });
-
-    await dashboard.rootPage.waitForTimeout(12000);
 
     // Share view
     const sharedLink = await topbar.getSharedViewUrl();
@@ -417,6 +414,8 @@ test.describe('Calendar View', () => {
 
     await calendar.calendarTopbar.moveToDate({ date: 'January 2024', action: 'prev' });
 
+    await calendar.calendarTopbar.toggleSideBar();
+
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
     await calendar.sideMenu.updateFilter({
@@ -427,8 +426,6 @@ test.describe('Calendar View', () => {
   });
 
   test('Calendar Operations Date Fields', async () => {
-    test.slow();
-
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
     await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
@@ -464,6 +461,8 @@ test.describe('Calendar View', () => {
     const calendar = dashboard.calendar;
 
     await calendar.calendarTopbar.moveToDate({ date: '1 January 2024', action: 'prev' });
+
+    await calendar.calendarTopbar.toggleSideBar();
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 

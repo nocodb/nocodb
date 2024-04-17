@@ -215,16 +215,17 @@ export function useViewData(
       return message.error(await extractSdkResponseErrorMsg(error))
     }
     formattedData.value = formatData(response.list)
-    paginationData.value = response.pageInfo || {}
+    paginationData.value = response.pageInfo || paginationData.value || {}
     isPaginationLoading.value = false
 
     // to cater the case like when querying with a non-zero offset
     // the result page may point to the target page where the actual returned data don't display on
-    const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
-    if (expectedPage < paginationData.value.page!) {
-      await changePage(expectedPage)
+    if (paginationData.value.totalRows !== undefined && paginationData.value.totalRows !== null) {
+      const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+      if (expectedPage < paginationData.value.page!) {
+        await changePage(expectedPage)
+      }
     }
-
     if (viewMeta.value?.type === ViewTypes.GRID) {
       loadAggCommentsCount()
     }

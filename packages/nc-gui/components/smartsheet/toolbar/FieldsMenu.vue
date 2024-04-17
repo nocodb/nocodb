@@ -180,7 +180,15 @@ const updateCoverImage = async (val?: string | null) => {
       })
       ;(activeView.value.view as CalendarType).fk_cover_image_col_id = val
     }
-    reloadViewMetaHook?.trigger()
+
+    await reloadViewMetaHook?.trigger()
+
+    // Load data only if the view column is hidden to fetch cover image column data in records.
+    if (val && !fields.value?.find((f) => f.fk_column_id === val)?.show) {
+      await reloadViewDataHook?.trigger({
+        shouldShowLoading: false,
+      })
+    }
   }
 }
 
@@ -356,7 +364,7 @@ useMenuCloseOnEsc(open)
         @click.stop
       >
         <div
-          v-if="!filterQuery && !isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
+          v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex flex-col gap-y-2 px-2 mb-6"
         >
           <div class="flex text-sm select-none">Select cover image field</div>

@@ -125,6 +125,15 @@ export default class KanbanView implements KanbanType {
       prepareForResponse(updateObj),
     );
 
+    const view = await View.get(kanbanId);
+
+    // on update, delete any optimised single query cache
+    await View.clearSingleQueryCache(
+      view.fk_model_id,
+      [{ id: kanbanId }],
+      ncMeta,
+    );
+
     return res;
   }
 }

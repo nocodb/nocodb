@@ -1973,8 +1973,8 @@ onKeyStroke('ArrowDown', onDown)
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             class="nc-grid-add-new-row"
             type="secondary"
-            @click="onNewRecordToFormClick()"
             :disabled="isPaginationLoading"
+            @click="onNewRecordToFormClick()"
           >
             {{ $t('activity.newRecord') }}
           </NcButton>
@@ -1983,8 +1983,8 @@ onKeyStroke('ArrowDown', onDown)
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid:toggle' : 'c:row:add:form:toggle']"
             class="nc-grid-add-new-row"
             placement="top"
-            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
             :disabled="isPaginationLoading"
+            @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
               <span>

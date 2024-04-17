@@ -1303,7 +1303,7 @@ export async function singleQueryList(ctx: {
   let res: any;
   let count: number;
   await Promise.all([
-    new Promise(async (resolve, reject) => {
+    new Promise((resolve, reject) => {
       if (excludeCount) {
         return resolve(null);
       }

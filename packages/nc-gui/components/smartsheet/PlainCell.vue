@@ -261,7 +261,7 @@ const getLookupValue = (modelValue: string | null | number | Array<any>, col: Co
 
 const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
   if (Array.isArray(modelValue)) {
-    return modelValue.map((v) => `${v.title} (${getPossibleAttachmentSrc(v).join(', ')})`).join(', ')
+    return modelValue.map((v) => `${v.title}`).join(', ')
   }
   return modelValue as string
 }

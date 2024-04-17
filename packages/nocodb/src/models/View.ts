@@ -1948,7 +1948,7 @@ export default class View implements ViewType {
     return insertedView;
   }
 
-  private static extractViewColumnsTableName(view: View) {
+  public static extractViewColumnsTableName(view: View) {
     let table;
     switch (view.type) {
       case ViewTypes.GRID:
@@ -1973,7 +1973,7 @@ export default class View implements ViewType {
     return table;
   }
 
-  private static extractViewTableName(view: View) {
+  protected static extractViewTableName(view: View) {
     let table;
     switch (view.type) {
       case ViewTypes.GRID:
@@ -1998,7 +1998,7 @@ export default class View implements ViewType {
     return table;
   }
 
-  private static extractViewColumnsTableNameScope(view: View) {
+  protected static extractViewColumnsTableNameScope(view: View) {
     let scope;
     switch (view.type) {
       case ViewTypes.GRID:

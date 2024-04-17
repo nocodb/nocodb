@@ -3,6 +3,7 @@ import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { extractProps } from '~/helpers/extractProps';
 
 export default class MapViewColumn {
   id: string;
@@ -100,5 +101,43 @@ export default class MapViewColumn {
         (b.order != null ? b.order : Infinity),
     );
     return views?.map((v) => new MapViewColumn(v));
+  }
+
+  // todo: update prop names
+  static async update(
+    columnId: string,
+    body: Partial<MapViewColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(body, [
+      'order',
+      'show',
+      'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+    ]);
+
+    // set meta
+    const res = await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.MAP_VIEW_COLUMNS,
+      updateObj,
+      columnId,
+    );
+
+    // get existing cache
+    const key = `${CacheScope.MAP_VIEW_COLUMN}:${columnId}`;
+    await NocoCache.update(key, updateObj);
+
+    // on view column update, delete any optimised single query cache
+    {
+      const viewCol = await this.get(columnId, ncMeta);
+      const view = await View.get(viewCol.fk_view_id, ncMeta);
+      await View.clearSingleQueryCache(view.fk_model_id, [view]);
+    }
+
+    return res;
   }
 }

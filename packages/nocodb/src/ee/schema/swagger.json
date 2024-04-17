@@ -3758,6 +3758,639 @@
         "x-stoplight": {
           "id": "24eab7d1ead43"
         }
+      },
+
+
+      "FormColumn": {
+        "description": "Model for Form Column",
+        "examples": [
+          {
+            "id": "fvc_1m9b0aub791d4m",
+            "description": null,
+            "fk_column_id": "cl_ah9zavkn25ihyd",
+            "fk_view_id": "vw_6fqln9vdytdv8q",
+            "help": "This is a help text",
+            "label": "Form Label",
+            "meta": null,
+            "order": 1,
+            "required": 0,
+            "show": 0,
+            "uuid": null
+          }
+        ],
+        "title": "Form Column Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "_cn": "first_name",
+            "alias": "first_name",
+            "created_at": "2022-02-15 12:39:04",
+            "description": "dsdsdsdsd",
+            "fk_column_id": "cl_yvyhsl9u81tokc",
+            "fk_view_id": "vw_s1pf4umdnikoyn",
+            "help": null,
+            "id": "fvc_8z1i7t8aswkqxx",
+            "label": "dsdsds",
+            "order": 1,
+            "required": false,
+            "show": 1,
+            "enable_scanner": true,
+            "updated_at": "2022-02-15 12:39:16",
+            "uuid": null
+          }
+        },
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View"
+          },
+          "help": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
+          },
+          "label": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Label"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among all the columns in the form",
+            "example": 1
+          },
+          "required": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this form column required in submission?"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown in Form?"
+          },
+          "enable_scanner": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates whether the 'Fill by scan' button is visible for this column or not.",
+            "example": true
+          },
+          "uuid": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column UUID (Not in use)"
+          }
+        },
+        "x-stoplight": {
+          "id": "rs2uh5opf10q6"
+        }
+      },
+      "FormColumnReq": {
+        "description": "Model for Form Column Request",
+        "examples": [
+          {
+            "description": null,
+            "help": "This is a help text",
+            "label": "Form Label",
+            "meta": null,
+            "order": 1,
+            "required": 0,
+            "show": 0
+          }
+        ],
+        "title": "Form Column Request Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "_cn": "first_name",
+            "alias": "first_name",
+            "created_at": "2022-02-15 12:39:04",
+            "description": "dsdsdsdsd",
+            "fk_column_id": "cl_yvyhsl9u81tokc",
+            "fk_view_id": "vw_s1pf4umdnikoyn",
+            "help": null,
+            "id": "fvc_8z1i7t8aswkqxx",
+            "label": "dsdsds",
+            "order": 1,
+            "required": false,
+            "show": 1,
+            "updated_at": "2022-02-15 12:39:16",
+            "uuid": null
+          }
+        },
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Description"
+          },
+          "help": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Help Text (Not in use)"
+          },
+          "label": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Form Column Label"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among all the columns in the form"
+          },
+          "required": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this form column required in submission?"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown in Form?"
+          }
+        },
+        "x-stoplight": {
+          "id": "a1vgymjna1ose"
+        }
+      },
+      "GalleryColumn": {
+        "description": "Model for Gallery Column",
+        "examples": [
+          {
+            "fk_col_id": "string",
+            "fk_gallery_id": "string",
+            "help": "string",
+            "id": "string",
+            "label": "string"
+          }
+        ],
+        "properties": {
+          "fk_col_id": {
+            "type": "string"
+          },
+          "fk_gallery_id": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "title": "Gallery Column Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "auloy6128iwh9"
+        }
+      },
+      "GridColumn": {
+        "description": "Model for Grid Column",
+        "examples": [
+          {
+            "id": "nc_c8jz4kxe6xvh11",
+            "fk_view_id": "vw_p2jcatxz4mvcfw",
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "base_id": "p_xm3thidrblw4n7",
+            "source_id": "ds_g4ccx6e77h1dmi",
+            "show": 0,
+            "order": 1,
+            "width": "200px",
+            "help": null,
+            "group_by": 0,
+            "group_by_order": null,
+            "group_by_sort": null
+          }
+        ],
+        "title": "Grid Column Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID",
+            "x-stoplight": {
+              "id": "jc14yojp52rqj"
+            }
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View",
+            "x-stoplight": {
+              "id": "vl18dbt5c2r8r"
+            }
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Source ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "d47eer13oa8yr"
+            }
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "d47eer13oa8yr"
+            },
+            "example": 1,
+            "description": "Grid Column Order"
+          },
+          "width": {
+            "type": "string",
+            "description": "Column Width",
+            "example": "200px"
+          },
+          "help": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Column Help Text",
+            "x-stoplight": {
+              "id": "azwh6zn37qzkc"
+            }
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1
+          },
+          "group_by_sort": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Group By Sort",
+            "example": "asc"
+          }
+        },
+        "x-stoplight": {
+          "id": "195gzd7s6p7nv"
+        }
+      },
+      "GridColumnReq": {
+        "description": "Model for Grid Column Request",
+        "examples": [
+          {
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "help": {
+            "maxLength": 255,
+            "type": "string"
+          },
+          "label": {
+            "description": "The label of the column",
+            "example": "My Column",
+            "maxLength": 255,
+            "type": "string"
+          },
+          "width": {
+            "description": "The width of the column",
+            "example": "200px",
+            "maxLength": 255,
+            "pattern": "^[0-9]+(px|%)$",
+            "type": "string"
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1
+          },
+          "group_by_sort": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Group By Sort",
+            "example": "asc"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        },
+        "title": "Grid Column Request Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "9yhalgmix6d0m"
+        }
+      },
+      "KanbanColumn": {
+        "description": "Model for Kanban Column",
+        "examples": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "source_id": "ds_hd4ojj0xpquaam",
+            "base_id": "p_kzfl5lb0t3tcok",
+            "title": "string",
+            "show": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Kanban Column Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Baes ID\n"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID"
+          },
+          "title": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID",
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+      "KanbanColumnReq": {
+        "description": "Model for Kanban Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Kanban Column Model Request",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "example": 1,
+            "description": "Column Order"
+          }
+        }
+      },
+      "GalleryColumnReq": {
+        "description": "Model for Gallery Column Request",
+        "examples": [
+          {
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        }
+      },
+      "CalendarColumn": {
+        "description": "Model for Calendar Column",
+        "examples": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "source_id": "ds_hd4ojj0xpquaam",
+            "base_id": "p_kzfl5lb0t3tcok",
+            "title": "string",
+            "show": 0,
+            "bold": 0,
+            "italic": 0,
+            "underline": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Calendar Column Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Baes ID\n"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID"
+          },
+          "title": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Base ID",
+            "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "bold": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as bold?"
+          },
+          "italic": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as italic?"
+          },
+          "underline": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown underlines?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+      "CalendarColumnReq": {
+        "description": "Model for Calendar Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "bold": 0,
+            "italic": 0,
+            "underline": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Calendar Column Model",
+        "type": "object",
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "bold": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as bold?"
+          },
+          "italic": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as italic?"
+          },
+          "underline": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown underlines?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
       }
     },
     "responses": {

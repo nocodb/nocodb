@@ -80,7 +80,7 @@ const emit = defineEmits(['resize-start'])
         }"
         class="text-sm mb-0.5 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
       >
-        <NcTooltip :disabled="selected" show-on-truncate-only>
+        <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span">
           <slot />
           <template #title>
             <slot />

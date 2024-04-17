@@ -73,7 +73,7 @@ const emit = defineEmits(['resize-start'])
     <div
       class="flex overflow-x-hidden break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-ellipsis flex-col gap-1"
     >
-      <NcTooltip :disabled="selected" :wrap-child="false" show-on-truncate-only wrapper-component="div">
+      <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span" wrapper-component="div">
         <slot class="pl-1 pr-2 text-sm text-nowrap text-gray-800 leading-7" />
         <template #title>
           <slot />

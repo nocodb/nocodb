@@ -65,14 +65,14 @@ check_for_docker_sudo() {
 # Function to read a number from the user
 read_number() {
     local number
-    read -p "$1" number
+    read -rp "$1" number
 
     # Ensure the input is a number or empty
     while ! [[ $number =~ ^[0-9]+$ ]] && [ -n "$number" ] ; do
-        read -p "Please enter a valid number: " number
+        read -rp "Please enter a valid number: " number
     done
 
-    echo $number
+    echo "$number"
 }
 
 # Function to read a number within a range from the user
@@ -97,7 +97,7 @@ read_number_range() {
         number=$(read_number "Please enter a number between $min and $max: ")
     done
 
-    echo $number
+    echo "$number"
 }
 
 # *****************    HELPER FUNCTIONS END  ***********************************
@@ -249,12 +249,14 @@ else
 fi
 
 echo "Show Advanced Options [Y/N] (default: N): "
-read ADVANCED_OPTIONS
+read -r ADVANCED_OPTIONS
 
 if [ -n "$ADVANCED_OPTIONS" ] && { [ "$ADVANCED_OPTIONS" = "Y" ] || [ "$ADVANCED_OPTIONS" = "y" ]; }; then
     NUM_CORES=$(nproc)
     echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
-    NUM_INSTANCES=$(read_number_range 1 $NUM_CORES)
+    NUM_INSTANCES=$(read_number_range 1 "$NUM_CORES")
+
+    message_arr+=("Number of instances: $NUM_INSTANCES")
 fi
 
 if [ -z "$NUM_INSTANCES" ]; then
@@ -580,6 +582,9 @@ show_logs() {
     echo "2. db"
     echo "3. nginx"
     echo "4. redis"
+    echo "5. watchtower"
+    echo "6. All"
+    echo "0. Back to main menu"
     echo "Enter your choice: "
 
     read -n 1 log_choise
@@ -589,6 +594,9 @@ show_logs() {
         2) $DOCKER_COMMAND compose logs -f db ;;
         3) $DOCKER_COMMAND compose logs -f nginx ;;
         4) $DOCKER_COMMAND compose logs -f redis ;;
+        5) $DOCKER_COMMAND compose logs -f watchtower ;;
+        6) $DOCKER_COMMAND compose logs -f ;;
+        0) return ;;
         *) echo "Invalid choice. Returning to main menu." ;;
     esac
 }
@@ -649,6 +657,8 @@ while true; do
 done
 EOF
 
+message_arr+=("Help script: help.sh")
+
 cat > ./update.sh <<EOF
 $DOCKER_COMMAND compose pull
 $DOCKER_COMMAND up -d --force-recreate
@@ -667,7 +677,7 @@ sleep 5
 if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   echo 'Starting Letsencrypt certificate request...';
 
-  $DOCKER_COMMAND compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d $DOMAIN_NAME --email contact@$DOMAIN_NAME --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
+  $DOCKER_COMMAND compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d "$DOMAIN_NAME" --email contact@"$DOMAIN_NAME" --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
   # Initial Let's Encrypt certificate request
 
   # Update the nginx config to use the new certificates
@@ -687,7 +697,7 @@ else
   message_arr+=("NocoDB is now available at http://localhost")
 fi
 
-print_box_message "${mecdessage_arr[@]}"
+print_box_message "${message_arr[@]}"
 
 # *************************** SETUP END  *************************************
 # ******************************************************************************

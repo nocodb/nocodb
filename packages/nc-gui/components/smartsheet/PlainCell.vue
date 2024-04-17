@@ -358,7 +358,7 @@ const parseValue = (value: any, col: ColumnType): string => {
   <span
     class="plain-cell before:px-1"
     :class="{
-      'font-bold': bold,
+      '!font-bold': bold,
       'italic': italic,
       'underline': underline,
     }"

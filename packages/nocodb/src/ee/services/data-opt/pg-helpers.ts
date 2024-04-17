@@ -1323,11 +1323,13 @@ export async function singleQueryList(ctx: {
         })
         .then(
           (r) => {
+            if (resolved) return;
             resolved = true;
             count = +r?.count || 0;
             resolve(null);
           },
           (e) => {
+            if (resolved) return;
             resolved = true;
             reject(e);
           },

@@ -62,6 +62,42 @@ check_for_docker_compose_sudo() {
     fi
 }
 
+# Function to read a number from the user
+read_number() {
+    local number
+    read -p "$1" number
+
+    # Ensure the input is a number or empty
+    while ! [[ $number =~ ^[0-9]+$ ]] && [ -n "$number" ] ; do
+        read -p "Please enter a valid number: " number
+    done
+
+    echo $number
+}
+
+# Function to read a number within a range from the user
+read_number_range() {
+    local number, min, max
+
+    # Check if there are 3 arguments
+    if [ "$#" -ne 3 ]; then
+        number=$(read_number)
+        min=$1
+        max=$2
+    else
+        number=$(read_number "$1")
+        min=$2
+        max=$3
+    fi
+
+    # Ensure the input is in the specified range
+    while [[ -n "$number" && ($number -lt $min || $number -gt $max) ]]; do
+        number=$(read_number "Please enter a number between $min and $max: ")
+    done
+
+    echo $number
+}
+
 # *****************    HELPER FUNCTIONS END  ***********************************
 # ******************************************************************************
 
@@ -213,7 +249,18 @@ else
     message_arr+=("Watchtower: Disabled")
 fi
 
+echo "Show Advanced Options [Y/N] (default: N): "
+read ADVANCED_OPTIONS
 
+if [ -n "$ADVANCED_OPTIONS" ] && { [ "$ADVANCED_OPTIONS" = "Y" ] || [ "$ADVANCED_OPTIONS" = "y" ]; }; then
+    NUM_CORES=$(nproc)
+    echo  "How many instances of NocoDB do you want to run? (Maximum: ${NUM_CORES} (default: 1): "
+    NUM_INSTANCES=$(read_number_range 1 $NUM_CORE
+fi
+
+if [ -z "$NUM_INSTANCES" ]; then
+    NUM_INSTANCES=1
+fi
 
 # ******************************************************************************
 # *********************** INPUTS FROM USER END  ********************************

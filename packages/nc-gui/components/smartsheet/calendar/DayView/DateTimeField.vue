@@ -742,10 +742,12 @@ const dropEvent = (event: DragEvent) => {
   if (data) {
     const {
       record,
+      isWithoutDates,
     }: {
       record: Row
       initialClickOffsetY: number
       initialClickOffsetX: number
+      isWithoutDates: boolean
     } = JSON.parse(data)
 
     const fromCol = record.rowMeta.range?.fk_from_col
@@ -798,16 +800,18 @@ const dropEvent = (event: DragEvent) => {
 
     const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
-    if (dragElement.value) {
+    if (dragElement.value && !isWithoutDates) {
       formattedData.value = formattedData.value.map((r) => {
         const pk = extractPkFromRow(r.row, meta.value!.columns!)
         return pk === newPk ? newRow : r
       })
     } else {
       formattedData.value = [...formattedData.value, newRow]
-      formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
-        return extractPkFromRow(r.row, meta.value!.columns!) !== newPk
-      })
+      if (sideBarFilterOption.value !== 'allRecords') {
+        formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+          return extractPkFromRow(r.row, meta.value!.columns!) !== newPk
+        })
+      }
     }
 
     if (dragElement.value) {

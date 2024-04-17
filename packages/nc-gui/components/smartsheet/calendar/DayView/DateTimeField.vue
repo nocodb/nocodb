@@ -213,7 +213,7 @@ const recordsAcrossAllRange = computed<{
     }
   } = {}
 
-  const perRecordHeight = 60
+  const perRecordHeight = 52
 
   const columnArray: Array<Array<Row>> = [[]]
   const gridTimeMap = new Map<
@@ -263,15 +263,15 @@ const recordsAcrossAllRange = computed<{
           scheduleEnd,
         })
         // The top of the record is calculated based on the start hour and minute
-        const topInPixels = startDate.hour() + startDate.minute()
+        const topInPixels = (startDate.minute() / 60 + startDate.hour()) * perRecordHeight
 
-        // A minimum height of 80px is set for each record
+        // A minimum height of 52px is set for each record
         // The height of the record is calculated based on the difference between the start and end date
         const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
 
         const style: Partial<CSSStyleDeclaration> = {
-          height: `${heightInPixels}px`,
-          top: `${topInPixels}px`,
+          height: `${heightInPixels - 8}px`,
+          top: `${topInPixels + 4}px`,
         }
 
         // This property is used to determine which side the record should be rounded. It can be top, bottom, both or none
@@ -316,14 +316,14 @@ const recordsAcrossAllRange = computed<{
         // The top of the record is calculated based on the start hour
         // Update such that it is also based on Minutes
 
-        const topInPixels = startDate.minute() + startDate.hour() * 60
+        const topInPixels = (startDate.minute() / 60 + startDate.hour()) * perRecordHeight
 
         // A minimum height of 80px is set for each record
-        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 60, perRecordHeight)
+        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 52, perRecordHeight)
         style = {
           ...style,
-          top: `${topInPixels + 1}px`,
-          height: `${heightInPixels - 2}px`,
+          top: `${topInPixels + 4}px`,
+          height: `${heightInPixels - 8}px`,
         }
 
         recordsByRange.push({
@@ -802,47 +802,58 @@ watch(
 <template>
   <div
     ref="container"
-    class="w-full relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full flex relative no-selection h-[calc(100vh-10rem)] overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
   >
-    <div
-      v-for="(hour, index) in hours"
-      :key="index"
-      :class="{
-        '!border-brand-500': hour.isSame(selectedTime),
-      }"
-      class="flex w-full h-15 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
-      data-testid="nc-calendar-day-hour"
-      @click="selectHour(hour)"
-      @dblclick="newRecord(hour)"
-    >
-      <div class="pt-2 px-4 text-xs text-gray-500 font-semibold h-15">
-        {{ dayjs(hour).format('H A') }}
-      </div>
-      <div></div>
-      <NcDropdown
-        v-if="calendarRange.length > 1"
-        :class="{
-          '!block': hour.isSame(selectedTime),
-          '!hidden': !hour.isSame(selectedTime),
-        }"
-        auto-close
+    <div>
+      <div
+        v-for="(hour, index) in hours"
+        :key="index"
+        class="flex h-13 relative border-1 group hover:bg-gray-50 border-white"
+        data-testid="nc-calendar-day-hour"
+        @click="selectHour(hour)"
+        @dblclick="newRecord(hour)"
       >
-        <NcButton
-          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-          size="xsmall"
-          type="secondary"
+        <div class="pt-2 w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-500 font-semibold h-13">
+          {{ dayjs(hour).format('h A') }}
+        </div>
+      </div>
+    </div>
+    <div class="w-full">
+      <div
+        v-for="(hour, index) in hours"
+        :key="index"
+        :class="{
+          '!border-brand-500': hour.isSame(selectedTime),
+        }"
+        class="flex w-full border-l-gray-100 h-13 nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+        data-testid="nc-calendar-day-hour"
+        @click="selectHour(hour)"
+        @dblclick="newRecord(hour)"
+      >
+        <NcDropdown
+          v-if="calendarRange.length > 1"
+          :class="{
+            '!block': hour.isSame(selectedTime),
+            '!hidden': !hour.isSame(selectedTime),
+          }"
+          auto-close
         >
-          <component :is="iconMap.plus" class="h-4 w-4" />
-        </NcButton>
-        <template #overlay>
-          <NcMenu class="w-64">
-            <NcMenuItem> Select date field to add </NcMenuItem>
-            <NcMenuItem
-              v-for="(range, calIndex) in calendarRange"
-              :key="calIndex"
-              class="text-gray-800 font-semibold text-sm"
-              @click="
+          <NcButton
+            class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+            size="xsmall"
+            type="secondary"
+          >
+            <component :is="iconMap.plus" class="h-4 w-4" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu class="w-64">
+              <NcMenuItem> Select date field to add </NcMenuItem>
+              <NcMenuItem
+                v-for="(range, calIndex) in calendarRange"
+                :key="calIndex"
+                class="text-gray-800 font-semibold text-sm"
+                @click="
                 () => {
                   let record = {
                     row: {
@@ -860,25 +871,25 @@ watch(
                   emit('newRecord', record)
                 }
               "
-            >
-              <div class="flex items-center gap-1">
-                <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
-                <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
-              </div>
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-      <NcButton
-        v-else
-        :class="{
-          '!block': hour.isSame(selectedTime),
-          '!hidden': !hour.isSame(selectedTime),
-        }"
-        class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-        size="xsmall"
-        type="secondary"
-        @click="
+              >
+                <div class="flex items-center gap-1">
+                  <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                  <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+        <NcButton
+          v-else
+          :class="{
+            '!block': hour.isSame(selectedTime),
+            '!hidden': !hour.isSame(selectedTime),
+          }"
+          class="!group-hover:block mr-4 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+          size="xsmall"
+          type="secondary"
+          @click="
           () => {
             let record = {
               row: {
@@ -897,27 +908,28 @@ watch(
             emit('newRecord', record)
           }
         "
-      >
-        <component :is="iconMap.plus" class="h-4 w-4" />
-      </NcButton>
+        >
+          <component :is="iconMap.plus" class="h-4 w-4" />
+        </NcButton>
 
-      <NcButton
-        v-if="isOverflowAcrossHourRange(hour).isOverflow"
-        v-e="`['c:calendar:week-view-more']`"
-        class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
-        size="xxsmall"
-        type="secondary"
-        @click="viewMore(hour)"
-      >
-        <span class="text-xs">
-          +
-          {{ isOverflowAcrossHourRange(hour).overflowCount }}
-          more
-        </span>
-      </NcButton>
+        <NcButton
+          v-if="isOverflowAcrossHourRange(hour).isOverflow"
+          v-e="`['c:calendar:week-view-more']`"
+          class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+          size="xxsmall"
+          type="secondary"
+          @click="viewMore(hour)"
+        >
+          <span class="text-xs">
+            +
+            {{ isOverflowAcrossHourRange(hour).overflowCount }}
+            more
+          </span>
+        </NcButton>
+      </div>
     </div>
     <div class="absolute inset-0 pointer-events-none">
-      <div class="relative !ml-[60px]" data-testid="nc-calendar-day-record-container">
+      <div class="relative !ml-[68px] !mr-1" data-testid="nc-calendar-day-record-container">
         <template v-for="(record, rowIndex) in recordsAcrossAllRange.record" :key="rowIndex">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"
@@ -944,12 +956,17 @@ watch(
                   <LazySmartsheetPlainCell
                     v-if="!isRowEmpty(record, field!)"
                     v-model="record.row[field!.title!]"
-                    class="text-xs"
+                    class="text-xs font-medium"
                     :bold="getFieldStyle(field).bold"
                     :column="field"
                     :italic="getFieldStyle(field).italic"
                     :underline="getFieldStyle(field).underline"
                   />
+                </template>
+                <template #time>
+                  <div class="text-xs font-medium text-gray-600">
+                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm A') }}
+                  </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>
             </LazySmartsheetRow>

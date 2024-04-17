@@ -42,7 +42,7 @@ const emit = defineEmits(['resize-start'])
       '!border-blue-200 border-1': selected,
       'shadow-md': hover,
     }"
-    class="relative transition-all flex items-center px-1 group border-1 border-transparent"
+    class="relative transition-all flex items-center px-1 gap-2 group border-1 border-transparent"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -71,13 +71,14 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="overflow-hidden items-center justify-center flex w-full ml-2">
-      <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
+    <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
+      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2"> .... </span>
+      <slot name="time" />
       <span
         :class="{
           'pr-7': position === 'leftRounded',
         }"
-        class="text-sm pr-3 mb-0.5 mr-3 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
+        class="text-sm mb-0.5 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
       >
         <NcTooltip :disabled="selected" show-on-truncate-only>
           <slot />

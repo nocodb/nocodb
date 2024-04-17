@@ -356,7 +356,7 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <template>
   <span
-    class="plain-cell before:px-1"
+    class="plain-cell text-nowrap before:px-1"
     :class="{
       'font-bold': bold,
       'italic': italic,
@@ -377,6 +377,9 @@ const parseValue = (value: any, col: ColumnType): string => {
   &:first-child::before {
     content: '';
     padding: 0;
+  }
+  &:first-child {
+    padding-left: 0;
   }
 }
 </style>

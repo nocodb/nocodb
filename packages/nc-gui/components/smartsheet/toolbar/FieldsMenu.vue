@@ -61,9 +61,7 @@ const {
 
 const hiddenFields = ref<string[]>([])
 
-const isLocalMode = computed(
-  () => isPublic || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
-)
+const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
 const shouldShowField = (id: string) => {
   if (isLocalMode.value && hiddenFields.value.includes(id)) return false
@@ -92,7 +90,9 @@ watch(
 
 const numberOfHiddenFields = computed(() => {
   if (isLocalMode.value) {
-    return filteredFieldList.value?.filter((field) => !hiddenFields.value.includes(field.id) && !field.show)?.length
+    // slice is added to remove the first element ie column with name title as default value , without slice the count will always be one more than the exact count
+    return filteredFieldList.value?.slice(1).filter((field) => !hiddenFields.value.includes(field.id) && field.show === false)
+      ?.length
   } else {
     return filteredFieldList.value?.filter((field) => !field.show)?.length
   }

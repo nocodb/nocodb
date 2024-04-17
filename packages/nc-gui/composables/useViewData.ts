@@ -68,6 +68,8 @@ export function useViewData(
 
   const formattedData = ref<Row[]>([])
 
+  const excludePageInfo = ref(false)
+
   const isPublic = inject(IsPublicInj, ref(false))
 
   const { base, isSharedBase } = storeToRefs(useBase())
@@ -202,8 +204,11 @@ export function useViewData(
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: where?.value,
+              ...(excludePageInfo.value ? {} : { excludeCount: 'true' }),
             } as any,
-            { cancelToken: controller.value.token },
+            {
+              cancelToken: controller.value.token,
+            },
           )
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
     } catch (error) {
@@ -216,6 +221,7 @@ export function useViewData(
     }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo || paginationData.value || {}
+    excludePageInfo.value = !response.pageInfo
     isPaginationLoading.value = false
 
     // to cater the case like when querying with a non-zero offset

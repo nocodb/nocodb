@@ -6,6 +6,7 @@ import { DataApiLimiterGuard as DataApiLimiterGuardCE } from 'src/guards/data-ap
 import type { ExecutionContext } from '@nestjs/common';
 
 const HEADER_NAME = 'xc-token';
+const HEADER_NAME_GUI = 'xc-auth';
 
 @Injectable()
 export class DataApiLimiterGuardEE extends ThrottlerGuard {
@@ -17,7 +18,9 @@ export class DataApiLimiterGuardEE extends ThrottlerGuard {
     super(
       {
         ..._config,
-        throttlers: _config.throttlers.filter((t) => t.name === 'data'),
+        throttlers: _config.throttlers.filter(
+          (t) => t.name === 'data' || t.name === 'data-gui',
+        ),
       },
       storageService,
       reflector,
@@ -26,11 +29,15 @@ export class DataApiLimiterGuardEE extends ThrottlerGuard {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    return req.headers[HEADER_NAME] ? super.canActivate(context) : true;
+    return req.headers[HEADER_NAME] || req.headers[HEADER_NAME_GUI]
+      ? super.canActivate(context)
+      : true;
   }
 
   protected async getTracker(req: Record<string, any>): Promise<string> {
-    return `data|${req.headers[HEADER_NAME]}` as string;
+    return `data|${
+      req.headers[HEADER_NAME] || req.headers[HEADER_NAME_GUI]
+    }` as string;
   }
 
   generateKey(context, suffix) {

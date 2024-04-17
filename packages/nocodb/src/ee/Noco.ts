@@ -1,4 +1,3 @@
-// import { Logger as PinoLogger } from 'nestjs-pino';
 import NocoCE from 'src/Noco';
 import type { INestApplication } from '@nestjs/common';
 import { NcLogger } from '~/utils/logger/NcLogger';

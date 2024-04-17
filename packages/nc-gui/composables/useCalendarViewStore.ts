@@ -62,6 +62,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarDataLoading = ref<boolean>(false)
 
+    const isCalendarMetaLoading = ref<boolean>(false)
+
     const showSideMenu = ref(false)
 
     const selectedDateRange = ref<{
@@ -415,6 +417,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     async function loadCalendarMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
+      isCalendarMetaLoading.value = true
       try {
         const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
         calendarMetaData.value = res
@@ -430,6 +433,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }) as any
       } catch (e) {
         message.error(`Error loading calendar meta ${await extractSdkResponseErrorMsg(e)}`)
+      } finally {
+        isCalendarMetaLoading.value = false
       }
     }
 
@@ -795,6 +800,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       searchQuery,
       activeDates,
       isCalendarDataLoading,
+      isCalendarMetaLoading,
       changeCalendarView,
       calDataType,
       loadCalendarMeta,

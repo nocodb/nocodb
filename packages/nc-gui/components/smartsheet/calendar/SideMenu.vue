@@ -31,6 +31,7 @@ const {
   activeDates,
   activeCalendarView,
   isSidebarLoading,
+  isCalendarMetaLoading,
   formattedSideBarData,
   calDataType,
   loadMoreSidebarData,
@@ -372,7 +373,7 @@ onUnmounted(() => {
       </div>
 
       <div
-        v-if="calendarRange?.length"
+        v-if="calendarRange?.length && !isCalendarMetaLoading"
         :ref="sideBarListRef"
         :class="{
          '!h-[calc(100vh-13.5rem)]': width <= 1440,
@@ -443,6 +444,18 @@ onUnmounted(() => {
           </div>
         </template>
       </div>
+      <template v-else-if="isCalendarMetaLoading">
+        <div
+          :class="{
+         '!h-[calc(100vh-13.5rem)]': width <= 1440,
+        'h-[calc(100vh-36.2rem)]': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const) && width >= 1440,
+        'h-[calc(100vh-25.1rem)]': activeCalendarView === ('month' as const) || activeCalendarView === ('year' as const)  && width >= 1440,
+      }"
+          class="flex items-center justify-center h-full"
+        >
+          <GeneralLoader size="xlarge" />
+        </div>
+      </template>
       <div
         v-else
         :class="{

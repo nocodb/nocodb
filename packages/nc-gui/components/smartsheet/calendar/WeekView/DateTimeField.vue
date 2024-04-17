@@ -755,7 +755,7 @@ watch(
         :key="index"
         class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-center font-semibold text-xs text-gray-400 py-1"
       >
-        {{ hour.format('hh A') }}
+        {{ hour.format('hh a') }}
       </div>
     </div>
     <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
@@ -765,7 +765,7 @@ watch(
           :key="hourIndex"
           :class="{
             'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
-            '!bg-gray-100': hour.get('day') === 0 || hour.get('day') === 6,
+            '!bg-gray-50': hour.get('day') === 0 || hour.get('day') === 6,
           }"
           class="text-center relative h-13 text-sm text-gray-500 w-full hover:bg-gray-50 py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
           data-testid="nc-calendar-week-hour"

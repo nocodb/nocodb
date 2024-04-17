@@ -903,8 +903,8 @@ watch(
         @click="selectHour(hour)"
         @dblclick="newRecord(hour)"
       >
-        <div class="pt-2 w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
-          {{ dayjs(hour).format('hh A') }}
+        <div class="w-16 border-b-0 pr-3 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+          {{ dayjs(hour).format('hh a') }}
         </div>
       </div>
     </div>

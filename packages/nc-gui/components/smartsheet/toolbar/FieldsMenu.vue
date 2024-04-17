@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CalendarType, ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
-import { ProjectRoles, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -24,7 +24,9 @@ import {
   watch,
 } from '#imports'
 
-const { baseRoles } = useRoles()
+const { isUIAllowed } = useRoles()
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -57,9 +59,16 @@ const {
   toggleFieldVisibility,
 } = useViewColumnsOrThrow()
 
-const isViewerOrCommentor = computed(() => baseRoles?.value[ProjectRoles.COMMENTER] || baseRoles?.value[ProjectRoles.VIEWER])
+const hiddenFields = ref<string[]>([])
 
-const shouldShowField = (show: boolean) => !isViewerOrCommentor.value || show
+const isLocalMode = computed(
+  () => isPublic || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
+)
+
+const shouldShowField = (id: string) => {
+  if (isLocalMode.value && hiddenFields.value.includes(id)) return false
+  return true
+}
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -81,7 +90,13 @@ watch(
   { immediate: true },
 )
 
-const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
+const numberOfHiddenFields = computed(() => {
+  if (isLocalMode.value) {
+    return filteredFieldList.value?.filter((field) => !hiddenFields.value.includes(field.id) && !field.show)?.length
+  } else {
+    return filteredFieldList.value?.filter((field) => !field.show)?.length
+  }
+})
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
@@ -263,17 +278,15 @@ const onHideAll = () => {
   hideAll()
 }
 
-const hiddenFields = ref<string[]>([])
-
 onMounted(() => {
-  if (isViewerOrCommentor.value) {
+  if (isLocalMode.value) {
     hiddenFields.value = filteredFieldList.value.filter((field) => !field.show).map((field) => field.id)
   }
 })
 
 const showAllColumns = computed({
   get: () => {
-    if (isViewerOrCommentor.value) {
+    if (isLocalMode.value) {
       if (filteredFieldList.value?.every((field) => !field.show)) return false
       return filteredFieldList.value?.every((field) => {
         if (hiddenFields.value.includes(field.id)) {
@@ -367,10 +380,7 @@ useMenuCloseOnEsc(open)
               {{ $t('objects.fields') }}
             </template>
           </span>
-          <span
-            v-if="numberOfHiddenFields && !isViewerOrCommentor"
-            class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md"
-          >
+          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
             {{ numberOfHiddenFields }}
           </span>
         </div>
@@ -437,7 +447,7 @@ useMenuCloseOnEsc(open)
                   v-if="
                     filteredFieldList
                       .filter((el) => (activeView.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField : true))
-                      .includes(field) && shouldShowField(field.show)
+                      .includes(field) && shouldShowField(field.id)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"

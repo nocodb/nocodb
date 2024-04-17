@@ -146,7 +146,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (isLocalMode.value) {
         fields.value = fields.value?.map((field: Field) => ({
           ...field,
-          show: !!field.isViewEssentialField,
+          show: false,
         }))
         reloadData?.()
         return
@@ -166,7 +166,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: any, index: number, disableDataReload: boolean = false) => {
+    const saveOrUpdate = async (field: Field, index: number, disableDataReload: boolean = false) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -267,7 +267,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         ?.map((field: Field) => metaColumnById?.value?.[field.fk_column_id!]) || []) as ColumnType[]
     })
 
-    const toggleFieldVisibility = (checked: boolean, field: any) => {
+    const toggleFieldVisibility = (checked: boolean, field: Field) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
       if (!fieldIndex && fieldIndex !== 0) return
       addUndo({

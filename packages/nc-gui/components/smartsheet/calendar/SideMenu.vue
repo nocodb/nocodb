@@ -298,7 +298,7 @@ onUnmounted(() => {
     <div
       :class="{
         '!hidden': width <= 1440,
-        'px-4 pt-3 pb-4 ': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
+        'px-3 py-3 ': activeCalendarView === ('day' as const) || activeCalendarView === ('week' as const),
       }"
       class="flex flex-col"
     >

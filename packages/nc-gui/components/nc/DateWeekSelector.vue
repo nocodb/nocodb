@@ -10,6 +10,7 @@ interface Props {
   isMondayFirst?: boolean
   isWeekPicker?: boolean
   disableHeader?: boolean
+  disablePagination?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
     end: dayjs.Dayjs
@@ -24,6 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
   pageDate: dayjs(),
   isWeekPicker: false,
   disableHeader: false,
+  disablePagination: false,
   activeDates: [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
 })
@@ -144,8 +146,15 @@ const paginate = (action: 'next' | 'prev') => {
     }"
     class="flex flex-col"
   >
-    <div v-if="!disableHeader" class="flex justify-between items-center">
-      <NcTooltip>
+    <div
+      v-if="!disableHeader"
+      :class="{
+        ' justify-between': !disablePagination,
+        ' justify-center': disablePagination,
+      }"
+      class="flex items-center"
+    >
+      <NcTooltip v-if="!disablePagination">
         <NcButton size="small" type="secondary" @click="paginate('prev')">
           <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
         </NcButton>
@@ -162,7 +171,7 @@ const paginate = (action: 'next' | 'prev') => {
         class="text-gray-700"
         >{{ currentMonthYear }}</span
       >
-      <NcTooltip>
+      <NcTooltip v-if="!disablePagination">
         <NcButton size="small" type="secondary" @click="paginate('next')">
           <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
         </NcButton>
@@ -181,11 +190,11 @@ const paginate = (action: 'next' | 'prev') => {
       <div
         :class="{
           'gap-1 px-1': size === 'medium',
-          'gap-2 px-2': size === 'large',
+          'gap-2': size === 'large',
           'px-2 py-1 !rounded-t-lg': size === 'small',
           'rounded-t-xl': size !== 'small',
         }"
-        class="flex flex-row border-b-1 border-gray-200 justify-between"
+        class="flex flex-row border-b-1 nc-date-week-header border-gray-200 justify-between"
       >
         <span
           v-for="(day, index) in days"
@@ -201,10 +210,10 @@ const paginate = (action: 'next' | 'prev') => {
       </div>
       <div
         :class="{
-          'gap-2 p-2': size === 'large',
+          'gap-2 pt-2': size === 'large',
           'gap-1 p-1': size === 'medium',
         }"
-        class="grid grid-cols-7"
+        class="grid nc-date-week-grid-wrapper grid-cols-7"
       >
         <span
           v-for="(date, index) in dates"

@@ -483,6 +483,7 @@
     "userOptions": "User Options",
     "deleteThisOrganization": "Delete this Organisation",
     "dangerZone": "Dangerzone",
+    "deleteSystemFieldNotAllowed": "Deleting system field is not allowed",
     "selectYear": "Select Year",
     "save": "Save",
     "cancel": "Cancel",

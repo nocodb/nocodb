@@ -519,22 +519,25 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             {{ t('general.insertAfter') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
+        <NcMenuItem v-if="!column?.pk" @click="onInsertBefore">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <component :is="iconMap.colInsertBefore" class="text-gray-600 !w-4.5 !h-4.5" />
             <!-- Insert Before -->
             {{ t('general.insertBefore') }}
           </div>
         </NcMenuItem>
-        <a-divider v-if="!column?.pk && isDeleteAllowed" class="!my-0" />
+        <a-divider class="!my-0" />
 
-        <NcMenuItem v-if="!column?.pk && isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
-          <div class="nc-column-delete nc-header-menu-item text-red-600">
-            <component :is="iconMap.delete" />
-            <!-- Delete -->
-            {{ $t('general.delete') }}
-          </div>
-        </NcMenuItem>
+        <NcTooltip :disabled="isDeleteAllowed && !column?.pk">
+          <template #title>{{ $t('labels.deleteSystemFieldNotAllowed') }}</template>
+          <NcMenuItem class="!hover:bg-red-50" :disabled="column?.pk || !isDeleteAllowed" @click="handleDelete">
+            <div class="nc-column-delete nc-header-menu-item text-red-600">
+              <component :is="iconMap.delete" />
+              <!-- Delete -->
+              {{ $t('general.delete') }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
       </NcMenu>
     </template>
   </a-dropdown>

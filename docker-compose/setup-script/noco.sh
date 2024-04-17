@@ -531,7 +531,108 @@ EOF
 fi
 
 IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
-DOCKER_COMMAND=([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
+DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
+
+# Generate help script
+cat > ./help.sh <<EOF
+#!/bin/bash
+
+$(declare -f read_number)
+
+$(declare -f read_number_range)
+
+# Function to display the menu
+show_menu() {
+    echo "Service Management Menu:"
+    echo "1. Start Service"
+    echo "2. Stop Service"
+    echo "3. Logs"
+    echo "4. Restart"
+    echo "5. Upgrade"
+    echo "6. Scale"
+    echo "7. Monitoring"
+    echo "0. Exit"
+}
+
+# Function to start the service
+start_service() {
+    echo -e "\nStarting nocodb..."
+    $DOCKER_COMMAND compose up -d
+}
+
+# Function to stop the service
+stop_service() {
+    echo -e "\nStopping nocodb..."
+    $DOCKER_COMMAND compose stop
+}
+
+# Function to show logs
+show_logs() {
+    echo -e "\nSelect a container for logs:"
+    echo "1. nocodb"
+    echo "2. db"
+    echo "3. nginx"
+    echo "4. redis"
+    echo "Enter your choice: "
+
+    read -n 1 log_choise
+
+    case \$log_choise in
+        1) $DOCKER_COMMAND compose logs -f nocodb ;;
+        2) $DOCKER_COMMAND compose logs -f db ;;
+        3) $DOCKER_COMMAND compose logs -f nginx ;;
+        4) $DOCKER_COMMAND compose logs -f redis ;;
+        *) echo "Invalid choice. Returning to main menu." ;;
+    esac
+}
+
+# Function to restart the service
+restart_service() {
+    echo -e "\nRestarting nocodb..."
+    $DOCKER_COMMAND compose restart
+}
+
+# Function to upgrade the service
+upgrade_service() {
+    echo -e "\nUpgrading nocodb..."
+    $DOCKER_COMMAND compose pull
+    $DOCKER_COMMAND compose up -d --force-recreate
+    $DOCKER_COMMAND image prune -a -f
+}
+
+# Function to scale the service
+scale_service() {
+    NUM_CORES=\$(nproc)
+    echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
+    \$scale_num=\$(read_number_range 1 \$NUM_CORES)
+    $DOCKER_COMMAND compose up -d --scale nocodb=\$scale_num nocodb
+}
+
+# Function for basic monitoring
+monitoring_service() {
+    echo -e '\nDisplaying basic monitoring info...'
+    $DOCKER_COMMAND stats
+}
+
+# Main program loop
+while true; do
+    show_menu
+    echo "Enter your choice: "
+
+    read -n 1 choice
+    case \$choice in
+        1) start_service ;;
+        2) stop_service ;;
+        3) show_logs ;;
+        4) restart_service ;;
+        5) upgrade_service ;;
+        6) scale_service ;;
+        7) monitoring_service ;;
+        0) exit 0 ;;
+        *) echo -e "\nInvalid choice. Please select a correct option." ;;
+    esac
+done
+EOF
 
 cat > ./update.sh <<EOF
 $DOCKER_COMMAND compose pull

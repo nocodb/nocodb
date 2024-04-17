@@ -64,6 +64,7 @@ const dragStart = (event: DragEvent, record: Row) => {
     'text/plain',
     JSON.stringify({
       record,
+      isWithoutDates: sideBarFilterOption.value === 'withoutDates',
       initialClickOffsetY,
       initialClickOffsetX,
     }),

@@ -356,7 +356,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const day = Math.floor(percentX * 7)
 
   const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
-  if (!newStartDate) return
+  if (!newStartDate) return { newRow: null, updateProperty: [] }
 
   let endDate
 
@@ -586,13 +586,15 @@ const dropEvent = (event: DragEvent) => {
   if (data) {
     const {
       record,
+      isWithoutDates,
     }: {
       record: Row
+      isWithoutDates: boolean
     } = JSON.parse(data)
 
     dragRecord.value = record
 
-    const { newRow, updateProperty } = calculateNewRow(event, true)
+    const { newRow, updateProperty } = calculateNewRow(event, isWithoutDates)
 
     if (dragElement.value) {
       dragElement.value.style.boxShadow = 'none'

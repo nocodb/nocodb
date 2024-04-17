@@ -77,7 +77,9 @@ read_number() {
 
 # Function to read a number within a range from the user
 read_number_range() {
-    local number, min, max
+    local number
+    local min
+    local max
 
     # Check if there are 3 arguments
     if [ "$#" -ne 3 ]; then
@@ -251,8 +253,8 @@ read ADVANCED_OPTIONS
 
 if [ -n "$ADVANCED_OPTIONS" ] && { [ "$ADVANCED_OPTIONS" = "Y" ] || [ "$ADVANCED_OPTIONS" = "y" ]; }; then
     NUM_CORES=$(nproc)
-    echo  "How many instances of NocoDB do you want to run? (Maximum: ${NUM_CORES} (default: 1): "
-    NUM_INSTANCES=$(read_number_range 1 $NUM_CORE
+    echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
+    NUM_INSTANCES=$(read_number_range 1 $NUM_CORES)
 fi
 
 if [ -z "$NUM_INSTANCES" ]; then
@@ -297,8 +299,6 @@ fi
 
 # Write the Docker Compose file with the updated password
 cat <<EOF > docker-compose.yml
-version: '3'
-
 services:
   nocodb:
     image: ${IMAGE}
@@ -306,7 +306,6 @@ services:
     deploy:
       mode: replicated
       replicas: ${NUM_INSTANCES}
-      endpoint_mode: dnsrr
     depends_on:
       - db
       ${DEPENDS_ON}
@@ -492,6 +491,12 @@ mkdir -p ./nginx-post-config
 
 # Create nginx config with the provided domain name
 cat > ./nginx-post-config/default.conf <<EOF
+upstream nocodb_backend {
+    least_conn;
+    server nocodb:8080;
+}
+
+
 server {
     listen 80;
     server_name $DOMAIN_NAME;
@@ -514,7 +519,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem;
 
     location / {
-        proxy_pass http://nocodb:8080;
+        proxy_pass http://nocodb_backend;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;

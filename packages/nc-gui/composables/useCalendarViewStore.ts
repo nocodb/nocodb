@@ -715,16 +715,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(selectedTime, async () => {
-      if (calDataType.value !== UITypes.Date && showSideMenu.value) {
+      if (calDataType.value !== UITypes.Date && showSideMenu.value && sideBarFilterOption.value === 'selectedHours') {
         await loadSidebarData()
       }
     })
 
-    watch(selectedMonth, async (value, oldValue) => {
+    watch(selectedMonth, async () => {
       if (activeCalendarView.value !== 'month') return
-      if (value.month() !== oldValue.month()) {
-        await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
-      }
+      await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
     })
 
     watch(selectedDateRange, async () => {

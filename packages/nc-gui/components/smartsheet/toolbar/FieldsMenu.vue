@@ -181,6 +181,13 @@ const updateCoverImage = async (val?: string | null) => {
       ;(activeView.value.view as CalendarType).fk_cover_image_col_id = val
     }
     reloadViewMetaHook?.trigger()
+    
+    // Load data only if the view column is hidden to fetch cover image column data in records.
+    if (val && !fields.value?.find((f) => f.fk_column_id === val)?.show) {
+      await reloadViewDataHook?.trigger({
+        shouldShowLoading: false,
+      })
+    }
   }
 }
 

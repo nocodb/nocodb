@@ -81,4 +81,5 @@ export enum DriverClient {
   PG = 'pg',
   SQLITE = 'sqlite3',
   SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
 }

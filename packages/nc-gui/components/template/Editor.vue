@@ -306,7 +306,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
 function missingRequiredColumnsValidation(tn: string) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
-      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
+      (c.pk ? !c.ai && !c.cdf && !c.meta?.ag : !c.cdf && c.rqd) &&
       !srcDestMapping.value[tn].some((r: Record<string, any>) => r.destCn === c.title),
   )
 

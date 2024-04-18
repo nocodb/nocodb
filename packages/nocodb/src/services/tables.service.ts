@@ -82,6 +82,8 @@ export class TablesService {
       }
     }
 
+    param.table.table_name = param.table.table_name.replace(/ /g, '_');
+
     param.table.table_name = DOMPurify.sanitize(param.table.table_name);
 
     // validate table name
@@ -519,7 +521,7 @@ export class TablesService {
     }
 
     tableCreatePayLoad.table_name = DOMPurify.sanitize(
-      tableCreatePayLoad.table_name,
+      tableCreatePayLoad.table_name.replace(/ /g, '_'),
     );
 
     // validate table name

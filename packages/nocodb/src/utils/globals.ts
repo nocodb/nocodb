@@ -256,4 +256,5 @@ export const DB_TYPES = <const>[
   'snowflake',
   'oracledb',
   'pg',
+  'databricks',
 ];

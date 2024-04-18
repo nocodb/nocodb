@@ -334,6 +334,14 @@ export async function populateMeta(
       let colOrder = 1;
 
       for (const column of columns) {
+        if (source.type === 'databricks') {
+          if (column.pk && !column.cdf) {
+            column.meta = {
+              ag: 'nc',
+            };
+          }
+        }
+
         await Column.insert({
           uidt: column.uidt || getColumnUiType(source, column),
           fk_model_id: models2[table.tn].id,

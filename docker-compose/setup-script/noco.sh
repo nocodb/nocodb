@@ -705,7 +705,7 @@ message_arr+=("Help script: help.sh")
 
 cat > ./update.sh <<EOF
 $DOCKER_COMMAND compose pull
-$DOCKER_COMMAND up -d --force-recreate
+$DOCKER_COMMAND compose up -d --force-recreate
 $DOCKER_COMMAND image prune -a -f
 EOF
 

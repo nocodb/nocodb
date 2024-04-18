@@ -1200,7 +1200,15 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-  if (isKeyDown.value && !isRichModalOpen && !activeDropdownEl && !isDrawerOrModalExist() && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+  if (
+    isKeyDown.value &&
+    !isRichModalOpen &&
+    !activeDropdownEl &&
+    !isDrawerOrModalExist() &&
+    !cmdOrCtrl &&
+    !e.shiftKey &&
+    !e.altKey
+  ) {
     if (
       (e.key === 'Tab' && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) ||
       (e.key === 'ArrowDown' &&
@@ -1965,6 +1973,7 @@ onKeyStroke('ArrowDown', onDown)
       :hide-sidebars="paginationStyleRef?.hideSidebars === true"
       :fixed-size="paginationStyleRef?.fixedSize"
       :extra-style="paginationStyleRef?.extraStyle"
+      :show-size-changer="!isGroupBy"
     >
       <template #add-record>
         <div v-if="isAddingEmptyRowAllowed && !showSkeleton" class="flex ml-1">

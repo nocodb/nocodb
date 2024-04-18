@@ -15,6 +15,7 @@ interface Props {
   extraStyle?: string
   showApiTiming?: boolean
   alignLeft?: boolean
+  showSizeChanger?: boolean
 }
 
 const props = defineProps<Props>()
@@ -43,8 +44,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 
-const size = computed(() => vPaginationData.value?.pageSize ?? 25)
-
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
   set: async (p) => {
@@ -57,6 +56,16 @@ const page = computed({
         return
       }
       isPaginationLoading.value = false
+    }
+  },
+})
+
+const size = computed({
+  get: () => vPaginationData.value?.pageSize ?? 25,
+  set: (size: number) => {
+    if (vPaginationData.value) {
+      vPaginationData.value.pageSize = size
+      changePage?.(page.value)
     }
   },
 })
@@ -117,6 +126,7 @@ const tempPageVal = ref(page.value)
         :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
         :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
         :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+        :show-size-changer="showSizeChanger"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>

@@ -85,8 +85,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
     let inserted = 0
 
     // chunk data into 100 records
-    while (data.length) {
-      chunks.push(data.splice(0, 100))
+    for (let i = 0; i < data.length; i += 100) {
+      chunks.push(data.slice(i, i + 100))
     }
 
     for (const chunk of chunks) {
@@ -107,8 +107,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
     let updated = 0
 
     // chunk data into 100 records
-    while (data.length) {
-      chunks.push(data.splice(0, 100))
+    for (let i = 0; i < data.length; i += 100) {
+      chunks.push(data.slice(i, i + 100))
     }
 
     for (const chunk of chunks) {
@@ -124,15 +124,16 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
   const upsertData = async (params: { tableId: string; data: Record<string, any>; upsertField: ColumnType }) => {
     const { tableId, data, upsertField } = params
 
+    const chunkSize = 100
+
     const tableMeta = await getMeta(tableId)
 
     if (!tableMeta?.columns) throw new Error('Table not found')
 
     const chunks = []
 
-    // chunk data into 25 records
-    while (data.length) {
-      chunks.push(data.splice(0, 25))
+    for (let i = 0; i < data.length; i += chunkSize) {
+      chunks.push(data.slice(i, i + chunkSize))
     }
 
     const insert = []
@@ -145,7 +146,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
       // select chunk of data to determine if it's an insert or update
       const { list } = await $api.dbDataTableRow.list(tableId, {
         where: `(${upsertField.title},in,${chunk.map((record: Record<string, any>) => record[upsertField.title!]).join(',')})`,
-        limit: 100,
+        limit: chunkSize,
       })
 
       insert.push(
@@ -170,26 +171,20 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
             }
           }),
       )
-
-      if (insert.length > 50) {
-        insertCounter += insert.length
-        await $api.dbDataTableRow.create(tableId, insert.splice(0, insert.length))
-      }
-
-      if (update.length > 50) {
-        updateCounter += update.length
-        await $api.dbDataTableRow.update(tableId, update.splice(0, update.length))
-      }
     }
 
     if (insert.length) {
       insertCounter += insert.length
-      await $api.dbDataTableRow.create(tableId, insert.splice(0, insert.length))
+      for (let i = 0; i < insert.length; i += chunkSize) {
+        await $api.dbDataTableRow.create(tableId, insert.splice(0, chunkSize))
+      }
     }
 
     if (update.length) {
       updateCounter += update.length
-      await $api.dbDataTableRow.update(tableId, update.splice(0, update.length))
+      for (let i = 0; i < update.length; i += chunkSize) {
+        await $api.dbDataTableRow.update(tableId, update.splice(0, chunkSize))
+      }
     }
 
     return { inserted: insertCounter, updated: updateCounter }

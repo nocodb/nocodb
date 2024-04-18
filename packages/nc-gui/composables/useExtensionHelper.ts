@@ -27,15 +27,31 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => 
     return viewsByTable.value.get(tableId) as ViewType[]
   }
 
-  const getData = async (params: { tableId: string; viewId?: string; page?: number }) => {
-    const { tableId, viewId, page = 0 } = params
+  const getData = async (params: {
+    tableId: string
+    viewId?: string
+    eachPage: (records: Record<string, any>[], nextPage: () => void) => void
+    done: () => void
+  }) => {
+    const { tableId, viewId, eachPage, done } = params
 
-    const { list } = await $api.dbViewRow.list('noco', baseId.value!, tableId, viewId, {
-      offset: (page - 1) * 100,
-      limit: 100,
-    })
+    let page = 0
 
-    return list
+    const nextPage = async () => {
+      const { list: records, pageInfo } = await $api.dbViewRow.list('noco', baseId.value!, tableId, viewId, {
+        offset: (page - 1) * 25,
+        limit: 25,
+      })
+
+      if (pageInfo?.isLastPage) {
+        done()
+      } else {
+        page++
+        eachPage(records, nextPage)
+      }
+    }
+
+    nextPage()
   }
 
   return {

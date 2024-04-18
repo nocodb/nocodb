@@ -43,20 +43,26 @@ const reloadViews = async () => {
 const exportJson = async () => {
   if (!exportPayload.value.tableId || !exportPayload.value.viewId) return
 
-  // TODO: implement full data export
-  const data = await getData({
+  const allData: Record<string, any>[] = []
+
+  getData({
     tableId: exportPayload.value.tableId,
     viewId: exportPayload.value.viewId,
+    eachPage: (records, nextPage) => {
+      allData.push(...records)
+      nextPage()
+    },
+    done: () => {
+      const json = JSON.stringify(allData, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'data.json'
+      a.click()
+      URL.revokeObjectURL(url)
+    },
   })
-
-  const json = JSON.stringify(data, null, 2)
-  const blob = new Blob([json], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'data.json'
-  a.click()
-  URL.revokeObjectURL(url)
 }
 </script>
 

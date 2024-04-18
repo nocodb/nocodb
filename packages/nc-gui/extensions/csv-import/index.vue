@@ -3,7 +3,7 @@ import type { UploadFile } from 'ant-design-vue'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 
-const CHUNK_SIZE = 100
+const CHUNK_SIZE = 200
 
 const GENERATED_COLUMN_TYPES = [
   UITypes.Links,
@@ -174,6 +174,9 @@ const handleChange = (info: { file: UploadFile }) => {
         parsedData.value = results
         step.value = 1
         processingFile.value = false
+        if (importPayload.value.tableId) {
+          onTableSelect()
+        }
       },
       error: () => {
         fileList.value = []
@@ -181,10 +184,6 @@ const handleChange = (info: { file: UploadFile }) => {
         message.error('There was an error parsing the file. Please check the file and try again.')
       },
     })
-
-    if (importPayload.value.tableId) {
-      onTableSelect()
-    }
   }
 
   if (info.file.originFileObj instanceof File) {

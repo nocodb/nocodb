@@ -61,7 +61,7 @@ jobs:
       - name: run sql-executor
         working-directory: ./packages/nc-sql-executor
         run: |
-          npm run dev &
+          pnpm run dev &
       - name: Install dependencies of sso idp
         working-directory: ./scripts/ee/playwright
         run: |

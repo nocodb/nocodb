@@ -1480,7 +1480,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(col.id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-800"
+                    class="w-full h-full flex items-center text-gray-500"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -2103,7 +2103,7 @@ onKeyStroke('ArrowDown', onDown)
     @apply border-b-1 border-gray-200;
 
     :deep(.name) {
-      @apply text-gray-800 text-small;
+      @apply text-small;
     }
   }
 

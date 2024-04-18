@@ -358,23 +358,31 @@ onUnmounted(() => {
 
 function loadWorkspacesWithInterval() {
   ;(async () => {
-    if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
-      if (randomMessages.length) {
-        const random = Math.floor(Math.random() * randomMessages.length)
-        pushProgress(randomMessages[random], 'progress')
-        randomMessages.splice(random, 1)
+    try {
+      if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
+        if (randomMessages.length) {
+          const random = Math.floor(Math.random() * randomMessages.length)
+          pushProgress(randomMessages[random], 'progress')
+          randomMessages.splice(random, 1)
+        }
+        await loadWorkspaces(true)
+        // keep checking for workspace status every 5 seconds if workspace is upgrading
+        timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
+      } else {
+        if (baseId.value) {
+          await loadProject(baseId.value, true)
+          await loadProjectTables(baseId.value, true)
+        }
+        pushProgress('Done!', 'progress')
+        goToDashboard.value = true
+        creatingSource.value = false
       }
-      await loadWorkspaces(true)
-      // keep checking for workspace status every 5 seconds if workspace is upgrading
-      timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
-    } else {
-      if (baseId.value) {
-        await loadProject(baseId.value, true)
-        await loadProjectTables(baseId.value, true)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
+        clearTimeout(timerRef)
+        timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
       }
-      pushProgress('Done!', 'progress')
-      goToDashboard.value = true
-      creatingSource.value = false
     }
   })()
 }

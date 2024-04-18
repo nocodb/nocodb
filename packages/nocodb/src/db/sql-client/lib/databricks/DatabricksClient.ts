@@ -2,21 +2,67 @@ import { nanoid } from 'nanoid';
 import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
+import axios from 'axios';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
-import queries from '~/db/sql-client/lib/pg/pg.queries';
 
 const log = new Debug('DatabricksClient');
+
+const isKnexWrapped = Symbol('isKnexWrapped');
+
+async function runExternal(query: string, config: any) {
+  const { dbMux, sourceId, ...rest } = config;
+
+  try {
+    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
+      query,
+      config: rest,
+      raw: true,
+    });
+    return data;
+  } catch (e) {
+    if (e.response?.data?.error) {
+      throw e.response.data.error;
+    }
+    throw e;
+  }
+}
 
 class DatabricksClient extends KnexClient {
   protected queries: any;
   protected _version: any;
   constructor(connectionConfig) {
     super(connectionConfig);
-    // this.sqlClient = null;
-    this.queries = queries;
-    this._version = {};
+
+    if (!this.sqlClient[isKnexWrapped]) {
+      this.sqlClient[isKnexWrapped] = true;
+
+      const knexRaw = this.sqlClient.raw;
+      const self = this;
+
+      Object.defineProperties(this.sqlClient, {
+        raw: {
+          enumerable: true,
+          value: function (...args) {
+            const builder = knexRaw.apply(this, args);
+
+            const originalThen = builder.then;
+
+            builder.then = function (onFulfilled, onRejected) {
+              if (self.sqlClient && self.sqlClient.isExternal) {
+                return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                  .then(onFulfilled)
+                  .catch(onRejected);
+              }
+              return originalThen.call(builder, onFulfilled, onRejected);
+            };
+
+            return builder;
+          },
+        },
+      });
+    }
   }
 
   /**

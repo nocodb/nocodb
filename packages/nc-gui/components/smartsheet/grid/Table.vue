@@ -2201,7 +2201,7 @@ onKeyStroke('ArrowDown', onDown)
 
       .ant-select:not(.ant-select-customize-input) {
         .ant-select-selector {
-          @apply !border-none !h-[25px] flex-nowrap pr-4.5;
+          @apply !border-none flex-nowrap pr-4.5;
         }
         .ant-select-arrow {
           @apply right-[3px];

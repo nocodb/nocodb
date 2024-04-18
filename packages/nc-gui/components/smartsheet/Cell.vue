@@ -281,8 +281,17 @@ onUnmounted(() => {
   @apply text-small text-gray-600;
   font-weight: 500;
 
+  :deep(.nc-cell-field, input, textarea) {
+    @apply !text-small;
+    font-weight: 500;
+  }
+
   &.nc-display-value-cell {
     @apply text-brand-500 font-semibold;
+
+    :deep(.nc-cell-field, input, textarea) {
+      @apply font-semibold;
+    }
   }
 
   &.nc-cell-longtext {

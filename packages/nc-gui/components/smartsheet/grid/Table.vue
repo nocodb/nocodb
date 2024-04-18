@@ -2093,7 +2093,7 @@ onKeyStroke('ArrowDown', onDown)
 
   td,
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-50;
+    @apply border-gray-100 border-solid border-r bg-gray-50 p-0;
     min-height: 32px !important;
     height: 32px !important;
     position: relative;
@@ -2115,9 +2115,26 @@ onKeyStroke('ArrowDown', onDown)
     @apply bg-white border-b;
   }
 
-  td:not(:first-child) > div {
-    overflow: hidden;
-    @apply flex px-1 h-auto;
+  td:not(:first-child) {
+    @apply py-1 px-1;
+    & > div {
+      overflow: hidden;
+      @apply flex  h-auto;
+    }
+    :deep(.nc-cell),
+    :deep(.nc-virtual-cell) {
+      @apply px-2;
+    }
+
+    :deep(.nc-cell-field),
+    :deep(a.nc-cell-field-link),
+    :deep(input),
+    :deep(textarea) {
+      @apply p-0 m-0;
+    }
+    :deep(.nc-cell.nc-cell-longtext textarea) {
+      @apply pr-2;
+    }
   }
 
   table {

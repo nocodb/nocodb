@@ -16,6 +16,7 @@ import {
   useGlobal,
   useVModel,
   watch,
+  IsGridInj,
 } from '#imports'
 
 const props = defineProps<{
@@ -35,6 +36,8 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -208,7 +211,7 @@ watch(inputWrapperRef, () => {
       class="flex flex-row w-full long-text-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
-        'min-h-7': rowHeight === 1 && !isExpandedFormOpen,
+        'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
         'h-full w-full': isForm,
       }"
     >
@@ -295,12 +298,23 @@ watch(inputWrapperRef, () => {
       <NcTooltip
         v-if="!isVisible && !isForm"
         placement="bottom"
-        class="!absolute top-1 hidden nc-text-area-expand-btn group-hover:block z-3"
-        :class="isForm ? 'right-1' : 'right-0'"
+        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
+        :class="{
+          'right-1': isForm,
+          'right-0': !isForm,
+          'top-0': isGrid && !isExpandedFormOpen && !isForm,
+          'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
+        }"
       >
         <template #title>{{ $t('title.expand') }}</template>
-        <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
-          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs" />
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="onExpand"
+        >
+          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
         </NcButton>
       </NcTooltip>
     </div>
@@ -381,9 +395,9 @@ textarea:focus {
     :deep(.ProseMirror) {
       @apply !pt-0;
     }
-    &.nc-readonly-rich-text-sort-height {
-      @apply mt-1;
-    }
+    // &.nc-readonly-rich-text-sort-height {
+    //   @apply mt-1;
+    // }
   }
 }
 </style>

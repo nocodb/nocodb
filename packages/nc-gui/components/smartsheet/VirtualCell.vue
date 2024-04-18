@@ -127,15 +127,8 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .nc-virtual-cell {
-  @apply text-small leading-4;
-  font-weight: 500;
-  .nc-cell-field {
-    @apply text-small leading-4;
-    font-weight: 500;
-  }
-
   &.nc-display-value-cell {
-    @apply text-brand-500 font-semibold;
+    @apply text-brand-500;
   }
 }
 </style>

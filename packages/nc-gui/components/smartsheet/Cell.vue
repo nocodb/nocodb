@@ -278,11 +278,11 @@ onUnmounted(() => {
 }
 
 .nc-cell {
-  @apply text-small text-gray-600;
+  @apply text-sm text-gray-600;
   font-weight: 500;
 
   :deep(.nc-cell-field, input, textarea) {
-    @apply !text-small;
+    @apply !text-sm;
     font-weight: 500;
   }
 
@@ -299,11 +299,11 @@ onUnmounted(() => {
   }
 
   :deep(.ant-picker-input) {
-    @apply text-small leading-4;
+    @apply text-sm leading-4;
     font-weight: 500;
 
     input {
-      @apply text-small leading-4;
+      @apply text-sm leading-4;
       font-weight: 500;
     }
   }

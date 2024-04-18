@@ -1635,7 +1635,7 @@ onKeyStroke('ArrowDown', onDown)
                       'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
                       'mouse-down': isGridCellMouseDown || isFillMode,
                     }"
-                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+                    :style="{ height: rowHeight ? `${rowHeightInPx[`${rowHeight}`]}px` : `${rowHeightInPx['1']}px` }"
                     :data-testid="`grid-row-${rowIndex}`"
                   >
                     <td
@@ -2116,24 +2116,77 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   td:not(:first-child) {
-    @apply py-1 px-1;
-    & > div {
-      overflow: hidden;
-      @apply flex  h-auto;
-    }
-    :deep(.nc-cell),
-    :deep(.nc-virtual-cell) {
-      @apply px-2;
+    @apply px-1;
+
+    &.align-top {
+      @apply py-2;
     }
 
-    :deep(.nc-cell-field),
-    :deep(a.nc-cell-field-link),
-    :deep(input),
-    :deep(textarea) {
-      @apply p-0 m-0;
+    &.align-middle {
+      @apply py-1;
     }
-    :deep(.nc-cell.nc-cell-longtext textarea) {
-      @apply pr-2;
+
+    & > div {
+      overflow: hidden;
+      @apply flex h-auto;
+    }
+
+    :deep(.nc-cell),
+    :deep(.nc-virtual-cell) {
+      @apply px-2 text-small text-gray-600;
+      font-weight: 500;
+
+      .nc-cell-field,
+      a.nc-cell-field-link,
+      input,
+      textarea {
+        @apply !p-0 m-0;
+      }
+
+      .nc-cell-field,
+      input,
+      textarea {
+        @apply !text-small !p-0 m-0;
+        font-weight: 500;
+      }
+
+      &.nc-display-value-cell {
+        @apply font-semibold;
+
+        .nc-cell-field,
+        input,
+        textarea {
+          @apply font-semibold;
+        }
+      }
+
+      &.nc-cell-longtext {
+        @apply leading-5;
+
+        textarea {
+          @apply pr-2;
+        }
+      }
+
+      .ant-picker-input {
+        @apply text-small leading-4;
+        font-weight: 500;
+
+        input {
+          @apply text-small leading-4;
+          font-weight: 500;
+        }
+      }
+
+      &.nc-cell-attachment {
+        .nc-attachment-wrapper {
+          @apply !py-0.5;
+
+          .nc-attachment {
+            @apply !min-h-4;
+          }
+        }
+      }
     }
   }
 

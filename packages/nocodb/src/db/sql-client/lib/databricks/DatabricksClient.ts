@@ -713,11 +713,15 @@ class DatabricksClient extends KnexClient {
         if (column.pk && column.cn === 'id') {
           column.meta = {
             ag: 'nc',
-          }
-        } else if (column.pk && column.cdf === null && column.generation_expression === null) {
+          };
+        } else if (
+          column.pk &&
+          column.cdf === null &&
+          column.generation_expression === null
+        ) {
           column.meta = {
             ag: 'nc',
-          }
+          };
         }
 
         column.nrqd = response.rows[i].nrqd !== 'NO';
@@ -972,7 +976,10 @@ class DatabricksClient extends KnexClient {
           tc.constraint_type = 'FOREIGN KEY'
           AND tc.table_schema=:schema
           AND tc.table_name=:table;`,
-        { schema: this.schema.toLowerCase(), table: (args.tn as string).toLowerCase() },
+        {
+          schema: this.schema.toLowerCase(),
+          table: (args.tn as string).toLowerCase(),
+        },
       );
 
       const ruleMapping = {
@@ -2412,7 +2419,10 @@ class DatabricksClient extends KnexClient {
     }
 
     query += this.alterTablePK(table, args.columns, [], query, true);
-    query = this.genQuery(`CREATE TABLE ?? (${query}) TBLPROPERTIES('delta.columnMapping.mode' = 'name', 'delta.minReaderVersion' = '2', 'delta.minWriterVersion' = '5');`, [args.tn]);
+    query = this.genQuery(
+      `CREATE TABLE ?? (${query}) TBLPROPERTIES('delta.columnMapping.mode' = 'name', 'delta.minReaderVersion' = '2', 'delta.minWriterVersion' = '5');`,
+      [args.tn],
+    );
 
     return query;
   }

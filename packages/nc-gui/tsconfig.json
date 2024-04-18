@@ -1,5 +1,5 @@
 {
-  "extends": "./.nuxt/tsconfig.json",
+  "extends": "./ee/.nuxt/tsconfig.json",
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,

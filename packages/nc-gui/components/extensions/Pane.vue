@@ -1,0 +1,52 @@
+<script setup lang="ts">
+import { Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
+
+const { extensionList, isPanelExpanded } = useExtensions()
+
+const isMarketVisible = ref(false)
+
+const toggleMarket = () => {
+  isMarketVisible.value = !isMarketVisible.value
+}
+</script>
+
+<template>
+  <Pane :size="isPanelExpanded ? 40 : 0" class="flex flex-col bg-orange-50">
+    <div class="flex items-center pl-3 pt-3 font-weight-800 text-orange-500">Extensions</div>
+    <div class="flex items-center flex-col gap-2 w-full">
+      <template v-if="extensionList.length === 0">
+        <div class="w-[100px] h-[100px] bg-gray-200 rounded-lg mt-[100px]"></div>
+        <div class="font-weight-700">No extensions added</div>
+        <div>Add Extensions from the community extensions marketplace</div>
+        <NcButton @click="toggleMarket">
+          <div class="flex items-center gap-2 font-weight-600">
+            <GeneralIcon icon="plus" />
+            Add Extension
+          </div>
+        </NcButton>
+      </template>
+      <template v-else>
+        <div class="flex w-full items-center justify-between pt-2 px-2">
+          <div class="flex flex-grow items-center mr-2">
+            <a-input type="text" class="!h-8 !px-3 !py-1 !rounded-lg" placeholder="Search Extension">
+              <template #prefix>
+                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+              </template>
+            </a-input>
+          </div>
+          <NcButton type="ghost" size="small" class="!text-primary !bg-white" @click="toggleMarket">
+            <div class="flex items-center gap-1 px-1 text-xs">
+              <GeneralIcon icon="plus" />
+              Add Extension
+            </div>
+          </NcButton>
+        </div>
+        <ExtensionsExtension v-for="ext in extensionList" :key="ext.id" :extension="ext" />
+      </template>
+    </div>
+    <ExtensionsMarket v-if="isMarketVisible" v-model="isMarketVisible" />
+  </Pane>
+</template>
+
+<style lang="scss"></style>

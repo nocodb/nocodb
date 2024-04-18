@@ -87,7 +87,9 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   >
     <img
       v-if="rowHeight"
-      :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+      :style="{
+        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"

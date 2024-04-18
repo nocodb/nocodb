@@ -721,7 +721,7 @@ sleep 5
 if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ]; then
   echo 'Starting Letsencrypt certificate request...';
 
-  $DOCKER_COMMAND compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d "$DOMAIN_NAME" --email contact@"$DOMAIN_NAME" --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
+  $DOCKER_COMMAND compose exec certbot certbot certonly --webroot --webroot-path=/var/www/certbot -d "$DOMAIN_NAME" --email "contact@$DOMAIN_NAME" --agree-tos --no-eff-email && echo "Certificate request successful" || echo "Certificate request failed"
   # Initial Let's Encrypt certificate request
 
   # Update the nginx config to use the new certificates

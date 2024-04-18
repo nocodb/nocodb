@@ -242,6 +242,8 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const editEnabled = ref(false)
 
+const isGridCellMouseDown = ref(false)
+
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
@@ -1169,9 +1171,14 @@ useEventListener(document, 'mousedown', (e) => {
   if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
     scrolling.value = true
   }
+
+  if ((e.target as HTMLElement).closest('.nc-grid-cell:not(.caption)')) {
+    isGridCellMouseDown.value = true
+  }
 })
 
 useEventListener(document, 'mouseup', () => {
+  isGridCellMouseDown.value = false
   // wait for click event to finish before setting scrolling to false
   setTimeout(() => {
     scrolling.value = false
@@ -1625,8 +1632,8 @@ onKeyStroke('ArrowDown', onDown)
                     v-show="!showSkeleton"
                     class="nc-grid-row !xs:h-14"
                     :class="{
-                      'active-row': activeCell.row === rowIndex,
-                      'fill-mode': isFillMode,
+                      'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
+                      'mouse-down': isGridCellMouseDown || isFillMode,
                     }"
                     :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                     :data-testid="`grid-row-${rowIndex}`"
@@ -2234,7 +2241,8 @@ onKeyStroke('ArrowDown', onDown)
     }
   }
 
-  &:hover {
+  &.active-row,
+  &:not(.mouse-down):hover {
     .nc-row-no.toggle {
       @apply hidden;
     }
@@ -2246,13 +2254,10 @@ onKeyStroke('ArrowDown', onDown)
     .nc-row-expand-and-checkbox {
       @apply !xs:hidden flex;
     }
-  }
-  
-  &.active-row,
-  &:not(.fill-mode):hover {
+
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
-      @apply bg-gray-50 border-b-gray-200 border-r-gray-200;
+      @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
     }
   }
 }

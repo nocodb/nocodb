@@ -208,7 +208,7 @@ watch(inputWrapperRef, () => {
       class="flex flex-row w-full long-text-wrapper"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
-        'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
+        'min-h-7': rowHeight === 1 && !isExpandedFormOpen,
         'h-full w-full': isForm,
       }"
     >
@@ -382,7 +382,7 @@ textarea:focus {
       @apply !pt-0;
     }
     &.nc-readonly-rich-text-sort-height {
-      @apply mt-2;
+      @apply mt-1;
     }
   }
 }

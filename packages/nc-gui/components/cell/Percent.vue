@@ -143,7 +143,7 @@ const onTabPress = (e: KeyboardEvent) => {
       v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
+      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 text-base py-1"
       :type="inputType"
       :placeholder="isEditColumn ? $t('labels.optional') : ''"
       @blur="onBlur"

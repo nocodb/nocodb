@@ -251,6 +251,10 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     return undefined
   }
 
+  const setGridViewPageSize = (pageSize: number) => {
+    state.gridViewPageSize.value = pageSize
+  }
+
   return {
     signIn,
     signOut,
@@ -262,5 +266,6 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     ncNavigateTo,
     getMainUrl,
     checkForCognitoToken,
+    setGridViewPageSize,
   }
 }

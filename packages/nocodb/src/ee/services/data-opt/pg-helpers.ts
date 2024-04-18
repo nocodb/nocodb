@@ -1,5 +1,6 @@
 // eslint-disable-file no-fallthrough
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import { shouldSkipCache } from './common-helpers';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
@@ -58,6 +59,10 @@ export function generateNestedRowSelectQuery({
     pramsValueArr,
   );
 }
+
+const SKIP_COUNT_CACHE_VALUE = '__nc_skip__';
+const COUNT_QUERY_TIMEOUT = 3000;
+const logger = new Logger('pg-single-query');
 
 export async function extractColumns({
   columns,
@@ -987,12 +992,8 @@ export async function singleQueryRead(ctx: {
     }),
   ];
 
-  // apply filters on root query and count query
+  // apply filters on root query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
-  // await conditionV2(baseModel, aggrConditionObj, countQb);
-
-  // apply sort on root query
-  // if (sorts) await sortV2(baseModel, sorts, rootQb);
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
@@ -1071,6 +1072,8 @@ export async function singleQueryList(ctx: {
   ignorePagination?: boolean;
   limitOverride?: number;
 }): Promise<PagedResponseImpl<Record<string, any>>> {
+  const excludeCount = ctx.params?.excludeCount;
+
   if (ctx.source.type !== 'pg') {
     throw new Error('Source is not postgres');
   }
@@ -1094,22 +1097,69 @@ export async function singleQueryList(ctx: {
   const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
     ctx.view?.id ?? 'default'
   }:queries`;
+  const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
+    ctx.view?.id ?? 'default'
+  }:count`;
 
   if (!skipCache) {
     const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
-    if (cachedQuery) {
-      const startTime = process.hrtime();
-      const res = await baseModel.execAndParse(
-        knex.raw(cachedQuery, [+listArgs.limit, +listArgs.offset]).toQuery(),
-        null,
-        { skipDateConversion: true },
-      );
-      dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+    const cachedCountQuery = await NocoCache.get(
+      countCacheKey,
+      CacheGetType.TYPE_STRING,
+    );
+    if (cachedQuery && cachedCountQuery) {
+      let res, countRes;
+      await Promise.all([
+        // skip count query if excludeCount is present or takes more than the timeout seconds
+        // or if the cached count query value is SKIP_COUNT_CACHE_VALUE
+        new Promise((resolve, reject) => {
+          if (excludeCount || cachedCountQuery === SKIP_COUNT_CACHE_VALUE) {
+            return resolve(null);
+          }
 
+          let resolved = false;
+
+          // if count query takes more than 3 seconds then skip it
+          setTimeout(() => {
+            if (resolved) return;
+            resolved = true;
+            resolve(null);
+          }, COUNT_QUERY_TIMEOUT);
+
+          baseModel
+            .execAndParse(knex.raw(cachedCountQuery).toQuery(), null, {
+              skipDateConversion: true,
+            })
+            .then(
+              (count) => {
+                if (resolved) return;
+                resolved = true;
+                countRes = +count?.[0]?.count || 0;
+                resolve(null);
+              },
+              (err) => {
+                if (resolved) return;
+                resolved = true;
+                reject(err);
+              },
+            );
+        }),
+        (async () => {
+          const startTime = process.hrtime();
+          res = await baseModel.execAndParse(
+            knex
+              .raw(cachedQuery, [+listArgs.limit, +listArgs.offset])
+              .toQuery(),
+            null,
+            { skipDateConversion: true },
+          );
+          dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+        })(),
+      ]);
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
         {
-          count: +res[0]?.__nc_count || 0,
+          count: countRes,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
           limitOverride: +ctx.limitOverride,
@@ -1251,51 +1301,102 @@ export async function singleQueryList(ctx: {
     }*/
   }
 
-  const finalQb = qb.select(countQb.as('__nc_count'));
-
+  // const finalQb = qb.select(countQb.as('__nc_count'));
+  const finalQb = qb;
   let res: any;
-  if (skipCache) {
-    const startTime = process.hrtime();
-    res = await baseModel.execAndParse(finalQb, null, {
-      skipDateConversion: true,
-    });
-    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-  } else {
-    const { sql, bindings } = finalQb.toSQL();
+  let count: number;
+  await Promise.all([
+    // skip count query if excludeCount is present or takes more than the timeout seconds
+    new Promise((resolve, reject) => {
+      if (excludeCount) {
+        return resolve(null);
+      }
 
-    // get unique placeholder for limit and offset which is not present in query
-    const placeholder = getUniquePlaceholders(finalQb.toQuery());
+      let resolved = false;
 
-    // bind all params and replace limit and offset with placeholders
-    // and in generated sql replace placeholders with bindings
-    const query = knex
-      .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
-      .toQuery()
-      // escape any `?` in the query to avoid replacing them with bindings
-      .replace(/\?/g, '\\?')
-      .replace(
-        `limit '${placeholder}' offset '${placeholder}'`,
-        'limit ? offset ?',
-      );
+      const countQuery = countQb.toQuery();
 
-    // cache query for later use
-    await NocoCache.set(cacheKey, query);
+      NocoCache.set(countCacheKey, countQuery).catch((e) => {
+        if (resolved) return;
+        resolved = true;
+        reject(e);
+      });
 
-    const startTime = process.hrtime();
+      // if count query takes more than 3 seconds then skip it
+      setTimeout(() => {
+        if (resolved) return;
+        resolved = true;
+        resolve(null);
+        NocoCache.set(countCacheKey, SKIP_COUNT_CACHE_VALUE).catch((e) => {
+          // ignore
+          logger.error(e);
+        });
+      }, COUNT_QUERY_TIMEOUT);
+      baseModel
+        .execAndParse(countQb.toQuery(), null, {
+          skipDateConversion: true,
+          first: true,
+        })
+        .then(
+          (r) => {
+            if (resolved) return;
+            resolved = true;
+            count = +r?.count || 0;
+            resolve(null);
+          },
+          (e) => {
+            if (resolved) return;
+            resolved = true;
+            reject(e);
+          },
+        );
+    }),
+    (async () => {
+      if (skipCache) {
+        const startTime = process.hrtime();
+        res = await baseModel.execAndParse(finalQb, null, {
+          skipDateConversion: true,
+        });
+        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+      } else {
+        const { sql, bindings } = finalQb.toSQL();
 
-    // run the query with actual limit and offset
-    res = await baseModel.execAndParse(
-      knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
-      null,
-      { skipDateConversion: true },
-    );
-    dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-  }
+        // get unique placeholder for limit and offset which is not present in query
+        const placeholder = getUniquePlaceholders(finalQb.toQuery());
+
+        // bind all params and replace limit and offset with placeholders
+        // and in generated sql replace placeholders with bindings
+        const query = knex
+          .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
+          .toQuery()
+          // escape any `?` in the query to avoid replacing them with bindings
+          .replace(/\?/g, '\\?')
+          .replace(
+            `limit '${placeholder}' offset '${placeholder}'`,
+            'limit ? offset ?',
+          );
+
+        // cache query for later use
+        await NocoCache.set(cacheKey, query);
+
+        const startTime = process.hrtime();
+
+        // run the query with actual limit and offset
+        res = await baseModel.execAndParse(
+          knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+          null,
+          { skipDateConversion: true },
+        );
+        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+      }
+    })(),
+  ]);
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),
     {
-      count: +res[0]?.__nc_count || 0,
+      // count: +res[0]?.__nc_count || 0,
+      count,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
       limitOverride: +ctx.limitOverride,

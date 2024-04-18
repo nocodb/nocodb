@@ -1495,12 +1495,14 @@ export default class View implements ViewType {
     for (const view of viewsList) {
       deleteKeys.push(
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
       );
     }
 
     deleteKeys.push(
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
     );
 

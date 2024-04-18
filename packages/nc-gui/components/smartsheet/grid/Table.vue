@@ -2105,6 +2105,11 @@ onKeyStroke('ArrowDown', onDown)
     :deep(.name) {
       @apply text-small;
     }
+
+    :deep(.nc-cell-icon),
+    :deep(.nc-virtual-cell-icon) {
+      @apply !w-3.5 !h-3.5;
+    }
   }
 
   .nc-grid-header th:last-child {

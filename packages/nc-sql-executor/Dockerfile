@@ -1,21 +1,19 @@
-# Use the official Node.js 18.12.1-alpine base image
-FROM node:18.12.1-alpine
+# Use the official Node.js 18.19.1-alpine base image
+FROM node:18.19.1-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+# install node-gyp dependencies
+RUN apk add --no-cache python3 make g++
 
 # Copy the application code to the working directory
 COPY . .
-RUN npm install typescript
-# Install application dependencies
-RUN npm install
-# Build the application
-RUN npm run build
 
-COPY ./src/public ./dist/public
+# Remove local dependencies
+RUN npm uninstall knex-snowflake knex-databricks
+# Install the application dependencies
+RUN npm install --production
 
 # Expose the port that the application will run on
 EXPOSE 9000
@@ -23,4 +21,4 @@ EXPOSE 9000
 ENV HOST=0.0.0.0 PORT=9000 NODE_ENV=production
 
 # Define the command to start the application
-CMD [ "npm", "run", "start:prod" ]
+CMD ["npm", "run", "start:prod"]

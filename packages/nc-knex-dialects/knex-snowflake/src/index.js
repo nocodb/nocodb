@@ -22,20 +22,18 @@ class SnowflakeClient extends Client {
       this.defaultReturning = false;
     }
 
-    if (config.connection.warehouse) {
-      this.warehouse = config.connection.warehouse;
-    } else {
-      throw new Error('Missing warehouse in Snowflake configuration');
-    }
-
-    if (config.connection.database) {
-      this.database = config.connection.database;
-    } else {
-      throw new Error('Missing database in Snowflake configuration');
-    }
-
-    if (config.connection.schema) {
-      this.schema = config.connection.schema;
+    if (config.connection) {
+      if (config.connection.warehouse) {
+        this.warehouse = config.connection.warehouse;
+      }
+  
+      if (config.connection.database) {
+        this.database = config.connection.database;
+      }
+  
+      if (config.connection.schema) {
+        this.schema = config.connection.schema;
+      }
     }
   }
 

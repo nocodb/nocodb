@@ -21,22 +21,18 @@ class DatabricksClient extends Client {
       this.defaultReturning = false;
     }
 
-    if (config.connection.host) {
-      this.host = config.connection.host;
-    } else {
-      throw new Error("Missing host in Databricks configuration");
-    }
-
-    if (config.connection.path) {
-      this.path = config.connection.path;
-    } else {
-      throw new Error("Missing path in Databricks configuration");
-    }
-
-    if (config.connection.token) {
-      this.token = config.connection.token;
-    } else {
-      throw new Error("Missing token in Databricks configuration");
+    if (config.connection) {
+      if (config.connection.host) {
+        this.host = config.connection.host;
+      }
+  
+      if (config.connection.path) {
+        this.path = config.connection.path;
+      }
+  
+      if (config.connection.token) {
+        this.token = config.connection.token;
+      }
     }
   }
 

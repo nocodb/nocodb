@@ -1,12 +1,32 @@
 import { nanoid } from 'nanoid';
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
-import queries from './snowflake.queries';
+import axios from 'axios';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
 
 const log = new Debug('SnowflakeClient');
+
+const isKnexWrapped = Symbol('isKnexWrapped');
+
+async function runExternal(query: string, config: any) {
+  const { dbMux, sourceId, ...rest } = config;
+
+  try {
+    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
+      query,
+      config: rest,
+      raw: true,
+    });
+    return data;
+  } catch (e) {
+    if (e.response?.data?.error) {
+      throw e.response.data.error;
+    }
+    throw e;
+  }
+}
 
 const rowsToLower = (arr) => {
   for (const a of arr) {
@@ -21,9 +41,35 @@ const rowsToLower = (arr) => {
 class SnowflakeClient extends KnexClient {
   constructor(connectionConfig) {
     super(connectionConfig);
-    // this.sqlClient = null;
-    this.queries = queries;
-    this._version = {};
+
+    if (!this.sqlClient[isKnexWrapped]) {
+      this.sqlClient[isKnexWrapped] = true;
+
+      const knexRaw = this.sqlClient.raw;
+      const self = this;
+
+      Object.defineProperties(this.sqlClient, {
+        raw: {
+          enumerable: true,
+          value: function (...args) {
+            const builder = knexRaw.apply(this, args);
+
+            const originalThen = builder.then;
+
+            builder.then = function (onFulfilled, onRejected) {
+              if (self.sqlClient && self.sqlClient.isExternal) {
+                return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                  .then(onFulfilled)
+                  .catch(onRejected);
+              }
+              return originalThen.call(builder, onFulfilled, onRejected);
+            };
+
+            return builder;
+          },
+        },
+      });
+    }
   }
 
   /**

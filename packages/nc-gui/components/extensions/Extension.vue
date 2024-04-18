@@ -10,6 +10,8 @@ const { extensionList, extensionsLoaded, availableExtensions, getExtensionIcon, 
 
 const activeError = ref(error)
 
+const extensionModalRef = ref<HTMLElement>()
+
 const extension = computed(() => {
   const ext = extensionList.value.find((ext) => ext.id === extensionId)
   if (!ext) {
@@ -67,6 +69,20 @@ onMounted(() => {
       activeError.value = err
     })
 })
+
+// close fullscreen on escape key press
+useEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    fullscreen.value = false
+  }
+})
+
+// close fullscreen on clicking extensionModalRef directly
+const closeFullscreen = (e: MouseEvent) => {
+  if (e.target === extensionModalRef.value) {
+    fullscreen.value = false
+  }
+}
 </script>
 
 <template>
@@ -143,25 +159,29 @@ onMounted(() => {
         </div>
       </template>
       <template v-else>
-        <div v-if="!fullscreen" v-show="!collapsed" class="extension-content"><component :is="component" /></div>
-        <NcModal
-          v-else
-          v-model:visible="fullscreen"
-          class="extension-fullscreen"
-          :body-style="{ 'max-height': '85vh', 'height': '85vh' }"
-          :closable="false"
-          :footer="null"
-          width="90vw"
-        >
-          <div class="flex items-center justify-between p-2 bg-gray-100 rounded-t-lg cursor-default">
-            <div class="flex items-center gap-2 text-gray-500 font-weight-600">
-              <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="w-6 h-6" />
-              <div class="text-sm">{{ extension.title }}</div>
+        <Teleport to="body" :disabled="!fullscreen">
+          <div ref="extensionModalRef" :class="{ 'extension-modal': fullscreen }" @click="closeFullscreen">
+            <div :class="{ 'extension-modal-content': fullscreen }">
+              <div
+                v-if="fullscreen"
+                class="flex items-center justify-between p-2 bg-gray-100 rounded-t-lg cursor-default h-[40px]"
+              >
+                <div class="flex items-center gap-2 text-gray-500 font-weight-600">
+                  <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="w-6 h-6" />
+                  <div class="text-sm">{{ extension.title }}</div>
+                </div>
+                <GeneralIcon class="cursor-pointer" icon="close" @click="fullscreen = false" />
+              </div>
+              <div
+                v-show="fullscreen || !collapsed"
+                class="extension-content"
+                :class="{ 'border-1': !fullscreen, 'h-[calc(100%-40px)]': fullscreen }"
+              >
+                <component :is="component" />
+              </div>
             </div>
-            <GeneralIcon class="cursor-pointer" icon="close" @click="fullscreen = false" />
           </div>
-          <div class="w-full h-full p-2"><component :is="component" /></div>
-        </NcModal>
+        </Teleport>
       </template>
     </div>
   </div>
@@ -173,7 +193,7 @@ onMounted(() => {
 }
 
 .extension-header {
-  @apply flex justify-between;
+  @apply flex justify-between mb-2;
 
   .extension-header-left {
     @apply flex items-center gap-2;
@@ -189,10 +209,14 @@ onMounted(() => {
 }
 
 .extension-content {
-  @apply border-1 m-2 p-2 rounded-lg;
+  @apply rounded-lg;
 }
 
-:global(.extension-fullscreen .nc-modal) {
-  @apply p-0;
+.extension-modal {
+  @apply absolute top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50;
+
+  .extension-modal-content {
+    @apply bg-white rounded-lg w-[90%] h-[90vh] mt-[5vh] mx-auto;
+  }
 }
 </style>

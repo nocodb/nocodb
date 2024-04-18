@@ -83,12 +83,17 @@ export class SourcesService {
     source: BaseReqType;
     logger?: (message: string) => void;
     req: NcRequest;
-  }) {
+  }): Promise<{
+    source: Source;
+    error?: any;
+  }> {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
     // type | base | baseId
     const baseBody = param.source;
     const base = await Base.getWithInfo(param.baseId);
+
+    let error;
 
     param.logger?.('Creating the source');
 
@@ -98,26 +103,30 @@ export class SourcesService {
       baseId: base.id,
     });
 
-    await syncBaseMigration(base, source);
+    try {
+      await syncBaseMigration(base, source);
 
-    param.logger?.('Populating meta');
+      param.logger?.('Populating meta');
 
-    const info = await populateMeta(source, base, param.logger);
+      const info = await populateMeta(source, base, param.logger);
 
-    await populateRollupColumnAndHideLTAR(source, base);
+      await populateRollupColumnAndHideLTAR(source, base);
 
-    this.appHooksService.emit(AppEvents.APIS_CREATED, {
-      info,
-      req: param.req,
-    });
+      this.appHooksService.emit(AppEvents.APIS_CREATED, {
+        info,
+        req: param.req,
+      });
 
-    delete source.config;
+      delete source.config;
 
-    this.appHooksService.emit(AppEvents.BASE_CREATE, {
-      source,
-      req: param.req,
-    });
+      this.appHooksService.emit(AppEvents.BASE_CREATE, {
+        source,
+        req: param.req,
+      });
+    } catch (e) {
+      error = e;
+    }
 
-    return source;
+    return { source, error };
   }
 }

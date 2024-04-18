@@ -21,4 +21,8 @@ export const clientTypes = [
     text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
+  {
+    text: 'Databricks',
+    value: ClientType.DATABRICKS,
+  },
 ]

@@ -5,20 +5,24 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon -e ts,js -w ./src -x \"ts-node src/index --log-error --project tsconfig.json\"",
-    "build": "tsc",
-    "start:prod": "node dist/index"
+    "build": "webpack --config webpack.config.js",
+    "start:prod": "node dist/main.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@databricks/sql": "^1.7.1",
     "@fastify/static": "^6.12.0",
     "dayjs": "^1.11.10",
     "fastify": "^4.24.3",
     "knex": "^3.0.1",
+    "knex-databricks": "link:../nc-knex-dialects/knex-databricks",
+    "knex-snowflake": "link:../nc-knex-dialects/knex-snowflake",
     "mysql2": "^3.6.2",
     "object-hash": "^3.0.0",
     "pg": "^8.11.3",
-    "process": "^0.11.10"
+    "process": "^0.11.10",
+    "snowflake-sdk": "^1.6.11"
   },
   "devDependencies": {
     "@types/node": "^20.8.8"

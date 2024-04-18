@@ -135,7 +135,7 @@ jobs:
           cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.ee-cloud.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
-          pnpm uninstall --save-prod nocodb-sdk knex-snowflake
+          pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
 
       - name: Move files to release version folder
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
@@ -196,6 +196,7 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nc-sql-executor
+          npm run build
           docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH

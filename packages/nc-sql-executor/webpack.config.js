@@ -1,12 +1,9 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
-const webpack = require('webpack');
-const CopyPlugin = require('copy-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
-const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
+const { resolveTsAliases } = require('../nocodb/build-utils/resolveTsAliases');
 
 module.exports = {
-  entry: './src/run/cloud.ts',
+  entry: './src/index.ts',
   module: {
     rules: [
       {
@@ -23,23 +20,21 @@ module.exports = {
   },
 
   optimization: {
-    minimize: true, //Update this to true or false
-    minimizer: [new TerserPlugin()],
     nodeEnv: false,
   },
   externals: [
     nodeExternals({
-      allowlist: ['nocodb-sdk', 'knex-snowflake', 'knex-databricks'],
+      allowlist: ['knex-snowflake', 'knex-databricks'],
     }),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
-    alias: resolveTsAliases(path.resolve('./src/ee-cloud/tsconfig.json')),
+    alias: resolveTsAliases(path.resolve('./tsconfig.json')),
   },
   mode: 'production',
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'docker'),
+    path: path.resolve(__dirname, 'dist'),
     library: 'libs',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this",
@@ -47,11 +42,6 @@ module.exports = {
   node: {
     __dirname: false,
   },
-  plugins: [
-    new webpack.EnvironmentPlugin(['EE']),
-    new CopyPlugin({
-      patterns: [{ from: 'src/public', to: 'public' }],
-    }),
-  ],
+  plugins: [],
   target: 'node',
 };

@@ -115,10 +115,23 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const clientTypes = computed(() => {
-  // TODO: enable Snowflake when it's ready
   return _clientTypes.filter((type) => {
-    return type.value !== ClientType.SNOWFLAKE
+    return (
+      ([ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value) && easterEgg.value) ||
+      ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+    )
   })
 })
 
@@ -145,6 +158,13 @@ const validators = computed(() => {
         'dataSource.connection.warehouse': [fieldRequiredValidator()],
         'dataSource.connection.database': [fieldRequiredValidator()],
         'dataSource.connection.schema': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.DATABRICKS:
+      clientValidations = {
+        'dataSource.connection.token': [fieldRequiredValidator()],
+        'dataSource.connection.host': [fieldRequiredValidator()],
+        'dataSource.connection.path': [fieldRequiredValidator()],
       }
       break
     case ClientType.PG:
@@ -337,26 +357,34 @@ onUnmounted(() => {
 })
 
 function loadWorkspacesWithInterval() {
-  // keep checking for workspace status every 10 seconds if workspace is upgrading
-  timerRef = setTimeout(async () => {
-    if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
-      if (randomMessages.length) {
-        const random = Math.floor(Math.random() * randomMessages.length)
-        pushProgress(randomMessages[random], 'progress')
-        randomMessages.splice(random, 1)
+  ;(async () => {
+    try {
+      if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
+        if (randomMessages.length) {
+          const random = Math.floor(Math.random() * randomMessages.length)
+          pushProgress(randomMessages[random], 'progress')
+          randomMessages.splice(random, 1)
+        }
+        await loadWorkspaces(true)
+        // keep checking for workspace status every 5 seconds if workspace is upgrading
+        timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
+      } else {
+        if (baseId.value) {
+          await loadProject(baseId.value, true)
+          await loadProjectTables(baseId.value, true)
+        }
+        pushProgress('Done!', 'progress')
+        goToDashboard.value = true
+        creatingSource.value = false
       }
-      await loadWorkspaces(true)
-      loadWorkspacesWithInterval()
-    } else {
-      if (baseId.value) {
-        await loadProject(baseId.value, true)
-        await loadProjectTables(baseId.value, true)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
+        clearTimeout(timerRef)
+        timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
       }
-      pushProgress('Done!', 'progress')
-      goToDashboard.value = true
-      creatingSource.value = false
     }
-  }, 10000)
+  })()
 }
 
 const { $poller } = useNuxtApp()
@@ -548,6 +576,39 @@ watch(
 const toggleModal = (val: boolean) => {
   vOpen.value = val
 }
+
+const refreshState = (keepForm = false) => {
+  if (!keepForm) {
+    formState.value = {
+      title: formState.value.title,
+      dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
+      inflection: {
+        inflectionColumn: 'none',
+        inflectionTable: 'none',
+      },
+      sslUse: SSLUsage.No,
+      extraParameters: [],
+    }
+  }
+  testSuccess.value = false
+  testConnectionError.value = null
+  goBack.value = false
+  creatingSource.value = false
+  goToDashboard.value = false
+  testingConnection.value = false
+  progressQueue.value = []
+  progress.value = []
+  step.value = 1
+}
+
+const onBack = () => {
+  refreshState(true)
+}
+
+const onDashboard = () => {
+  refreshState()
+  vOpen.value = false
+}
 </script>
 
 <template>
@@ -556,7 +617,6 @@ const toggleModal = (val: boolean) => {
     :closable="!creatingSource"
     :keyboard="!creatingSource"
     :mask-closable="false"
-    :destroy-on-close="step === 2"
     size="medium"
     @update:visible="toggleModal"
   >
@@ -655,6 +715,43 @@ const toggleModal = (val: boolean) => {
                   <a-input
                     v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
                     class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+              </template>
+
+              <template v-else-if="formState.dataSource.client === ClientType.DATABRICKS">
+                <a-form-item label="Token" v-bind="validateInfos['dataSource.connection.token']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).token"
+                    class="nc-extdb-host-token"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Host" v-bind="validateInfos['dataSource.connection.host']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).host"
+                    class="nc-extdb-host-address"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Path" v-bind="validateInfos['dataSource.connection.path']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).path"
+                    class="nc-extdb-host-path"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
+                    class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).schema"
+                    class="nc-extdb-host-schema"
                   />
                 </a-form-item>
               </template>
@@ -853,6 +950,7 @@ const toggleModal = (val: boolean) => {
 
             <a-form-item class="flex justify-end !mt-5">
               <div class="flex justify-end gap-2">
+                <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
                 <NcButton
                   :type="testSuccess ? 'ghost' : 'primary'"
                   size="small"
@@ -932,10 +1030,10 @@ const toggleModal = (val: boolean) => {
 
           <!--        Go to Dashboard -->
           <div v-if="goToDashboard" class="flex justify-center items-center">
-            <a-button class="mt-4" size="large" @click="vOpen = false">🚀 Time to build & scale now 🚀</a-button>
+            <a-button class="mt-4" size="large" @click="onDashboard">🚀 Time to build & scale now 🚀</a-button>
           </div>
           <div v-else-if="goBack" class="flex justify-center items-center">
-            <a-button class="mt-4" size="large" @click="vOpen = false">Close</a-button>
+            <a-button class="mt-4" size="large" @click="onBack">Go Back</a-button>
           </div>
         </template>
       </div>

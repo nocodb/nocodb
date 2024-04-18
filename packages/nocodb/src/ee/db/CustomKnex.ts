@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import { SnowflakeClient } from 'knex-snowflake';
+import { DatabricksClient } from 'knex-databricks';
 import CustomKnexCE from 'src/db/CustomKnex';
 
 type CustomKnex = Knex;
@@ -9,6 +10,7 @@ function CustomKnex(
   extDb?: any,
 ): CustomKnex {
   if (arg?.client === 'snowflake') arg.client = SnowflakeClient;
+  if (arg?.client === 'databricks') arg.client = DatabricksClient;
 
   return CustomKnexCE(arg, extDb);
 }

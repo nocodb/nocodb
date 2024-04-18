@@ -3,5 +3,6 @@ packages:
   - 'packages/nc-gui'
   - 'packages/nocodb'
   - 'packages/nc-knex-dialects/knex-snowflake'
+  - 'packages/nc-knex-dialects/knex-databricks'
   - 'packages/nc-sql-executor'
   - 'tests/playwright'

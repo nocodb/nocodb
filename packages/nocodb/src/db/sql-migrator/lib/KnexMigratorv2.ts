@@ -397,6 +397,14 @@ export default class KnexMigratorv2 {
         database: connectionConfig.connection.database,
         schema: source.getConfig()?.schema,
       });
+    } else if (source.type === 'databricks') {
+      this.emit(
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
+      );
+      await sqlClient.createDatabaseIfNotExists({
+        database: connectionConfig.connection.database,
+        schema: connectionConfig.connection.schema,
+      });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,

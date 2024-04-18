@@ -7,6 +7,8 @@ import timezone from 'dayjs/plugin/timezone';
 import { defaults, types } from 'pg';
 import path from 'path';
 import fastifyStatic from '@fastify/static';
+import { SnowflakeClient } from 'knex-snowflake';
+import { DatabricksClient } from 'knex-databricks';
 
 const DEBUG = process.env.DEBUG === 'true';
 
@@ -17,6 +19,15 @@ const fastify = Fastify({
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, 'public'),
 });
+
+const getKnexClient = (client: string) => {
+  if (client === 'snowflake') {
+    return SnowflakeClient;
+  } else if (client === 'databricks') {
+    return DatabricksClient;
+  }
+  return client;
+}
 
 const connectionPools: { [key: string]: Knex; } = {};
 const connectionStats: {
@@ -75,6 +86,8 @@ async function execAndGetRows(
 
 async function queryHandler(req, res) {
   const { query: queries, config, raw = false } = req.body as any;
+
+  config.client = getKnexClient(config.client);
 
   const { sourceId = null } = req.params as any;
 

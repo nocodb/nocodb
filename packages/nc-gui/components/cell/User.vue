@@ -20,11 +20,11 @@ import {
   isDrawerOrModalExist,
   onMounted,
   ref,
+  rowHeightTruncateLines,
   useEventListener,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
-  rowHeightTruncateLines,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 

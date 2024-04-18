@@ -9,9 +9,9 @@ import {
   getMdiIcon,
   inject,
   parseProp,
+  rowHeightInPx,
   useBase,
   useSelectedCellKeyupListener,
-  rowHeightInPx,
 } from '#imports'
 
 interface Props {

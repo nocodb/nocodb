@@ -8,6 +8,7 @@ import {
   DropZoneRef,
   IsExpandedFormOpenInj,
   IsGalleryInj,
+  IsGridInj,
   IsKanbanInj,
   IsSurveyFormInj,
   RowHeightInj,
@@ -21,7 +22,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
-  IsGridInj,
 } from '#imports'
 
 interface Props {

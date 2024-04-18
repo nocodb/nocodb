@@ -23,13 +23,13 @@ import {
   onMounted,
   reactive,
   ref,
+  rowHeightTruncateLines,
   useBase,
   useEventListener,
   useMetas,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
-  rowHeightTruncateLines,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 

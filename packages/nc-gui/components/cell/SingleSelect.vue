@@ -478,7 +478,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" ;
+  @apply "rounded-tag";
 }
 
 :deep(.ant-select-clear) {

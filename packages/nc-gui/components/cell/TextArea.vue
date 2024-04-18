@@ -6,6 +6,7 @@ import {
   EditModeInj,
   IsExpandedFormOpenInj,
   IsFormInj,
+  IsGridInj,
   ReadonlyInj,
   RowHeightInj,
   computed,
@@ -16,7 +17,6 @@ import {
   useGlobal,
   useVModel,
   watch,
-  IsGridInj,
 } from '#imports'
 
 const props = defineProps<{

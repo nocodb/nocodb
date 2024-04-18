@@ -167,7 +167,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .extension-wrapper {
   @apply bg-white rounded-lg p-2 w-full border-1;
 }
@@ -192,7 +192,7 @@ onMounted(() => {
   @apply border-1 m-2 p-2 rounded-lg;
 }
 
-.extension-fullscreen .nc-modal {
+:global(.extension-fullscreen .nc-modal) {
   @apply p-0;
 }
 </style>

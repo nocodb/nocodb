@@ -8,8 +8,8 @@ import {
   ClientType,
   ProjectIdInj,
   SSLUsage,
+  clientTypes as _clientTypes,
   baseTitleValidator,
-  clientTypes,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -56,6 +56,12 @@ const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const editingSource = ref(false)
+
+const clientTypes = computed(() => {
+  return _clientTypes.filter((type) => {
+    return ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+  })
+})
 
 const formState = ref<ProjectCreateForm>({
   title: '',

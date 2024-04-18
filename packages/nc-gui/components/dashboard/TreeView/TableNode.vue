@@ -220,11 +220,11 @@ const deleteTable = () => {
   >
     <div
       v-e="['a:table:open']"
-      class="table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
+      class="table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pl-11 pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
         'hover:bg-gray-200': openedTableId !== table.id,
-        'pl-13.5': sourceIndex !== 0,
-        'pl-7.5 xs:(pl-6)': sourceIndex === 0,
+        'pl-12 xs:(pl-14)': sourceIndex !== 0,
+        'pl-6.5': sourceIndex === 0,
         '!bg-primary-selected': isTableOpened,
       }"
       :data-testid="`nc-tbl-side-node-${table.title}`"
@@ -232,6 +232,28 @@ const deleteTable = () => {
       @click="onOpenTable"
     >
       <div class="flex flex-row h-full items-center">
+        <NcButton
+          v-e="['c:table:toggle-expand']"
+          type="text"
+          size="xxsmall"
+          class="nc-sidebar-node-btn nc-sidebar-expand"
+          @click.stop="onExpand"
+        >
+          <GeneralLoader
+            v-if="table.isViewsLoading"
+            class="flex w-4 h-4 !text-gray-600 !mt-0.75"
+            :class="{
+              '!visible': !isExpanded,
+            }"
+          />
+          <GeneralIcon
+            v-else
+            icon="triangleFill"
+            class="nc-sidebar-source-node-btns group-hover:visible invisible cursor-pointer transform transition-transform duration-500 h-1.5 w-1.5 !text-gray-600 rotate-90"
+            :class="{ '!rotate-180': isExpanded }"
+          />
+        </NcButton>
+
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
           <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-gray-600" />
           <div

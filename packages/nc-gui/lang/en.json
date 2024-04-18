@@ -946,8 +946,7 @@
       "hidden": "Hide pre-filled fields",
       "lockedFieldTooltip": "Pre-filled value"
     },
-    "getPreFilledLink": "Get Pre-filled Link",
-    "group": "Group"
+    "getPreFilledLink": "Get Pre-filled Link"
   },
   "tooltip": {
     "reachedSourceLimit": "Limited to only one data source for the moment",

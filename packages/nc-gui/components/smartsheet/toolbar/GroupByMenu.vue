@@ -234,7 +234,7 @@ watch(meta, async () => {
           <component :is="iconMap.group" class="h-4 w-4" />
 
           <!-- Group By -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.group') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-medium">{{ $t('activity.groupBy') }}</span>
 
           <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
             groupedByColumnIds.length

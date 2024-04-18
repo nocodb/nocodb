@@ -413,8 +413,8 @@ function onOpenModal({
       v-if="isUIAllowed('viewCreateOrEdit')"
       :align-left-level="isDefaultSource ? 1 : 2"
       :class="{
-        '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
-        '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
+        '!pl-18 !xs:(pl-19.75)': isDefaultSource,
+        '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
       }"
     >
       <div

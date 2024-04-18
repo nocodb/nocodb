@@ -1480,7 +1480,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(col.id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-500"
+                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -2108,7 +2108,7 @@ onKeyStroke('ArrowDown', onDown)
 
     :deep(.nc-cell-icon),
     :deep(.nc-virtual-cell-icon) {
-      @apply !w-3.5 !h-3.5;
+      @apply !w-3.5 !h-3.5 !text-gray-500 !text-small;
     }
   }
 

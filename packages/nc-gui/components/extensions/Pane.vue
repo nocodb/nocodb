@@ -12,7 +12,7 @@ const toggleMarket = () => {
 </script>
 
 <template>
-  <Pane :size="isPanelExpanded ? 40 : 0" class="flex flex-col bg-orange-50">
+  <Pane :size="isPanelExpanded ? '40' : '0'" class="flex flex-col bg-orange-50">
     <div class="flex items-center pl-3 pt-3 font-weight-800 text-orange-500">Extensions</div>
     <div class="flex items-center flex-col gap-2 w-full">
       <template v-if="extensionList.length === 0">

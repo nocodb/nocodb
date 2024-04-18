@@ -30,8 +30,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => 
   const getData = async (params: {
     tableId: string
     viewId?: string
-    eachPage: (records: Record<string, any>[], nextPage: () => void) => void
-    done: () => void
+    eachPage: (records: Record<string, any>[], nextPage: () => void) => Promise<void> | void
+    done: () => Promise<void> | void
   }) => {
     const { tableId, viewId, eachPage, done } = params
 
@@ -44,14 +44,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => 
       })
 
       if (pageInfo?.isLastPage) {
-        done()
+        await eachPage(records, () => {})
+        await done()
       } else {
         page++
-        eachPage(records, nextPage)
+        await eachPage(records, nextPage)
       }
     }
 
-    nextPage()
+    await nextPage()
   }
 
   return {

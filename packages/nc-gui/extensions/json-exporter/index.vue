@@ -57,8 +57,17 @@ const exportJson = async () => {
       const blob = new Blob([json], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
+      const table = tables.value.find((table) => table.id === exportPayload.value.tableId)
+      const view = views.value.find((view) => view.id === exportPayload.value.viewId)
+
+      if (table && view) {
+        a.download = `${table.title} - ${view.is_default ? 'Default' : view.title}.json`
+      } else {
+        a.download = 'data.json'
+      }
+
       a.href = url
-      a.download = 'data.json'
+
       a.click()
       URL.revokeObjectURL(url)
     },

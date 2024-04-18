@@ -174,7 +174,7 @@ watch([activeViewTitleOrId, activeTableId], () => {
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
       <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper">
-        <Pane class="flex flex-col h-full flex-1 min-w-0" :size="60">
+        <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
           <LazySmartsheetToolbar v-if="!isForm" />
           <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">
             <Transition name="layout" mode="out-in">

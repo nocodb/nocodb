@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
-const { tables, getViewsForTable, getData } = useExtensionHelperOrThrow()
+const { extension, tables, getViewsForTable, getData } = useExtensionHelperOrThrow()
 
 const views = ref<ViewType[]>([])
 
@@ -36,8 +36,19 @@ const viewList = computed(() => {
 const reloadViews = async () => {
   if (exportPayload.value.tableId) {
     views.value = await getViewsForTable(exportPayload.value.tableId)
-    exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
   }
+}
+
+const onTableSelect = async (tableId: string) => {
+  exportPayload.value.tableId = tableId
+  await reloadViews()
+  exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
+  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+}
+
+const onViewSelect = async (viewId: string) => {
+  exportPayload.value.viewId = viewId
+  await extension.value.kvStore.set('exportPayload', exportPayload.value)
 }
 
 const exportJson = async () => {
@@ -73,12 +84,17 @@ const exportJson = async () => {
     },
   })
 }
+
+onMounted(() => {
+  exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
+  reloadViews()
+})
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
-    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" @change="reloadViews" />
-    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" />
+    <NcSelect v-model:value="exportPayload.tableId" :options="tableList" @change="onTableSelect" />
+    <NcSelect v-model:value="exportPayload.viewId" :options="viewList" @change="onViewSelect" />
     <NcButton @click="exportJson">Export</NcButton>
   </div>
 </template>

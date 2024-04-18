@@ -4,7 +4,7 @@
   "description": "Export any table in JSON format",
   "entry": "json-exporter",
   "version": "0.1",
-  "iconUrl": "icontest",
+  "iconUrl": "json-exporter/icon.png",
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
   "publisherUrl": "https://www.nocodb.com"

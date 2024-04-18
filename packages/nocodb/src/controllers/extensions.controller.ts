@@ -15,6 +15,7 @@ import { ExtensionsService } from '~/services/extensions.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -24,7 +25,9 @@ export class ExtensionsController {
   @Get(['/api/v2/extensions/:baseId'])
   @Acl('extensionList')
   async extensionList(@Param('baseId') baseId: string, @Req() _req: NcRequest) {
-    return await this.extensionsService.extensionList({ baseId });
+    return new PagedResponseImpl(
+      await this.extensionsService.extensionList({ baseId }),
+    );
   }
 
   @Post(['/api/v2/extensions/:baseId'])

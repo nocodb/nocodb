@@ -38,7 +38,7 @@ export default class Extension {
       );
 
       if (extension) {
-        extension = prepareForResponse(extension);
+        extension = prepareForResponse(extension, ['kv_store', 'meta']);
         NocoCache.set(`${CacheScope.EXTENSION}:${extensionId}`, extension);
       }
     }
@@ -62,7 +62,7 @@ export default class Extension {
 
       if (extensionList) {
         extensionList = extensionList.map((extension) =>
-          prepareForResponse(extension),
+          prepareForResponse(extension, ['kv_store', 'meta']),
         );
         NocoCache.setList(CacheScope.EXTENSION, [baseId], extensionList);
       }
@@ -88,6 +88,12 @@ export default class Extension {
       'order',
     ]);
 
+    if (insertObj.order === null || insertObj.order === undefined) {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.EXTENSIONS, {
+        base_id: insertObj.base_id,
+      });
+    }
+
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
@@ -95,7 +101,14 @@ export default class Extension {
       prepareForDb(insertObj, ['kv_store', 'meta']),
     );
 
-    return this.get(id, ncMeta);
+    return this.get(id, ncMeta).then(async (res) => {
+      await NocoCache.appendToList(
+        CacheScope.EXTENSION,
+        [extension.base_id],
+        `${CacheScope.EXTENSION}:${id}`,
+      );
+      return res;
+    });
   }
 
   public static async update(
@@ -122,7 +135,10 @@ export default class Extension {
       extensionId,
     );
 
-    await NocoCache.update(`${CacheScope.EXTENSION}:${extensionId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.EXTENSION}:${extensionId}`,
+      prepareForResponse(updateObj, ['kv_store', 'meta']),
+    );
 
     return this.get(extensionId, ncMeta);
   }

@@ -1,7 +1,8 @@
 import type { ViewType } from 'nocodb-sdk'
+import type { ExtensionType } from '#imports'
 import { useInjectionState } from '#imports'
 
-const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => {
+const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((extension: Ref<ExtensionType>) => {
   const { $api } = useNuxtApp()
 
   const basesStore = useBases()
@@ -16,14 +17,21 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => 
 
   const { viewsByTable } = storeToRefs(viewStore)
 
-  const fullScreen = ref(false)
+  const fullscreen = ref(false)
+
+  const collapsed = computed({
+    get: () => extension.value?.meta?.collapsed ?? false,
+    set: (value) => {
+      extension.value?.setMeta('collapsed', value)
+    },
+  })
 
   const getViewsForTable = async (tableId: string) => {
     if (viewsByTable.value.has(tableId)) {
       return viewsByTable.value.get(tableId) as ViewType[]
     }
 
-    await viewStore.loadViews({ tableId })
+    await viewStore.loadViews({ tableId, ignoreLoading: true })
     return viewsByTable.value.get(tableId) as ViewType[]
   }
 
@@ -38,10 +46,16 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => 
     let page = 0
 
     const nextPage = async () => {
-      const { list: records, pageInfo } = await $api.dbViewRow.list('noco', baseId.value!, tableId, viewId, {
-        offset: (page - 1) * 25,
-        limit: 25,
-      })
+      const { list: records, pageInfo } = await $api.dbViewRow.list(
+        'noco',
+        baseId.value!,
+        tableId,
+        viewId as string,
+        {
+          offset: (page - 1) * 25,
+          limit: 25,
+        } as any,
+      )
 
       if (pageInfo?.isLastPage) {
         await eachPage(records, () => {})
@@ -56,7 +70,9 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(() => 
   }
 
   return {
-    fullScreen,
+    fullscreen,
+    collapsed,
+    extension,
     tables,
     getViewsForTable,
     getData,

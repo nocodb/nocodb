@@ -11,24 +11,12 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { addExtension } = useExtensions()
+const { availableExtensions, addExtension, getExtensionIcon } = useExtensions()
 
 const onAddExtension = (ext: any) => {
   addExtension(ext)
   vModel.value = false
 }
-
-const availableExtensions = ref<any>([])
-
-onMounted(() => {
-  const modules = import.meta.glob('../../extensions/*/*.json')
-  for (const path in modules) {
-    modules[path]().then((mod) => {
-      console.log(mod)
-      availableExtensions.value.push(mod)
-    })
-  }
-})
 </script>
 
 <template>
@@ -53,8 +41,10 @@ onMounted(() => {
         <div class="flex flex-wrap gap-4 p-2">
           <template v-for="ext of availableExtensions" :key="ext.id">
             <div class="flex border-1 rounded-lg p-2 w-[360px] cursor-pointer">
-              <div class="w-[80px] h-[80px] bg-gray-200 rounded-lg overflow-hidden mr-2"></div>
-              <div class="flex flex-grow flex-col">
+              <div class="w-[60px] h-[60px] overflow-hidden m-auto">
+                <img :src="getExtensionIcon(ext.iconUrl)" alt="icon" class="w-full h-full object-cover" />
+              </div>
+              <div class="flex flex-grow flex-col ml-3">
                 <div class="flex justify-between">
                   <div class="font-weight-600">{{ ext.title }}</div>
                   <NcButton size="xsmall" @click="onAddExtension(ext)">

@@ -26,7 +26,10 @@ export class ExtensionsService {
       param.extension,
     );
 
-    const res = await Extension.insert(param.extension);
+    const res = await Extension.insert({
+      ...param.extension,
+      fk_user_id: param.req.user.id,
+    });
 
     this.appHooksService.emit(AppEvents.EXTENSION_CREATE, {
       extensionId: res.id,

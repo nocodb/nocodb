@@ -3,10 +3,43 @@ const extensionsState = createGlobalState(() => {
   return { baseExtensions }
 })
 
-export const useExtensions = () => {
+interface ExtensionManifest {
+  id: string
+  title: string
+  description: string
+  entry: string
+  version: string
+  iconUrl: string
+  publisherName: string
+  publisherEmail: string
+  publisherUrl: string
+}
+
+abstract class ExtensionType {
+  abstract id: string
+  abstract baseId: string
+  abstract fkUserId: string
+  abstract extensionId: string
+  abstract title: string
+  abstract kvStore: any
+  abstract meta: any
+  abstract setTitle(title: string): Promise<any>
+  abstract setMeta(key: string, value: any): Promise<any>
+  abstract clear(): Promise<any>
+  abstract delete(): Promise<any>
+  abstract serialize(): any
+}
+
+export { ExtensionType }
+
+export const useExtensions = createSharedComposable(() => {
   const { baseExtensions } = extensionsState()
 
+  const { $api } = useNuxtApp()
+
   const { base } = storeToRefs(useBase())
+
+  const availableExtensions = ref<ExtensionManifest[]>([])
 
   const activeBaseExtensions = computed(() => {
     if (!base.value || !base.value.id) {
@@ -19,7 +52,7 @@ export const useExtensions = () => {
     return activeBaseExtensions.value ? activeBaseExtensions.value.expanded : false
   })
 
-  const extensionList = computed(() => {
+  const extensionList = computed<ExtensionType[]>(() => {
     return activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []
   })
 
@@ -30,18 +63,108 @@ export const useExtensions = () => {
   }
 
   const addExtension = async (extension: any) => {
-    if (!base.value || !base.value.id) {
+    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
       return
     }
 
-    if (!baseExtensions.value[base.value.id]) {
-      baseExtensions.value[base.value.id] = {
-        extensions: [],
-        expanded: true,
-      }
+    const extensionReq = {
+      base_id: base.value.id,
+      title: extension.title,
+      extension_id: extension.id,
+      meta: {
+        collapsed: false,
+      },
     }
 
-    baseExtensions.value[base.value.id].extensions.push(extension)
+    const newExtension = await $api.extensions.create(base.value.id, extensionReq)
+
+    if (newExtension) {
+      baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+    }
+
+    return newExtension
+  }
+
+  const updateExtension = async (extensionId: string, extension: any) => {
+    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+      return
+    }
+
+    let updatedExtension = await $api.extensions.update(extensionId, extension)
+
+    if (updatedExtension) {
+      updatedExtension = new Extension(updatedExtension)
+
+      baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.map((ext: any) =>
+        ext.id === extensionId ? updatedExtension : ext,
+      )
+    }
+
+    return updatedExtension
+  }
+
+  const updateExtensionMeta = async (extensionId: string, key: string, value: any) => {
+    const extension = extensionList.value.find((ext: any) => ext.id === extensionId)
+
+    if (!extension) {
+      return
+    }
+
+    return updateExtension(extensionId, {
+      meta: {
+        ...extension.meta,
+        [key]: value,
+      },
+    })
+  }
+
+  const deleteExtension = async (extensionId: string) => {
+    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+      return
+    }
+
+    await $api.extensions.delete(extensionId)
+
+    baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.filter(
+      (ext: any) => ext.id !== extensionId,
+    )
+  }
+
+  const duplicateExtension = async (extensionId: string) => {
+    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+      return
+    }
+
+    const extension = extensionList.value.find((ext: any) => ext.id === extensionId)
+
+    if (!extension) {
+      return
+    }
+
+    const { id: _id, ...extensionData } = extension.serialize()
+
+    const newExtension = await $api.extensions.create(base.value.id, {
+      ...extensionData,
+      title: `${extension.title} (Copy)`,
+    })
+
+    if (newExtension) {
+      baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+    }
+
+    return newExtension
+  }
+
+  const clearKvStore = async (extensionId: string) => {
+    const extension = extensionList.value.find((ext: any) => ext.id === extensionId)
+
+    if (!extension) {
+      return
+    }
+
+    return updateExtension(extensionId, {
+      kv_store: {},
+    })
   }
 
   const loadExtensionsForBase = async (baseId: string) => {
@@ -49,7 +172,9 @@ export const useExtensions = () => {
       return
     }
 
-    const extensions = null // fetchExtensionsForBase(baseId)
+    const { list } = await $api.extensions.list(baseId)
+
+    const extensions = list?.map((ext: any) => new Extension(ext))
 
     if (baseExtensions.value[baseId]) {
       baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions
@@ -61,7 +186,127 @@ export const useExtensions = () => {
     }
   }
 
+  const getExtensionIcon = (pathOrUrl: string) => {
+    if (pathOrUrl.startsWith('http')) {
+      return pathOrUrl
+    } else {
+      return new URL(`../extensions/${pathOrUrl}`, import.meta.url).href
+    }
+  }
+
+  class KvStore {
+    private _id: string
+    private data: Record<string, any>
+
+    constructor(id: string, data: any) {
+      this._id = id
+      this.data = data || {}
+    }
+
+    get(key: string) {
+      return this.data[key] || null
+    }
+
+    set(key: string, value: any) {
+      this.data[key] = value
+      return updateExtension(this._id, { kv_store: this.data })
+    }
+
+    delete(key: string) {
+      delete this.data[key]
+      return updateExtension(this._id, { kv_store: this.data })
+    }
+
+    serialize() {
+      return this.data
+    }
+  }
+
+  class Extension implements ExtensionType {
+    private _id: string
+    private _baseId: string
+    private _fkUserId: string
+    private _extensionId: string
+    private _title: string
+    private _kvStore: KvStore
+    private _meta: any
+
+    constructor(data: any) {
+      this._id = data.id
+      this._baseId = data.base_id
+      this._fkUserId = data.fk_user_id
+      this._extensionId = data.extension_id
+      this._title = data.title
+      this._kvStore = new KvStore(this._id, data.kv_store)
+      this._meta = data.meta
+    }
+
+    get id() {
+      return this._id
+    }
+
+    get baseId() {
+      return this._baseId
+    }
+
+    get fkUserId() {
+      return this._fkUserId
+    }
+
+    get extensionId() {
+      return this._extensionId
+    }
+
+    get title() {
+      return this._title
+    }
+
+    get kvStore() {
+      return this._kvStore
+    }
+
+    get meta() {
+      return this._meta
+    }
+
+    serialize() {
+      return {
+        id: this._id,
+        base_id: this._baseId,
+        fk_user_id: this._fkUserId,
+        extension_id: this._extensionId,
+        title: this._title,
+        kv_store: this._kvStore.serialize(),
+        meta: this._meta,
+      }
+    }
+
+    setTitle(title: string): Promise<any> {
+      return updateExtension(this.id, { title })
+    }
+
+    setMeta(key: string, value: any): Promise<any> {
+      return updateExtensionMeta(this.id, key, value)
+    }
+
+    clear(): Promise<any> {
+      return clearKvStore(this.id)
+    }
+
+    delete(): Promise<any> {
+      return deleteExtension(this.id)
+    }
+  }
+
   onMounted(() => {
+    const modules = import.meta.glob('../extensions/*/*.json')
+    for (const path in modules) {
+      modules[path]().then((mod: any) => {
+        const manifest = mod.default as ExtensionManifest
+        availableExtensions.value.push(manifest)
+      })
+    }
+
     until(base)
       .toMatch((v) => !!v)
       .then(() => {
@@ -75,16 +320,17 @@ export const useExtensions = () => {
       })
   })
 
-  watch(base, (v) => {
-    if (v && v.id) {
-      loadExtensionsForBase(v.id)
-    }
-  })
-
   return {
+    availableExtensions,
     extensionList,
     isPanelExpanded,
     toggleExtensionPanel,
     addExtension,
+    duplicateExtension,
+    updateExtension,
+    updateExtensionMeta,
+    clearKvStore,
+    deleteExtension,
+    getExtensionIcon,
   }
-}
+})

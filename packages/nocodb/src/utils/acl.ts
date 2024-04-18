@@ -131,6 +131,13 @@ const permissionScopes = {
     'baseApiTokenList',
     'baseApiTokenCreate',
     'baseApiTokenDelete',
+
+    // Extensions
+    'extensionList',
+    'extensionRead',
+    'extensionCreate',
+    'extensionUpdate',
+    'extensionDelete',
   ],
 };
 
@@ -192,6 +199,9 @@ const rolePermissions:
 
       nestedDataList: true,
       baseUserList: true,
+
+      extensionList: true,
+      extensionRead: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

@@ -29,7 +29,7 @@ module.exports = {
   },
   externals: [
     nodeExternals({
-      allowlist: ['nocodb-sdk', 'knex-snowflake'],
+      allowlist: ['nocodb-sdk', 'knex-snowflake', 'knex-databricks'],
     }),
   ],
   resolve: {

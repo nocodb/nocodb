@@ -2,7 +2,9 @@ import fs from 'fs';
 import { promisify } from 'util';
 import { SqlClientFactory as SqlClientFactoryCE } from 'src/db/sql-client/lib/SqlClientFactory';
 import { SnowflakeClient } from 'knex-snowflake';
+import { DatabricksClient } from 'knex-databricks';
 import SfClient from '~/db/sql-client/lib/snowflake/SnowflakeClient';
+import DbClient from '~/db/sql-client/lib/databricks/DatabricksClient';
 
 export class SqlClientFactory extends SqlClientFactoryCE {
   static create(connectionConfig) {
@@ -13,6 +15,9 @@ export class SqlClientFactory extends SqlClientFactoryCE {
     if (connectionConfig.client === 'snowflake') {
       connectionConfig.client = SnowflakeClient;
       return new SfClient(connectionConfig);
+    } else if (connectionConfig.client === 'databricks') {
+      connectionConfig.client = DatabricksClient;
+      return new DbClient(connectionConfig);
     }
     return super.create(connectionConfig);
   }

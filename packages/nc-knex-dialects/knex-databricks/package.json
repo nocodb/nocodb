@@ -1,0 +1,14 @@
+{
+  "name": "knex-databricks",
+  "version": "0.1.0",
+  "description": "Knex dialect for Databricks",
+  "main": "src/index.js",
+  "author": "mertmit",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@databricks/sql": "^1.7.1",
+    "knex": "^2.4.2",
+    "lodash": "^4.17.21"
+  }
+}

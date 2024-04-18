@@ -341,6 +341,20 @@ export const useExtensions = createSharedComposable(() => {
       })
   })
 
+  // Extension details modal
+  const isDetailsVisible = ref(false)
+  const detailsExtensionId = ref<string>()
+  const detailsFrom = ref<'market' | 'extension'>('market')
+
+  const showExtensionDetails = (extensionId: string, from?: 'market' | 'extension') => {
+    detailsExtensionId.value = extensionId
+    isDetailsVisible.value = true
+    detailsFrom.value = from || 'market'
+  }
+
+  // Extension market modal
+  const isMarketVisible = ref(false)
+
   return {
     extensionsLoaded,
     availableExtensions,
@@ -354,5 +368,10 @@ export const useExtensions = createSharedComposable(() => {
     clearKvStore,
     deleteExtension,
     getExtensionIcon,
+    isDetailsVisible,
+    detailsExtensionId,
+    detailsFrom,
+    showExtensionDetails,
+    isMarketVisible,
   }
 })

@@ -11,7 +11,12 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { availableExtensions, addExtension, getExtensionIcon } = useExtensions()
+const { availableExtensions, addExtension, getExtensionIcon, showExtensionDetails } = useExtensions()
+
+const onExtensionClick = (extensionId: string) => {
+  showExtensionDetails(extensionId)
+  vModel.value = false
+}
 
 const onAddExtension = (ext: any) => {
   addExtension(ext)
@@ -40,14 +45,14 @@ const onAddExtension = (ext: any) => {
       <div class="flex flex-col flex-1 px-4 py-2">
         <div class="flex flex-wrap gap-4 p-2">
           <template v-for="ext of availableExtensions" :key="ext.id">
-            <div class="flex border-1 rounded-lg p-2 w-[360px] cursor-pointer">
+            <div class="flex border-1 rounded-lg p-2 w-[360px] cursor-pointer" @click="onExtensionClick(ext.id)">
               <div class="h-[60px] overflow-hidden m-auto">
                 <img :src="getExtensionIcon(ext.iconUrl)" alt="icon" class="w-full h-full object-cover" />
               </div>
               <div class="flex flex-grow flex-col ml-3">
                 <div class="flex justify-between">
                   <div class="font-weight-600">{{ ext.title }}</div>
-                  <NcButton size="xsmall" @click="onAddExtension(ext)">
+                  <NcButton size="xsmall" @click.stop="onAddExtension(ext)">
                     <div class="flex items-center gap-1 mx-1">
                       <GeneralIcon icon="plus" />
                       Add

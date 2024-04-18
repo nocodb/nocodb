@@ -2,9 +2,7 @@
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const { extensionList, isPanelExpanded } = useExtensions()
-
-const isMarketVisible = ref(false)
+const { extensionList, isPanelExpanded, isDetailsVisible, detailsExtensionId, detailsFrom, isMarketVisible } = useExtensions()
 
 const toggleMarket = () => {
   isMarketVisible.value = !isMarketVisible.value
@@ -48,6 +46,12 @@ const toggleMarket = () => {
       </div>
     </template>
     <ExtensionsMarket v-if="isMarketVisible" v-model="isMarketVisible" />
+    <ExtensionsDetails
+      v-if="isDetailsVisible && detailsExtensionId"
+      v-model="isDetailsVisible"
+      :extension-id="detailsExtensionId"
+      :from="detailsFrom"
+    />
   </Pane>
 </template>
 

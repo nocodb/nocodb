@@ -6,7 +6,8 @@ interface Prop {
 
 const { extensionId, error } = defineProps<Prop>()
 
-const { extensionList, extensionsLoaded, availableExtensions, getExtensionIcon, duplicateExtension } = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions, getExtensionIcon, duplicateExtension, showExtensionDetails } =
+  useExtensions()
 
 const activeError = ref(error)
 
@@ -120,7 +121,11 @@ const closeFullscreen = (e: MouseEvent) => {
                     <GeneralIcon icon="duplicate" />
                     Duplicate
                   </NcMenuItem>
-                  <NcMenuItem data-rec="true" class="!hover:text-primary">
+                  <NcMenuItem
+                    data-rec="true"
+                    class="!hover:text-primary"
+                    @click="showExtensionDetails(extension.extensionId, 'extension')"
+                  >
                     <GeneralIcon icon="info" />
                     Details
                   </NcMenuItem>

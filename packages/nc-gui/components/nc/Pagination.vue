@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import NcTooltip from '~/components/nc/Tooltip.vue'
+import { NC_GRID_VIEW_PAGE_SIZE_KEY } from '#imports'
 
 const props = defineProps<{
   current: number
@@ -22,9 +23,28 @@ const current = useVModel(props, 'current', emits)
 
 const pageSize = useVModel(props, 'pageSize', emits)
 
+const localPageSize = computed({
+  get: () => {
+    const storedPageSize = !isNaN(parseInt(localStorage.getItem(NC_GRID_VIEW_PAGE_SIZE_KEY) ?? ''))
+      ? parseInt(localStorage.getItem(NC_GRID_VIEW_PAGE_SIZE_KEY) ?? '')
+      : 25
+
+    if (pageSize.value !== storedPageSize) {
+      pageSize.value = storedPageSize
+    }
+
+    return pageSize.value
+  },
+  set: (val) => {
+    localStorage.setItem(NC_GRID_VIEW_PAGE_SIZE_KEY, `${val}`)
+
+    pageSize.value = val
+  },
+})
+
 const entityName = computed(() => props.entityName || 'item')
 
-const totalPages = computed(() => Math.max(Math.ceil(total.value / pageSize.value), 1))
+const totalPages = computed(() => Math.max(Math.ceil(total.value / localPageSize.value), 1))
 
 const { isMobileMode } = useGlobal()
 
@@ -58,19 +78,19 @@ const pagesList = computed(() => {
 const pageSizeOptions = [
   {
     value: 25,
-    label: '25',
+    label: '25 / page',
   },
   {
     value: 50,
-    label: '50',
+    label: '50 / page',
   },
   {
     value: 75,
-    label: '75',
+    label: '75 / page',
   },
   {
     value: 100,
-    label: '100',
+    label: '100 / page',
   },
 ]
 
@@ -177,11 +197,10 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
       </component>
     </template>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
-      <span class="text-xs" :class="totalPages > 1 ? 'ml-4 mr-1' : 'mx-1'"> Records per page </span>
       <a-select
         ref="pageSizeRef"
-        v-model:value="pageSize"
-        class="!mr-[2px]"
+        v-model:value="localPageSize"
+        class="!min-w-[110px]"
         :options="pageSizeOptions"
         size="small"
         @dropdownVisibleChange="pageSizeDropdownVisibleChange"
@@ -214,13 +233,5 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
 <style lang="scss">
 .nc-pagination-dropdown {
   @apply !rounded-lg;
-
-  .ant-select-item.ant-select-item-option {
-    @apply !px-1;
-
-    .ant-select-item-option-content {
-      @apply justify-center;
-    }
-  }
 }
 </style>

@@ -47,6 +47,7 @@ export enum MetaTable {
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
+  EXTENSIONS = 'nc_extensions',
 }
 
 export enum MetaTableOldV2 {
@@ -173,6 +174,7 @@ export enum CacheScope {
   MODEL_ALIAS = 'modelAlias',
   VIEW_ALIAS = 'viewAlias',
   SSO_CLIENT = 'ssoClient',
+  EXTENSION = 'uiExtension',
 }
 
 export enum CacheGetType {

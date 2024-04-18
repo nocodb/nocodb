@@ -17295,6 +17295,181 @@
         "description": "Get dynamic command palette suggestions based on scope"
       }
     },
+    "/api/v2/extensions/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Extensions",
+        "operationId": "extensions-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Get all extensions for a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Extension",
+        "operationId": "extensions-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Create a new extension for a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/extensions/{extensionId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "ext124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "extensionId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Extension ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Extension",
+        "operationId": "extensions-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Get extension details",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Extension",
+        "operationId": "extensions-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Update extension details",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Extension",
+        "operationId": "extensions-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Delete extension",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/jobs/listen": {
       "post": {
         "summary": "Jobs Listen",
@@ -25423,6 +25598,72 @@
         },
         "x-stoplight": {
           "id": "psbv6c6y9qvbu"
+        }
+      },
+      "Extension": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique User ID"
+          },
+          "extension_id": {
+            "type": "string",
+            "description": "Extension ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Extension Title"
+          },
+          "kv_store": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Key Value Store for the extension"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the extension"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the extension"
+          }
+        }
+      },
+      "ExtensionReq": {
+        "type": "object",
+        "properties": {
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Extension Title"
+          },
+          "extension_id": {
+            "type": "string",
+            "description": "Extension ID"
+          },
+          "kv_store": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Key Value Store for the extension"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the extension"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the extension"
+          }
         }
       }
     },

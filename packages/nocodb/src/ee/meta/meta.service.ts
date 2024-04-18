@@ -128,6 +128,9 @@ export class MetaService extends MetaServiceCE {
       case MetaTable.ORG:
         prefix = 'o';
         break;
+      case MetaTable.EXTENSIONS:
+        prefix = 'ext';
+        break;
       default:
         prefix = 'nc';
         break;

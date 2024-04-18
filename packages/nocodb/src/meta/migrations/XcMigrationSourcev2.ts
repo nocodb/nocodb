@@ -31,6 +31,7 @@ import * as nc_041_calendar_view from '~/meta/migrations/v2/nc_041_calendar_view
 import * as nc_042_user_block from '~/meta/migrations/v2/nc_042_user_block';
 import * as nc_043_user_refresh_token from '~/meta/migrations/v2/nc_043_user_refresh_token';
 import * as nc_044_view_column_index from '~/meta/migrations/v2/nc_044_view_column_index';
+import * as nc_045_extensions from '~/meta/migrations/v2/nc_045_extensions';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -73,6 +74,7 @@ export default class XcMigrationSourcev2 {
       'nc_042_user_block',
       'nc_043_user_refresh_token',
       'nc_044_view_column_index',
+      'nc_045_extensions',
     ]);
   }
 
@@ -148,6 +150,8 @@ export default class XcMigrationSourcev2 {
         return nc_043_user_refresh_token;
       case 'nc_044_view_column_index':
         return nc_044_view_column_index;
+      case 'nc_045_extensions':
+        return nc_045_extensions;
     }
   }
 }

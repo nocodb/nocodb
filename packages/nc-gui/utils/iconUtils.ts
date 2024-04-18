@@ -60,6 +60,7 @@ import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
+import MdiPuzzle from '~icons/mdi/puzzle'
 
 import HasManyIcon from '~icons/nc-icons/hasmany'
 import ManytoManyIcon from '~icons/nc-icons/manytomany'
@@ -583,6 +584,7 @@ export const iconMap = {
   file: NcFile,
   ncSettings: NcSettings,
   ncHelp: NcHelp,
+  puzzle: MdiPuzzle,
 }
 
 export const getMdiIcon = (type: string): any => {

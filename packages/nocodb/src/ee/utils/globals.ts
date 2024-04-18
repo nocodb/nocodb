@@ -65,6 +65,7 @@ export enum MetaTable {
   ORG = 'nc_org',
   ORG_USERS = 'nc_org_users',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
+  EXTENSIONS = 'nc_extensions',
 }
 
 export const orderedMetaTables = [
@@ -186,6 +187,7 @@ export enum CacheScope {
   ORG = 'org',
   ORG_DOMAIN = 'orgDomain',
   ORG_WORKSPACE = 'orgWorkspace',
+  EXTENSION = 'uiExtension',
 }
 
 export enum DbMuxStatus {

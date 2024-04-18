@@ -25,6 +25,7 @@ import {
   Audit,
   Base,
   Column,
+  Extension,
   Filter,
   FormViewColumn,
   GalleryViewColumn,
@@ -152,6 +153,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(req.params.syncId);
       req.ncBaseId = syncSource.base_id;
+    } else if (params.extensionId) {
+      const extension = await Extension.get(req.params.extensionId);
+      req.ncBaseId = extension.base_id;
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (

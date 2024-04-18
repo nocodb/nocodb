@@ -9,7 +9,7 @@
 # 4. Build nocodb
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-LOG_FILE=${SCRIPT_DIR}/build-local-docker-image.log
+LOG_FILE=${SCRIPT_DIR}/build-local-ee-docker-image.log
 ERROR=""
 
 function stop_and_remove_container() {
@@ -34,23 +34,31 @@ function build_gui() {
     export NODE_OPTIONS="--max_old_space_size=16384"
     # generate static build of nc-gui
     cd ${SCRIPT_DIR}/packages/nc-gui
-    pnpm run generate || ERROR="gui build failed"
+    pnpm run generate:ee || ERROR="gui build failed"
 }
 
 function copy_gui_artifacts() {
      # copy nc-gui build to nocodb dir
-    rsync -rvzh --delete ./dist/ ${SCRIPT_DIR}/packages/nocodb/docker/nc-gui/ || ERROR="copy_gui_artifacts failed"
+    rsync -rvzh --delete ./ee/dist/ ${SCRIPT_DIR}/packages/nocodb/docker/nc-gui/ || ERROR="copy_gui_artifacts failed"
 }
 
 function package_nocodb() {
     # build nocodb ( pack nocodb-sdk and nc-gui )
     cd ${SCRIPT_DIR}/packages/nocodb
-    EE=true ${SCRIPT_DIR}/node_modules/.bin/webpack --config ${SCRIPT_DIR}/packages/nocodb/webpack.local.config.js || ERROR="package_nocodb failed"
+    EE=true ${SCRIPT_DIR}/node_modules/.bin/webpack --config ${SCRIPT_DIR}/packages/nocodb/webpack.ee-cloud.config.js || ERROR="package_nocodb failed"
 }
 
 function build_image() {
+    # backup package.json
+    cp ${SCRIPT_DIR}/packages/nocodb/package.json ${SCRIPT_DIR}/packages/nocodb/package.json.bak 
+    # temporarily uninstall local dependencies
+    pnpm uninstall --save-prod nocodb-sdk knex-snowflake
     # build docker
-    docker build . -f Dockerfile.local -t nocodb-local || ERROR="build_image failed"
+    docker build . -f ./src/ee-cloud/Dockerfile-cloud -t nocodb-local || ERROR="build_image failed"
+    # restore package.json
+    mv ${SCRIPT_DIR}/packages/nocodb/package.json.bak ${SCRIPT_DIR}/packages/nocodb/package.json
+    # re-install dependencies
+    pnpm install
 }
 
 function log_message() {

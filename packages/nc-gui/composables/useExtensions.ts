@@ -45,6 +45,8 @@ export const useExtensions = createSharedComposable(() => {
 
   const availableExtensions = ref<ExtensionManifest[]>([])
 
+  const extensionPanelSize = ref(40)
+
   const activeBaseExtensions = computed(() => {
     if (!base.value || !base.value.id) {
       return null
@@ -185,7 +187,7 @@ export const useExtensions = createSharedComposable(() => {
     } else {
       baseExtensions.value[baseId] = {
         extensions: extensions || [],
-        expanded: true,
+        expanded: false,
       }
     }
   }
@@ -355,6 +357,18 @@ export const useExtensions = createSharedComposable(() => {
   // Extension market modal
   const isMarketVisible = ref(false)
 
+  // Egg
+  const extensionsEgg = ref(false)
+
+  const extensionsEggCounter = ref(0)
+
+  const onEggClick = () => {
+    extensionsEggCounter.value++
+    if (extensionsEggCounter.value >= 2) {
+      extensionsEgg.value = true
+    }
+  }
+
   return {
     extensionsLoaded,
     availableExtensions,
@@ -373,5 +387,8 @@ export const useExtensions = createSharedComposable(() => {
     detailsFrom,
     showExtensionDetails,
     isMarketVisible,
+    onEggClick,
+    extensionsEgg,
+    extensionPanelSize,
   }
 })

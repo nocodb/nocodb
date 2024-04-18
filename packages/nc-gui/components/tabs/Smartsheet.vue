@@ -167,13 +167,22 @@ const onDrop = async (event: DragEvent) => {
 watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
+
+const { extensionPanelSize } = useExtensions()
+
+const onResize = (sizes: { min: number; max: number; size: number }[]) => {
+  if (sizes.length === 2) {
+    if (!sizes[1].size) return
+    extensionPanelSize.value = sizes[1].size
+  }
+}
 </script>
 
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
-      <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper">
+      <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
         <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
           <LazySmartsheetToolbar v-if="!isForm" />
           <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">

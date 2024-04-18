@@ -306,7 +306,7 @@ const isDuplicateAllowed = computed(() => {
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl"
     @click.stop="isOpen = !isOpen"
   >
-    <div>
+    <div @dblclick.stop>
       <GeneralIcon icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
     </div>
     <template #overlay>

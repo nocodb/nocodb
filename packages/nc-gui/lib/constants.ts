@@ -19,5 +19,4 @@ export const GROUP_BY_VARS = {
   } as Record<string, string>,
 }
 
-
 export const NC_GRID_VIEW_PAGE_SIZE_KEY = 'ncGridViewPageSize'

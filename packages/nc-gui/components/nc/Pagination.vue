@@ -151,8 +151,8 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
           class="!mr-[2px]"
           :options="pagesList"
           size="small"
-          @dropdownVisibleChange="pageListDropdownVisibleChange"
-          dropdownClassName="nc-pagination-dropdown"
+          dropdown-class-name="nc-pagination-dropdown"
+          @dropdown-visible-change="pageListDropdownVisibleChange"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-expand-btn" />
@@ -203,8 +203,8 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
         class="!min-w-[110px]"
         :options="pageSizeOptions"
         size="small"
-        @dropdownVisibleChange="pageSizeDropdownVisibleChange"
-        dropdownClassName="nc-pagination-dropdown"
+        dropdown-class-name="nc-pagination-dropdown"
+        @dropdown-visible-change="pageSizeDropdownVisibleChange"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-page-size-expand-btn" />

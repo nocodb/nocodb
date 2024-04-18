@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:current', 'update:pageSize'])
 
-const { total } = toRefs(props)
+const { total, showSizeChanger } = toRefs(props)
 
 const current = useVModel(props, 'current', emits)
 
@@ -25,6 +25,8 @@ const pageSize = useVModel(props, 'pageSize', emits)
 
 const localPageSize = computed({
   get: () => {
+    if (!showSizeChanger.value) return pageSize.value
+
     const storedPageSize = !isNaN(parseInt(localStorage.getItem(NC_GRID_VIEW_PAGE_SIZE_KEY) ?? ''))
       ? parseInt(localStorage.getItem(NC_GRID_VIEW_PAGE_SIZE_KEY) ?? '')
       : 25

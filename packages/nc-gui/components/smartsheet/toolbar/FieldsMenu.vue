@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CalendarType, ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ProjectRoles, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -24,11 +24,9 @@ import {
   watch,
 } from '#imports'
 
-const { isUIAllowed } = useRoles()
-
-const { isSharedBase } = storeToRefs(useBase())
-
 const activeView = inject(ActiveViewInj, ref())
+
+const { baseRoles } = useRoles()
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
@@ -61,7 +59,9 @@ const {
 
 const hiddenFields = ref<string[]>([])
 
-const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
+const isLocalMode = computed(
+  () => isPublic.value || baseRoles?.value[ProjectRoles.COMMENTER] || baseRoles?.value[ProjectRoles.VIEWER],
+)
 
 const shouldShowField = (id: string) => {
   if (isLocalMode.value && hiddenFields.value.includes(id)) return false
@@ -90,7 +90,8 @@ watch(
 
 const numberOfHiddenFields = computed(() => {
   if (isLocalMode.value) {
-    // slice is added to remove the first element ie column with name title as default value , without slice the count will always be one more than the exact count
+    // slice is added to remove the first element, ie column with name title as default value,
+    // without slice the count will always be one more than the exact count
     return filteredFieldList.value?.slice(1).filter((field) => !hiddenFields.value.includes(field.id) && field.show === false)
       ?.length
   } else {

@@ -3,30 +3,9 @@ import type { UploadFile } from 'ant-design-vue'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 
-const { fullscreen, extension, tables, insertData, upsertData, getTableMeta, reloadData } = useExtensionHelperOrThrow()
-
-const fileList = ref<UploadFile[]>([])
-
-// step 0: upload file
-// step 1: preview & map
-// step 2: importing
-// step 3: stats
-const step = ref(0)
-
 const CHUNK_SIZE = 100
 
-const stats = ref<{ inserted: number; updated: number; error?: { title?: string; message: string } }>({
-  inserted: 0,
-  updated: 0,
-})
-
-const totalRecords = ref(0)
-
-const processedRecords = ref(0)
-
-const parsedData = ref<any>()
-
-const generatedColumnTypes = [
+const GENERATED_COLUMN_TYPES = [
   UITypes.Links,
   UITypes.LinkToAnotherRecord,
   UITypes.Barcode,
@@ -40,6 +19,31 @@ const generatedColumnTypes = [
   UITypes.Lookup,
   UITypes.Rollup,
 ]
+
+const { fullscreen, extension, tables, insertData, upsertData, getTableMeta, reloadData } = useExtensionHelperOrThrow()
+
+const fileList = ref<UploadFile[]>([])
+
+// step 0: upload file
+// step 1: preview & map
+// step 2: importing
+// step 3: stats
+const step = ref(0)
+
+const stats = ref<{ inserted: number; updated: number; error?: { title?: string; message: string } }>({
+  inserted: 0,
+  updated: 0,
+})
+
+const processingFile = ref(false)
+
+const totalRecords = ref(0)
+
+const processedRecords = ref(0)
+
+const parsedData = ref<any>()
+
+const columns = ref<Record<string, ColumnType>>({})
 
 const tableList = computed(() => {
   return tables.value.map((table) => {
@@ -86,8 +90,6 @@ const importPayload = computed(() => {
   return savedPayloads.value[savedPayloads.value.length - 1]
 })
 
-const columns = ref<Record<string, ColumnType>>({})
-
 const updateHistory = async () => {
   // update last used
   importPayload.value.lastUsed = Date.now()
@@ -115,7 +117,7 @@ const headers = computed(() => {
 const tableColumns = computed(() => {
   return importPayload.value.importColumns.reduce((acc, importColumn) => {
     const column = columns.value[importColumn.columnId]
-    if (!column.id || !column.title || generatedColumnTypes.includes(column.uidt as UITypes)) return acc
+    if (!column.id || !column.title || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
     acc.push({
       label: column.title,
       value: column.id,
@@ -145,7 +147,7 @@ const onTableSelect = async () => {
 
       importPayload.value.importColumns.push(
         ...tableMeta.columns.reduce((acc, column) => {
-          if (!column.id || column.system || generatedColumnTypes.includes(column.uidt as UITypes)) return acc
+          if (!column.id || column.system || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
           if (importPayload.value.importColumns.find((m) => m.columnId === column.id)) return acc
           acc.push({ enabled: false, mapIndex: '', columnId: column.id })
           return acc
@@ -158,6 +160,7 @@ const onTableSelect = async () => {
 }
 
 const handleChange = (info: { file: UploadFile }) => {
+  processingFile.value = true
   const reader = new FileReader()
   reader.onload = (e) => {
     const text = e.target?.result
@@ -165,8 +168,19 @@ const handleChange = (info: { file: UploadFile }) => {
       fileList.value = []
       return
     }
-    parsedData.value = papaparse.parse(text.trim())
-    step.value = 1
+    papaparse.parse(text.trim(), {
+      worker: true,
+      complete: (results) => {
+        parsedData.value = results
+        step.value = 1
+        processingFile.value = false
+      },
+      error: () => {
+        fileList.value = []
+        processingFile.value = false
+        message.error('There was an error parsing the file. Please check the file and try again.')
+      },
+    })
 
     if (importPayload.value.tableId) {
       onTableSelect()
@@ -235,7 +249,7 @@ useProvideSmartsheetRowStore({} as any, {} as any)
 const previewColumns = computed(() => {
   return importPayload.value.importColumns.reduce((acc, importMeta) => {
     const column = columns.value[importMeta.columnId]
-    if (!column.id || !column.title || generatedColumnTypes.includes(column.uidt as UITypes)) return acc
+    if (!column.id || !column.title || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
     acc[column.title] = column
     return acc
   }, {} as Record<string, ColumnType>)
@@ -325,7 +339,12 @@ onMounted(async () => {
 
 <template>
   <template v-if="step === 0">
-    <a-upload-dragger v-model:fileList="fileList" name="file" accept=".csv" :multiple="false" @change="handleChange">
+    <template v-if="processingFile">
+      <div class="flex flex-col h-full items-center justify-center p-4">
+        <GeneralLoader size="xlarge" />
+      </div>
+    </template>
+    <a-upload-dragger v-else v-model:fileList="fileList" name="file" accept=".csv" :multiple="false" @change="handleChange">
       <GeneralIcon class="text-[30px]" icon="inbox" />
       <p class="ant-upload-text">Drag and drop a CSV file</p>
       <p class="ant-upload-hint">Or click to select a file</p>

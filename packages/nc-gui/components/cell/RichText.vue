@@ -10,7 +10,15 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, IsSurveyFormInj, ReadonlyInj, RowHeightInj } from '#imports'
+import {
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  IsGridInj,
+  IsSurveyFormInj,
+  ReadonlyInj,
+  RowHeightInj,
+  rowHeightTruncateLines,
+} from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -283,7 +291,7 @@ useEventListener(
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden children:line-clamp-${rowHeight}`]:
+          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(rowHeight)}`]:
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
         @keydown.alt.enter.stop
@@ -379,6 +387,26 @@ useEventListener(
 }
 
 .nc-textarea-rich-editor {
+  &.nc-truncate {
+    .tiptap.ProseMirror {
+      display: -webkit-box;
+      max-width: 100%;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+    &.nc-line-clamp-1 .tiptap.ProseMirror {
+      -webkit-line-clamp: 1;
+    }
+    &.nc-line-clamp-2 .tiptap.ProseMirror {
+      -webkit-line-clamp: 2;
+    }
+    &.nc-line-clamp-3 .tiptap.ProseMirror {
+      -webkit-line-clamp: 3;
+    }
+    &.nc-line-clamp-4 .tiptap.ProseMirror {
+      -webkit-line-clamp: 4;
+    }
+  }
   .tiptap p.is-editor-empty:first-child::before {
     color: #9aa2af;
     content: attr(data-placeholder);

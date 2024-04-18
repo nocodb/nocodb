@@ -93,3 +93,23 @@ export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
     isDuration(column)
   )
 }
+
+export const rowHeightInPx: Record<string, number> = {
+  1: 32,
+  2: 60,
+  4: 90,
+  6: 120,
+}
+
+export const rowHeightTruncateLines = (rowHeight?: number) => {
+  switch (rowHeight) {
+    case 2:
+      return 2
+    case 4:
+      return 3
+    case 6:
+      return 4
+    default:
+      return 1
+  }
+}

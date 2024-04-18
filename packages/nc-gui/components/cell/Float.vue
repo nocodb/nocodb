@@ -51,7 +51,7 @@ const focus: VNodeRef = (el) =>
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="nc-cell-field outline-none px-1 border-none w-full h-full text-sm"
+    class="nc-cell-field outline-none px-1 border-none w-full h-full"
     type="number"
     step="0.1"
     :placeholder="isEditColumn ? $t('labels.optional') : ''"
@@ -65,7 +65,7 @@ const focus: VNodeRef = (el) =>
     @mousedown.stop
   />
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-  <span v-else class="nc-cell-field text-sm">{{ vModel }}</span>
+  <span v-else class="nc-cell-field">{{ vModel }}</span>
 </template>
 
 <style scoped lang="scss">

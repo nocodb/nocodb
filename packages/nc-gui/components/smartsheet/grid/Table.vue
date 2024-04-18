@@ -242,6 +242,8 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const editEnabled = ref(false)
 
+const isGridCellMouseDown = ref(false)
+
 // #Context Menu
 const _contextMenu = ref(false)
 const contextMenu = computed({
@@ -1169,9 +1171,14 @@ useEventListener(document, 'mousedown', (e) => {
   if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
     scrolling.value = true
   }
+
+  if ((e.target as HTMLElement).closest('.nc-grid-cell:not(.caption)')) {
+    isGridCellMouseDown.value = true
+  }
 })
 
 useEventListener(document, 'mouseup', () => {
+  isGridCellMouseDown.value = false
   // wait for click event to finish before setting scrolling to false
   setTimeout(() => {
     scrolling.value = false
@@ -1424,7 +1431,7 @@ onKeyStroke('ArrowDown', onDown)
                   v-for="(col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
                   class="!bg-gray-50 h-full border-b-1 border-r-1"
-                  :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
+                  :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
                 >
                   <a-skeleton
                     :active="true"
@@ -1439,8 +1446,8 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
               </tr>
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
-                <th class="w-[85px] min-w-[85px]" data-testid="grid-id-column" @dblclick="() => {}">
-                  <div class="w-full h-full flex pl-5 pr-1 items-center" data-testid="nc-check-all">
+                <th class="w-[64px] min-w-[64px]" data-testid="grid-id-column" @dblclick="() => {}">
+                  <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly">
                       <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
@@ -1467,9 +1474,9 @@ onKeyStroke('ArrowDown', onDown)
                   :data-col="col.id"
                   :data-title="col.title"
                   :style="{
-                    'min-width': gridViewCols[col.id]?.width || '200px',
-                    'max-width': gridViewCols[col.id]?.width || '200px',
-                    'width': gridViewCols[col.id]?.width || '200px',
+                    'min-width': gridViewCols[col.id]?.width || '180px',
+                    'max-width': gridViewCols[col.id]?.width || '180px',
+                    'width': gridViewCols[col.id]?.width || '180px',
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -1481,7 +1488,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(col.id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center"
+                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -1504,7 +1511,7 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-10.25 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
+                  <div class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -1623,7 +1630,7 @@ onKeyStroke('ArrowDown', onDown)
                     v-for="(col, colIndex) of dummyColumnDataForLoading"
                     :key="colIndex"
                     class="border-b-1 border-r-1"
-                    :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
+                    :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
                   ></td>
                 </tr>
               </template>
@@ -1632,16 +1639,20 @@ onKeyStroke('ArrowDown', onDown)
                   <tr
                     v-show="!showSkeleton"
                     class="nc-grid-row !xs:h-14"
-                    :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+                    :class="{
+                      'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
+                      'mouse-down': isGridCellMouseDown || isFillMode,
+                    }"
+                    :style="{ height: rowHeight ? `${rowHeightInPx[`${rowHeight}`]}px` : `${rowHeightInPx['1']}px` }"
                     :data-testid="`grid-row-${rowIndex}`"
                   >
                     <td
                       key="row-index"
-                      class="caption nc-grid-cell pl-5 pr-1"
+                      class="caption nc-grid-cell w-[64px] min-w-[64px]"
                       :data-testid="`cell-Id-${rowIndex}`"
                       @contextmenu="contextMenuTarget = null"
                     >
-                      <div class="items-center flex gap-1 min-w-[60px]">
+                      <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
                         <div
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
@@ -1675,7 +1686,7 @@ onKeyStroke('ArrowDown', onDown)
                           <span
                             v-if="row.rowMeta?.commentCount && expandForm"
                             v-e="['c:expanded-form:open']"
-                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            class="py-1 px-1 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                             :style="{
                               backgroundColor: getEnumColorByIndex(row.rowMeta.commentCount || 0),
                             }"
@@ -1725,9 +1736,9 @@ onKeyStroke('ArrowDown', onDown)
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
                       :style="{
-                        'min-width': gridViewCols[columnObj.id]?.width || '200px',
-                        'max-width': gridViewCols[columnObj.id]?.width || '200px',
-                        'width': gridViewCols[columnObj.id]?.width || '200px',
+                        'min-width': gridViewCols[columnObj.id]?.width || '180px',
+                        'max-width': gridViewCols[columnObj.id]?.width || '180px',
+                        'width': gridViewCols[columnObj.id]?.width || '180px',
                       }"
                       :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                       :data-key="`data-key-${rowIndex}-${columnObj.id}`"
@@ -1785,7 +1796,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="addEmptyRow()"
               >
                 <div
-                  class="h-10.5 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                 >
                   <component
                     :is="iconMap.plus"
@@ -2091,14 +2102,23 @@ onKeyStroke('ArrowDown', onDown)
 
   td,
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-50;
-    min-height: 41px !important;
-    height: 41px !important;
+    @apply border-gray-100 border-solid border-r bg-gray-50 p-0;
+    min-height: 32px !important;
+    height: 32px !important;
     position: relative;
   }
 
   th {
     @apply border-b-1 border-gray-200;
+
+    :deep(.name) {
+      @apply text-small;
+    }
+
+    :deep(.nc-cell-icon),
+    :deep(.nc-virtual-cell-icon) {
+      @apply !w-3.5 !h-3.5 !text-gray-500 !text-small;
+    }
   }
 
   .nc-grid-header th:last-child {
@@ -2109,9 +2129,97 @@ onKeyStroke('ArrowDown', onDown)
     @apply bg-white border-b;
   }
 
-  td:not(:first-child) > div {
-    overflow: hidden;
-    @apply flex px-1 h-auto;
+  td:not(:first-child) {
+    @apply px-3;
+
+    &.align-top {
+      @apply py-2;
+    }
+
+    &.align-middle {
+      @apply py-0;
+    }
+
+    & > div {
+      overflow: hidden;
+      @apply flex h-auto;
+    }
+
+    :deep(.nc-cell),
+    :deep(.nc-virtual-cell) {
+      @apply !text-small;
+
+      .nc-cell-field,
+      input,
+      textarea {
+        @apply !text-small !p-0 m-0;
+      }
+
+      &:not(.nc-display-value-cell) {
+        @apply text-gray-600;
+        font-weight: 500;
+
+        .nc-cell-field,
+        input,
+        textarea {
+          @apply text-gray-600;
+          font-weight: 500;
+        }
+      }
+
+      .nc-cell-field,
+      a.nc-cell-field-link,
+      input,
+      textarea {
+        @apply !p-0 m-0;
+      }
+
+      &.nc-cell-longtext {
+        @apply leading-[18px];
+
+        textarea {
+          @apply pr-2;
+        }
+      }
+
+      .ant-picker-input {
+        @apply text-small leading-4;
+        font-weight: 500;
+
+        input {
+          @apply text-small leading-4;
+          font-weight: 500;
+        }
+      }
+
+      &.nc-cell-attachment {
+        .nc-attachment-cell {
+          .nc-attachment-wrapper {
+            @apply !py-0.5;
+
+            .nc-attachment {
+              @apply !min-h-4;
+            }
+          }
+        }
+      }
+
+      &.nc-cell-longtext .long-text-wrapper .nc-rich-text-grid {
+        @apply pl-0 -ml-1;
+      }
+
+      .ant-select:not(.ant-select-customize-input) {
+        .ant-select-selector {
+          @apply !border-none flex-nowrap pr-4.5;
+        }
+        .ant-select-arrow {
+          @apply right-[3px];
+        }
+      }
+      .ant-select-selection-search-input {
+        @apply !h-[23px];
+      }
+    }
   }
 
   table {
@@ -2188,14 +2296,14 @@ onKeyStroke('ArrowDown', onDown)
     thead th:nth-child(2) {
       position: sticky !important;
       z-index: 5;
-      left: 85px;
+      left: 64px;
       @apply border-r-1 border-r-gray-200;
     }
 
     tbody tr:not(.nc-grid-add-new-cell) td:nth-child(2) {
       position: sticky !important;
       z-index: 4;
-      left: 85px;
+      left: 64px;
       background: white;
       @apply border-r-1 border-r-gray-100;
     }
@@ -2235,7 +2343,8 @@ onKeyStroke('ArrowDown', onDown)
     }
   }
 
-  &:hover {
+  &.active-row,
+  &:not(.mouse-down):hover {
     .nc-row-no.toggle {
       @apply hidden;
     }
@@ -2246,6 +2355,11 @@ onKeyStroke('ArrowDown', onDown)
 
     .nc-row-expand-and-checkbox {
       @apply !xs:hidden flex;
+    }
+
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
     }
   }
 }
@@ -2265,10 +2379,6 @@ onKeyStroke('ArrowDown', onDown)
       @apply flex;
     }
   }
-}
-
-tbody tr:hover {
-  @apply bg-gray-100 bg-opacity-50;
 }
 
 .nc-required-cell {

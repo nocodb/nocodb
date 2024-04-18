@@ -309,7 +309,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       { immediate: true },
     )
 
-    const resizingColOldWith = ref('200px')
+    const resizingColOldWith = ref('180px')
 
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
       if (!undo) {

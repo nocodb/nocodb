@@ -655,7 +655,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !pl-0;
+  @apply !pl-0 flex-nowrap;
 }
 
 :deep(.ant-select-selection-search-input) {

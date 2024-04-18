@@ -126,6 +126,10 @@ const closeFullscreen = (e: MouseEvent) => {
                   </NcMenuItem>
                   <NcDivider />
                 </template>
+                <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="extension.clear()">
+                  <GeneralIcon icon="reload" />
+                  Clear Data
+                </NcMenuItem>
                 <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="extension.delete()">
                   <GeneralIcon icon="delete" />
                   Delete
@@ -177,7 +181,7 @@ const closeFullscreen = (e: MouseEvent) => {
                 class="extension-content"
                 :class="{ 'border-1': !fullscreen, 'h-[calc(100%-40px)]': fullscreen }"
               >
-                <component :is="component" />
+                <component :is="component" :key="extension.uiKey" />
               </div>
             </div>
           </div>

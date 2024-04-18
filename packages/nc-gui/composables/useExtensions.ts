@@ -17,6 +17,7 @@ interface ExtensionManifest {
 
 abstract class ExtensionType {
   abstract id: string
+  abstract uiKey: number
   abstract baseId: string
   abstract fkUserId: string
   abstract extensionId: string
@@ -28,6 +29,7 @@ abstract class ExtensionType {
   abstract clear(): Promise<any>
   abstract delete(): Promise<any>
   abstract serialize(): any
+  abstract deserialize(data: any): void
 }
 
 export { ExtensionType }
@@ -92,14 +94,14 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    let updatedExtension = await $api.extensions.update(extensionId, extension)
+    const updatedExtension = await $api.extensions.update(extensionId, extension)
 
     if (updatedExtension) {
-      updatedExtension = new Extension(updatedExtension)
+      const extension = baseExtensions.value[base.value.id].extensions.find((ext: any) => ext.id === extensionId)
 
-      baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.map((ext: any) =>
-        ext.id === extensionId ? updatedExtension : ext,
-      )
+      if (extension) {
+        extension.deserialize(updatedExtension)
+      }
     }
 
     return updatedExtension
@@ -233,6 +235,8 @@ export const useExtensions = createSharedComposable(() => {
     private _kvStore: KvStore
     private _meta: any
 
+    public uiKey = 0
+
     constructor(data: any) {
       this._id = data.id
       this._baseId = data.base_id
@@ -283,6 +287,16 @@ export const useExtensions = createSharedComposable(() => {
       }
     }
 
+    deserialize(data: any) {
+      this._id = data.id
+      this._baseId = data.base_id
+      this._fkUserId = data.fk_user_id
+      this._extensionId = data.extension_id
+      this._title = data.title
+      this._kvStore = new KvStore(this._id, data.kv_store)
+      this._meta = data.meta
+    }
+
     setTitle(title: string): Promise<any> {
       return updateExtension(this.id, { title })
     }
@@ -292,7 +306,9 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     clear(): Promise<any> {
-      return clearKvStore(this.id)
+      return clearKvStore(this.id).then(() => {
+        this.uiKey++
+      })
     }
 
     delete(): Promise<any> {

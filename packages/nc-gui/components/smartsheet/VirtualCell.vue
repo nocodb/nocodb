@@ -128,7 +128,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .nc-virtual-cell {
   &.nc-display-value-cell {
-    @apply text-brand-500;
+    @apply !text-brand-500;
   }
 }
 </style>

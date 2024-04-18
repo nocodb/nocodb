@@ -289,14 +289,20 @@ onUnmounted(() => {
     font-weight: 500;
   }
 
+  :deep(input::placeholder),
+  :deep(textarea::placeholder) {
+    @apply text-gray-400;
+    font-weight: 300;
+  }
+
   &.nc-display-value-cell {
-    @apply text-brand-500 font-semibold;
+    @apply !text-brand-500 !font-semibold;
 
     :deep(.nc-cell-field),
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply font-semibold;
+      @apply !font-semibold;
     }
   }
 

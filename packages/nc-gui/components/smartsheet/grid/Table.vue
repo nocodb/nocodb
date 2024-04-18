@@ -2138,31 +2138,31 @@ onKeyStroke('ArrowDown', onDown)
 
     :deep(.nc-cell),
     :deep(.nc-virtual-cell) {
-      @apply text-small text-gray-600;
-      font-weight: 500;
+      @apply !text-small;
+
+      .nc-cell-field,
+      input,
+      textarea {
+        @apply !text-small !p-0 m-0;
+      }
+
+      &:not(.nc-display-value-cell) {
+        @apply text-gray-600;
+        font-weight: 500;
+
+        .nc-cell-field,
+        input,
+        textarea {
+          @apply text-gray-600;
+          font-weight: 500;
+        }
+      }
 
       .nc-cell-field,
       a.nc-cell-field-link,
       input,
       textarea {
         @apply !p-0 m-0;
-      }
-
-      .nc-cell-field,
-      input,
-      textarea {
-        @apply !text-small !p-0 m-0;
-        font-weight: 500;
-      }
-
-      &.nc-display-value-cell {
-        @apply font-semibold;
-
-        .nc-cell-field,
-        input,
-        textarea {
-          @apply font-semibold;
-        }
       }
 
       &.nc-cell-longtext {

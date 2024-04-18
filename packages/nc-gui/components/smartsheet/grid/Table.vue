@@ -2238,6 +2238,11 @@ onKeyStroke('ArrowDown', onDown)
     .nc-row-expand-and-checkbox {
       @apply !xs:hidden flex;
     }
+
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      @apply bg-gray-100 bg-opacity-50;
+    }
   }
 }
 
@@ -2256,10 +2261,6 @@ onKeyStroke('ArrowDown', onDown)
       @apply flex;
     }
   }
-}
-
-tbody tr:hover {
-  @apply bg-gray-100 bg-opacity-50;
 }
 
 .nc-required-cell {

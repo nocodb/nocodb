@@ -24,6 +24,7 @@ import {
   useRoles,
   useSelectedCellKeyupListener,
   watch,
+  rowHeightTruncateLines,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -392,7 +393,7 @@ const filterOption = (input: string, option: any) => {
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
-          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
           '-webkit-box-orient': 'vertical',
           'overflow': 'hidden',
         }"
@@ -624,5 +625,8 @@ const filterOption = (input: string, option: any) => {
 
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
+}
+:deep(.nc-user-avatar) {
+  @apply min-h-4.2;
 }
 </style>

@@ -10,7 +10,15 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
 import { Link } from '@/helpers/dbTiptapExtensions/links'
 import type { RichTextBubbleMenuOptions } from '#imports'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, IsSurveyFormInj, ReadonlyInj, RowHeightInj } from '#imports'
+import {
+  IsExpandedFormOpenInj,
+  IsFormInj,
+  IsGridInj,
+  IsSurveyFormInj,
+  ReadonlyInj,
+  RowHeightInj,
+  rowHeightTruncateLines,
+} from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -50,19 +58,6 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isFocused = ref(false)
 
 const keys = useMagicKeys()
-
-const truncatedLines = computed(() => {
-  switch (rowHeight.value) {
-    case 2:
-      return 2
-    case 4:
-      return 3
-    case 6:
-      return 4
-    default:
-      return 1
-  }
-})
 
 const turndownService = new TurndownService({})
 
@@ -296,7 +291,7 @@ useEventListener(
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden nc-truncate nc-line-clamp-${truncatedLines}`]:
+          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(rowHeight)}`]:
             !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
         }"
         @keydown.alt.enter.stop

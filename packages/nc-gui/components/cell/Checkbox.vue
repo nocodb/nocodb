@@ -11,6 +11,7 @@ import {
   parseProp,
   useBase,
   useSelectedCellKeyupListener,
+  rowHeightInPx,
 } from '#imports'
 
 interface Props {
@@ -46,6 +47,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 const rowHeight = inject(RowHeightInj, ref())
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const checkboxMeta = computed(() => {
   return {
@@ -110,7 +113,9 @@ useSelectedCellKeyupListener(active, (e) => {
     }"
     :style="{
       height:
-        isForm || isExpandedFormOpen || isGallery || isEditColumnMenu ? undefined : `max(${(rowHeight || 1) * 1.8}rem, 28px)`,
+        isGrid && !isForm && !isExpandedFormOpen && !isEditColumnMenu
+          ? `${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px`
+          : undefined,
     }"
     :tabindex="readOnly ? -1 : 0"
     @click="onClick(false, $event)"

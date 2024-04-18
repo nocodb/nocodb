@@ -1624,6 +1624,10 @@ onKeyStroke('ArrowDown', onDown)
                   <tr
                     v-show="!showSkeleton"
                     class="nc-grid-row !xs:h-14"
+                    :class="{
+                      'active-row': activeCell.row === rowIndex,
+                      'fill-mode': isFillMode,
+                    }"
                     :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
                     :data-testid="`grid-row-${rowIndex}`"
                   >
@@ -2242,10 +2246,13 @@ onKeyStroke('ArrowDown', onDown)
     .nc-row-expand-and-checkbox {
       @apply !xs:hidden flex;
     }
-
+  }
+  
+  &.active-row,
+  &:not(.fill-mode):hover {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
-      @apply bg-gray-100 border-b-gray-200 border-r-gray-200;
+      @apply bg-gray-50 border-b-gray-200 border-r-gray-200;
     }
   }
 }

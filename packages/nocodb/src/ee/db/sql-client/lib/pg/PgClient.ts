@@ -4,6 +4,7 @@ import find from 'lodash/find';
 import axios from 'axios';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
+import { ExternalError } from '~/helpers/catchError';
 
 const log = new Debug('PGClient');
 
@@ -21,7 +22,7 @@ async function runExternal(query: string, config: any) {
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
-      throw e.response.data.error;
+      throw new ExternalError(e.response.data.error);
     }
     throw e;
   }

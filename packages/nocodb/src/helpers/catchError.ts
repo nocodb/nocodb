@@ -1,6 +1,9 @@
 import { NcErrorType } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+
+const dbErrorLogger = new Logger('DBError');
 
 export enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',
@@ -14,16 +17,15 @@ export enum DBError {
 
 // extract db errors using database error code
 export function extractDBError(error): {
-  type: DBError;
   message: string;
-  info: any;
-  extra?: Record<string, any>;
+  error: string;
+  details?: any;
 } | void {
   if (!error.code) return;
 
   let message: string;
-  let extra: Record<string, any>;
-  let type: DBError;
+  let _extra: Record<string, any>;
+  let _type: DBError;
 
   // todo: handle not null constraint error for all databases
   switch (error.code) {
@@ -37,7 +39,7 @@ export function extractDBError(error): {
           ? error.message.match(/FOREIGN KEY|UNIQUE/gi)?.join(' ')
           : 'constraint';
         message = `A ${constraint} constraint was violated: ${error.message}`;
-        extra = {
+        _extra = {
           constraint,
         };
       }
@@ -69,25 +71,25 @@ export function extractDBError(error): {
 
         if (noSuchTableMatch && noSuchTableMatch[1]) {
           message = `The table '${noSuchTableMatch[1]}' does not exist.`;
-          type = DBError.TABLE_NOT_EXIST;
-          extra = {
+          _type = DBError.TABLE_NOT_EXIST;
+          _extra = {
             table: noSuchTableMatch[1],
           };
         } else if (tableAlreadyExistsMatch && tableAlreadyExistsMatch[1]) {
           message = `The table '${tableAlreadyExistsMatch[1]}' already exists.`;
-          type = DBError.TABLE_EXIST;
-          extra = {
+          _type = DBError.TABLE_EXIST;
+          _extra = {
             table: tableAlreadyExistsMatch[1],
           };
         } else if (unrecognizedTokenMatch && unrecognizedTokenMatch[1]) {
           message = `Unrecognized token: ${unrecognizedTokenMatch[1]}`;
-          extra = {
+          _extra = {
             token: unrecognizedTokenMatch[1],
           };
         } else if (columnDoesNotExistMatch && columnDoesNotExistMatch[1]) {
           message = `The column ${columnDoesNotExistMatch[1]} does not exist.`;
-          type = DBError.COLUMN_NOT_EXIST;
-          extra = {
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
             column: columnDoesNotExistMatch[1],
           };
         } else if (constraintFailedMatch && constraintFailedMatch[1]) {
@@ -97,8 +99,8 @@ export function extractDBError(error): {
           duplicateColumnExistsMatch[1]
         ) {
           message = `The column '${duplicateColumnExistsMatch[1]}' already exists.`;
-          type = DBError.COLUMN_EXIST;
-          extra = {
+          _type = DBError.COLUMN_EXIST;
+          _extra = {
             column: duplicateColumnExistsMatch[1],
           };
         } else {
@@ -126,8 +128,8 @@ export function extractDBError(error): {
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' already exists.`;
-          type = DBError.TABLE_EXIST;
-          extra = {
+          _type = DBError.TABLE_EXIST;
+          _extra = {
             table: extractTableNameMatch[1],
           };
         }
@@ -142,8 +144,8 @@ export function extractDBError(error): {
         );
         if (extractColumnNameMatch && extractColumnNameMatch[1]) {
           message = `The column '${extractColumnNameMatch[1]}' already exists.`;
-          type = DBError.COLUMN_EXIST;
-          extra = {
+          _type = DBError.COLUMN_EXIST;
+          _extra = {
             column: extractColumnNameMatch[1],
           };
         }
@@ -159,8 +161,8 @@ export function extractDBError(error): {
         );
         if (missingTableMatch && missingTableMatch[1]) {
           message = `The table '${missingTableMatch[1]}' does not exist`;
-          type = DBError.TABLE_NOT_EXIST;
-          extra = {
+          _type = DBError.TABLE_NOT_EXIST;
+          _extra = {
             table: missingTableMatch[1],
           };
         }
@@ -184,8 +186,8 @@ export function extractDBError(error): {
         );
         if (extractColNameMatch && extractColNameMatch[1]) {
           message = `The column '${extractColNameMatch[1]}' cannot be null.`;
-          type = DBError.COLUMN_NOT_NULL;
-          extra = {
+          _type = DBError.COLUMN_NOT_NULL;
+          _extra = {
             column: extractColNameMatch[1],
           };
         }
@@ -203,8 +205,8 @@ export function extractDBError(error): {
         );
         if (extractColNameMatch && extractColNameMatch[1]) {
           message = `The column '${extractColNameMatch[1]}' does not exist.`;
-          type = DBError.COLUMN_NOT_EXIST;
-          extra = {
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
             column: extractColNameMatch[1],
           };
         }
@@ -251,6 +253,9 @@ export function extractDBError(error): {
     case '23506':
       message = 'This record is being referenced by other records.';
       break;
+    case '3D000':
+      message = 'The database does not exist.';
+      break;
     case '42P07':
       message = 'The table already exists.';
       if (error.message) {
@@ -259,8 +264,8 @@ export function extractDBError(error): {
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' already exists.`;
-          type = DBError.TABLE_EXIST;
-          extra = {
+          _type = DBError.TABLE_EXIST;
+          _extra = {
             table: extractTableNameMatch[1],
           };
         }
@@ -274,8 +279,8 @@ export function extractDBError(error): {
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The column '${extractTableNameMatch[1]}' already exists.`;
-          type = DBError.COLUMN_EXIST;
-          extra = {
+          _type = DBError.COLUMN_EXIST;
+          _extra = {
             column: extractTableNameMatch[1],
           };
         }
@@ -289,8 +294,8 @@ export function extractDBError(error): {
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' does not exist.`;
-          type = DBError.TABLE_NOT_EXIST;
-          extra = {
+          _type = DBError.TABLE_NOT_EXIST;
+          _extra = {
             table: extractTableNameMatch[1],
           };
         }
@@ -304,8 +309,8 @@ export function extractDBError(error): {
         );
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The column '${extractTableNameMatch[1]}' does not exist.`;
-          type = DBError.COLUMN_NOT_EXIST;
-          extra = {
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
             column: extractTableNameMatch[1],
           };
         }
@@ -330,26 +335,26 @@ export function extractDBError(error): {
 
         if (extractTableNameMatch && extractTableNameMatch[1]) {
           message = `The table '${extractTableNameMatch[1]}' already exists.`;
-          type = DBError.TABLE_EXIST;
-          extra = {
+          _type = DBError.TABLE_EXIST;
+          _extra = {
             table: extractTableNameMatch[1],
           };
         } else if (extractDupColMatch && extractDupColMatch[1]) {
           message = `The column '${extractDupColMatch[1]}' already exists.`;
-          type = DBError.COLUMN_EXIST;
-          extra = {
+          _type = DBError.COLUMN_EXIST;
+          _extra = {
             column: extractDupColMatch[1],
           };
         } else if (extractMissingTableMatch && extractMissingTableMatch[1]) {
           message = `The table '${extractMissingTableMatch[1]}' does not exist`;
-          type = DBError.TABLE_NOT_EXIST;
-          extra = {
+          _type = DBError.TABLE_NOT_EXIST;
+          _extra = {
             table: extractMissingTableMatch[1],
           };
         } else if (extractMissingColMatch && extractMissingColMatch[1]) {
           message = `The column '${extractMissingColMatch[1]}' does not exist`;
-          type = DBError.COLUMN_NOT_EXIST;
-          extra = {
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
             column: extractMissingColMatch[1],
           };
         }
@@ -374,6 +379,9 @@ export function extractDBError(error): {
       message = 'The host is down.';
       break;
     default:
+      // log error for unknown error code
+      dbErrorLogger.error(error);
+
       // if error message contains -- then extract message after --
       if (error.message && error.message.includes('--')) {
         message = error.message.split('--')[1];
@@ -383,10 +391,8 @@ export function extractDBError(error): {
 
   if (message) {
     return {
+      error: NcErrorType.DATABASE_ERROR,
       message,
-      type,
-      extra,
-      info: { message: error.message, code: error.code },
     };
   }
 }
@@ -406,6 +412,13 @@ export class Unauthorized extends NcBaseError {}
 export class Forbidden extends NcBaseError {}
 
 export class NotFound extends NcBaseError {}
+
+export class ExternalError extends NcBaseError {
+  constructor(error: Error) {
+    super(error.message);
+    Object.assign(this, error);
+  }
+}
 
 export class UnprocessableEntity extends NcBaseError {}
 

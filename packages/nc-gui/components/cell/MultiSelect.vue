@@ -413,11 +413,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
+              class="text-small"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -452,15 +452,20 @@ const onFocus = () => {
         }"
       >
         <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
-          <a-tag class="rounded-tag max-w-full" :color="selectedOpt.color">
+          <a-tag
+            class="rounded-tag max-w-full"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
+            :color="selectedOpt.color"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -516,12 +521,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -559,6 +563,9 @@ const onFocus = () => {
           <a-tag
             v-if="options.find((el) => el.title === val)"
             class="rounded-tag nc-selected-option"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
             :style="{ display: 'flex', alignItems: 'center' }"
             :color="options.find((el) => el.title === val)?.color"
             :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
@@ -568,7 +575,7 @@ const onFocus = () => {
           >
             <span
               :style="{
-                'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+                color: tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
                   level: 'AA',
                   size: 'large',
                 })
@@ -576,9 +583,8 @@ const onFocus = () => {
                   : tinycolor
                       .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
                       .toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               {{ val }}
             </span>
@@ -622,11 +628,11 @@ const onFocus = () => {
 }
 
 .rounded-tag {
-  @apply py-0 px-[12px] rounded-[12px];
+  @apply py-[0.5px] px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[2px];
+  @apply "rounded-tag" my-[1px];
 }
 
 :deep(.ant-tag-close-icon) {
@@ -638,7 +644,7 @@ const onFocus = () => {
 }
 
 :deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap overflow-hidden;
+  @apply flex-nowrap overflow-hidden max-w-[fit-content];
 }
 
 .nc-multi-select:not(.read-only) {

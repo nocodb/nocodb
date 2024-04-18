@@ -474,7 +474,7 @@ const onFocus = () => {
 
 <style scoped lang="scss">
 .rounded-tag {
-  @apply py-[2px] px-2 rounded-[12px];
+  @apply py-[1px] px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {

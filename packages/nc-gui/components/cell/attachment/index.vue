@@ -321,12 +321,12 @@ const keydownSpace = (e: KeyboardEvent) => {
       >
         <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-        <NcTooltip v-else placement="bottom">
+        <NcTooltip v-else placement="bottom" class="flex">
           <template #title> {{ $t('activity.viewAttachment') }}</template>
 
           <component
             :is="iconMap.expand"
-            class="transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
+            class="flex-none transform dark:(!text-white) group-hover:(!text-grey-800 scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="onExpand"
           />
         </NcTooltip>

@@ -78,6 +78,19 @@ const height = computed(() => {
   return rowHeight.value * 36
 })
 
+const truncatedLines = computed(() => {
+  switch (rowHeight.value) {
+    case 2:
+      return 2
+    case 4:
+      return 3
+    case 6:
+      return 4
+    default:
+      return 1
+  }
+})
+
 const isVisible = ref(false)
 
 const inputWrapperRef = ref<HTMLElement | null>(null)
@@ -243,8 +256,8 @@ watch(inputWrapperRef, () => {
           'nc-readonly-rich-text-sort-height': rowHeight === 1 && !isExpandedFormOpen && !isForm,
         }"
         :style="{
-          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
-          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * truncatedLines}px`,
+          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * truncatedLines}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
@@ -284,11 +297,12 @@ watch(inputWrapperRef, () => {
       <LazyCellClampedText
         v-else-if="rowHeight"
         :value="vModel"
-        :lines="rowHeight"
-        class="nc-text-area-clamped-text my-auto"
+        :lines="truncatedLines"
+        class="nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',
-          'max-height': `${25 * (rowHeight || 1)}px`,
+          'max-height': `${25 * truncatedLines}px`,
+          'my-auto': truncatedLines === 1,
         }"
         @click="onTextClick"
       />

@@ -343,12 +343,11 @@ const filterOption = (input: string, option: any) => {
             <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
               <span
                 :style="{
-                  'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
                     ? '#fff'
                     : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                  'font-size': '13px',
                 }"
-                class="flex items-stretch gap-2"
+                class="flex items-stretch gap-2 text-small"
               >
                 <div>
                   <GeneralUserIcon
@@ -399,16 +398,21 @@ const filterOption = (input: string, option: any) => {
         }"
       >
         <template v-for="selectedOpt of vModel" :key="selectedOpt.value">
-          <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
+          <a-tag
+            class="rounded-tag max-w-full !pl-0"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
+            color="'#ccc'"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
               class="flex items-stretch gap-2"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <div class="flex-none">
                 <GeneralUserIcon
@@ -468,16 +472,21 @@ const filterOption = (input: string, option: any) => {
             :class="`nc-select-option-${column.title}-${op.email}`"
             @click.stop
           >
-            <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
+            <a-tag
+              class="rounded-tag max-w-full !pl-0"
+              :class="{
+                '!my-0': !rowHeight || rowHeight === 1,
+              }"
+              color="'#ccc'"
+            >
               <span
                 :style="{
-                  'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
                     ? '#fff'
                     : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                  'font-size': '13px',
                 }"
                 class="flex items-stretch gap-2"
-                :class="{ 'text-sm': isKanban }"
+                :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
                   <GeneralUserIcon
@@ -511,6 +520,9 @@ const filterOption = (input: string, option: any) => {
           <a-tag
             v-if="options.find((el) => el.id === val)"
             class="rounded-tag nc-selected-option !pl-0"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
             :style="{ display: 'flex', alignItems: 'center' }"
             color="'#ccc'"
             :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
@@ -520,16 +532,15 @@ const filterOption = (input: string, option: any) => {
           >
             <span
               :style="{
-                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
+                color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
                   level: 'AA',
                   size: 'large',
                 })
                   ? '#fff'
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
               class="flex items-stretch gap-2"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <div>
                 <GeneralUserIcon
@@ -581,11 +592,11 @@ const filterOption = (input: string, option: any) => {
 }
 
 .rounded-tag {
-  @apply bg-gray-200 py-0 px-[12px] rounded-[12px];
+  @apply bg-gray-200 px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[2px];
+  @apply "rounded-tag" my-[1px];
 }
 
 :deep(.ant-tag-close-icon) {
@@ -597,7 +608,7 @@ const filterOption = (input: string, option: any) => {
 }
 
 :deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap overflow-hidden;
+  @apply flex-nowrap overflow-hidden max-w-[fit-content];
 }
 
 .nc-user-select:not(.read-only) {

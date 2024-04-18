@@ -2128,7 +2128,7 @@ onKeyStroke('ArrowDown', onDown)
     }
 
     &.align-middle {
-      @apply py-1;
+      @apply py-0;
     }
 
     & > div {
@@ -2195,13 +2195,16 @@ onKeyStroke('ArrowDown', onDown)
         }
       }
 
-      .ant-select-selector,
-      .ant-select-selection-search-input {
-        @apply h-[23px];
-      }
-
       &.nc-cell-longtext .long-text-wrapper .nc-rich-text-grid {
         @apply pl-0 -ml-1;
+      }
+
+      .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+        @apply !border-none !h-[25px] flex-nowrap;
+      }
+
+      .ant-select-selection-search-input {
+        @apply !h-[23px];
       }
     }
   }

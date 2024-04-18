@@ -1,0 +1,11 @@
+{
+  "id": "nc-csv-import",
+  "title": "CSV Import",
+  "description": "Import CSV files into NocoDB",
+  "entry": "csv-import",
+  "version": "0.1",
+  "iconUrl": "csv-import/icon.png",
+  "publisherName": "NocoDB",
+  "publisherEmail": "contact@nocodb.com",
+  "publisherUrl": "https://www.nocodb.com"
+}

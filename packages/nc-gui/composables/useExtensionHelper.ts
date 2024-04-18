@@ -1,4 +1,4 @@
-import type { ViewType } from 'nocodb-sdk'
+import type { ColumnType, ViewType } from 'nocodb-sdk'
 import type { ExtensionType } from '#imports'
 import { useInjectionState } from '#imports'
 
@@ -16,6 +16,10 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
   const viewStore = useViewsStore()
 
   const { viewsByTable } = storeToRefs(viewStore)
+
+  const { getMeta } = useMetas()
+
+  const { eventBus } = useSmartsheetStoreOrThrow()
 
   const fullscreen = ref(false)
 
@@ -69,6 +73,134 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
     await nextPage()
   }
 
+  const getTableMeta = async (tableId: string) => {
+    return getMeta(tableId)
+  }
+
+  const insertData = async (params: { tableId: string; data: Record<string, any> }) => {
+    const { tableId, data } = params
+
+    const chunks = []
+
+    let inserted = 0
+
+    // chunk data into 100 records
+    while (data.length) {
+      chunks.push(data.splice(0, 100))
+    }
+
+    for (const chunk of chunks) {
+      inserted += chunk.length
+      await $api.dbDataTableRow.create(tableId, chunk)
+    }
+
+    return {
+      inserted,
+    }
+  }
+
+  const updateData = async (params: { tableId: string; data: Record<string, any> }) => {
+    const { tableId, data } = params
+
+    const chunks = []
+
+    let updated = 0
+
+    // chunk data into 100 records
+    while (data.length) {
+      chunks.push(data.splice(0, 100))
+    }
+
+    for (const chunk of chunks) {
+      updated += chunk.length
+      await $api.dbDataTableRow.update(tableId, chunk)
+    }
+
+    return {
+      updated,
+    }
+  }
+
+  const upsertData = async (params: { tableId: string; data: Record<string, any>; upsertField: ColumnType }) => {
+    const { tableId, data, upsertField } = params
+
+    const tableMeta = await getMeta(tableId)
+
+    if (!tableMeta?.columns) throw new Error('Table not found')
+
+    const chunks = []
+
+    // chunk data into 25 records
+    while (data.length) {
+      chunks.push(data.splice(0, 25))
+    }
+
+    const insert = []
+    const update = []
+
+    let insertCounter = 0
+    let updateCounter = 0
+
+    for (const chunk of chunks) {
+      // select chunk of data to determine if it's an insert or update
+      const { list } = await $api.dbDataTableRow.list(tableId, {
+        where: `(${upsertField.title},in,${chunk.map((record: Record<string, any>) => record[upsertField.title!]).join(',')})`,
+        limit: 100,
+      })
+
+      insert.push(
+        ...chunk.filter(
+          (record: Record<string, any>) =>
+            !list.some((r: Record<string, any>) => r[upsertField.title!] === record[upsertField.title!]),
+        ),
+      )
+
+      update.push(
+        ...chunk
+          .filter((record: Record<string, any>) =>
+            list.some((r: Record<string, any>) => r[upsertField.title!] === record[upsertField.title!]),
+          )
+          .map((record: Record<string, any>) => {
+            const existingRecord = list.find((r: Record<string, any>) => r[upsertField.title!] === record[upsertField.title!])
+            return {
+              ...rowPkData(existingRecord!, tableMeta.columns!),
+              ...record,
+            }
+          }),
+      )
+
+      if (insert.length > 50) {
+        insertCounter += insert.length
+        await $api.dbDataTableRow.create(tableId, insert.splice(0, insert.length))
+      }
+
+      if (update.length > 50) {
+        updateCounter += update.length
+        await $api.dbDataTableRow.update(tableId, update.splice(0, update.length))
+      }
+    }
+
+    if (insert.length) {
+      insertCounter += insert.length
+      await $api.dbDataTableRow.create(tableId, insert.splice(0, insert.length))
+    }
+
+    if (update.length) {
+      updateCounter += update.length
+      await $api.dbDataTableRow.update(tableId, update.splice(0, update.length))
+    }
+
+    return { inserted: insertCounter, updated: updateCounter }
+  }
+
+  const reloadData = () => {
+    eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+  }
+
+  const reloadMeta = () => {
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+  }
+
   return {
     fullscreen,
     collapsed,
@@ -76,6 +208,13 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
     tables,
     getViewsForTable,
     getData,
+    getTableMeta,
+    $api,
+    insertData,
+    updateData,
+    upsertData,
+    reloadData,
+    reloadMeta,
   }
 }, 'extension-helper')
 

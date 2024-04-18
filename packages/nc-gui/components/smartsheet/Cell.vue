@@ -282,7 +282,7 @@ onUnmounted(() => {
   font-weight: 500;
 
   &.nc-display-value-cell {
-    @apply text-brand-500;
+    @apply text-brand-500 font-semibold;
   }
 
   &.nc-cell-longtext {

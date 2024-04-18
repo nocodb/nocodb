@@ -10,19 +10,7 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import {
-  computed,
-  isBoolean,
-  isDate,
-  isDateTime,
-  isInt,
-  parseProp,
-  ref,
-  storeToRefs,
-  useAttachment,
-  useBase,
-  useMetas,
-} from '#imports'
+import { computed, isBoolean, isDate, isDateTime, isInt, parseProp, ref, storeToRefs, useBase, useMetas } from '#imports'
 
 interface Props {
   column: ColumnType
@@ -49,8 +37,6 @@ const basesStore = useBases()
 const { basesUser } = storeToRefs(basesStore)
 
 const { isXcdbBase, isMssql, isMysql } = useBase()
-
-const { getPossibleAttachmentSrc } = useAttachment()
 
 const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
 

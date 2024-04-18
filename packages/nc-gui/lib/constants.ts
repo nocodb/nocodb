@@ -18,3 +18,5 @@ export const GROUP_BY_VARS = {
     __nc_false__: 'Unchecked',
   } as Record<string, string>,
 }
+
+export const NC_GRID_VIEW_PAGE_SIZE_KEY = 'ncGridViewPageSize'

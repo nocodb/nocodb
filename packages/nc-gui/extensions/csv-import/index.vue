@@ -13,7 +13,9 @@ const fileList = ref<UploadFile[]>([])
 // step 3: stats
 const step = ref(0)
 
-const stats = ref<{ inserted: number; updated: number }>({
+const CHUNK_SIZE = 100
+
+const stats = ref<{ inserted: number; updated: number; error?: { title?: string; message: string } }>({
   inserted: 0,
   updated: 0,
 })
@@ -272,29 +274,37 @@ const onImport = async () => {
   const chunks = []
 
   while (data.length) {
-    chunks.push(data.splice(0, 100))
+    chunks.push(data.splice(0, CHUNK_SIZE))
   }
 
-  for (const chunk of chunks) {
-    processedRecords.value += chunk.length
-    if (importPayload.value.upsert) {
-      // upsert data
-      const upsertStats = await upsertData({
-        tableId: importPayload.value.tableId,
-        upsertField: columns.value[importPayload.value.upsertColumnId!],
-        data: chunk,
-      })
+  try {
+    for (const chunk of chunks) {
+      if (importPayload.value.upsert) {
+        // upsert data
+        const upsertStats = await upsertData({
+          tableId: importPayload.value.tableId,
+          upsertField: columns.value[importPayload.value.upsertColumnId!],
+          data: chunk,
+        })
 
-      stats.value.inserted += upsertStats.inserted
-      stats.value.updated += upsertStats.updated
-    } else {
-      // insert data
-      const insertStats = await insertData({
-        tableId: importPayload.value.tableId,
-        data: chunk,
-      })
+        stats.value.inserted += upsertStats.inserted
+        stats.value.updated += upsertStats.updated
+      } else {
+        // insert data
+        const insertStats = await insertData({
+          tableId: importPayload.value.tableId,
+          data: chunk,
+        })
 
-      stats.value.inserted += insertStats.inserted
+        stats.value.inserted += insertStats.inserted
+      }
+
+      processedRecords.value += chunk.length
+    }
+  } catch (e: any) {
+    stats.value.error = {
+      title: `Import failed for records between ${processedRecords.value} - ${processedRecords.value + CHUNK_SIZE}`,
+      message: await extractSdkResponseErrorMsg(e),
     }
   }
 
@@ -302,7 +312,7 @@ const onImport = async () => {
 
   reloadData()
 
-  message.success('Data imported successfully')
+  if (!stats.value.error) message.success('Data imported successfully')
 }
 
 onMounted(async () => {
@@ -454,9 +464,30 @@ onMounted(async () => {
           <div class="text-[30px]">{{ stats.updated }}</div>
         </div>
       </div>
-      <div class="mt-4">
-        <NcButton @click="clearImport()">Okay</NcButton>
-      </div>
+      <template v-if="stats.error">
+        <div class="mt-4 flex flex-col gap-2">
+          <a-alert type="error">
+            <template #message>
+              <div class="flex gap-2 items-center text-red-500">
+                <GeneralIcon class="text-[25px]" icon="error" />
+                <span>{{ stats.error.title || 'There was an error with import' }}</span>
+              </div>
+            </template>
+            <template #description>
+              <div class="p-2 text-gray-500"><span class="font-weight-600">Error:</span> {{ stats.error.message }}</div>
+            </template>
+          </a-alert>
+          <div class="flex gap-2 items-center justify-center">
+            <NcButton @click="clearImport()">Okay</NcButton>
+            <NcButton type="ghost" @click="step = 1">Return</NcButton>
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div class="mt-4">
+          <NcButton @click="clearImport()">Okay</NcButton>
+        </div>
+      </template>
     </div>
   </template>
 </template>

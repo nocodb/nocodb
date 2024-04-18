@@ -1,499 +1,423 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
-import type { SortableEvent } from 'sortablejs'
-import Sortable from 'sortablejs'
-import type { Menu as AntMenu } from 'ant-design-vue'
-import {
-  extractSdkResponseErrorMsg,
-  isDefaultBase,
-  message,
-  onMounted,
-  parseProp,
-  ref,
-  resolveComponent,
-  useApi,
-  useCommandPalette,
-  useDialog,
-  useNuxtApp,
-  useUndoRedo,
-  viewTypeAlias,
-  watch,
-} from '#imports'
+import type { BaseType, TableType } from 'nocodb-sdk'
+import { toRef } from '@vue/reactivity'
+import { message } from 'ant-design-vue'
+import { storeToRefs } from 'pinia'
 
-interface Emits {
-  (
-    event: 'openModal',
-    data: {
-      type: ViewTypes
-      title?: string
-      copyViewId?: string
-      groupingFieldColumnId?: string
-    },
-  ): void
+import { ProjectRoleInj, TreeViewInj, useCopy, useMagicKeys, useNuxtApp, useRoles, useTabs } from '#imports'
+import type { SidebarTableNode } from '~/lib'
 
-  (event: 'deleted'): void
-}
+const props = withDefaults(
+  defineProps<{
+    base: BaseType
+    table: SidebarTableNode
+    sourceIndex: number
+  }>(),
+  { sourceIndex: 0 },
+)
 
-const emits = defineEmits<Emits>()
-const base = inject(ProjectInj)!
-const table = inject(SidebarTableInj)!
+const base = toRef(props, 'base')
+const table = toRef(props, 'table')
+const sourceIndex = toRef(props, 'sourceIndex')
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { openTable: _openTable } = useTableNew({
+  baseId: base.value.id!,
+})
 
-const { activeTableId } = storeToRefs(useTablesStore())
+const route = useRoute()
 
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
-const { $e } = useNuxtApp()
+const tabStore = useTabs()
+const { updateTab } = tabStore
 
-const { t } = useI18n()
+const { $e, $api } = useNuxtApp()
 
-const { viewsByTable, activeView, allRecentViews } = storeToRefs(useViewsStore())
-
-const { navigateToTable } = useTablesStore()
-
-const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
-
-const { api } = useApi()
-
-const { refreshCommandPalette } = useCommandPalette()
-
-const { addUndo, defineModelScope } = useUndoRedo()
-
-const { navigateToView, loadViews, removeFromRecentViews } = useViewsStore()
-
-/** Selected view(s) for menu */
-const selected = ref<string[]>([])
-
-/** dragging renamable view items */
-const dragging = ref(false)
-
-const menuRef = ref<typeof AntMenu>()
-
-const isMarked = ref<string | false>(false)
-
-/** Watch currently active view, so we can mark it in the menu */
-watch(activeView, (nextActiveView) => {
-  if (nextActiveView && nextActiveView.id) {
-    selected.value = [nextActiveView.id]
-  }
+useTableNew({
+  baseId: base.value.id!,
 })
 
-/** shortly mark an item after sorting */
-function markItem(id: string) {
-  isMarked.value = id
-  setTimeout(() => {
-    isMarked.value = false
-  }, 300)
-}
+const { meta: metaKey, control } = useMagicKeys()
 
-const isDefaultSource = computed(() => {
-  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
-  if (!source) return false
+const { copy } = useCopy()
 
-  return isDefaultBase(source)
-})
+const baseRole = inject(ProjectRoleInj)
+provide(SidebarTableInj, table)
 
-/** validate view title */
-function validate(view: ViewType) {
-  if (!view.title || view.title.trim().length < 0) {
-    return t('msg.error.viewNameRequired')
-  }
+const { setMenuContext, openRenameTableDialog: _openRenameTableDialog, duplicateTable: _duplicateTable } = inject(TreeViewInj)!
 
-  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
-    return t('msg.error.viewNameDuplicate')
-  }
+const { loadViews: _loadViews } = useViewsStore()
+const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-  return true
-}
+// todo: temp
+const { baseTables } = storeToRefs(useTablesStore())
+const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
-let sortable: Sortable
+const openedTableId = computed(() => route.params.viewId)
 
-function onSortStart(evt: SortableEvent) {
-  evt.stopImmediatePropagation()
-  evt.preventDefault()
-  dragging.value = true
-}
+const isTableDeleteDialogVisible = ref(false)
 
-async function onSortEnd(evt: SortableEvent, undo = false) {
-  if (!undo) {
-    evt.stopImmediatePropagation()
-    evt.preventDefault()
-    dragging.value = false
-  }
+const isOptionsOpen = ref(false)
 
-  if (views.value.length < 2) return
-
-  let { newIndex = 0, oldIndex = 0 } = evt
-
-  newIndex = newIndex - 1
-  oldIndex = oldIndex - 1
-
-  if (newIndex === oldIndex) return
-
-  if (!undo) {
-    addUndo({
-      redo: {
-        fn: async () => {
-          const ord = sortable.toArray()
-          const temp = ord.splice(oldIndex, 1)
-          ord.splice(newIndex, 0, temp[0])
-          sortable.sort(ord)
-          await onSortEnd(evt, true)
-        },
-        args: [],
-      },
-      undo: {
-        fn: async () => {
-          const ord = sortable.toArray()
-          const temp = ord.splice(newIndex, 1)
-          ord.splice(oldIndex, 0, temp[0])
-          sortable.sort(ord)
-          await onSortEnd({ ...evt, oldIndex: newIndex, newIndex: oldIndex }, true)
-        },
-        args: [],
-      },
-      scope: defineModelScope({ view: activeView.value }),
-    })
-  }
-
-  const children = Array.from(evt.to.children as unknown as HTMLLIElement[])
-
-  // remove `Create View` children from list
-  children.shift()
-
-  const previousEl = children[newIndex - 1]
-  const nextEl = children[newIndex + 1]
-
-  const currentItem = views.value.find((v) => v.id === evt.item.id)
-
-  if (!currentItem || !currentItem.id) return
-
-  // set default order value as 0 if item not found
-  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }) as ViewType
-  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
-
-  let nextOrder: number
-
-  // set new order value based on the new order of the items
-  if (views.value.length - 1 === newIndex) {
-    nextOrder = parseFloat(String(previousItem.order)) + 1
-  } else if (newIndex === 0) {
-    nextOrder = parseFloat(String(nextItem.order)) / 2
-  } else {
-    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
-  }
-
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
-
-  currentItem.order = _nextOrder
-
-  await api.dbView.update(currentItem.id, { order: _nextOrder })
-
-  markItem(currentItem.id)
-
-  $e('a:view:reorder')
-}
-
-const initSortable = (el: HTMLElement) => {
-  if (sortable) sortable.destroy()
-  if (isMobileMode.value) return
-
-  sortable = new Sortable(el, {
-    // handle: '.nc-drag-icon',
-    ghostClass: 'ghost',
-    onStart: onSortStart,
-    onEnd: onSortEnd,
-  })
-}
-
-onMounted(() => menuRef.value && isUIAllowed('viewCreateOrEdit') && initSortable(menuRef.value.$el))
-
-/** Navigate to view by changing url param */
-async function changeView(view: ViewType) {
-  await navigateToView({
-    view,
-    tableId: table.value.id!,
-    baseId: base.value.id!,
-    hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
-    doNotSwitchTab: true,
-  })
-
-  if (isMobileMode.value) {
-    isLeftSidebarOpen.value = false
-  }
-}
-
-/** Rename a view */
-async function onRename(view: ViewType, originalTitle?: string, undo = false) {
+const setIcon = async (icon: string, table: TableType) => {
   try {
-    await api.dbView.update(view.id!, {
-      title: view.title,
-      order: view.order,
-    })
-
-    navigateToView({
-      view,
-      tableId: table.value.id!,
-      baseId: base.value.id!,
-      hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
-    })
-
-    refreshCommandPalette()
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (v: ViewType, title: string) => {
-            const tempTitle = v.title
-            v.title = title
-            onRename(v, tempTitle, true)
-          },
-          args: [view, view.title],
-        },
-        undo: {
-          fn: (v: ViewType, title: string) => {
-            const tempTitle = v.title
-            v.title = title
-            onRename(v, tempTitle, true)
-          },
-          args: [view, originalTitle],
-        },
-        scope: defineModelScope({ view: activeView.value }),
-      })
-    }
-    // update view name in recent views
-    allRecentViews.value = allRecentViews.value.map((rv) => {
-      if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {
-        rv.viewName = view.title
-      }
-      return rv
-    })
-
-    // View renamed successfully
-    // message.success(t('msg.success.viewRenamed'))
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-/** Open delete modal */
-function openDeleteDialog(view: ViewType) {
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgViewDelete'), {
-    'modelValue': isOpen,
-    'view': view,
-    'onUpdate:modelValue': closeDialog,
-    'onDeleted': async () => {
-      closeDialog()
-
-      emits('deleted')
-
-      removeFromRecentViews({
-        viewId: view.id,
-        tableId: view.fk_model_id,
-        baseId: base.value.id,
-      })
-      refreshCommandPalette()
-      if (activeView.value?.id === view.id) {
-        navigateToTable({
-          tableId: table.value.id!,
-          baseId: base.value.id!,
-        })
-      }
-
-      await loadViews({
-        tableId: table.value.id!,
-        force: true,
-      })
-
-      const activeNonDefaultViews = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
-
-      table.value.meta = {
-        ...(table.value.meta as object),
-        hasNonDefaultViews: activeNonDefaultViews.length > 1,
-      }
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const setIcon = async (icon: string, view: ViewType) => {
-  try {
-    // modify the icon property in meta
-    view.meta = {
-      ...parseProp(view.meta),
+    table.meta = {
+      ...((table.meta as object) || {}),
       icon,
     }
+    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
-    api.dbView.update(view.id as string, {
-      meta: view.meta,
+    updateTab({ id: table.id }, { meta: table.meta })
+
+    await $api.dbTable.update(table.id as string, {
+      meta: table.meta,
     })
 
-    $e('a:view:icon:sidebar', { icon })
-  } catch (e: any) {
+    $e('a:table:icon:navdraw', { icon })
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-function onOpenModal({
-  title = '',
-  type,
-  copyViewId,
-  groupingFieldColumnId,
-  calendarRange,
-}: {
-  title?: string
-  type: ViewTypes
-  copyViewId?: string
-  groupingFieldColumnId?: string
-  calendarRange?: Array<{
-    fk_from_column_id: string
-    fk_to_column_id: string | null // for ee only
-  }>
-}) {
-  const isOpen = ref(true)
+// Todo: temp
 
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isOpen,
-    title,
-    type,
-    'tableId': table.value.id,
-    'selectedViewId': copyViewId,
-    groupingFieldColumnId,
-    'views': views,
-    calendarRange,
-    'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
-      closeDialog()
+const { isSharedBase } = useBase()
+// const isMultiBase = computed(() => base.sources && base.sources.length > 1)
 
-      refreshCommandPalette()
+const canUserEditEmote = computed(() => {
+  return isUIAllowed('tableIconEdit', { roles: baseRole?.value })
+})
 
-      await loadViews({
-        force: true,
-        tableId: table.value.id!,
-      })
+const isExpanded = ref(false)
+const isLoading = ref(false)
 
-      navigateToView({
-        view,
-        tableId: table.value.id!,
-        baseId: base.value.id!,
-        hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
-      })
+// Tracks if the table ID has been successfully copied to the clipboard
+const isTableIdCopied = ref(false)
 
-      $e('a:view:create', { view: view.type })
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
+const onExpand = async () => {
+  if (isExpanded.value) {
+    isExpanded.value = false
+    return
   }
+
+  isLoading.value = true
+  try {
+    await _loadViews({ tableId: table.value.id, ignoreLoading: true })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+
+const onOpenTable = async () => {
+  if (isMac() ? metaKey.value : control.value) {
+    await _openTable(table.value, true)
+    return
+  }
+
+  isLoading.value = true
+  try {
+    await _openTable(table.value)
+
+    if (isMobileMode.value) {
+      isLeftSidebarOpen.value = false
+    }
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+    isExpanded.value = true
+  }
+}
+let tableIdCopiedTimeout: NodeJS.Timeout
+
+const onTableIdCopy = async () => {
+  if (tableIdCopiedTimeout) {
+    clearTimeout(tableIdCopiedTimeout)
+  }
+
+  try {
+    await copy(table.value!.id!)
+    isTableIdCopied.value = true
+
+    tableIdCopiedTimeout = setTimeout(() => {
+      isTableIdCopied.value = false
+      clearTimeout(tableIdCopiedTimeout)
+    }, 5000)
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+watch(
+  () => activeView.value?.id,
+  () => {
+    if (!activeView.value) return
+
+    if (activeView.value?.fk_model_id === table.value?.id) {
+      isExpanded.value = true
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const isTableOpened = computed(() => {
+  return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
+})
+
+let tableTimeout: NodeJS.Timeout
+
+watch(openedTableId, () => {
+  if (tableTimeout) {
+    clearTimeout(tableTimeout)
+  }
+
+  if (table.value.id !== openedTableId.value && isExpanded.value) {
+    const views = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
+
+    if (views.length) return
+
+    tableTimeout = setTimeout(() => {
+      if (isExpanded.value) {
+        isExpanded.value = false
+      }
+      clearTimeout(tableTimeout)
+    }, 10000)
+  }
+})
+
+const duplicateTable = (table: SidebarTableNode) => {
+  isOptionsOpen.value = false
+  _duplicateTable(table)
+}
+
+const openRenameTableDialog = (table: SidebarTableNode, sourceId: string) => {
+  isOptionsOpen.value = false
+  _openRenameTableDialog(table, !!sourceId)
+}
+
+const deleteTable = () => {
+  isOptionsOpen.value = false
+  isTableDeleteDialogVisible.value = true
 }
 </script>
 
 <template>
-  <a-menu
-    ref="menuRef"
-    :class="{ dragging }"
-    :selected-keys="selected"
-    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
+  <div
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
+    :data-order="table.order"
+    :data-id="table.id"
+    :data-table-id="table.id"
+    :class="[`nc-base-tree-tbl nc-base-tree-tbl-${table.title?.replaceAll(' ', '')}`]"
+    :data-active="openedTableId === table.id"
   >
-    <DashboardTreeViewCreateViewBtn
-      v-if="isUIAllowed('viewCreateOrEdit')"
-      :align-left-level="isDefaultSource ? 1 : 2"
+    <div
+      v-e="['a:table:open']"
+      class="table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7.1 w-full group cursor-pointer hover:bg-gray-200"
       :class="{
-        '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
-        '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
+        'hover:bg-gray-200': openedTableId !== table.id,
+        'pl-13.5': sourceIndex !== 0,
+        'pl-7.5 xs:(pl-6)': sourceIndex === 0,
+        '!bg-primary-selected': isTableOpened,
       }"
+      :data-testid="`nc-tbl-side-node-${table.title}`"
+      @contextmenu="setMenuContext('table', table)"
+      @click="onOpenTable"
     >
-      <div
-        :class="{
-          'text-brand-500 hover:text-brand-600': activeTableId === table.id,
-          'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
-        }"
-        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-        role="button"
-      >
-        <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-          <GeneralIcon icon="plus" />
-          <div class="pl-1.75">
-            {{
-              $t('general.createEntity', {
-                entity: $t('objects.view'),
-              })
-            }}
+      <div class="flex flex-row h-full items-center">
+        <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+          <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-gray-600" />
+          <div
+            v-else
+            v-e="['c:table:emoji-picker']"
+            class="flex items-center nc-table-icon"
+            :class="{
+              'pointer-events-none': !canUserEditEmote,
+            }"
+            @click.stop
+          >
+            <LazyGeneralEmojiPicker
+              :key="table.meta?.icon"
+              :emoji="table.meta?.icon"
+              size="small"
+              :readonly="!canUserEditEmote || isMobileMode"
+              @emoji-selected="setIcon($event, table)"
+            >
+              <template #default>
+                <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
+                  <template #title>
+                    {{ $t('general.changeIcon') }}
+                  </template>
+
+                  <component
+                    :is="iconMap.table"
+                    v-if="table.type === 'table'"
+                    class="w-4 text-sm"
+                    :class="{
+                      '!group-hover:text-gray-700': isUIAllowed('tableSort', { roles: baseRole }),
+                      '!text-gray-700': openedTableId === table.id,
+                      '!text-gray-600/75': openedTableId !== table.id,
+                    }"
+                  />
+
+                  <MdiEye
+                    v-else
+                    class="flex w-5 !text-gray-500 text-sm"
+                    :class="{
+                      'group-hover:text-gray-500': isUIAllowed('tableSort', { roles: baseRole }),
+                      '!text-black': openedTableId === table.id,
+                    }"
+                  />
+                </NcTooltip>
+              </template>
+            </LazyGeneralEmojiPicker>
           </div>
         </div>
       </div>
-    </DashboardTreeViewCreateViewBtn>
+      <NcTooltip
+        class="nc-tbl-title nc-sidebar-node-title text-ellipsis overflow-hidden select-none !flex-1"
+        show-on-truncate-only
+      >
+        <template #title>{{ table.title }}</template>
+        <span
+          :class="{
+            'text-black !font-medium': isTableOpened,
+          }"
+          :data-testid="`nc-tbl-title-${table.title}`"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+        >
+          {{ table.title }}
+        </span>
+      </NcTooltip>
 
-    <template v-if="views.length">
-      <DashboardTreeViewViewsNode
-        v-for="view of views"
-        :id="view.id"
-        :key="view.id"
+      <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']" @click.stop>
+        <NcButton
+          v-e="['c:table:option']"
+          class="nc-sidebar-node-btn nc-tbl-context-menu text-gray-600"
+          :class="{
+            '!opacity-100 !inline-block': isOptionsOpen,
+          }"
+          data-testid="nc-sidebar-table-context-menu"
+          type="text"
+          size="xxsmall"
+          @click.stop
+        >
+          <MdiDotsHorizontal class="!text-gray-600" />
+        </NcButton>
+
+        <template #overlay>
+          <NcMenu class="!min-w-62.5" :data-testid="`sidebar-table-context-menu-list-${table.title}`">
+            <NcTooltip>
+              <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
+              <div
+                class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
+                @click.stop="onTableIdCopy"
+              >
+                <div class="flex text-xs font-bold text-gray-500 ml-1">
+                  {{
+                    $t('labels.tableIdColon', {
+                      tableId: table?.id,
+                    })
+                  }}
+                </div>
+                <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
+                  <GeneralIcon v-if="isTableIdCopied" class="max-h-4 min-w-4" icon="check" />
+                  <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
+                </NcButton>
+              </div>
+            </NcTooltip>
+
+            <template
+              v-if="
+                !isSharedBase &&
+                (isUIAllowed('tableRename', { roles: baseRole }) || isUIAllowed('tableDelete', { roles: baseRole }))
+              "
+            >
+              <NcDivider />
+              <NcMenuItem
+                v-if="isUIAllowed('tableRename', { roles: baseRole })"
+                :data-testid="`sidebar-table-rename-${table.title}`"
+                @click="openRenameTableDialog(table, base.sources[sourceIndex].id)"
+              >
+                <div v-e="['c:table:rename']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="rename" class="text-gray-700" />
+                  {{ $t('general.rename') }} {{ $t('objects.table') }}
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                v-if="
+                  isUIAllowed('tableDuplicate') &&
+                  base.sources?.[sourceIndex] &&
+                  (base.sources[sourceIndex].is_meta || base.sources[sourceIndex].is_local)
+                "
+                :data-testid="`sidebar-table-duplicate-${table.title}`"
+                @click="duplicateTable(table)"
+              >
+                <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="duplicate" class="text-gray-700" />
+                  {{ $t('general.duplicate') }} {{ $t('objects.table') }}
+                </div>
+              </NcMenuItem>
+
+              <NcDivider />
+              <NcMenuItem
+                v-if="isUIAllowed('tableDelete', { roles: baseRole })"
+                :data-testid="`sidebar-table-delete-${table.title}`"
+                class="!text-red-500 !hover:bg-red-50"
+                @click="deleteTable"
+              >
+                <div v-e="['c:table:delete']" class="flex gap-2 items-center">
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }} {{ $t('objects.table') }}
+                </div>
+              </NcMenuItem>
+            </template>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+
+      <NcButton
+        v-e="['c:table:toggle-expand']"
+        type="text"
+        size="xxsmall"
+        class="nc-sidebar-node-btn nc-sidebar-expand"
         :class="{
-          'bg-gray-200': isMarked === view.id,
-          'active': activeView?.id === view.id,
-          [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+          '!opacity-100 !visible': isOptionsOpen,
         }"
-        :data-view-id="view.id"
-        :on-validate="validate"
-        :table="table"
-        :view="view"
-        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
-        @delete="openDeleteDialog"
-        @rename="onRename"
-        @change-view="changeView"
-        @open-modal="onOpenModal"
-        @select-icon="setIcon($event, view)"
-      />
-    </template>
-  </a-menu>
+        @click.stop="onExpand"
+      >
+        <GeneralIcon
+          icon="chevronDown"
+          class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-500 !text-gray-600 rotate-270"
+          :class="{ '!rotate-180': isExpanded }"
+        />
+      </NcButton>
+    </div>
+    <DlgTableDelete
+      v-if="table.id && base?.id"
+      v-model:visible="isTableDeleteDialogVisible"
+      :table-id="table.id"
+      :base-id="base.id"
+    />
+
+    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
+  </div>
 </template>
 
-<style lang="scss">
-.nc-views-menu {
-  .ghost,
-  .ghost > * {
-    @apply !pointer-events-none;
-  }
+<style scoped lang="scss">
+.nc-tree-item {
+  @apply relative after:(pointer-events-none content-[''] rounded absolute top-0 left-0  w-full h-full right-0 !bg-current transition duration-100 opacity-0);
+}
 
-  &.dragging {
-    .nc-icon {
-      @apply !hidden;
-    }
-
-    .nc-view-icon {
-      @apply !block;
-    }
-  }
-
-  .ant-menu-item:not(.sortable-chosen) {
-    @apply color-transition;
-  }
-
-  .ant-menu-title-content {
-    @apply !w-full;
-  }
-
-  .sortable-chosen {
-    @apply !bg-gray-200;
-  }
-
-  .active {
-    @apply !bg-primary-selected font-medium;
-  }
+.nc-tree-item svg {
+  @apply text-primary text-opacity-60;
 }
 </style>

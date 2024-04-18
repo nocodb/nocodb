@@ -203,7 +203,9 @@ const keydownSpace = (e: KeyboardEvent) => {
       height:
         isForm || isExpandedForm
           ? undefined
-          : `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] - 10 : rowHeightInPx[`${rowHeight}`] - 18}px, 22px)`,
+          : `max(${!rowHeight || rowHeight === 1 ? rowHeightInPx['1'] - 10 : rowHeightInPx[`${rowHeight}`] - 18}px, ${
+              isGrid ? '22px' : '32px'
+            })`,
     }"
     class="nc-attachment-cell relative flex color-transition flex items-center w-full xs:(min-h-12 max-h-32)"
     :class="{ 'justify-center': !active, 'justify-between': active, 'px-2': isExpandedForm }"
@@ -270,7 +272,7 @@ const keydownSpace = (e: KeyboardEvent) => {
         }"
         class="nc-attachment-wrapper flex cursor-pointer w-full items-center flex-wrap gap-2 scrollbar-thin-dull overflow-hidden mt-0 items-start"
         :style="{
-          maxHeight: isForm || isExpandedForm ? undefined : `max(100%, 22px)`,
+          maxHeight: isForm || isExpandedForm ? undefined : `max(100%, ${isGrid ? '22px' : '32px'})`,
         }"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
@@ -288,7 +290,9 @@ const keydownSpace = (e: KeyboardEvent) => {
                   :alt="item.title || `#${i}`"
                   class="rounded"
                   :class="{
-                    'h-4.5 w-8.8': rowHeight === 1,
+                    'h-5.5': !isGrid && (!rowHeight || rowHeight === 1),
+                    'h-4.5': isGrid && (!rowHeight || rowHeight === 1),
+                    'w-8.8': rowHeight === 1,
                     'h-8 w-12.8': rowHeight === 2,
                     'h-16.8 w-20.8': rowHeight === 4,
                     'h-20.8 !w-30': isForm || isExpandedForm || rowHeight === 6,

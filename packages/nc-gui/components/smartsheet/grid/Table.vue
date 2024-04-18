@@ -2161,7 +2161,7 @@ onKeyStroke('ArrowDown', onDown)
       }
 
       &.nc-cell-longtext {
-        @apply leading-5;
+        @apply leading-[18px];
 
         textarea {
           @apply pr-2;
@@ -2179,11 +2179,13 @@ onKeyStroke('ArrowDown', onDown)
       }
 
       &.nc-cell-attachment {
-        .nc-attachment-wrapper {
-          @apply !py-0.5;
+        .nc-attachment-cell {
+          .nc-attachment-wrapper {
+            @apply !py-0.5;
 
-          .nc-attachment {
-            @apply !min-h-4;
+            .nc-attachment {
+              @apply !min-h-4;
+            }
           }
         }
       }

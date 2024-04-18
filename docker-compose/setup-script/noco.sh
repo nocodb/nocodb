@@ -536,7 +536,7 @@ IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
 DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
 
 # Generate help script
-cat > ./help.sh <<EOF
+cat > nocodb_20240417_131051/help.sh <<EOF
 #!/bin/bash
 
 trap show_menu INT
@@ -548,7 +548,7 @@ $(declare -f read_number_range)
 
 # Function to display the menu
 show_menu() {
-    clear
+#    clear
     echo ""
     echo \$MSG
     echo "Service Management Menu:"
@@ -578,26 +578,70 @@ stop_service() {
 show_logs() {
     clear
     echo "Select a container for logs:"
-    echo "1. nocodb"
-    echo "2. db"
-    echo "3. nginx"
-    echo "4. redis"
-    echo "5. watchtower"
-    echo "6. All"
+
+    # Fetch the list of services
+    mapfile -t services < <($DOCKER_COMMAND compose ps --services)
+    declare -A service_replicas
+
+    # For each service, count the number of running instances
+    for service in "\${services[@]}"; do
+        # Count the number of lines that have the service name, which corresponds to the number of replicas
+        replicas=\$($DOCKER_COMMAND compose ps \$service | grep "\$service" | wc -l)
+        service_replicas["\$service"]=\$replicas
+    done
+
+    count=1
+
+    for service in "\${services[@]}"; do
+        echo "\$count. \$service (\${service_replicas[\$service]} replicas)"
+        count=\$((count + 1))
+    done
+
+    echo "A. All"
     echo "0. Back to main menu"
     echo "Enter your choice: "
+    read -n 1 log_choice
+    echo
 
-    read -n 1 log_choise
+    if [[ "\$log_choice" =~ ^[0-9]+\$ ]] && [ "\$log_choice" -gt 0 ] && [ "\$log_choice" -lt "\$count" ]; then
+        service_index=\$((log_choice-1))
+        service="\${services[\$service_index]}"
+        num_replicas="\${service_replicas[\$service]}"
 
-    case \$log_choise in
-        1) $DOCKER_COMMAND compose logs -f nocodb ;;
-        2) $DOCKER_COMMAND compose logs -f db ;;
-        3) $DOCKER_COMMAND compose logs -f nginx ;;
-        4) $DOCKER_COMMAND compose logs -f redis ;;
-        5) $DOCKER_COMMAND compose logs -f watchtower ;;
-        6) $DOCKER_COMMAND compose logs -f ;;
+        if [ "\$num_replicas" -gt 1 ]; then
+            echo "Select a replica for \$service:"
+            for i in \$(seq 1 \$num_replicas); do
+                echo "\$i. \$service replica \$i"
+            done
+            echo "A. All"
+            echo "Enter replica number: "
+            read -n 1 replica_choice
+
+            if [[ "\$replica_choice" =~ ^[0-9]+\$ ]] && [ "\$replica_choice" -gt 0 ] && [ "\$replica_choice" -le "\$num_replicas" ]; then
+                container_id=\$($DOCKER_COMMAND compose ps | grep "\$service-\$replica_choice" | cut -d " " -f 1)
+                $DOCKER_COMMAND logs -f "\$container_id"
+            elif [ "\$replica_choice" == "A" ] || [ "\$replica_choice" == "a" ]; then
+                $DOCKER_COMMAND compose logs -f \$service
+            else
+                echo "Invalid choice. Please select a correct option."
+            fi
+        else
+            # If there is only one replica, get its container ID directly
+            container_id=\$($DOCKER_COMMAND ps --filter "name=\$service" --format "{{.ID}}")
+
+            if [ -n "\$container_id" ]; then
+                $DOCKER_COMMAND logs -f "\$container_id"
+            else
+                echo "No logs available for this service."
+            fi
+        fi
+        return
+    fi
+
+    case \$log_choice in
+        A) $DOCKER_COMMAND compose logs -f ;;
         0) return ;;
-        *) echo "Invalid choice. Returning to main menu." ;;
+        *) echo "Invalid choice. Please select a correct option." ;;
     esac
 }
 

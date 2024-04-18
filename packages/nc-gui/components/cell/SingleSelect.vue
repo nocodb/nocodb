@@ -340,11 +340,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
+              class="text-small"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -378,12 +378,11 @@ const onFocus = () => {
         <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
           <span
             :style="{
-              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              color: tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                 ? '#fff'
                 : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
             }"
-            :class="{ 'text-sm': isKanban }"
+            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
               <template #title>
@@ -436,12 +435,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -476,11 +474,11 @@ const onFocus = () => {
 
 <style scoped lang="scss">
 .rounded-tag {
-  @apply py-0 px-[12px] rounded-[12px];
+  @apply py-[2px] px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[2px];
+  @apply "rounded-tag" ;
 }
 
 :deep(.ant-select-clear) {

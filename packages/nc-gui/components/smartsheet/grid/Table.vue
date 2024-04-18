@@ -2189,6 +2189,11 @@ onKeyStroke('ArrowDown', onDown)
           }
         }
       }
+
+      .ant-select-selector,
+      .ant-select-selection-search-input {
+        @apply h-[23px];
+      }
     }
   }
 

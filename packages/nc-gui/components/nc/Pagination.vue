@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import NcTooltip from '~/components/nc/Tooltip.vue'
-import { NC_GRID_VIEW_PAGE_SIZE_KEY } from '#imports'
+import { useGlobal } from '#imports'
 
 const props = defineProps<{
   current: number
@@ -23,13 +23,13 @@ const current = useVModel(props, 'current', emits)
 
 const pageSize = useVModel(props, 'pageSize', emits)
 
+const { gridViewPageSize, setGridViewPageSize } = useGlobal()
+
 const localPageSize = computed({
   get: () => {
     if (!showSizeChanger.value) return pageSize.value
 
-    const storedPageSize = !isNaN(parseInt(localStorage.getItem(NC_GRID_VIEW_PAGE_SIZE_KEY) ?? ''))
-      ? parseInt(localStorage.getItem(NC_GRID_VIEW_PAGE_SIZE_KEY) ?? '')
-      : 25
+    const storedPageSize = gridViewPageSize.value || 25
 
     if (pageSize.value !== storedPageSize) {
       pageSize.value = storedPageSize
@@ -38,7 +38,7 @@ const localPageSize = computed({
     return pageSize.value
   },
   set: (val) => {
-    localStorage.setItem(NC_GRID_VIEW_PAGE_SIZE_KEY, `${val}`)
+    setGridViewPageSize(val)
 
     pageSize.value = val
   },

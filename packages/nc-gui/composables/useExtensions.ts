@@ -39,6 +39,8 @@ export const useExtensions = createSharedComposable(() => {
 
   const { base } = storeToRefs(useBase())
 
+  const extensionsLoaded = ref(false)
+
   const availableExtensions = ref<ExtensionManifest[]>([])
 
   const activeBaseExtensions = computed(() => {
@@ -304,6 +306,9 @@ export const useExtensions = createSharedComposable(() => {
       modules[path]().then((mod: any) => {
         const manifest = mod.default as ExtensionManifest
         availableExtensions.value.push(manifest)
+        if (Object.keys(modules).length === availableExtensions.value.length) {
+          extensionsLoaded.value = true
+        }
       })
     }
 
@@ -321,6 +326,7 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   return {
+    extensionsLoaded,
     availableExtensions,
     extensionList,
     isPanelExpanded,

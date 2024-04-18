@@ -6,7 +6,7 @@ interface Prop {
 
 const { extensionId, error } = defineProps<Prop>()
 
-const { extensionList, availableExtensions, getExtensionIcon, duplicateExtension } = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions, getExtensionIcon, duplicateExtension } = useExtensions()
 
 const activeError = ref(error)
 
@@ -46,8 +46,8 @@ const component = ref<any>(null)
 const extensionManifest = ref<any>(null)
 
 onMounted(() => {
-  until(() => availableExtensions.value.length)
-    .toMatch((v) => v > 0)
+  until(extensionsLoaded)
+    .toMatch((v) => v)
     .then(() => {
       extensionManifest.value = availableExtensions.value.find((ext) => ext.id === extension.value.extensionId)
 
@@ -75,7 +75,7 @@ onMounted(() => {
       <div class="extension-header">
         <div class="extension-header-left">
           <GeneralIcon icon="drag" />
-          <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="w-6 h-6" />
+          <img v-if="extensionManifest" :src="getExtensionIcon(extensionManifest.iconUrl)" alt="icon" class="h-6" />
           <input
             v-if="titleEditMode"
             ref="titleInput"

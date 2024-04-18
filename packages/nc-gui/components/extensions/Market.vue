@@ -41,7 +41,7 @@ const onAddExtension = (ext: any) => {
         <div class="flex flex-wrap gap-4 p-2">
           <template v-for="ext of availableExtensions" :key="ext.id">
             <div class="flex border-1 rounded-lg p-2 w-[360px] cursor-pointer">
-              <div class="w-[60px] h-[60px] overflow-hidden m-auto">
+              <div class="h-[60px] overflow-hidden m-auto">
                 <img :src="getExtensionIcon(ext.iconUrl)" alt="icon" class="w-full h-full object-cover" />
               </div>
               <div class="flex flex-grow flex-col ml-3">

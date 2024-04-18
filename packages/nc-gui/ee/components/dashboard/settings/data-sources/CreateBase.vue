@@ -115,10 +115,23 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
 const clientTypes = computed(() => {
-  // TODO: enable Snowflake when it's ready
   return _clientTypes.filter((type) => {
-    return type.value !== ClientType.SNOWFLAKE
+    return (
+      ([ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value) && easterEgg.value) ||
+      ![ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(type.value)
+    )
   })
 })
 
@@ -897,6 +910,7 @@ const toggleModal = (val: boolean) => {
 
             <a-form-item class="flex justify-end !mt-5">
               <div class="flex justify-end gap-2">
+                <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
                 <NcButton
                   :type="testSuccess ? 'ghost' : 'primary'"
                   size="small"

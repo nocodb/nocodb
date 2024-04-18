@@ -2199,6 +2199,10 @@ onKeyStroke('ArrowDown', onDown)
       .ant-select-selection-search-input {
         @apply h-[23px];
       }
+
+      &.nc-cell-longtext .long-text-wrapper .nc-rich-text-grid {
+        @apply pl-0 -ml-1;
+      }
     }
   }
 

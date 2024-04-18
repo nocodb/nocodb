@@ -302,9 +302,14 @@ watch(inputWrapperRef, () => {
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
-          'top-0': isGrid && !isExpandedFormOpen && !isForm,
+          'top-0': isGrid && !isExpandedFormOpen && !isForm && !(!rowHeight || rowHeight === 1),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
         }"
+        :style="
+          isGrid && !isExpandedFormOpen && !isForm && (!rowHeight || rowHeight === 1)
+            ? { top: '50%', transform: 'translateY(-50%)' }
+            : undefined
+        "
       >
         <template #title>{{ $t('title.expand') }}</template>
         <NcButton

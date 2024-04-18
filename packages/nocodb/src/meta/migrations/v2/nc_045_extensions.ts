@@ -5,7 +5,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.EXTENSIONS, (table) => {
     table.string('id', 20).primary();
 
-    table.string('base_id', 20);
+    table.string('base_id', 20).index();
 
     table.string('fk_user_id', 20);
 

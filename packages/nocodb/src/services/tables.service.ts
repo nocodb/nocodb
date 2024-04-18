@@ -76,13 +76,15 @@ export class TablesService {
       );
     }
 
+    if (source.type === 'databricks') {
+      param.table.table_name = param.table.table_name.replace(/\s/g, '_');
+    }
+
     if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
       if (!param.table.table_name.startsWith(base.prefix)) {
         param.table.table_name = `${base.prefix}${param.table.table_name}`;
       }
     }
-
-    param.table.table_name = param.table.table_name.replace(/ /g, '_');
 
     param.table.table_name = DOMPurify.sanitize(param.table.table_name);
 
@@ -514,6 +516,13 @@ export class TablesService {
       );
     }
 
+    if (source.type === 'databricks') {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name.replace(
+        /\s/g,
+        '_',
+      );
+    }
+
     if (source.is_meta && base.prefix) {
       if (!tableCreatePayLoad.table_name.startsWith(base.prefix)) {
         tableCreatePayLoad.table_name = `${base.prefix}_${tableCreatePayLoad.table_name}`;
@@ -521,7 +530,7 @@ export class TablesService {
     }
 
     tableCreatePayLoad.table_name = DOMPurify.sanitize(
-      tableCreatePayLoad.table_name.replace(/ /g, '_'),
+      tableCreatePayLoad.table_name,
     );
 
     // validate table name

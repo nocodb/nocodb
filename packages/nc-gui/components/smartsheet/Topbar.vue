@@ -14,6 +14,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
 
+const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 </script>
 
@@ -35,6 +37,15 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
       <div class="flex-1" />
 
       <GeneralApiLoader v-if="!isMobileMode" />
+
+      <div
+        class="flex items-center px-2 py-1 gap-2 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600"
+        :class="{ 'bg-orange-50': isPanelExpanded, 'text-orange-500': isPanelExpanded }"
+        @click="toggleExtensionPanel"
+      >
+        <GeneralIcon icon="puzzle" :class="{ 'border-l-1 border-white': isPanelExpanded }" />
+        Extensions
+      </div>
 
       <LazyGeneralShareProject
         v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"

@@ -18,8 +18,6 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = useGlobal()
 
-const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
-
 const containerRef = ref<HTMLElement>()
 
 const isTab = ref(true)
@@ -43,7 +41,7 @@ const { allowCSVDownload } = useSharedView()
   <div
     v-if="!isMobileMode || !isCalendar"
     ref="containerRef"
-    class="nc-table-toolbar relative py-1 pl-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] z-7"
+    class="nc-table-toolbar relative py-1 px-2.25 xs:(px-1) flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
@@ -85,15 +83,6 @@ const { allowCSVDownload } = useSharedView()
           'w-full': isMobileMode,
         }"
       />
-
-      <div
-        class="flex items-center px-2 py-1 gap-2 border-l-1 border-t-1 border-b-1 rounded-l-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600"
-        :class="{ 'bg-orange-50': isPanelExpanded }"
-        @click="toggleExtensionPanel"
-      >
-        <GeneralIcon icon="puzzle" :class="{ 'text-orange-500': isPanelExpanded, 'border-l-1 border-white': isPanelExpanded }" />
-        <template v-if="!isPanelExpanded">Extensions</template>
-      </div>
     </template>
   </div>
 </template>

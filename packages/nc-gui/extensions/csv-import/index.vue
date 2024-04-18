@@ -37,7 +37,6 @@ const generatedColumnTypes = [
   UITypes.Formula,
   UITypes.Lookup,
   UITypes.Rollup,
-  UITypes.AutoNumber,
 ]
 
 const tableList = computed(() => {

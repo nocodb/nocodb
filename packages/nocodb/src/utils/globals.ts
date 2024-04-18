@@ -47,7 +47,7 @@ export enum MetaTable {
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
-  EXTENSIONS = 'nc_extensions_v2',
+  EXTENSIONS = 'nc_extensions',
 }
 
 export enum MetaTableOldV2 {

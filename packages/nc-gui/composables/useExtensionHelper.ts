@@ -151,17 +151,19 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
       insert.push(
         ...chunk.filter(
           (record: Record<string, any>) =>
-            !list.some((r: Record<string, any>) => r[upsertField.title!] === record[upsertField.title!]),
+            !list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
         ),
       )
 
       update.push(
         ...chunk
           .filter((record: Record<string, any>) =>
-            list.some((r: Record<string, any>) => r[upsertField.title!] === record[upsertField.title!]),
+            list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
           )
           .map((record: Record<string, any>) => {
-            const existingRecord = list.find((r: Record<string, any>) => r[upsertField.title!] === record[upsertField.title!])
+            const existingRecord = list.find(
+              (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
+            )
             return {
               ...rowPkData(existingRecord!, tableMeta.columns!),
               ...record,

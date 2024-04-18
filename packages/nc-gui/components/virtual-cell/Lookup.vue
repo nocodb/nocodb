@@ -105,7 +105,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   <div
     class="nc-cell-field h-full w-full nc-lookup-cell"
     tabindex="-1"
-    :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
+    :style="{
+      height: isGroupByLabel
+        ? undefined
+        : rowHeight
+        ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+        : `2.85rem`,
+    }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
     <div
@@ -170,6 +176,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                 <div
                   v-for="(v, i) of arrValue"
                   :key="i"
+                  class="flex-none"
                   :class="{
                     'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
                     'border-gray-200 rounded border-1': ![

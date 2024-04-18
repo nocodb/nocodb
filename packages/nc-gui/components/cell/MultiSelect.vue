@@ -502,7 +502,7 @@ const onFocus = () => {
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :class="{ 'caret-transparent': !hasEditRoles }"
-        :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
+        :dropdown-class-name="`nc-dropdown-multi-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
         @search="search"
         @keydown="onKeyDown"
         @focus="onFocus"

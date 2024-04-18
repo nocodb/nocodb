@@ -37,7 +37,21 @@ export class SelectOptionCellPageObject extends BasePage {
       if (!ignoreDblClick) await selectCell.click();
     }
 
-    await selectCell.click();
+    if ((await selectCell.getAttribute('class')).includes('active')) {
+      await selectCell.locator('.ant-select').first().waitFor({ state: 'visible' });
+
+      await selectCell
+        .locator('.ant-select')
+        .first()
+        .click({
+          position: {
+            x: 2,
+            y: 1,
+          },
+        });
+    } else {
+      await selectCell.click();
+    }
 
     if (multiSelect) {
       await this.rootPage.locator('.nc-dropdown-multi-select-cell').waitFor({ state: 'visible' });

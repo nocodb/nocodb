@@ -1423,7 +1423,7 @@ onKeyStroke('ArrowDown', onDown)
                   v-for="(col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
                   class="!bg-gray-50 h-full border-b-1 border-r-1"
-                  :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
+                  :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
                 >
                   <a-skeleton
                     :active="true"
@@ -1466,9 +1466,9 @@ onKeyStroke('ArrowDown', onDown)
                   :data-col="col.id"
                   :data-title="col.title"
                   :style="{
-                    'min-width': gridViewCols[col.id]?.width || '200px',
-                    'max-width': gridViewCols[col.id]?.width || '200px',
-                    'width': gridViewCols[col.id]?.width || '200px',
+                    'min-width': gridViewCols[col.id]?.width || '180px',
+                    'max-width': gridViewCols[col.id]?.width || '180px',
+                    'width': gridViewCols[col.id]?.width || '180px',
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -1622,7 +1622,7 @@ onKeyStroke('ArrowDown', onDown)
                     v-for="(col, colIndex) of dummyColumnDataForLoading"
                     :key="colIndex"
                     class="border-b-1 border-r-1"
-                    :class="{ 'min-w-50': colIndex !== 0, 'min-w-21.25': colIndex === 0 }"
+                    :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
                   ></td>
                 </tr>
               </template>
@@ -2121,7 +2121,7 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   td:not(:first-child) {
-    @apply px-1;
+    @apply px-3;
 
     &.align-top {
       @apply py-2;
@@ -2138,7 +2138,7 @@ onKeyStroke('ArrowDown', onDown)
 
     :deep(.nc-cell),
     :deep(.nc-virtual-cell) {
-      @apply px-2 text-small text-gray-600;
+      @apply text-small text-gray-600;
       font-weight: 500;
 
       .nc-cell-field,
@@ -2199,10 +2199,14 @@ onKeyStroke('ArrowDown', onDown)
         @apply pl-0 -ml-1;
       }
 
-      .ant-select:not(.ant-select-customize-input) .ant-select-selector {
-        @apply !border-none !h-[25px] flex-nowrap;
+      .ant-select:not(.ant-select-customize-input) {
+        .ant-select-selector {
+          @apply !border-none !h-[25px] flex-nowrap pr-4.5;
+        }
+        .ant-select-arrow {
+          @apply right-[3px];
+        }
       }
-
       .ant-select-selection-search-input {
         @apply !h-[23px];
       }

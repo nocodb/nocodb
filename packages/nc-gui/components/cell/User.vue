@@ -457,7 +457,7 @@ const filterOption = (input: string, option: any) => {
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :class="{ 'caret-transparent': !hasEditRoles }"
-        :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
+        :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
         :filter-option="filterOption"
         @search="search"
         @keydown.stop

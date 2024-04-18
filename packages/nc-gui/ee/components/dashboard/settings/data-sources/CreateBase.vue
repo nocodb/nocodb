@@ -147,6 +147,13 @@ const validators = computed(() => {
         'dataSource.connection.schema': [fieldRequiredValidator()],
       }
       break
+    case ClientType.DATABRICKS:
+      clientValidations = {
+        'dataSource.connection.token': [fieldRequiredValidator()],
+        'dataSource.connection.host': [fieldRequiredValidator()],
+        'dataSource.connection.path': [fieldRequiredValidator()],
+      }
+      break
     case ClientType.PG:
     case ClientType.MSSQL:
       clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
@@ -655,6 +662,43 @@ const toggleModal = (val: boolean) => {
                   <a-input
                     v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
                     class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+              </template>
+
+              <template v-else-if="formState.dataSource.client === ClientType.DATABRICKS">
+                <a-form-item label="Token" v-bind="validateInfos['dataSource.connection.token']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).token"
+                    class="nc-extdb-host-token"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Host" v-bind="validateInfos['dataSource.connection.host']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).host"
+                    class="nc-extdb-host-address"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Path" v-bind="validateInfos['dataSource.connection.path']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).path"
+                    class="nc-extdb-host-path"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
+                    class="nc-extdb-host-database"
+                  />
+                </a-form-item>
+
+                <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                  <a-input
+                    v-model:value="(formState.dataSource.connection as DatabricksConnection).schema"
+                    class="nc-extdb-host-schema"
                   />
                 </a-form-item>
               </template>

@@ -337,7 +337,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
 
         if (ai) {
-          if (this.isSqlite) {
+          if (this.isSqlite || this.isDatabricks) {
             // sqlite doesnt return id after insert
             id = (
               await this.execAndParse(
@@ -1269,7 +1269,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           prevData.push(oldRecord);
         }
         const wherePk = await this._wherePk(pkValues);
-        toBeUpdated.push({ d, wherePk });
+
+        // remove pk from update data for databricks
+        if (this.isDatabricks) {
+          const dWithoutPk = {};
+
+          for (const k in d) {
+            if (!(k in wherePk)) {
+              dWithoutPk[k] = d[k];
+            }
+          }
+
+          toBeUpdated.push({ d: dWithoutPk, wherePk });
+        } else {
+          toBeUpdated.push({ d, wherePk });
+        }
+
         updatePkValues.push(pkValues);
       }
 

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { promisify } from 'util';
+import { DatabricksClient } from 'nc-help';
 import MySqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
@@ -8,6 +9,7 @@ import PgClient from '~/db/sql-client/lib/pg/PgClient';
 import YugabyteClient from '~/db/sql-client/lib/pg/YugabyteClient';
 import TidbClient from '~/db/sql-client/lib/mysql/TidbClient';
 import VitessClient from '~/db/sql-client/lib/mysql/VitessClient';
+import DbrClient from '~/db/sql-client/lib/databricks/DatabricksClient';
 
 export class SqlClientFactory {
   static create(connectionConfig) {
@@ -33,6 +35,10 @@ export class SqlClientFactory {
       if (connectionConfig.meta.dbtype === 'yugabyte')
         return new YugabyteClient(connectionConfig);
       return new PgClient(connectionConfig);
+    } else if (connectionConfig.client === 'databricks') {
+      connectionConfig.client = DatabricksClient;
+      connectionConfig.pool = { min: 0, max: 1 };
+      return new DbrClient(connectionConfig);
     }
 
     throw new Error('Database not supported');

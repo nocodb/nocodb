@@ -69,6 +69,9 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
             return res;
           },
         },
+        ...(connectionConfig.client === 'databricks'
+          ? { pool: { min: 0, max: 10 } }
+          : {}),
       } as any);
       return this.connectionRefs[source.base_id][source.id];
     }

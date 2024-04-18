@@ -372,70 +372,30 @@ class DatabricksClient extends KnexClient {
     const _func = this.createDatabaseIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
-    let tempSqlClient;
-
-    return;
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
-      let rows = [];
-      try {
-        connectionParamsWithoutDb.connection.database = 'postgres';
-        tempSqlClient = knex({
-          ...connectionParamsWithoutDb,
-          pool: { min: 0, max: 1 },
-        });
+      // check if catalog exists
+      const catalogs = await this.sqlClient.raw(`SHOW CATALOGS LIKE ?`, [
+        args.database,
+      ]);
 
-        log.debug('checking if db exists');
-        rows = (
-          await tempSqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
-            [args.database],
-          )
-        ).rows;
-      } catch (e) {
-        log.debug('checking if db exists');
-        rows = (
-          await this.sqlClient.raw(
-            `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
-            [args.database],
-          )
-        ).rows;
-      }
-      if (rows.length === 0) {
-        log.debug('creating database:', args);
-        await tempSqlClient.raw(`CREATE DATABASE ?? ENCODING 'UTF8'`, [
-          args.database,
-        ]);
-      }
-
-      const schemaName = this.connectionConfig.schema || 'default';
-
-      // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
-      const schemaExists = !!(
-        await this.sqlClient.raw(
-          `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
-          [schemaName],
-        )
-      ).rows?.[0];
-
-      if (!schemaExists) {
-        await this.sqlClient.raw(
-          `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
-          [schemaName, this.connectionConfig.connection.user],
+      if (catalogs.length === 0) {
+        throw new Error(
+          'We do not support creating catalogs yet, please use an existing catalog',
         );
       }
 
-      // this.sqlClient = knex(this.connectionConfig);
+      // check if database exists
+      const databases = await this.sqlClient.raw(`SHOW DATABASES LIKE ?`, [
+        args.schema,
+      ]);
+
+      if (databases.length === 0) {
+        await this.sqlClient.raw(`CREATE DATABASE ${args.schema}`);
+      }
     } catch (e) {
       log.ppe(e, _func);
       throw e;
-    } finally {
-      if (tempSqlClient) {
-        await tempSqlClient.destroy();
-      }
     }
 
     log.api(`${_func}: result`, result);
@@ -2555,7 +2515,12 @@ class DatabricksClient extends KnexClient {
   }
 
   get schema(): string {
-    return (this.connectionConfig && this.connectionConfig.schema) || 'default';
+    return (
+      (this.connectionConfig &&
+        this.connectionConfig.connection &&
+        this.connectionConfig.connection.schema) ||
+      'default'
+    );
   }
 
   /**

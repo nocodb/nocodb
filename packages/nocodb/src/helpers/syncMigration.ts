@@ -35,7 +35,6 @@ export async function syncBaseMigration(
 
     await migrator.migrationsUp({ source });
   } catch (e) {
-    console.log(e);
-    // throw e;
+    throw e;
   }
 }

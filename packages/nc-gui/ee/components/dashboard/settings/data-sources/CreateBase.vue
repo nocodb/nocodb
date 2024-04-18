@@ -357,8 +357,7 @@ onUnmounted(() => {
 })
 
 function loadWorkspacesWithInterval() {
-  // keep checking for workspace status every 10 seconds if workspace is upgrading
-  timerRef = setTimeout(async () => {
+  ;(async () => {
     if (activeWorkspace.value && activeWorkspace.value.status !== WorkspaceStatus.CREATED) {
       if (randomMessages.length) {
         const random = Math.floor(Math.random() * randomMessages.length)
@@ -366,7 +365,8 @@ function loadWorkspacesWithInterval() {
         randomMessages.splice(random, 1)
       }
       await loadWorkspaces(true)
-      loadWorkspacesWithInterval()
+      // keep checking for workspace status every 5 seconds if workspace is upgrading
+      timerRef = setTimeout(loadWorkspacesWithInterval, 5000)
     } else {
       if (baseId.value) {
         await loadProject(baseId.value, true)
@@ -376,7 +376,7 @@ function loadWorkspacesWithInterval() {
       goToDashboard.value = true
       creatingSource.value = false
     }
-  }, 10000)
+  })()
 }
 
 const { $poller } = useNuxtApp()
@@ -568,6 +568,39 @@ watch(
 const toggleModal = (val: boolean) => {
   vOpen.value = val
 }
+
+const refreshState = (keepForm = false) => {
+  if (!keepForm) {
+    formState.value = {
+      title: formState.value.title,
+      dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
+      inflection: {
+        inflectionColumn: 'none',
+        inflectionTable: 'none',
+      },
+      sslUse: SSLUsage.No,
+      extraParameters: [],
+    }
+  }
+  testSuccess.value = false
+  testConnectionError.value = null
+  goBack.value = false
+  creatingSource.value = false
+  goToDashboard.value = false
+  testingConnection.value = false
+  progressQueue.value = []
+  progress.value = []
+  step.value = 1
+}
+
+const onBack = () => {
+  refreshState(true)
+}
+
+const onDashboard = () => {
+  refreshState()
+  vOpen.value = false
+}
 </script>
 
 <template>
@@ -576,7 +609,6 @@ const toggleModal = (val: boolean) => {
     :closable="!creatingSource"
     :keyboard="!creatingSource"
     :mask-closable="false"
-    :destroy-on-close="step === 2"
     size="medium"
     @update:visible="toggleModal"
   >
@@ -990,10 +1022,10 @@ const toggleModal = (val: boolean) => {
 
           <!--        Go to Dashboard -->
           <div v-if="goToDashboard" class="flex justify-center items-center">
-            <a-button class="mt-4" size="large" @click="vOpen = false">🚀 Time to build & scale now 🚀</a-button>
+            <a-button class="mt-4" size="large" @click="onDashboard">🚀 Time to build & scale now 🚀</a-button>
           </div>
           <div v-else-if="goBack" class="flex justify-center items-center">
-            <a-button class="mt-4" size="large" @click="vOpen = false">Close</a-button>
+            <a-button class="mt-4" size="large" @click="onBack">Go Back</a-button>
           </div>
         </template>
       </div>

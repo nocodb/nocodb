@@ -77,7 +77,9 @@ export class TablesService {
     }
 
     if (source.type === 'databricks') {
-      param.table.table_name = param.table.table_name.replace(/\s/g, '_');
+      param.table.table_name = param.table.table_name
+        .replace(/\s/g, '_')
+        .toLowerCase();
     }
 
     if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
@@ -517,10 +519,9 @@ export class TablesService {
     }
 
     if (source.type === 'databricks') {
-      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name.replace(
-        /\s/g,
-        '_',
-      );
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name
+        .replace(/\s/g, '_')
+        .toLowerCase();
     }
 
     if (source.is_meta && base.prefix) {
@@ -605,6 +606,7 @@ export class TablesService {
         // - 5 is a buffer for suffix
         column.column_name = sanitizeColumnName(
           column.column_name.slice(0, mxColumnLength - 5),
+          source.type,
         );
 
         if (uniqueColumnNameCount[column.column_name]) {

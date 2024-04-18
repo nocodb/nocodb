@@ -165,7 +165,10 @@ export class ColumnsService {
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     if (!isVirtualCol(param.column)) {
-      param.column.column_name = sanitizeColumnName(param.column.column_name);
+      param.column.column_name = sanitizeColumnName(
+        param.column.column_name,
+        source.type,
+      );
     }
 
     // trim leading and trailing spaces from column title as knex trim them by default
@@ -1458,7 +1461,10 @@ export class ColumnsService {
       const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
       if (!isVirtualCol(param.column)) {
-        param.column.column_name = sanitizeColumnName(param.column.column_name);
+        param.column.column_name = sanitizeColumnName(
+          param.column.column_name,
+          source.type,
+        );
       }
 
       // trim leading and trailing spaces from column title as knex trim them by default

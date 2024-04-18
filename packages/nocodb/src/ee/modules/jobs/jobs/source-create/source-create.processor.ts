@@ -45,12 +45,21 @@ export class SourceCreateProcessor {
       this.debugLog(log);
     };
 
-    const createdSource = await this.sourcesService.baseCreate({
-      baseId,
-      source,
-      logger: logBasic,
-      req: {},
-    });
+    const { source: createdSource, error } =
+      await this.sourcesService.baseCreate({
+        baseId,
+        source,
+        logger: logBasic,
+        req: {},
+      });
+
+    if (error) {
+      await this.sourcesService.baseDelete({
+        sourceId: createdSource.id,
+        req: {},
+      });
+      throw error;
+    }
 
     if (createdSource.isMeta()) {
       delete createdSource.config;

@@ -141,8 +141,6 @@ export class MetaDiffsService {
     const changes: Array<MetaDiff> = [];
     const virtualRelationColumns: Column<LinkToAnotherRecordColumn>[] = [];
 
-    const isDatabricks = sqlClient.knex.clientType() === 'databricks';
-
     // @ts-ignore
     const tableList: Array<{ tn: string }> = (
       await sqlClient.tableList({ schema: source.getConfig()?.schema })
@@ -180,10 +178,7 @@ export class MetaDiffsService {
       if (table.tn === 'nc_evolutions') continue;
 
       const oldMetaIdx = oldTableMetas.findIndex(
-        (m) =>
-          m.table_name === table.tn ||
-          (isDatabricks &&
-            m.table_name.toLowerCase() === table.tn.toLowerCase()),
+        (m) => m.table_name === table.tn,
       );
 
       // new table
@@ -228,10 +223,7 @@ export class MetaDiffsService {
 
       for (const column of colListRef[table.tn]) {
         const oldColIdx = oldMeta.columns.findIndex(
-          (c) =>
-            c.column_name === column.cn ||
-            (isDatabricks &&
-              c.column_name.toLowerCase() === column.cn.toLowerCase()),
+          (c) => c.column_name === column.cn,
         );
 
         // new table

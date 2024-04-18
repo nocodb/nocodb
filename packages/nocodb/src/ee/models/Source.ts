@@ -12,7 +12,7 @@ import { stringifyMetaProp } from '~/utils/modelUtils';
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
   meta?: any;
-  constructor(source: Partial<Source>) {
+  constructor(source: Partial<SourceType>) {
     super(source);
   }
 

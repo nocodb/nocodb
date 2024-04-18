@@ -320,7 +320,7 @@ export class AtImportProcessor {
       const uniqueFieldNameGen = getUniqueNameGenerator('field', table_name);
 
       // truncate to 50 chars if character if exceeds above 50
-      const col_name = sanitizeColumnName(name)?.slice(0, 50);
+      const col_name = sanitizeColumnName(name, getRootDbType())?.slice(0, 50);
 
       // for knex, replace . with _
       const col_alias = name.trim().replace(/\./g, '_');
@@ -498,7 +498,10 @@ export class AtImportProcessor {
 
         // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
         table.title = tblSchema[i].name;
-        let sanitizedName = sanitizeColumnName(tblSchema[i].name);
+        let sanitizedName = sanitizeColumnName(
+          tblSchema[i].name,
+          getRootDbType(),
+        );
 
         // truncate to 50 chars if character if exceeds above 50
         // upto 64 should be fine but we are keeping it to 50 since

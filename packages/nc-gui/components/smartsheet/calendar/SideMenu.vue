@@ -8,7 +8,7 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const emit = defineEmits(['expand-record', 'newRecord'])
+const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const INFINITY_SCROLL_THRESHOLD = 100
 

@@ -146,7 +146,7 @@ const importMeta = computed(() => {
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
 // watch dialogShow to init or terminate worker
-if (isWorkerSupport) {
+if (isWorkerSupport && process.env.NODE_ENV === 'production') {
   watch(
     dialogShow,
     async (val) => {

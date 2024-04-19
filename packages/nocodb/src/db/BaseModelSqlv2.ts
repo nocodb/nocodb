@@ -2770,16 +2770,16 @@ class BaseModelSqlv2 {
                 { raw: true, first: true },
               )
             )?.__nc_ai_id;
-          } else if (this.isSnowflake) {
+          } else if (this.isSnowflake || this.isDatabricks) {
             id = (
               await this.execAndParse(
                 this.dbDriver(this.tnPath).max(ai.column_name, {
-                  as: 'id',
+                  as: '__nc_ai_id',
                 }),
                 null,
                 { raw: true, first: true },
               )
-            ).id;
+            ).__nc_ai_id;
           }
           response = await this.readByPk(
             this.extractCompositePK({ rowId: id, insertObj, ag }),
@@ -3054,6 +3054,10 @@ class BaseModelSqlv2 {
     return this.clientType === 'snowflake';
   }
 
+  get isDatabricks() {
+    return this.clientType === 'databricks';
+  }
+
   get clientType() {
     return this.dbDriver.clientType();
   }
@@ -3161,16 +3165,16 @@ class BaseModelSqlv2 {
                 },
               )
             )?.__nc_ai_id;
-          } else if (this.isSnowflake) {
+          } else if (this.isSnowflake || this.isDatabricks) {
             rowId = (
               await this.execAndParse(
                 this.dbDriver(this.tnPath).max(ai.column_name, {
-                  as: 'id',
+                  as: '__nc_ai_id',
                 }),
                 null,
                 { raw: true, first: true },
               )
-            )?.id;
+            )?.__nc_ai_id;
           }
           // response = await this.readByPk(
           //   id,
@@ -4477,7 +4481,7 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          if (this.isSnowflake) {
+          if (this.isSnowflake || this.isDatabricks) {
             const parentPK = this.dbDriver(parentTn)
               .select(parentColumn.column_name)
               .where(_wherePk(parentTable.primaryKeys, childId))

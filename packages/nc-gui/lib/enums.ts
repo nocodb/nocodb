@@ -5,6 +5,7 @@ export enum ClientType {
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
   SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
 }
 
 export enum Language {

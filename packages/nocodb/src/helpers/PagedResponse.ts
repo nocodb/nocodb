@@ -44,7 +44,6 @@ export class PagedResponseImpl<T> {
     }
 
     if (additionalProps) Object.assign(this, additionalProps);
-
   }
 
   list: Array<T>;

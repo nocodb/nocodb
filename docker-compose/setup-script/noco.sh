@@ -252,7 +252,7 @@ echo "Show Advanced Options [Y/N] (default: N): "
 read -r ADVANCED_OPTIONS
 
 if [ -n "$ADVANCED_OPTIONS" ] && { [ "$ADVANCED_OPTIONS" = "Y" ] || [ "$ADVANCED_OPTIONS" = "y" ]; }; then
-    NUM_CORES=$(nproc)
+    NUM_CORES=$(nproc || sysctl -n hw.ncpu || echo 1)
     echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
     NUM_INSTANCES=$(read_number_range 1 "$NUM_CORES")
 
@@ -640,9 +640,7 @@ show_logs() {
     elif [ "\$log_choice" == "A" ] || [ "\$log_choice" == "a" ]; then
         trap 'show_logs' INT
         $DOCKER_COMMAND compose logs -f
-    elif [ "\$log_choice" == "0" ]; then
-        return
-    else
+    elif [ "\$log_choice" != "0" ]; then
         show_logs
     fi
 
@@ -665,7 +663,7 @@ upgrade_service() {
 
 # Function to scale the service
 scale_service() {
-    num_cores=\$(nproc)
+    num_cores=\$(nproc || sysctl -n hw.ncpu || echo 1)
     current_scale=\$($DOCKER_COMMAND compose ps -q nocodb | wc -l)
     echo -e "\nCurrent number of instances: \$current_scale"
     echo "How many instances of NocoDB do you want to run (Maximum: \${num_cores}) ? (default: 1): "

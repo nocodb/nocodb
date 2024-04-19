@@ -42,6 +42,8 @@ packages/nocodb/tsconfig.ee-on-prem.json
 packages/nocodb/tsconfig.ee-cloud.json
 packages/nocodb/tsconfig.eslint.json
 packages/nocodb/docker
+packages/nc-gui/tsconfig.json
+.eslintrc.js
 components.d.ts
 pnpm-lock.yaml
 pnpm-workspace.yaml

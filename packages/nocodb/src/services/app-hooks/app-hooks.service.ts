@@ -248,6 +248,9 @@ export class AppHooksService {
     event: AppEvents.USER_EMAIL_VERIFICATION,
     data: UserEmailVerificationEvent,
   ): void;
+  emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
+  emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;
+  emit(event: AppEvents.EXTENSION_DELETE, data: any): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

@@ -249,6 +249,9 @@ export class MetaService {
       case MetaTable.API_TOKENS:
         prefix = 'tkn';
         break;
+      case MetaTable.EXTENSIONS:
+        prefix = 'ext';
+        break;
       default:
         prefix = 'nc';
         break;

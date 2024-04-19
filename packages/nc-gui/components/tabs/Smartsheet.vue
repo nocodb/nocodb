@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Pane, Splitpanes } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
@@ -55,6 +57,8 @@ const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViews
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar } = useProvideSmartsheetStore(activeView, meta)
 
 useSqlEditor()
+
+const { isPanelExpanded } = useExtensions()
 
 const reloadViewDataEventHook = createEventHook()
 
@@ -163,44 +167,94 @@ const onDrop = async (event: DragEvent) => {
 watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
+
+const { extensionPanelSize } = useExtensions()
+
+const onResize = (sizes: { min: number; max: number; size: number }[]) => {
+  if (sizes.length === 2) {
+    if (!sizes[1].size) return
+    extensionPanelSize.value = sizes[1].size
+  }
+}
 </script>
 
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
-      <div v-if="openedViewsTab === 'view'" class="flex flex-col h-full flex-1 min-w-0">
-        <LazySmartsheetToolbar v-if="!isForm" />
-        <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">
-          <Transition name="layout" mode="out-in">
-            <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
-              <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
-                <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+      <Splitpanes v-if="openedViewsTab === 'view'" class="nc-extensions-content-resizable-wrapper" @resized="onResize">
+        <Pane class="flex flex-col h-full flex-1 min-w-0" size="60">
+          <LazySmartsheetToolbar v-if="!isForm" />
+          <div class="flex flex-row w-full" :style="{ height: isForm ? '100%' : 'calc(100% - var(--topbar-height))' }">
+            <Transition name="layout" mode="out-in">
+              <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                  <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
-                <template v-if="activeView && meta">
-                  <LazySmartsheetGallery v-if="isGallery" />
+                  <template v-if="activeView && meta">
+                    <LazySmartsheetGallery v-if="isGallery" />
 
-                  <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                    <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                  <LazySmartsheetKanban v-else-if="isKanban" />
+                    <LazySmartsheetKanban v-else-if="isKanban" />
 
-                  <LazySmartsheetCalendar v-else-if="isCalendar" />
+                    <LazySmartsheetCalendar v-else-if="isCalendar" />
 
-                  <LazySmartsheetMap v-else-if="isMap" />
-                </template>
+                    <LazySmartsheetMap v-else-if="isMap" />
+                  </template>
+                </div>
               </div>
-            </div>
-          </Transition>
-        </div>
-      </div>
+            </Transition>
+          </div>
+        </Pane>
+        <ExtensionsPane />
+      </Splitpanes>
       <SmartsheetDetails v-else />
     </div>
     <LazySmartsheetExpandedFormDetached />
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
 :deep(.nc-right-sidebar.ant-layout-sider-collapsed) {
   @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+
+.nc-extensions-content-resizable-wrapper > {
+  .splitpanes__splitter {
+    @apply !w-0 relative overflow-visible;
+  }
+  .splitpanes__splitter:before {
+    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
+    content: '';
+  }
+
+  .splitpanes__splitter:hover:before {
+    @apply bg-scrollbar;
+    width: 3px !important;
+    left: 0px;
+  }
+
+  .splitpanes--dragging .splitpanes__splitter:before {
+    @apply bg-scrollbar;
+    width: 3px !important;
+    left: 0px;
+  }
+
+  .splitpanes--dragging .splitpanes__splitter {
+    @apply w-1 mr-0;
+  }
+}
+
+.splitpanes__pane {
+  transition: width 0.15s ease-in-out !important;
+}
+
+.splitpanes--dragging {
+  cursor: col-resize;
+
+  > .splitpanes__pane {
+    transition: none !important;
+  }
 }
 </style>

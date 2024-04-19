@@ -135,7 +135,14 @@ const tempPageVal = ref(page.value)
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>
-        <a-input v-model:value="tempPageVal" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(tempPageVal)" @blur="tempPageVal = page">
+        <a-input
+          v-model:value="tempPageVal"
+          size="small"
+          class="ml-1 !text-xs"
+          type="number"
+          @keydown.enter="changePage(tempPageVal)"
+          @blur="tempPageVal = page"
+        >
           <template #suffix>
             <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
           </template>

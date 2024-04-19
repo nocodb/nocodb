@@ -137,6 +137,10 @@ export enum AppEvents {
   ATTACHMENT_UPLOAD = 'attachment.upload',
 
   APIS_CREATED = 'apis.created',
+
+  EXTENSION_CREATE = 'extension.create',
+  EXTENSION_UPDATE = 'extension.update',
+  EXTENSION_DELETE = 'extension.delete',
 }
 
 export enum ClickhouseTables {

@@ -173,7 +173,7 @@ const coreWrapperRef = ref<HTMLElement>()
 const viewWidth = ref(0)
 
 eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD) {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
 })

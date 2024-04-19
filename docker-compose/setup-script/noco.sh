@@ -536,7 +536,7 @@ IS_DOCKER_REQUIRE_SUDO=$(check_for_docker_sudo)
 DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || echo "docker")
 
 # Generate help script
-cat > nocodb_20240417_131051/help.sh <<EOF
+cat > help.sh <<EOF
 #!/bin/bash
 
 trap show_menu INT
@@ -548,7 +548,7 @@ $(declare -f read_number_range)
 
 # Function to display the menu
 show_menu() {
-#    clear
+    clear
     echo ""
     echo \$MSG
     echo "Service Management Menu:"

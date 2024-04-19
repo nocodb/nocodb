@@ -52,6 +52,7 @@ export interface StoredState {
   hiddenRelease: string | null
   isMobileMode: boolean | null
   lastOpenedWorkspaceId: string | null
+  gridViewPageSize: number
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -87,6 +88,7 @@ export interface Actions {
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined
+  setGridViewPageSize: (pageSize: number) => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

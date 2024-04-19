@@ -539,16 +539,13 @@ DOCKER_COMMAND=$([ "$IS_DOCKER_REQUIRE_SUDO" = "y" ] && echo "sudo docker" || ec
 cat > help.sh <<EOF
 #!/bin/bash
 
-trap show_menu INT
-
-
 $(declare -f read_number)
 
 $(declare -f read_number_range)
 
 # Function to display the menu
 show_menu() {
-    clear
+#    clear
     echo ""
     echo \$MSG
     echo "Service Management Menu:"
@@ -573,6 +570,30 @@ stop_service() {
     echo -e "\nStopping nocodb..."
     $DOCKER_COMMAND compose stop
 }
+
+show_logs_sub_menu() {
+    clear
+    echo "Select a replica for \$1:"
+    for i in \$(seq 1 \$2); do
+        echo "\$i. \$1 replica \$i"
+    done
+    echo "A. All"
+    echo "0. Back to Logs Menu"
+    echo "Enter replica number: "
+    read -n 1 replica_choice
+
+    if [[ "\$replica_choice" =~ ^[0-9]+\$ ]] && [ "\$replica_choice" -gt 0 ] && [ "\$replica_choice" -le "\$2" ]; then
+        container_id=\$($DOCKER_COMMAND compose ps | grep "\$1-\$replica_choice" | cut -d " " -f 1)
+        $DOCKER_COMMAND logs -f "\$container_id"
+    elif [ "\$replica_choice" == "A" ] || [ "\$replica_choice" == "a" ]; then
+        $DOCKER_COMMAND compose logs -f \$1
+    elif [ "\$replica_choice" == "0" ]; then
+        show_logs
+    else
+        show_logs_sub_menu "\$1" "\$2"
+    fi
+}
+
 
 # Function to show logs
 show_logs() {
@@ -609,40 +630,23 @@ show_logs() {
         num_replicas="\${service_replicas[\$service]}"
 
         if [ "\$num_replicas" -gt 1 ]; then
-            echo "Select a replica for \$service:"
-            for i in \$(seq 1 \$num_replicas); do
-                echo "\$i. \$service replica \$i"
-            done
-            echo "A. All"
-            echo "Enter replica number: "
-            read -n 1 replica_choice
-
-            if [[ "\$replica_choice" =~ ^[0-9]+\$ ]] && [ "\$replica_choice" -gt 0 ] && [ "\$replica_choice" -le "\$num_replicas" ]; then
-                container_id=\$($DOCKER_COMMAND compose ps | grep "\$service-\$replica_choice" | cut -d " " -f 1)
-                $DOCKER_COMMAND logs -f "\$container_id"
-            elif [ "\$replica_choice" == "A" ] || [ "\$replica_choice" == "a" ]; then
-                $DOCKER_COMMAND compose logs -f \$service
-            else
-                echo "Invalid choice. Please select a correct option."
-            fi
+            trap 'show_logs_sub_menu "\$service" "\$num_replicas"' INT
+            show_logs_sub_menu "\$service" "\$num_replicas"
+            trap - INT
         else
-            # If there is only one replica, get its container ID directly
-            container_id=\$($DOCKER_COMMAND ps --filter "name=\$service" --format "{{.ID}}")
-
-            if [ -n "\$container_id" ]; then
-                $DOCKER_COMMAND logs -f "\$container_id"
-            else
-                echo "No logs available for this service."
-            fi
+            trap 'show_logs' INT
+            $DOCKER_COMMAND compose logs -f "\$service"
         fi
+    elif [ "\$log_choice" == "A" ] || [ "\$log_choice" == "a" ]; then
+        trap 'show_logs' INT
+        $DOCKER_COMMAND compose logs -f
+    elif [ "\$log_choice" == "0" ]; then
         return
+    else
+        show_logs
     fi
 
-    case \$log_choice in
-        A) $DOCKER_COMMAND compose logs -f ;;
-        0) return ;;
-        *) echo "Invalid choice. Please select a correct option." ;;
-    esac
+    trap - INT
 }
 
 # Function to restart the service
@@ -678,6 +682,7 @@ scale_service() {
 # Function for basic monitoring
 monitoring_service() {
     echo -e '\nLoading stats...'
+    trap ' ' INT
     $DOCKER_COMMAND stats
 }
 

@@ -7,6 +7,7 @@ import type { Request, Response } from 'express';
 import {
   AjvError,
   BadRequest,
+  ExternalError,
   extractDBError,
   Forbidden,
   NcBaseErrorv2,
@@ -49,6 +50,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof UnprocessableEntity ||
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
+        exception instanceof ExternalError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
             NcErrorType.INTERNAL_SERVER_ERROR,

@@ -135,8 +135,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ]);
     } else if (this.isSnowflake) {
       return `${[
-        this.dbDriver.client.config.connection.database,
-        this.dbDriver.client.config.connection.schema,
+        this.dbDriver.extDb?.connection?.database ||
+          this.dbDriver.client.config.connection.database,
+        this.dbDriver.extDb?.connection?.schema ||
+          this.dbDriver.client.config.connection.schema,
         tn,
       ].join('.')}${alias ? ` as ${alias}` : ``}`;
     } else {

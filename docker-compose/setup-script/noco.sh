@@ -543,9 +543,25 @@ $(declare -f read_number)
 
 $(declare -f read_number_range)
 
+check_if_docker_is_running() {
+    yellow="\033[1;33m"
+    nocolor="\033[0m"
+    blue="\033[1;34m"
+
+    if ! $DOCKER_COMMAND ps >/dev/null 2>&1; then
+        echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
+        echo -e "| \${yellow}Warning !          \${nocolor}                                                       |"
+        echo    "| Docker is not running. Most of the commands will not work without Docker. |"
+        echo    "| Use the following command to start Docker:                                |"
+        echo -e "| \${blue}     sudo systemctl start docker        \${nocolor}                                  |"
+        echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
+    fi
+}
+
 # Function to display the menu
 show_menu() {
-#    clear
+    clear
+    check_if_docker_is_running
     echo ""
     echo \$MSG
     echo "Service Management Menu:"

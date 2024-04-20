@@ -543,17 +543,23 @@ $(declare -f read_number)
 
 $(declare -f read_number_range)
 
-check_if_docker_is_running() {
-    yellow="\033[1;33m"
-    nocolor="\033[0m"
-    blue="\033[1;34m"
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+ORANGE='\033[0;33m'
+BOLD='\033[1m'
+NC='\033[0m'
 
+check_if_docker_is_running() {
     if ! $DOCKER_COMMAND ps >/dev/null 2>&1; then
         echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
-        echo -e "| \${yellow}Warning !          \${nocolor}                                                       |"
+        echo -e "| \${BOLD}\${YELLOW}Warning !          \${NC}                                                       |"
         echo    "| Docker is not running. Most of the commands will not work without Docker. |"
         echo    "| Use the following command to start Docker:                                |"
-        echo -e "| \${blue}     sudo systemctl start docker        \${nocolor}                                  |"
+        echo -e "| \${BLUE}     sudo systemctl start docker        \${NC}                                  |"
         echo    "+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-+"
     fi
 }
@@ -564,15 +570,15 @@ show_menu() {
     check_if_docker_is_running
     echo ""
     echo \$MSG
-    echo "Service Management Menu:"
-    echo "1. Start Service"
-    echo "2. Stop Service"
-    echo "3. Logs"
-    echo "4. Restart"
-    echo "5. Upgrade"
-    echo "6. Scale"
-    echo "7. Monitoring"
-    echo "0. Exit"
+    echo -e "\t\t\${BOLD}Service Management Menu\${NC}"
+    echo -e " \${GREEN}1. Start Service"
+    echo -e " \${ORANGE}2. Stop Service"
+    echo -e " \${CYAN}3. Logs"
+    echo -e " \${MAGENTA}4. Restart"
+    echo -e " \${BLUE}5. Upgrade"
+    echo -e " 6. Scale"
+    echo -e " 7. Monitoring"
+    echo -e " \${RED}0. Exit\${NC}"
 }
 
 # Function to start the service
@@ -714,7 +720,7 @@ while true; do
     show_menu
     echo "Enter your choice: "
 
-    read -n 1 choice
+    read choice
     case \$choice in
         1) start_service && MSG="NocoDB Started" ;;
         2) stop_service && MSG="NocoDB Stopped" ;;

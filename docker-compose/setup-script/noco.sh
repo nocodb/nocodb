@@ -580,7 +580,7 @@ show_logs_sub_menu() {
     echo "A. All"
     echo "0. Back to Logs Menu"
     echo "Enter replica number: "
-    read -n 1 replica_choice
+    read replica_choice
 
     if [[ "\$replica_choice" =~ ^[0-9]+\$ ]] && [ "\$replica_choice" -gt 0 ] && [ "\$replica_choice" -le "\$2" ]; then
         container_id=\$($DOCKER_COMMAND compose ps | grep "\$1-\$replica_choice" | cut -d " " -f 1)
@@ -627,7 +627,7 @@ show_logs() {
     echo "A. All"
     echo "0. Back to main menu"
     echo "Enter your choice: "
-    read -n 1 log_choice
+    read log_choice
     echo
 
     if [[ "\$log_choice" =~ ^[0-9]+\$ ]] && [ "\$log_choice" -gt 0 ] && [ "\$log_choice" -lt "\$count" ]; then

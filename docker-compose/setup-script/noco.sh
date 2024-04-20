@@ -686,6 +686,7 @@ monitoring_service() {
 
 # Main program loop
 while true; do
+    trap - INT
     show_menu
     echo "Enter your choice: "
 

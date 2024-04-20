@@ -64,6 +64,14 @@ const BodyJsonSchema = {
   },
 };
 
+function serializeError(err) {
+  return {
+    ...err,
+    message: err.message,
+    stack: err.stack,
+  };
+}
+
 async function execAndGetRows(
   kn: Knex,
   config: any,
@@ -187,7 +195,7 @@ async function queryHandler(req, res) {
         await trx.rollback();
         console.error(e);
         return res.status(500).send({
-          error: e,
+          error: serializeError(e),
         });
       }
     } else {
@@ -218,7 +226,7 @@ async function queryHandler(req, res) {
     console.error(e);
     console.error('\n');
     return res.status(500).send({
-      error: e,
+      error: serializeError(e),
     });
   }
 

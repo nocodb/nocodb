@@ -2,6 +2,7 @@ import MysqlClientCE from 'src/db/sql-client/lib/mysql/MysqlClient';
 import axios from 'axios';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
+import { ExternalError } from '~/helpers/catchError';
 
 const log = new Debug('MysqlClient');
 
@@ -18,7 +19,7 @@ async function runExternal(query: string, config: any) {
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
-      throw e.response.data.error;
+      throw new ExternalError(e.response.data.error);
     }
     throw e;
   }

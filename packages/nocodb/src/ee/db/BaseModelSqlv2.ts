@@ -27,6 +27,7 @@ import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
+import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, View } from '~/models';
@@ -40,8 +41,10 @@ import {
 import Noco from '~/Noco';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
-import { NcError } from '~/helpers/catchError';
+import { ExternalError, NcError } from '~/helpers/catchError';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+
+const logger = new Logger('BaseModelSqlv2');
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -53,7 +56,7 @@ async function runExternal(
   } = {},
 ) {
   if (!config) {
-    console.log(query);
+    logger.log(query);
     throw new Error('External DB config not found');
   }
 
@@ -68,7 +71,7 @@ async function runExternal(
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
-      throw e.response.data.error;
+      throw new ExternalError(e.response.data.error);
     }
     throw e;
   }

@@ -601,20 +601,26 @@ show_logs() {
     echo "Select a container for logs:"
 
     # Fetch the list of services
-    mapfile -t services < <($DOCKER_COMMAND compose ps --services)
-    declare -A service_replicas
+    services=()
+    while IFS= read -r service; do
+        services+=("\$service")
+    done < <($DOCKER_COMMAND compose ps --services)
+
+    service_replicas=()
+    count=0
 
     # For each service, count the number of running instances
     for service in "\${services[@]}"; do
         # Count the number of lines that have the service name, which corresponds to the number of replicas
         replicas=\$($DOCKER_COMMAND compose ps \$service | grep "\$service" | wc -l)
-        service_replicas["\$service"]=\$replicas
+        service_replicas["\$count"]=\$replicas
+        count=\$((count + 1))
     done
 
     count=1
 
     for service in "\${services[@]}"; do
-        echo "\$count. \$service (\${service_replicas[\$service]} replicas)"
+        echo "\$count. \$service (\${service_replicas[((\$count - 1))]} replicas)"
         count=\$((count + 1))
     done
 
@@ -627,7 +633,7 @@ show_logs() {
     if [[ "\$log_choice" =~ ^[0-9]+\$ ]] && [ "\$log_choice" -gt 0 ] && [ "\$log_choice" -lt "\$count" ]; then
         service_index=\$((log_choice-1))
         service="\${services[\$service_index]}"
-        num_replicas="\${service_replicas[\$service]}"
+        num_replicas="\${service_replicas[\$service_index]}"
 
         if [ "\$num_replicas" -gt 1 ]; then
             trap 'show_logs_sub_menu "\$service" "\$num_replicas"' INT
@@ -640,7 +646,9 @@ show_logs() {
     elif [ "\$log_choice" == "A" ] || [ "\$log_choice" == "a" ]; then
         trap 'show_logs' INT
         $DOCKER_COMMAND compose logs -f
-    elif [ "\$log_choice" != "0" ]; then
+    elif [ "\$log_choice" == "0" ]; then
+        return
+    else
         show_logs
     fi
 

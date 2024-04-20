@@ -3,7 +3,13 @@ import { SnowflakeClient } from 'knex-snowflake';
 import { DatabricksClient } from 'knex-databricks';
 import CustomKnexCE from 'src/db/CustomKnex';
 
-type CustomKnex = Knex;
+type CustomKnex = Knex & {
+  extDb?: {
+    client: string;
+    connection: Record<string, string>;
+  };
+  isExtDb?: boolean;
+};
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,

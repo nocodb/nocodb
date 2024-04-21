@@ -109,6 +109,8 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
     pageSizeRef.value?.blur()
   }
 }
+
+const inputValue = ref('')
 </script>
 
 <template>
@@ -212,6 +214,10 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
           <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-page-size-expand-btn" />
         </template>
       </a-select>
+    </div>
+    <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
+      <!-- Input and Button for entering a value -->
+      <input v-model="inputValue" type="text" placeholder="Set custom row number" size="small" />
     </div>
   </div>
 </template>

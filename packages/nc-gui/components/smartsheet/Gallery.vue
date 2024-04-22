@@ -8,6 +8,7 @@ import {
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
+  IsPublicInj,
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
@@ -25,7 +26,6 @@ import {
   ref,
   useAttachment,
   useViewData,
-  IsPublicInj,
 } from '#imports'
 
 interface Attachment {

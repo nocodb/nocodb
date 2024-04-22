@@ -538,9 +538,10 @@ export default class Model implements TableType {
       isPg: false,
     },
     knex,
+    columns?: Column[],
   ) {
     const insertObj = {};
-    for (const col of await this.getColumns()) {
+    for (const col of columns || (await this.getColumns())) {
       if (isVirtualCol(col)) continue;
       let val =
         data?.[col.column_name] !== undefined
@@ -618,9 +619,9 @@ export default class Model implements TableType {
     return insertObj;
   }
 
-  async mapColumnToAlias(data) {
+  async mapColumnToAlias(data, columns?: Column[]) {
     const res = {};
-    for (const col of await this.getColumns()) {
+    for (const col of columns || (await this.getColumns())) {
       if (isVirtualCol(col)) continue;
       let val =
         data?.[col.title] !== undefined
@@ -969,8 +970,8 @@ export default class Model implements TableType {
     ));
   }
 
-  async getAliasColObjMap() {
-    return (await this.getColumns()).reduce(
+  async getAliasColObjMap(columns?: Column[]) {
+    return (columns || (await this.getColumns())).reduce(
       (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
       {},
     );

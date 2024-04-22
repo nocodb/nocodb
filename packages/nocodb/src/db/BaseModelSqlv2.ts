@@ -260,11 +260,12 @@ class BaseModelSqlv2 {
     } = {},
     validateFormula = false,
   ): Promise<any> {
+    const columns = await this.model.getColumns();
     const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ ...args, qb, validateFormula });
+    await this.selectObject({ ...args, qb, validateFormula, columns });
 
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
@@ -296,8 +297,7 @@ class BaseModelSqlv2 {
     try {
       data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
-      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
-        throw e;
+      if (validateFormula || !haveFormulaColumn(columns)) throw e;
       logger.log(e);
       return this.findOne(args, true);
     }
@@ -337,6 +337,8 @@ class BaseModelSqlv2 {
       limitOverride,
     } = options;
 
+    const columns = await this.model.getColumns();
+
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
@@ -346,12 +348,13 @@ class BaseModelSqlv2 {
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       validateFormula,
+      columns,
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     let sorts = extractSortsObject(
       rest?.sort,
       aliasColObjMap,
@@ -454,8 +457,7 @@ class BaseModelSqlv2 {
     try {
       data = await this.execAndParse(qb);
     } catch (e) {
-      if (validateFormula || !haveFormulaColumn(await this.model.getColumns()))
-        throw e;
+      if (validateFormula || !haveFormulaColumn(columns)) throw e;
       logger.log(e);
       return this.list(args, {
         ignoreViewFilterAndSort,
@@ -475,13 +477,13 @@ class BaseModelSqlv2 {
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
-    await this.model.getColumns();
+    const columns = await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
     const qb = this.dbDriver(this.tnPath);
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const filterObj = extractFilterFromXwhere(
       where,
       aliasColObjMap,
@@ -563,6 +565,8 @@ class BaseModelSqlv2 {
       widgetFilterArr?: Filter[];
     },
   ) {
+    const columns = await this.model.getColumns();
+
     const { where, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
@@ -580,7 +584,7 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(
@@ -622,7 +626,7 @@ class BaseModelSqlv2 {
 
     args.column_name = args.column_name || '';
 
-    const cols = await this.model.getColumns();
+    const columns = await this.model.getColumns();
     const groupByColumns: Record<string, Column> = {};
 
     const selectors = [];
@@ -631,7 +635,9 @@ class BaseModelSqlv2 {
 
     await Promise.all(
       args.column_name.split(',').map(async (col) => {
-        let column = cols.find((c) => c.column_name === col || c.title === col);
+        let column = columns.find(
+          (c) => c.column_name === col || c.title === col,
+        );
         if (!column) {
           throw NcError.fieldNotFound(col);
         }
@@ -713,7 +719,7 @@ class BaseModelSqlv2 {
             break;
           default:
             {
-              const columnName = await getColumnName(column, cols);
+              const columnName = await getColumnName(column, columns);
               selectors.push(
                 this.dbDriver.raw('?? as ??', [columnName, column.id]),
               );
@@ -736,7 +742,7 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
     let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
 
@@ -789,10 +795,7 @@ class BaseModelSqlv2 {
           column.uidt as UITypes,
         )
       ) {
-        const columnName = await getColumnName(
-          column,
-          await this.model.getColumns(),
-        );
+        const columnName = await getColumnName(column, columns);
 
         const baseUsers = await BaseUser.getUsersList({
           base_id: column.base_id,
@@ -844,112 +847,111 @@ class BaseModelSqlv2 {
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
 
+    const columns = await this.model.getColumns();
+
     // todo: refactor and avoid duplicate code
-    await this.model.getColumns().then((cols) =>
-      Promise.all(
-        args.column_name.split(',').map(async (col) => {
-          let column = cols.find(
-            (c) => c.column_name === col || c.title === col,
-          );
-          if (!column) {
-            throw NcError.fieldNotFound(col);
+    await Promise.all(
+      args.column_name.split(',').map(async (col) => {
+        let column = columns.find(
+          (c) => c.column_name === col || c.title === col,
+        );
+        if (!column) {
+          throw NcError.fieldNotFound(col);
+        }
+
+        // if qrCode or Barcode replace it with value column nd keep the alias
+        if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
+          column = new Column({
+            ...(await column
+              .getColOptions<BarcodeColumn | QrCodeColumn>()
+              .then((col) => col.getValueColumn())),
+            title: column.title,
+            id: column.id,
+          });
+
+        switch (column.uidt) {
+          case UITypes.Attachment:
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
+          case UITypes.Rollup:
+          case UITypes.Links:
+            selectors.push(
+              (
+                await genRollupSelectv2({
+                  baseModelSqlv2: this,
+                  // tn: this.title,
+                  knex: this.dbDriver,
+                  // column,
+                  // alias,
+                  columnOptions: (await column.getColOptions()) as RollupColumn,
+                })
+              ).builder.as(sanitize(column.id)),
+            );
+            groupBySelectors.push(sanitize(column.id));
+            break;
+          case UITypes.Formula: {
+            let selectQb;
+            try {
+              const _selectQb = await this.getSelectQueryBuilderForFormula(
+                column,
+              );
+
+              selectQb = this.dbDriver.raw(`?? as ??`, [
+                _selectQb.builder,
+                sanitize(column.id),
+              ]);
+            } catch (e) {
+              logger.log(e);
+              // return dummy select
+              selectQb = this.dbDriver.raw(`'ERR' as ??`, [
+                sanitize(column.id),
+              ]);
+            }
+
+            selectors.push(selectQb);
+            groupBySelectors.push(column.id);
+            break;
           }
+          case UITypes.Lookup:
+          case UITypes.LinkToAnotherRecord:
+            {
+              const _selectQb = await generateLookupSelectQuery({
+                baseModelSqlv2: this,
+                column,
+                alias: null,
+                model: this.model,
+                getAlias,
+              });
 
-          // if qrCode or Barcode replace it with value column nd keep the alias
-          if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
-            column = new Column({
-              ...(await column
-                .getColOptions<BarcodeColumn | QrCodeColumn>()
-                .then((col) => col.getValueColumn())),
-              title: column.title,
-              id: column.id,
-            });
-
-          switch (column.uidt) {
-            case UITypes.Attachment:
-              NcError.badRequest(
-                'Group by using attachment column is not supported',
-              );
-              break;
-            case UITypes.Rollup:
-            case UITypes.Links:
-              selectors.push(
-                (
-                  await genRollupSelectv2({
-                    baseModelSqlv2: this,
-                    // tn: this.title,
-                    knex: this.dbDriver,
-                    // column,
-                    // alias,
-                    columnOptions:
-                      (await column.getColOptions()) as RollupColumn,
-                  })
-                ).builder.as(sanitize(column.id)),
-              );
-              groupBySelectors.push(sanitize(column.id));
-              break;
-            case UITypes.Formula: {
-              let selectQb;
-              try {
-                const _selectQb = await this.getSelectQueryBuilderForFormula(
-                  column,
-                );
-
-                selectQb = this.dbDriver.raw(`?? as ??`, [
-                  _selectQb.builder,
-                  sanitize(column.id),
-                ]);
-              } catch (e) {
-                logger.log(e);
-                // return dummy select
-                selectQb = this.dbDriver.raw(`'ERR' as ??`, [
-                  sanitize(column.id),
-                ]);
-              }
+              const selectQb = this.dbDriver.raw(`?? as ??`, [
+                this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
+                sanitize(column.id),
+              ]);
 
               selectors.push(selectQb);
-              groupBySelectors.push(column.id);
-              break;
+              groupBySelectors.push(sanitize(column.id));
             }
-            case UITypes.Lookup:
-            case UITypes.LinkToAnotherRecord:
-              {
-                const _selectQb = await generateLookupSelectQuery({
-                  baseModelSqlv2: this,
-                  column,
-                  alias: null,
-                  model: this.model,
-                  getAlias,
-                });
-
-                const selectQb = this.dbDriver.raw(`?? as ??`, [
-                  this.dbDriver.raw(_selectQb.builder).wrap('(', ')'),
-                  sanitize(column.id),
-                ]);
-
-                selectors.push(selectQb);
-                groupBySelectors.push(sanitize(column.id));
-              }
-              break;
-            default:
-              {
-                const columnName = await getColumnName(column, cols);
-                selectors.push(
-                  this.dbDriver.raw('?? as ??', [columnName, column.id]),
-                );
-                groupBySelectors.push(sanitize(column.id));
-              }
-              break;
-          }
-        }),
-      ),
+            break;
+          default:
+            {
+              const columnName = await getColumnName(column, columns);
+              selectors.push(
+                this.dbDriver.raw('?? as ??', [columnName, column.id]),
+              );
+              groupBySelectors.push(sanitize(column.id));
+            }
+            break;
+        }
+      }),
     );
 
     const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
     qb.select(...selectors);
 
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
 
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(
@@ -2453,7 +2455,7 @@ class BaseModelSqlv2 {
       // const columns = _columns ?? (await this.model.getColumns());
       // for (const column of columns) {
       viewOrTableColumns =
-        _columns || viewColumns || (await this.model.getColumns());
+        viewColumns || _columns || (await this.model.getColumns());
     }
     for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
@@ -2485,7 +2487,7 @@ class BaseModelSqlv2 {
           {
             const columnName = await getColumnName(
               column,
-              await this.model.getColumns(),
+              _columns || (await this.model.getColumns()),
             );
             if (this.isMySQL) {
               // MySQL stores timestamp in UTC but display in timezone
@@ -2652,7 +2654,7 @@ class BaseModelSqlv2 {
         case UITypes.LastModifiedBy: {
           const columnName = await getColumnName(
             column,
-            await this.model.getColumns(),
+            _columns || (await this.model.getColumns()),
           );
 
           res[sanitize(column.id || columnName)] = sanitize(
@@ -2706,9 +2708,10 @@ class BaseModelSqlv2 {
         data,
         this.clientMeta,
         this.dbDriver,
+        columns,
       );
 
-      await this.validate(insertObj);
+      await this.validate(insertObj, columns);
 
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
@@ -2953,13 +2956,16 @@ class BaseModelSqlv2 {
 
   async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
     try {
+      const columns = await this.model.getColumns();
+
       const updateObj = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
         this.dbDriver,
+        columns,
       );
 
-      await this.validate(data);
+      await this.validate(data, columns);
 
       await this.beforeUpdate(data, trx, cookie);
 
@@ -2974,7 +2980,7 @@ class BaseModelSqlv2 {
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
-        .where(await this._wherePk(id));
+        .where(await this._wherePk(id, true));
 
       await this.execAndParse(query, null, { raw: true });
 
@@ -3089,23 +3095,25 @@ class BaseModelSqlv2 {
     try {
       const source = await Source.get(this.model.source_id);
       await populatePk(this.model, data);
+
+      const columns = await this.model.getColumns();
+
       const insertObj = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
         this.dbDriver,
+        columns,
       );
       let rowId = null;
 
-      const nestedCols = (await this.model.getColumns()).filter((c) =>
-        isLinksOrLTAR(c),
-      );
+      const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
       const { postInsertOps, preInsertOps } = await this.prepareNestedLinkQb({
         nestedCols,
         data,
         insertObj,
       });
 
-      await this.validate(insertObj);
+      await this.validate(insertObj, columns);
 
       await this.beforeInsert(insertObj, this.dbDriver, cookie);
 
@@ -3403,11 +3411,9 @@ class BaseModelSqlv2 {
       let agPkCol: Column;
 
       if (!raw) {
-        const nestedCols = (await this.model.getColumns()).filter((c) =>
-          isLinksOrLTAR(c),
-        );
+        const columns = await this.model.getColumns();
 
-        await this.model.getColumns();
+        const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
 
         for (const d of datas) {
           const insertObj = {};
@@ -3688,12 +3694,12 @@ class BaseModelSqlv2 {
   ) {
     let transaction;
     try {
-      if (raw) await this.model.getColumns();
+      const columns = await this.model.getColumns();
 
       // validate update data
       if (!raw) {
         for (const d of datas) {
-          await this.validate(d);
+          await this.validate(d, columns);
         }
       }
 
@@ -3701,7 +3707,12 @@ class BaseModelSqlv2 {
         ? datas
         : await Promise.all(
             datas.map((d) =>
-              this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+              this.model.mapAliasToColumn(
+                d,
+                this.clientMeta,
+                this.dbDriver,
+                columns,
+              ),
             ),
           );
 
@@ -3827,12 +3838,17 @@ class BaseModelSqlv2 {
   ) {
     try {
       let count = 0;
+
+      const columns = await this.model.getColumns();
+
       const updateData = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
         this.dbDriver,
+        columns,
       );
-      if (!args.skipValidationAndHooks) await this.validate(updateData);
+      if (!args.skipValidationAndHooks)
+        await this.validate(updateData, columns);
 
       await this.prepareNocoData(updateData, false, cookie);
 
@@ -3840,10 +3856,9 @@ class BaseModelSqlv2 {
       if (pkValues) {
         // pk is specified - by pass
       } else {
-        await this.model.getColumns();
         const { where } = this._getListArgs(args);
         const qb = this.dbDriver(this.tnPath);
-        const aliasColObjMap = await this.model.getAliasColObjMap();
+        const aliasColObjMap = await this.model.getAliasColObjMap(columns);
         const filterObj = extractFilterFromXwhere(where, aliasColObjMap, true);
 
         const conditionObj = [
@@ -3908,11 +3923,18 @@ class BaseModelSqlv2 {
       isSingleRecordDeletion?: boolean;
     } = {},
   ) {
+    const columns = await this.model.getColumns();
+
     let transaction;
     try {
       const deleteIds = await Promise.all(
         ids.map((d) =>
-          this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+          this.model.mapAliasToColumn(
+            d,
+            this.clientMeta,
+            this.dbDriver,
+            columns,
+          ),
         ),
       );
 
@@ -4059,10 +4081,10 @@ class BaseModelSqlv2 {
   ) {
     let trx: Knex.Transaction;
     try {
-      await this.model.getColumns();
+      const columns = await this.model.getColumns();
       const { where } = this._getListArgs(args);
       const qb = this.dbDriver(this.tnPath);
-      const aliasColObjMap = await this.model.getAliasColObjMap();
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap, true);
 
       await conditionV2(
@@ -4406,10 +4428,13 @@ class BaseModelSqlv2 {
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}
 
-  async validate(data: Record<string, any>): Promise<boolean> {
-    await this.model.getColumns();
+  async validate(
+    data: Record<string, any>,
+    columns?: Column[],
+  ): Promise<boolean> {
+    const cols = columns || (await this.model.getColumns());
     // let cols = Object.keys(this.columns);
-    for (let i = 0; i < this.model.columns.length; ++i) {
+    for (let i = 0; i < cols.length; ++i) {
       const column = this.model.columns[i];
 
       if (
@@ -4906,9 +4931,8 @@ class BaseModelSqlv2 {
   > {
     try {
       const { where, ...rest } = this._getListArgs(args as any);
-      const column = await this.model
-        .getColumns()
-        .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
+      const columns = await this.model.getColumns();
+      const column = columns?.find((col) => col.id === args.groupColumnId);
 
       if (!column) NcError.fieldNotFound(args.groupColumnId);
       if (isVirtualCol(column))
@@ -4946,7 +4970,7 @@ class BaseModelSqlv2 {
       await this.selectObject({ qb, extractPkAndPv: true });
 
       // todo: refactor and move to a method (applyFilterAndSort)
-      const aliasColObjMap = await this.model.getAliasColObjMap();
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
       let sorts = extractSortsObject(args?.sort, aliasColObjMap);
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
       // todo: replace with view id
@@ -5068,9 +5092,8 @@ class BaseModelSqlv2 {
       ignoreViewFilterAndSort?: boolean;
     } & XcFilter,
   ) {
-    const column = await this.model
-      .getColumns()
-      .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
+    const columns = await this.model.getColumns();
+    const column = columns?.find((col) => col.id === args.groupColumnId);
 
     if (!column) NcError.fieldNotFound(args.groupColumnId);
     if (isVirtualCol(column))
@@ -5081,7 +5104,7 @@ class BaseModelSqlv2 {
       .groupBy(column.column_name);
 
     // todo: refactor and move to a common method (applyFilterAndSort)
-    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const aliasColObjMap = await this.model.getAliasColObjMap(columns);
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
     // todo: replace with view id
 
@@ -6262,12 +6285,12 @@ class BaseModelSqlv2 {
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
+      const columns = await this.model.getColumns();
+
       const { where, sort } = this._getListArgs(args as any);
       // todo: get only required fields
 
-      const relColumn = (await this.model.getColumns()).find(
-        (c) => c.id === colId,
-      );
+      const relColumn = columns.find((c) => c.id === colId);
 
       const row = await this.execAndParse(
         this.dbDriver(this.tnPath).where(await this._wherePk(id)),

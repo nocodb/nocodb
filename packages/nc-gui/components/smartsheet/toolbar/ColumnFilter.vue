@@ -348,7 +348,23 @@ watch(
 
     await addFilter(draftFilter.value)
 
+    await nextTick()
+
+    scrollToBottom()
+
+    const filterWrapper = document.querySelectorAll(`.nc-filter-wrapper-${draftFilter.value.fk_column_id}`)
+
     draftFilter.value = {}
+    if (!filterWrapper.length) return
+
+    const filterInputElement =
+      filterWrapper[filterWrapper.length - 1]?.querySelector<HTMLInputElement>('.nc-filter-value-select input')
+    if (filterInputElement) {
+      setTimeout(() => {
+        filterInputElement?.focus?.()
+        filterInputElement?.click?.()
+      }, 100)
+    }
   },
   {
     deep: true,
@@ -429,7 +445,7 @@ watch(
               </div>
             </div>
           </template>
-          <div v-else class="flex flex-row gap-x-2 w-full">
+          <div v-else class="flex flex-row gap-x-2 w-full" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
             <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
 
             <NcSelect

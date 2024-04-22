@@ -8,6 +8,7 @@ import {
   IsFormInj,
   IsGalleryInj,
   IsGridInj,
+  IsPublicInj,
   MetaInj,
   NavigateDir,
   OpenNewRecordFormHookInj,
@@ -36,6 +37,7 @@ const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere } = useSmartsheetStoreOrThrow()
@@ -125,7 +127,7 @@ const attachments = (record: any): Attachment[] => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
-  if (rowId) {
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,

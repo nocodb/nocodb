@@ -3739,20 +3739,20 @@ class BaseModelSqlv2 {
             if (oldRecords.length === tempToRead.length) {
               prevData.push(...oldRecords);
             } else {
-              for (const record of oldRecords) {
-                const pkValues = this._extractPksValues(record);
+              for (const recordPk of tempToRead) {
+                const oldRecord = oldRecords.find(
+                  (r) => this._extractPksValues(r) === recordPk,
+                );
 
-                const exists = tempToRead.find((d) => d === pkValues);
-
-                if (!exists) {
+                if (!oldRecord) {
                   // throw or skip if no record found
                   if (throwExceptionIfNotExist) {
-                    NcError.recordNotFound(JSON.stringify(pkValues));
+                    NcError.recordNotFound(JSON.stringify(recordPk));
                   }
                   continue;
                 }
 
-                prevData.push(record);
+                prevData.push(oldRecord);
               }
             }
           }

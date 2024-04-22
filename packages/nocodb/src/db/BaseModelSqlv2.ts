@@ -3772,9 +3772,14 @@ class BaseModelSqlv2 {
 
       if (!raw) {
         while (updatePkValues.length) {
-          const updatedRecords = await this.list({
-            pks: updatePkValues.splice(0, readChunkSize).join(','),
-          });
+          const updatedRecords = await this.list(
+            {
+              pks: updatePkValues.splice(0, readChunkSize).join(','),
+            },
+            {
+              limitOverride: readChunkSize,
+            },
+          );
 
           newData.push(...updatedRecords);
         }

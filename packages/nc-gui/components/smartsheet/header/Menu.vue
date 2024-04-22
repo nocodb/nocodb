@@ -395,59 +395,55 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
           </NcMenuItem>
         </template>
 
-        <a-divider v-if="!column?.pk" class="!my-0" />
+        <a-divider class="!my-0" />
 
-        <template v-if="true">
-          <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
-            <template #title>
-              {{
-                !isFilterSupported
-                  ? "This field type doesn't support filtering"
-                  : isFilterLimitExceeded
-                  ? 'Filter by limit exceeded'
-                  : ''
-              }}
-            </template>
-            <NcMenuItem
-              @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
-              :disabled="!isFilterSupported || isFilterLimitExceeded"
-            >
-              <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
-                <component :is="iconMap.filter" class="text-gray-700" />
-                <!-- Filter by this field -->
-                Filter by this field
-              </div>
-            </NcMenuItem>
-          </NcTooltip>
-
-          <NcTooltip
-            :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)"
-          >
-            <template #title>{{
-              !isGroupBySupported
-                ? "This field type doesn't support grouping"
-                : isGroupByLimitExceeded
-                ? 'Group by limit exceeded'
+        <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
+          <template #title>
+            {{
+              !isFilterSupported
+                ? "This field type doesn't support filtering"
+                : isFilterLimitExceeded
+                ? 'Filter by limit exceeded'
                 : ''
-            }}</template>
-            <NcMenuItem
-              :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
-              @click="
-                filterOrGroupByThisField(
-                  isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
-                )
-              "
-            >
-              <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
-                <component :is="iconMap.group" class="text-gray-700" />
-                <!-- Group by this field -->
-                {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
-              </div>
-            </NcMenuItem>
-          </NcTooltip>
+            }}
+          </template>
+          <NcMenuItem
+            :disabled="!isFilterSupported || isFilterLimitExceeded"
+            @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
+          >
+            <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
+              <component :is="iconMap.filter" class="text-gray-700" />
+              <!-- Filter by this field -->
+              Filter by this field
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
 
-          <a-divider class="!my-0" />
-        </template>
+        <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)">
+          <template #title>{{
+            !isGroupBySupported
+              ? "This field type doesn't support grouping"
+              : isGroupByLimitExceeded
+              ? 'Group by limit exceeded'
+              : ''
+          }}</template>
+          <NcMenuItem
+            :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
+            @click="
+              filterOrGroupByThisField(
+                isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
+              )
+            "
+          >
+            <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
+              <component :is="iconMap.group" class="text-gray-700" />
+              <!-- Group by this field -->
+              {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+
+        <a-divider class="!my-0" />
 
         <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">

@@ -29,8 +29,6 @@ interface Props {
   webHook?: boolean
   draftFilter?: Partial<FilterType>
 }
-const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
-
 const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
   autoSave: true,
@@ -41,6 +39,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter'])
+
+const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
 const draftFilter = useVModel(props, 'draftFilter', emit)
 

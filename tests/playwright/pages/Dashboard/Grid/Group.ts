@@ -30,7 +30,10 @@ export class GroupPageObject extends BasePage {
   async openGroup({ indexMap }: { indexMap: number[] }) {
     let root = this.rootPage.locator('.nc-group');
     for (const n of indexMap) {
+      await root.nth(n).scrollIntoViewIfNeeded();
       await root.nth(n).click();
+      await root.nth(n).locator('.nc-group-table').waitFor({ state: 'visible' });
+
       root = root.nth(n).locator('.nc-group');
     }
   }
@@ -75,6 +78,9 @@ export class GroupPageObject extends BasePage {
   }) {
     const gridWrapper = this.get({ indexMap });
     await gridWrapper.scrollIntoViewIfNeeded();
+
+    await gridWrapper.locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1})`).waitFor({ state: 'visible' });
+
     await gridWrapper
       .locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1}) [data-title="${columnHeader}"]`)
       .scrollIntoViewIfNeeded();

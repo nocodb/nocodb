@@ -14,6 +14,7 @@ import formulaTests from './tests/formula.test';
 import typeCastsTest from './tests/typeCasts.test';
 import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
+import columnTests from './tests/column.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -48,6 +49,7 @@ function restTests() {
   readOnlyTest();
   aggregationTest();
   bulkAggregationTest();
+  columnTests();
 
   // Enable for dashboard feature
   // widgetTest();

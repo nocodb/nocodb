@@ -61,10 +61,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const supportedLookups = ref<string[]>([])
 
-  const fieldsToGroupBy = computed(() => {
-    const fields = meta?.value?.columns || []
-
-    return fields.filter((field) => {
+  const fieldsToGroupBy = computed(() =>
+    (meta?.value?.columns || []).filter((field) => {
       if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
 
       if (field.uidt === UITypes.Lookup) {
@@ -72,8 +70,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
       }
 
       return true
-    })
-  })
+    }),
+  )
 
   const rootGroup = ref<Group>({
     key: 'root',

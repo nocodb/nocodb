@@ -132,7 +132,6 @@ const saveGroupBy = async () => {
 }
 
 const addFieldToGroupBy = (column: ColumnType) => {
-  console.log('groupByField', column)
   _groupBy.value.push({ fk_column_id: column.id, sort: 'asc', order: _groupBy.value.length + 1 })
   saveGroupBy()
   showCreateGroupBy.value = false

@@ -29,6 +29,7 @@ interface Props {
   webHook?: boolean
   draftFilter?: Partial<FilterType>
 }
+const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
 
 const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
@@ -100,6 +101,8 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 const isMounted = ref(false)
 
 const columns = computed(() => meta.value?.columns)
+
+const fieldsToFilter = computed(() => (columns.value || []).filter((c) => !excludedFilterColUidt.includes(c.uidt as UITypes)))
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
@@ -457,7 +460,7 @@ watch(
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
               class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
-              :columns="columns"
+              :columns="fieldsToFilter"
               :disabled="filter.readOnly"
               @click.stop
               @change="selectFilterField(filter, i)"

@@ -299,6 +299,13 @@ const isDeleteAllowed = computed(() => {
 const isDuplicateAllowed = computed(() => {
   return column?.value && !column.value.system
 })
+const isFilterSupported = computed(
+  () =>
+    !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode].includes(f.uidt)),
+)
+
+// TODO: calculate filter limit
+const isFilterLimitExceeded = computed(() => false)
 
 const isGroupedByThisField = computed(() => !!gridViewCols.value[column?.value?.id]?.group_by)
 
@@ -385,13 +392,16 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pk" class="!my-0" />
 
         <template v-if="true">
-          <NcMenuItem @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)">
-            <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
-              <component :is="iconMap.filter" class="text-gray-700" />
-              <!-- Filter by this field -->
-              Filter by this field
-            </div>
-          </NcMenuItem>
+          <NcTooltip :disabled="isFilterSupported">
+            <template #title> This field type doesn't support filtering </template>
+            <NcMenuItem @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)" :disabled="!isFilterSupported">
+              <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
+                <component :is="iconMap.filter" class="text-gray-700" />
+                <!-- Filter by this field -->
+                Filter by this field
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
 
           <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField">
             <template #title>{{

@@ -42,7 +42,7 @@ watch(
   () => activeView?.value?.id,
   async (viewId) => {
     if (viewId) {
-      await loadFilters()
+      await loadFilters(undefined, false, true)
       filtersLength.value = nonDeletedFilters.value.length || 0
     }
   },

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { computed } from 'vue'
 import {
   ActiveViewInj,
@@ -28,7 +28,7 @@ const virtual = toRef(props, 'virtual')
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters } = useSmartsheetStoreOrThrow()
 
 const column = inject(ColumnInj)
 
@@ -38,9 +38,11 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
-
 const isLocked = inject(IsLockedInj)
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { $api, $e } = useNuxtApp()
 
@@ -304,8 +306,12 @@ const isFilterSupported = computed(
     !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode].includes(f.uidt)),
 )
 
-// TODO: calculate filter limit
-const isFilterLimitExceeded = computed(() => false)
+const { getPlanLimit } = useWorkspace()
+
+const isFilterLimitExceeded = computed(
+  () =>
+    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >= getPlanLimit(PlanLimitTypes.FILTER_LIMIT),
+)
 
 const isGroupedByThisField = computed(() => !!gridViewCols.value[column?.value?.id]?.group_by)
 
@@ -392,9 +398,20 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
         <a-divider v-if="!column?.pk" class="!my-0" />
 
         <template v-if="true">
-          <NcTooltip :disabled="isFilterSupported">
-            <template #title> This field type doesn't support filtering </template>
-            <NcMenuItem @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)" :disabled="!isFilterSupported">
+          <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
+            <template #title>
+              {{
+                !isFilterSupported
+                  ? "This field type doesn't support filtering"
+                  : isFilterLimitExceeded
+                  ? 'Filter by limit exceeded'
+                  : ''
+              }}
+            </template>
+            <NcMenuItem
+              @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
+              :disabled="!isFilterSupported || isFilterLimitExceeded"
+            >
               <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
                 <component :is="iconMap.filter" class="text-gray-700" />
                 <!-- Filter by this field -->
@@ -403,16 +420,18 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             </NcMenuItem>
           </NcTooltip>
 
-          <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField">
+          <NcTooltip
+            :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)"
+          >
             <template #title>{{
               !isGroupBySupported
                 ? "This field type doesn't support grouping"
                 : isGroupByLimitExceeded
                 ? 'Group by limit exceeded'
-                : 'ds'
+                : ''
             }}</template>
             <NcMenuItem
-              :disabled="(!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
+              :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
               @click="
                 filterOrGroupByThisField(
                   isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,

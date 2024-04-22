@@ -43,7 +43,7 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters } = useSmartsheetStoreOrThrow()
 
   const { baseMeta } = storeToRefs(useBase())
 
@@ -208,7 +208,35 @@ export function useViewFilters(
     }
   }
 
-  const loadFilters = async (hookId?: string, isWebhook = false) => {
+  const loadAllChildFilters = async (filters: Filter[]) => {
+    // Array to store promises of child filter loading
+    const promises = []
+
+    // Array to store all child filters
+    const allChildFilters: Filter[] = []
+
+    // Iterate over all filters
+    for (const filter of filters) {
+      // Check if the filter is a group
+      if (filter.id && filter.is_group) {
+        // Load children filters from the backend
+        const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
+          const childFilters = response.list as Filter[]
+          allChildFilters.push(...childFilters)
+          return loadAllChildFilters(childFilters)
+        })
+        promises.push(childFilterPromise)
+      }
+    }
+
+    // Wait for all promises to resolve
+    await Promise.all(promises)
+
+    // Push all child filters into the allFilters array
+    allFilters.value.push(...allChildFilters)
+  }
+
+  const loadFilters = async (hookId?: string, isWebhook = false, loadAllFilters = false) => {
     if (!view.value?.id) return
 
     if (nestedMode.value) {
@@ -228,6 +256,10 @@ export function useViewFilters(
           filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
         } else {
           filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
+          if (loadAllFilters) {
+            allFilters.value = [...filters.value]
+            await loadAllChildFilters(allFilters.value)
+          }
         }
       }
     } catch (e: any) {
@@ -241,6 +273,11 @@ export function useViewFilters(
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
           await $api.dbTableFilter.delete(filter.id as string)
+          if (filter.is_group) {
+            deleteFilterGroupFromAllFilters(filter)
+          } else {
+            allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+          }
         } else if (filter.status === 'update') {
           await $api.dbTableFilter.update(filter.id as string, {
             ...filter,
@@ -258,6 +295,8 @@ export function useViewFilters(
               fk_parent_id: parentId,
             })
           }
+
+          allFilters.value.push(filters.value[+i])
         }
       }
 
@@ -323,6 +362,8 @@ export function useViewFilters(
           ...filter,
           fk_parent_id: parentId,
         })
+
+        allFilters.value.push(filters.value[+i])
       }
     } catch (e: any) {
       console.log(e)
@@ -332,6 +373,21 @@ export function useViewFilters(
     lastFilters.value = clone(filters.value)
 
     if (!isWebhook) reloadData?.()
+  }
+
+  function deleteFilterGroupFromAllFilters(filter: Filter) {
+    // Find all child filters of the specified parentId
+    const childFilters = allFilters.value.filter((f) => f.fk_parent_id === filter.id)
+
+    // Recursively delete child filter of child filter
+    childFilters.forEach((childFilter) => {
+      if (childFilter.is_group) {
+        deleteFilterGroupFromAllFilters(childFilter)
+      }
+    })
+
+    // Remove the parent object and its children from the array
+    allFilters.value = allFilters.value.filter((f) => f.id !== filter.id && f.fk_parent_id !== filter.id)
   }
 
   const deleteFilter = async (filter: Filter, i: number, undo = false) => {
@@ -369,6 +425,7 @@ export function useViewFilters(
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
+
             if (!isWebhook) reloadData?.()
             filters.value.splice(i, 1)
           } catch (e: any) {
@@ -381,6 +438,12 @@ export function useViewFilters(
         filters.value.splice(i, 1)
       }
       $e('a:filter:delete', { length: nonDeletedFilters.value.length })
+    }
+
+    if (filter.is_group) {
+      deleteFilterGroupFromAllFilters(filter)
+    } else {
+      allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
 

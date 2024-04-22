@@ -9,6 +9,8 @@ import type { Group, GroupNestedIn, Row } from '#imports'
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
+  const groupByLimit: number = 3
+
   const { api } = useApi()
 
   const { appInfo } = useGlobal()
@@ -533,6 +535,7 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     groupBy,
     isGroupBy,
     fieldsToGroupBy,
+    groupByLimit,
     loadGroups,
     loadGroupData,
     loadGroupPage,

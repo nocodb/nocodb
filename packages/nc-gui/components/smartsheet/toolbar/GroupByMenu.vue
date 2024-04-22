@@ -22,7 +22,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy } = useViewGroupBy(view)
+const { fieldsToGroupBy, groupByLimit } = useViewGroupBy(view)
 
 const { $e } = useNuxtApp()
 
@@ -254,7 +254,7 @@ eventBus.on(async (event, column) => {
           </template>
         </div>
         <NcDropdown
-          v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
+          v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
           v-model:visible="showCreateGroupBy"
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"

@@ -3904,7 +3904,9 @@ class BaseModelSqlv2 {
 
       const deleted = [];
       const res = [];
-      for (const d of deleteIds) {
+      const pkAndData: { pk: any; data: any }[] = [];
+      const readChunkSize = 100;
+      for (const [i, d] of deleteIds.entries()) {
         const pkValues = this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -3914,17 +3916,41 @@ class BaseModelSqlv2 {
           continue;
         }
 
-        const deletedRecord = await this.readByPk(pkValues);
-        if (!deletedRecord) {
-          // throw or skip if no record found
-          if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
-          }
-          continue;
-        }
-        deleted.push(deletedRecord);
+        pkAndData.push({ pk: pkValues, data: d });
 
-        res.push(d);
+        if (pkAndData.length >= readChunkSize || i === deleteIds.length - 1) {
+          const tempToRead = pkAndData.splice(0, pkAndData.length);
+          const oldRecords = await this.list(
+            {
+              pks: tempToRead.map((v) => v.pk).join(','),
+            },
+            {
+              limitOverride: tempToRead.length,
+            },
+          );
+
+          if (oldRecords.length === tempToRead.length) {
+            deleted.push(...oldRecords);
+            res.push(...tempToRead.map((v) => v.data));
+          } else {
+            for (const { pk, data } of tempToRead) {
+              const oldRecord = oldRecords.find(
+                (r) => this._extractPksValues(r) === pk,
+              );
+
+              if (!oldRecord) {
+                // throw or skip if no record found
+                if (throwExceptionIfNotExist) {
+                  NcError.recordNotFound(JSON.stringify(pk));
+                }
+                continue;
+              }
+
+              deleted.push(oldRecord);
+              res.push(data);
+            }
+          }
+        }
       }
 
       const execQueries: ((

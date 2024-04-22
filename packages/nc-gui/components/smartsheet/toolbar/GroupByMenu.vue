@@ -158,8 +158,6 @@ watch(open, () => {
 eventBus.on(async (event, column) => {
   if (!column?.id) return
 
-  console.log('_groupBy', column, _groupBy.value)
-
   if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
     addFieldToGroupBy(column)
   } else if (event === SmartsheetStoreEvents.GROUP_BY_REMOVE) {

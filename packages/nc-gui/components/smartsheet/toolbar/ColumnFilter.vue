@@ -27,6 +27,7 @@ interface Props {
   showLoading?: boolean
   modelValue?: undefined | Filter[]
   webHook?: boolean
+  draftFilter?: Partial<FilterType>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +39,9 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
 })
 
-const emit = defineEmits(['update:filtersLength'])
+const emit = defineEmits(['update:filtersLength', 'update:draftFilter'])
+
+const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHook } = toRefs(props)
 
@@ -93,6 +96,8 @@ const localNestedFilters = ref()
 
 const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
+
+const isMounted = ref(false)
 
 const columns = computed(() => meta.value?.columns)
 
@@ -279,8 +284,12 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const addFilter = async () => {
-  await _addFilter()
+const addFilter = async (filter?: Partial<FilterType>) => {
+  await _addFilter(false, filter)
+
+  if (filter) {
+    selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
+  }
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -316,12 +325,9 @@ const showFilterInput = (filter: Filter) => {
   }
 }
 
-onMounted(() => {
-  loadFilters(hookId?.value, webHook.value)
-})
-
 onMounted(async () => {
-  await loadBtLookupTypes()
+  await Promise.all([loadFilters(hookId?.value, webHook.value), loadBtLookupTypes()])
+  isMounted.value = true
 })
 
 onBeforeUnmount(() => {
@@ -331,6 +337,21 @@ onBeforeUnmount(() => {
 function isDateType(uidt: UITypes) {
   return [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(uidt)
 }
+
+watch(
+  [draftFilter, isMounted],
+  async () => {
+    if (!isMounted.value || !draftFilter.value?.fk_column_id) return
+
+    await addFilter(draftFilter.value)
+
+    draftFilter.value = {}
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+)
 </script>
 
 <template>

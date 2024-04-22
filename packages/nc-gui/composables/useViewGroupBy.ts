@@ -1,9 +1,9 @@
 import { UITypes } from 'nocodb-sdk'
-import type { ColumnType, SelectOptionsType, ViewType, LookupType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '../utils'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useViewColumnsOrThrow, useMetas } from '#imports'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useMetas, useViewColumnsOrThrow } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]

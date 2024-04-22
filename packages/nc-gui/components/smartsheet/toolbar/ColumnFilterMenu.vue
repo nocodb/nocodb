@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   AllFiltersInj,
   IsLockedInj,
+  SmartsheetStoreEvents,
   computed,
   iconMap,
   inject,
@@ -12,7 +14,6 @@ import {
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
-  SmartsheetStoreEvents,
 } from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -56,8 +57,13 @@ provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
 
-eventBus.on(async (event, payload) => {
+const draftFilter = ref({})
+
+eventBus.on(async (event, column: ColumnType) => {
+  if (!column) return
+
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
 })
@@ -85,6 +91,7 @@ eventBus.on(async (event, payload) => {
     <template #overlay>
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
+        v-model:draft-filter="draftFilter"
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"

@@ -386,8 +386,8 @@ export function useViewFilters(
 
   const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
 
-  const addFilter = async (undo = false) => {
-    filters.value.push(placeholderFilter())
+  const addFilter = async (undo = false, draftFilter: Partial<FilterType> = {}) => {
+    filters.value.push(draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter())
     if (!undo) {
       addUndo({
         undo: {

@@ -3,7 +3,16 @@ import type { ColumnType, LinkToAnotherRecordType, LookupType, SelectOptionsType
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '../utils'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useMetas, useViewColumnsOrThrow } from '#imports'
+import {
+  GROUP_BY_VARS,
+  SharedViewPasswordInj,
+  ref,
+  storeToRefs,
+  useApi,
+  useBase,
+  useMetas,
+  useViewColumnsOrThrow,
+} from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
@@ -24,6 +33,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   const { gridViewCols } = useViewColumnsOrThrow()
 
   const { getMeta } = useMetas()
+
+  const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
   const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -236,16 +247,24 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
             sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
             column_name: groupby.column.title,
           } as any)
-        : await api.public.dataGroupBy(sharedView.value!.uuid!, {
-            offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-            limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-            ...params,
-            where: nestedWhere,
-            sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
-            column_name: groupby.column.title,
-            sortsArr: sorts.value,
-            filtersArr: nestedFilters.value,
-          })
+        : await api.public.dataGroupBy(
+            sharedView.value!.uuid!,
+            {
+              offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+              limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+              ...params,
+              where: nestedWhere,
+              sort: `${groupby.sort === 'desc' ? '-' : ''}${groupby.column.title}`,
+              column_name: groupby.column.title,
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+            },
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
+          )
 
       const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
         const keyExists = acc.find(

@@ -81,6 +81,8 @@ export enum SmartsheetStoreEvents {
   FIELD_ADD = 'field-add',
   MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
   CLEAR_NEW_ROW = 'clear-new-row',
+  GROUP_BY_ADD = 'group-by-add',
+  FILTER_ADD = 'filter-add'
 }
 
 export enum DataSourcesSubTab {

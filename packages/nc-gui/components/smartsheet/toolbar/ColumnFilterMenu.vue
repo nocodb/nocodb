@@ -12,6 +12,7 @@ import {
   useSmartsheetStoreOrThrow,
   useViewFilters,
   watch,
+  SmartsheetStoreEvents,
 } from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -22,7 +23,7 @@ const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { nestedFilters } = useSmartsheetStoreOrThrow()
+const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
@@ -54,6 +55,12 @@ const allFilters = ref({})
 provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
+
+eventBus.on(async (event, payload) => {
+  if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    open.value = true
+  }
+})
 </script>
 
 <template>

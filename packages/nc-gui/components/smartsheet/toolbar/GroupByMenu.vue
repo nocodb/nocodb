@@ -218,6 +218,12 @@ onMounted(async () => {
 watch(meta, async () => {
   await loadAllowedLookups()
 })
+
+eventBus.on(async (event, payload) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
+    open.value = true
+  }
+})
 </script>
 
 <template>

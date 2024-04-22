@@ -295,6 +295,11 @@ const isDeleteAllowed = computed(() => {
 const isDuplicateAllowed = computed(() => {
   return column?.value && !column.value.system
 })
+
+const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
+  eventBus.emit(event)
+  isOpen.value = false
+}
 </script>
 
 <template>
@@ -363,6 +368,26 @@ const isDuplicateAllowed = computed(() => {
         </template>
 
         <a-divider v-if="!column?.pk" class="!my-0" />
+
+        <template v-if="true">
+          <NcMenuItem @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)">
+            <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
+              <component :is="iconMap.filter" class="text-gray-700" />
+              <!-- Group by this field -->
+              Filter by this field
+            </div>
+          </NcMenuItem>
+
+          <NcMenuItem @click="filterOrGroupByThisField(SmartsheetStoreEvents.GROUP_BY_ADD)">
+            <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
+              <component :is="iconMap.group" class="text-gray-700" />
+              <!-- Group by this field -->
+              Group by this field
+            </div>
+          </NcMenuItem>
+
+          <a-divider class="!my-0" />
+        </template>
 
         <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">

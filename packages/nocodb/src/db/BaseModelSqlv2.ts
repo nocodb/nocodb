@@ -3779,6 +3779,12 @@ class BaseModelSqlv2 {
               updatePkValues.push(pk);
             }
           }
+        } else {
+          const wherePk = await this._wherePk(pkValues, true);
+
+          toBeUpdated.push({ d, wherePk });
+
+          updatePkValues.push(pkValues);
         }
       }
 

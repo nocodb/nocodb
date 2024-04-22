@@ -2996,8 +2996,8 @@ class BaseModelSqlv2 {
     }
   }
 
-  async _wherePk(id) {
-    await this.model.getColumns();
+  async _wherePk(id, skipGetColumns = false) {
+    if (!skipGetColumns) await this.model.getColumns();
     return _wherePk(this.model.primaryKeys, id);
   }
 
@@ -3709,7 +3709,7 @@ class BaseModelSqlv2 {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
-      const toRead = [];
+      const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
       for (const [i, d] of updateDatas.entries()) {
         const pkValues = this._extractPksValues(d);
@@ -3723,13 +3723,19 @@ class BaseModelSqlv2 {
         if (!raw) {
           await this.prepareNocoData(d, false, cookie);
 
-          toRead.push(pkValues);
+          pkAndData.push({
+            pk: pkValues,
+            data: d,
+          });
 
-          if (toRead.length >= readChunkSize || i === updateDatas.length - 1) {
-            const tempToRead = toRead.splice(0, toRead.length);
+          if (
+            pkAndData.length >= readChunkSize ||
+            i === updateDatas.length - 1
+          ) {
+            const tempToRead = pkAndData.splice(0, pkAndData.length);
             const oldRecords = await this.list(
               {
-                pks: tempToRead.join(','),
+                pks: tempToRead.map((v) => v.pk).join(','),
               },
               {
                 limitOverride: tempToRead.length,
@@ -3755,11 +3761,14 @@ class BaseModelSqlv2 {
                 prevData.push(oldRecord);
               }
             }
+
+            for (const { pk, data } of tempToRead) {
+              const wherePk = await this._wherePk(pk, true);
+              toBeUpdated.push({ d: data, wherePk });
+              updatePkValues.push(pk);
+            }
           }
         }
-        const wherePk = await this._wherePk(pkValues);
-        toBeUpdated.push({ d, wherePk });
-        updatePkValues.push(pkValues);
       }
 
       transaction = await this.dbDriver.transaction();

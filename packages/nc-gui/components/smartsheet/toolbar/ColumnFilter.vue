@@ -27,8 +27,8 @@ interface Props {
   showLoading?: boolean
   modelValue?: undefined | Filter[]
   webHook?: boolean
+  draftFilter?: Partial<FilterType>
 }
-
 const props = withDefaults(defineProps<Props>(), {
   nestedLevel: 0,
   autoSave: true,
@@ -38,7 +38,11 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
 })
 
-const emit = defineEmits(['update:filtersLength'])
+const emit = defineEmits(['update:filtersLength', 'update:draftFilter'])
+
+const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
+
+const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const { nestedLevel, parentId, autoSave, hookId, modelValue, showLoading, webHook } = toRefs(props)
 
@@ -94,7 +98,11 @@ const localNestedFilters = ref()
 const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
 
+const isMounted = ref(false)
+
 const columns = computed(() => meta.value?.columns)
+
+const fieldsToFilter = computed(() => (columns.value || []).filter((c) => !excludedFilterColUidt.includes(c.uidt as UITypes)))
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
@@ -279,8 +287,12 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const addFilter = async () => {
-  await _addFilter()
+const addFilter = async (filter?: Partial<FilterType>) => {
+  await _addFilter(false, filter)
+
+  if (filter) {
+    selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
+  }
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -316,12 +328,9 @@ const showFilterInput = (filter: Filter) => {
   }
 }
 
-onMounted(() => {
-  loadFilters(hookId?.value, webHook.value)
-})
-
 onMounted(async () => {
-  await loadBtLookupTypes()
+  await Promise.all([loadFilters(hookId?.value, webHook.value), loadBtLookupTypes()])
+  isMounted.value = true
 })
 
 onBeforeUnmount(() => {
@@ -331,6 +340,37 @@ onBeforeUnmount(() => {
 function isDateType(uidt: UITypes) {
   return [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(uidt)
 }
+
+watch(
+  [draftFilter, isMounted],
+  async () => {
+    if (!isMounted.value || !draftFilter.value?.fk_column_id) return
+
+    await addFilter(draftFilter.value)
+
+    await nextTick()
+
+    scrollToBottom()
+
+    const filterWrapper = document.querySelectorAll(`.nc-filter-wrapper-${draftFilter.value.fk_column_id}`)
+
+    draftFilter.value = {}
+    if (!filterWrapper.length) return
+
+    const filterInputElement =
+      filterWrapper[filterWrapper.length - 1]?.querySelector<HTMLInputElement>('.nc-filter-value-select input')
+    if (filterInputElement) {
+      setTimeout(() => {
+        filterInputElement?.focus?.()
+        filterInputElement?.click?.()
+      }, 100)
+    }
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -405,7 +445,7 @@ function isDateType(uidt: UITypes) {
               </div>
             </div>
           </template>
-          <div v-else class="flex flex-row gap-x-2 w-full">
+          <div v-else class="flex flex-row gap-x-2 w-full" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
             <span v-if="!i" class="flex items-center ml-2 mr-7.35">{{ $t('labels.where') }}</span>
 
             <NcSelect
@@ -436,7 +476,7 @@ function isDateType(uidt: UITypes) {
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
               class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
-              :columns="columns"
+              :columns="fieldsToFilter"
               :disabled="filter.readOnly"
               @click.stop
               @change="selectFilterField(filter, i)"

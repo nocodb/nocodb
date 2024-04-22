@@ -272,9 +272,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         data,
         this.clientMeta,
         this.dbDriver,
+        columns,
       );
 
-      await this.validate(insertObj);
+      await this.validate(insertObj, columns);
 
       if ('beforeInsert' in this) {
         await this.beforeInsert(insertObj, trx, cookie);
@@ -446,13 +447,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {
     try {
+      const columns = await this.model.getColumns();
+
       const updateObj = await this.model.mapAliasToColumn(
         data,
         this.clientMeta,
         this.dbDriver,
+        columns,
       );
 
-      await this.validate(data);
+      await this.validate(data, columns);
 
       await this.beforeUpdate(data, trx, cookie);
 
@@ -480,7 +484,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
-        .where(await this._wherePk(id));
+        .where(await this._wherePk(id, true));
 
       await this.execAndParse(query, null, { raw: true });
 
@@ -573,7 +577,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       workspaceId,
     );
 
-    const workspaceRowLimit = getLimit(
+    const workspaceRowLimit = await getLimit(
       PlanLimitTypes.WORKSPACE_ROW_LIMIT,
       workspaceId,
     );
@@ -1230,12 +1234,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ) {
     const queries: string[] = [];
     try {
-      if (raw) await this.model.getColumns();
+      const columns = await this.model.getColumns();
 
       // validate update data
       if (!raw) {
         for (const d of datas) {
-          await this.validate(d);
+          await this.validate(d, columns);
         }
       }
 
@@ -1243,7 +1247,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ? datas
         : await Promise.all(
             datas.map((d) =>
-              this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+              this.model.mapAliasToColumn(
+                d,
+                this.clientMeta,
+                this.dbDriver,
+                columns,
+              ),
             ),
           );
 
@@ -1251,8 +1260,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
-      for (const d of updateDatas) {
-        const pkValues = await this._extractPksValues(d);
+      const pkAndData: { pk: any; data: any }[] = [];
+      const readChunkSize = 100;
+      for (const [i, d] of updateDatas.entries()) {
+        const pkValues = this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -1263,34 +1274,86 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!raw) {
           await this.prepareNocoData(d, false, cookie);
 
-          const oldRecord = await this.readByPk(pkValues);
-          if (!oldRecord) {
-            // throw or skip if no record found
-            if (throwExceptionIfNotExist) {
-              NcError.recordNotFound(JSON.stringify(pkValues));
+          pkAndData.push({
+            pk: pkValues,
+            data: d,
+          });
+
+          if (
+            pkAndData.length >= readChunkSize ||
+            i === updateDatas.length - 1
+          ) {
+            const tempToRead = pkAndData.splice(0, pkAndData.length);
+            const oldRecords = await this.list(
+              {
+                pks: tempToRead.map((v) => v.pk).join(','),
+              },
+              {
+                limitOverride: tempToRead.length,
+              },
+            );
+
+            if (oldRecords.length === tempToRead.length) {
+              prevData.push(...oldRecords);
+            } else {
+              for (const recordPk of tempToRead) {
+                const oldRecord = oldRecords.find((r) =>
+                  this.comparePks(this._extractPksValues(r), recordPk),
+                );
+
+                if (!oldRecord) {
+                  // throw or skip if no record found
+                  if (throwExceptionIfNotExist) {
+                    NcError.recordNotFound(JSON.stringify(recordPk));
+                  }
+                  continue;
+                }
+
+                prevData.push(oldRecord);
+              }
             }
-            continue;
-          }
-          prevData.push(oldRecord);
-        }
-        const wherePk = await this._wherePk(pkValues);
 
-        // remove pk from update data for databricks
-        if (this.isDatabricks) {
-          const dWithoutPk = {};
+            for (const { pk, data } of tempToRead) {
+              const wherePk = await this._wherePk(pk, true);
 
-          for (const k in d) {
-            if (!(k in wherePk)) {
-              dWithoutPk[k] = d[k];
+              // remove pk from update data for databricks
+              if (this.isDatabricks) {
+                const dWithoutPk = {};
+
+                for (const k in data) {
+                  if (!(k in wherePk)) {
+                    dWithoutPk[k] = data[k];
+                  }
+                }
+
+                toBeUpdated.push({ d: dWithoutPk, wherePk });
+              } else {
+                toBeUpdated.push({ d: data, wherePk });
+              }
+
+              updatePkValues.push(pk);
             }
           }
-
-          toBeUpdated.push({ d: dWithoutPk, wherePk });
         } else {
-          toBeUpdated.push({ d, wherePk });
-        }
+          const wherePk = await this._wherePk(pkValues, true);
 
-        updatePkValues.push(pkValues);
+          // remove pk from update data for databricks
+          if (this.isDatabricks) {
+            const dWithoutPk = {};
+
+            for (const k in d) {
+              if (!(k in wherePk)) {
+                dWithoutPk[k] = d[k];
+              }
+            }
+
+            toBeUpdated.push({ d: dWithoutPk, wherePk });
+          } else {
+            toBeUpdated.push({ d, wherePk });
+          }
+
+          updatePkValues.push(pkValues);
+        }
       }
 
       for (const o of toBeUpdated) {
@@ -1315,9 +1378,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        for (const pkValues of updatePkValues) {
-          const updatedRecord = await this.readByPk(pkValues);
-          newData.push(updatedRecord);
+        while (updatePkValues.length) {
+          const updatedRecords = await this.list(
+            {
+              pks: updatePkValues.splice(0, readChunkSize).join(','),
+            },
+            {
+              limitOverride: readChunkSize,
+            },
+          );
+
+          newData.push(...updatedRecords);
         }
       }
 
@@ -1355,16 +1426,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ) {
     const queries: string[] = [];
     try {
+      const columns = await this.model.getColumns();
+
       const deleteIds = await Promise.all(
         ids.map((d) =>
-          this.model.mapAliasToColumn(d, this.clientMeta, this.dbDriver),
+          this.model.mapAliasToColumn(
+            d,
+            this.clientMeta,
+            this.dbDriver,
+            columns,
+          ),
         ),
       );
 
       const deleted = [];
       const res = [];
-      for (const d of deleteIds) {
-        const pkValues = await this._extractPksValues(d);
+      const pkAndData: { pk: any; data: any }[] = [];
+      const readChunkSize = 100;
+      for (const [i, d] of deleteIds.entries()) {
+        const pkValues = this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -1373,17 +1453,41 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           continue;
         }
 
-        const deletedRecord = await this.readByPk(pkValues);
-        if (!deletedRecord) {
-          // throw or skip if no record found
-          if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(JSON.stringify(pkValues));
-          }
-          continue;
-        }
-        deleted.push(deletedRecord);
+        pkAndData.push({ pk: pkValues, data: d });
 
-        res.push(d);
+        if (pkAndData.length >= readChunkSize || i === deleteIds.length - 1) {
+          const tempToRead = pkAndData.splice(0, pkAndData.length);
+          const oldRecords = await this.list(
+            {
+              pks: tempToRead.map((v) => v.pk).join(','),
+            },
+            {
+              limitOverride: tempToRead.length,
+            },
+          );
+
+          if (oldRecords.length === tempToRead.length) {
+            deleted.push(...oldRecords);
+            res.push(...tempToRead.map((v) => v.data));
+          } else {
+            for (const { pk, data } of tempToRead) {
+              const oldRecord = oldRecords.find((r) =>
+                this.comparePks(this._extractPksValues(r), pk),
+              );
+
+              if (!oldRecord) {
+                // throw or skip if no record found
+                if (throwExceptionIfNotExist) {
+                  NcError.recordNotFound(JSON.stringify(pk));
+                }
+                continue;
+              }
+
+              deleted.push(oldRecord);
+              res.push(data);
+            }
+          }
+        }
       }
 
       const execQueries: ((
@@ -1489,10 +1593,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ) {
     const queries: string[] = [];
     try {
-      await this.model.getColumns();
+      const columns = await this.model.getColumns();
       const { where } = this._getListArgs(args);
       const qb = this.dbDriver(this.tnPath);
-      const aliasColObjMap = await this.model.getAliasColObjMap();
+      const aliasColObjMap = await this.model.getAliasColObjMap(columns);
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
       await conditionV2(

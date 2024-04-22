@@ -71,7 +71,7 @@ async function getLimit(type: PlanLimitTypes, workspaceId?: string) {
 
   const plan = workspace.plan;
 
-  return PlanLimits[plan][type];
+  return PlanLimits[plan][type] || Infinity;
 }
 
 export { PlanLimitTypes, getLimit, getLimitsForPlan };

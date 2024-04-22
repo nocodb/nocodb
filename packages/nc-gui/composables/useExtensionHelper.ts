@@ -47,7 +47,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
   }) => {
     const { tableId, viewId, eachPage, done } = params
 
-    let page = 0
+    let page = 1
 
     const nextPage = async () => {
       const { list: records, pageInfo } = await $api.dbViewRow.list(
@@ -56,8 +56,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
         tableId,
         viewId as string,
         {
-          offset: (page - 1) * 25,
-          limit: 25,
+          offset: (page - 1) * 100,
+          limit: 100,
         } as any,
       )
 
@@ -175,14 +175,14 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
 
     if (insert.length) {
       insertCounter += insert.length
-      for (let i = 0; i < insert.length; i += chunkSize) {
+      while (insert.length) {
         await $api.dbDataTableRow.create(tableId, insert.splice(0, chunkSize))
       }
     }
 
     if (update.length) {
       updateCounter += update.length
-      for (let i = 0; i < update.length; i += chunkSize) {
+      while (update.length) {
         await $api.dbDataTableRow.update(tableId, update.splice(0, chunkSize))
       }
     }

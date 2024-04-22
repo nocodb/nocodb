@@ -42,27 +42,18 @@ test.describe('LTAR create & update', () => {
     await dashboard.grid.addNewRow({ index: 0, value: '2a' });
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.addNewRow({ index: 2, value: '2c' });
+    await dashboard.grid.editRow({ index: 0, columnHeader: 'Sheet1Id', value: '1' });
+    await dashboard.grid.editRow({ index: 1, columnHeader: 'Sheet1Id', value: '1' });
+    await dashboard.grid.editRow({ index: 2, columnHeader: 'Sheet1Id', value: '1' });
 
     // Create LTAR-HM column
     await dashboard.grid.column.create({
       title: 'Link1-2hm',
-      type: 'Links',
+      type: UITypes.Links,
       childTable: 'Sheet2',
       relationType: 'Has Many',
-    });
-    await dashboard.grid.column.create({
-      title: 'Link1-2mm',
-      type: 'Links',
-      childTable: 'Sheet2',
-      relationType: 'Many To many',
-    });
-
-    await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
-    await dashboard.grid.column.create({
-      title: 'Link2-1hm',
-      type: 'Links',
-      childTable: 'Sheet1',
-      relationType: 'Has Many',
+      custom: true,
+      refColumn: 'Sheet1Id',
     });
 
     // Sheet2 now has all 3 column categories : HM, BT, MM

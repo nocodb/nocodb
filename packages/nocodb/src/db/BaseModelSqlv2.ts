@@ -4,6 +4,7 @@ import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
+import equal from 'fast-deep-equal';
 import { nocoExecute } from 'nc-help';
 import {
   AuditOperationSubTypes,
@@ -3007,6 +3008,10 @@ class BaseModelSqlv2 {
     return _wherePk(this.model.primaryKeys, id);
   }
 
+  comparePks(pk1, pk2) {
+    return equal(pk1, pk2);
+  }
+
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     const schema = (this.dbDriver as any).searchPath?.();
@@ -3757,8 +3762,8 @@ class BaseModelSqlv2 {
               prevData.push(...oldRecords);
             } else {
               for (const recordPk of tempToRead) {
-                const oldRecord = oldRecords.find(
-                  (r) => this._extractPksValues(r) === recordPk,
+                const oldRecord = oldRecords.find((r) =>
+                  this.comparePks(this._extractPksValues(r), recordPk),
                 );
 
                 if (!oldRecord) {
@@ -3976,8 +3981,8 @@ class BaseModelSqlv2 {
             res.push(...tempToRead.map((v) => v.data));
           } else {
             for (const { pk, data } of tempToRead) {
-              const oldRecord = oldRecords.find(
-                (r) => this._extractPksValues(r) === pk,
+              const oldRecord = oldRecords.find((r) =>
+                this.comparePks(this._extractPksValues(r), pk),
               );
 
               if (!oldRecord) {

@@ -52,6 +52,8 @@ const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
 
+const { gridViewCols } = useViewColumnsOrThrow()
+
 const setAsDisplayValue = async () => {
   try {
     const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
@@ -296,8 +298,14 @@ const isDuplicateAllowed = computed(() => {
   return column?.value && !column.value.system
 })
 
+const isGroupedByThisField = computed(() => {
+  return !!gridViewCols.value[column?.value?.id]?.group_by
+})
+
 const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
-  eventBus.emit(event)
+  if (column?.value) {
+    eventBus.emit(event, column.value)
+  }
   isOpen.value = false
 }
 </script>
@@ -378,11 +386,17 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
             </div>
           </NcMenuItem>
 
-          <NcMenuItem @click="filterOrGroupByThisField(SmartsheetStoreEvents.GROUP_BY_ADD)">
+          <NcMenuItem
+            @click="
+              filterOrGroupByThisField(
+                isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
+              )
+            "
+          >
             <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
               <component :is="iconMap.group" class="text-gray-700" />
               <!-- Group by this field -->
-              Group by this field
+              {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
             </div>
           </NcMenuItem>
 

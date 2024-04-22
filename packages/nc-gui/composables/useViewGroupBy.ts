@@ -1,9 +1,12 @@
-import { type ColumnType, type SelectOptionsType, UITypes, type ViewType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, SelectOptionsType, ViewType, LookupType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '../utils'
-import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useViewColumnsOrThrow } from '#imports'
+import { GROUP_BY_VARS, ref, storeToRefs, useApi, useBase, useViewColumnsOrThrow, useMetas } from '#imports'
 import type { Group, GroupNestedIn, Row } from '#imports'
+
+const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
 
 export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: ComputedRef<string | undefined>) => {
   const { api } = useApi()
@@ -17,6 +20,8 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
   const meta = inject(MetaInj)
 
   const { gridViewCols } = useViewColumnsOrThrow()
+
+  const { getMeta } = useMetas()
 
   const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -52,6 +57,22 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
 
   const groupByRecordLimit = computed(() => {
     return appInfo.value.defaultGroupByLimit?.limitRecord || 10
+  })
+
+  const supportedLookups = ref<string[]>([])
+
+  const fieldsToGroupBy = computed(() => {
+    const fields = meta?.value?.columns || []
+
+    return fields.filter((field) => {
+      if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
+
+      if (field.uidt === UITypes.Lookup) {
+        return field.id && supportedLookups.value.includes(field.id)
+      }
+
+      return true
+    })
   })
 
   const rootGroup = ref<Group>({
@@ -464,5 +485,60 @@ export const useViewGroupBy = (view: Ref<ViewType | undefined>, where?: Computed
     }
   }
 
-  return { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows }
+  const loadAllowedLookups = async () => {
+    const filteredLookupCols = []
+    try {
+      for (const col of meta?.value?.columns || []) {
+        if (col.uidt !== UITypes.Lookup) continue
+
+        let nextCol: ColumnType = col
+        // check the lookup column is supported type or not
+        while (nextCol && nextCol.uidt === UITypes.Lookup) {
+          const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
+            (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
+          )
+
+          const relatedTableMeta = await getMeta(
+            (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+          )
+
+          nextCol = relatedTableMeta?.columns?.find(
+            (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
+          ) as ColumnType
+
+          // if next column is same as root lookup column then break the loop
+          // since it's going to be a circular loop, and ignore the column
+          if (nextCol?.id === col.id) {
+            break
+          }
+        }
+
+        if (nextCol?.uidt !== UITypes.Attachment && col.id) filteredLookupCols.push(col.id)
+      }
+
+      supportedLookups.value = filteredLookupCols
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  onMounted(async () => {
+    await loadAllowedLookups()
+  })
+
+  watch(meta, async () => {
+    await loadAllowedLookups()
+  })
+
+  return {
+    rootGroup,
+    groupBy,
+    isGroupBy,
+    fieldsToGroupBy,
+    loadGroups,
+    loadGroupData,
+    loadGroupPage,
+    groupWrapperChangePage,
+    redistributeRows,
+  }
 }

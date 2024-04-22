@@ -319,6 +319,7 @@ class BaseModelSqlv2 {
       sort?: string | string[];
       fieldsSet?: Set<string>;
       limitOverride?: number;
+      pks?: string;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -3708,8 +3709,10 @@ class BaseModelSqlv2 {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
+      const toRead = [];
+      const readChunkSize = 100;
       for (const d of updateDatas) {
-        const pkValues = await this._extractPksValues(d);
+        const pkValues = this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -3720,15 +3723,39 @@ class BaseModelSqlv2 {
         if (!raw) {
           await this.prepareNocoData(d, false, cookie);
 
-          const oldRecord = await this.readByPk(pkValues);
-          if (!oldRecord) {
-            // throw or skip if no record found
-            if (throwExceptionIfNotExist) {
-              NcError.recordNotFound(JSON.stringify(pkValues));
+          toRead.push(pkValues);
+
+          if (toRead.length >= readChunkSize) {
+            const tempToRead = toRead.splice(0, toRead.length);
+            const oldRecords = await this.list(
+              {
+                pks: tempToRead.join(','),
+              },
+              {
+                limitOverride: tempToRead.length,
+              },
+            );
+
+            if (oldRecords.length === tempToRead.length) {
+              prevData.push(...oldRecords);
+            } else {
+              for (const record of oldRecords) {
+                const pkValues = this._extractPksValues(record);
+
+                const exists = tempToRead.find((d) => d === pkValues);
+
+                if (!exists) {
+                  // throw or skip if no record found
+                  if (throwExceptionIfNotExist) {
+                    NcError.recordNotFound(JSON.stringify(pkValues));
+                  }
+                  continue;
+                }
+
+                prevData.push(record);
+              }
             }
-            continue;
           }
-          prevData.push(oldRecord);
         }
         const wherePk = await this._wherePk(pkValues);
         toBeUpdated.push({ d, wherePk });
@@ -3744,9 +3771,12 @@ class BaseModelSqlv2 {
       await transaction.commit();
 
       if (!raw) {
-        for (const pkValues of updatePkValues) {
-          const updatedRecord = await this.readByPk(pkValues);
-          newData.push(updatedRecord);
+        while (updatePkValues.length) {
+          const updatedRecords = await this.list({
+            pks: updatePkValues.splice(0, readChunkSize).join(','),
+          });
+
+          newData.push(...updatedRecords);
         }
       }
 
@@ -3792,7 +3822,7 @@ class BaseModelSqlv2 {
 
       await this.prepareNocoData(updateData, false, cookie);
 
-      const pkValues = await this._extractPksValues(updateData);
+      const pkValues = this._extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
       } else {
@@ -3875,7 +3905,7 @@ class BaseModelSqlv2 {
       const deleted = [];
       const res = [];
       for (const d of deleteIds) {
-        const pkValues = await this._extractPksValues(d);
+        const pkValues = this._extractPksValues(d);
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {

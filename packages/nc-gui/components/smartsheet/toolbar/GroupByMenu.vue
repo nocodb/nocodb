@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -8,17 +8,13 @@ import {
   computed,
   getSortDirectionOptions,
   inject,
-  onMounted,
   ref,
   useMenuCloseOnEsc,
-  useMetas,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewColumnsOrThrow,
   watch,
 } from '#imports'
-
-const excludedGroupingUidt = [UITypes.Attachment]
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -26,11 +22,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
+const { fieldsToGroupBy, groupByLimit } = useViewGroupBy(view)
+
 const { $e } = useNuxtApp()
 
 const _groupBy = ref<{ fk_column_id?: string; sort: string; order: number }[]>([])
-
-const { getMeta } = useMetas()
 
 const groupBy = computed<{ fk_column_id?: string; sort: string; order: number }[]>(() => {
   const tempGroupBy: { fk_column_id?: string; sort: string; order: number }[] = []
@@ -53,23 +49,7 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
-const supportedLookups = ref<string[]>([])
-
 const showCreateGroupBy = ref(false)
-
-const fieldsToGroupBy = computed(() => {
-  const fields = meta.value?.columns || []
-
-  return fields.filter((field) => {
-    if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
-
-    if (field.uidt === UITypes.Lookup) {
-      return field.id && supportedLookups.value.includes(field.id)
-    }
-
-    return true
-  })
-})
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -174,49 +154,18 @@ watch(open, () => {
   }
 })
 
-const loadAllowedLookups = async () => {
-  const filteredLookupCols = []
-  try {
-    for (const col of meta.value?.columns || []) {
-      if (col.uidt !== UITypes.Lookup) continue
+eventBus.on(async (event, column) => {
+  if (!column?.id) return
 
-      let nextCol: ColumnType = col
-      // check the lookup column is supported type or not
-      while (nextCol && nextCol.uidt === UITypes.Lookup) {
-        const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
-          (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
-        )
+  if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
+    addFieldToGroupBy(column)
+  } else if (event === SmartsheetStoreEvents.GROUP_BY_REMOVE) {
+    if (groupedByColumnIds.value.length === 0) return
 
-        const relatedTableMeta = await getMeta(
-          (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-        )
+    _groupBy.value = _groupBy.value.filter((g) => g.fk_column_id !== column.id)
 
-        nextCol = relatedTableMeta?.columns?.find(
-          (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
-        ) as ColumnType
-
-        // if next column is same as root lookup column then break the loop
-        // since it's going to be a circular loop, and ignore the column
-        if (nextCol?.id === col.id) {
-          break
-        }
-      }
-
-      if (nextCol?.uidt !== UITypes.Attachment && col.id) filteredLookupCols.push(col.id)
-    }
-
-    supportedLookups.value = filteredLookupCols
-  } catch (e) {
-    console.error(e)
+    await saveGroupBy()
   }
-}
-
-onMounted(async () => {
-  await loadAllowedLookups()
-})
-
-watch(meta, async () => {
-  await loadAllowedLookups()
 })
 </script>
 
@@ -305,7 +254,7 @@ watch(meta, async () => {
           </template>
         </div>
         <NcDropdown
-          v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < 3"
+          v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
           v-model:visible="showCreateGroupBy"
           :trigger="['click']"
           overlay-class-name="nc-toolbar-dropdown"

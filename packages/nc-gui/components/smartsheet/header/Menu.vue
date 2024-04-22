@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { computed } from 'vue'
 import {
   ActiveViewInj,
@@ -28,7 +28,7 @@ const virtual = toRef(props, 'virtual')
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters } = useSmartsheetStoreOrThrow()
 
 const column = inject(ColumnInj)
 
@@ -38,9 +38,11 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
-
 const isLocked = inject(IsLockedInj)
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { insertSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { $api, $e } = useNuxtApp()
 
@@ -51,6 +53,10 @@ const { getMeta } = useMetas()
 const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
+
+const { gridViewCols } = useViewColumnsOrThrow()
+
+const { fieldsToGroupBy, groupByLimit } = useViewGroupBy(view)
 
 const setAsDisplayValue = async () => {
   try {
@@ -295,6 +301,33 @@ const isDeleteAllowed = computed(() => {
 const isDuplicateAllowed = computed(() => {
   return column?.value && !column.value.system
 })
+const isFilterSupported = computed(
+  () =>
+    !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode].includes(f.uidt)),
+)
+
+const { getPlanLimit } = useWorkspace()
+
+const isFilterLimitExceeded = computed(
+  () =>
+    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >= getPlanLimit(PlanLimitTypes.FILTER_LIMIT),
+)
+
+const isGroupedByThisField = computed(() => !!gridViewCols.value[column?.value?.id]?.group_by)
+
+const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find((f) => f.id === column?.value?.id))
+
+const isGroupByLimitExceeded = computed(() => {
+  const groupBy = Object.values(gridViewCols.value).filter((c) => c.group_by)
+  return !(fieldsToGroupBy.value.length && fieldsToGroupBy.value.length > groupBy.length && groupBy.length < groupByLimit)
+})
+
+const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
+  if (column?.value) {
+    eventBus.emit(event, column.value)
+  }
+  isOpen.value = false
+}
 </script>
 
 <template>
@@ -362,7 +395,55 @@ const isDuplicateAllowed = computed(() => {
           </NcMenuItem>
         </template>
 
-        <a-divider v-if="!column?.pk" class="!my-0" />
+        <a-divider class="!my-0" />
+
+        <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
+          <template #title>
+            {{
+              !isFilterSupported
+                ? "This field type doesn't support filtering"
+                : isFilterLimitExceeded
+                ? 'Filter by limit exceeded'
+                : ''
+            }}
+          </template>
+          <NcMenuItem
+            :disabled="!isFilterSupported || isFilterLimitExceeded"
+            @click="filterOrGroupByThisField(SmartsheetStoreEvents.FILTER_ADD)"
+          >
+            <div v-e="['a:field:add:filter']" class="nc-column-filter nc-header-menu-item">
+              <component :is="iconMap.filter" class="text-gray-700" />
+              <!-- Filter by this field -->
+              Filter by this field
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+
+        <NcTooltip :disabled="(isGroupBySupported && !isGroupByLimitExceeded) || isGroupedByThisField || !(isEeUI && !isPublic)">
+          <template #title>{{
+            !isGroupBySupported
+              ? "This field type doesn't support grouping"
+              : isGroupByLimitExceeded
+              ? 'Group by limit exceeded'
+              : ''
+          }}</template>
+          <NcMenuItem
+            :disabled="isEeUI && !isPublic && (!isGroupBySupported || isGroupByLimitExceeded) && !isGroupedByThisField"
+            @click="
+              filterOrGroupByThisField(
+                isGroupedByThisField ? SmartsheetStoreEvents.GROUP_BY_REMOVE : SmartsheetStoreEvents.GROUP_BY_ADD,
+              )
+            "
+          >
+            <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
+              <component :is="iconMap.group" class="text-gray-700" />
+              <!-- Group by this field -->
+              {{ isGroupedByThisField ? "Don't group by this field" : 'Group by this field' }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+
+        <a-divider class="!my-0" />
 
         <NcMenuItem v-if="!column?.pk" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
@@ -418,7 +499,10 @@ const isDuplicateAllowed = computed(() => {
   }
 }
 
-:deep(.ant-dropdown-menu-item) {
+:deep(.ant-dropdown-menu-item:not(.ant-dropdown-menu-item-disabled)) {
   @apply !hover:text-black text-gray-700;
+}
+:deep(.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled .nc-icon) {
+  @apply text-current;
 }
 </style>

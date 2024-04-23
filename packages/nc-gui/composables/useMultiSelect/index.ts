@@ -816,7 +816,13 @@ export function useMultiSelect(
     e.preventDefault()
 
     // Replace \" with " in clipboard data
-    const clipboardData = e.clipboardData?.getData('text/plain') || ''
+    let clipboardData = e.clipboardData?.getData('text/plain') || ''
+
+    if (clipboardData?.endsWith('\n')) {
+      // Remove '\n' from the end of the clipboardData
+      clipboardData = clipboardData.replace(/\n$/, '')
+    }
+
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText

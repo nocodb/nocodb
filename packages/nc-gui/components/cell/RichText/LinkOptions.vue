@@ -8,9 +8,12 @@ const props = defineProps<Props>()
 
 interface Props {
   editor: Editor
+  isFormField?: boolean
 }
 
-const editor = computed(() => props.editor)
+const emits = defineEmits(['blur'])
+
+const { editor, isFormField } = toRefs(props)
 
 const inputRef = ref<HTMLInputElement>()
 const linkNodeMark = ref<Mark | undefined>()
@@ -164,6 +167,10 @@ const onMountLinkOptions = (e) => {
     e.popper.style.width = '95%'
   }
 }
+
+const tabIndex = computed(() => {
+  return isFormField.value ? -1 : 0
+})
 </script>
 
 <template>
@@ -187,6 +194,7 @@ const onMountLinkOptions = (e) => {
         <div class="!border-1 !border-gray-200 !py-0.5 bg-gray-100 rounded-md !z-10 flex-1">
           <a-input
             ref="inputRef"
+            :tabindex="tabIndex"
             v-model:value="href"
             class="nc-text-area-rich-link-option-input flex-1 !mx-0.5 !px-1.5 !py-0.5 !rounded-md z-10"
             :bordered="false"
@@ -194,11 +202,13 @@ const onMountLinkOptions = (e) => {
             @change="onChange"
             @press-enter="onInputBoxEnter"
             @keydown="handleInputBoxKeyDown"
+            @blur="$emit('blur')"
           />
         </div>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
           <template #title> Open link </template>
           <NcButton
+            :tabindex="tabIndex"
             :class="{
               '!text-gray-300 cursor-not-allowed': href.length === 0,
             }"
@@ -213,6 +223,7 @@ const onMountLinkOptions = (e) => {
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">
           <template #title> Delete link </template>
           <NcButton
+            :tabindex="tabIndex"
             class="!duration-0 !hover:(text-red-400 bg-red-50)"
             data-testid="nc-text-area-rich-link-options-open-delete"
             size="small"

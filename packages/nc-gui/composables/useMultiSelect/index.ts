@@ -820,6 +820,8 @@ export function useMultiSelect(
 
     if (clipboardData?.endsWith('\n')) {
       // Remove '\n' from the end of the clipboardData
+      // When copying from XLS/XLSX files, there is an extra '\n' appended to the end
+      //   this overwrites one additional cell information when we paste in NocoDB
       clipboardData = clipboardData.replace(/\n$/, '')
     }
 

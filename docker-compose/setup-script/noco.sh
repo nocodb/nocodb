@@ -194,29 +194,31 @@ cd "$FOLDER_NAME" || exit
 # ******************** INPUTS FROM USER START  ********************************
 # ******************************************************************************
 
-echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
-read EDITION
+echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
+read DOMAIN_NAME
 
-echo "Do you want to configure SSL [Y/N] (default: N): "
-read SSL_ENABLED
+echo "Show Advanced Options [Y/N] (default: N): "
+read -r ADVANCED_OPTIONS
 
+if [ "$ADVANCED_OPTIONS" == "Y" ]; then
+    ADVANCED_OPTIONS="y"
+fi
 
-if [ -n "$SSL_ENABLED" ] && { [ "$SSL_ENABLED" = "Y" ] || [ "$SSL_ENABLED" = "y" ]; }; then
-    SSL_ENABLED='y'
-    echo "Enter the domain name for the SSL certificate: "
-    read DOMAIN_NAME
-    if [ -z "$DOMAIN_NAME" ]; then
-        echo "Domain name is required for SSL configuration"
-        exit 1
-    fi
-    message_arr+=("Domain: $DOMAIN_NAME")
+if [ -n "$DOMAIN_NAME" ]; then
+  if [ "$ADVANCED_OPTIONS" == "y" ]; then
+    echo "Do you want to configure SSL [Y/N] (default: N): "
+    read SSL_ENABLED
+    message_arr+=("SSL: ${SSL_ENABLED}")
+  fi
 else
-    #  prompt for ip address and if left empty use extracted public ip
-    echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
-    read DOMAIN_NAME
-    if [ -z "$DOMAIN_NAME" ]; then
-        DOMAIN_NAME="$PUBLIC_IP"
-    fi
+    DOMAIN_NAME="$PUBLIC_IP"
+fi
+
+message_arr+=("Domain: $PUBLIC_IP")
+
+if [ "$ADVANCED_OPTIONS" == "y" ]; then
+    echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
+    read EDITION
 fi
 
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
@@ -229,8 +231,10 @@ if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; the
 fi
 
 
-echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
-read REDIS_ENABLED
+if [ "$ADVANCED_OPTIONS" == "y" ]; then
+  echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
+  read REDIS_ENABLED
+fi
 
 if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
     message_arr+=("Redis: Enabled")
@@ -239,8 +243,10 @@ else
 fi
 
 
-echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
-read WATCHTOWER_ENABLED
+if [ "$ADVANCED_OPTIONS" == "y" ]; then
+  echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
+  read WATCHTOWER_ENABLED
+fi
 
 if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then
     message_arr+=("Watchtower: Enabled")
@@ -248,20 +254,19 @@ else
     message_arr+=("Watchtower: Disabled")
 fi
 
-echo "Show Advanced Options [Y/N] (default: N): "
-read -r ADVANCED_OPTIONS
 
-if [ -n "$ADVANCED_OPTIONS" ] && { [ "$ADVANCED_OPTIONS" = "Y" ] || [ "$ADVANCED_OPTIONS" = "y" ]; }; then
+
+if [ "$ADVANCED_OPTIONS" = "Y" ] ; then
     NUM_CORES=$(nproc || sysctl -n hw.ncpu || echo 1)
     echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
     NUM_INSTANCES=$(read_number_range 1 "$NUM_CORES")
-
-    message_arr+=("Number of instances: $NUM_INSTANCES")
 fi
 
 if [ -z "$NUM_INSTANCES" ]; then
     NUM_INSTANCES=1
 fi
+
+message_arr+=("Number of instances: $NUM_INSTANCES")
 
 # ******************************************************************************
 # *********************** INPUTS FROM USER END  ********************************

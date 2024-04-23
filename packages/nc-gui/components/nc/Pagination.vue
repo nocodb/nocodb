@@ -77,6 +77,8 @@ const pagesList = computed(() => {
   }))
 })
 
+const variablePageSize = 150
+
 const pageSizeOptions = [
   {
     value: 25,
@@ -93,6 +95,10 @@ const pageSizeOptions = [
   {
     value: 100,
     label: '100 / page',
+  },
+  {
+    value: variablePageSize,
+    label: `${variablePageSize} / page`,
   },
 ]
 
@@ -120,14 +126,8 @@ const inputValue = ref('')
         <template v-if="props.firstPageTooltip" #title>
           {{ props.firstPageTooltip }}
         </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:first-page`]"
-          class="first-page"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === 1"
-          @click="goToFirstPage"
-        >
+        <NcButton v-e="[`a:pagination:${entityName}:first-page`]" class="first-page" type="secondary" size="xsmall"
+          :disabled="current === 1" @click="goToFirstPage">
           <GeneralIcon icon="doubleLeftArrow" class="nc-pagination-icon" />
         </NcButton>
       </component>
@@ -136,28 +136,15 @@ const inputValue = ref('')
         <template v-if="props.prevPageTooltip" #title>
           {{ props.prevPageTooltip }}
         </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:prev-page`]"
-          class="prev-page"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === 1"
-          @click="changePage({ increase: false })"
-        >
+        <NcButton v-e="[`a:pagination:${entityName}:prev-page`]" class="prev-page" type="secondary" size="xsmall"
+          :disabled="current === 1" @click="changePage({ increase: false })">
           <GeneralIcon icon="arrowLeft" class="nc-pagination-icon" />
         </NcButton>
       </component>
 
       <div v-if="!isMobileMode" class="text-gray-500">
-        <a-select
-          ref="pageListRef"
-          v-model:value="current"
-          class="!mr-[2px]"
-          :options="pagesList"
-          size="small"
-          dropdown-class-name="nc-pagination-dropdown"
-          @dropdown-visible-change="pageListDropdownVisibleChange"
-        >
+        <a-select ref="pageListRef" v-model:value="current" class="!mr-[2px]" :options="pagesList" size="small"
+          dropdown-class-name="nc-pagination-dropdown" @dropdown-visible-change="pageListDropdownVisibleChange">
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-expand-btn" />
           </template>
@@ -172,14 +159,8 @@ const inputValue = ref('')
         <template v-if="props.nextPageTooltip" #title>
           {{ props.nextPageTooltip }}
         </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:next-page`]"
-          class="next-page"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === totalPages"
-          @click="changePage({ increase: true })"
-        >
+        <NcButton v-e="[`a:pagination:${entityName}:next-page`]" class="next-page" type="secondary" size="xsmall"
+          :disabled="current === totalPages" @click="changePage({ increase: true })">
           <GeneralIcon icon="arrowRight" class="nc-pagination-icon" />
         </NcButton>
       </component>
@@ -188,28 +169,16 @@ const inputValue = ref('')
         <template v-if="props.lastPageTooltip" #title>
           {{ props.lastPageTooltip }}
         </template>
-        <NcButton
-          v-e="[`a:pagination:${entityName}:last-page`]"
-          class="last-page"
-          type="secondary"
-          size="xsmall"
-          :disabled="current === totalPages"
-          @click="goToLastPage"
-        >
+        <NcButton v-e="[`a:pagination:${entityName}:last-page`]" class="last-page" type="secondary" size="xsmall"
+          :disabled="current === totalPages" @click="goToLastPage">
           <GeneralIcon icon="doubleRightArrow" class="nc-pagination-icon" />
         </NcButton>
       </component>
     </template>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
-      <a-select
-        ref="pageSizeRef"
-        v-model:value="localPageSize"
-        class="!min-w-[110px]"
-        :options="pageSizeOptions"
-        size="small"
-        dropdown-class-name="nc-pagination-dropdown"
-        @dropdown-visible-change="pageSizeDropdownVisibleChange"
-      >
+      <a-select ref="pageSizeRef" v-model:value="localPageSize" class="!min-w-[110px]" :options="pageSizeOptions"
+        size="small" dropdown-class-name="nc-pagination-dropdown"
+        @dropdown-visible-change="pageSizeDropdownVisibleChange">
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-page-size-expand-btn" />
         </template>

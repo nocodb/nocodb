@@ -254,9 +254,7 @@ else
     message_arr+=("Watchtower: Disabled")
 fi
 
-
-
-if [ "$ADVANCED_OPTIONS" = "Y" ] ; then
+if [ "$ADVANCED_OPTIONS" = "y" ] ; then
     NUM_CORES=$(nproc || sysctl -n hw.ncpu || echo 1)
     echo  "How many instances of NocoDB do you want to run (Maximum: ${NUM_CORES}) ? (default: 1): "
     NUM_INSTANCES=$(read_number_range 1 "$NUM_CORES")

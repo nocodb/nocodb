@@ -195,7 +195,7 @@ cd "$FOLDER_NAME" || exit
 # ******************************************************************************
 
 echo "Enter the IP address or domain name for the NocoDB instance (default: $PUBLIC_IP): "
-read DOMAIN_NAME
+read -r DOMAIN_NAME
 
 echo "Show Advanced Options [Y/N] (default: N): "
 read -r ADVANCED_OPTIONS
@@ -207,7 +207,7 @@ fi
 if [ -n "$DOMAIN_NAME" ]; then
   if [ "$ADVANCED_OPTIONS" == "y" ]; then
     echo "Do you want to configure SSL [Y/N] (default: N): "
-    read SSL_ENABLED
+    read -r SSL_ENABLED
     message_arr+=("SSL: ${SSL_ENABLED}")
   fi
 else
@@ -218,7 +218,7 @@ message_arr+=("Domain: $PUBLIC_IP")
 
 if [ "$ADVANCED_OPTIONS" == "y" ]; then
     echo "Choose Community or Enterprise Edition [CE/EE] (default: CE): "
-    read EDITION
+    read -r EDITION
 fi
 
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
@@ -233,7 +233,7 @@ fi
 
 if [ "$ADVANCED_OPTIONS" == "y" ]; then
   echo "Do you want to enabled Redis for caching [Y/N] (default: Y): "
-  read REDIS_ENABLED
+  read -r REDIS_ENABLED
 fi
 
 if [ -z "$REDIS_ENABLED" ] || { [ "$REDIS_ENABLED" != "N" ] && [ "$REDIS_ENABLED" != "n" ]; }; then
@@ -245,7 +245,7 @@ fi
 
 if [ "$ADVANCED_OPTIONS" == "y" ]; then
   echo "Do you want to enabled Watchtower for automatic updates [Y/N] (default: Y): "
-  read WATCHTOWER_ENABLED
+  read -r WATCHTOWER_ENABLED
 fi
 
 if [ -z "$WATCHTOWER_ENABLED" ] || { [ "$WATCHTOWER_ENABLED" != "N" ] && [ "$WATCHTOWER_ENABLED" != "n" ]; }; then

@@ -267,6 +267,8 @@ useEventListener(
   true,
 )
 onClickOutside(editorDom, (e) => {
+  if (!isFocused.value) return
+
   const targetEl = e?.target as HTMLElement
 
   if (!targetEl?.closest('.bubble-menu,.tippy-content, .nc-textarea-rich-editor')) {

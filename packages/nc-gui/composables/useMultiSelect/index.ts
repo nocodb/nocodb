@@ -818,7 +818,7 @@ export function useMultiSelect(
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
-    if (clipboardData?.endsWith('\n') && !clipboardData?.endsWith('\n\n')) {
+    if (clipboardData?.endsWith('\n')) {
       // Remove '\n' from the end of the clipboardData
       clipboardData = clipboardData.replace(/\n$/, '')
     }

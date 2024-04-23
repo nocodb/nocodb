@@ -1,33 +1,14 @@
 import { nanoid } from 'nanoid';
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
-import axios from 'axios';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
-import { ExternalError } from '~/helpers/catchError';
+import { runExternal } from '~/helpers';
 
 const log = new Debug('SnowflakeClient');
 
 const isKnexWrapped = Symbol('isKnexWrapped');
-
-async function runExternal(query: string, config: any) {
-  const { dbMux, sourceId, ...rest } = config;
-
-  try {
-    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
-      query,
-      config: rest,
-      raw: true,
-    });
-    return data;
-  } catch (e) {
-    if (e.response?.data?.error) {
-      throw new ExternalError(e.response.data.error);
-    }
-    throw e;
-  }
-}
 
 const rowsToLower = (arr) => {
   for (const a of arr) {
@@ -59,7 +40,9 @@ class SnowflakeClient extends KnexClient {
 
             builder.then = function (onFulfilled, onRejected) {
               if (self.sqlClient && self.sqlClient.isExternal) {
-                return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                return runExternal(builder.toQuery(), self.sqlClient.extDb, {
+                  raw: true,
+                })
                   .then(onFulfilled)
                   .catch(onRejected);
               }

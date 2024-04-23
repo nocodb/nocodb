@@ -20,14 +20,12 @@ import {
   populatePk,
 } from 'src/db/BaseModelSqlv2';
 import DOMPurify from 'isomorphic-dompurify';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import conditionV2 from 'src/db/conditionV2';
 import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
-import { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, View } from '~/models';
@@ -41,41 +39,11 @@ import {
 import Noco from '~/Noco';
 import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
-import { ExternalError, NcError } from '~/helpers/catchError';
+import { NcError } from '~/helpers/catchError';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-
-const logger = new Logger('BaseModelSqlv2');
+import { runExternal } from '~/helpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
-
-async function runExternal(
-  query: string | string[],
-  config: any,
-  extraOptions: {
-    raw?: boolean;
-  } = {},
-) {
-  if (!config) {
-    logger.log(query);
-    throw new Error('External DB config not found');
-  }
-
-  const { dbMux, sourceId, ...rest } = config;
-
-  try {
-    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
-      query,
-      config: rest,
-      ...extraOptions,
-    });
-    return data;
-  } catch (e) {
-    if (e.response?.data?.error) {
-      throw new ExternalError(e.response.data.error);
-    }
-    throw e;
-  }
-}
 
 async function execAndGetRows(
   baseModel: BaseModelSqlv2,

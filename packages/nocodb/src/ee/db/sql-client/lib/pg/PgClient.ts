@@ -1,32 +1,13 @@
 import PGClientCE from 'src/db/sql-client/lib/pg/PgClient';
 import knex from 'knex';
 import find from 'lodash/find';
-import axios from 'axios';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
-import { ExternalError } from '~/helpers/catchError';
+import { runExternal } from '~/helpers';
 
 const log = new Debug('PGClient');
 
 const isKnexWrapped = Symbol('isKnexWrapped');
-
-async function runExternal(query: string, config: any) {
-  const { dbMux, sourceId, ...rest } = config;
-
-  try {
-    const { data } = await axios.post(`${dbMux}/query/${sourceId}`, {
-      query,
-      config: rest,
-      raw: true,
-    });
-    return data;
-  } catch (e) {
-    if (e.response?.data?.error) {
-      throw new ExternalError(e.response.data.error);
-    }
-    throw e;
-  }
-}
 
 class PGClient extends PGClientCE {
   constructor(connectionConfig) {
@@ -48,7 +29,9 @@ class PGClient extends PGClientCE {
 
             builder.then = function (onFulfilled, onRejected) {
               if (self.sqlClient && self.sqlClient.isExternal) {
-                return runExternal(builder.toQuery(), self.sqlClient.extDb)
+                return runExternal(builder.toQuery(), self.sqlClient.extDb, {
+                  raw: true,
+                })
                   .then(onFulfilled)
                   .catch(onRejected);
               }

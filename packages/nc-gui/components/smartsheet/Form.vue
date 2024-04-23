@@ -622,6 +622,7 @@ const formElementValidationRules = (element) => {
     {
       required: isRequired(element, element.required),
       message: t('msg.error.fieldRequired', { value: 'This field' }),
+      ...(element.uidt === UITypes.Checkbox && isRequired(element, element.required) ? { type: 'enum', enum: [1, true] } : {}),
     },
   ]
 

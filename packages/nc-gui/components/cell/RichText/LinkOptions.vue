@@ -6,12 +6,12 @@ import type { Mark } from 'prosemirror-model'
 
 const props = defineProps<Props>()
 
+const emits = defineEmits(['blur'])
+
 interface Props {
   editor: Editor
   isFormField?: boolean
 }
-
-const emits = defineEmits(['blur'])
 
 const { editor, isFormField } = toRefs(props)
 
@@ -194,15 +194,15 @@ const tabIndex = computed(() => {
         <div class="!border-1 !border-gray-200 !py-0.5 bg-gray-100 rounded-md !z-10 flex-1">
           <a-input
             ref="inputRef"
-            :tabindex="tabIndex"
             v-model:value="href"
+            :tabindex="tabIndex"
             class="nc-text-area-rich-link-option-input flex-1 !mx-0.5 !px-1.5 !py-0.5 !rounded-md z-10"
             :bordered="false"
             placeholder="Enter a link"
             @change="onChange"
             @press-enter="onInputBoxEnter"
             @keydown="handleInputBoxKeyDown"
-            @blur="$emit('blur')"
+            @blur="emits('blur')"
           />
         </div>
         <NcTooltip overlay-class-name="nc-text-area-rich-link-options">

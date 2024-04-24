@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
-import { runExternal } from '~/helpers';
+import { runExternal } from '~/helpers/muxHelpers';
 
 const log = new Debug('SnowflakeClient');
 

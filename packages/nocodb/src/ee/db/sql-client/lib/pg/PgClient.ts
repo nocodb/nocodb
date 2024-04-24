@@ -3,7 +3,7 @@ import knex from 'knex';
 import find from 'lodash/find';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
-import { runExternal } from '~/helpers';
+import { runExternal } from '~/helpers/muxHelpers';
 
 const log = new Debug('PGClient');
 

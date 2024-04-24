@@ -41,7 +41,7 @@ import getWorkspaceForBase from '~/utils/getWorkspaceForBase';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { NcError } from '~/helpers/catchError';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-import { runExternal } from '~/helpers';
+import { runExternal } from '~/helpers/muxHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 

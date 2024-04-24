@@ -1,7 +1,7 @@
 import MysqlClientCE from 'src/db/sql-client/lib/mysql/MysqlClient';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
-import { runExternal } from '~/helpers';
+import { runExternal } from '~/helpers/muxHelpers';
 
 const log = new Debug('MysqlClient');
 

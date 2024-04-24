@@ -1,5 +1,5 @@
 import useVuelidate from '@vuelidate/core'
-import { helpers, minLength, required } from '@vuelidate/validators'
+import { helpers, minLength, required, sameAs } from '@vuelidate/validators'
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type {
@@ -100,8 +100,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const fieldRequired = (fieldName = 'This field') =>
-    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
+  const fieldRequired = (fieldName = 'This field', isBoolean = false) =>
+    helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), isBoolean ? sameAs(true) : required)
 
   const formColumns = computed(() =>
     columns.value
@@ -217,7 +217,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
         obj.localState[column.title!] = {
-          required: fieldRequired(),
+          required: fieldRequired(undefined, column.uidt === UITypes.Checkbox && column.required ? true : false),
         }
       } else if (
         isLinksOrLTAR(column) &&

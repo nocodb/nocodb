@@ -189,7 +189,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
     </div>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
       <!-- Input and Button for entering a value -->
-      <input v-model="localPageSize" type="number" placeholder="Set custom row number" size="small" />
+      <input :value="localPageSize" @keyup.enter= "localPageSize" type="number" placeholder="Set custom row number" size="small" />
     </div>
   </div>
 </template>

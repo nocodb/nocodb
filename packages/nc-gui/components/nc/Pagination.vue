@@ -81,8 +81,6 @@ const pagesList = computed(() => {
   }))
 })
 
-const variablePageSize = 150
-
 const pageSizeOptions = [
   {
     value: 25,
@@ -100,11 +98,21 @@ const pageSizeOptions = [
     value: 100,
     label: '100 / page',
   },
-  {
-    value: variablePageSize,
-    label: `${variablePageSize} / page`,
-  },
 ]
+
+const pageSizeDefaults = pageSizeOptions.map((item) => item.value)
+
+const customPageValues = computed({
+  get: () => {
+    if (pageSizeDefaults.includes(localPageSize.value)) {
+      return ""
+    }
+    return localPageSize.value
+  },
+  set: (val) => {
+    localPageSize.value = val
+  },
+})
 
 const pageListRef = ref()
 const pageSizeRef = ref()
@@ -115,6 +123,7 @@ const pageListDropdownVisibleChange = (value: boolean) => {
   }
 }
 const pageSizeDropdownVisibleChange = (value: boolean) => {
+  console.log(localPageSize.value)
   if (!value && pageSizeRef.value) {
     pageSizeRef.value?.blur()
   }
@@ -189,7 +198,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
     </div>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
       <!-- Input and Button for entering a value -->
-      <input :value="localPageSize" @keyup.enter= "localPageSize" type="number" placeholder="Set custom row number" size="small" />
+      <input v-model.lazy="customPageValues" type="number" placeholder="Set custom page size" size="small" />
     </div>
   </div>
 </template>

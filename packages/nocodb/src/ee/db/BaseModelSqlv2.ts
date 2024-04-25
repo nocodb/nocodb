@@ -510,7 +510,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const res = await this.execAndParse(query, null, { first: true });
           if (res) {
             NcError.badRequest(
-              `Record with "${column.title}" = "${data[column.column_name]}" already exists`,
+              `Duplicate entry for '${data[column.column_name]}' in the field '${column.title}', violating the unique constraint.`
             );
           }
         }

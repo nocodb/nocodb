@@ -102,7 +102,7 @@ const pageSizeOptions = [
 
 const pageSizeDefaults = pageSizeOptions.map((item) => item.value)
 
-const customPageValues = computed({
+const customPageValue = computed({
   get: () => {
     if (pageSizeDefaults.includes(localPageSize.value)) {
       return ""
@@ -112,6 +112,18 @@ const customPageValues = computed({
   set: (val) => {
     localPageSize.value = val
   },
+})
+
+const customPageOption = computed({
+  get: () => {
+    if (pageSizeDefaults.includes(localPageSize.value)) {
+      return localPageSize.value
+    }
+    return localPageSize.value.toString().concat(" / page")
+  },
+  set: (val) => {
+    localPageSize.value = val
+  }
 })
 
 const pageListRef = ref()
@@ -188,7 +200,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
       </component>
     </template>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
-      <a-select ref="pageSizeRef" v-model:value="localPageSize" class="!min-w-[110px]" :options="pageSizeOptions"
+      <a-select ref="pageSizeRef" v-model:value="customPageOption" class="!min-w-[110px]" :options="pageSizeOptions"
         size="small" dropdown-class-name="nc-pagination-dropdown"
         @dropdown-visible-change="pageSizeDropdownVisibleChange">
         <template #suffixIcon>
@@ -198,7 +210,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
     </div>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
       <!-- Input and Button for entering a value -->
-      <input v-model.lazy="customPageValues" type="number" placeholder="Set custom page size" size="small" />
+      <input v-model.lazy="customPageValue" type="number" placeholder="Set custom page size" size="small" />
     </div>
   </div>
 </template>

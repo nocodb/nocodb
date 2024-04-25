@@ -48,12 +48,18 @@ export class CalendarWeekDateTimePage extends BasePage {
     const day = this.get().getByTestId('nc-calendar-week-day').nth(dayIndex);
 
     const hour = day.getByTestId('nc-calendar-week-hour').nth(hourIndex);
-    await hour.click({
-      force: true,
-      position: {
-        x: -1,
-        y: -1,
-      },
+
+    await this.waitForResponse({
+      uiAction: () =>
+        hour.click({
+          force: true,
+          position: {
+            x: -1,
+            y: -1,
+          },
+        }),
+      requestUrlPathToMatch: '/api/v1/db/data/noco',
+      httpMethodsToMatch: ['GET'],
     });
   }
 }

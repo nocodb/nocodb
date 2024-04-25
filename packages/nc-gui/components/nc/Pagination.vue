@@ -38,8 +38,12 @@ const localPageSize = computed({
     return pageSize.value
   },
   set: (val) => {
+    // reset to default value if user input is empty
+    if (!val) {
+      val = 25
+    }
+    console.log(val)
     setGridViewPageSize(val)
-
     pageSize.value = val
   },
 })
@@ -116,7 +120,6 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
   }
 }
 
-const inputValue = ref('')
 </script>
 
 <template>
@@ -186,7 +189,7 @@ const inputValue = ref('')
     </div>
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
       <!-- Input and Button for entering a value -->
-      <input v-model="inputValue" type="text" placeholder="Set custom row number" size="small" />
+      <input v-model="localPageSize" type="number" placeholder="Set custom row number" size="small" />
     </div>
   </div>
 </template>

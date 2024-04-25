@@ -500,6 +500,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async prepareNocoData(data, isInsertData = false, cookie?: { user?: any }) {
+    if (this.isDatabricks) {
+      for (const column of this.model.columns) {
+        if (column.unique && data[column.column_name]) {
+          const query = this.dbDriver(this.tnPath)
+            .select(1)
+            .where(column.column_name, data[column.column_name])
+            .limit(1);
+          const res = await this.execAndParse(query, null, { first: true });
+          if (res) {
+            NcError.badRequest(
+              `Record with "${column.title}" = "${data[column.column_name]}" already exists`,
+            );
+          }
+        }
+      }
+    }
+
     return super.prepareNocoData(data, isInsertData, cookie);
   }
 

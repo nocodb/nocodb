@@ -441,6 +441,14 @@ export class GridPage extends BasePage {
     return this.get().locator('.cell.active').count();
   }
 
+  async getActiveCell() {
+    return this.get().locator('.cell.active');
+  }
+
+  async verifySelectedCellCount({ count }: { count: number }) {
+    await expect(this.get().locator('.cell.active')).toHaveCount(count);
+  }
+
   async copyWithKeyboard() {
     // retry to avoid flakiness, until text is copied to clipboard
     //

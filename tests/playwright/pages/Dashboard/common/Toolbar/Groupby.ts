@@ -49,8 +49,12 @@ export class ToolbarGroupByPage extends BasePage {
       .locator(`div[label="${title}"]`)
       .last()
       .click();
+
+    //kludge: wait for rendering to stabilize
+    await this.rootPage.waitForTimeout(1000);
+
     await this.rootPage.locator('.nc-sort-dir-select').nth(index).waitFor({ state: 'visible' });
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click();
+    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click({ force: true });
     await this.rootPage
       .locator('.nc-dropdown-sort-dir')
       .last()

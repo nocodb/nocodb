@@ -30,10 +30,16 @@ export class CalendarSideMenuPage extends BasePage {
   }
 
   async verifySideBarRecords({ records }: { records: string[] }) {
-    const sideBar = this.get().getByTestId('nc-calendar-side-menu-list');
+    let attempts = 0;
+    let sideBarRecords: Locator;
+    while (attempts++ < 5) {
+      const sideBar = this.get().getByTestId('nc-calendar-side-menu-list');
+      sideBarRecords = sideBar.getByTestId('nc-sidebar-record-card');
 
-    const sideBarRecords = await sideBar.getByTestId('nc-sidebar-record-card');
-
+      if ((await sideBarRecords.count()) === records.length) break;
+      // wait for records to load
+      await this.rootPage.waitForTimeout(200 * attempts);
+    }
     await expect(sideBarRecords).toHaveCount(records.length);
 
     for (let i = 0; i < records.length; i++) {

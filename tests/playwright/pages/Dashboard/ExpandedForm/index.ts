@@ -130,7 +130,6 @@ export class ExpandedFormPage extends BasePage {
     // removing focus from toast
     await this.rootPage.locator('.nc-modal').click();
     await this.get().press('Escape');
-    await this.get().press('Escape');
     await this.get().waitFor({ state: 'hidden' });
   }
 

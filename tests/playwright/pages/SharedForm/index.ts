@@ -25,7 +25,7 @@ export class SharedFormPage extends BasePage {
   }
 
   async verifySuccessMessage() {
-    await this.rootPage.locator('.nc-shared-form-success-msg').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-shared-form-success-msg').waitFor({ state: 'visible', timeout: 10000 });
     await expect(
       this.get().locator('.ant-alert-success', {
         hasText: 'Successfully submitted form data',

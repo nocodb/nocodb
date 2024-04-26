@@ -1,27 +1,27 @@
 <script setup lang="ts">
 import {
-  useColumnCreateStoreOrThrow,
-  useVModel,
-  computed,
-  inject,
-  MetaInj,
-  ref,
-  useI18n,
-  useBase,
-  useBases,
-  storeToRefs,
-  useMetas,
-} from '#imports'
-import {
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isVirtualCol,
   ModelTypes,
   RelationTypes,
   type TableType,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isVirtualCol,
 } from 'nocodb-sdk'
 import { useTable } from '../../../composables/useTable'
 import { useTablesStore } from '../../../store/tables'
+import {
+  MetaInj,
+  computed,
+  inject,
+  ref,
+  storeToRefs,
+  useBase,
+  useBases,
+  useColumnCreateStoreOrThrow,
+  useI18n,
+  useMetas,
+  useVModel,
+} from '#imports'
 
 const props = defineProps<{
   value: any
@@ -63,14 +63,14 @@ const sourceColumn = computed(() => {
   return meta?.value?.columns?.find((f) => vModel.value.custom?.column_id === f.id)
 })
 
-/*const refTables = computed(() =>{
+/* const refTables = computed(() =>{
 
   if (!tables.value || !tables.value.length) {
     return []
   }
 
   return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
-})*/
+}) */
 
 const refTables = computed(() => {
   if (!baseTables.value.get(vModel.value.custom.base_id)) {
@@ -198,6 +198,11 @@ watch(pkColumn, () => {
     }
   }
 })
+
+const { sqlUis } = storeToRefs(useBase())
+
+const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
+
 </script>
 
 <template>
@@ -209,7 +214,7 @@ watch(pkColumn, () => {
 
         <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-base">
           <NcSelect
-            suffixIcon="chevronDown"
+            suffix-icon="chevronDown"
             :value="meta.base_id"
             show-search
             :filter-option="filterOption"
@@ -234,7 +239,7 @@ watch(pkColumn, () => {
 
         <a-form-item class="nc-relation-settings-table-row disabled nc-ltar-source-table">
           <NcSelect
-            suffixIcon="chevronDown"
+            suffix-icon="chevronDown"
             :value="activeTable?.id"
             show-search
             :filter-option="filterOption"
@@ -258,15 +263,15 @@ watch(pkColumn, () => {
         </a-form-item>
         <a-form-item class="nc-relation-settings-table-row nc-ltar-source-column" v-bind="validateInfos['custom.column_id']">
           <NcSelect
-            suffixIcon="chevronDown"
             v-model:value="vModel.custom.column_id"
+            suffix-icon="chevronDown"
             show-search
             placeholder="-select field-"
             :filter-option="filterOption"
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-column"
-            @change="onSourceColumnChange"
             data-testid="custom-link-source-column-id"
+            @change="onSourceColumnChange"
           >
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
               <div class="flex w-full items-center gap-2">
@@ -297,15 +302,14 @@ watch(pkColumn, () => {
           <div class="nc-relation-settings-table-header">Junction</div>
           <a-form-item class="nc-relation-settings-table-row nc-ltar-junction-base">
             <NcSelect
-              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_base_id"
+              suffix-icon="chevronDown"
               show-search
               :filter-option="filterOption"
               :bordered="false"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-junction-base !rounded-md"
-              @change="onBaseChange(vModel.custom.junc_base_id, true)"
               data-testid="custom-link-junction-base-id"
-
+              @change="onBaseChange(vModel.custom.junc_base_id, true)"
             >
               <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
                 <div class="flex w-full items-center gap-2">
@@ -325,15 +329,15 @@ watch(pkColumn, () => {
             v-bind="validateInfos['custom.junc_model_id']"
           >
             <NcSelect
-              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_model_id"
+              suffix-icon="chevronDown"
               show-search
               placeholder="-select table-"
               :bordered="false"
               :filter-option="filterOption"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-junction-table"
-              @change="onModelIdChange(vModel.custom.junc_model_id, true)"
               data-testid="custom-link-junction-table-id"
+              @change="onModelIdChange(vModel.custom.junc_model_id, true)"
             >
               <a-select-option v-for="table of junctionTables" :key="table.title" :value="table.id">
                 <div class="flex w-full items-center gap-2">
@@ -354,21 +358,21 @@ watch(pkColumn, () => {
             v-bind="validateInfos['custom.junc_column_id']"
           >
             <NcSelect
-              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_column_id"
+              suffix-icon="chevronDown"
               show-search
               placeholder="-select field-"
               :bordered="false"
               :filter-option="filterOption"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-source-junction-column"
-              @change="onDataTypeChange"
               data-testid="custom-link-junction-source-column-id"
+              @change="onDataTypeChange"
             >
               <a-select-option
                 v-for="column of juncTableColumns"
                 :key="column.title"
                 :value="column.id"
-                :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
+                :disabled="!sqlUi.isEqual(sourceColumn?.dt, column.dt) || vModel.custom.column_id === column.id"
               >
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
@@ -379,9 +383,9 @@ watch(pkColumn, () => {
                     ></SmartsheetHeaderVirtualCellIcon>
                     <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                   </div>
-                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sourceColumn?.dt === column.dt">
+                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                     <template #title>{{
-                      sourceColumn?.dt === column.dt ? column.title : `Incompatible with column '${sourceColumn?.title}'`
+                      sqlUi.isEqual(sourceColumn?.dt, column.dt) ? column.title : `Incompatible with column '${sourceColumn?.title}'`
                     }}</template>
                     <span>{{ column.title }}</span>
                   </NcTooltip>
@@ -399,21 +403,21 @@ watch(pkColumn, () => {
             v-bind="validateInfos['custom.junc_ref_column_id']"
           >
             <NcSelect
-              suffixIcon="chevronDown"
               v-model:value="vModel.custom.junc_ref_column_id"
+              suffix-icon="chevronDown"
               show-search
               placeholder="-select field-"
               :bordered="false"
               :filter-option="filterOption"
               dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-junction-column"
-              @change="onDataTypeChange"
               data-testid="custom-link-junction-target-column-id"
+              @change="onDataTypeChange"
             >
               <a-select-option
                 v-for="column of juncTableColumns"
                 :key="column.title"
                 :value="column.id"
-                :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
+                :disabled="!sqlUi.isEqual(sourceColumn?.dt, column.dt) || vModel.custom.column_id === column.id"
               >
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
@@ -424,11 +428,15 @@ watch(pkColumn, () => {
                     ></SmartsheetHeaderVirtualCellIcon>
                     <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                   </div>
-                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sourceColumn?.dt === column.dt">
+                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                     <template #title>{{
-                      sourceColumn?.dt === column.dt ? column.title : `Incompatible with column '${sourceColumn?.title}'`
+                      !sqlUi.isEqual(sourceColumn?.dt, column.dt) ? column.title : `Incompatible with column '${sourceColumn?.title}'`
                     }}</template>
-                    <span>{{ column.title }}</span>
+                    <span
+                      >{{ column.title }}
+
+                      {{ sourceColumn?.dt }} !== {{ column.dt }}
+                    </span>
                   </NcTooltip>
                 </div>
               </a-select-option>
@@ -457,14 +465,14 @@ watch(pkColumn, () => {
 
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-base">
           <NcSelect
-            suffixIcon="chevronDown"
             v-model:value="vModel.custom.base_id"
+            suffix-icon="chevronDown"
             show-search
             :filter-option="filterOption"
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-base"
-            @change="onBaseChange(vModel.custom.base_id)"
             data-testid="custom-link-target-base-id"
+            @change="onBaseChange(vModel.custom.base_id)"
           >
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
@@ -482,15 +490,15 @@ watch(pkColumn, () => {
 
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-table" v-bind="validateInfos['custom.ref_model_id']">
           <NcSelect
-            suffixIcon="chevronDown"
             v-model:value="vModel.custom.ref_model_id"
+            suffix-icon="chevronDown"
             show-search
             placeholder="-select table-"
             :filter-option="filterOption"
             :bordered="false"
             dropdown-class-name="nc-relation-settings-select nc-dropdown-ltar-child-table"
-            @change="onModelIdChange(vModel.custom.ref_model_id)"
             data-testid="custom-link-target-table-id"
+            @change="onModelIdChange(vModel.custom.ref_model_id)"
           >
             <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
               <div class="flex w-full items-center gap-2">
@@ -507,8 +515,8 @@ watch(pkColumn, () => {
         </a-form-item>
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-column" v-bind="validateInfos['custom.ref_column_id']">
           <NcSelect
-            suffixIcon="chevronDown"
             v-model:value="vModel.custom.ref_column_id"
+            suffix-icon="chevronDown"
             show-search
             placeholder="-select field-"
             :filter-option="filterOption"
@@ -521,7 +529,7 @@ watch(pkColumn, () => {
               v-for="column of refTableColumns"
               :key="column.title"
               :value="column.id"
-              :disabled="sourceColumn?.dt !== column.dt || vModel.custom.column_id === column.id"
+              :disabled="!sqlUi.isEqual(sourceColumn?.dt, column.dt) || vModel.custom.column_id === column.id"
             >
               <div class="flex w-full items-center gap-2">
                 <div class="flex items-center justify-center">
@@ -532,11 +540,11 @@ watch(pkColumn, () => {
                   ></SmartsheetHeaderVirtualCellIcon>
                   <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
                 </div>
-                <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sourceColumn?.dt === column.dt">
+                <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                   <template #title>{{
-                    sourceColumn?.dt === column.dt ? column.title : `Incompatible with column '${sourceColumn?.title}'`
+                    sqlUi.isEqual(sourceColumn?.dt, column.dt) ? column.title : `Incompatible with column '${sourceColumn?.title}'`
                   }}</template>
-                  <span>{{ column.title }}</span>
+                  <span>{{ column.title }} </span>
                 </NcTooltip>
               </div>
             </a-select-option>

@@ -28,4 +28,12 @@ test.describe('Grid pagination', () => {
     await dashboard.grid.clickPagination({ type: 'prev-page' });
     await dashboard.grid.verifyActivePage({ pageNumber: '1' });
   });
+
+  // Make a test to change pagination limit based on new changes
+  test.only('Change pagination limit', async () => {
+    // await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.grid.enterPaginationLimit({ input: '30' });
+    await dashboard.grid.verifyPageRowCount({ count: 30 });
+  });
 });

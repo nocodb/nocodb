@@ -356,6 +356,17 @@ export class GridPage extends BasePage {
     }
   }
 
+  async enterPaginationLimit({ input }: { input: string }) {
+    await this.get().locator('[placeholder="Set custom page size"]').fill(input);
+    await this.rootPage.keyboard.press('Enter');
+    await this.waitLoading();
+  }
+
+  async verifyPageRowCount({ count }: { count: number }) {
+    const pageRowCount = await this.get().locator('.nc-grid-row').count();
+    expect(pageRowCount).toEqual(count);
+  }
+
   async verifyActivePage({ pageNumber }: { pageNumber: string }) {
     if (await this.get().locator('.nc-pagination').isHidden()) {
       expect(1).toBe(+pageNumber);
